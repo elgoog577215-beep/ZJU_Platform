@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const wechatMpAdminService = require('./wechatMpAdminService');
+const { recordWechatParseRun } = require('./wechatParseAuditService');
 
 const DEFAULT_SETTINGS = Object.freeze({
   enabled: false,
@@ -13,6 +14,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   count_per_page: 20,
   max_pages: 1,
   fetch_content: true,
+  auto_parse: true,
 });
 
 let activeRun = null;
@@ -97,6 +99,7 @@ const normalizeSettings = (row = {}) => {
     count_per_page: toInt(row.count_per_page, DEFAULT_SETTINGS.count_per_page, 1, 100),
     max_pages: toInt(row.max_pages, DEFAULT_SETTINGS.max_pages, 1, 5),
     fetch_content: toBool(row.fetch_content, DEFAULT_SETTINGS.fetch_content),
+    auto_parse: toBool(row.auto_parse, DEFAULT_SETTINGS.auto_parse),
     updated_at: row.updated_at || null,
   };
 };
@@ -117,6 +120,7 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       count_per_page INTEGER DEFAULT 20,
       max_pages INTEGER DEFAULT 1,
       fetch_content INTEGER DEFAULT 1,
+      auto_parse INTEGER DEFAULT 1,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -157,6 +161,10 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       content_html TEXT DEFAULT '',
       images_json TEXT DEFAULT '[]',
       content_status TEXT DEFAULT 'not_fetched',
+      extraction_status TEXT DEFAULT 'not_started',
+      extracted_event_json TEXT DEFAULT '',
+      extraction_error TEXT DEFAULT '',
+      extracted_at DATETIME,
       first_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       fetched_at DATETIME,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -177,7 +185,9 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       total_articles INTEGER DEFAULT 0,
       new_articles INTEGER DEFAULT 0,
       fetched_contents INTEGER DEFAULT 0,
+      extracted_articles INTEGER DEFAULT 0,
       failed_count INTEGER DEFAULT 0,
+      extraction_failed_count INTEGER DEFAULT 0,
       error TEXT DEFAULT '',
       options_json TEXT DEFAULT '{}',
       created_by INTEGER
@@ -188,6 +198,10 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
   `);
   const columns = await db.all('PRAGMA table_info(wechat_mp_ingest_settings)');
   const hasPagePauseRange = columns.some((column) => column.name === 'page_pause_range');
+  const hasAutoParse = columns.some((column) => column.name === 'auto_parse');
+  if (!hasAutoParse) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_settings ADD COLUMN auto_parse INTEGER DEFAULT 1');
+  }
   if (!hasPagePauseRange) {
     await db.exec(`ALTER TABLE wechat_mp_ingest_settings ADD COLUMN page_pause_range TEXT DEFAULT '[10,25]'`);
     await db.run(`
@@ -223,6 +237,28 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
        OR page_pause_range = ''
        OR replace(page_pause_range, ' ', '') IN ('[3,3]', '[3]', '3')
   `);
+  const articleColumns = await db.all('PRAGMA table_info(wechat_mp_ingest_articles)');
+  const articleColumnNames = new Set(articleColumns.map((column) => column.name));
+  if (!articleColumnNames.has('extraction_status')) {
+    await db.exec("ALTER TABLE wechat_mp_ingest_articles ADD COLUMN extraction_status TEXT DEFAULT 'not_started'");
+  }
+  if (!articleColumnNames.has('extracted_event_json')) {
+    await db.exec("ALTER TABLE wechat_mp_ingest_articles ADD COLUMN extracted_event_json TEXT DEFAULT ''");
+  }
+  if (!articleColumnNames.has('extraction_error')) {
+    await db.exec("ALTER TABLE wechat_mp_ingest_articles ADD COLUMN extraction_error TEXT DEFAULT ''");
+  }
+  if (!articleColumnNames.has('extracted_at')) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_articles ADD COLUMN extracted_at DATETIME');
+  }
+  const runColumns = await db.all('PRAGMA table_info(wechat_mp_ingest_runs)');
+  const runColumnNames = new Set(runColumns.map((column) => column.name));
+  if (!runColumnNames.has('extracted_articles')) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_runs ADD COLUMN extracted_articles INTEGER DEFAULT 0');
+  }
+  if (!runColumnNames.has('extraction_failed_count')) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_runs ADD COLUMN extraction_failed_count INTEGER DEFAULT 0');
+  }
   await db.run(`
     UPDATE wechat_mp_ingest_settings
     SET content_delay_range = '[10,20]'
@@ -233,8 +269,8 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
   await db.run(`
     INSERT OR IGNORE INTO wechat_mp_ingest_settings (
       id, enabled, daily_run_time, timezone, query_delay_range,
-      page_pause_range, page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content
-    ) VALUES (1, 0, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1)
+      page_pause_range, page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content, auto_parse
+    ) VALUES (1, 0, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1, 1)
   `);
 };
 
@@ -260,6 +296,7 @@ const updateIngestSettings = async (db, payload = {}) => {
         count_per_page = ?,
         max_pages = ?,
         fetch_content = ?,
+        auto_parse = ?,
         updated_at = datetime('now')
     WHERE id = 1
   `, [
@@ -273,6 +310,7 @@ const updateIngestSettings = async (db, payload = {}) => {
     next.count_per_page,
     next.max_pages,
     next.fetch_content ? 1 : 0,
+    next.auto_parse ? 1 : 0,
   ]);
   return getIngestSettings(db);
 };
@@ -505,15 +543,22 @@ const listIngestRuns = async (db, { limit = 20 } = {}) => {
   `, [Math.min(Math.max(Number.parseInt(limit, 10) || 20, 1), 100)]);
 };
 
+const serializeIngestArticle = (row) => ({
+  ...row,
+  images: parseJson(row.images_json, []),
+  extracted_event: parseJson(row.extracted_event_json, null),
+});
+
 const listIngestArticles = async (db, { limit = 50 } = {}) => {
   await ensureWechatMpScheduledIngestSchema(db);
-  return db.all(`
+  const rows = await db.all(`
     SELECT a.*, acc.name AS account_name
     FROM wechat_mp_ingest_articles a
     LEFT JOIN wechat_mp_ingest_accounts acc ON acc.id = a.account_id
     ORDER BY a.first_seen_at DESC, a.id DESC
     LIMIT ?
   `, [Math.min(Math.max(Number.parseInt(limit, 10) || 50, 1), 200)]);
+  return rows.map(serializeIngestArticle);
 };
 
 const upsertArticle = async (db, { account, article, content }) => {
@@ -522,19 +567,20 @@ const upsertArticle = async (db, { account, article, content }) => {
   const existing = await db.get('SELECT * FROM wechat_mp_ingest_articles WHERE link = ?', [link]);
   const contentStatus = content?.content_status || article.content_status || 'not_fetched';
   const imagesJson = stringifyArray(content?.images || []);
+  const contentText = String(content?.contentText || content?.content_text || '').trim();
   if (existing) {
-    if (content?.contentText && !existing.content_text) {
+    if (contentText && !existing.content_text) {
       await db.run(`
         UPDATE wechat_mp_ingest_articles
         SET content_text = ?, content_html = ?, images_json = ?, content_status = ?,
             fetched_at = datetime('now'), updated_at = datetime('now')
         WHERE id = ?
-      `, [content.contentText, content.contentHtml || '', imagesJson, contentStatus, existing.id]);
+      `, [contentText, content?.contentHtml || '', imagesJson, contentStatus, existing.id]);
     }
-    return { inserted: false, skipped: false };
+    return { inserted: false, skipped: false, id: existing.id };
   }
 
-  await db.run(`
+  const result = await db.run(`
     INSERT INTO wechat_mp_ingest_articles (
       account_id, fakeid, title, link, summary, author, cover, create_time,
       time_text, content_text, content_html, images_json, content_status,
@@ -550,13 +596,117 @@ const upsertArticle = async (db, { account, article, content }) => {
     article.cover || content?.coverImage || '',
     article.create_time || '',
     article.time_text || '',
-    content?.contentText || '',
+    contentText,
     content?.contentHtml || '',
     imagesJson,
     contentStatus,
-    content?.contentText ? new Date().toISOString() : null,
+    contentText ? new Date().toISOString() : null,
   ]);
-  return { inserted: true, skipped: false };
+  return { inserted: true, skipped: false, id: result.lastID };
+};
+
+const updateArticleExtraction = async (db, articleId, {
+  status,
+  parsed = null,
+  error = '',
+} = {}) => {
+  await db.run(`
+    UPDATE wechat_mp_ingest_articles
+    SET extraction_status = ?,
+        extracted_event_json = ?,
+        extraction_error = ?,
+        extracted_at = ?,
+        updated_at = datetime('now')
+    WHERE id = ?
+  `, [
+    status,
+    parsed ? JSON.stringify(parsed) : '',
+    String(error || '').slice(0, 2000),
+    status === 'completed' ? new Date().toISOString() : null,
+    articleId,
+  ]);
+};
+
+const extractArticleRecord = async (db, article, {
+  parser = null,
+  audit = recordWechatParseRun,
+  userId = null,
+} = {}) => {
+  const content = String(article?.content_text || '').trim();
+  if (!content) {
+    return { status: 'not_started', parsed: null, skipped: true };
+  }
+
+  await updateArticleExtraction(db, article.id, { status: 'processing' });
+  try {
+    const parseArticle = parser || require('../utils/wechat').parseWithLLM;
+    const parsed = await parseArticle({
+      title: article.title || 'Untitled',
+      author: article.author || article.account_name || 'Unknown',
+      content,
+      coverImage: article.cover || '',
+    }, { db });
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('公众号文章信息提取返回为空');
+    }
+
+    await updateArticleExtraction(db, article.id, { status: 'completed', parsed });
+    await audit({
+      status: 'completed',
+      userId,
+      contentLength: content.length,
+      modelUsed: true,
+      provider: parsed.aiMeta?.provider,
+      model: parsed.aiMeta?.model,
+      runtimeTelemetry: parsed.aiMeta?.runtimeTelemetry,
+      hasCoverImage: Boolean(article.cover),
+      category: parsed.category,
+      isCollegeNotice: parsed.is_college_notice,
+      noticeType: parsed.notice_type,
+      sourceCollege: parsed.source_college,
+    }, db);
+    return { status: 'completed', parsed, skipped: false };
+  } catch (error) {
+    const errorMessage = error?.message || String(error);
+    await updateArticleExtraction(db, article.id, {
+      status: 'failed',
+      error: errorMessage,
+    });
+    await audit({
+      status: 'failed',
+      userId,
+      contentLength: content.length,
+      modelUsed: false,
+      errorCode: error?.code || errorMessage,
+    }, db);
+    return { status: 'failed', parsed: null, skipped: false, error: errorMessage };
+  }
+};
+
+const extractIngestArticle = async (db, articleId, options = {}) => {
+  await ensureWechatMpScheduledIngestSchema(db);
+  const parsedId = Number.parseInt(articleId, 10);
+  if (!Number.isFinite(parsedId) || parsedId <= 0) {
+    const error = new Error('公众号增量文章 ID 无效');
+    error.status = 400;
+    throw error;
+  }
+  const article = await db.get(`
+    SELECT a.*, acc.name AS account_name
+    FROM wechat_mp_ingest_articles a
+    LEFT JOIN wechat_mp_ingest_accounts acc ON acc.id = a.account_id
+    WHERE a.id = ?
+  `, [parsedId]);
+  if (!article) {
+    const error = new Error('公众号增量文章不存在');
+    error.status = 404;
+    throw error;
+  }
+  const result = await extractArticleRecord(db, article, options);
+  return {
+    ...result,
+    article: serializeIngestArticle(await db.get('SELECT * FROM wechat_mp_ingest_articles WHERE id = ?', [parsedId])),
+  };
 };
 
 const executeIngestRun = async (db, {
@@ -566,6 +716,8 @@ const executeIngestRun = async (db, {
   settings,
   runtime,
   wechatApi = wechatMpAdminService,
+  parser = null,
+  audit = recordWechatParseRun,
 } = {}) => {
   await ensureWechatMpScheduledIngestSchema(db);
   const effectiveSettings = settings || await getIngestSettings(db);
@@ -573,7 +725,9 @@ const executeIngestRun = async (db, {
   let totalArticles = 0;
   let newArticles = 0;
   let fetchedContents = 0;
+  let extractedArticles = 0;
   let failedCount = 0;
+  let extractionFailedCount = 0;
   const createdRunId = runId || await createRun(db, { triggerType, userId, settings: effectiveSettings });
 
   try {
@@ -616,6 +770,23 @@ const executeIngestRun = async (db, {
         }
         const saved = await upsertArticle(db, { account, article, content });
         if (saved.inserted) newArticles += 1;
+        if (effectiveSettings.auto_parse && saved.id) {
+          const storedArticle = await db.get(`
+            SELECT a.*, acc.name AS account_name
+            FROM wechat_mp_ingest_articles a
+            LEFT JOIN wechat_mp_ingest_accounts acc ON acc.id = a.account_id
+            WHERE a.id = ?
+          `, [saved.id]);
+          if (storedArticle?.content_text && storedArticle.extraction_status !== 'completed') {
+            const extraction = await extractArticleRecord(db, storedArticle, {
+              parser,
+              audit,
+              userId,
+            });
+            if (extraction.status === 'completed') extractedArticles += 1;
+            if (extraction.status === 'failed') extractionFailedCount += 1;
+          }
+        }
       }
       await db.run(
         'UPDATE wechat_mp_ingest_accounts SET last_checked_at = datetime(\'now\'), updated_at = datetime(\'now\') WHERE id = ?',
@@ -631,9 +802,20 @@ const executeIngestRun = async (db, {
           total_articles = ?,
           new_articles = ?,
           fetched_contents = ?,
-          failed_count = ?
+          extracted_articles = ?,
+          failed_count = ?,
+          extraction_failed_count = ?
       WHERE id = ?
-    `, [accounts.length, totalArticles, newArticles, fetchedContents, failedCount, createdRunId]);
+    `, [
+      accounts.length,
+      totalArticles,
+      newArticles,
+      fetchedContents,
+      extractedArticles,
+      failedCount,
+      extractionFailedCount,
+      createdRunId,
+    ]);
   } catch (error) {
     await db.run(`
       UPDATE wechat_mp_ingest_runs
@@ -643,10 +825,22 @@ const executeIngestRun = async (db, {
           total_articles = ?,
           new_articles = ?,
           fetched_contents = ?,
+          extracted_articles = ?,
           failed_count = ?,
+          extraction_failed_count = ?,
           error = ?
       WHERE id = ?
-    `, [accounts.length, totalArticles, newArticles, fetchedContents, failedCount + 1, error.message || String(error), createdRunId]);
+    `, [
+      accounts.length,
+      totalArticles,
+      newArticles,
+      fetchedContents,
+      extractedArticles,
+      failedCount + 1,
+      extractionFailedCount,
+      error.message || String(error),
+      createdRunId,
+    ]);
   }
 
   return getRun(db, createdRunId);
@@ -739,6 +933,8 @@ module.exports = {
   deleteIngestAccount,
   ensureWechatMpScheduledIngestSchema,
   executeIngestRun,
+  extractArticleRecord,
+  extractIngestArticle,
   getIngestSettings,
   getZonedDateTimeKey,
   importIngestAccountsFromFile,
@@ -753,6 +949,7 @@ module.exports = {
   startWechatMpIngestRun,
   startWechatMpIngestScheduler,
   stopWechatMpIngestScheduler,
+  serializeIngestArticle,
   updateIngestSettings,
   upsertIngestAccount,
 };

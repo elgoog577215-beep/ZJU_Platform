@@ -2782,7 +2782,8 @@
         "save_ingest": "Save Schedule",
         "add_account": "Add Account",
         "import_accounts": "Import List",
-        "delete_account": "Delete Account"
+        "delete_account": "Delete Account",
+        "retry_extraction": "Retry extraction"
       },
       "notes": {
         "ready": "You are logged in and can start importing articles.",
@@ -2872,7 +2873,19 @@
           "page_pause": "Page interval",
           "content_delay": "Body interval",
           "fetch_content": "Fetch article bodies",
+          "auto_parse": "Extract event information automatically",
           "account_enabled": "Enable this account"
+        },
+        "content_status": {
+          "not_fetched": "Body not fetched",
+          "fetched": "Body fetched",
+          "empty": "Empty body"
+        },
+        "extraction_status": {
+          "not_started": "Not extracted",
+          "processing": "Extracting",
+          "completed": "Extracted",
+          "failed": "Extraction failed"
         },
         "placeholders": {
           "account_name": "Official account name",
@@ -2963,7 +2976,9 @@
         "ingest_imported": "Imported {{count}} accounts",
         "ingest_import_failed": "Failed to import account list",
         "ingest_started": "Incremental ingest started",
-        "ingest_start_failed": "Failed to start incremental ingest"
+        "ingest_start_failed": "Failed to start incremental ingest",
+        "ingest_extraction_completed": "Article information extracted",
+        "ingest_extraction_failed": "Failed to extract article information"
       }
     }
   },

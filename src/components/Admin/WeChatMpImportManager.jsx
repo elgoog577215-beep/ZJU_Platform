@@ -186,6 +186,7 @@ const WeChatMpImportManager = () => {
   const [ingestLoading, setIngestLoading] = useState(true);
   const [ingestSaving, setIngestSaving] = useState(false);
   const [ingestRunning, setIngestRunning] = useState(false);
+  const [extractingIngestArticleId, setExtractingIngestArticleId] = useState(null);
   const [ingestImporting, setIngestImporting] = useState(false);
   const [ingestFile, setIngestFile] = useState(null);
   const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
@@ -569,6 +570,20 @@ const WeChatMpImportManager = () => {
       toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_start_failed"), i18n.resolvedLanguage));
     } finally {
       setIngestRunning(false);
+    }
+  };
+
+  const retryIngestArticleExtraction = async (article) => {
+    if (!article?.id) return;
+    setExtractingIngestArticleId(article.id);
+    try {
+      await api.post(`/admin/wechat-mp/ingest/articles/${article.id}/parse`, {}, { noRetry: true });
+      await loadIngestOverview({ silent: true });
+      toast.success(t("admin.wechat_mp.toasts.ingest_extraction_completed"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_extraction_failed"), i18n.resolvedLanguage));
+    } finally {
+      setExtractingIngestArticleId(null);
     }
   };
 
@@ -1080,15 +1095,26 @@ const WeChatMpImportManager = () => {
                     className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                   />
                 </label>
-                <label className={clsx("mt-7 inline-flex items-center gap-2 text-sm", subtleTextClass)}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(ingestSettings.fetch_content)}
-                    onChange={(event) => updateIngestSetting("fetch_content", event.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                  />
-                  {t("admin.wechat_mp.ingest.fields.fetch_content")}
-                </label>
+                <div className={clsx("mt-7 space-y-2 text-sm", subtleTextClass)}>
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(ingestSettings.fetch_content)}
+                      onChange={(event) => updateIngestSetting("fetch_content", event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                    />
+                    {t("admin.wechat_mp.ingest.fields.fetch_content")}
+                  </label>
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(ingestSettings.auto_parse)}
+                      onChange={(event) => updateIngestSetting("auto_parse", event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                    />
+                    {t("admin.wechat_mp.ingest.fields.auto_parse")}
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end">
@@ -1212,13 +1238,34 @@ const WeChatMpImportManager = () => {
               </div>
               <div className="space-y-2">
                 {ingestArticles.length > 0 ? ingestArticles.slice(0, 4).map((article) => (
-                  <div key={article.id || article.link} className="min-w-0">
-                    <div className={clsx("truncate text-sm font-semibold", headingTextClass)}>
-                      {article.title || t("admin.wechat_mp.articles.untitled")}
+                  <div key={article.id || article.link} className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className={clsx("truncate text-sm font-semibold", headingTextClass)}>
+                        {article.title || t("admin.wechat_mp.articles.untitled")}
+                      </div>
+                      <div className={clsx("mt-1 truncate text-xs", mutedTextClass)}>
+                        {article.account_name || article.fakeid || t("admin.wechat_mp.status.none")}
+                      </div>
+                      <div className={clsx("mt-1 text-xs", mutedTextClass)}>
+                        {t(`admin.wechat_mp.ingest.content_status.${article.content_status || "not_fetched"}`, article.content_status || "not_fetched")}
+                        {" · "}
+                        {t(`admin.wechat_mp.ingest.extraction_status.${article.extraction_status || "not_started"}`, article.extraction_status || "not_started")}
+                        {article.extracted_event?.title ? ` · ${article.extracted_event.title}` : ""}
+                      </div>
                     </div>
-                    <div className={clsx("mt-1 truncate text-xs", mutedTextClass)}>
-                      {article.account_name || article.fakeid || t("admin.wechat_mp.status.none")}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => retryIngestArticleExtraction(article)}
+                      disabled={extractingIngestArticleId === article.id || !article.content_text}
+                      className={clsx(
+                        "shrink-0 rounded-[8px] border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                        isDayMode ? "border-slate-200 text-slate-600 hover:bg-slate-50" : "border-white/10 text-gray-300 hover:bg-white/10",
+                      )}
+                      aria-label={t("admin.wechat_mp.actions.retry_extraction")}
+                      title={t("admin.wechat_mp.actions.retry_extraction")}
+                    >
+                      <RefreshCw size={14} className={extractingIngestArticleId === article.id ? "animate-spin" : ""} />
+                    </button>
                   </div>
                 )) : (
                   <div className={clsx("text-sm", mutedTextClass)}>{t("admin.wechat_mp.ingest.empty_articles")}</div>

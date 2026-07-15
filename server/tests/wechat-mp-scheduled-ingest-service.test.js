@@ -17,6 +17,7 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
     assert.deepEqual(defaults.page_pause_range, [10, 25]);
     assert.equal(defaults.page_pause_seconds, 10);
     assert.deepEqual(defaults.content_delay_range, [10, 20]);
+    assert.equal(defaults.auto_parse, true);
 
     const updated = await service.updateIngestSettings(db, {
       enabled: true,
@@ -138,6 +139,7 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
   const db = await createDb();
   const sleeps = [];
   const contentCalls = [];
+  const parseCalls = [];
   try {
     await service.updateIngestSettings(db, {
       query_delay_range: [1, 1],
@@ -146,6 +148,7 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
       count_per_page: 2,
       max_pages: 1,
       fetch_content: true,
+      auto_parse: true,
     });
     await service.upsertIngestAccount(db, { name: '账号一', fakeid: 'fake-1', keywords: '活动' });
     await service.upsertIngestAccount(db, { name: '账号二', fakeid: 'fake-2', keywords: '通知' });
@@ -188,18 +191,31 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
         };
       },
     };
+    const parser = async (article) => {
+      parseCalls.push(article);
+      return {
+        title: article.title,
+        date: '2026-07-20T10:00',
+        category: 'lecture',
+        content: '<p>活动候选</p>',
+        aiMeta: { provider: 'test', model: 'test-model' },
+      };
+    };
 
     const firstRun = await service.executeIngestRun(db, {
       triggerType: 'manual',
       settings: await service.getIngestSettings(db),
       runtime: testRuntime,
       wechatApi,
+      parser,
     });
     assert.equal(firstRun.status, 'completed');
     assert.equal(firstRun.total_accounts, 2);
     assert.equal(firstRun.total_articles, 4);
     assert.equal(firstRun.new_articles, 4);
     assert.equal(firstRun.fetched_contents, 4);
+    assert.equal(firstRun.extracted_articles, 4);
+    assert.equal(firstRun.extraction_failed_count, 0);
     assert.deepEqual(sleeps, [250, 1000, 250]);
     assert.equal(contentCalls.length, 4);
 
@@ -210,16 +226,86 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
       settings: await service.getIngestSettings(db),
       runtime: testRuntime,
       wechatApi,
+      parser,
     });
     assert.equal(secondRun.status, 'completed');
     assert.equal(secondRun.new_articles, 0);
     assert.equal(secondRun.fetched_contents, 0);
+    assert.equal(secondRun.extracted_articles, 0);
     assert.deepEqual(sleeps, [1000]);
     assert.equal(contentCalls.length, 0);
 
     const articles = await service.listIngestArticles(db, { limit: 10 });
     assert.equal(articles.length, 4);
     assert.equal(articles.every((article) => article.content_status === 'fetched'), true);
+    assert.equal(articles.every((article) => article.extraction_status === 'completed'), true);
+    assert.equal(articles.every((article) => article.extracted_event?.category === 'lecture'), true);
+    assert.equal(parseCalls.length, 4);
+  } finally {
+    await db.close();
+  }
+});
+
+test('WeChat MP automatic extraction retries failures and can be disabled', async () => {
+  const db = await createDb();
+  let parseCalls = 0;
+  const wechatApi = {
+    async fetchArticles() {
+      return {
+        articles: [{
+          title: '待提取文章',
+          link: 'https://mp.weixin.qq.com/s/retry',
+          author: '测试公众号',
+        }],
+      };
+    },
+    async fetchArticleContent() {
+      return { contentText: '正文内容', content_status: 'fetched' };
+    },
+  };
+  try {
+    await service.updateIngestSettings(db, {
+      query_delay_range: [0, 0],
+      content_delay_range: [0, 0],
+      auto_parse: true,
+    });
+    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'retry-fake' });
+
+    const failingRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser: async () => {
+        parseCalls += 1;
+        throw new Error('模型暂时不可用');
+      },
+    });
+    assert.equal(failingRun.status, 'completed');
+    assert.equal(failingRun.extraction_failed_count, 1);
+    assert.equal((await service.listIngestArticles(db))[0].extraction_status, 'failed');
+
+    const recoveredRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser: async () => {
+        parseCalls += 1;
+        return { title: '恢复后的活动候选', category: 'competition' };
+      },
+    });
+    assert.equal(recoveredRun.extracted_articles, 1);
+    assert.equal((await service.listIngestArticles(db))[0].extracted_event?.title, '恢复后的活动候选');
+    assert.equal(parseCalls, 2);
+
+    await service.updateIngestSettings(db, { auto_parse: false });
+    const disabledRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser: async () => {
+        parseCalls += 1;
+        return { title: '不应调用' };
+      },
+    });
+    assert.equal(disabledRun.extracted_articles, 0);
+    assert.equal(parseCalls, 2);
   } finally {
     await db.close();
   }

@@ -2838,7 +2838,8 @@
         "save_ingest": "保存配置",
         "add_account": "添加账号",
         "import_accounts": "导入列表",
-        "delete_account": "删除账号"
+        "delete_account": "删除账号",
+        "retry_extraction": "重新提取信息"
       },
       "notes": {
         "ready": "已登录，可以开始导入公众号文章。",
@@ -2928,7 +2929,19 @@
           "page_pause": "翻页间隔",
           "content_delay": "正文间隔",
           "fetch_content": "自动抓取正文",
+          "auto_parse": "自动提取活动信息",
           "account_enabled": "启用该公众号"
+        },
+        "content_status": {
+          "not_fetched": "正文未抓取",
+          "fetched": "正文已抓取",
+          "empty": "正文为空"
+        },
+        "extraction_status": {
+          "not_started": "未提取",
+          "processing": "提取中",
+          "completed": "已提取",
+          "failed": "提取失败"
         },
         "placeholders": {
           "account_name": "公众号名称",
@@ -3019,7 +3032,9 @@
         "ingest_imported": "已导入 {{count}} 个公众号",
         "ingest_import_failed": "导入公众号列表失败",
         "ingest_started": "增量采集已启动",
-        "ingest_start_failed": "启动增量采集失败"
+        "ingest_start_failed": "启动增量采集失败",
+        "ingest_extraction_completed": "文章信息已提取",
+        "ingest_extraction_failed": "文章信息提取失败"
       }
     }
   },

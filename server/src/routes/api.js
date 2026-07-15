@@ -319,6 +319,7 @@ router.delete('/admin/wechat-mp/ingest/accounts/:id', authenticateToken, isAdmin
 router.post('/admin/wechat-mp/ingest/accounts/import', authenticateToken, isAdmin, upload.single('file'), wechatMpAdminController.importWechatMpIngestAccounts);
 router.post('/admin/wechat-mp/ingest/run', authenticateToken, isAdmin, wechatMpAdminController.startWechatMpIngestRun);
 router.get('/admin/wechat-mp/ingest/runs', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestRuns);
+router.post('/admin/wechat-mp/ingest/articles/:id/parse', authenticateToken, isAdmin, wechatMpAdminController.extractWechatMpIngestArticle);
 router.get('/admin/wechat-mp/ingest/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestArticles);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);

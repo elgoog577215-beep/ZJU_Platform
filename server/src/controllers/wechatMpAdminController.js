@@ -390,6 +390,18 @@ const listWechatMpIngestArticles = async (req, res) => {
   }
 };
 
+const extractWechatMpIngestArticle = async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await wechatMpScheduledIngestService.extractIngestArticle(db, req.params.id, {
+      userId: req.user?.id,
+    });
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, '提取微信 MP 文章信息失败');
+  }
+};
+
 module.exports = {
   buildWechatMpImportPayload,
   cancelWechatMpLogin,
@@ -399,6 +411,7 @@ module.exports = {
   getWechatMpIngestSettings,
   getWechatMpLoginStatus,
   getWechatMpStatus,
+  extractWechatMpIngestArticle,
   importWechatMpIngestAccounts,
   listWechatMpIngestAccounts,
   listWechatMpIngestArticles,
