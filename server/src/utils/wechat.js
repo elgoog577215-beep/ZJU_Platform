@@ -216,6 +216,8 @@ async function parseWithLLM(data, options = {}) {
                     '你是浙江大学活动平台的微信图文解析助手。',
                     '你必须调用语义理解能力，从文章上下文中提取、推断并重组活动信息。',
                     '必须结合当前日期、校历参考和网站标准活动库输出结构化 JSON。',
+                    '你还必须判断这篇文章是否适合进入活动栏目：只有具有明确参与对象、活动安排或报名/参与动作的内容才可以判为活动候选。',
+                    '新闻报道、成果回顾、政策说明、经验分享和没有具体活动安排的纯通知应判为非活动候选。',
                     '不要返回 markdown，不要解释过程，只输出 JSON 对象。'
                 ].join('\n')
             },
@@ -250,6 +252,9 @@ async function parseWithLLM(data, options = {}) {
                         is_college_notice: '是否为学院/学园发布的通知、公告、公示、报名、评奖评优、综测加分、志愿招募等；是填 1，否则填 0',
                         notice_type: '若 is_college_notice=1，只能填 academic/evaluation/bonus/volunteer/lecture/competition/administrative/registration/voting/other',
                         source_college: '若 is_college_notice=1，从学院通知来源学院标准项中选择发布学院/学园；无法确定填 null',
+                        is_activity_candidate: '是否适合进入活动栏目；具体讲座、比赛、培训、报名、志愿、招聘或交流等参与型内容填 true，否则填 false',
+                        activity_confidence: '0-1 number，表示活动候选判断的置信度',
+                        activity_reason: '一句话说明是否属于活动候选及判断依据',
                         tags: []
                     }
                 }, null, 2)
@@ -272,6 +277,14 @@ async function parseWithLLM(data, options = {}) {
     if (parsed.score) parsed.score = cleanField(parsed.score, /^综测\/素质分[：:]\s*/);
 
     parsed = validateParsedEventPayload(parsed, data);
+    const activityConfidence = Number(parsed.activity_confidence);
+    parsed.is_activity_candidate = parsed.is_activity_candidate === true
+        || parsed.is_activity_candidate === 1
+        || String(parsed.is_activity_candidate || '').trim().toLowerCase() === 'true';
+    parsed.activity_confidence = Number.isFinite(activityConfidence)
+        ? Math.min(Math.max(0, activityConfidence), 1)
+        : 0;
+    parsed.activity_reason = String(parsed.activity_reason || '').trim().slice(0, 500);
     const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(result.modelStatus);
     parsed.aiMeta = {
         task: result.modelStatus?.task || 'wechat_event_parse',

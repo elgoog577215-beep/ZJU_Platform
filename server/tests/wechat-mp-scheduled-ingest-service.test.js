@@ -317,6 +317,93 @@ test('WeChat MP automatic extraction retries failures and can be disabled', asyn
   }
 });
 
+test('WeChat MP activity screening only creates pending events for confident candidates', async () => {
+  const db = await createDb();
+  const articles = [
+    {
+      title: '校园活动报名',
+      link: 'https://mp.weixin.qq.com/s/activity-candidate',
+      author: '测试公众号',
+    },
+    {
+      title: '校园成果新闻',
+      link: 'https://mp.weixin.qq.com/s/news-recap',
+      author: '测试公众号',
+    },
+  ];
+  try {
+    await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+    await service.updateIngestSettings(db, {
+      query_delay_range: [0, 0],
+      content_delay_range: [0, 0],
+      auto_parse: true,
+    });
+    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'activity-fake' });
+
+    const wechatApi = {
+      async fetchArticles() {
+        return { articles };
+      },
+      async fetchArticleContent({ url }) {
+        return { contentText: `正文 ${url}`, content_status: 'fetched' };
+      },
+    };
+    const parser = async (article) => {
+      const candidate = article.title.includes('活动');
+      return {
+        title: article.title,
+        date: '2026-07-20T10:00',
+        category: 'lecture',
+        content: '<p>活动详情</p>',
+        is_activity_candidate: candidate,
+        activity_confidence: candidate ? 0.92 : 0.98,
+        activity_reason: candidate ? '包含明确报名和参与安排' : '文章是成果报道，不是参与型活动',
+      };
+    };
+
+    const firstRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser,
+    });
+    assert.equal(firstRun.status, 'completed');
+
+    const events = await db.all('SELECT * FROM events ORDER BY id');
+    assert.equal(events.length, 1);
+    assert.equal(events[0].title, '校园活动报名');
+    assert.equal(events[0].status, 'pending');
+    assert.equal(events[0].uploader_id, null);
+
+    const storedArticles = await service.listIngestArticles(db, { limit: 10 });
+    const accepted = storedArticles.find((article) => article.title === '校园活动报名');
+    const rejected = storedArticles.find((article) => article.title === '校园成果新闻');
+    assert.equal(accepted.activity_status, 'accepted');
+    assert.equal(accepted.event_id, events[0].id);
+    assert.equal(rejected.activity_status, 'rejected');
+    assert.match(rejected.activity_reason, /成果报道/);
+
+    const secondRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser,
+    });
+    assert.equal(secondRun.status, 'completed');
+    assert.equal((await db.all('SELECT id FROM events')).length, 1);
+  } finally {
+    await db.close();
+  }
+});
+
 test('WeChat MP scheduler key respects configured timezone', () => {
   const key = service.getZonedDateTimeKey(new Date('2026-07-10T19:30:00.000Z'), 'Asia/Shanghai');
   assert.equal(key.dateKey, '2026-07-11');

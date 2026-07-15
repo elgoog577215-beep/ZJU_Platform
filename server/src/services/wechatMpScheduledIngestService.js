@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   fetch_content: true,
   auto_parse: true,
 });
+const ACTIVITY_CONFIDENCE_THRESHOLD = 0.7;
 
 let activeRun = null;
 let schedulerTimer = null;
@@ -179,6 +180,9 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       extracted_event_json TEXT DEFAULT '',
       extraction_error TEXT DEFAULT '',
       extracted_at DATETIME,
+      activity_status TEXT DEFAULT 'not_screened',
+      activity_reason TEXT DEFAULT '',
+      event_id INTEGER,
       first_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       fetched_at DATETIME,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -272,6 +276,15 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
   }
   if (!articleColumnNames.has('extracted_at')) {
     await db.exec('ALTER TABLE wechat_mp_ingest_articles ADD COLUMN extracted_at DATETIME');
+  }
+  if (!articleColumnNames.has('activity_status')) {
+    await db.exec("ALTER TABLE wechat_mp_ingest_articles ADD COLUMN activity_status TEXT DEFAULT 'not_screened'");
+  }
+  if (!articleColumnNames.has('activity_reason')) {
+    await db.exec("ALTER TABLE wechat_mp_ingest_articles ADD COLUMN activity_reason TEXT DEFAULT ''");
+  }
+  if (!articleColumnNames.has('event_id')) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_articles ADD COLUMN event_id INTEGER');
   }
   const runColumns = await db.all('PRAGMA table_info(wechat_mp_ingest_runs)');
   const runColumnNames = new Set(runColumns.map((column) => column.name));
@@ -653,6 +666,150 @@ const updateArticleExtraction = async (db, articleId, {
   ]);
 };
 
+const updateArticleActivity = async (db, articleId, {
+  status,
+  reason = '',
+  eventId,
+} = {}) => {
+  const updates = [
+    'activity_status = ?',
+    'activity_reason = ?',
+    'updated_at = datetime(\'now\')',
+  ];
+  const values = [status, String(reason || '').slice(0, 1000)];
+  if (eventId !== undefined) {
+    updates.splice(2, 0, 'event_id = ?');
+    values.splice(2, 0, eventId || null);
+  }
+  values.push(articleId);
+  await db.run(`
+    UPDATE wechat_mp_ingest_articles
+    SET ${updates.join(', ')}
+    WHERE id = ?
+  `, values);
+};
+
+const activityEventPayload = (article, parsed) => {
+  const tags = Array.isArray(parsed.tags)
+    ? parsed.tags.map((tag) => String(tag || '').trim()).filter(Boolean).join(',')
+    : String(parsed.tags || '').trim();
+  const contentText = String(article.content_text || '').trim();
+  return {
+    title: String(parsed.title || article.title || '未命名活动').trim(),
+    date: String(parsed.date || article.create_time || '').trim(),
+    end_date: parsed.end_date || null,
+    location: String(parsed.location || '').trim(),
+    tags,
+    status: 'pending',
+    image: String(article.cover || '').trim(),
+    description: String(parsed.description || article.summary || contentText.slice(0, 1000)).trim(),
+    content: String(parsed.content || article.content_html || contentText).trim(),
+    link: String(article.link || '').trim(),
+    featured: 0,
+    score: parsed.score || null,
+    target_audience: parsed.target_audience || null,
+    organizer: parsed.organizer || article.author || article.account_name || null,
+    volunteer_time: parsed.volunteer_time || null,
+    category: parsed.category || 'other',
+    is_college_notice: [1, '1', true, 'true'].includes(parsed.is_college_notice) ? 1 : 0,
+    notice_type: parsed.notice_type || null,
+    source_college: parsed.source_college || null,
+  };
+};
+
+const upsertActivityEvent = async (db, article, parsed) => {
+  const payload = activityEventPayload(article, parsed);
+  if (!payload.link) throw new Error('活动候选缺少公众号原文链接');
+
+  let existing = null;
+  if (article.event_id) {
+    existing = await db.get('SELECT id, status FROM events WHERE id = ?', [article.event_id]);
+  }
+  if (!existing) {
+    existing = await db.get(`
+      SELECT id, status
+      FROM events
+      WHERE link = ? AND (deleted_at IS NULL OR deleted_at = '')
+      LIMIT 1
+    `, [payload.link]);
+  }
+
+  const fields = [
+    'title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content',
+    'link', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category',
+    'is_college_notice', 'notice_type', 'source_college',
+  ];
+  const values = fields.map((field) => payload[field]);
+  if (existing) {
+    if (!existing.status || ['pending', 'draft'].includes(String(existing.status).toLowerCase())) {
+      await db.run(`
+        UPDATE events
+        SET ${fields.map((field) => `${field} = ?`).join(', ')}, status = 'pending'
+        WHERE id = ?
+      `, [...values, existing.id]);
+    }
+    return { id: existing.id, created: false, status: existing.status || 'pending' };
+  }
+
+  const result = await db.run(`
+    INSERT INTO events (
+      ${fields.join(', ')}, status, uploader_id, created_at
+    ) VALUES (${fields.map(() => '?').join(', ')}, 'pending', NULL, datetime('now'))
+  `, values);
+  return { id: result.lastID, created: true, status: 'pending' };
+};
+
+const screenArticleActivity = async (db, article, parsed) => {
+  const candidate = parsed?.is_activity_candidate === true
+    || parsed?.is_activity_candidate === 1
+    || String(parsed?.is_activity_candidate || '').trim().toLowerCase() === 'true';
+  const confidence = Number(parsed?.activity_confidence);
+  const normalizedConfidence = Number.isFinite(confidence) ? Math.min(Math.max(0, confidence), 1) : 0;
+  const reason = String(parsed?.activity_reason || '').trim();
+  if (!candidate || normalizedConfidence < ACTIVITY_CONFIDENCE_THRESHOLD) {
+    await updateArticleActivity(db, article.id, {
+      status: 'rejected',
+      reason: reason || (candidate
+        ? `活动候选置信度 ${normalizedConfidence.toFixed(2)} 低于阈值 ${ACTIVITY_CONFIDENCE_THRESHOLD.toFixed(2)}`
+        : 'AI 判定为非活动候选'),
+    });
+    return {
+      status: 'rejected',
+      confidence: normalizedConfidence,
+      reason: reason || 'AI 判定为非活动候选',
+      event_id: article.event_id || null,
+    };
+  }
+
+  try {
+    const event = await upsertActivityEvent(db, article, parsed);
+    await updateArticleActivity(db, article.id, {
+      status: 'accepted',
+      reason: reason || '通过活动候选筛选',
+      eventId: event.id,
+    });
+    return {
+      status: 'accepted',
+      confidence: normalizedConfidence,
+      reason: reason || '通过活动候选筛选',
+      event_id: event.id,
+      event_created: event.created,
+    };
+  } catch (error) {
+    const errorMessage = error?.message || String(error);
+    await updateArticleActivity(db, article.id, {
+      status: 'failed',
+      reason: `活动入库失败：${errorMessage}`,
+    });
+    return {
+      status: 'failed',
+      confidence: normalizedConfidence,
+      reason: errorMessage,
+      event_id: null,
+    };
+  }
+};
+
 const extractArticleRecord = async (db, article, {
   parser = null,
   audit = recordWechatParseRun,
@@ -729,8 +886,12 @@ const extractIngestArticle = async (db, articleId, options = {}) => {
     throw error;
   }
   const result = await extractArticleRecord(db, article, options);
+  const activity = result.status === 'completed'
+    ? await screenArticleActivity(db, article, result.parsed)
+    : null;
   return {
     ...result,
+    activity,
     article: serializeIngestArticle(await db.get('SELECT * FROM wechat_mp_ingest_articles WHERE id = ?', [parsedId])),
   };
 };
@@ -803,14 +964,23 @@ const executeIngestRun = async (db, {
             LEFT JOIN wechat_mp_ingest_accounts acc ON acc.id = a.account_id
             WHERE a.id = ?
           `, [saved.id]);
-          if (storedArticle?.content_text && storedArticle.extraction_status !== 'completed') {
-            const extraction = await extractArticleRecord(db, storedArticle, {
-              parser,
-              audit,
-              userId,
-            });
-            if (extraction.status === 'completed') extractedArticles += 1;
-            if (extraction.status === 'failed') extractionFailedCount += 1;
+          if (storedArticle?.content_text) {
+            let extraction = {
+              status: storedArticle.extraction_status,
+              parsed: parseJson(storedArticle.extracted_event_json, null),
+            };
+            if (storedArticle.extraction_status !== 'completed') {
+              extraction = await extractArticleRecord(db, storedArticle, {
+                parser,
+                audit,
+                userId,
+              });
+              if (extraction.status === 'completed') extractedArticles += 1;
+              if (extraction.status === 'failed') extractionFailedCount += 1;
+            }
+            if (extraction.status === 'completed' && storedArticle.activity_status === 'not_screened') {
+              await screenArticleActivity(db, storedArticle, extraction.parsed);
+            }
           }
         }
       }
@@ -1005,6 +1175,7 @@ module.exports = {
   executeIngestRun,
   extractArticleRecord,
   extractIngestArticle,
+  screenArticleActivity,
   getIngestSettings,
   getZonedDateTimeKey,
   importIngestAccountsFromFile,
