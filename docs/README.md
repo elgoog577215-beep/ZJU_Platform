@@ -5,6 +5,7 @@
 ## 当前结构
 
 - `ai-memory/`：Codex 项目记忆，包括正向经验、错误经验、项目决策和规则实验报告。
+- `architecture/`：长期架构说明与治理提案，例如平台基础边界和仓库协作架构。
 - `guides/`：仍在使用的操作指南，例如 Android、iOS 和 CLI 投稿说明。
 - `presentations/`：当前仍有展示价值的 PPT 成果。
 - `archive/`：历史设计、旧计划、旧会话总结和旧 PPT。保留作查证，不作为当前执行入口。
@@ -13,6 +14,7 @@
 ## 新文档放置规则
 
 - 新功能规格优先走 `openspec/changes/`，完成后归档到 `openspec/specs/`。
+- 架构、治理、协作流程等长期方案放 `docs/architecture/`；面向执行者的操作步骤放 `docs/guides/`。
 - 仍需人读的操作说明放 `docs/guides/`。
 - Codex 可复用经验放 `docs/ai-memory/`。
 - 只用于某轮讨论或已经被 OpenSpec 取代的材料放 `docs/archive/`。

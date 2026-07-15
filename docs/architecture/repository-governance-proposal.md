@@ -133,6 +133,18 @@ origin/master
 
 如果后续获得权限，应将 `hotfix/*` 也纳入 PR 和必需检查；在获得权限前，至少通过文档和人工检查保持边界。
 
+## 已落地的当前权限内改动
+
+本提案分支已经先落地不依赖 GitHub 仓库管理权限的部分：
+
+- 将 `.github/workflows/ci-cd.yml` 从旧模板整理为质量检查草案，移除 Docker 发布、占位部署、Slack 通知和关键步骤的 `continue-on-error`。
+- 新的质量检查草案统一使用 Node 20，执行依赖安装、lint、前端构建、启动 chunk 检查和平台基础测试。
+- 新的质量检查草案不监听 `propose/**` push，避免治理提案分支推送时启动 CI。
+- 新增 `docs/guides/repository-collaboration-guide.md`，把当前可执行的 `propose/*`、`feat/*`、`hotfix/*` 工作流写成开发者操作指南。
+- 更新 `docs/README.md`，明确 `docs/architecture/` 用于长期架构说明与治理提案。
+
+这些改动都只存在于 `propose/master-governance-architecture` 分支。它们不是已经在 `master` 生效的仓库规则。
+
 ## 未来目标
 
 以下目标只有在获得 GitHub 仓库权限、团队确认发布方式，并完成 CI 清理后再推进：
@@ -174,27 +186,36 @@ release/*     批量上线候选分支，可选
    git switch -c propose/master-governance-architecture origin/master
    ```
 
-3. 只新增治理提案文档：
+3. 新增治理提案文档和协作指南：
 
    ```text
    docs/architecture/repository-governance-proposal.md
+   docs/guides/repository-collaboration-guide.md
    ```
 
-4. 验证分支基点来自 `origin/master`：
+4. 整理当前权限内可修改的质量检查草案：
+
+   ```text
+   .github/workflows/ci-cd.yml
+   ```
+
+   该 workflow 不包含生产部署，不监听 `propose/**` push。
+
+5. 验证分支基点来自 `origin/master`：
 
    ```bash
    git merge-base --is-ancestor origin/master HEAD
    ```
 
-5. 验证没有修改生产部署 workflow：
+6. 验证没有修改生产部署 workflow：
 
    ```bash
    git diff --name-only origin/master...HEAD
    ```
 
-   预期只出现治理提案文档，不出现 `.github/workflows/deploy.yml`。
+   预期不出现 `.github/workflows/deploy.yml`。
 
-6. 提交并推送提案分支：
+7. 提交并推送提案分支：
 
    ```bash
    git push -u origin propose/master-governance-architecture
@@ -203,7 +224,8 @@ release/*     批量上线候选分支，可选
 ## 验收标准
 
 - `propose/master-governance-architecture` 基于最新 `origin/master` 创建。
-- 本分支只新增 `docs/architecture/repository-governance-proposal.md`。
+- 本分支只修改当前权限内可落地的治理文档、协作指南和质量检查草案。
 - 未修改 `.github/workflows/deploy.yml`，不会改变生产部署入口。
-- 文档明确包含当前约束、可实现方案、未来目标和执行步骤。
+- 文档明确包含当前约束、可实现方案、已落地改动、未来目标和执行步骤。
+- `.github/workflows/ci-cd.yml` 不监听 `propose/**` push；若推送提案分支后 GitHub Actions 意外运行，应先手动取消再排查触发条件。
 - 分支已推送到 `origin/propose/master-governance-architecture`，后续可用于讨论或开 PR。
