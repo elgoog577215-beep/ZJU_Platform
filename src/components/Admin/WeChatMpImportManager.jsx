@@ -61,12 +61,12 @@ const initialForm = {
   count: 20,
   maxPages: 1,
   allowFirst: false,
-  queryDelayMin: 95,
-  queryDelayMax: 125,
-  pagePauseMin: 10,
-  pagePauseMax: 25,
-  contentDelayMin: 10,
-  contentDelayMax: 20,
+  queryDelayMin: "",
+  queryDelayMax: "",
+  pagePauseMin: "",
+  pagePauseMax: "",
+  contentDelayMin: "",
+  contentDelayMax: "",
 };
 
 const initialIngestSettings = {

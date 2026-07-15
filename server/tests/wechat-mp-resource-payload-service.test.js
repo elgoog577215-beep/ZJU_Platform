@@ -52,6 +52,7 @@ test('WeChat MP event payload avoids inventing event time while preserving body'
   const payload = buildEventPayload(fixture);
 
   assert.equal(payload.title, '浙大活动通知');
+  assert.equal(payload.status, 'pending');
   assert.equal(payload.date, '');
   assert.equal(payload.link, 'https://mp.weixin.qq.com/s/demo');
   assert.equal(payload.organizer, '浙江大学');
@@ -60,6 +61,9 @@ test('WeChat MP event payload avoids inventing event time while preserving body'
 });
 
 test('WeChat MP import payload routes supported resource types', () => {
+  const defaultPayload = buildWechatMpResourcePayload(fixture);
+  assert.equal(defaultPayload.endpoint, '/events');
+  assert.equal(defaultPayload.payload.status, 'pending');
   assert.deepEqual(
     buildWechatMpResourcePayload({ ...fixture, resourceType: 'article' }).endpoint,
     '/articles',

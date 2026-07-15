@@ -3,6 +3,7 @@ const DEFAULT_EVENT_TAGS = '微信公众号';
 const DEFAULT_ARTICLE_CATEGORY = 'campus';
 const DEFAULT_EVENT_CATEGORY = 'other';
 const DEFAULT_STATUS = 'approved';
+const DEFAULT_EVENT_STATUS = 'pending';
 
 const toText = (value) => String(value || '').trim();
 
@@ -204,7 +205,7 @@ const buildArticlePayload = ({ article = {}, content = {}, status = DEFAULT_STAT
   };
 };
 
-const buildEventPayload = ({ article = {}, content = {} } = {}) => {
+const buildEventPayload = ({ article = {}, content = {}, status = DEFAULT_EVENT_STATUS } = {}) => {
   const record = buildRecord({ article, content });
   const blocks = buildContentBlocks(record.contentText, record.images);
   const contentHtml = buildContentHtml(blocks, { sourceUrl: record.sourceUrl });
@@ -229,16 +230,17 @@ const buildEventPayload = ({ article = {}, content = {} } = {}) => {
     is_college_notice: 0,
     notice_type: null,
     source_college: null,
+    status,
   };
 };
 
-const buildWechatMpResourcePayload = ({ resourceType = 'article', article = {}, content = {}, status } = {}) => {
-  const normalizedType = String(resourceType || 'article').trim().toLowerCase();
+const buildWechatMpResourcePayload = ({ resourceType = 'event', article = {}, content = {}, status } = {}) => {
+  const normalizedType = String(resourceType || 'event').trim().toLowerCase();
   if (normalizedType === 'event' || normalizedType === 'events') {
     return {
       resourceType: 'event',
       endpoint: '/events',
-      payload: buildEventPayload({ article, content }),
+      payload: buildEventPayload({ article, content, status: status || DEFAULT_EVENT_STATUS }),
     };
   }
   if (normalizedType === 'article' || normalizedType === 'articles') {

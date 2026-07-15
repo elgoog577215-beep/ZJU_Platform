@@ -169,7 +169,7 @@ const buildWechatMpImportPayload = async (req, res) => {
     }
 
     const result = buildWechatMpResourcePayload({
-      resourceType: req.body?.resource_type || req.body?.resourceType || 'article',
+      resourceType: req.body?.resource_type || req.body?.resourceType || 'event',
       article: req.body?.article || {},
       content: contentPayload,
       status: req.body?.status,
