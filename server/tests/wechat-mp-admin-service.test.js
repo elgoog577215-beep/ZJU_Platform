@@ -5,6 +5,8 @@ const {
   authenticatedUrlFromLoginPayload,
   assertTrustedMpRedirect,
   buildTrustedMpApiUrl,
+  checkTokenHealth,
+  classifyTokenHealthResponse,
   cookiesToHeader,
   credentialsFromBrowserState,
   extractArticleBody,
@@ -23,6 +25,53 @@ const {
   waitDelayRange,
   waitSeconds,
 } = require('../src/services/wechatMpAdminService');
+
+test('WeChat MP token health classifies valid, expired, and unavailable sessions', async () => {
+  assert.equal(classifyTokenHealthResponse({ status: 200, data: { base_resp: { ret: 0 }, list: [] } }).status, 'valid');
+  assert.equal(classifyTokenHealthResponse({ status: 200, data: { base_resp: { ret: 200003, err_msg: 'invalid session' } } }).status, 'expired');
+
+  const valid = await checkTokenHealth({
+    force: true,
+    credentials: { token: 'health-valid-token', cookie: 'master_sid=health-valid' },
+    request: async () => ({ status: 200, data: { base_resp: { ret: 0 }, list: [] } }),
+  });
+  assert.equal(valid.status, 'valid');
+
+  const expired = await checkTokenHealth({
+    force: true,
+    credentials: { token: 'health-expired-token', cookie: 'master_sid=health-expired' },
+    request: async () => ({ status: 200, data: { base_resp: { ret: 200003, err_msg: 'invalid session' } } }),
+  });
+  assert.equal(expired.status, 'expired');
+  assert.equal(expired.reason, 'invalid_session');
+
+  const unavailable = await checkTokenHealth({
+    force: true,
+    credentials: { token: 'health-unavailable-token', cookie: 'master_sid=health-unavailable' },
+    request: async () => { throw new Error('network timeout'); },
+  });
+  assert.equal(unavailable.status, 'expired');
+  assert.equal(unavailable.reason, 'check_failed');
+});
+
+test('WeChat MP token health cache avoids duplicate checks and refreshes after credentials change', async () => {
+  let calls = 0;
+  const credentials = { token: 'health-cache-token', cookie: 'master_sid=health-cache' };
+  const request = async () => {
+    calls += 1;
+    return { status: 200, data: { base_resp: { ret: 0 }, list: [] } };
+  };
+  await checkTokenHealth({ force: true, credentials, request });
+  await checkTokenHealth({ credentials, request });
+  assert.equal(calls, 1);
+
+  const changed = await checkTokenHealth({
+    credentials: { token: 'health-cache-token-2', cookie: 'master_sid=health-cache-2' },
+    request,
+  });
+  assert.equal(changed.status, 'valid');
+  assert.equal(calls, 2);
+});
 
 test('WeChat MP token extraction only accepts authenticated trusted backend URLs', () => {
   assert.equal(

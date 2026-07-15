@@ -12,6 +12,8 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
   try {
     const defaults = await service.getIngestSettings(db);
     assert.equal(defaults.enabled, false);
+    assert.equal(defaults.token_health_enabled, true);
+    assert.equal(defaults.token_health_interval_hours, 12);
     assert.equal(defaults.daily_run_time, '03:30');
     assert.deepEqual(defaults.query_delay_range, [95, 125]);
     assert.deepEqual(defaults.page_pause_range, [10, 25]);
@@ -28,6 +30,8 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
       content_delay_range: [1, 2],
       count_per_page: 10,
       max_pages: 2,
+      token_health_enabled: false,
+      token_health_interval_hours: 24,
     });
 
     assert.equal(updated.enabled, true);
@@ -39,6 +43,8 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
     assert.deepEqual(updated.content_delay_range, [1, 2]);
     assert.equal(updated.count_per_page, 10);
     assert.equal(updated.max_pages, 2);
+    assert.equal(updated.token_health_enabled, false);
+    assert.equal(updated.token_health_interval_hours, 24);
   } finally {
     await db.close();
   }

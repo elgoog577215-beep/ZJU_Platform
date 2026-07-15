@@ -5,6 +5,8 @@ const { recordWechatParseRun } = require('./wechatParseAuditService');
 
 const DEFAULT_SETTINGS = Object.freeze({
   enabled: false,
+  token_health_enabled: true,
+  token_health_interval_hours: 12,
   daily_run_time: '03:30',
   timezone: 'Asia/Shanghai',
   query_delay_range: [95, 125],
@@ -20,6 +22,9 @@ const DEFAULT_SETTINGS = Object.freeze({
 let activeRun = null;
 let schedulerTimer = null;
 let schedulerLastKey = '';
+let tokenHealthSchedulerTimer = null;
+let tokenHealthLastCheckedAt = 0;
+let tokenHealthRun = null;
 
 const nowIso = () => new Date().toISOString();
 
@@ -84,6 +89,13 @@ const normalizeSettings = (row = {}) => {
   );
   return {
     enabled: toBool(row.enabled, DEFAULT_SETTINGS.enabled),
+    token_health_enabled: toBool(row.token_health_enabled, DEFAULT_SETTINGS.token_health_enabled),
+    token_health_interval_hours: toInt(
+      row.token_health_interval_hours,
+      DEFAULT_SETTINGS.token_health_interval_hours,
+      1,
+      168,
+    ),
     daily_run_time: normalizeTime(row.daily_run_time, DEFAULT_SETTINGS.daily_run_time),
     timezone: normalizeTimezone(row.timezone),
     query_delay_range: normalizeDelayRange(
@@ -111,6 +123,8 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
     CREATE TABLE IF NOT EXISTS wechat_mp_ingest_settings (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       enabled INTEGER DEFAULT 0,
+      token_health_enabled INTEGER DEFAULT 1,
+      token_health_interval_hours INTEGER DEFAULT 12,
       daily_run_time TEXT DEFAULT '03:30',
       timezone TEXT DEFAULT 'Asia/Shanghai',
       query_delay_range TEXT DEFAULT '[95,125]',
@@ -197,10 +211,18 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       ON wechat_mp_ingest_runs(started_at DESC);
   `);
   const columns = await db.all('PRAGMA table_info(wechat_mp_ingest_settings)');
+  const hasTokenHealthEnabled = columns.some((column) => column.name === 'token_health_enabled');
+  const hasTokenHealthInterval = columns.some((column) => column.name === 'token_health_interval_hours');
   const hasPagePauseRange = columns.some((column) => column.name === 'page_pause_range');
   const hasAutoParse = columns.some((column) => column.name === 'auto_parse');
   if (!hasAutoParse) {
     await db.exec('ALTER TABLE wechat_mp_ingest_settings ADD COLUMN auto_parse INTEGER DEFAULT 1');
+  }
+  if (!hasTokenHealthEnabled) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_settings ADD COLUMN token_health_enabled INTEGER DEFAULT 1');
+  }
+  if (!hasTokenHealthInterval) {
+    await db.exec('ALTER TABLE wechat_mp_ingest_settings ADD COLUMN token_health_interval_hours INTEGER DEFAULT 12');
   }
   if (!hasPagePauseRange) {
     await db.exec(`ALTER TABLE wechat_mp_ingest_settings ADD COLUMN page_pause_range TEXT DEFAULT '[10,25]'`);
@@ -268,9 +290,9 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
   `);
   await db.run(`
     INSERT OR IGNORE INTO wechat_mp_ingest_settings (
-      id, enabled, daily_run_time, timezone, query_delay_range,
+      id, enabled, token_health_enabled, token_health_interval_hours, daily_run_time, timezone, query_delay_range,
       page_pause_range, page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content, auto_parse
-    ) VALUES (1, 0, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1, 1)
+    ) VALUES (1, 0, 1, 12, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1, 1)
   `);
 };
 
@@ -287,6 +309,8 @@ const updateIngestSettings = async (db, payload = {}) => {
   await db.run(`
     UPDATE wechat_mp_ingest_settings
     SET enabled = ?,
+        token_health_enabled = ?,
+        token_health_interval_hours = ?,
         daily_run_time = ?,
         timezone = ?,
         query_delay_range = ?,
@@ -301,6 +325,8 @@ const updateIngestSettings = async (db, payload = {}) => {
     WHERE id = 1
   `, [
     next.enabled ? 1 : 0,
+    next.token_health_enabled ? 1 : 0,
+    next.token_health_interval_hours,
     next.daily_run_time,
     next.timezone,
     stringifyArray(next.query_delay_range),
@@ -928,6 +954,50 @@ const stopWechatMpIngestScheduler = () => {
   schedulerTimer = null;
 };
 
+const runWechatMpTokenHealthCheck = async ({ getDb } = {}) => {
+  if (!getDb) return null;
+  if (tokenHealthRun) return tokenHealthRun;
+  tokenHealthRun = (async () => {
+    const db = await getDb();
+    const settings = await getIngestSettings(db);
+    if (!settings.token_health_enabled) return null;
+    tokenHealthLastCheckedAt = Date.now();
+    return wechatMpAdminService.checkTokenHealth({ force: true });
+  })().finally(() => {
+    tokenHealthRun = null;
+  });
+  return tokenHealthRun;
+};
+
+const startWechatMpTokenHealthScheduler = ({ getDb, intervalMs = 60 * 1000 } = {}) => {
+  if (!getDb || tokenHealthSchedulerTimer || process.env.WECHAT_MP_TOKEN_HEALTH_SCHEDULER_DISABLED === '1') {
+    return;
+  }
+  const tick = async () => {
+    try {
+      const db = await getDb();
+      const settings = await getIngestSettings(db);
+      if (!settings.token_health_enabled) return;
+      const interval = settings.token_health_interval_hours * 60 * 60 * 1000;
+      if (!tokenHealthLastCheckedAt || Date.now() - tokenHealthLastCheckedAt >= interval) {
+        await runWechatMpTokenHealthCheck({ getDb });
+      }
+    } catch (error) {
+      console.error('[WeChat MP Token Health] scheduler tick failed:', error.message || error);
+    }
+  };
+  void tick();
+  tokenHealthSchedulerTimer = setInterval(tick, intervalMs);
+  if (tokenHealthSchedulerTimer.unref) tokenHealthSchedulerTimer.unref();
+};
+
+const stopWechatMpTokenHealthScheduler = () => {
+  if (tokenHealthSchedulerTimer) clearInterval(tokenHealthSchedulerTimer);
+  tokenHealthSchedulerTimer = null;
+  tokenHealthLastCheckedAt = 0;
+  tokenHealthRun = null;
+};
+
 module.exports = {
   DEFAULT_SETTINGS,
   deleteIngestAccount,
@@ -948,8 +1018,11 @@ module.exports = {
   runWechatMpIngestNow,
   startWechatMpIngestRun,
   startWechatMpIngestScheduler,
+  startWechatMpTokenHealthScheduler,
+  stopWechatMpTokenHealthScheduler,
   stopWechatMpIngestScheduler,
   serializeIngestArticle,
   updateIngestSettings,
   upsertIngestAccount,
+  runWechatMpTokenHealthCheck,
 };

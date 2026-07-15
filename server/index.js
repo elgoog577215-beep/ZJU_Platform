@@ -14,7 +14,9 @@ const { getDb, pool } = require('./src/config/db');
 const { runMigrations } = require('./src/config/runMigrations');
 const {
   startWechatMpIngestScheduler,
+  startWechatMpTokenHealthScheduler,
   stopWechatMpIngestScheduler,
+  stopWechatMpTokenHealthScheduler,
 } = require('./src/services/wechatMpScheduledIngestService');
 const apiRoutes = require('./src/routes/api');
 const errorHandler = require('./src/middleware/errorHandler');
@@ -388,6 +390,7 @@ const startServer = async () => {
     // Initialize database
     const db = await getDb();
     await runMigrations(db);
+    startWechatMpTokenHealthScheduler({ getDb });
     startWechatMpIngestScheduler({ getDb });
     
     // 尝试启动服务器，如果端口被占用则尝试下一个端口
@@ -457,6 +460,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('👋 SIGTERM received, shutting down gracefully');
+  stopWechatMpTokenHealthScheduler();
   stopWechatMpIngestScheduler();
   await pool.close();
   process.exit(0);
@@ -464,6 +468,7 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   console.log('👋 SIGINT received, shutting down gracefully');
+  stopWechatMpTokenHealthScheduler();
   stopWechatMpIngestScheduler();
   await pool.close();
   process.exit(0);

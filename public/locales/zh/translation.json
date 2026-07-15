@@ -2844,6 +2844,9 @@
       "notes": {
         "ready": "已登录，可以开始导入公众号文章。",
         "need_login": "请先扫码登录，再导入公众号文章。",
+        "token_checking": "正在检查微信公众平台登录态……",
+        "token_expired": "微信公众平台登录态不可用，请重新扫码登录。",
+        "token_check_failed": "暂时无法确认微信公众平台登录态，可以重试或重新扫码登录。",
         "runtime_missing": "登录环境未准备好，请联系管理员处理。"
       },
       "auth": {
@@ -2923,6 +2926,8 @@
           "enabled": "定时任务",
           "daily_run_time": "每日开始时间",
           "timezone": "时区",
+          "token_health_enabled": "Token 验活",
+          "token_health_interval": "验活周期（小时）",
           "query_delay": "账号间隔",
           "delay_min": "最小",
           "delay_max": "最大",
@@ -2932,6 +2937,7 @@
           "auto_parse": "自动提取活动信息",
           "account_enabled": "启用该公众号"
         },
+        "token_health_note": "服务启动后立即检查，之后按设定周期自动检查。",
         "content_status": {
           "not_fetched": "正文未抓取",
           "fetched": "正文已抓取",
@@ -2986,6 +2992,8 @@
         "not_logged_in": "未登录",
         "waiting": "等待扫码",
         "logged_in": "已登录",
+        "checking": "检查登录态",
+        "expired": "登录态不可用",
         "failed": "登录失败",
         "cancelled": "已取消"
       },

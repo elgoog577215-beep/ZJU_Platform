@@ -2788,6 +2788,9 @@
       "notes": {
         "ready": "You are logged in and can start importing articles.",
         "need_login": "Please scan to log in before importing official account articles.",
+        "token_checking": "Checking the WeChat MP login session...",
+        "token_expired": "The WeChat MP login session is unavailable. Please scan to log in again.",
+        "token_check_failed": "The WeChat MP login session could not be confirmed. You can retry or scan to log in again.",
         "runtime_missing": "The login environment is not ready. Please contact an administrator."
       },
       "auth": {
@@ -2867,6 +2870,8 @@
           "enabled": "Scheduled Job",
           "daily_run_time": "Daily Start",
           "timezone": "Timezone",
+          "token_health_enabled": "Token health check",
+          "token_health_interval": "Check interval (hours)",
           "query_delay": "Account interval",
           "delay_min": "Min",
           "delay_max": "Max",
@@ -2876,6 +2881,7 @@
           "auto_parse": "Extract event information automatically",
           "account_enabled": "Enable this account"
         },
+        "token_health_note": "Runs immediately after startup, then at the configured interval.",
         "content_status": {
           "not_fetched": "Body not fetched",
           "fetched": "Body fetched",
@@ -2930,6 +2936,8 @@
         "not_logged_in": "Not Logged In",
         "waiting": "Waiting for Scan",
         "logged_in": "Logged In",
+        "checking": "Checking Session",
+        "expired": "Session Unavailable",
         "failed": "Login Failed",
         "cancelled": "Cancelled"
       },

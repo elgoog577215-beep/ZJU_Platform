@@ -49,7 +49,7 @@ const LOGIN_ACTIVE_STAGES = new Set([
 ]);
 
 const initialStatus = {
-  credentials: { present: false, cookie_names: [], token_mask: "" },
+  credentials: { present: false, cookie_names: [], token_mask: "", health: { status: "missing", reason: "" } },
   login: { active: false, stage: "idle", message: "", qr_data_url: "" },
   runtime: { required: true, dependency: "playwright", chromium_installed: false },
 };
@@ -71,6 +71,8 @@ const initialForm = {
 
 const initialIngestSettings = {
   enabled: false,
+  token_health_enabled: true,
+  token_health_interval_hours: 12,
   daily_run_time: "03:30",
   timezone: "Asia/Shanghai",
   query_delay_range: [95, 125],
@@ -80,6 +82,7 @@ const initialIngestSettings = {
   count_per_page: 20,
   max_pages: 1,
   fetch_content: true,
+  auto_parse: true,
 };
 
 const initialIngestOverview = {
@@ -147,7 +150,9 @@ const optionalDelayRange = (minValue, maxValue) => {
   return [min, max];
 };
 
-const loginStatusKey = (loginStage, credentialsReady) => {
+const loginStatusKey = (loginStage, credentialsReady, healthStatus) => {
+  if (healthStatus === "expired") return "expired";
+  if (healthStatus === "checking") return "checking";
   if (credentialsReady || loginStage === "saved") return "logged_in";
   if (loginStage === "failed") return "failed";
   if (loginStage === "cancelled") return "cancelled";
@@ -194,6 +199,8 @@ const WeChatMpImportManager = () => {
   const login = status?.login || initialStatus.login;
   const runtimeReady = Boolean(status?.runtime?.chromium_installed);
   const credentialsReady = Boolean(status?.credentials?.present);
+  const credentialHealth = status?.credentials?.health || initialStatus.credentials.health;
+  const credentialHealthStatus = credentialHealth.status || (credentialsReady ? "checking" : "missing");
   const loginActive = Boolean(login.active || LOGIN_ACTIVE_STAGES.has(login.stage));
   const articles = articlesResult?.articles || [];
   const selectedUrl = selectedArticle?.link || "";
@@ -258,6 +265,13 @@ const WeChatMpImportManager = () => {
     }, 1600);
     return () => window.clearInterval(timer);
   }, [loadStatus, loginActive]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      loadStatus({ silent: true });
+    }, 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, [loadStatus]);
 
   const updateForm = (key, value) => {
     setForm((previous) => ({ ...previous, [key]: value }));
@@ -483,6 +497,7 @@ const WeChatMpImportManager = () => {
         page_pause_seconds: Number(ingestSettings.page_pause_range?.[0]) || 10,
         count_per_page: Number(ingestSettings.count_per_page) || 20,
         max_pages: Number(ingestSettings.max_pages) || 1,
+        token_health_interval_hours: Number(ingestSettings.token_health_interval_hours) || 12,
       };
       const response = await api.put("/admin/wechat-mp/ingest/settings", payload);
       setIngestOverview((previous) => ({
@@ -587,13 +602,25 @@ const WeChatMpImportManager = () => {
     }
   };
 
-  const runtimeNoteTone = runtimeReady ? (credentialsReady ? "success" : "warning") : "danger";
+  const runtimeNoteTone = runtimeReady
+    ? credentialHealthStatus === "expired"
+      ? "warning"
+      : credentialsReady
+        ? "success"
+        : "warning"
+    : "danger";
   const runtimeNoteText = runtimeReady
-    ? credentialsReady
-      ? t("admin.wechat_mp.notes.ready")
-      : t("admin.wechat_mp.notes.need_login")
+    ? credentialHealthStatus === "expired"
+      ? credentialHealth.reason === "check_failed"
+        ? t("admin.wechat_mp.notes.token_check_failed")
+        : t("admin.wechat_mp.notes.token_expired")
+      : credentialHealthStatus === "checking"
+        ? t("admin.wechat_mp.notes.token_checking")
+        : credentialsReady
+          ? t("admin.wechat_mp.notes.ready")
+          : t("admin.wechat_mp.notes.need_login")
     : t("admin.wechat_mp.notes.runtime_missing");
-  const simpleLoginStatus = loginStatusKey(login.stage, credentialsReady);
+  const simpleLoginStatus = loginStatusKey(login.stage, credentialsReady, credentialHealthStatus);
   const paragraphs = textParagraphs(content?.contentText);
 
   return (
@@ -642,7 +669,7 @@ const WeChatMpImportManager = () => {
                 label={t("admin.wechat_mp.metrics.credentials")}
                 value={t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}
                 icon={KeyRound}
-                tone={credentialsReady ? "emerald" : "amber"}
+                tone={credentialHealthStatus === "expired" ? "rose" : credentialsReady ? "emerald" : "amber"}
               />
               <AdminMetricCard
                 label={t("admin.wechat_mp.metrics.login_stage")}
@@ -678,7 +705,7 @@ const WeChatMpImportManager = () => {
                   aria-live="polite"
                   className={clsx(
                     "rounded-[8px] border px-3 py-2 text-sm leading-6",
-                    statusTone(credentialsReady, isDayMode),
+                    statusTone(credentialsReady && credentialHealthStatus !== "expired", isDayMode),
                   )}
                 >
                   <div className="font-semibold">
@@ -982,6 +1009,35 @@ const WeChatMpImportManager = () => {
                     className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                   />
                 </label>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.token_health_enabled")}
+                  <select
+                    value={ingestSettings.token_health_enabled ? "1" : "0"}
+                    onChange={(event) => updateIngestSetting("token_health_enabled", event.target.value === "1")}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  >
+                    <option value="1">{t("admin.wechat_mp.status.enabled")}</option>
+                    <option value="0">{t("admin.wechat_mp.status.disabled")}</option>
+                  </select>
+                </label>
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.token_health_interval")}
+                  <input
+                    type="number"
+                    min="1"
+                    max="168"
+                    step="1"
+                    value={ingestSettings.token_health_interval_hours}
+                    onChange={(event) => updateIngestSetting("token_health_interval_hours", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+                <AdminInlineNote tone="info" className="self-end">
+                  {t("admin.wechat_mp.ingest.token_health_note")}
+                </AdminInlineNote>
               </div>
 
               <AdminInlineNote tone="warning">

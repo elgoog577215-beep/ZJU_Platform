@@ -35,6 +35,11 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
 const MIN_LOGIN_WAIT_SECONDS = 30;
 const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
 const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
+const TOKEN_HEALTH_CACHE_MS = 60 * 1000;
+const TOKEN_HEALTH_REQUEST_TIMEOUT_MS = 15 * 1000;
+const TOKEN_HEALTH_QUERY = '__wechat_mp_token_health__';
+const TOKEN_HEALTH_INVALID_CODES = new Set(['200003', '-1', '40001', '40014']);
+const TOKEN_HEALTH_INVALID_TEXT = /invalid\s*session|session\s*(?:expired|invalid)|登录态|登录超时|重新登录|token\s*(?:is\s*)?invalid/i;
 const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([95, 125]);
 const DEFAULT_PAGE_PAUSE_RANGE_SECONDS = Object.freeze([10, 25]);
 const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([10, 20]);
@@ -50,6 +55,8 @@ window.chrome = window.chrome || { runtime: {} };
 `;
 
 let loginTask = null;
+let tokenHealthCache = null;
+let tokenHealthPromise = null;
 
 const nowIso = () => new Date().toISOString();
 
@@ -762,6 +769,119 @@ const mpHeaders = (credentials, referer = WECHAT_MP_BASE_URL) => ({
   Accept: 'application/json,text/plain,*/*',
 });
 
+const credentialFingerprint = (credentials = {}) => (
+  `${String(credentials.token || '')}:${String(credentials.cookie || '')}`
+);
+
+const publicTokenHealth = (health) => ({
+  status: health?.status || 'missing',
+  reason: health?.reason || '',
+  message: health?.message || '',
+  checked_at: health?.checked_at || null,
+});
+
+const setTokenHealth = (credentials, status, {
+  reason = '',
+  message = '',
+} = {}) => {
+  tokenHealthCache = {
+    fingerprint: credentialFingerprint(credentials),
+    status,
+    reason,
+    message,
+    checked_at: nowIso(),
+  };
+  return publicTokenHealth(tokenHealthCache);
+};
+
+const tokenHealthSignal = (value) => {
+  const ret = value?.data?.base_resp?.ret ?? value?.base_resp?.ret;
+  const status = value?.status || value?.response?.status;
+  const message = value?.message || value?.response?.data?.base_resp?.err_msg || value?.response?.data?.errmsg || '';
+  const body = typeof value?.data === 'string'
+    ? value.data
+    : typeof value?.response?.data === 'string'
+      ? value.response.data
+      : '';
+  return {
+    expired: status === 401 || TOKEN_HEALTH_INVALID_CODES.has(String(ret)) || TOKEN_HEALTH_INVALID_TEXT.test(`${message} ${body}`),
+    message: redactCredentials(message || body).slice(0, 300),
+  };
+};
+
+const classifyTokenHealthResponse = (response) => {
+  const signal = tokenHealthSignal(response);
+  if (signal.expired || Number(response?.status) >= 400) {
+    return {
+      status: 'expired',
+      reason: signal.expired ? 'invalid_session' : 'check_failed',
+      message: signal.message || '微信公众平台登录态不可用',
+    };
+  }
+  return {
+    status: 'valid',
+    reason: 'authenticated',
+    message: '微信公众平台登录态有效',
+  };
+};
+
+const checkTokenHealth = async ({
+  credentials = readCredentials(),
+  force = false,
+  request = axios.get,
+} = {}) => {
+  if (!credentials?.token || !credentials?.cookie) {
+    return setTokenHealth(credentials, 'missing', {
+      reason: 'credentials_missing',
+      message: '尚未保存微信公众平台登录态',
+    });
+  }
+
+  const fingerprint = credentialFingerprint(credentials);
+  if (
+    !force &&
+    tokenHealthCache?.fingerprint === fingerprint &&
+    Date.now() - new Date(tokenHealthCache.checked_at).getTime() < TOKEN_HEALTH_CACHE_MS
+  ) {
+    return publicTokenHealth(tokenHealthCache);
+  }
+  if (tokenHealthPromise) return tokenHealthPromise;
+
+  tokenHealthPromise = (async () => {
+    try {
+      const response = await request(buildTrustedMpApiUrl('/cgi-bin/searchbiz'), {
+        params: {
+          action: 'search_biz',
+          token: credentials.token,
+          lang: 'zh_CN',
+          f: 'json',
+          ajax: '1',
+          random: `${Date.now() / 1000}`,
+          query: TOKEN_HEALTH_QUERY,
+          begin: '0',
+          count: '1',
+        },
+        headers: mpHeaders(credentials),
+        timeout: TOKEN_HEALTH_REQUEST_TIMEOUT_MS,
+        maxRedirects: 0,
+        validateStatus: () => true,
+      });
+      const result = classifyTokenHealthResponse(response);
+      return setTokenHealth(credentials, result.status, result);
+    } catch (error) {
+      const signal = tokenHealthSignal(error);
+      return setTokenHealth(credentials, 'expired', {
+        reason: signal.expired ? 'invalid_session' : 'check_failed',
+        message: signal.message || '暂时无法确认微信公众平台登录态',
+      });
+    } finally {
+      tokenHealthPromise = null;
+    }
+  })();
+
+  return tokenHealthPromise;
+};
+
 const raiseForMpError = (payload) => {
   const baseResp = payload?.base_resp || {};
   const ret = baseResp.ret;
@@ -784,8 +904,19 @@ const mpGetJson = async ({ path: apiPath, params, referer }) => {
       maxRedirects: 0,
     });
     raiseForMpError(response.data);
+    setTokenHealth(credentials, 'valid', {
+      reason: 'authenticated',
+      message: '微信公众平台登录态有效',
+    });
     return response.data;
   } catch (error) {
+    const signal = tokenHealthSignal(error);
+    if (signal.expired || error?.response?.status === 401 || error?.status === 401) {
+      setTokenHealth(credentials, 'expired', {
+        reason: 'invalid_session',
+        message: signal.message || '微信公众平台登录态已失效',
+      });
+    }
     const wrapped = new Error(redactCredentials(error.response?.data?.errmsg || error.message, credentials));
     wrapped.code = error.code || 'WECHAT_MP_REQUEST_FAILED';
     wrapped.status = error.status || error.response?.status || 502;
@@ -1254,17 +1385,28 @@ const fetchArticleContents = async ({
   };
 };
 
-const getStatus = () => ({
-  credentials: sanitizeCredentials(readCredentials()),
+const getStatus = async () => {
+  const credentials = readCredentials();
+  const health = await checkTokenHealth({ credentials });
+  return {
+  credentials: {
+    ...sanitizeCredentials(credentials),
+    health,
+  },
   login: publicLoginState(),
   runtime: getBrowserRuntimeStatus(),
-});
+  };
+};
+
+const getLoginStatus = () => publicLoginState();
 
 module.exports = {
   WECHAT_MP_BASE_URL,
   assertTrustedMpRedirect,
   authenticatedUrlFromLoginPayload,
   buildTrustedMpApiUrl,
+  checkTokenHealth,
+  classifyTokenHealthResponse,
   cancelLogin,
   cookieNames,
   cookiesToHeader,
@@ -1276,6 +1418,7 @@ module.exports = {
   fetchArticles,
   fetchArticlesForAccounts,
   getBrowserRuntimeStatus,
+  getLoginStatus,
   getStatus,
   maskSecret,
   localizeWechatArticleImages,

@@ -7,6 +7,7 @@ const {
   fetchArticleContents,
   fetchArticles,
   fetchArticlesForAccounts,
+  getLoginStatus,
   getStatus,
   searchAccounts,
   startLogin,
@@ -48,9 +49,9 @@ const pacingFromBody = (body = {}) => ({
   content_delay_range: body.content_delay_range ?? body.contentDelayRange ?? body.content_delay_range_seconds,
 });
 
-const getWechatMpStatus = (_req, res) => {
+const getWechatMpStatus = async (_req, res) => {
   try {
-    return res.json(getStatus());
+    return res.json(await getStatus());
   } catch (error) {
     return sendError(res, error, '获取微信 MP 状态失败');
   }
@@ -69,7 +70,7 @@ const startWechatMpLogin = (req, res) => {
 
 const getWechatMpLoginStatus = (_req, res) => {
   try {
-    return res.json(getStatus().login);
+    return res.json(getLoginStatus());
   } catch (error) {
     return sendError(res, error, '获取微信 MP 登录状态失败');
   }
