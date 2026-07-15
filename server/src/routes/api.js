@@ -279,6 +279,7 @@ router.get('/favorites/check', authenticateToken, favoriteController.checkFavori
 
 // Project plaza / project cards
 router.get('/projects', optionalAuth, projectCardController.listProjects);
+router.get('/projects/:id/share-card.png', projectCardController.getProjectShareCard);
 router.get('/projects/:id', optionalAuth, projectCardController.getProject);
 router.post('/projects', authenticateToken, projectCreateLimiter, projectCardController.createProject);
 router.put('/projects/:id', authenticateToken, projectCardController.updateProject);

@@ -95,12 +95,9 @@ const buildProjectSharePagePath = (sharePayload, shellPath = PROJECT_SHARE_SHELL
 
 const buildShareAppMessage = (sharePayload, options = {}) => {
   const payload = sanitizeSharePayload(sharePayload);
-  const projectSharePath = options.projectLanding === false
-    ? ""
-    : buildProjectSharePagePath(payload, options.projectShellPath);
   const result = {
     title: payload.title,
-    path: projectSharePath || buildWebViewPagePath(payload.path, options.shellPath),
+    path: buildWebViewPagePath(payload.path, options.shellPath),
   };
   if (payload.imageUrl) {
     result.imageUrl = payload.imageUrl;

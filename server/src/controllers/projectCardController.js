@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const { renderProjectShareCard } = require('../services/projectShareCardService');
 
 const PROGRESS = new Set(['idea', 'dev', 'live', 'pause']);
 const MAX_TAGS = 12;
@@ -203,6 +204,25 @@ const getProject = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// GET /api/projects/:id/share-card.png (public 5:4 mini program share image)
+const getProjectShareCard = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const row = await db.get(
+      `SELECT p.* FROM project_cards p WHERE p.id = ? AND p.status = 'published'`,
+      [req.params.id]
+    );
+    if (!row) return res.status(404).json({ error: '项目不存在' });
+    const image = await renderProjectShareCard(row);
+    res.set({
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=86400',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    return res.send(image);
+  } catch (error) { return next(error); }
+};
+
 // POST /api/projects/:id/report
 const reportProject = async (req, res, next) => {
   try {
@@ -229,5 +249,5 @@ const takedownProject = async (req, res, next) => {
 
 module.exports = {
   createProject, updateProject, deleteProject,
-  listProjects, getProject, reportProject, takedownProject,
+  listProjects, getProject, getProjectShareCard, reportProject, takedownProject,
 };

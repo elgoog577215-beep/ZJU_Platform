@@ -10,6 +10,8 @@ const {
   buildShareAppMessage,
   buildShareTimelineMessage,
   enableNativeShareMenu,
+  getProjectIdFromPath,
+  sanitizeSharePayload,
 } = require("../../utils/share");
 
 const getNavigationTitle = () => {
@@ -45,6 +47,7 @@ Page({
     this.targetPath = params.path || params.url || DEFAULT_PATH;
     enableNativeShareMenu();
     this.loadLocal();
+    this.primeProjectSharePayload();
     applyNavigationTitle();
   },
 
@@ -80,6 +83,29 @@ Page({
 
   loadProduction() {
     this.setWebViewSrc(buildWebViewUrl(this.targetPath, { origin: PRODUCTION_WEB_ORIGIN }));
+  },
+
+  primeProjectSharePayload() {
+    const projectId = getProjectIdFromPath(this.targetPath);
+    if (!projectId) return;
+    const origin = WEB_ORIGIN.replace(/\/$/, "");
+    wx.request({
+      url: `${origin}/api/projects/${encodeURIComponent(projectId)}`,
+      success: (response) => {
+        if (response.statusCode < 200 || response.statusCode >= 300 || !response.data) return;
+        const project = response.data;
+        this.sharePayload = sanitizeSharePayload({
+          title: project.title,
+          text: project.intro || project.description,
+          path: this.targetPath,
+          imageUrl: `${origin}/api/projects/${encodeURIComponent(projectId)}/share-card.png`,
+        });
+        console.info("[tuotuzju-miniprogram] project share payload primed", projectId);
+      },
+      fail: (error) => {
+        console.warn("[tuotuzju-miniprogram] project share payload unavailable", error);
+      },
+    });
   },
 
   copyCurrentUrl() {
