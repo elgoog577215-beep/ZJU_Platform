@@ -657,13 +657,19 @@ const resolveGet = (url, config) => {
   }
 
   if (path === '/community/material-types') {
-    const types = ['exam', 'outline', 'slides', 'notes', 'solution', 'other'];
+    const types = ['course', 'ai', 'other'];
+    const legacyCourseTypes = new Set(['exam', 'outline', 'slides', 'notes', 'solution']);
+    const normalizeType = (value) => {
+      const type = String(value || '').trim().toLowerCase();
+      if (legacyCourseTypes.has(type)) return 'course';
+      return types.includes(type) ? type : 'other';
+    };
     const data = types.map((type) => ({
       type,
       count: mockStore.posts.filter((post) => (
         post.section === 'materials'
         && post.status === 'published'
-        && (post.material_type || 'other') === type
+        && normalizeType(post.material_type) === type
       )).length,
     }));
     return toResponse({ data });

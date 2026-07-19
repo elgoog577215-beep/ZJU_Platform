@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { BookOpen, FileStack, Layers3, Link as LinkIcon, Tags, Upload, X } from 'lucide-react';
+import { Bot, FileStack, GraduationCap, Link as LinkIcon, PackageOpen, Upload } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -13,11 +13,18 @@ import CommunityFeedPanel from './CommunityFeedPanel';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 import CommunitySearchInput from './CommunitySearchInput';
 
-const normalizeCourseName = (value) => String(value || '').trim().replace(/\s+/g, ' ');
-const MATERIAL_TYPE_KEYS = ['exam', 'outline', 'slides', 'notes', 'solution', 'other'];
+const MATERIAL_TYPE_KEYS = ['course', 'ai', 'other'];
+const LEGACY_COURSE_MATERIAL_TYPES = new Set(['exam', 'outline', 'slides', 'notes', 'solution']);
 const normalizeMaterialType = (value) => {
   const type = String(value || '').trim().toLowerCase();
+  if (LEGACY_COURSE_MATERIAL_TYPES.has(type)) return 'course';
   return MATERIAL_TYPE_KEYS.includes(type) ? type : '';
+};
+
+const CATEGORY_ICONS = {
+  course: GraduationCap,
+  ai: Bot,
+  other: PackageOpen,
 };
 
 const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
@@ -30,20 +37,16 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
   const isDayMode = uiMode === 'day';
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [materialCourses, setMaterialCourses] = useState([]);
   const [materialTypes, setMaterialTypes] = useState([]);
-  const [selectedMaterialCourse, setSelectedMaterialCourse] = useState(() => normalizeCourseName(searchParams.get('course')));
   const [selectedMaterialType, setSelectedMaterialType] = useState(() => normalizeMaterialType(searchParams.get('type')));
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const materialQueryParams = React.useMemo(
     () => ({
-      ...(selectedMaterialCourse ? { material_course: selectedMaterialCourse } : {}),
       ...(selectedMaterialType ? { material_type: selectedMaterialType } : {}),
     }),
-    [selectedMaterialCourse, selectedMaterialType],
+    [selectedMaterialType],
   );
   const clearMaterialFilters = useCallback(() => {
-    setSelectedMaterialCourse('');
     setSelectedMaterialType('');
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
@@ -60,24 +63,10 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     deepLinkParam: 'post',
     defaultPageSize: 10,
     extraQueryParams: materialQueryParams,
-    extraDependencies: [selectedMaterialCourse, selectedMaterialType],
-    extraFiltersActive: Boolean(selectedMaterialCourse || selectedMaterialType),
+    extraDependencies: [selectedMaterialType],
+    extraFiltersActive: Boolean(selectedMaterialType),
     onResetExtraFilters: clearMaterialFilters,
   });
-
-  const loadMaterialCourses = useCallback(async ({ signal } = {}) => {
-    try {
-      const res = await api.get('/community/material-courses', {
-        params: { limit: 24 },
-        signal,
-      });
-      setMaterialCourses(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch (error) {
-      if (!isCanceledRequest(error)) {
-        setMaterialCourses([]);
-      }
-    }
-  }, []);
 
   const loadMaterialTypes = useCallback(async ({ signal } = {}) => {
     try {
@@ -93,13 +82,11 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
 
   React.useEffect(() => {
     const ac = new AbortController();
-    loadMaterialCourses({ signal: ac.signal });
     loadMaterialTypes({ signal: ac.signal });
     return () => ac.abort();
-  }, [loadMaterialCourses, loadMaterialTypes]);
+  }, [loadMaterialTypes]);
 
   React.useEffect(() => {
-    setSelectedMaterialCourse(normalizeCourseName(searchParams.get('course')));
     setSelectedMaterialType(normalizeMaterialType(searchParams.get('type')));
   }, [searchParams]);
 
@@ -125,13 +112,12 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     const onRefresh = (event) => {
       if (event.detail?.boardKey === 'materials') {
         feed.handleRefresh();
-        loadMaterialCourses();
         loadMaterialTypes();
       }
     };
     window.addEventListener('community-feed-refresh', onRefresh);
     return () => window.removeEventListener('community-feed-refresh', onRefresh);
-  }, [feed, loadMaterialCourses, loadMaterialTypes]);
+  }, [feed, loadMaterialTypes]);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -170,21 +156,6 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     if (resource.type === 'post') return updateParams({ postTab: resource.section || 'materials', post: resource.id });
   }, [updateParams]);
 
-  const handleCourseFilter = useCallback((courseName) => {
-    const nextCourse = normalizeCourseName(courseName);
-    const params = new URLSearchParams(searchParams);
-    ['id', 'post', 'news', 'group'].forEach((key) => params.delete(key));
-    params.set('postTab', 'materials');
-    if (nextCourse) {
-      params.set('course', nextCourse);
-    } else {
-      params.delete('course');
-    }
-    setSelectedMaterialCourse(nextCourse);
-    feed.setCurrentPage(1);
-    setSearchParams(params, { replace: false });
-  }, [feed, searchParams, setSearchParams]);
-
   const handleTypeFilter = useCallback((typeValue) => {
     const nextType = normalizeMaterialType(typeValue);
     const params = new URLSearchParams(searchParams);
@@ -208,7 +179,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     post?.material_course ? { key: 'course', label: t('community.material_course', '课程'), value: post.material_course } : null,
     post?.material_teacher ? { key: 'teacher', label: t('community.material_teacher', '老师'), value: post.material_teacher } : null,
     post?.material_semester ? { key: 'semester', label: t('community.material_semester', '学期'), value: post.material_semester } : null,
-    post?.material_type ? { key: 'type', label: t('community.material_type', '资料类型'), value: t(`community.material_type_${post.material_type}`, post.material_type) } : null,
+    post?.material_type ? { key: 'type', label: t('community.material_type', '资源分类'), value: t(`community.material_type_${normalizeMaterialType(post.material_type) || post.material_type}`, post.material_type) } : null,
   ].filter(Boolean);
 
   const selectedMaterialMeta = feed.selectedItem ? getMaterialMeta(feed.selectedItem) : [];
@@ -217,12 +188,13 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     count: materialTypes.find((item) => item.type === type)?.count || 0,
     label: t(`community.material_type_${type}`, type),
   }));
+  const uploadAction = onNewPost || openComposer;
 
   const beforeContent = feed.selectedItem && (
-    <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'border-slate-200 bg-slate-50/80' : 'border-white/10 bg-white/[0.045]'}`}>
-      <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
+    <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'border-[#ddd6c8] bg-[#f1eadc]/80' : 'border-[#2a312b] bg-[#121713]'}`}>
+      <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? 'text-[#625d51]' : 'text-[#c8c0b1]'}`}>
         <span className="inline-flex items-center gap-1.5">
-          <BookOpen size={15} />
+          <FileStack size={15} />
           {t('community.materials_detail_tip', '支持上传 PDF、Word、Markdown 与附件块')}
         </span>
         {feed.selectedItem.link ? (
@@ -230,7 +202,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
             href={feed.selectedItem.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-white' : 'border-white/10 text-gray-200 hover:bg-white/[0.08]'}`}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-[#ddd6c8] text-[#625d51] hover:bg-[#faf7f0]' : 'border-[#323b34] text-[#c8c0b1] hover:bg-[#1a201b]'}`}
           >
             <LinkIcon size={13} />
             {t('community.open_original', '查看原文')}
@@ -242,9 +214,9 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
           {selectedMaterialMeta.map((item) => (
             <span
               key={item.key}
-              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/[0.05] text-gray-200'}`}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0] text-[#625d51]' : 'border-[#323b34] bg-[#1a201b] text-[#c8c0b1]'}`}
             >
-              <span className={isDayMode ? 'text-slate-500' : 'text-gray-400'}>{item.label}</span>
+              <span className={isDayMode ? 'text-[#8b8272]' : 'text-[#958f84]'}>{item.label}</span>
               {item.value}
             </span>
           ))}
@@ -278,128 +250,65 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
   );
 
   const controls = (
-    <div className="grid gap-3">
-      <CommunitySearchInput
-        value={feed.searchQuery}
-        onChange={feed.setSearchQuery}
-        onClear={() => feed.setSearchQuery('')}
-        placeholder={t('community.materials_search_placeholder', '搜索课程、老师、科目或资料类型')}
-        isDayMode={isDayMode}
-      />
-      <div className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-white/88 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'border-white/10 bg-white/[0.045]'}`}>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div className={`inline-flex items-center gap-1.5 text-xs font-bold ${isDayMode ? 'text-slate-800' : 'text-gray-100'}`}>
-            <Layers3 size={14} />
-            {t('community.materials_type_filter_title', '资源栏目')}
-          </div>
-          {selectedMaterialType ? (
-            <button
-              type="button"
-              onClick={() => handleTypeFilter('')}
-              className={`inline-flex min-h-[28px] items-center gap-1 rounded-md border px-2 text-xs font-semibold ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-white' : 'border-white/10 bg-white/[0.05] text-gray-200 hover:bg-white/[0.08]'}`}
-            >
-              <X size={12} />
-              {t('community.materials_type_filter_all', '全部栏目')}
-            </button>
-          ) : null}
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+    <div className="grid gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch gap-3">
+        <CommunitySearchInput
+          value={feed.searchQuery}
+          onChange={feed.setSearchQuery}
+          onClear={() => feed.setSearchQuery('')}
+          placeholder={t('community.materials_search_placeholder', '搜索标题、作者、课程或资源内容')}
+          isDayMode={isDayMode}
+          size="large"
+        />
+        {!hideNewPostButton ? (
+          <button
+            type="button"
+            onClick={uploadAction}
+            className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-lg border px-4 text-base font-black transition-colors sm:gap-2.5 sm:px-6 ${
+              isDayMode
+                ? 'border-[#cfc3ad] bg-[#faf7f0] text-[#201f1a] shadow-[0_8px_22px_rgba(64,54,37,0.06)] hover:border-[#b9aa90] hover:bg-[#fffaf0]'
+                : 'border-[#5c6659] bg-[#20271f] text-[#e7e0d2] hover:border-[#72806e] hover:bg-[#273027]'
+            }`}
+          >
+            <Upload size={21} />
+            <span>{t('community.materials_upload_action', '上传资料')}</span>
+          </button>
+        ) : null}
+      </div>
+      <div className={`rounded-lg border p-4 max-md:mt-24 md:p-5 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]/92 shadow-[0_10px_28px_rgba(64,54,37,0.055)]' : 'border-[#2a312b] bg-[#121713]/92'}`}>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {materialTypeRows.map((item) => {
             const isActive = selectedMaterialType === item.type;
+            const Icon = CATEGORY_ICONS[item.type] || FileStack;
             return (
               <button
                 key={item.type}
                 type="button"
                 aria-pressed={isActive}
-                onClick={() => handleTypeFilter(item.type)}
-                className={`group flex min-h-[58px] min-w-0 flex-col justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
+                onClick={() => handleTypeFilter(isActive ? '' : item.type)}
+                className={`group flex min-h-[116px] min-w-0 items-start gap-4 rounded-lg border px-5 py-5 text-left transition-colors md:min-h-[132px] ${
                   isActive
                     ? isDayMode
-                      ? 'border-slate-900 bg-slate-950 text-white shadow-[0_10px_26px_rgba(15,23,42,0.14)]'
-                      : 'border-white bg-white text-slate-950'
+                      ? 'border-[#5f594d] bg-[#2f332d] text-[#f0eadf] shadow-[0_10px_26px_rgba(64,54,37,0.12)]'
+                      : 'border-[#748276] bg-[#20271f] text-[#f0eadf] shadow-[0_14px_34px_rgba(0,0,0,0.24)]'
                     : isDayMode
-                      ? 'border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-white'
-                      : 'border-white/10 bg-white/[0.035] text-gray-200 hover:bg-white/[0.075]'
+                      ? 'border-[#ddd6c8] bg-[#f1eadc]/76 text-[#625d51] hover:border-[#cfc3ad] hover:bg-[#fffaf0]'
+                      : 'border-[#2a312b] bg-[#151b16] text-[#c8c0b1] hover:border-[#485448] hover:bg-[#1a201b]'
                 }`}
               >
-                <span className="truncate text-xs font-bold">{item.label}</span>
-                <span className={`mt-1 text-[11px] font-semibold ${isActive ? 'opacity-80' : isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                  {t('community.material_type_count', { count: item.count })}
+                <span className={`mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg md:h-14 md:w-14 ${isActive ? 'bg-[#e8ddc7]/18' : isDayMode ? 'bg-[#faf7f0] shadow-[0_6px_18px_rgba(64,54,37,0.055)]' : 'bg-[#20261f]'}`}>
+                  <Icon size={24} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-lg font-black md:text-xl">{item.label}</span>
+                  <span className={`mt-2 block text-sm leading-6 ${isActive ? 'opacity-80' : isDayMode ? 'text-[#8b8272]' : 'text-[#958f84]'}`}>
+                    {t(`community.material_type_${item.type}_desc`, '资源内容')}
+                  </span>
                 </span>
               </button>
             );
           })}
         </div>
-        {selectedMaterialType ? (
-          <div className={`mt-2 text-xs font-semibold ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-            {t('community.materials_type_filter_active', { type: t(`community.material_type_${selectedMaterialType}`, selectedMaterialType) })}
-          </div>
-        ) : (
-          <div className={`mt-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-            {t('community.materials_type_filter_hint', '根据现有资源内容，先按资料用途分栏，再用课程标签精确查找。')}
-          </div>
-        )}
-      </div>
-      <div className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-slate-50/65' : 'border-white/10 bg-white/[0.035]'}`}>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div className={`inline-flex items-center gap-1.5 text-xs font-bold ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
-            <Tags size={14} />
-            {t('community.materials_course_filter_title', '课程标签')}
-          </div>
-          {selectedMaterialCourse ? (
-            <button
-              type="button"
-              onClick={() => handleCourseFilter('')}
-              className={`inline-flex min-h-[28px] items-center gap-1 rounded-md border px-2 text-xs font-semibold ${isDayMode ? 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' : 'border-white/10 bg-white/[0.05] text-gray-200 hover:bg-white/[0.08]'}`}
-            >
-              <X size={12} />
-              {t('community.materials_course_filter_all', '全部课程')}
-            </button>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {materialCourses.length > 0 ? materialCourses.map((course) => {
-            const isActive = selectedMaterialCourse === course.name;
-            return (
-              <button
-                key={course.name}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => handleCourseFilter(course.name)}
-                className={`inline-flex min-h-[32px] max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold transition-colors ${
-                  isActive
-                    ? isDayMode
-                      ? 'border-slate-900 bg-slate-950 text-white'
-                      : 'border-white bg-white text-slate-950'
-                    : isDayMode
-                      ? 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                      : 'border-white/10 bg-white/[0.04] text-gray-300 hover:bg-white/[0.08]'
-                }`}
-              >
-                <span className="truncate">{course.name}</span>
-                <span className={`rounded px-1.5 py-0.5 text-[10px] ${isActive ? 'bg-white/20' : isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/[0.06] text-gray-400'}`}>
-                  {t('community.material_course_count', { count: course.count })}
-                </span>
-              </button>
-            );
-          }) : (
-            <span className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-              {t('community.materials_course_filter_empty', '通过审核的资料会在这里形成课程标签')}
-            </span>
-          )}
-        </div>
-        {selectedMaterialCourse ? (
-          <div className={`mt-2 text-xs font-semibold ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-            {t('community.materials_course_filter_active', { course: selectedMaterialCourse })}
-          </div>
-        ) : null}
-      </div>
-      <div className={`flex flex-wrap items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-white/[0.04] text-gray-300'}`}>
-          <Upload size={13} />
-          {t('community.materials_upload_hint', '上传资料后进入后台审核，通过后全站可见')}
-        </span>
-        <span className="hidden sm:inline">{t('community.materials_scope_hint', '适合分享往年题、复习提纲、课件摘要和经验整理')}</span>
       </div>
     </div>
   );
@@ -412,13 +321,21 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         renderCard={renderCard}
         renderDetail={renderDetail}
         emptyIcon={FileStack}
-        emptyTitle={t('community.materials_empty', '暂无期末资料')}
-        emptyDesc={t('community.materials_empty_desc', '上传第一份复习资料，帮后来者少走弯路。')}
+        emptyTitle={selectedMaterialType
+          ? t(`community.materials_empty_${selectedMaterialType}`, t('community.materials_empty', '暂无资源'))
+          : t('community.materials_empty', '暂无资源')}
+        emptyDesc={selectedMaterialType
+          ? t(`community.materials_empty_${selectedMaterialType}_desc`, t('community.materials_empty_desc', '上传第一份资源，帮后来者少走弯路。'))
+          : t('community.materials_empty_desc', '上传第一份资源，帮后来者少走弯路。')}
         accentColor="slate"
         extraControls={controls}
         onNewPost={onNewPost || openComposer}
         newPostLabel={t('community.materials_upload_action', '上传资料')}
-        hideNewPostButton={hideNewPostButton}
+        hideNewPostButton
+        hideSortSelector
+        hideFilterBadge
+        hideSummaryLine
+        ignoreActiveFiltersForEmptyState
         surfaceVariant="learning"
       />
       <UnifiedCommunityComposer
@@ -428,7 +345,6 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         onClose={() => { setComposerOpen(false); setEditingPost(null); }}
         onSuccess={() => {
           feed.handleRefresh();
-          loadMaterialCourses();
           loadMaterialTypes();
         }}
       />

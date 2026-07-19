@@ -16,7 +16,8 @@ const viewerFromReq = (req) => (
 const ALLOWED_SECTIONS = new Set(['help', 'team', 'materials', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
 const CONTENT_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected', 'deleted']);
-const MATERIAL_TYPES = new Set(['exam', 'outline', 'slides', 'notes', 'solution', 'other']);
+const MATERIAL_TYPES = new Set(['course', 'ai', 'other']);
+const LEGACY_COURSE_MATERIAL_TYPES = new Set(['exam', 'outline', 'slides', 'notes', 'solution']);
 
 const normalizeSection = (value) => {
   const section = String(value || '').trim().toLowerCase();
@@ -36,7 +37,24 @@ const parseTags = (input) => {
 const normalizeMaterialType = (input) => {
   const value = String(input || '').trim().toLowerCase();
   if (!value) return null;
+  if (LEGACY_COURSE_MATERIAL_TYPES.has(value)) return 'course';
   return MATERIAL_TYPES.has(value) ? value : 'other';
+};
+
+const appendMaterialTypeFilter = (whereClauses, whereParams, materialType) => {
+  if (!materialType) return;
+  if (materialType === 'course') {
+    whereClauses.push(`LOWER(COALESCE(NULLIF(TRIM(material_type), ''), 'other')) IN (${['course', ...LEGACY_COURSE_MATERIAL_TYPES].map(() => '?').join(', ')})`);
+    whereParams.push('course', ...LEGACY_COURSE_MATERIAL_TYPES);
+    return;
+  }
+  if (materialType === 'ai') {
+    whereClauses.push("LOWER(COALESCE(NULLIF(TRIM(material_type), ''), 'other')) = ?");
+    whereParams.push('ai');
+    return;
+  }
+  whereClauses.push(`LOWER(COALESCE(NULLIF(TRIM(material_type), ''), 'other')) NOT IN (${['course', 'ai', ...LEGACY_COURSE_MATERIAL_TYPES].map(() => '?').join(', ')})`);
+  whereParams.push('course', 'ai', ...LEGACY_COURSE_MATERIAL_TYPES);
 };
 
 const normalizeContentStatus = (value, { section, user = {}, role = user?.role || 'user', intent = 'submit' } = {}) => {
@@ -493,8 +511,7 @@ const listPosts = async (req, res, next) => {
     }
 
     if (section === 'materials' && materialType) {
-      whereClauses.push('material_type = ?');
-      whereParams.push(materialType);
+      appendMaterialTypeFilter(whereClauses, whereParams, materialType);
     }
 
     if (q.length >= 2) {
@@ -599,7 +616,11 @@ const listMaterialTypes = async (req, res, next) => {
       `
     );
 
-    const counts = new Map(rows.map((row) => [normalizeMaterialType(row.type) || 'other', row.count || 0]));
+    const counts = rows.reduce((acc, row) => {
+      const type = normalizeMaterialType(row.type) || 'other';
+      acc.set(type, (acc.get(type) || 0) + (row.count || 0));
+      return acc;
+    }, new Map());
     const data = Array.from(MATERIAL_TYPES).map((type) => ({
       type,
       count: counts.get(type) || 0,

@@ -46,7 +46,10 @@ const CommunityFeedPanel = ({
   sortOptions,
   hideSortSelector = false,
   hideMobileSummary = false,
+  hideSummaryLine = false,
   hideNewPostButton = false,
+  hideFilterBadge = false,
+  ignoreActiveFiltersForEmptyState = false,
   surfaceVariant = 'default',
 }) => {
   const { t } = useTranslation();
@@ -60,6 +63,7 @@ const CommunityFeedPanel = ({
     handlePageChange, setCurrentPage, handleRefresh, hasActiveFilters,
     resetFilters, searchQuery, isSearchPending,
   } = feed;
+  const showFilteredEmptyState = hasActiveFilters && !ignoreActiveFiltersForEmptyState;
 
   const gradientFrom = isDayMode
     ? 'from-slate-100 to-slate-50'
@@ -111,7 +115,7 @@ const CommunityFeedPanel = ({
   const statusControl = statusTabs ? (
     <div className={`scrollbar-none flex w-full max-w-full items-center overflow-x-auto sm:w-auto ${
       isLearningSurface
-        ? `gap-1 rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50/85' : 'border-white/10 bg-white/[0.04]'}`
+              ? `gap-1 rounded-lg border p-1 ${isDayMode ? 'border-[#ddd6c8] bg-[#f1eadc]/85' : 'border-[#2a312b] bg-[#121713]'}`
         : 'gap-1.5'
     }`}>
       {statusTabs.map(({ key, label }) => (
@@ -124,11 +128,11 @@ const CommunityFeedPanel = ({
             ? `min-h-9 min-w-fit rounded-md px-3 text-xs font-semibold transition-colors whitespace-nowrap ${
               statusFilter === key
                 ? isDayMode
-                  ? 'bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
-                  : 'bg-white/10 text-white'
+                  ? 'bg-[#faf7f0] text-[#201f1a] shadow-[0_4px_12px_rgba(64,54,37,0.06)]'
+                  : 'bg-[#20271f] text-[#e7e0d2]'
                 : isDayMode
-                  ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
-                  : 'text-gray-400 hover:bg-white/[0.06] hover:text-white'
+                  ? 'text-[#8b8272] hover:bg-[#faf7f0]/70 hover:text-[#201f1a]'
+                  : 'text-[#958f84] hover:bg-[#1a201b] hover:text-[#e7e0d2]'
             }`
             : `min-h-10 min-w-fit border-b-2 px-3 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
               statusFilter === key
@@ -174,7 +178,7 @@ const CommunityFeedPanel = ({
       {/* Controls */}
       <div className={`mb-4 flex flex-col rounded-lg border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
         isLearningSurface
-          ? `gap-2 p-2.5 md:gap-2.5 md:p-3 ${isDayMode ? 'border-slate-200/75 bg-white/86 shadow-[0_12px_34px_rgba(15,23,42,0.045)]' : 'border-white/10 bg-white/[0.035]'}`
+          ? `gap-2 p-2.5 md:gap-2.5 md:p-3 ${isDayMode ? 'border-[#ddd6c8]/85 bg-[#faf7f0]/86 shadow-[0_12px_34px_rgba(64,54,37,0.05)]' : 'border-[#2a312b] bg-[#111611]/90'}`
           : `gap-2.5 p-3 md:gap-3 md:p-4 ${isDayMode ? 'bg-white border-slate-200/70 shadow-none' : 'bg-white/[0.035] border-white/10'}`
       }`}>
         <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
@@ -191,8 +195,8 @@ const CommunityFeedPanel = ({
                 className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${
                   isLearningSurface
                     ? isDayMode
-                      ? 'border-slate-300 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.04)] hover:border-slate-400 hover:bg-slate-50'
-                      : 'border-white/15 bg-white/[0.07] text-white hover:bg-white/[0.1]'
+                      ? 'border-[#cfc3ad] bg-[#faf7f0] text-[#201f1a] shadow-[0_4px_14px_rgba(64,54,37,0.045)] hover:border-[#b9aa90] hover:bg-[#fffaf0]'
+                      : 'border-[#5c6659] bg-[#20271f] text-[#e7e0d2] hover:border-[#72806e] hover:bg-[#273027]'
                     : accentBtnClass
                 }`}
                 title={newPostText}
@@ -210,8 +214,8 @@ const CommunityFeedPanel = ({
             className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${
               isLearningSurface
                 ? isDayMode
-                  ? 'border-slate-300 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.04)] hover:border-slate-400 hover:bg-slate-50'
-                  : 'border-white/15 bg-white/[0.07] text-white hover:bg-white/[0.1]'
+                  ? 'border-[#cfc3ad] bg-[#faf7f0] text-[#201f1a] shadow-[0_4px_14px_rgba(64,54,37,0.045)] hover:border-[#b9aa90] hover:bg-[#fffaf0]'
+                  : 'border-[#5c6659] bg-[#20271f] text-[#e7e0d2] hover:border-[#72806e] hover:bg-[#273027]'
                 : accentBtnClass
             }`}
             title={newPostText}
@@ -220,48 +224,50 @@ const CommunityFeedPanel = ({
             <span>{newPostText}</span>
           </button>
         ) : null}
-        <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${
-          isLearningSurface
-            ? `px-1 pt-0 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`
-            : `border-t pt-3 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`
-        }`}>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className={th.textSecondary}>
-              {displayItems.length} {t('community.results_count', '条结果')}
-            </span>
-            {hasActiveFilters ? (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
-                {t('community.filtered_view', '已应用筛选')}
+        {!hideSummaryLine ? (
+          <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${
+            isLearningSurface
+              ? `px-1 pt-0 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`
+              : `border-t pt-3 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`
+          }`}>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className={th.textSecondary}>
+                {displayItems.length} {t('community.results_count', '条结果')}
               </span>
-            ) : null}
-            {searchQuery?.trim() ? (
-              <span className="truncate max-w-[220px]">
-                {t('community.searching_for', '搜索')} &quot;{searchQuery.trim()}&quot;
-              </span>
-            ) : null}
-            {isSearchPending ? (
-              <span>{t('common.loading', '加载中')}...</span>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-1.5 md:gap-2">
-            {hasActiveFilters ? (
+              {hasActiveFilters && !hideFilterBadge ? (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
+                  {t('community.filtered_view', '已应用筛选')}
+                </span>
+              ) : null}
+              {searchQuery?.trim() ? (
+                <span className="truncate max-w-[220px]">
+                  {t('community.searching_for', '搜索')} &quot;{searchQuery.trim()}&quot;
+                </span>
+              ) : null}
+              {isSearchPending ? (
+                <span>{t('common.loading', '加载中')}...</span>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-1.5 md:gap-2">
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
+                >
+                  {t('community.clear_filters', '清除筛选')}
+                </button>
+              ) : null}
               <button
                 type="button"
-                onClick={resetFilters}
+                onClick={handleRefresh}
                 className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
               >
-                {t('community.clear_filters', '清除筛选')}
+                {t('common.refresh', '刷新')}
               </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={handleRefresh}
-              className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
-            >
-              {t('common.refresh', '刷新')}
-            </button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       {/* Item list */}
@@ -286,14 +292,14 @@ const CommunityFeedPanel = ({
               {EmptyIcon && <EmptyIcon size={56} className={`${emptyIconClass} opacity-80 md:size-16`} />}
             </div>
             <h3 className={`mb-2 text-center text-xl font-bold md:text-2xl ${th.textPrimary}`}>
-              {hasActiveFilters ? t('community.no_filtered_results', '没有符合当前条件的内容') : emptyTitle}
+              {showFilteredEmptyState ? t('community.no_filtered_results', '没有符合当前条件的内容') : emptyTitle}
             </h3>
             <p className={`text-center max-w-md ${th.textSecondary}`}>
-              {hasActiveFilters
+              {showFilteredEmptyState
                 ? t('community.no_filtered_results_desc', '可以清除筛选条件，或调整搜索词后重试。')
                 : emptyDesc}
             </p>
-            {hasActiveFilters ? (
+            {showFilteredEmptyState ? (
               <button
                 type="button"
                 onClick={resetFilters}
