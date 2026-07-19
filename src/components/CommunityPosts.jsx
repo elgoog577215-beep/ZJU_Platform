@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -379,12 +379,74 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
   );
 };
 
+const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
+  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
+  const Icon = chapter?.icon || BookOpen;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(item)}
+      className={`group grid w-full gap-4 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:grid-cols-[minmax(0,1fr)_10rem] md:p-5 ${
+        isDayMode
+          ? 'border-slate-200 bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] hover:border-slate-300 hover:shadow-[0_22px_52px_rgba(15,23,42,0.1)]'
+          : 'border-white/10 bg-white/[0.065] shadow-[0_18px_46px_rgba(0,0,0,0.26)] hover:border-white/20 hover:bg-white/[0.085]'
+      }`}
+    >
+      <div className="min-w-0">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? tone.card : tone.nightCard}`}>
+            <Sparkles size={13} />
+            {t('community_learning.first_read', '建议先读')}
+          </span>
+          <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/[0.07] text-gray-300'}`}>
+            <Icon size={13} />
+            {t(level.titleKey, level.titleFallback)}
+          </span>
+          <span className={`ml-auto text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+            {formatDate(item.sortDate, language)}
+          </span>
+        </div>
+        <h4 className={`line-clamp-2 text-xl font-black leading-tight md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+          {item.title || t('community.untitled', '未命名')}
+        </h4>
+        <p className={`mt-3 line-clamp-3 text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
+          {item.excerpt || t('community_learning.no_excerpt', '暂无摘要，打开后查看完整内容。')}
+        </p>
+      </div>
+      <div className={`flex min-h-24 flex-col justify-between rounded-md border p-3 ${
+        isDayMode
+          ? 'border-slate-200 bg-slate-50'
+          : 'border-white/10 bg-black/20'
+      }`}>
+        <span className={`text-xs font-bold ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
+        </span>
+        <div className={`mt-4 flex items-center justify-between gap-3 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+          <span className="inline-flex items-center gap-1">
+            <Clock3 size={12} />
+            {calculateReadingTime(item.content || item.excerpt, t)}
+          </span>
+          <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+            isDayMode
+              ? 'bg-slate-950 text-white group-hover:bg-violet-700'
+              : 'bg-white text-slate-950 group-hover:bg-cyan-200'
+          }`}>
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+};
+
 const LearningArea = ({ isDayMode }) => {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [expandedChapterKey, setExpandedChapterKey] = useState(searchParams.get('lesson') || 'basics');
+  const levelSectionRefs = useRef({});
 
   const activeChapterKey = CHAPTERS.some((chapter) => chapter.key === searchParams.get('lesson'))
     ? searchParams.get('lesson')
@@ -431,13 +493,11 @@ const LearningArea = ({ isDayMode }) => {
       ? chapterItems.filter((item) => getText(item).includes(query))
       : chapterItems;
 
-    return LEVELS
-      .filter((level) => !activeLevelKey || level.key === activeLevelKey)
-      .map((level) => ({
-        ...level,
-        items: filteredItems.filter((item) => item.levelKey === level.key),
-      }));
-  }, [activeChapterKey, activeLevelKey, articlesByChapter, searchQuery]);
+    return LEVELS.map((level) => ({
+      ...level,
+      items: filteredItems.filter((item) => item.levelKey === level.key),
+    }));
+  }, [activeChapterKey, articlesByChapter, searchQuery]);
 
   const visibleArticlesCount = useMemo(
     () => levelGroups.reduce((sum, level) => sum + level.items.length, 0),
@@ -495,6 +555,15 @@ const LearningArea = ({ isDayMode }) => {
       return next;
     }, { replace: false });
   }, [expandedChapterKey, setSearchParams]);
+
+  useEffect(() => {
+    if (!activeLevelKey) return;
+    const target = levelSectionRefs.current[activeLevelKey];
+    if (!target) return;
+    window.setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }, [activeChapterKey, activeLevelKey, visibleArticlesCount]);
 
   const handleOpenArticle = useCallback((item) => {
     setSelectedArticle(item);
@@ -696,39 +765,112 @@ const LearningArea = ({ isDayMode }) => {
               {t('community_learning.load_failed', '学习资源加载失败，请稍后重试。')}
             </div>
           ) : visibleArticlesCount > 0 ? (
-            levelGroups.map((level) => (
-              level.items.length > 0 ? (
-                <section key={level.key} className="space-y-3">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <h3 className={`text-lg font-black ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-                        {t(level.titleKey, level.titleFallback)}
-                      </h3>
-                      <p className={`mt-1 text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                        {t(level.descKey, level.descFallback)}
-                      </p>
+            levelGroups.map((level) => {
+              const [firstItem, ...moreItems] = level.items;
+              const levelActive = activeLevelKey === level.key;
+              const levelTitle = t(level.titleKey, level.titleFallback);
+              const chapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || activeChapter;
+
+              return (
+                <section
+                  key={level.key}
+                  ref={(node) => {
+                    levelSectionRefs.current[level.key] = node;
+                  }}
+                  className={`scroll-mt-28 rounded-lg border p-4 transition-all duration-300 md:p-5 ${
+                    levelActive
+                      ? isDayMode
+                        ? 'border-violet-200 bg-violet-50/50 shadow-[0_18px_48px_rgba(109,40,217,0.1)]'
+                        : 'border-cyan-300/25 bg-cyan-300/[0.055] shadow-[0_18px_48px_rgba(34,211,238,0.08)]'
+                      : isDayMode
+                        ? 'border-slate-200 bg-white'
+                        : 'border-white/10 bg-white/[0.035]'
+                  }`}
+                >
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 gap-3">
+                      <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
+                        levelActive
+                          ? isDayMode
+                            ? 'bg-violet-600 ring-violet-100'
+                            : 'bg-cyan-300 ring-cyan-300/15'
+                          : isDayMode
+                            ? 'bg-slate-300 ring-slate-100'
+                            : 'bg-white/25 ring-white/[0.06]'
+                      }`} />
+                      <div className="min-w-0">
+                        <h3 className={`text-xl font-black ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                          {levelTitle}
+                        </h3>
+                        <p className={`mt-1 text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                          {t(level.descKey, level.descFallback)}
+                        </p>
+                      </div>
                     </div>
-                    <span className={`text-xs font-bold ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    <span className={`inline-flex shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-xs font-bold ${
+                      isDayMode
+                        ? 'border-slate-200 bg-slate-50 text-slate-500'
+                        : 'border-white/10 bg-white/[0.06] text-gray-400'
+                    }`}>
                       {t('community_learning.level_count', { count: level.items.length, defaultValue: '{{count}} 篇' })}
                     </span>
                   </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {level.items.map((item) => (
-                      <LearningCard
-                        key={item.id}
-                        item={item}
-                        chapter={CHAPTERS.find((chapter) => chapter.key === item.chapterKey)}
+
+                  <div className="space-y-4">
+                    {firstItem ? (
+                      <FeaturedLearningCard
+                        item={firstItem}
+                        chapter={chapter}
                         level={level}
                         isDayMode={isDayMode}
                         onOpen={handleOpenArticle}
                         t={t}
                         language={i18n.language}
                       />
-                    ))}
+                    ) : (
+                      <div className={`rounded-lg border border-dashed p-5 text-sm ${
+                        isDayMode
+                          ? 'border-slate-200 bg-slate-50 text-slate-500'
+                          : 'border-white/10 bg-white/[0.03] text-gray-400'
+                      }`}>
+                        {t('community_learning.level_empty', {
+                          level: levelTitle,
+                          defaultValue: '暂无{{level}}文章',
+                        })}
+                      </div>
+                    )}
+
+                    {moreItems.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <h4 className={`text-sm font-black ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
+                            {t('community_learning.more_level_articles', {
+                              level: levelTitle,
+                              defaultValue: '更多{{level}}文章',
+                            })}
+                          </h4>
+                          <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {moreItems.map((item) => (
+                            <LearningCard
+                              key={item.id}
+                              item={item}
+                              chapter={CHAPTERS.find((chapter) => chapter.key === item.chapterKey)}
+                              level={level}
+                              isDayMode={isDayMode}
+                              onOpen={handleOpenArticle}
+                              t={t}
+                              language={i18n.language}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </section>
-              ) : null
-            ))
+              );
+            })
           ) : (
             <div className={`rounded-lg border border-dashed p-8 text-center ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
               <Search className="mx-auto mb-3 h-9 w-9 opacity-45" />
