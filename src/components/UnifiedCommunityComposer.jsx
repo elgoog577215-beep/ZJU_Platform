@@ -164,14 +164,18 @@ const getAccept = (type) => {
 const normalizeCourseName = (value) => String(value || '').trim().replace(/\s+/g, ' ');
 
 const MATERIAL_TYPE_OPTIONS = [
-  { value: '', labelKey: 'community.material_type_placeholder', fallback: '选择资料类型' },
-  { value: 'exam', labelKey: 'community.material_type_exam', fallback: '往年题' },
-  { value: 'outline', labelKey: 'community.material_type_outline', fallback: '复习提纲' },
-  { value: 'slides', labelKey: 'community.material_type_slides', fallback: '课件摘要' },
-  { value: 'notes', labelKey: 'community.material_type_notes', fallback: '笔记整理' },
-  { value: 'solution', labelKey: 'community.material_type_solution', fallback: '题解/答案' },
-  { value: 'other', labelKey: 'community.material_type_other', fallback: '其他资料' },
+  { value: '', labelKey: 'community.material_type_placeholder', fallback: '选择资源分类' },
+  { value: 'course', labelKey: 'community.material_type_course', fallback: '课程资源' },
+  { value: 'ai', labelKey: 'community.material_type_ai', fallback: 'AI 资源' },
+  { value: 'other', labelKey: 'community.material_type_other', fallback: '其他资源' },
 ];
+
+const LEGACY_COURSE_MATERIAL_TYPES = new Set(['exam', 'outline', 'slides', 'notes', 'solution']);
+const normalizeMaterialType = (value) => {
+  const type = String(value || '').trim().toLowerCase();
+  if (LEGACY_COURSE_MATERIAL_TYPES.has(type)) return 'course';
+  return ['course', 'ai', 'other'].includes(type) ? type : '';
+};
 
 const UnifiedCommunityComposer = ({
   isOpen,
@@ -238,7 +242,7 @@ const UnifiedCommunityComposer = ({
     setMaterialCourse(initialData?.material_course || '');
     setMaterialTeacher(initialData?.material_teacher || '');
     setMaterialSemester(initialData?.material_semester || '');
-    setMaterialType(initialData?.material_type || '');
+    setMaterialType(normalizeMaterialType(initialData?.material_type));
     setRelatedArticleIds(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
     setRelatedPostIds(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
     setRelatedNewsIds(Array.isArray(initialData?.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData?.related_news_ids || ''));
@@ -249,7 +253,7 @@ const UnifiedCommunityComposer = ({
   }, [initialData, isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !config.supportsMaterialFields) return undefined;
+    if (!isOpen || !config.supportsMaterialFields || materialType !== 'course') return undefined;
     const ac = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       setMaterialCourseLoading(true);
@@ -271,7 +275,7 @@ const UnifiedCommunityComposer = ({
       window.clearTimeout(timeoutId);
       ac.abort();
     };
-  }, [config.supportsMaterialFields, isOpen, materialCourse]);
+  }, [config.supportsMaterialFields, isOpen, materialCourse, materialType]);
 
   const addBlock = useCallback((type) => {
     setBlocks((prev) => [...prev, createCommunityBlock(type)]);
@@ -374,9 +378,9 @@ const UnifiedCommunityComposer = ({
   const buildPayload = useCallback((status) => {
     const fallbackExcerpt = excerpt.trim() || plainContent.replace(/\s+/g, ' ').slice(0, 140);
     const materialPayload = config.supportsMaterialFields ? {
-      material_course: normalizedMaterialCourse,
-      material_teacher: materialTeacher.trim(),
-      material_semester: materialSemester.trim(),
+      material_course: materialType === 'course' ? normalizedMaterialCourse : '',
+      material_teacher: materialType === 'course' ? materialTeacher.trim() : '',
+      material_semester: materialType === 'course' ? materialSemester.trim() : '',
       material_type: materialType,
     } : {};
     if (normalizedBoardKey === 'tech') {
@@ -448,6 +452,10 @@ const UnifiedCommunityComposer = ({
     }
     if (plainContent.trim().length < 8) {
       toast.error(t('community.post_content_too_short', '正文至少 8 个字'));
+      return;
+    }
+    if (config.supportsMaterialFields && !materialType) {
+      toast.error(t('community.material_type_required', '请选择资源分类'));
       return;
     }
     const payload = buildPayload(status);
@@ -565,12 +573,37 @@ const UnifiedCommunityComposer = ({
                     {config.supportsMaterialFields && (
                       <>
                         <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.material_type', '资源分类')}</label>
+                          <select
+                            value={materialType}
+                            onChange={(e) => setMaterialType(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                          >
+                            {MATERIAL_TYPE_OPTIONS.map((option) => (
+                              <option key={option.value || 'empty'} value={option.value}>
+                                {t(option.labelKey, option.fallback)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.post_link_label', '资源链接')}</label>
+                          <input
+                            value={link}
+                            onChange={(e) => setLink(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                            placeholder={t('community.material_link_placeholder', '可选，粘贴原文、网盘或工具链接')}
+                          />
+                        </div>
+                        {materialType === 'course' && (
+                          <>
+                        <div className="community-composer-field space-y-2">
                           <label className={labelCls}>{t('community.material_course', '课程')}</label>
                           <input
                             value={materialCourse}
                             onChange={(e) => setMaterialCourse(e.target.value)}
                             className={`community-composer-input ${inputCls}`}
-                            placeholder={t('community.material_course_placeholder', '如：微积分 / 大学物理')}
+                            placeholder={t('community.material_course_placeholder', '可选，如：微积分 / 大学物理')}
                             maxLength={80}
                           />
                           <div className={`rounded-lg border p-2 ${isDayMode ? 'border-emerald-100 bg-emerald-50/60' : 'border-emerald-400/15 bg-emerald-400/[0.06]'}`}>
@@ -647,20 +680,8 @@ const UnifiedCommunityComposer = ({
                             maxLength={40}
                           />
                         </div>
-                        <div className="community-composer-field space-y-2">
-                          <label className={labelCls}>{t('community.material_type', '资料类型')}</label>
-                          <select
-                            value={materialType}
-                            onChange={(e) => setMaterialType(e.target.value)}
-                            className={`community-composer-input ${inputCls}`}
-                          >
-                            {MATERIAL_TYPE_OPTIONS.map((option) => (
-                              <option key={option.value || 'empty'} value={option.value}>
-                                {t(option.labelKey, option.fallback)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                          </>
+                        )}
                       </>
                     )}
                   </div>

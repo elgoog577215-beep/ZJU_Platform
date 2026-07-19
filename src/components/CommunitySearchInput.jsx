@@ -9,12 +9,14 @@ const CommunitySearchInput = ({
   placeholder,
   isDayMode,
   className = '',
+  size = 'default',
 }) => {
   const { t } = useTranslation();
+  const isLarge = size === 'large';
 
   return (
-    <div role="search" className={`flex min-h-11 items-center gap-2 rounded-lg border px-3 transition-colors ${isDayMode ? 'border-slate-200 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.035)] focus-within:border-slate-300' : 'border-white/10 bg-white/[0.045] text-white focus-within:border-white/20'} ${className}`}>
-      <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
+    <div role="search" className={`flex ${isLarge ? 'min-h-14 gap-3 px-4' : 'min-h-11 gap-2 px-3'} items-center rounded-lg border transition-colors ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0] text-[#201f1a] shadow-[0_4px_14px_rgba(64,54,37,0.04)] focus-within:border-[#b9aa90]' : 'border-[#2a312b] bg-[#141a15] text-[#e7e0d2] focus-within:border-[#657466]'} ${className}`}>
+      <Search size={isLarge ? 19 : 16} className={isDayMode ? 'text-[#8b8272]' : 'text-[#7f8b7f]'} />
       <input
         type="search"
         value={value}
@@ -23,16 +25,16 @@ const CommunitySearchInput = ({
         aria-label={placeholder || t('common.search', '搜索...')}
         autoComplete="off"
         enterKeyHint="search"
-        className={`min-w-0 flex-1 bg-transparent text-sm outline-none ${isDayMode ? 'placeholder:text-slate-400' : 'placeholder:text-gray-500'}`}
+        className={`min-w-0 flex-1 bg-transparent ${isLarge ? 'text-base' : 'text-sm'} outline-none ${isDayMode ? 'placeholder:text-[#9c9383]' : 'placeholder:text-[#777f76]'}`}
       />
       {value ? (
         <button
           type="button"
           onClick={onClear}
           aria-label={t('common.clear', '清除')}
-          className={`-mr-1 inline-flex min-h-10 min-w-10 items-center justify-center rounded-md transition-colors ${isDayMode ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-700' : 'text-gray-500 hover:bg-white/10 hover:text-white'}`}
+          className={`-mr-1 inline-flex ${isLarge ? 'min-h-11 min-w-11' : 'min-h-10 min-w-10'} items-center justify-center rounded-md transition-colors ${isDayMode ? 'text-[#8b8272] hover:bg-[#eee8dc] hover:text-[#201f1a]' : 'text-[#7f8b7f] hover:bg-[#20261f] hover:text-[#e7e0d2]'}`}
         >
-          <X size={14} />
+          <X size={isLarge ? 16 : 14} />
         </button>
       ) : null}
     </div>
