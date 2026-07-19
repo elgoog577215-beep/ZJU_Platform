@@ -34,7 +34,7 @@ jobs:
               git status --short
               exit 1
             fi
-            git merge-base --is-ancestor HEAD origin/master
+            git reset --hard origin/master
 
       - name: Install & Build
         run: |
@@ -55,7 +55,8 @@ jobs:
               git status --short
               exit 1
             fi
-            git pull --ff-only origin master
+            git fetch origin master
+            git reset --hard origin/master
             cd server
             npm install --omit=dev --legacy-peer-deps --package-lock=false
             npx playwright install --with-deps chromium
