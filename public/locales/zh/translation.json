@@ -3262,7 +3262,12 @@
     "chapter_launch_topics": "评测集 / LLM-as-judge / 安全 / 成本 / 缓存 / 反馈",
     "chapter_cases_title": "高阶案例",
     "chapter_cases_summary": "把前面的能力放进真实复杂场景，阅读垂直领域、复杂编排和系统边界案例。",
-    "chapter_cases_topics": "科研 Agent / Lean / AlphaZero / 多 Agent / 安全架构 / 自动化管线"
+    "chapter_cases_topics": "科研 Agent / Lean / AlphaZero / 多 Agent / 安全架构 / 自动化管线",
+    "progression_kicker": "学习进阶",
+    "progression_title": "同主题阅读路径",
+    "progression_hint": "按基础、进阶、高阶补齐理解。",
+    "progression_current": "当前阅读",
+    "progression_missing": "暂无对应篇"
   },
   "project_plaza": {
     "meta_title": "项目广场",
