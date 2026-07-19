@@ -276,6 +276,13 @@ const toneClasses = {
   },
 };
 
+const neutralTone = {
+  card: 'border-slate-200 bg-slate-100 text-slate-700',
+  nightCard: 'border-white/10 bg-white/[0.06] text-gray-200',
+  accent: 'text-slate-600',
+  nightAccent: 'text-gray-300',
+};
+
 const getText = (item) => [
   item?.title,
   item?.excerpt,
@@ -336,7 +343,6 @@ const formatDate = (value, language) => {
 };
 
 const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -350,7 +356,7 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
       }`}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? tone.card : tone.nightCard}`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
           <Icon size={13} />
           {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
         </span>
@@ -384,7 +390,6 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
 };
 
 const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -399,7 +404,7 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
     >
       <div className="min-w-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? tone.card : tone.nightCard}`}>
+          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
             <Sparkles size={13} />
             {t('community_learning.first_read', '建议先读')}
           </span>
@@ -433,8 +438,8 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
           </span>
           <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
             isDayMode
-              ? 'bg-slate-950 text-white group-hover:bg-violet-700'
-              : 'bg-white text-slate-950 group-hover:bg-cyan-200'
+              ? 'bg-slate-950 text-white group-hover:bg-slate-700'
+              : 'bg-white text-slate-950 group-hover:bg-gray-200'
           }`}>
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </span>
@@ -459,7 +464,6 @@ const LearningArea = ({ isDayMode }) => {
     ? searchParams.get('level')
     : '';
   const activeChapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
-  const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
   const ActiveIcon = activeChapter.icon;
 
   const articleResource = useCachedResource(
@@ -736,7 +740,7 @@ const LearningArea = ({ isDayMode }) => {
       <section className={`min-w-0 rounded-lg border p-5 md:p-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04]'}`}>
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? chapterTone.accent : chapterTone.nightAccent}`}>
+            <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? neutralTone.accent : neutralTone.nightAccent}`}>
               <ActiveIcon size={14} />
               {t(activeChapter.titleKey, activeChapter.titleFallback)}
             </div>
@@ -747,7 +751,7 @@ const LearningArea = ({ isDayMode }) => {
               {t(activeChapter.summaryKey, activeChapter.summaryFallback)}
             </p>
           </div>
-          <span className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${isDayMode ? chapterTone.card : chapterTone.nightCard}`}>
+          <span className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
             <BookOpen size={14} />
             {t(activeChapter.topicsKey, activeChapter.topicsFallback)}
           </span>
@@ -789,8 +793,8 @@ const LearningArea = ({ isDayMode }) => {
                   className={`scroll-mt-28 rounded-lg border p-4 transition-all duration-300 md:p-5 ${
                     levelActive
                       ? isDayMode
-                        ? 'border-violet-200 bg-violet-50/50 shadow-[0_18px_48px_rgba(109,40,217,0.1)]'
-                        : 'border-cyan-300/25 bg-cyan-300/[0.055] shadow-[0_18px_48px_rgba(34,211,238,0.08)]'
+                        ? 'border-slate-300 bg-slate-50 shadow-[0_18px_48px_rgba(15,23,42,0.08)]'
+                        : 'border-white/15 bg-white/[0.055] shadow-[0_18px_48px_rgba(0,0,0,0.22)]'
                       : isDayMode
                         ? 'border-slate-200 bg-white'
                         : 'border-white/10 bg-white/[0.035]'
@@ -801,8 +805,8 @@ const LearningArea = ({ isDayMode }) => {
                       <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
                         levelActive
                           ? isDayMode
-                            ? 'bg-violet-600 ring-violet-100'
-                            : 'bg-cyan-300 ring-cyan-300/15'
+                            ? 'bg-slate-700 ring-slate-200'
+                            : 'bg-gray-200 ring-white/15'
                           : isDayMode
                             ? 'bg-slate-300 ring-slate-100'
                             : 'bg-white/25 ring-white/[0.06]'
@@ -895,7 +899,7 @@ const LearningArea = ({ isDayMode }) => {
           item={selectedArticle}
           onClose={handleCloseArticle}
           isDayMode={isDayMode}
-          gradientFrom={isDayMode ? 'from-slate-100' : 'from-violet-900/40'}
+          gradientFrom={isDayMode ? 'from-slate-100' : 'from-slate-900/40'}
           headerHeight="h-52 sm:h-64 md:h-80"
           coverImage={selectedArticle.cover}
           shareParam="id"
@@ -903,7 +907,7 @@ const LearningArea = ({ isDayMode }) => {
           htmlContent={selectedArticle.content}
           headerContent={(
             <>
-              <div className={`mb-3 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? chapterTone.accent : chapterTone.nightAccent}`}>
+              <div className={`mb-3 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? neutralTone.accent : neutralTone.nightAccent}`}>
                 {t(CHAPTERS.find((chapter) => chapter.key === selectedArticle.chapterKey)?.titleKey, 'AI 学习')}
               </div>
               <h2 className={`text-2xl font-black leading-tight md:text-5xl ${isDayMode ? 'text-slate-950' : 'text-white drop-shadow-2xl'}`}>
@@ -950,7 +954,7 @@ const CommunityPosts = () => {
     <div className="space-y-5">
       <section className={`overflow-hidden rounded-lg border p-5 md:p-7 ${isDayMode ? 'border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.045)]' : 'border-white/10 bg-white/[0.045]'}`}>
         <div>
-          <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-violet-300/20 bg-violet-300/10 text-violet-100'}`}>
+          <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/[0.06] text-gray-200'}`}>
             <Sparkles size={14} />
             {t('community_learning.zone_badge', 'Learning Community')}
           </div>
@@ -964,7 +968,6 @@ const CommunityPosts = () => {
         {AREAS.map((area) => {
           const Icon = area.icon;
           const active = area.key === activeAreaConfig.key;
-          const tone = toneClasses[area.tone] || toneClasses.violet;
           return (
             <button
               key={area.key}
@@ -974,8 +977,8 @@ const CommunityPosts = () => {
               className={`min-h-[118px] rounded-lg border p-4 text-left transition-all ${
                 active
                   ? isDayMode
-                    ? `${tone.card} shadow-[0_12px_26px_rgba(15,23,42,0.06)]`
-                    : tone.nightCard
+                    ? 'border-slate-300 bg-slate-950 text-white shadow-[0_12px_26px_rgba(15,23,42,0.09)]'
+                    : 'border-white bg-white text-slate-950'
                   : isDayMode
                     ? 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                     : 'border-white/10 bg-white/[0.035] text-gray-300 hover:border-white/20 hover:bg-white/[0.06]'

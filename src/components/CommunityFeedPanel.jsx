@@ -18,7 +18,7 @@ import { communityTheme } from './communityUtils';
  *   emptyIcon         – Lucide icon component for empty state
  *   emptyTitle        – string
  *   emptyDesc         – string
- *   accentColor       – 'amber'|'violet'|'blue'|'orange' (for empty state gradient)
+ *   accentColor       – 'amber'|'violet'|'blue'|'orange'|'green'|'slate' (for empty state gradient)
  *   statusTabs        – optional [{ key, label }] array
  *   onNewPost         – optional callback; shows the "+" button when provided
  *   extraControls     – optional JSX above the list (e.g. tag filters)
@@ -69,6 +69,7 @@ const CommunityFeedPanel = ({
         blue: 'from-blue-500/10 to-indigo-500/10',
         orange: 'from-orange-500/10 to-red-500/10',
         green: 'from-emerald-500/10 to-teal-500/10',
+        slate: 'from-white/[0.06] to-white/[0.03]',
       }[accentColor] || 'from-amber-500/10 to-orange-500/10');
 
   const emptyBorder = {
@@ -77,6 +78,7 @@ const CommunityFeedPanel = ({
     blue: isDayMode ? 'bg-white border-slate-200/80' : 'bg-blue-500/10 border-white/5',
     orange: isDayMode ? 'bg-white border-slate-200/80' : 'border-white/5',
     green: isDayMode ? 'bg-white border-slate-200/80' : 'bg-emerald-500/10 border-white/5',
+    slate: isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/[0.04] border-white/10',
   }[accentColor];
 
   const accentBtnClass = {
@@ -85,6 +87,7 @@ const CommunityFeedPanel = ({
     blue: isDayMode ? 'bg-white text-sky-700 border-sky-200 shadow-none' : 'bg-blue-600 text-white border-blue-600',
     orange: isDayMode ? 'bg-white text-orange-700 border-orange-200 shadow-none' : 'bg-orange-600 text-white border-orange-600',
     green: isDayMode ? 'bg-white text-emerald-700 border-emerald-200 shadow-none' : 'bg-emerald-600 text-white border-emerald-600',
+    slate: isDayMode ? 'bg-white text-slate-700 border-slate-200 shadow-none' : 'bg-white/[0.08] text-white border-white/10',
   }[accentColor];
 
   const accentTabClass = {
@@ -93,6 +96,7 @@ const CommunityFeedPanel = ({
     blue: isDayMode ? 'border-sky-500 bg-sky-50/70 text-sky-700' : 'border-sky-300 bg-sky-400/10 text-sky-100',
     orange: isDayMode ? 'border-orange-500 bg-orange-50/70 text-orange-700' : 'border-orange-300 bg-orange-400/10 text-orange-100',
     green: isDayMode ? 'border-emerald-500 bg-emerald-50/70 text-emerald-700' : 'border-emerald-300 bg-emerald-400/10 text-emerald-100',
+    slate: isDayMode ? 'border-slate-500 bg-slate-100 text-slate-700' : 'border-white/20 bg-white/[0.08] text-white',
   }[accentColor];
 
   const emptyIconClass = {
@@ -101,6 +105,7 @@ const CommunityFeedPanel = ({
     blue: 'text-blue-400',
     orange: 'text-orange-400',
     green: 'text-emerald-400',
+    slate: isDayMode ? 'text-slate-500' : 'text-gray-300',
   }[accentColor] || 'text-amber-400';
 
   const statusControl = statusTabs ? (
