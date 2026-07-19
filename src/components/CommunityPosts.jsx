@@ -460,6 +460,7 @@ const LearningArea = ({ isDayMode }) => {
   }, [articles]);
 
   const handleChapterChange = useCallback((chapterKey, levelKey = '') => {
+    setExpandedChapterKey(chapterKey);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('area', 'learn');
@@ -477,8 +478,23 @@ const LearningArea = ({ isDayMode }) => {
   }, [setSearchParams]);
 
   const toggleChapterLevels = useCallback((chapterKey) => {
-    setExpandedChapterKey((current) => (current === chapterKey ? '' : chapterKey));
-  }, []);
+    if (expandedChapterKey === chapterKey) {
+      setExpandedChapterKey('');
+      return;
+    }
+
+    setExpandedChapterKey(chapterKey);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('area', 'learn');
+      next.set('lesson', chapterKey);
+      next.delete('level');
+      next.delete('postTab');
+      next.delete('id');
+      next.delete('post');
+      return next;
+    }, { replace: false });
+  }, [expandedChapterKey, setSearchParams]);
 
   const handleOpenArticle = useCallback((item) => {
     setSelectedArticle(item);
@@ -523,7 +539,16 @@ const LearningArea = ({ isDayMode }) => {
               const expanded = chapter.key === expandedChapterKey;
               const tone = toneClasses[chapter.tone] || toneClasses.violet;
               return (
-                  <div key={chapter.key}>
+                  <div
+                    key={chapter.key}
+                    className={`rounded-lg border transition-all duration-200 ${
+                      expanded
+                        ? isDayMode
+                          ? 'border-slate-200 bg-slate-50/80 shadow-sm'
+                          : 'border-white/10 bg-white/[0.055] shadow-[0_14px_34px_rgba(0,0,0,0.22)]'
+                        : 'border-transparent'
+                    }`}
+                  >
                     <div
                       className={`flex w-full items-center rounded-md border transition-colors ${
                         active
@@ -567,8 +592,17 @@ const LearningArea = ({ isDayMode }) => {
                         <ChevronRight size={15} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
                       </button>
                     </div>
-                    {expanded ? (
-                      <div className={`ml-11 mt-1 grid gap-0.5 border-l py-1 pl-3 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                        expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className={`mx-2 mb-2 mt-1 rounded-md border p-1.5 ${
+                          isDayMode
+                            ? 'border-white bg-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]'
+                            : 'border-white/[0.08] bg-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+                        }`}>
                         {LEVELS.map((level) => {
                           const levelActive = activeLevelKey === level.key;
                           const count = articlesByChapterAndLevel[chapter.key]?.[level.key] || 0;
@@ -577,23 +611,43 @@ const LearningArea = ({ isDayMode }) => {
                               key={level.key}
                               type="button"
                               onClick={() => handleChapterChange(chapter.key, level.key)}
-                              className={`flex min-h-8 items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-bold transition-colors ${
+                              className={`group flex min-h-9 w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-bold transition-all ${
                                 levelActive
                                   ? isDayMode
-                                    ? 'bg-slate-100 text-slate-950'
-                                    : 'bg-white/[0.08] text-white'
+                                    ? 'bg-slate-950 text-white shadow-sm'
+                                    : 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(0,0,0,0.2)]'
                                   : isDayMode
-                                    ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                                    : 'text-gray-500 hover:bg-white/[0.045] hover:text-gray-200'
+                                    ? 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
+                                    : 'text-gray-400 hover:bg-white/[0.07] hover:text-white'
                               }`}
                             >
-                              <span>{t(level.titleKey, level.titleFallback)}</span>
-                              <span className="opacity-70">{count}</span>
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                                  levelActive
+                                    ? isDayMode
+                                      ? 'bg-cyan-300'
+                                      : 'bg-cyan-500'
+                                    : isDayMode
+                                      ? 'bg-slate-300 group-hover:bg-slate-500'
+                                      : 'bg-white/20 group-hover:bg-white/45'
+                                }`} />
+                                <span>{t(level.titleKey, level.titleFallback)}</span>
+                              </span>
+                              <span className={`rounded px-1.5 py-0.5 text-[11px] ${
+                                levelActive
+                                  ? isDayMode
+                                    ? 'bg-white/15 text-white/80'
+                                    : 'bg-slate-950/10 text-slate-700'
+                                  : isDayMode
+                                    ? 'bg-slate-100 text-slate-500'
+                                    : 'bg-white/[0.06] text-gray-400'
+                              }`}>{count}</span>
                             </button>
                           );
                         })}
+                        </div>
                       </div>
-                    ) : null}
+                    </div>
                   </div>
                 );
             })}
