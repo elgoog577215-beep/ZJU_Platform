@@ -245,6 +245,24 @@ const ARTICLE_LEARNING_ROUTE = {
 
 const LEVEL_SEQUENCE = ['basic', 'advanced', 'expert'];
 
+const getProgressionItems = (currentArticle, trackItems) => {
+  if (!currentArticle?.trackKey || !Array.isArray(trackItems) || trackItems.length <= 1) return [];
+
+  const levelItems = LEVEL_SEQUENCE.map((levelKey) => {
+    const levelArticles = trackItems
+      .filter((item) => item.levelKey === levelKey)
+      .sort((a, b) => a.trackOrder - b.trackOrder || a.learningOrder - b.learningOrder);
+    const currentInLevel = levelArticles.find((item) => String(item.id) === String(currentArticle.id));
+    return {
+      levelKey,
+      article: currentInLevel || levelArticles[0] || null,
+      isCurrent: Boolean(currentInLevel),
+    };
+  });
+
+  return levelItems.filter((item) => item.article).length > 1 ? levelItems : [];
+};
+
 const toneClasses = {
   violet: {
     card: 'border-violet-200 bg-violet-50 text-violet-800',
@@ -348,21 +366,137 @@ const formatDate = (value, language) => {
   return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(date);
 };
 
-const LearningProgressionNav = ({ currentArticle, trackItems, isDayMode, onOpen, t }) => {
-  if (!currentArticle?.trackKey || !Array.isArray(trackItems) || trackItems.length <= 1) return null;
+const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'footer' }) => {
+  if (!Array.isArray(items) || items.length === 0) return null;
 
-  const levelItems = LEVEL_SEQUENCE.map((levelKey) => {
-    const levelArticles = trackItems
-      .filter((item) => item.levelKey === levelKey)
-      .sort((a, b) => a.trackOrder - b.trackOrder || a.learningOrder - b.learningOrder);
-    const currentInLevel = levelArticles.find((item) => String(item.id) === String(currentArticle.id));
-    return {
-      levelKey,
-      article: currentInLevel || levelArticles[0] || null,
-    };
-  });
+  const getLevelLabel = (levelKey) => {
+    const level = LEVELS.find((item) => item.key === levelKey);
+    return t(level?.titleKey, level?.titleFallback || levelKey);
+  };
 
-  if (levelItems.filter((item) => item.article).length <= 1) return null;
+  const buttonClass = (isCurrent, article, compact = false) => {
+    const base = `${compact ? 'min-h-9 px-2 py-1 text-xs' : 'min-h-[108px] p-3 text-sm'} rounded-lg border text-left transition-colors`;
+    if (!article) {
+      return `${base} cursor-default border-dashed ${isDayMode ? 'border-[#ddd6c8] bg-[#eee8dc]/70 text-[#9c9383]' : 'border-[#2a312b] bg-[#101410] text-[#777f76]'}`;
+    }
+    if (isCurrent) {
+      return `${base} cursor-default ${isDayMode ? 'border-[#5f594d] bg-[#faf7f0] text-[#201f1a] shadow-[0_10px_24px_rgba(64,54,37,0.08)]' : 'border-[#748276] bg-[#20271f] text-[#f0eadf]'}`;
+    }
+    return `${base} ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0] text-[#625d51] hover:border-[#cfc3ad] hover:bg-[#fffaf0]' : 'border-[#2a312b] bg-[#151b16] text-[#c8c0b1] hover:border-[#485448] hover:bg-[#1a201b]'}`;
+  };
+
+  const renderLevelButton = ({ levelKey, article, isCurrent }, compact = false) => {
+    const levelLabel = getLevelLabel(levelKey);
+    const disabled = !article || isCurrent;
+    return (
+      <button
+        key={levelKey}
+        type="button"
+        disabled={disabled}
+        onClick={() => article && !isCurrent && onOpen(article)}
+        className={buttonClass(isCurrent, article, compact)}
+      >
+        <div className={`flex items-center justify-between gap-2 ${compact ? '' : 'mb-3'}`}>
+          <span className={`font-black ${compact ? 'text-[11px]' : 'text-xs'} uppercase tracking-[0.16em] opacity-75`}>
+            {levelLabel}
+          </span>
+          {isCurrent ? (
+            <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${isDayMode ? 'bg-[#eee8dc] text-[#625d51]' : 'bg-[#0e120f] text-[#bcb5a8]'}`}>
+              {t('community_learning.progression_current_short', '当前')}
+            </span>
+          ) : article ? (
+            <ChevronRight size={compact ? 14 : 16} />
+          ) : null}
+        </div>
+        {!compact ? (
+          <>
+            <div className="line-clamp-2 font-bold leading-6">
+              {article?.title || t('community_learning.progression_missing', '暂无对应篇')}
+            </div>
+            {article?.excerpt ? (
+              <p className={`mt-2 line-clamp-2 text-xs leading-5 ${isCurrent ? 'opacity-75' : isDayMode ? 'text-[#756e61]' : 'text-[#a39c90]'}`}>
+                {article.excerpt}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+      </button>
+    );
+  };
+
+  if (variant === 'header') {
+    const current = items.find((item) => item.isCurrent);
+    const nextItems = items.filter((item) => item.article && !item.isCurrent);
+    return (
+      <div className={`mt-4 rounded-lg border p-3 ${isDayMode ? 'border-[#ddd6c8] bg-[#f1eadc]/92 text-[#625d51]' : 'border-[#323b34] bg-[#151b16]/94 text-[#c8c0b1]'}`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em]">
+              <BookOpen size={14} />
+              {t('community_learning.progression_path_label', '学习路径')}
+            </div>
+            <div className={`mt-1 text-sm font-bold ${isDayMode ? 'text-[#201f1a]' : 'text-[#e7e0d2]'}`}>
+              {t('community_learning.progression_current_level', {
+                level: getLevelLabel(current?.levelKey || ''),
+                defaultValue: '当前：{{level}}',
+              })}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {nextItems.map(({ levelKey, article }) => (
+              <button
+                key={levelKey}
+                type="button"
+                onClick={() => onOpen(article)}
+                className={`inline-flex min-h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-black transition-colors ${
+                  isDayMode
+                    ? 'border-[#cfc3ad] bg-[#faf7f0] text-[#201f1a] hover:border-[#b9aa90] hover:bg-[#fffaf0]'
+                    : 'border-[#5c6659] bg-[#20271f] text-[#e7e0d2] hover:border-[#72806e] hover:bg-[#273027]'
+                }`}
+              >
+                {t('community_learning.progression_continue_level', {
+                  level: getLevelLabel(levelKey),
+                  defaultValue: '继续读{{level}}',
+                })}
+                <ArrowRight size={13} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'desktopRail') {
+    return (
+      <aside className="sticky top-24 hidden self-start lg:block">
+        <div className={`rounded-lg border p-3 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]' : 'border-[#2a312b] bg-[#121713]'}`}>
+          <div className={`mb-3 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'text-[#625d51]' : 'text-[#bcb5a8]'}`}>
+            {t('community_learning.progression_same_topic', '同主题路径')}
+          </div>
+          <div className="space-y-2">
+            {items.map((item) => renderLevelButton(item, false))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
+  if (variant === 'mobileBar') {
+    return (
+      <div className={`fixed inset-x-0 bottom-0 z-[120] border-t px-3 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 shadow-[0_-14px_34px_rgba(0,0,0,0.28)] lg:hidden ${
+        isDayMode ? 'border-[#ddd6c8] bg-[#f4f1ea]/96' : 'border-[#2a312b] bg-[#0e1210]/96'
+      }`}>
+        <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1.5">
+          <div className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-[0.12em] ${isDayMode ? 'text-[#625d51]' : 'text-[#bcb5a8]'}`}>
+            <BookOpen size={13} />
+            <span>{t('community_learning.progression_path_label', '学习路径')}</span>
+          </div>
+          {items.map((item) => renderLevelButton(item, true))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className={`mt-10 rounded-lg border p-4 md:p-5 ${isDayMode ? 'border-[#ddd6c8] bg-[#f1eadc]' : 'border-[#2a312b] bg-[#121713]'}`}>
@@ -381,55 +515,7 @@ const LearningProgressionNav = ({ currentArticle, trackItems, isDayMode, onOpen,
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        {levelItems.map(({ levelKey, article }) => {
-          const isCurrent = article && String(article.id) === String(currentArticle.id);
-          const level = LEVELS.find((item) => item.key === levelKey);
-          const levelLabel = t(level?.titleKey, level?.titleFallback || levelKey);
-          const disabled = !article || isCurrent;
-
-          return (
-            <button
-              key={levelKey}
-              type="button"
-              disabled={disabled}
-              onClick={() => article && !isCurrent && onOpen(article)}
-              className={`min-h-[126px] rounded-lg border p-3 text-left transition-colors ${
-                isCurrent
-                  ? isDayMode
-                    ? 'border-[#5f594d] bg-[#faf7f0] text-[#201f1a] shadow-[0_10px_24px_rgba(64,54,37,0.08)]'
-                    : 'border-[#748276] bg-[#20271f] text-[#f0eadf]'
-                  : article
-                    ? isDayMode
-                      ? 'border-[#ddd6c8] bg-[#faf7f0] text-[#625d51] hover:border-[#cfc3ad] hover:bg-[#fffaf0]'
-                      : 'border-[#2a312b] bg-[#151b16] text-[#c8c0b1] hover:border-[#485448] hover:bg-[#1a201b]'
-                    : isDayMode
-                      ? 'cursor-default border-dashed border-[#ddd6c8] bg-[#eee8dc]/70 text-[#9c9383]'
-                      : 'cursor-default border-dashed border-[#2a312b] bg-[#101410] text-[#777f76]'
-              }`}
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
-                  {levelLabel}
-                </span>
-                {isCurrent ? (
-                  <span className={`rounded px-2 py-0.5 text-[11px] font-bold ${isDayMode ? 'bg-[#eee8dc] text-[#625d51]' : 'bg-[#0e120f] text-[#bcb5a8]'}`}>
-                    {t('community_learning.progression_current', '当前阅读')}
-                  </span>
-                ) : article ? (
-                  <ChevronRight size={16} />
-                ) : null}
-              </div>
-              <div className="line-clamp-2 text-sm font-bold leading-6">
-                {article?.title || t('community_learning.progression_missing', '暂无对应篇')}
-              </div>
-              {article?.excerpt ? (
-                <p className={`mt-2 line-clamp-2 text-xs leading-5 ${isCurrent ? 'opacity-75' : isDayMode ? 'text-[#756e61]' : 'text-[#a39c90]'}`}>
-                  {article.excerpt}
-                </p>
-              ) : null}
-            </button>
-          );
-        })}
+        {items.map((item) => renderLevelButton(item, false))}
       </div>
     </section>
   );
@@ -718,6 +804,10 @@ const LearningArea = ({ isDayMode }) => {
     const match = articles.find((item) => String(item.id) === String(id));
     if (match) setSelectedArticle(match);
   }, [articles, searchParams]);
+
+  const selectedProgressionItems = useMemo(() => (
+    getProgressionItems(selectedArticle, articlesByTrack[selectedArticle?.trackKey] || [])
+  ), [articlesByTrack, selectedArticle]);
 
   return (
     <div className="grid gap-5 xl:grid-cols-[17rem_minmax(0,1fr)]">
@@ -1017,13 +1107,40 @@ const LearningArea = ({ isDayMode }) => {
           shareParam="id"
           contentBlocks={parseContentBlocks(selectedArticle.content_blocks)}
           htmlContent={selectedArticle.content}
-          afterContent={(
-            <LearningProgressionNav
-              currentArticle={selectedArticle}
-              trackItems={articlesByTrack[selectedArticle.trackKey] || []}
+          headerAssistContent={(
+            <LearningProgressionDock
+              items={selectedProgressionItems}
               isDayMode={isDayMode}
               onOpen={handleOpenArticle}
               t={t}
+              variant="header"
+            />
+          )}
+          desktopAssistContent={(
+            <LearningProgressionDock
+              items={selectedProgressionItems}
+              isDayMode={isDayMode}
+              onOpen={handleOpenArticle}
+              t={t}
+              variant="desktopRail"
+            />
+          )}
+          mobileAssistContent={(
+            <LearningProgressionDock
+              items={selectedProgressionItems}
+              isDayMode={isDayMode}
+              onOpen={handleOpenArticle}
+              t={t}
+              variant="mobileBar"
+            />
+          )}
+          afterContent={(
+            <LearningProgressionDock
+              items={selectedProgressionItems}
+              isDayMode={isDayMode}
+              onOpen={handleOpenArticle}
+              t={t}
+              variant="footer"
             />
           )}
           headerContent={(

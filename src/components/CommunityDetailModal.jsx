@@ -32,10 +32,13 @@ const CommunityDetailModal = ({
   coverImage,
   headerContent,
   authorBar,
+  headerAssistContent,
   beforeContent,
   contentBlocks = [],
   htmlContent,
   afterContent,
+  desktopAssistContent,
+  mobileAssistContent,
   shareParam = 'id',
   onRelatedSelect,
 }) => {
@@ -272,76 +275,78 @@ const CommunityDetailModal = ({
                   className={`absolute bottom-0 left-0 z-20 w-full px-4 pb-4 pt-5 md:px-10 md:pb-8 md:pt-10 ${coverImage ? 'pt-28 md:pt-48' : 'pt-20 md:pt-32'} -mb-1 backdrop-blur-[2px] ${th.titleOverlay}`}
                 >
                   {headerContent}
+                  {headerAssistContent}
                 </div>
               </div>
 
-              <div className="mx-auto max-w-5xl px-4 pb-12 pt-4 sm:px-8 md:px-12">
-                <div className={`mb-6 flex flex-col gap-3 border-b pb-4 md:mb-8 md:flex-row md:items-center md:justify-between md:gap-4 md:pb-6 ${th.borderSubtle}`}>
-                  <div
-                    role="button"
-                    tabIndex={canGoProfile ? 0 : -1}
-                    aria-disabled={!canGoProfile}
-                    aria-label={
-                      canGoProfile
-                        ? t('community.view_author_profile', '查看作者主页')
-                        : t('community.anonymous_author_no_profile', '匿名作者无主页')
-                    }
-                    onClick={canGoProfile ? handleAuthorNavigate : undefined}
-                    onKeyDown={canGoProfile ? handleAuthorKeyDown : undefined}
-                    className={`-mx-2 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors ${
-                      canGoProfile
-                        ? `cursor-pointer ${isDayMode ? 'hover:bg-slate-100 focus:bg-slate-100' : 'hover:bg-white/10 focus:bg-white/10'} focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60`
-                        : 'cursor-not-allowed opacity-60'
-                    }`}
-                  >
+              <div className={`mx-auto grid max-w-7xl gap-6 px-4 pb-28 pt-4 sm:px-8 md:px-12 ${desktopAssistContent ? 'lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:pb-12' : 'lg:max-w-5xl lg:pb-12'}`}>
+                <div className="min-w-0">
+                  <div className={`mb-6 flex flex-col gap-3 border-b pb-4 md:mb-8 md:flex-row md:items-center md:justify-between md:gap-4 md:pb-6 ${th.borderSubtle}`}>
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${
+                      role="button"
+                      tabIndex={canGoProfile ? 0 : -1}
+                      aria-disabled={!canGoProfile}
+                      aria-label={
                         canGoProfile
-                          ? th.avatarBg
-                          : isDayMode
-                            ? 'bg-slate-200 text-slate-400'
-                            : 'bg-white/10 text-gray-500'
+                          ? t('community.view_author_profile', '查看作者主页')
+                          : t('community.anonymous_author_no_profile', '匿名作者无主页')
+                      }
+                      onClick={canGoProfile ? handleAuthorNavigate : undefined}
+                      onKeyDown={canGoProfile ? handleAuthorKeyDown : undefined}
+                      className={`-mx-2 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors ${
+                        canGoProfile
+                          ? `cursor-pointer ${isDayMode ? 'hover:bg-slate-100 focus:bg-slate-100' : 'hover:bg-white/10 focus:bg-white/10'} focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60`
+                          : 'cursor-not-allowed opacity-60'
                       }`}
                     >
-                      {canGoProfile && item.author_avatar ? (
-                        <img src={item.author_avatar} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={20} className={canGoProfile ? th.textSecondary : ''} />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className={`text-sm font-bold ${th.textPrimary}`}>
-                        {canGoProfile
-                          ? item.author_name || t('common.anonymous', '匿名用户')
-                          : t('common.anonymous', '匿名用户')}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${
+                          canGoProfile
+                            ? th.avatarBg
+                            : isDayMode
+                              ? 'bg-slate-200 text-slate-400'
+                              : 'bg-white/10 text-gray-500'
+                        }`}
+                      >
+                        {canGoProfile && item.author_avatar ? (
+                          <img src={item.author_avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={20} className={canGoProfile ? th.textSecondary : ''} />
+                        )}
                       </div>
-                      <div className={`text-xs ${th.textTertiary}`}>{t('common.author')}</div>
+                      <div className="min-w-0">
+                        <div className={`text-sm font-bold ${th.textPrimary}`}>
+                          {canGoProfile
+                            ? item.author_name || t('common.anonymous', '匿名用户')
+                            : t('common.anonymous', '匿名用户')}
+                        </div>
+                        <div className={`text-xs ${th.textTertiary}`}>{t('common.author')}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
-                    >
-                      <Share2 size={16} />
-                      分享
-                    </button>
-                    {shareUrl ? (
+                    <div className="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                        className={`hidden min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm sm:inline-flex ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                        onClick={handleShare}
+                        className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                       >
-                        <Copy size={16} />
-                        复制链接
+                        <Share2 size={16} />
+                        分享
                       </button>
-                    ) : null}
-                    {authorBar}
+                      {shareUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText(shareUrl)}
+                          className={`hidden min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm sm:inline-flex ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                        >
+                          <Copy size={16} />
+                          复制链接
+                        </button>
+                      ) : null}
+                      {authorBar}
+                    </div>
                   </div>
-                </div>
 
-                {tocItems.length >= 2 ? (
+                  {tocItems.length >= 2 ? (
                   <div className={`mb-6 rounded-lg border p-4 md:mb-8 md:p-5 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
                     <div className={`text-xs uppercase tracking-[0.22em] mb-3 ${th.textTertiary}`}>目录</div>
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -357,11 +362,11 @@ const CommunityDetailModal = ({
                       ))}
                     </div>
                   </div>
-                ) : null}
+                  ) : null}
 
-                {beforeContent}
+                  {beforeContent}
 
-                {primaryJoinGroup ? (
+                  {primaryJoinGroup ? (
                   <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
                     <div className={`text-xs uppercase tracking-[0.2em] mb-2 ${isDayMode ? 'text-blue-700' : 'text-blue-300'}`}>
                       社群入口
@@ -378,9 +383,9 @@ const CommunityDetailModal = ({
                       <ChevronRight size={15} />
                     </button>
                   </div>
-                ) : null}
+                  ) : null}
 
-                {contentBlocks.length > 0 ? (
+                  {contentBlocks.length > 0 ? (
                   <div className="mb-8 space-y-5 md:mb-10 md:space-y-6">
                     {contentBlocks.map((block, bIdx) => {
                       const headingEntry = tocItems.find((entry) => entry.index === bIdx);
@@ -437,7 +442,7 @@ const CommunityDetailModal = ({
                       );
                     })}
                   </div>
-                ) : htmlContent ? (
+                  ) : htmlContent ? (
                   <div
                     className={`prose max-w-none break-words mb-8 md:prose-lg md:mb-10 ${th.prose}`}
                     dangerouslySetInnerHTML={{
@@ -449,9 +454,9 @@ const CommunityDetailModal = ({
                       }),
                     }}
                   />
-                ) : null}
+                  ) : null}
 
-                {relatedGroups.length > 0 ? (
+                  {relatedGroups.length > 0 ? (
                   <div className="mb-10 space-y-6">
                     {relatedGroups.map((group) => (
                       <section key={group.key}>
@@ -462,10 +467,13 @@ const CommunityDetailModal = ({
                       </section>
                     ))}
                   </div>
-                ) : null}
+                  ) : null}
 
-                {afterContent}
+                  {afterContent}
+                </div>
+                {desktopAssistContent}
               </div>
+              {mobileAssistContent}
             </motion.div>
           </div>
         </motion.div>

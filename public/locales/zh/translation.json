@@ -3281,6 +3281,11 @@
     "progression_title": "同主题阅读路径",
     "progression_hint": "按基础、进阶、高阶补齐理解。",
     "progression_current": "当前阅读",
+    "progression_current_short": "当前",
+    "progression_current_level": "当前：{{level}}",
+    "progression_path_label": "学习路径",
+    "progression_continue_level": "继续读{{level}}",
+    "progression_same_topic": "同主题路径",
     "progression_missing": "暂无对应篇"
   },
   "project_plaza": {

@@ -3243,6 +3243,11 @@
     "progression_title": "Same-topic reading path",
     "progression_hint": "Move through basics, advanced, and expert reading.",
     "progression_current": "Current",
+    "progression_current_short": "Current",
+    "progression_current_level": "Current: {{level}}",
+    "progression_path_label": "Learning path",
+    "progression_continue_level": "Read {{level}}",
+    "progression_same_topic": "Same-topic path",
     "progression_missing": "No matching article yet"
   },
   "project_plaza": {
