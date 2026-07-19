@@ -194,53 +194,53 @@ const CHAPTERS = [
 ];
 
 const ARTICLE_LEARNING_ROUTE = {
-  65: { chapterKey: 'cases', levelKey: 'expert' },
-  64: { chapterKey: 'cases', levelKey: 'expert' },
-  63: { chapterKey: 'cases', levelKey: 'expert' },
-  62: { chapterKey: 'cases', levelKey: 'expert' },
-  61: { chapterKey: 'cases', levelKey: 'advanced' },
-  60: { chapterKey: 'rag', levelKey: 'basic' },
-  59: { chapterKey: 'agent', levelKey: 'expert' },
-  58: { chapterKey: 'prompt', levelKey: 'basic' },
-  57: { chapterKey: 'launch', levelKey: 'advanced' },
-  56: { chapterKey: 'launch', levelKey: 'advanced' },
-  55: { chapterKey: 'rag', levelKey: 'expert' },
-  54: { chapterKey: 'launch', levelKey: 'expert' },
-  53: { chapterKey: 'launch', levelKey: 'advanced' },
-  52: { chapterKey: 'basics', levelKey: 'basic' },
-  51: { chapterKey: 'rag', levelKey: 'advanced' },
-  50: { chapterKey: 'cases', levelKey: 'advanced' },
-  49: { chapterKey: 'rag', levelKey: 'advanced' },
-  48: { chapterKey: 'rag', levelKey: 'advanced' },
-  47: { chapterKey: 'launch', levelKey: 'advanced' },
-  46: { chapterKey: 'launch', levelKey: 'basic' },
-  45: { chapterKey: 'prompt', levelKey: 'advanced' },
-  44: { chapterKey: 'rag', levelKey: 'expert' },
-  43: { chapterKey: 'agent', levelKey: 'basic' },
-  42: { chapterKey: 'rag', levelKey: 'basic' },
-  41: { chapterKey: 'cases', levelKey: 'advanced' },
-  40: { chapterKey: 'basics', levelKey: 'advanced' },
-  39: { chapterKey: 'cases', levelKey: 'advanced' },
-  38: { chapterKey: 'launch', levelKey: 'advanced' },
-  37: { chapterKey: 'agent', levelKey: 'advanced' },
-  36: { chapterKey: 'launch', levelKey: 'advanced' },
-  35: { chapterKey: 'agent', levelKey: 'advanced' },
-  34: { chapterKey: 'agent', levelKey: 'advanced' },
-  33: { chapterKey: 'basics', levelKey: 'basic' },
-  32: { chapterKey: 'prompt', levelKey: 'basic' },
-  31: { chapterKey: 'rag', levelKey: 'advanced' },
-  30: { chapterKey: 'agent', levelKey: 'expert' },
-  29: { chapterKey: 'launch', levelKey: 'basic' },
-  28: { chapterKey: 'cases', levelKey: 'expert' },
-  27: { chapterKey: 'agent', levelKey: 'basic' },
-  26: { chapterKey: 'rag', levelKey: 'basic' },
-  25: { chapterKey: 'prompt', levelKey: 'advanced' },
-  24: { chapterKey: 'launch', levelKey: 'expert' },
-  23: { chapterKey: 'agent', levelKey: 'basic' },
-  22: { chapterKey: 'launch', levelKey: 'expert' },
-  21: { chapterKey: 'launch', levelKey: 'expert' },
-  20: { chapterKey: 'agent', levelKey: 'advanced' },
-  19: { chapterKey: 'cases', levelKey: 'advanced' },
+  65: { chapterKey: 'cases', levelKey: 'expert', order: 30 },
+  64: { chapterKey: 'cases', levelKey: 'expert', order: 20 },
+  63: { chapterKey: 'cases', levelKey: 'expert', order: 10 },
+  62: { chapterKey: 'cases', levelKey: 'expert', order: 40 },
+  61: { chapterKey: 'cases', levelKey: 'advanced', order: 20 },
+  60: { chapterKey: 'rag', levelKey: 'basic', order: 20 },
+  59: { chapterKey: 'agent', levelKey: 'expert', order: 10 },
+  58: { chapterKey: 'prompt', levelKey: 'basic', order: 20 },
+  57: { chapterKey: 'launch', levelKey: 'basic', order: 10 },
+  56: { chapterKey: 'launch', levelKey: 'advanced', order: 30 },
+  55: { chapterKey: 'launch', levelKey: 'advanced', order: 20 },
+  54: { chapterKey: 'launch', levelKey: 'expert', order: 20 },
+  53: { chapterKey: 'launch', levelKey: 'advanced', order: 70 },
+  52: { chapterKey: 'basics', levelKey: 'basic', order: 10 },
+  51: { chapterKey: 'rag', levelKey: 'advanced', order: 20 },
+  50: { chapterKey: 'cases', levelKey: 'advanced', order: 30 },
+  49: { chapterKey: 'rag', levelKey: 'advanced', order: 30 },
+  48: { chapterKey: 'rag', levelKey: 'advanced', order: 10 },
+  47: { chapterKey: 'launch', levelKey: 'advanced', order: 40 },
+  46: { chapterKey: 'launch', levelKey: 'basic', order: 20 },
+  45: { chapterKey: 'prompt', levelKey: 'advanced', order: 20 },
+  44: { chapterKey: 'rag', levelKey: 'expert', order: 10 },
+  43: { chapterKey: 'agent', levelKey: 'basic', order: 10 },
+  42: { chapterKey: 'basics', levelKey: 'advanced', order: 10 },
+  41: { chapterKey: 'agent', levelKey: 'advanced', order: 10 },
+  40: { chapterKey: 'basics', levelKey: 'advanced', order: 20 },
+  39: { chapterKey: 'cases', levelKey: 'advanced', order: 10 },
+  38: { chapterKey: 'launch', levelKey: 'advanced', order: 50 },
+  37: { chapterKey: 'agent', levelKey: 'advanced', order: 40 },
+  36: { chapterKey: 'launch', levelKey: 'advanced', order: 60 },
+  35: { chapterKey: 'agent', levelKey: 'advanced', order: 30 },
+  34: { chapterKey: 'agent', levelKey: 'advanced', order: 20 },
+  33: { chapterKey: 'basics', levelKey: 'basic', order: 20 },
+  32: { chapterKey: 'prompt', levelKey: 'basic', order: 10 },
+  31: { chapterKey: 'rag', levelKey: 'advanced', order: 40 },
+  30: { chapterKey: 'agent', levelKey: 'expert', order: 20 },
+  29: { chapterKey: 'launch', levelKey: 'advanced', order: 10 },
+  28: { chapterKey: 'cases', levelKey: 'expert', order: 50 },
+  27: { chapterKey: 'agent', levelKey: 'basic', order: 20 },
+  26: { chapterKey: 'rag', levelKey: 'basic', order: 10 },
+  25: { chapterKey: 'prompt', levelKey: 'advanced', order: 10 },
+  24: { chapterKey: 'agent', levelKey: 'expert', order: 30 },
+  23: { chapterKey: 'agent', levelKey: 'basic', order: 30 },
+  22: { chapterKey: 'launch', levelKey: 'expert', order: 10 },
+  21: { chapterKey: 'launch', levelKey: 'expert', order: 30 },
+  20: { chapterKey: 'agent', levelKey: 'advanced', order: 50 },
+  19: { chapterKey: 'agent', levelKey: 'expert', order: 40 },
 };
 
 const toneClasses = {
@@ -322,6 +322,10 @@ const classifyLevel = (item) => {
   }
   return 'basic';
 };
+
+const getLearningOrder = (item) => (
+  ARTICLE_LEARNING_ROUTE[Number(item?.id)]?.order ?? Number.MAX_SAFE_INTEGER
+);
 
 const formatDate = (value, language) => {
   if (!value) return '';
@@ -473,8 +477,13 @@ const LearningArea = ({ isDayMode }) => {
         ...item,
         chapterKey: classifyChapter(item),
         levelKey: classifyLevel(item),
+        learningOrder: getLearningOrder(item),
       }))
-      .sort((a, b) => new Date(b.sortDate || 0) - new Date(a.sortDate || 0));
+      .sort((a, b) => {
+        const orderDiff = a.learningOrder - b.learningOrder;
+        if (orderDiff !== 0) return orderDiff;
+        return new Date(b.sortDate || 0) - new Date(a.sortDate || 0);
+      });
   }, [articleResource.data]);
 
   const articlesByChapter = useMemo(() => {
