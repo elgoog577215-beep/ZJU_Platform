@@ -47,14 +47,14 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
   const accentHover = isTeam
     ? 'hover:border-violet-500/30'
     : isMaterials
-      ? 'hover:border-emerald-500/30'
+      ? 'hover:border-slate-400/40'
       : 'hover:border-amber-500/30';
   const accentShadow = isTeam
     ? 'hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.15)]'
     : isMaterials
-      ? 'hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.16)]'
+      ? 'hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.12)]'
       : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
-  const titleHover = isTeam ? 'group-hover:text-violet-400' : isMaterials ? 'group-hover:text-emerald-400' : 'group-hover:text-amber-400';
+  const titleHover = isTeam ? 'group-hover:text-violet-400' : isMaterials ? 'group-hover:text-slate-500' : 'group-hover:text-amber-400';
 
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
   const materialMeta = isMaterials ? [

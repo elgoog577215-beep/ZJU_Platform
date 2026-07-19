@@ -194,54 +194,56 @@ const CHAPTERS = [
 ];
 
 const ARTICLE_LEARNING_ROUTE = {
-  65: { chapterKey: 'cases', levelKey: 'expert', order: 30 },
-  64: { chapterKey: 'cases', levelKey: 'expert', order: 20 },
-  63: { chapterKey: 'cases', levelKey: 'expert', order: 10 },
-  62: { chapterKey: 'cases', levelKey: 'expert', order: 40 },
-  61: { chapterKey: 'cases', levelKey: 'advanced', order: 20 },
-  60: { chapterKey: 'rag', levelKey: 'basic', order: 20 },
-  59: { chapterKey: 'agent', levelKey: 'expert', order: 10 },
-  58: { chapterKey: 'prompt', levelKey: 'basic', order: 20 },
-  57: { chapterKey: 'launch', levelKey: 'basic', order: 10 },
-  56: { chapterKey: 'launch', levelKey: 'advanced', order: 30 },
-  55: { chapterKey: 'launch', levelKey: 'advanced', order: 20 },
-  54: { chapterKey: 'launch', levelKey: 'expert', order: 20 },
-  53: { chapterKey: 'launch', levelKey: 'advanced', order: 70 },
-  52: { chapterKey: 'basics', levelKey: 'basic', order: 10 },
-  51: { chapterKey: 'rag', levelKey: 'advanced', order: 20 },
-  50: { chapterKey: 'cases', levelKey: 'advanced', order: 30 },
-  49: { chapterKey: 'rag', levelKey: 'advanced', order: 30 },
-  48: { chapterKey: 'rag', levelKey: 'advanced', order: 10 },
-  47: { chapterKey: 'launch', levelKey: 'advanced', order: 40 },
-  46: { chapterKey: 'launch', levelKey: 'basic', order: 20 },
-  45: { chapterKey: 'prompt', levelKey: 'advanced', order: 20 },
-  44: { chapterKey: 'rag', levelKey: 'expert', order: 10 },
-  43: { chapterKey: 'agent', levelKey: 'basic', order: 10 },
-  42: { chapterKey: 'basics', levelKey: 'advanced', order: 10 },
-  41: { chapterKey: 'agent', levelKey: 'advanced', order: 10 },
-  40: { chapterKey: 'basics', levelKey: 'advanced', order: 20 },
-  39: { chapterKey: 'cases', levelKey: 'advanced', order: 10 },
-  38: { chapterKey: 'launch', levelKey: 'advanced', order: 50 },
-  37: { chapterKey: 'agent', levelKey: 'advanced', order: 40 },
-  36: { chapterKey: 'launch', levelKey: 'advanced', order: 60 },
-  35: { chapterKey: 'agent', levelKey: 'advanced', order: 30 },
-  34: { chapterKey: 'agent', levelKey: 'advanced', order: 20 },
-  33: { chapterKey: 'basics', levelKey: 'basic', order: 20 },
-  32: { chapterKey: 'prompt', levelKey: 'basic', order: 10 },
-  31: { chapterKey: 'rag', levelKey: 'advanced', order: 40 },
-  30: { chapterKey: 'agent', levelKey: 'expert', order: 20 },
-  29: { chapterKey: 'launch', levelKey: 'advanced', order: 10 },
-  28: { chapterKey: 'cases', levelKey: 'expert', order: 50 },
-  27: { chapterKey: 'agent', levelKey: 'basic', order: 20 },
-  26: { chapterKey: 'rag', levelKey: 'basic', order: 10 },
-  25: { chapterKey: 'prompt', levelKey: 'advanced', order: 10 },
-  24: { chapterKey: 'agent', levelKey: 'expert', order: 30 },
-  23: { chapterKey: 'agent', levelKey: 'basic', order: 30 },
-  22: { chapterKey: 'launch', levelKey: 'expert', order: 10 },
-  21: { chapterKey: 'launch', levelKey: 'expert', order: 30 },
-  20: { chapterKey: 'agent', levelKey: 'advanced', order: 50 },
-  19: { chapterKey: 'agent', levelKey: 'expert', order: 40 },
+  65: { chapterKey: 'cases', levelKey: 'expert', order: 30, trackKey: 'ai-science-automation', trackOrder: 30 },
+  64: { chapterKey: 'cases', levelKey: 'expert', order: 20, trackKey: 'agent-security', trackOrder: 30 },
+  63: { chapterKey: 'cases', levelKey: 'expert', order: 10, trackKey: 'agent-workflow', trackOrder: 30 },
+  62: { chapterKey: 'cases', levelKey: 'advanced', order: 40, trackKey: 'ai-science-automation', trackOrder: 20 },
+  61: { chapterKey: 'cases', levelKey: 'basic', order: 20, trackKey: 'quant-cost-awareness', trackOrder: 10 },
+  60: { chapterKey: 'rag', levelKey: 'basic', order: 20, trackKey: 'rag-engineering', trackOrder: 10 },
+  59: { chapterKey: 'agent', levelKey: 'basic', order: 10, trackKey: 'multi-agent-orchestration', trackOrder: 10 },
+  58: { chapterKey: 'prompt', levelKey: 'basic', order: 20, trackKey: 'prompt-practice', trackOrder: 20 },
+  57: { chapterKey: 'launch', levelKey: 'basic', order: 10, trackKey: 'launch-reliability', trackOrder: 10 },
+  56: { chapterKey: 'launch', levelKey: 'advanced', order: 30, trackKey: 'launch-reliability', trackOrder: 40 },
+  55: { chapterKey: 'launch', levelKey: 'advanced', order: 20, trackKey: 'llm-app-selection', trackOrder: 20 },
+  54: { chapterKey: 'launch', levelKey: 'advanced', order: 20, trackKey: 'agent-security', trackOrder: 20 },
+  53: { chapterKey: 'launch', levelKey: 'advanced', order: 70, trackKey: 'eval-feedback', trackOrder: 20 },
+  52: { chapterKey: 'basics', levelKey: 'basic', order: 10, trackKey: 'llm-parameters-reasoning', trackOrder: 10 },
+  51: { chapterKey: 'rag', levelKey: 'advanced', order: 20, trackKey: 'rag-engineering', trackOrder: 20 },
+  50: { chapterKey: 'cases', levelKey: 'basic', order: 30, trackKey: 'ai-science-automation', trackOrder: 10 },
+  49: { chapterKey: 'rag', levelKey: 'advanced', order: 30, trackKey: 'rag-engineering', trackOrder: 40 },
+  48: { chapterKey: 'rag', levelKey: 'advanced', order: 10, trackKey: 'rag-engineering', trackOrder: 30 },
+  47: { chapterKey: 'launch', levelKey: 'expert', order: 40, trackKey: 'agent-memory-context', trackOrder: 30 },
+  46: { chapterKey: 'launch', levelKey: 'basic', order: 20, trackKey: 'eval-feedback', trackOrder: 10 },
+  45: { chapterKey: 'prompt', levelKey: 'advanced', order: 20, trackKey: 'prompt-practice', trackOrder: 40 },
+  44: { chapterKey: 'rag', levelKey: 'expert', order: 10, trackKey: 'rag-engineering', trackOrder: 60 },
+  43: { chapterKey: 'agent', levelKey: 'basic', order: 10, trackKey: 'agent-tooling', trackOrder: 10 },
+  42: { chapterKey: 'basics', levelKey: 'basic', order: 30, trackKey: 'llm-app-selection', trackOrder: 10 },
+  41: { chapterKey: 'agent', levelKey: 'advanced', order: 10, trackKey: 'multi-agent-orchestration', trackOrder: 20 },
+  40: { chapterKey: 'basics', levelKey: 'advanced', order: 20, trackKey: 'llm-parameters-reasoning', trackOrder: 20 },
+  39: { chapterKey: 'cases', levelKey: 'basic', order: 10, trackKey: 'corpus-data-engineering', trackOrder: 10 },
+  38: { chapterKey: 'launch', levelKey: 'advanced', order: 50, trackKey: 'launch-reliability', trackOrder: 30 },
+  37: { chapterKey: 'agent', levelKey: 'advanced', order: 40, trackKey: 'agent-workflow', trackOrder: 20 },
+  36: { chapterKey: 'launch', levelKey: 'advanced', order: 60, trackKey: 'launch-reliability', trackOrder: 20 },
+  35: { chapterKey: 'agent', levelKey: 'advanced', order: 30, trackKey: 'agent-workflow', trackOrder: 15 },
+  34: { chapterKey: 'agent', levelKey: 'advanced', order: 20, trackKey: 'agent-memory-context', trackOrder: 20 },
+  33: { chapterKey: 'basics', levelKey: 'basic', order: 20, trackKey: 'model-data-publishing', trackOrder: 10 },
+  32: { chapterKey: 'prompt', levelKey: 'basic', order: 10, trackKey: 'prompt-practice', trackOrder: 10 },
+  31: { chapterKey: 'rag', levelKey: 'expert', order: 40, trackKey: 'rag-engineering', trackOrder: 50 },
+  30: { chapterKey: 'agent', levelKey: 'expert', order: 20, trackKey: 'agent-tooling', trackOrder: 30 },
+  29: { chapterKey: 'launch', levelKey: 'advanced', order: 10, trackKey: 'eval-feedback', trackOrder: 30 },
+  28: { chapterKey: 'cases', levelKey: 'basic', order: 50, trackKey: 'ai-algorithm-cases', trackOrder: 10 },
+  27: { chapterKey: 'agent', levelKey: 'advanced', order: 20, trackKey: 'agent-tooling', trackOrder: 20 },
+  26: { chapterKey: 'rag', levelKey: 'basic', order: 10, trackKey: 'agent-memory-context', trackOrder: 10 },
+  25: { chapterKey: 'prompt', levelKey: 'advanced', order: 10, trackKey: 'prompt-practice', trackOrder: 30 },
+  24: { chapterKey: 'agent', levelKey: 'expert', order: 30, trackKey: 'multi-agent-orchestration', trackOrder: 40 },
+  23: { chapterKey: 'agent', levelKey: 'basic', order: 30, trackKey: 'agent-workflow', trackOrder: 10 },
+  22: { chapterKey: 'launch', levelKey: 'basic', order: 30, trackKey: 'agent-security', trackOrder: 10 },
+  21: { chapterKey: 'launch', levelKey: 'expert', order: 30, trackKey: 'llm-parameters-reasoning', trackOrder: 30 },
+  20: { chapterKey: 'agent', levelKey: 'basic', order: 50, trackKey: 'browser-automation', trackOrder: 10 },
+  19: { chapterKey: 'agent', levelKey: 'expert', order: 40, trackKey: 'multi-agent-orchestration', trackOrder: 30 },
 };
+
+const LEVEL_SEQUENCE = ['basic', 'advanced', 'expert'];
 
 const toneClasses = {
   violet: {
@@ -274,6 +276,13 @@ const toneClasses = {
     accent: 'text-rose-600',
     nightAccent: 'text-rose-200',
   },
+};
+
+const neutralTone = {
+  card: 'border-slate-200 bg-slate-100 text-slate-700',
+  nightCard: 'border-white/10 bg-white/[0.06] text-gray-200',
+  accent: 'text-slate-600',
+  nightAccent: 'text-gray-300',
 };
 
 const getText = (item) => [
@@ -327,6 +336,10 @@ const getLearningOrder = (item) => (
   ARTICLE_LEARNING_ROUTE[Number(item?.id)]?.order ?? Number.MAX_SAFE_INTEGER
 );
 
+const getTrackOrder = (item) => (
+  ARTICLE_LEARNING_ROUTE[Number(item?.id)]?.trackOrder ?? Number.MAX_SAFE_INTEGER
+);
+
 const formatDate = (value, language) => {
   if (!value) return '';
   const date = new Date(value);
@@ -335,8 +348,94 @@ const formatDate = (value, language) => {
   return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(date);
 };
 
+const LearningProgressionNav = ({ currentArticle, trackItems, isDayMode, onOpen, t }) => {
+  if (!currentArticle?.trackKey || !Array.isArray(trackItems) || trackItems.length <= 1) return null;
+
+  const levelItems = LEVEL_SEQUENCE.map((levelKey) => {
+    const levelArticles = trackItems
+      .filter((item) => item.levelKey === levelKey)
+      .sort((a, b) => a.trackOrder - b.trackOrder || a.learningOrder - b.learningOrder);
+    const currentInLevel = levelArticles.find((item) => String(item.id) === String(currentArticle.id));
+    return {
+      levelKey,
+      article: currentInLevel || levelArticles[0] || null,
+    };
+  });
+
+  if (levelItems.filter((item) => item.article).length <= 1) return null;
+
+  return (
+    <section className={`mt-10 rounded-lg border p-4 md:p-5 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.035]'}`}>
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className={`text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            {t('community_learning.progression_kicker', '学习进阶')}
+          </div>
+          <h3 className={`mt-1 text-lg font-black ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+            {t('community_learning.progression_title', '同主题阅读路径')}
+          </h3>
+        </div>
+        <div className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          {t('community_learning.progression_hint', '按基础、进阶、高阶补齐理解。')}
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {levelItems.map(({ levelKey, article }) => {
+          const isCurrent = article && String(article.id) === String(currentArticle.id);
+          const level = LEVELS.find((item) => item.key === levelKey);
+          const levelLabel = t(level?.titleKey, level?.titleFallback || levelKey);
+          const disabled = !article || isCurrent;
+
+          return (
+            <button
+              key={levelKey}
+              type="button"
+              disabled={disabled}
+              onClick={() => article && !isCurrent && onOpen(article)}
+              className={`min-h-[126px] rounded-lg border p-3 text-left transition-colors ${
+                isCurrent
+                  ? isDayMode
+                    ? 'border-slate-900 bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)]'
+                    : 'border-white bg-white text-slate-950'
+                  : article
+                    ? isDayMode
+                      ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                      : 'border-white/10 bg-white/[0.04] text-gray-200 hover:border-white/20 hover:bg-white/[0.07]'
+                    : isDayMode
+                      ? 'cursor-default border-dashed border-slate-200 bg-slate-100/70 text-slate-400'
+                      : 'cursor-default border-dashed border-white/10 bg-white/[0.02] text-gray-500'
+              }`}
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="text-xs font-black uppercase tracking-[0.16em] opacity-70">
+                  {levelLabel}
+                </span>
+                {isCurrent ? (
+                  <span className={`rounded px-2 py-0.5 text-[11px] font-bold ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-slate-950/10 text-slate-700'}`}>
+                    {t('community_learning.progression_current', '当前阅读')}
+                  </span>
+                ) : article ? (
+                  <ChevronRight size={16} />
+                ) : null}
+              </div>
+              <div className="line-clamp-2 text-sm font-bold leading-6">
+                {article?.title || t('community_learning.progression_missing', '暂无对应篇')}
+              </div>
+              {article?.excerpt ? (
+                <p className={`mt-2 line-clamp-2 text-xs leading-5 ${isCurrent ? 'opacity-75' : isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                  {article.excerpt}
+                </p>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
 const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -350,7 +449,7 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
       }`}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? tone.card : tone.nightCard}`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
           <Icon size={13} />
           {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
         </span>
@@ -384,7 +483,6 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
 };
 
 const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -399,7 +497,7 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
     >
       <div className="min-w-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? tone.card : tone.nightCard}`}>
+          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
             <Sparkles size={13} />
             {t('community_learning.first_read', '建议先读')}
           </span>
@@ -433,8 +531,8 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
           </span>
           <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
             isDayMode
-              ? 'bg-slate-950 text-white group-hover:bg-violet-700'
-              : 'bg-white text-slate-950 group-hover:bg-cyan-200'
+              ? 'bg-slate-950 text-white group-hover:bg-slate-700'
+              : 'bg-white text-slate-950 group-hover:bg-gray-200'
           }`}>
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </span>
@@ -459,7 +557,6 @@ const LearningArea = ({ isDayMode }) => {
     ? searchParams.get('level')
     : '';
   const activeChapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
-  const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
   const ActiveIcon = activeChapter.icon;
 
   const articleResource = useCachedResource(
@@ -478,6 +575,8 @@ const LearningArea = ({ isDayMode }) => {
         chapterKey: classifyChapter(item),
         levelKey: classifyLevel(item),
         learningOrder: getLearningOrder(item),
+        trackKey: ARTICLE_LEARNING_ROUTE[Number(item?.id)]?.trackKey || '',
+        trackOrder: getTrackOrder(item),
       }))
       .sort((a, b) => {
         const orderDiff = a.learningOrder - b.learningOrder;
@@ -524,6 +623,23 @@ const LearningArea = ({ isDayMode }) => {
       if (map[item.chapterKey]?.[item.levelKey] !== undefined) {
         map[item.chapterKey][item.levelKey] += 1;
       }
+    });
+    return map;
+  }, [articles]);
+
+  const articlesByTrack = useMemo(() => {
+    const map = {};
+    articles.forEach((item) => {
+      if (!item.trackKey) return;
+      if (!map[item.trackKey]) map[item.trackKey] = [];
+      map[item.trackKey].push(item);
+    });
+    Object.values(map).forEach((items) => {
+      items.sort((a, b) => (
+        LEVEL_SEQUENCE.indexOf(a.levelKey) - LEVEL_SEQUENCE.indexOf(b.levelKey)
+        || a.trackOrder - b.trackOrder
+        || a.learningOrder - b.learningOrder
+      ));
     });
     return map;
   }, [articles]);
@@ -736,7 +852,7 @@ const LearningArea = ({ isDayMode }) => {
       <section className={`min-w-0 rounded-lg border p-5 md:p-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04]'}`}>
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? chapterTone.accent : chapterTone.nightAccent}`}>
+            <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? neutralTone.accent : neutralTone.nightAccent}`}>
               <ActiveIcon size={14} />
               {t(activeChapter.titleKey, activeChapter.titleFallback)}
             </div>
@@ -747,7 +863,7 @@ const LearningArea = ({ isDayMode }) => {
               {t(activeChapter.summaryKey, activeChapter.summaryFallback)}
             </p>
           </div>
-          <span className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${isDayMode ? chapterTone.card : chapterTone.nightCard}`}>
+          <span className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${isDayMode ? neutralTone.card : neutralTone.nightCard}`}>
             <BookOpen size={14} />
             {t(activeChapter.topicsKey, activeChapter.topicsFallback)}
           </span>
@@ -789,8 +905,8 @@ const LearningArea = ({ isDayMode }) => {
                   className={`scroll-mt-28 rounded-lg border p-4 transition-all duration-300 md:p-5 ${
                     levelActive
                       ? isDayMode
-                        ? 'border-violet-200 bg-violet-50/50 shadow-[0_18px_48px_rgba(109,40,217,0.1)]'
-                        : 'border-cyan-300/25 bg-cyan-300/[0.055] shadow-[0_18px_48px_rgba(34,211,238,0.08)]'
+                        ? 'border-slate-300 bg-slate-50 shadow-[0_18px_48px_rgba(15,23,42,0.08)]'
+                        : 'border-white/15 bg-white/[0.055] shadow-[0_18px_48px_rgba(0,0,0,0.22)]'
                       : isDayMode
                         ? 'border-slate-200 bg-white'
                         : 'border-white/10 bg-white/[0.035]'
@@ -801,8 +917,8 @@ const LearningArea = ({ isDayMode }) => {
                       <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
                         levelActive
                           ? isDayMode
-                            ? 'bg-violet-600 ring-violet-100'
-                            : 'bg-cyan-300 ring-cyan-300/15'
+                            ? 'bg-slate-700 ring-slate-200'
+                            : 'bg-gray-200 ring-white/15'
                           : isDayMode
                             ? 'bg-slate-300 ring-slate-100'
                             : 'bg-white/25 ring-white/[0.06]'
@@ -895,15 +1011,24 @@ const LearningArea = ({ isDayMode }) => {
           item={selectedArticle}
           onClose={handleCloseArticle}
           isDayMode={isDayMode}
-          gradientFrom={isDayMode ? 'from-slate-100' : 'from-violet-900/40'}
+          gradientFrom={isDayMode ? 'from-slate-100' : 'from-slate-900/40'}
           headerHeight="h-52 sm:h-64 md:h-80"
           coverImage={selectedArticle.cover}
           shareParam="id"
           contentBlocks={parseContentBlocks(selectedArticle.content_blocks)}
           htmlContent={selectedArticle.content}
+          afterContent={(
+            <LearningProgressionNav
+              currentArticle={selectedArticle}
+              trackItems={articlesByTrack[selectedArticle.trackKey] || []}
+              isDayMode={isDayMode}
+              onOpen={handleOpenArticle}
+              t={t}
+            />
+          )}
           headerContent={(
             <>
-              <div className={`mb-3 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? chapterTone.accent : chapterTone.nightAccent}`}>
+              <div className={`mb-3 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? neutralTone.accent : neutralTone.nightAccent}`}>
                 {t(CHAPTERS.find((chapter) => chapter.key === selectedArticle.chapterKey)?.titleKey, 'AI 学习')}
               </div>
               <h2 className={`text-2xl font-black leading-tight md:text-5xl ${isDayMode ? 'text-slate-950' : 'text-white drop-shadow-2xl'}`}>
@@ -950,7 +1075,7 @@ const CommunityPosts = () => {
     <div className="space-y-5">
       <section className={`overflow-hidden rounded-lg border p-5 md:p-7 ${isDayMode ? 'border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.045)]' : 'border-white/10 bg-white/[0.045]'}`}>
         <div>
-          <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-violet-300/20 bg-violet-300/10 text-violet-100'}`}>
+          <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/[0.06] text-gray-200'}`}>
             <Sparkles size={14} />
             {t('community_learning.zone_badge', 'Learning Community')}
           </div>
@@ -964,7 +1089,6 @@ const CommunityPosts = () => {
         {AREAS.map((area) => {
           const Icon = area.icon;
           const active = area.key === activeAreaConfig.key;
-          const tone = toneClasses[area.tone] || toneClasses.violet;
           return (
             <button
               key={area.key}
@@ -974,8 +1098,8 @@ const CommunityPosts = () => {
               className={`min-h-[118px] rounded-lg border p-4 text-left transition-all ${
                 active
                   ? isDayMode
-                    ? `${tone.card} shadow-[0_12px_26px_rgba(15,23,42,0.06)]`
-                    : tone.nightCard
+                    ? 'border-slate-300 bg-slate-950 text-white shadow-[0_12px_26px_rgba(15,23,42,0.09)]'
+                    : 'border-white bg-white text-slate-950'
                   : isDayMode
                     ? 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                     : 'border-white/10 bg-white/[0.035] text-gray-300 hover:border-white/20 hover:bg-white/[0.06]'

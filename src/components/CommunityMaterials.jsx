@@ -414,7 +414,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         emptyIcon={FileStack}
         emptyTitle={t('community.materials_empty', '暂无期末资料')}
         emptyDesc={t('community.materials_empty_desc', '上传第一份复习资料，帮后来者少走弯路。')}
-        accentColor="green"
+        accentColor="slate"
         extraControls={controls}
         onNewPost={onNewPost || openComposer}
         newPostLabel={t('community.materials_upload_action', '上传资料')}

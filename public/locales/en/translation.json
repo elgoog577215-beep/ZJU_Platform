@@ -3224,7 +3224,12 @@
     "chapter_launch_topics": "Eval sets / LLM-as-judge / Safety / Cost / Caching / Feedback",
     "chapter_cases_title": "Advanced Cases",
     "chapter_cases_summary": "Apply prior skills to real complex scenarios across domains, orchestration patterns, and system boundaries.",
-    "chapter_cases_topics": "Science agents / Lean / AlphaZero / Multi-agent / Safety architecture / Automation pipelines"
+    "chapter_cases_topics": "Science agents / Lean / AlphaZero / Multi-agent / Safety architecture / Automation pipelines",
+    "progression_kicker": "Learning Progression",
+    "progression_title": "Same-topic reading path",
+    "progression_hint": "Move through basics, advanced, and expert reading.",
+    "progression_current": "Current",
+    "progression_missing": "No matching article yet"
   },
   "project_plaza": {
     "meta_title": "Project Plaza",

@@ -65,17 +65,10 @@ const AICommunity = () => {
   return (
     <section
       className={`relative z-10 min-h-screen overflow-x-hidden px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-6 sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
-        isDayMode ? "text-slate-950" : "text-white"
+        isDayMode ? "bg-slate-50 text-slate-950" : "bg-slate-950 text-white"
       }`}
     >
       <SEO title={t("community_learning.meta_title", "学习社区")} description={subtitle} />
-
-      {!isDayMode && (
-        <div className="pointer-events-none fixed inset-0 z-0 hidden md:block">
-          <div className="absolute inset-x-0 top-0 h-96 bg-[linear-gradient(180deg,rgba(124,58,237,0.14),transparent)]" />
-          <div className="absolute inset-y-0 right-0 w-96 bg-[linear-gradient(270deg,rgba(14,165,233,0.08),transparent)]" />
-        </div>
-      )}
 
       <div className="relative z-10 mx-auto w-full max-w-[1680px]">
         <CommunityPosts />
