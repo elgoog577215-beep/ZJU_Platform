@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
   Bot,
+  ChevronRight,
   Clock3,
   FileStack,
   Gauge,
@@ -93,68 +94,154 @@ const LEARNING_KEYWORDS = [
   '评测',
 ];
 
-const CHAPTERS = [
+const LEVELS = [
   {
-    key: 'prompt',
-    icon: Sparkles,
-    tone: 'violet',
-    titleKey: 'community_learning.chapter_prompt_title',
-    titleFallback: '第一章 提示词',
-    summaryKey: 'community_learning.chapter_prompt_summary',
-    summaryFallback: '学习如何把目标、约束、上下文和输出格式交代清楚。',
-    topicsKey: 'community_learning.chapter_prompt_topics',
-    topicsFallback: '角色设定 / 任务拆解 / 输出格式 / 迭代改写',
-    keywords: ['prompt', '提示词', '指令', 'system', 'role'],
+    key: 'basic',
+    titleKey: 'community_learning.level_basic',
+    titleFallback: '基础',
+    descKey: 'community_learning.level_basic_desc',
+    descFallback: '先建立概念和最小可用方法。',
   },
   {
-    key: 'context',
-    icon: Layers,
+    key: 'advanced',
+    titleKey: 'community_learning.level_advanced',
+    titleFallback: '进阶',
+    descKey: 'community_learning.level_advanced_desc',
+    descFallback: '继续理解工程方法和系统取舍。',
+  },
+  {
+    key: 'expert',
+    titleKey: 'community_learning.level_expert',
+    titleFallback: '高阶',
+    descKey: 'community_learning.level_expert_desc',
+    descFallback: '阅读复杂案例、安全边界和生产经验。',
+  },
+];
+
+const CHAPTERS = [
+  {
+    key: 'basics',
+    icon: Sparkles,
+    tone: 'violet',
+    titleKey: 'community_learning.chapter_basics_title',
+    titleFallback: 'AI 基础',
+    summaryKey: 'community_learning.chapter_basics_summary',
+    summaryFallback: '从模型概念、参数设置和第一步实践开始，建立 AI 入门的共同语言。',
+    topicsKey: 'community_learning.chapter_basics_topics',
+    topicsFallback: '模型参数 / 推理方式 / 平台入门 / 基础实践',
+    keywords: ['温度', 'top-p', '采样', '模型', '数据集', '推理', '基础', '入门'],
+  },
+  {
+    key: 'prompt',
+    icon: Tag,
     tone: 'blue',
-    titleKey: 'community_learning.chapter_context_title',
-    titleFallback: '第二章 上下文',
-    summaryKey: 'community_learning.chapter_context_summary',
-    summaryFallback: '理解上下文窗口、资料组织、引用证据和多轮记忆。',
-    topicsKey: 'community_learning.chapter_context_topics',
-    topicsFallback: '上下文工程 / 文档喂入 / 记忆边界 / 信息压缩',
-    keywords: ['context', '上下文', 'memory', '记忆', 'document', '文档'],
+    titleKey: 'community_learning.chapter_prompt_title',
+    titleFallback: 'Prompt 实战',
+    summaryKey: 'community_learning.chapter_prompt_summary',
+    summaryFallback: '学会把需求说清楚，并让模型稳定输出可直接使用的结果。',
+    topicsKey: 'community_learning.chapter_prompt_topics',
+    topicsFallback: '提示词 / Few-shot / JSON 输出 / 版本管理',
+    keywords: ['prompt', '提示词', 'few-shot', 'json', '结构化', 'schema', '思维链'],
+  },
+  {
+    key: 'rag',
+    icon: Layers,
+    tone: 'emerald',
+    titleKey: 'community_learning.chapter_rag_title',
+    titleFallback: 'RAG 知识库',
+    summaryKey: 'community_learning.chapter_rag_summary',
+    summaryFallback: '从上下文、长文档、Embedding 到向量库，学习让 AI 读资料、查资料、引用资料。',
+    topicsKey: 'community_learning.chapter_rag_topics',
+    topicsFallback: '上下文 / 长文档 / Embedding / 向量库 / RAG 评测',
+    keywords: ['rag', '上下文', 'context', '长文档', 'embedding', '向量库', '知识库', '幻觉'],
   },
   {
     key: 'agent',
     icon: Bot,
-    tone: 'emerald',
-    titleKey: 'community_learning.chapter_agent_title',
-    titleFallback: '第三章 Agent Loop',
-    summaryKey: 'community_learning.chapter_agent_summary',
-    summaryFallback: '把“思考、行动、观察、修正”组织成可持续执行的智能体循环。',
-    topicsKey: 'community_learning.chapter_agent_topics',
-    topicsFallback: '计划循环 / 工具调用 / 状态观察 / 失败恢复',
-    keywords: ['agent', 'loop', '智能体', '工具调用', '规划', 'workflow'],
-  },
-  {
-    key: 'tools',
-    icon: Wrench,
     tone: 'amber',
-    titleKey: 'community_learning.chapter_tools_title',
-    titleFallback: '第四章 工具与工作流',
-    summaryKey: 'community_learning.chapter_tools_summary',
-    summaryFallback: '沉淀常用 AI 工具、自动化流程和项目实践方法。',
-    topicsKey: 'community_learning.chapter_tools_topics',
-    topicsFallback: '工具链 / 自动化 / 工作流 / 项目案例',
-    keywords: ['tool', 'tools', '工具', 'workflow', '自动化', '实践', '案例'],
+    titleKey: 'community_learning.chapter_agent_title',
+    titleFallback: 'Agent 工作流',
+    summaryKey: 'community_learning.chapter_agent_summary',
+    summaryFallback: '从工具调用、记忆、人机协同到自动化执行，理解 Agent 如何稳定做事。',
+    topicsKey: 'community_learning.chapter_agent_topics',
+    topicsFallback: '工具调用 / MCP / 记忆 / HITL / 自动化 / 可观测性',
+    keywords: ['agent', 'mcp', '工具调用', '记忆', 'human-in-the-loop', '自动化', '工作流', '可观测'],
   },
   {
-    key: 'evaluation',
+    key: 'launch',
     icon: Gauge,
     tone: 'rose',
-    titleKey: 'community_learning.chapter_eval_title',
-    titleFallback: '第五章 评测与改进',
-    summaryKey: 'community_learning.chapter_eval_summary',
-    summaryFallback: '用评测、复盘和案例对比判断 AI 输出是否真的可靠。',
-    topicsKey: 'community_learning.chapter_eval_topics',
-    topicsFallback: '质量评测 / 事实核验 / 复盘改进 / 安全边界',
-    keywords: ['eval', 'evaluation', '评测', '测试', '复盘', '安全', '质量'],
+    titleKey: 'community_learning.chapter_launch_title',
+    titleFallback: '评测与上线',
+    summaryKey: 'community_learning.chapter_launch_summary',
+    summaryFallback: '把能跑的 AI 应用变成可靠、安全、成本可控、可持续改进的产品。',
+    topicsKey: 'community_learning.chapter_launch_topics',
+    topicsFallback: '评测集 / LLM-as-judge / 安全 / 成本 / 缓存 / 反馈',
+    keywords: ['评测', 'eval', 'judge', '安全', '审计', '上线', '生产', '成本', '缓存', '反馈'],
+  },
+  {
+    key: 'cases',
+    icon: Wrench,
+    tone: 'violet',
+    titleKey: 'community_learning.chapter_cases_title',
+    titleFallback: '高阶案例',
+    summaryKey: 'community_learning.chapter_cases_summary',
+    summaryFallback: '把前面的能力放进真实复杂场景，阅读垂直领域、复杂编排和系统边界案例。',
+    topicsKey: 'community_learning.chapter_cases_topics',
+    topicsFallback: '科研 Agent / Lean / AlphaZero / 多 Agent / 安全架构 / 自动化管线',
+    keywords: ['计算化学', 'lean', 'alphazero', '黑白棋', '支付防火墙', 'harness', 'subagent', 'gaussian', '托尔斯泰', '量化'],
   },
 ];
+
+const ARTICLE_LEARNING_ROUTE = {
+  65: { chapterKey: 'cases', levelKey: 'expert', order: 30 },
+  64: { chapterKey: 'cases', levelKey: 'expert', order: 20 },
+  63: { chapterKey: 'cases', levelKey: 'expert', order: 10 },
+  62: { chapterKey: 'cases', levelKey: 'expert', order: 40 },
+  61: { chapterKey: 'cases', levelKey: 'advanced', order: 20 },
+  60: { chapterKey: 'rag', levelKey: 'basic', order: 20 },
+  59: { chapterKey: 'agent', levelKey: 'expert', order: 10 },
+  58: { chapterKey: 'prompt', levelKey: 'basic', order: 20 },
+  57: { chapterKey: 'launch', levelKey: 'basic', order: 10 },
+  56: { chapterKey: 'launch', levelKey: 'advanced', order: 30 },
+  55: { chapterKey: 'launch', levelKey: 'advanced', order: 20 },
+  54: { chapterKey: 'launch', levelKey: 'expert', order: 20 },
+  53: { chapterKey: 'launch', levelKey: 'advanced', order: 70 },
+  52: { chapterKey: 'basics', levelKey: 'basic', order: 10 },
+  51: { chapterKey: 'rag', levelKey: 'advanced', order: 20 },
+  50: { chapterKey: 'cases', levelKey: 'advanced', order: 30 },
+  49: { chapterKey: 'rag', levelKey: 'advanced', order: 30 },
+  48: { chapterKey: 'rag', levelKey: 'advanced', order: 10 },
+  47: { chapterKey: 'launch', levelKey: 'advanced', order: 40 },
+  46: { chapterKey: 'launch', levelKey: 'basic', order: 20 },
+  45: { chapterKey: 'prompt', levelKey: 'advanced', order: 20 },
+  44: { chapterKey: 'rag', levelKey: 'expert', order: 10 },
+  43: { chapterKey: 'agent', levelKey: 'basic', order: 10 },
+  42: { chapterKey: 'basics', levelKey: 'advanced', order: 10 },
+  41: { chapterKey: 'agent', levelKey: 'advanced', order: 10 },
+  40: { chapterKey: 'basics', levelKey: 'advanced', order: 20 },
+  39: { chapterKey: 'cases', levelKey: 'advanced', order: 10 },
+  38: { chapterKey: 'launch', levelKey: 'advanced', order: 50 },
+  37: { chapterKey: 'agent', levelKey: 'advanced', order: 40 },
+  36: { chapterKey: 'launch', levelKey: 'advanced', order: 60 },
+  35: { chapterKey: 'agent', levelKey: 'advanced', order: 30 },
+  34: { chapterKey: 'agent', levelKey: 'advanced', order: 20 },
+  33: { chapterKey: 'basics', levelKey: 'basic', order: 20 },
+  32: { chapterKey: 'prompt', levelKey: 'basic', order: 10 },
+  31: { chapterKey: 'rag', levelKey: 'advanced', order: 40 },
+  30: { chapterKey: 'agent', levelKey: 'expert', order: 20 },
+  29: { chapterKey: 'launch', levelKey: 'advanced', order: 10 },
+  28: { chapterKey: 'cases', levelKey: 'expert', order: 50 },
+  27: { chapterKey: 'agent', levelKey: 'basic', order: 20 },
+  26: { chapterKey: 'rag', levelKey: 'basic', order: 10 },
+  25: { chapterKey: 'prompt', levelKey: 'advanced', order: 10 },
+  24: { chapterKey: 'agent', levelKey: 'expert', order: 30 },
+  23: { chapterKey: 'agent', levelKey: 'basic', order: 30 },
+  22: { chapterKey: 'launch', levelKey: 'expert', order: 10 },
+  21: { chapterKey: 'launch', levelKey: 'expert', order: 30 },
+  20: { chapterKey: 'agent', levelKey: 'advanced', order: 50 },
+  19: { chapterKey: 'agent', levelKey: 'expert', order: 40 },
+};
 
 const toneClasses = {
   violet: {
@@ -207,17 +294,38 @@ const normalizeArticle = (item) => ({
 });
 
 const isLearningArticle = (item) => {
+  if (String(item?.title || '').includes('安全提醒')) return false;
+  if (ARTICLE_LEARNING_ROUTE[Number(item?.id)]) return true;
   const text = getText(item);
   return LEARNING_KEYWORDS.some((keyword) => text.includes(keyword.toLowerCase()));
 };
 
 const classifyChapter = (item) => {
+  const explicit = ARTICLE_LEARNING_ROUTE[Number(item?.id)];
+  if (explicit?.chapterKey) return explicit.chapterKey;
   const text = getText(item);
   const matched = CHAPTERS.find((chapter) =>
     chapter.keywords.some((keyword) => text.includes(keyword.toLowerCase())),
   );
-  return matched?.key || 'tools';
+  return matched?.key || 'cases';
 };
+
+const classifyLevel = (item) => {
+  const explicit = ARTICLE_LEARNING_ROUTE[Number(item?.id)];
+  if (explicit?.levelKey) return explicit.levelKey;
+  const text = getText(item);
+  if (['安全', '审计', '防御', '生产', '上线', '成本', '缓存', '可观测', '失败', 'harness', 'lean', 'alphazero'].some((keyword) => text.includes(keyword.toLowerCase()))) {
+    return 'expert';
+  }
+  if (['工程', '系统', '架构', 'rag', 'agent', '自动化', '评测', '向量库', 'embedding'].some((keyword) => text.includes(keyword.toLowerCase()))) {
+    return 'advanced';
+  }
+  return 'basic';
+};
+
+const getLearningOrder = (item) => (
+  ARTICLE_LEARNING_ROUTE[Number(item?.id)]?.order ?? Number.MAX_SAFE_INTEGER
+);
 
 const formatDate = (value, language) => {
   if (!value) return '';
@@ -227,7 +335,7 @@ const formatDate = (value, language) => {
   return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(date);
 };
 
-const LearningCard = ({ item, chapter, isDayMode, onOpen, t, language }) => {
+const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
   const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
@@ -246,6 +354,11 @@ const LearningCard = ({ item, chapter, isDayMode, onOpen, t, language }) => {
           <Icon size={13} />
           {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
         </span>
+        {level ? (
+          <span className={`rounded-md px-2.5 py-1 text-xs font-bold ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/[0.07] text-gray-300'}`}>
+            {t(level.titleKey, level.titleFallback)}
+          </span>
+        ) : null}
         <span className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
           {formatDate(item.sortDate, language)}
         </span>
@@ -270,23 +383,89 @@ const LearningCard = ({ item, chapter, isDayMode, onOpen, t, language }) => {
   );
 };
 
+const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
+  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
+  const Icon = chapter?.icon || BookOpen;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(item)}
+      className={`group grid w-full gap-4 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:grid-cols-[minmax(0,1fr)_10rem] md:p-5 ${
+        isDayMode
+          ? 'border-slate-200 bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] hover:border-slate-300 hover:shadow-[0_22px_52px_rgba(15,23,42,0.1)]'
+          : 'border-white/10 bg-white/[0.065] shadow-[0_18px_46px_rgba(0,0,0,0.26)] hover:border-white/20 hover:bg-white/[0.085]'
+      }`}
+    >
+      <div className="min-w-0">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-black ${isDayMode ? tone.card : tone.nightCard}`}>
+            <Sparkles size={13} />
+            {t('community_learning.first_read', '建议先读')}
+          </span>
+          <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/[0.07] text-gray-300'}`}>
+            <Icon size={13} />
+            {t(level.titleKey, level.titleFallback)}
+          </span>
+          <span className={`ml-auto text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+            {formatDate(item.sortDate, language)}
+          </span>
+        </div>
+        <h4 className={`line-clamp-2 text-xl font-black leading-tight md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+          {item.title || t('community.untitled', '未命名')}
+        </h4>
+        <p className={`mt-3 line-clamp-3 text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
+          {item.excerpt || t('community_learning.no_excerpt', '暂无摘要，打开后查看完整内容。')}
+        </p>
+      </div>
+      <div className={`flex min-h-24 flex-col justify-between rounded-md border p-3 ${
+        isDayMode
+          ? 'border-slate-200 bg-slate-50'
+          : 'border-white/10 bg-black/20'
+      }`}>
+        <span className={`text-xs font-bold ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
+        </span>
+        <div className={`mt-4 flex items-center justify-between gap-3 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+          <span className="inline-flex items-center gap-1">
+            <Clock3 size={12} />
+            {calculateReadingTime(item.content || item.excerpt, t)}
+          </span>
+          <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+            isDayMode
+              ? 'bg-slate-950 text-white group-hover:bg-violet-700'
+              : 'bg-white text-slate-950 group-hover:bg-cyan-200'
+          }`}>
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+};
+
 const LearningArea = ({ isDayMode }) => {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [expandedChapterKey, setExpandedChapterKey] = useState(searchParams.get('lesson') || 'basics');
+  const levelSectionRefs = useRef({});
 
   const activeChapterKey = CHAPTERS.some((chapter) => chapter.key === searchParams.get('lesson'))
     ? searchParams.get('lesson')
-    : 'prompt';
+    : 'basics';
+  const activeLevelKey = LEVELS.some((level) => level.key === searchParams.get('level'))
+    ? searchParams.get('level')
+    : '';
   const activeChapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
   const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
   const ActiveIcon = activeChapter.icon;
 
   const articleResource = useCachedResource(
     '/articles',
-    { page: 1, limit: 36, category: 'tech', sort: 'newest', status: 'approved' },
-    { keyPrefix: 'cache:v7:learning-community:', dependencies: [] },
+    { page: 1, limit: 100, category: 'tech', sort: 'newest', status: 'approved' },
+    { keyPrefix: 'cache:v8:learning-community:', dependencies: [] },
   );
 
   const articles = useMemo(() => {
@@ -294,31 +473,72 @@ const LearningArea = ({ isDayMode }) => {
     return rows
       .map(normalizeArticle)
       .filter(isLearningArticle)
-      .map((item) => ({ ...item, chapterKey: classifyChapter(item) }))
-      .sort((a, b) => new Date(b.sortDate || 0) - new Date(a.sortDate || 0));
+      .map((item) => ({
+        ...item,
+        chapterKey: classifyChapter(item),
+        levelKey: classifyLevel(item),
+        learningOrder: getLearningOrder(item),
+      }))
+      .sort((a, b) => {
+        const orderDiff = a.learningOrder - b.learningOrder;
+        if (orderDiff !== 0) return orderDiff;
+        return new Date(b.sortDate || 0) - new Date(a.sortDate || 0);
+      });
   }, [articleResource.data]);
 
   const articlesByChapter = useMemo(() => {
     const map = Object.fromEntries(CHAPTERS.map((chapter) => [chapter.key, []]));
     articles.forEach((item) => {
-      const key = map[item.chapterKey] ? item.chapterKey : 'tools';
+      const key = map[item.chapterKey] ? item.chapterKey : 'cases';
       map[key].push(item);
     });
     return map;
   }, [articles]);
 
-  const visibleArticles = useMemo(() => {
+  const levelGroups = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const chapterItems = articlesByChapter[activeChapterKey] || [];
-    if (!query) return chapterItems;
-    return chapterItems.filter((item) => getText(item).includes(query));
+    const filteredItems = query
+      ? chapterItems.filter((item) => getText(item).includes(query))
+      : chapterItems;
+
+    return LEVELS.map((level) => ({
+      ...level,
+      items: filteredItems.filter((item) => item.levelKey === level.key),
+    }));
   }, [activeChapterKey, articlesByChapter, searchQuery]);
 
-  const handleChapterChange = useCallback((chapterKey) => {
+  const visibleArticlesCount = useMemo(
+    () => levelGroups.reduce((sum, level) => sum + level.items.length, 0),
+    [levelGroups],
+  );
+
+  const articlesByChapterAndLevel = useMemo(() => {
+    const map = Object.fromEntries(
+      CHAPTERS.map((chapter) => [
+        chapter.key,
+        Object.fromEntries(LEVELS.map((level) => [level.key, 0])),
+      ]),
+    );
+    articles.forEach((item) => {
+      if (map[item.chapterKey]?.[item.levelKey] !== undefined) {
+        map[item.chapterKey][item.levelKey] += 1;
+      }
+    });
+    return map;
+  }, [articles]);
+
+  const handleChapterChange = useCallback((chapterKey, levelKey = '') => {
+    setExpandedChapterKey(chapterKey);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('area', 'learn');
       next.set('lesson', chapterKey);
+      if (levelKey) {
+        next.set('level', levelKey);
+      } else {
+        next.delete('level');
+      }
       next.delete('postTab');
       next.delete('id');
       next.delete('post');
@@ -326,17 +546,46 @@ const LearningArea = ({ isDayMode }) => {
     }, { replace: false });
   }, [setSearchParams]);
 
+  const toggleChapterLevels = useCallback((chapterKey) => {
+    if (expandedChapterKey === chapterKey) {
+      setExpandedChapterKey('');
+      return;
+    }
+
+    setExpandedChapterKey(chapterKey);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('area', 'learn');
+      next.set('lesson', chapterKey);
+      next.delete('level');
+      next.delete('postTab');
+      next.delete('id');
+      next.delete('post');
+      return next;
+    }, { replace: false });
+  }, [expandedChapterKey, setSearchParams]);
+
+  useEffect(() => {
+    if (!activeLevelKey) return;
+    const target = levelSectionRefs.current[activeLevelKey];
+    if (!target) return;
+    window.setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }, [activeChapterKey, activeLevelKey, visibleArticlesCount]);
+
   const handleOpenArticle = useCallback((item) => {
     setSelectedArticle(item);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('area', 'learn');
       next.set('lesson', item.chapterKey || activeChapterKey);
+      next.set('level', item.levelKey || activeLevelKey || 'basic');
       next.set('id', item.id);
       next.delete('post');
       return next;
     }, { replace: false });
-  }, [activeChapterKey, setSearchParams]);
+  }, [activeChapterKey, activeLevelKey, setSearchParams]);
 
   const handleCloseArticle = useCallback(() => {
     setSelectedArticle(null);
@@ -365,36 +614,120 @@ const LearningArea = ({ isDayMode }) => {
             {CHAPTERS.map((chapter, index) => {
               const Icon = chapter.icon;
               const active = chapter.key === activeChapterKey;
+              const expanded = chapter.key === expandedChapterKey;
               const tone = toneClasses[chapter.tone] || toneClasses.violet;
               return (
-                <button
-                  key={chapter.key}
-                  type="button"
-                  onClick={() => handleChapterChange(chapter.key)}
-                  className={`flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
-                    active
-                      ? isDayMode
-                        ? tone.card
-                        : tone.nightCard
-                      : isDayMode
-                        ? 'border-transparent text-slate-600 hover:bg-slate-50'
-                        : 'border-transparent text-gray-300 hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
-                    <Icon size={16} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="block truncate text-sm font-bold">
-                      {t(chapter.titleKey, chapter.titleFallback)}
-                    </span>
-                  </span>
-                  <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
-                </button>
-              );
+                  <div
+                    key={chapter.key}
+                    className={`rounded-lg border transition-all duration-200 ${
+                      expanded
+                        ? isDayMode
+                          ? 'border-slate-200 bg-slate-50/80 shadow-sm'
+                          : 'border-white/10 bg-white/[0.055] shadow-[0_14px_34px_rgba(0,0,0,0.22)]'
+                        : 'border-transparent'
+                    }`}
+                  >
+                    <div
+                      className={`flex w-full items-center rounded-md border transition-colors ${
+                        active
+                          ? isDayMode
+                            ? tone.card
+                            : tone.nightCard
+                          : isDayMode
+                            ? 'border-transparent text-slate-600 hover:bg-slate-50'
+                            : 'border-transparent text-gray-300 hover:bg-white/[0.06]'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleChapterChange(chapter.key)}
+                        className="flex min-h-[58px] min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+                      >
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
+                          <Icon size={16} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <span className="block truncate text-sm font-bold">
+                            {t(chapter.titleKey, chapter.titleFallback)}
+                          </span>
+                        </span>
+                        <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-expanded={expanded}
+                        aria-label={t('community_learning.toggle_levels', '展开难度')}
+                        onClick={() => toggleChapterLevels(chapter.key)}
+                        className={`mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${
+                          isDayMode
+                            ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
+                            : 'text-gray-400 hover:bg-white/[0.08] hover:text-white'
+                        }`}
+                      >
+                        <ChevronRight size={15} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                      </button>
+                    </div>
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                        expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className={`mx-2 mb-2 mt-1 rounded-md border p-1.5 ${
+                          isDayMode
+                            ? 'border-white bg-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]'
+                            : 'border-white/[0.08] bg-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+                        }`}>
+                        {LEVELS.map((level) => {
+                          const levelActive = activeLevelKey === level.key;
+                          const count = articlesByChapterAndLevel[chapter.key]?.[level.key] || 0;
+                          return (
+                            <button
+                              key={level.key}
+                              type="button"
+                              onClick={() => handleChapterChange(chapter.key, level.key)}
+                              className={`group flex min-h-9 w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-bold transition-all ${
+                                levelActive
+                                  ? isDayMode
+                                    ? 'bg-slate-950 text-white shadow-sm'
+                                    : 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(0,0,0,0.2)]'
+                                  : isDayMode
+                                    ? 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
+                                    : 'text-gray-400 hover:bg-white/[0.07] hover:text-white'
+                              }`}
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                                  levelActive
+                                    ? isDayMode
+                                      ? 'bg-cyan-300'
+                                      : 'bg-cyan-500'
+                                    : isDayMode
+                                      ? 'bg-slate-300 group-hover:bg-slate-500'
+                                      : 'bg-white/20 group-hover:bg-white/45'
+                                }`} />
+                                <span>{t(level.titleKey, level.titleFallback)}</span>
+                              </span>
+                              <span className={`rounded px-1.5 py-0.5 text-[11px] ${
+                                levelActive
+                                  ? isDayMode
+                                    ? 'bg-white/15 text-white/80'
+                                    : 'bg-slate-950/10 text-slate-700'
+                                  : isDayMode
+                                    ? 'bg-slate-100 text-slate-500'
+                                    : 'bg-white/[0.06] text-gray-400'
+                              }`}>{count}</span>
+                            </button>
+                          );
+                        })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
             })}
           </div>
         </div>
@@ -428,8 +761,8 @@ const LearningArea = ({ isDayMode }) => {
           isDayMode={isDayMode}
         />
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {articleResource.loading && visibleArticles.length === 0 ? (
+        <div className="mt-5 space-y-5">
+          {articleResource.loading && visibleArticlesCount === 0 ? (
             [0, 1, 2, 3].map((item) => (
               <div
                 key={item}
@@ -437,23 +770,118 @@ const LearningArea = ({ isDayMode }) => {
               />
             ))
           ) : articleResource.error ? (
-            <div className={`rounded-lg border p-5 md:col-span-2 ${isDayMode ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-rose-400/20 bg-rose-400/10 text-rose-100'}`}>
+            <div className={`rounded-lg border p-5 ${isDayMode ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-rose-400/20 bg-rose-400/10 text-rose-100'}`}>
               {t('community_learning.load_failed', '学习资源加载失败，请稍后重试。')}
             </div>
-          ) : visibleArticles.length > 0 ? (
-            visibleArticles.map((item) => (
-              <LearningCard
-                key={item.id}
-                item={item}
-                chapter={CHAPTERS.find((chapter) => chapter.key === item.chapterKey)}
-                isDayMode={isDayMode}
-                onOpen={handleOpenArticle}
-                t={t}
-                language={i18n.language}
-              />
-            ))
+          ) : visibleArticlesCount > 0 ? (
+            levelGroups.map((level) => {
+              const [firstItem, ...moreItems] = level.items;
+              const levelActive = activeLevelKey === level.key;
+              const levelTitle = t(level.titleKey, level.titleFallback);
+              const chapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || activeChapter;
+
+              return (
+                <section
+                  key={level.key}
+                  ref={(node) => {
+                    levelSectionRefs.current[level.key] = node;
+                  }}
+                  className={`scroll-mt-28 rounded-lg border p-4 transition-all duration-300 md:p-5 ${
+                    levelActive
+                      ? isDayMode
+                        ? 'border-violet-200 bg-violet-50/50 shadow-[0_18px_48px_rgba(109,40,217,0.1)]'
+                        : 'border-cyan-300/25 bg-cyan-300/[0.055] shadow-[0_18px_48px_rgba(34,211,238,0.08)]'
+                      : isDayMode
+                        ? 'border-slate-200 bg-white'
+                        : 'border-white/10 bg-white/[0.035]'
+                  }`}
+                >
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 gap-3">
+                      <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
+                        levelActive
+                          ? isDayMode
+                            ? 'bg-violet-600 ring-violet-100'
+                            : 'bg-cyan-300 ring-cyan-300/15'
+                          : isDayMode
+                            ? 'bg-slate-300 ring-slate-100'
+                            : 'bg-white/25 ring-white/[0.06]'
+                      }`} />
+                      <div className="min-w-0">
+                        <h3 className={`text-xl font-black ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                          {levelTitle}
+                        </h3>
+                        <p className={`mt-1 text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                          {t(level.descKey, level.descFallback)}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-xs font-bold ${
+                      isDayMode
+                        ? 'border-slate-200 bg-slate-50 text-slate-500'
+                        : 'border-white/10 bg-white/[0.06] text-gray-400'
+                    }`}>
+                      {t('community_learning.level_count', { count: level.items.length, defaultValue: '{{count}} 篇' })}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {firstItem ? (
+                      <FeaturedLearningCard
+                        item={firstItem}
+                        chapter={chapter}
+                        level={level}
+                        isDayMode={isDayMode}
+                        onOpen={handleOpenArticle}
+                        t={t}
+                        language={i18n.language}
+                      />
+                    ) : (
+                      <div className={`rounded-lg border border-dashed p-5 text-sm ${
+                        isDayMode
+                          ? 'border-slate-200 bg-slate-50 text-slate-500'
+                          : 'border-white/10 bg-white/[0.03] text-gray-400'
+                      }`}>
+                        {t('community_learning.level_empty', {
+                          level: levelTitle,
+                          defaultValue: '暂无{{level}}文章',
+                        })}
+                      </div>
+                    )}
+
+                    {moreItems.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <h4 className={`text-sm font-black ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
+                            {t('community_learning.more_level_articles', {
+                              level: levelTitle,
+                              defaultValue: '更多{{level}}文章',
+                            })}
+                          </h4>
+                          <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {moreItems.map((item) => (
+                            <LearningCard
+                              key={item.id}
+                              item={item}
+                              chapter={CHAPTERS.find((chapter) => chapter.key === item.chapterKey)}
+                              level={level}
+                              isDayMode={isDayMode}
+                              onOpen={handleOpenArticle}
+                              t={t}
+                              language={i18n.language}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+              );
+            })
           ) : (
-            <div className={`rounded-lg border border-dashed p-8 text-center md:col-span-2 ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
+            <div className={`rounded-lg border border-dashed p-8 text-center ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
               <Search className="mx-auto mb-3 h-9 w-9 opacity-45" />
               <p className="font-bold">{t('community_learning.empty_title', '本章暂时没有匹配的学习资料')}</p>
               <p className="mt-1 text-sm">{t('community_learning.empty_desc', '已自动隐藏求助、组队、新闻和无关内容，只保留教程、笔记和学习资源。')}</p>
