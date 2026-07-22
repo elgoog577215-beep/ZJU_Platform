@@ -84,7 +84,7 @@ jobs:
           strip_components: 1
           overwrite: true
 
-      - name: Reload nginx
+      - name: Validate and reload Caddy
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -92,7 +92,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -eu
-            systemctl reload nginx
+            caddy validate --config /etc/caddy/Caddyfile
+            systemctl reload caddy
+            systemctl is-active --quiet caddy
 
       - name: Verify production contract
         run: |
