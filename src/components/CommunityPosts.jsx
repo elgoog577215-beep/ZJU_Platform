@@ -28,7 +28,7 @@ const AREAS = [
   {
     key: 'learn',
     icon: BookOpen,
-    tone: 'orange',
+    tone: 'violet',
     titleKey: 'community_learning.area_learn_title',
     titleFallback: '学习区',
     descKey: 'community_learning.area_learn_desc',
@@ -37,7 +37,7 @@ const AREAS = [
   {
     key: 'resources',
     icon: FileStack,
-    tone: 'amber',
+    tone: 'sky',
     titleKey: 'community_learning.area_resources_title',
     titleFallback: '资源区',
     descKey: 'community_learning.area_resources_desc',
@@ -46,7 +46,7 @@ const AREAS = [
   {
     key: 'discuss',
     icon: MessageCircle,
-    tone: 'yellow',
+    tone: 'orange',
     titleKey: 'community_learning.area_discuss_title',
     titleFallback: '讨论区',
     descKey: 'community_learning.area_discuss_desc',
@@ -122,7 +122,7 @@ const CHAPTERS = [
   {
     key: 'basics',
     icon: Sparkles,
-    tone: 'amber',
+    tone: 'violet',
     titleKey: 'community_learning.chapter_basics_title',
     titleFallback: 'AI 基础',
     summaryKey: 'community_learning.chapter_basics_summary',
@@ -134,7 +134,7 @@ const CHAPTERS = [
   {
     key: 'prompt',
     icon: Tag,
-    tone: 'orange',
+    tone: 'sky',
     titleKey: 'community_learning.chapter_prompt_title',
     titleFallback: 'Prompt 实战',
     summaryKey: 'community_learning.chapter_prompt_summary',
@@ -146,7 +146,7 @@ const CHAPTERS = [
   {
     key: 'rag',
     icon: Layers,
-    tone: 'yellow',
+    tone: 'emerald',
     titleKey: 'community_learning.chapter_rag_title',
     titleFallback: 'RAG 知识库',
     summaryKey: 'community_learning.chapter_rag_summary',
@@ -158,7 +158,7 @@ const CHAPTERS = [
   {
     key: 'agent',
     icon: Bot,
-    tone: 'orange',
+    tone: 'amber',
     titleKey: 'community_learning.chapter_agent_title',
     titleFallback: 'Agent 工作流',
     summaryKey: 'community_learning.chapter_agent_summary',
@@ -182,7 +182,7 @@ const CHAPTERS = [
   {
     key: 'cases',
     icon: Wrench,
-    tone: 'amber',
+    tone: 'orange',
     titleKey: 'community_learning.chapter_cases_title',
     titleFallback: '高阶案例',
     summaryKey: 'community_learning.chapter_cases_summary',
@@ -264,29 +264,41 @@ const getProgressionItems = (currentArticle, trackItems) => {
 };
 
 const toneClasses = {
+  violet: {
+    card: 'border-violet-200 bg-violet-50/70 text-violet-700',
+    nightCard: 'border-violet-400/20 bg-violet-500/[0.055] text-violet-200',
+    accent: 'text-violet-600',
+    nightAccent: 'text-violet-300',
+  },
+  sky: {
+    card: 'border-sky-200 bg-sky-50/70 text-sky-700',
+    nightCard: 'border-sky-400/20 bg-sky-500/[0.055] text-sky-200',
+    accent: 'text-sky-600',
+    nightAccent: 'text-sky-300',
+  },
+  emerald: {
+    card: 'border-emerald-200 bg-emerald-50/70 text-emerald-700',
+    nightCard: 'border-emerald-400/20 bg-emerald-500/[0.055] text-emerald-200',
+    accent: 'text-emerald-600',
+    nightAccent: 'text-emerald-300',
+  },
   amber: {
-    card: 'border-amber-200 bg-amber-50 text-amber-800',
-    nightCard: 'border-amber-400/35 bg-amber-400/[0.12] text-amber-100',
+    card: 'border-amber-200 bg-amber-50/70 text-amber-700',
+    nightCard: 'border-amber-400/20 bg-amber-500/[0.055] text-amber-200',
     accent: 'text-amber-600',
-    nightAccent: 'text-amber-200',
+    nightAccent: 'text-amber-300',
   },
   orange: {
-    card: 'border-orange-200 bg-orange-50 text-orange-800',
-    nightCard: 'border-orange-400/40 bg-orange-500/[0.15] text-orange-50',
+    card: 'border-orange-200 bg-orange-50/70 text-orange-700',
+    nightCard: 'border-orange-400/20 bg-orange-500/[0.055] text-orange-200',
     accent: 'text-orange-600',
-    nightAccent: 'text-orange-200',
-  },
-  yellow: {
-    card: 'border-yellow-200 bg-yellow-50 text-yellow-800',
-    nightCard: 'border-yellow-300/35 bg-yellow-300/[0.12] text-yellow-50',
-    accent: 'text-yellow-600',
-    nightAccent: 'text-yellow-200',
+    nightAccent: 'text-orange-300',
   },
   rose: {
-    card: 'border-rose-200 bg-rose-50 text-rose-800',
-    nightCard: 'border-rose-300/20 bg-rose-300/10 text-rose-100',
+    card: 'border-rose-200 bg-rose-50/70 text-rose-700',
+    nightCard: 'border-rose-400/20 bg-rose-500/[0.055] text-rose-200',
     accent: 'text-rose-600',
-    nightAccent: 'text-rose-200',
+    nightAccent: 'text-rose-300',
   },
 };
 
@@ -367,9 +379,9 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
       return `${base} cursor-default border-dashed ${isDayMode ? 'border-slate-200 bg-slate-100/70 text-slate-400' : 'border-white/10 bg-white/[0.025] text-gray-500'}`;
     }
     if (isCurrent) {
-      return `${base} cursor-default ${isDayMode ? 'border-orange-300 bg-orange-50 text-orange-950 shadow-[0_10px_24px_rgba(249,115,22,0.08)]' : 'border-orange-300/25 bg-orange-300/10 text-orange-100'}`;
+      return `${base} cursor-default ${isDayMode ? 'border-violet-200 bg-violet-50/70 text-violet-900 shadow-[0_10px_24px_rgba(124,58,237,0.06)]' : 'border-orange-400/20 bg-orange-400/[0.055] text-orange-200'}`;
     }
-    return `${base} ${isDayMode ? 'border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50/50' : 'border-white/10 bg-white/[0.035] text-gray-200 hover:border-orange-300/25 hover:bg-orange-300/[0.07]'}`;
+    return `${base} ${isDayMode ? 'border-slate-200 bg-white text-slate-700 hover:border-violet-200 hover:bg-violet-50/40' : 'border-white/10 bg-white/[0.035] text-gray-200 hover:border-white/20 hover:bg-white/[0.055]'}`;
   };
 
   const renderLevelButton = ({ levelKey, article, isCurrent }, compact = false) => {
@@ -388,7 +400,7 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
             {levelLabel}
           </span>
           {isCurrent ? (
-            <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${isDayMode ? 'bg-orange-100 text-orange-700' : 'bg-orange-950/60 text-orange-200'}`}>
+            <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${isDayMode ? 'bg-violet-100 text-violet-700' : 'bg-orange-400/10 text-orange-200'}`}>
               {t('community_learning.progression_current_short', '当前')}
             </span>
           ) : article ? (
@@ -415,7 +427,7 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
     const current = items.find((item) => item.isCurrent);
     const nextItems = items.filter((item) => item.article && !item.isCurrent);
     return (
-      <div className={`mt-4 rounded-lg border p-3 ${isDayMode ? 'border-orange-200 bg-orange-50/90 text-orange-800' : 'border-orange-300/20 bg-orange-300/[0.08] text-orange-100'}`}>
+      <div className={`mt-4 rounded-lg border p-3 ${isDayMode ? 'border-violet-200 bg-violet-50/70 text-violet-800' : 'border-white/10 bg-white/[0.045] text-gray-200'}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em]">
@@ -437,8 +449,8 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
                 onClick={() => onOpen(article)}
                 className={`inline-flex min-h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-black transition-colors ${
                   isDayMode
-                    ? 'border-orange-200 bg-white text-orange-800 hover:border-orange-300 hover:bg-orange-50'
-                    : 'border-orange-300/20 bg-orange-300/10 text-orange-100 hover:bg-orange-300/15'
+                    ? 'border-violet-200 bg-white text-violet-800 hover:border-violet-300 hover:bg-violet-50'
+                    : 'border-white/10 bg-white/[0.04] text-gray-200 hover:border-orange-400/20 hover:bg-orange-400/[0.055]'
                 }`}
               >
                 {t('community_learning.progression_continue_level', {
@@ -458,7 +470,7 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
     return (
       <aside className="sticky top-24 hidden self-start lg:block">
         <div className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04]'}`}>
-          <div className={`mb-3 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'text-orange-600' : 'text-orange-200'}`}>
+          <div className={`mb-3 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'text-violet-600' : 'text-orange-300'}`}>
             {t('community_learning.progression_same_topic', '同主题路径')}
           </div>
           <div className="space-y-2">
@@ -475,7 +487,7 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
         isDayMode ? 'border-slate-200 bg-white/95' : 'border-white/10 bg-slate-950/95'
       }`}>
         <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1.5">
-          <div className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-[0.12em] ${isDayMode ? 'text-orange-600' : 'text-orange-200'}`}>
+          <div className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-[0.12em] ${isDayMode ? 'text-violet-600' : 'text-orange-300'}`}>
             <BookOpen size={13} />
             <span>{t('community_learning.progression_path_label', '学习路径')}</span>
           </div>
@@ -509,7 +521,7 @@ const LearningProgressionDock = ({ items, isDayMode, onOpen, t, variant = 'foote
 };
 
 const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'orange'] || toneClasses.orange;
+  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -518,8 +530,8 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
       onClick={() => onOpen(item)}
       className={`group rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:p-5 ${
         isDayMode
-          ? 'border-slate-200/80 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.04)] hover:border-orange-200 hover:shadow-[0_14px_32px_rgba(249,115,22,0.08)]'
-          : 'border-white/10 bg-white/[0.045] hover:border-orange-300/25 hover:bg-orange-300/[0.06]'
+          ? 'border-slate-200/80 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.04)] hover:border-violet-200 hover:shadow-[0_14px_32px_rgba(124,58,237,0.06)]'
+          : 'border-white/10 bg-white/[0.045] hover:border-violet-400/20 hover:bg-white/[0.06]'
       }`}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -557,7 +569,7 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
 };
 
 const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) => {
-  const tone = toneClasses[chapter?.tone || 'orange'] || toneClasses.orange;
+  const tone = toneClasses[chapter?.tone || 'violet'] || toneClasses.violet;
   const Icon = chapter?.icon || BookOpen;
 
   return (
@@ -566,8 +578,8 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
       onClick={() => onOpen(item)}
       className={`group grid w-full gap-4 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:grid-cols-[minmax(0,1fr)_10rem] md:p-5 ${
         isDayMode
-          ? 'border-orange-200 bg-white shadow-[0_16px_42px_rgba(249,115,22,0.09)] hover:border-orange-300 hover:shadow-[0_22px_52px_rgba(249,115,22,0.13)]'
-          : 'border-orange-300/20 bg-orange-300/[0.055] shadow-[0_18px_46px_rgba(0,0,0,0.26)] hover:border-orange-300/35 hover:bg-orange-300/[0.08]'
+          ? 'border-slate-200/80 bg-white shadow-[0_16px_42px_rgba(15,23,42,0.055)] hover:border-violet-200 hover:shadow-[0_22px_52px_rgba(124,58,237,0.07)]'
+          : 'border-white/10 bg-white/[0.045] shadow-[0_18px_46px_rgba(0,0,0,0.24)] hover:border-orange-400/20 hover:bg-white/[0.06]'
       }`}
     >
       <div className="min-w-0">
@@ -593,8 +605,8 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
       </div>
       <div className={`flex min-h-24 flex-col justify-between rounded-md border p-3 ${
         isDayMode
-          ? 'border-orange-100 bg-orange-50/70'
-          : 'border-orange-300/15 bg-orange-950/25'
+          ? 'border-violet-100 bg-violet-50/60'
+          : 'border-white/10 bg-white/[0.035]'
       }`}>
         <span className={`text-xs font-bold ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {t(chapter?.titleKey, chapter?.titleFallback || 'AI')}
@@ -606,8 +618,8 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
           </span>
           <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
             isDayMode
-              ? 'bg-orange-600 text-white group-hover:bg-orange-700'
-              : 'bg-amber-200 text-slate-950 group-hover:bg-amber-100'
+              ? 'bg-violet-600 text-white group-hover:bg-violet-700'
+              : 'bg-orange-400 text-slate-950 group-hover:bg-orange-300'
           }`}>
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </span>
@@ -631,7 +643,7 @@ const LearningArea = ({ isDayMode }) => {
     ? searchParams.get('level')
     : '';
   const activeChapter = CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
-  const chapterTone = toneClasses[activeChapter.tone] || toneClasses.orange;
+  const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
   const ActiveIcon = activeChapter.icon;
 
   const articleResource = useCachedResource(
@@ -773,7 +785,7 @@ const LearningArea = ({ isDayMode }) => {
           {CHAPTERS.map((chapter, index) => {
             const Icon = chapter.icon;
             const active = chapter.key === activeChapterKey;
-            const tone = toneClasses[chapter.tone] || toneClasses.orange;
+            const tone = toneClasses[chapter.tone] || toneClasses.violet;
             return (
               <button
                 key={chapter.key}
@@ -807,6 +819,7 @@ const LearningArea = ({ isDayMode }) => {
         >
           {CHAPTERS.map((chapter) => {
             const active = chapter.key === activeChapterKey;
+            const tone = toneClasses[chapter.tone] || toneClasses.violet;
             return (
               <button
                 key={chapter.key}
@@ -816,8 +829,8 @@ const LearningArea = ({ isDayMode }) => {
                 className={`block min-h-11 w-full border-l-2 px-4 py-2.5 text-left text-sm font-bold transition-colors ${
                   active
                     ? isDayMode
-                      ? 'border-orange-500 bg-orange-50 text-orange-800'
-                      : 'border-amber-300 bg-orange-400/10 text-amber-100'
+                      ? tone.card
+                      : tone.nightCard
                     : isDayMode
                       ? 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950'
                       : 'border-transparent text-gray-400 hover:bg-white/[0.04] hover:text-white'
@@ -877,8 +890,8 @@ const LearningArea = ({ isDayMode }) => {
                   className={`scroll-mt-28 rounded-lg border p-4 transition-colors duration-200 md:rounded-none md:border-x-0 md:border-b-0 md:bg-transparent md:px-0 md:py-5 md:shadow-none ${
                     levelActive
                       ? isDayMode
-                        ? 'border-orange-200 bg-orange-50/50 shadow-[0_18px_48px_rgba(249,115,22,0.1)] md:bg-transparent'
-                        : 'border-amber-300/25 bg-amber-300/[0.055] shadow-[0_18px_48px_rgba(245,158,11,0.08)] md:bg-transparent'
+                        ? 'border-violet-200 bg-violet-50/45 shadow-[0_18px_48px_rgba(124,58,237,0.06)] md:bg-transparent'
+                        : 'border-orange-400/20 bg-orange-400/[0.045] shadow-[0_18px_48px_rgba(0,0,0,0.16)] md:bg-transparent'
                       : isDayMode
                         ? 'border-slate-200 bg-white md:bg-transparent'
                         : 'border-white/10 bg-white/[0.035] md:bg-transparent'
@@ -889,8 +902,8 @@ const LearningArea = ({ isDayMode }) => {
                       <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
                         levelActive
                           ? isDayMode
-                            ? 'bg-orange-600 ring-orange-100'
-                            : 'bg-amber-300 ring-amber-300/15'
+                            ? 'bg-violet-600 ring-violet-100'
+                            : 'bg-orange-400 ring-orange-400/10'
                           : isDayMode
                             ? 'bg-slate-300 ring-slate-100'
                             : 'bg-white/25 ring-white/[0.06]'
@@ -906,8 +919,8 @@ const LearningArea = ({ isDayMode }) => {
                     </div>
                     <span className={`inline-flex shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-xs font-bold md:border-0 md:bg-transparent md:px-0 ${
                       isDayMode
-                        ? 'border-orange-200 bg-orange-50 text-orange-700'
-                        : 'border-amber-300/20 bg-amber-300/10 text-amber-100'
+                        ? 'border-violet-200 bg-violet-50/70 text-violet-700'
+                        : 'border-orange-400/20 bg-orange-400/[0.055] text-orange-200'
                     }`}>
                       {t('community_learning.level_count', { count: level.items.length, defaultValue: '{{count}} 篇' })}
                     </span>
@@ -983,7 +996,7 @@ const LearningArea = ({ isDayMode }) => {
           item={selectedArticle}
           onClose={handleCloseArticle}
           isDayMode={isDayMode}
-          gradientFrom={isDayMode ? 'from-orange-100' : 'from-orange-900/40'}
+          gradientFrom={isDayMode ? 'from-violet-100' : 'from-slate-900/30'}
           headerHeight="h-52 sm:h-64 md:h-80"
           coverImage={selectedArticle.cover}
           shareParam="id"
@@ -1081,7 +1094,7 @@ const CommunityPosts = () => {
         {AREAS.map((area) => {
           const Icon = area.icon;
           const active = area.key === activeAreaConfig.key;
-          const tone = toneClasses[area.tone] || toneClasses.orange;
+          const tone = toneClasses[area.tone] || toneClasses.violet;
           return (
             <button
               key={area.key}

@@ -191,8 +191,8 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
   const uploadAction = onNewPost || openComposer;
 
   const beforeContent = feed.selectedItem && (
-    <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'border-amber-200 bg-amber-50/80' : 'border-amber-300/20 bg-amber-300/[0.06]'}`}>
-      <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? 'text-amber-800' : 'text-amber-100'}`}>
+    <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'border-sky-200 bg-sky-50/70' : 'border-sky-400/20 bg-sky-500/[0.05]'}`}>
+      <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? 'text-sky-800' : 'text-sky-200'}`}>
         <span className="inline-flex items-center gap-1.5">
           <FileStack size={15} />
           {t('community.materials_detail_tip', '支持上传 PDF、Word、Markdown 与附件块')}
@@ -202,7 +202,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
             href={feed.selectedItem.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-amber-200 text-amber-800 hover:bg-white' : 'border-amber-300/20 text-amber-100 hover:bg-amber-300/10'}`}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-sky-200 text-sky-800 hover:bg-white' : 'border-sky-400/20 text-sky-200 hover:bg-sky-400/[0.06]'}`}
           >
             <LinkIcon size={13} />
             {t('community.open_original', '查看原文')}
@@ -214,9 +214,9 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
           {selectedMaterialMeta.map((item) => (
             <span
               key={item.key}
-              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-amber-200 bg-white text-amber-800' : 'border-amber-300/20 bg-amber-300/10 text-amber-100'}`}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? 'border-sky-200 bg-white text-sky-800' : 'border-sky-400/20 bg-sky-400/[0.055] text-sky-200'}`}
             >
-              <span className={isDayMode ? 'text-amber-600' : 'text-amber-200'}>{item.label}</span>
+              <span className={isDayMode ? 'text-sky-600' : 'text-sky-300'}>{item.label}</span>
               {item.value}
             </span>
           ))}
@@ -266,8 +266,8 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
             onClick={uploadAction}
             className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-lg border px-4 text-base font-black transition-colors sm:gap-2.5 sm:px-6 ${
               isDayMode
-                ? 'border-amber-200 bg-white text-amber-800 shadow-[0_8px_22px_rgba(245,158,11,0.08)] hover:border-amber-300 hover:bg-amber-50'
-                : 'border-amber-300/25 bg-amber-300/10 text-amber-100 hover:border-amber-300/40 hover:bg-amber-300/15'
+                ? 'border-sky-200 bg-white text-sky-800 shadow-[0_8px_22px_rgba(14,165,233,0.06)] hover:border-sky-300 hover:bg-sky-50'
+                : 'border-sky-400/20 bg-sky-500/[0.055] text-sky-200 hover:border-sky-400/30 hover:bg-sky-500/[0.08]'
             }`}
           >
             <Upload size={21} />
@@ -289,11 +289,11 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
                 className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[132px] md:flex-row md:items-start md:justify-start md:gap-4 md:px-5 md:py-5 md:text-left ${
                   isActive
                     ? isDayMode
-                      ? 'border-amber-300 bg-amber-600 text-white shadow-[0_10px_26px_rgba(245,158,11,0.18)]'
-                      : 'border-amber-300/35 bg-amber-300/15 text-amber-100 shadow-[0_14px_34px_rgba(245,158,11,0.12)]'
+                      ? 'border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]'
+                      : 'border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]'
                     : isDayMode
-                      ? 'border-slate-200 bg-slate-50/80 text-slate-700 hover:border-amber-200 hover:bg-amber-50/60'
-                      : 'border-white/10 bg-white/[0.035] text-gray-200 hover:border-amber-300/25 hover:bg-amber-300/[0.07]'
+                      ? 'border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50'
+                      : 'border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]'
                 }`}
               >
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:mt-0.5 md:h-14 md:w-14 md:rounded-lg ${isActive ? 'bg-white/20' : isDayMode ? 'bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]' : 'bg-white/[0.06]'}`}>
@@ -327,7 +327,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         emptyDesc={selectedMaterialType
           ? t(`community.materials_empty_${selectedMaterialType}_desc`, t('community.materials_empty_desc', '上传第一份资源，帮后来者少走弯路。'))
           : t('community.materials_empty_desc', '上传第一份资源，帮后来者少走弯路。')}
-        accentColor="amber"
+        accentColor="blue"
         extraControls={controls}
         onNewPost={onNewPost || openComposer}
         newPostLabel={t('community.materials_upload_action', '上传资料')}

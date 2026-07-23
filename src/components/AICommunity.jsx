@@ -70,9 +70,8 @@ const AICommunity = () => {
     >
       <SEO title={t("community_learning.meta_title", "学习社区")} description={subtitle} />
 
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[8%] top-[-8rem] h-[30rem] w-[38rem] rounded-full bg-orange-500/[0.08] blur-[140px]" />
-        <div className="absolute right-[-8rem] top-[18rem] h-[28rem] w-[28rem] rounded-full bg-amber-300/[0.06] blur-[130px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden h-80 overflow-hidden md:block">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,182,212,0.055),transparent)]" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1680px]">
