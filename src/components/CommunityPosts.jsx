@@ -269,32 +269,24 @@ const toneClasses = {
     nightCard: 'border-amber-400/35 bg-amber-400/[0.12] text-amber-100',
     accent: 'text-amber-600',
     nightAccent: 'text-amber-200',
-    desktopNav: 'md:border-amber-500 md:bg-transparent md:text-amber-700',
-    desktopNightNav: 'md:border-amber-300 md:bg-transparent md:text-amber-100',
   },
   orange: {
     card: 'border-orange-200 bg-orange-50 text-orange-800',
     nightCard: 'border-orange-400/40 bg-orange-500/[0.15] text-orange-50',
     accent: 'text-orange-600',
     nightAccent: 'text-orange-200',
-    desktopNav: 'md:border-orange-500 md:bg-transparent md:text-orange-700',
-    desktopNightNav: 'md:border-orange-300 md:bg-transparent md:text-orange-100',
   },
   yellow: {
     card: 'border-yellow-200 bg-yellow-50 text-yellow-800',
     nightCard: 'border-yellow-300/35 bg-yellow-300/[0.12] text-yellow-50',
     accent: 'text-yellow-600',
     nightAccent: 'text-yellow-200',
-    desktopNav: 'md:border-yellow-500 md:bg-transparent md:text-yellow-700',
-    desktopNightNav: 'md:border-yellow-300 md:bg-transparent md:text-yellow-100',
   },
   rose: {
     card: 'border-rose-200 bg-rose-50 text-rose-800',
     nightCard: 'border-rose-300/20 bg-rose-300/10 text-rose-100',
     accent: 'text-rose-600',
     nightAccent: 'text-rose-200',
-    desktopNav: 'md:border-rose-500 md:bg-transparent md:text-rose-700',
-    desktopNightNav: 'md:border-rose-300 md:bg-transparent md:text-rose-100',
   },
 };
 
@@ -1079,9 +1071,9 @@ const CommunityPosts = () => {
   const activeAreaConfig = AREAS.find((area) => area.key === activeArea) || AREAS[0];
 
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div className="space-y-3 md:space-y-5">
       <nav
-        className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-7 md:px-0 ${
+        className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-3 md:border-0 md:px-0 ${
           isDayMode ? 'border-slate-200' : 'border-white/10'
         }`}
         aria-label={t('community_learning.area_nav_label', '学习社区分区')}
@@ -1096,20 +1088,24 @@ const CommunityPosts = () => {
               type="button"
               aria-pressed={active}
               onClick={() => handleAreaChange(area.key)}
-              className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-colors md:min-h-12 md:justify-start md:gap-2 md:px-0 md:text-left md:text-sm ${
+              className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:block md:min-h-[118px] md:rounded-lg md:border md:p-4 md:text-left ${
                 active
                   ? isDayMode
-                    ? `${tone.card} ${tone.desktopNav}`
-                    : `${tone.nightCard} ${tone.desktopNightNav}`
+                    ? tone.card
+                    : tone.nightCard
                   : isDayMode
-                    ? 'border-transparent text-slate-600 hover:text-slate-950 md:bg-transparent md:hover:border-slate-300'
-                    : 'border-transparent text-gray-300 hover:text-white md:bg-transparent md:hover:border-white/30'
+                    ? 'border-transparent text-slate-600 hover:text-slate-950 md:border-slate-200 md:bg-white md:hover:border-slate-300 md:hover:bg-slate-50'
+                    : 'border-transparent text-gray-300 hover:text-white md:border-white/10 md:bg-white/[0.035] md:hover:border-white/20 md:hover:bg-white/[0.06]'
               }`}
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded-md md:h-7 md:w-7 md:bg-transparent">
-                <Icon size={16} className="md:h-[17px] md:w-[17px]" />
-              </span>
-              <span className="truncate md:font-black">{t(area.titleKey, area.titleFallback)}</span>
+              <div className="flex items-center justify-between gap-3 md:mb-3">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-md md:h-10 md:w-10 ${active ? 'md:bg-white/35' : isDayMode ? 'md:bg-slate-100' : 'md:bg-white/[0.06]'}`}>
+                  <Icon size={16} className="md:h-[19px] md:w-[19px]" />
+                </span>
+                {active ? <ArrowRight size={18} className="hidden md:block" /> : null}
+              </div>
+              <div className="truncate md:text-lg md:font-black">{t(area.titleKey, area.titleFallback)}</div>
+              <p className="mt-1 hidden text-sm leading-6 opacity-80 md:block">{t(area.descKey, area.descFallback)}</p>
             </button>
           );
         })}
