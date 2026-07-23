@@ -733,6 +733,15 @@ const LearningArea = ({ isDayMode }) => {
     }, { replace: false });
   }, [setSearchParams]);
 
+  const handleCompanionResources = useCallback(() => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('area', 'resources');
+      ['lesson', 'level', 'postTab', 'id', 'post', 'news', 'group', 'type'].forEach((key) => next.delete(key));
+      return next;
+    }, { replace: false });
+  }, [setSearchParams]);
+
   useEffect(() => {
     if (!activeLevelKey) return;
     const target = levelSectionRefs.current[activeLevelKey];
@@ -856,6 +865,28 @@ const LearningArea = ({ isDayMode }) => {
                 </button>
               );
             })}
+            <div className={`mt-2 border-t pt-2 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
+              <button
+                type="button"
+                onClick={handleCompanionResources}
+                className={`flex min-h-[58px] w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                  isDayMode
+                    ? 'border-transparent text-sky-700 hover:border-sky-200 hover:bg-sky-50/70'
+                    : 'border-transparent text-sky-200 hover:border-sky-400/20 hover:bg-sky-500/[0.055]'
+                }`}
+              >
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isDayMode ? 'bg-sky-50' : 'bg-sky-500/[0.07]'}`}>
+                  <FileStack size={16} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">07</span>
+                  <span className="block truncate text-sm font-bold">
+                    {t('community_learning.companion_resources_title', '配套资源')}
+                  </span>
+                </span>
+                <ArrowRight size={15} className="ml-auto shrink-0 opacity-70" />
+              </button>
+            </div>
           </div>
         </nav>
       </aside>
