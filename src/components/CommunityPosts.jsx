@@ -810,8 +810,42 @@ const LearningArea = ({ isDayMode }) => {
   ), [articlesByTrack, selectedArticle]);
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className="xl:sticky xl:top-24 xl:self-start">
+    <div className="grid min-w-0 gap-3 md:gap-5 xl:grid-cols-[17rem_minmax(0,1fr)]">
+      <div className="-mx-3 min-w-0 overflow-hidden border-y border-white/10 md:hidden">
+        <div
+          className="scrollbar-none flex w-full max-w-full snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain px-3 py-2"
+          aria-label={t('community_learning.curriculum_label', 'AI LEARNING PATH')}
+        >
+          {CHAPTERS.map((chapter, index) => {
+            const Icon = chapter.icon;
+            const active = chapter.key === activeChapterKey;
+            return (
+              <button
+                key={chapter.key}
+                type="button"
+                aria-pressed={active}
+                onClick={() => handleChapterChange(chapter.key)}
+                className={`inline-flex min-h-10 min-w-fit snap-start items-center gap-2 rounded-md border px-3 text-xs font-bold transition-colors ${
+                  active
+                    ? isDayMode
+                      ? 'border-[#5f594d] bg-[#2f332d] text-[#f0eadf]'
+                      : 'border-[#748276] bg-[#20271f] text-[#f0eadf]'
+                    : isDayMode
+                      ? 'border-[#ddd6c8] bg-[#faf7f0]/88 text-[#625d51]'
+                      : 'border-[#2a312b] bg-[#121713]/88 text-[#bcb5a8]'
+                }`}
+              >
+                <Icon size={14} />
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <span>{t(chapter.titleKey, chapter.titleFallback)}</span>
+                <span className="opacity-65">{articlesByChapter[chapter.key]?.length || 0}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <aside className="hidden md:block xl:sticky xl:top-24 xl:self-start">
         <div className={`rounded-lg border p-3 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]' : 'border-[#2a312b] bg-[#121713]/92'}`}>
           <div className={`mb-3 px-1 text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-[#76684d]' : 'text-[#9fb9a3]'}`}>
             {t('community_learning.curriculum_label', 'AI LEARNING PATH')}
@@ -939,8 +973,8 @@ const LearningArea = ({ isDayMode }) => {
         </div>
       </aside>
 
-      <section className={`min-w-0 rounded-lg border p-5 md:p-6 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]' : 'border-[#2a312b] bg-[#121713]/92'}`}>
-        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <section className={`min-w-0 rounded-lg border p-4 md:p-6 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]' : 'border-[#2a312b] bg-[#121713]/92'}`}>
+        <div className="mb-4 flex flex-col gap-3 md:mb-5 md:flex-row md:items-start md:justify-between md:gap-4">
           <div>
             <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? neutralTone.accent : neutralTone.nightAccent}`}>
               <ActiveIcon size={14} />
@@ -1189,8 +1223,8 @@ const CommunityPosts = () => {
   const activeAreaConfig = AREAS.find((area) => area.key === activeArea) || AREAS[0];
 
   return (
-    <div className="space-y-5">
-      <section className={`overflow-hidden rounded-lg border p-5 md:p-7 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0] shadow-[0_12px_30px_rgba(64,54,37,0.06)]' : 'border-[#2a312b] bg-[#121713]/92 shadow-[0_18px_44px_rgba(0,0,0,0.26)]'}`}>
+    <div className="space-y-3 md:space-y-5">
+      <section className={`hidden overflow-hidden rounded-lg border p-5 md:block md:p-7 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0] shadow-[0_12px_30px_rgba(64,54,37,0.06)]' : 'border-[#2a312b] bg-[#121713]/92 shadow-[0_18px_44px_rgba(0,0,0,0.26)]'}`}>
         <div>
           <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-[#d8ceba] bg-[#eee8dc] text-[#5f594d]' : 'border-[#38423a] bg-[#1b211c] text-[#d3cabb]'}`}>
             <Sparkles size={14} />
@@ -1202,7 +1236,12 @@ const CommunityPosts = () => {
         </div>
       </section>
 
-      <nav className="grid gap-3 md:grid-cols-3" aria-label={t('community_learning.area_nav_label', '学习社区分区')}>
+      <nav
+        className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-3 md:border-0 md:px-0 ${
+          isDayMode ? 'border-[#ddd6c8]' : 'border-[#2a312b]'
+        }`}
+        aria-label={t('community_learning.area_nav_label', '学习社区分区')}
+      >
         {AREAS.map((area) => {
           const Icon = area.icon;
           const active = area.key === activeAreaConfig.key;
@@ -1212,24 +1251,24 @@ const CommunityPosts = () => {
               type="button"
               aria-pressed={active}
               onClick={() => handleAreaChange(area.key)}
-              className={`min-h-[118px] rounded-lg border p-4 text-left transition-all ${
+              className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:block md:min-h-[118px] md:rounded-lg md:border md:p-4 md:text-left ${
                 active
                   ? isDayMode
-                    ? 'border-[#5f594d] bg-[#2f332d] text-[#f0eadf] shadow-[0_12px_26px_rgba(64,54,37,0.11)]'
-                    : 'border-[#748276] bg-[#20271f] text-[#f0eadf] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_14px_32px_rgba(0,0,0,0.28)]'
+                    ? 'border-[#5f594d] text-[#201f1a] md:bg-[#2f332d] md:text-[#f0eadf] md:shadow-[0_12px_26px_rgba(64,54,37,0.11)]'
+                    : 'border-[#d8c8a8] text-[#f0eadf] md:border-[#748276] md:bg-[#20271f] md:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_14px_32px_rgba(0,0,0,0.28)]'
                   : isDayMode
-                    ? 'border-[#ddd6c8] bg-[#faf7f0] text-[#625d51] hover:border-[#cfc3ad] hover:bg-[#fffbf3]'
-                    : 'border-[#2a312b] bg-[#121713]/88 text-[#bcb5a8] hover:border-[#485448] hover:bg-[#171d18]'
+                    ? 'border-transparent text-[#625d51] hover:text-[#201f1a] md:border-[#ddd6c8] md:bg-[#faf7f0] md:hover:border-[#cfc3ad] md:hover:bg-[#fffbf3]'
+                    : 'border-transparent text-[#bcb5a8] hover:text-[#f0eadf] md:border-[#2a312b] md:bg-[#121713]/88 md:hover:border-[#485448] md:hover:bg-[#171d18]'
               }`}
             >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-md ${active ? 'bg-[#e8ddc7]/18' : isDayMode ? 'bg-[#eee8dc]' : 'bg-[#20261f]'}`}>
-                  <Icon size={19} />
+              <div className="flex items-center justify-between gap-3 md:mb-3">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-md md:h-10 md:w-10 ${active ? 'md:bg-[#e8ddc7]/18' : isDayMode ? 'md:bg-[#eee8dc]' : 'md:bg-[#20261f]'}`}>
+                  <Icon size={16} className="md:h-[19px] md:w-[19px]" />
                 </span>
-                {active ? <ArrowRight size={18} /> : null}
+                {active ? <ArrowRight size={18} className="hidden md:block" /> : null}
               </div>
-              <div className="text-lg font-black">{t(area.titleKey, area.titleFallback)}</div>
-              <p className="mt-1 text-sm leading-6 opacity-80">{t(area.descKey, area.descFallback)}</p>
+              <div className="truncate md:text-lg md:font-black">{t(area.titleKey, area.titleFallback)}</div>
+              <p className="mt-1 hidden text-sm leading-6 opacity-80 md:block">{t(area.descKey, area.descFallback)}</p>
             </button>
           );
         })}

@@ -64,10 +64,8 @@ const AICommunity = () => {
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-x-hidden px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-6 sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
-        isDayMode
-          ? "bg-[#f4f1ea] text-[#201f1a]"
-          : "bg-[radial-gradient(circle_at_18%_0%,rgba(42,84,76,0.2),transparent_34%),linear-gradient(180deg,#0b100f_0%,#0e1210_42%,#0a0d0c_100%)] text-[#e7e0d2]"
+      className={`relative z-10 min-h-screen overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+64px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
+        isDayMode ? "text-[#201f1a]" : "text-[#e7e0d2]"
       }`}
     >
       <SEO title={t("community_learning.meta_title", "学习社区")} description={subtitle} />
