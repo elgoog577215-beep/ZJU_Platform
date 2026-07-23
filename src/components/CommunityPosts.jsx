@@ -269,24 +269,32 @@ const toneClasses = {
     nightCard: 'border-amber-400/35 bg-amber-400/[0.12] text-amber-100',
     accent: 'text-amber-600',
     nightAccent: 'text-amber-200',
+    desktopNav: 'md:border-amber-500 md:bg-transparent md:text-amber-700',
+    desktopNightNav: 'md:border-amber-300 md:bg-transparent md:text-amber-100',
   },
   orange: {
     card: 'border-orange-200 bg-orange-50 text-orange-800',
     nightCard: 'border-orange-400/40 bg-orange-500/[0.15] text-orange-50',
     accent: 'text-orange-600',
     nightAccent: 'text-orange-200',
+    desktopNav: 'md:border-orange-500 md:bg-transparent md:text-orange-700',
+    desktopNightNav: 'md:border-orange-300 md:bg-transparent md:text-orange-100',
   },
   yellow: {
     card: 'border-yellow-200 bg-yellow-50 text-yellow-800',
     nightCard: 'border-yellow-300/35 bg-yellow-300/[0.12] text-yellow-50',
     accent: 'text-yellow-600',
     nightAccent: 'text-yellow-200',
+    desktopNav: 'md:border-yellow-500 md:bg-transparent md:text-yellow-700',
+    desktopNightNav: 'md:border-yellow-300 md:bg-transparent md:text-yellow-100',
   },
   rose: {
     card: 'border-rose-200 bg-rose-50 text-rose-800',
     nightCard: 'border-rose-300/20 bg-rose-300/10 text-rose-100',
     accent: 'text-rose-600',
     nightAccent: 'text-rose-200',
+    desktopNav: 'md:border-rose-500 md:bg-transparent md:text-rose-700',
+    desktopNightNav: 'md:border-rose-300 md:bg-transparent md:text-rose-100',
   },
 };
 
@@ -622,7 +630,6 @@ const LearningArea = ({ isDayMode }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(null);
-  const [expandedChapterKey, setExpandedChapterKey] = useState(searchParams.get('lesson') || 'basics');
   const levelSectionRefs = useRef({});
 
   const activeChapterKey = CHAPTERS.some((chapter) => chapter.key === searchParams.get('lesson'))
@@ -688,21 +695,6 @@ const LearningArea = ({ isDayMode }) => {
     [levelGroups],
   );
 
-  const articlesByChapterAndLevel = useMemo(() => {
-    const map = Object.fromEntries(
-      CHAPTERS.map((chapter) => [
-        chapter.key,
-        Object.fromEntries(LEVELS.map((level) => [level.key, 0])),
-      ]),
-    );
-    articles.forEach((item) => {
-      if (map[item.chapterKey]?.[item.levelKey] !== undefined) {
-        map[item.chapterKey][item.levelKey] += 1;
-      }
-    });
-    return map;
-  }, [articles]);
-
   const articlesByTrack = useMemo(() => {
     const map = {};
     articles.forEach((item) => {
@@ -721,7 +713,6 @@ const LearningArea = ({ isDayMode }) => {
   }, [articles]);
 
   const handleChapterChange = useCallback((chapterKey, levelKey = '') => {
-    setExpandedChapterKey(chapterKey);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('area', 'learn');
@@ -737,25 +728,6 @@ const LearningArea = ({ isDayMode }) => {
       return next;
     }, { replace: false });
   }, [setSearchParams]);
-
-  const toggleChapterLevels = useCallback((chapterKey) => {
-    if (expandedChapterKey === chapterKey) {
-      setExpandedChapterKey('');
-      return;
-    }
-
-    setExpandedChapterKey(chapterKey);
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('area', 'learn');
-      next.set('lesson', chapterKey);
-      next.delete('level');
-      next.delete('postTab');
-      next.delete('id');
-      next.delete('post');
-      return next;
-    }, { replace: false });
-  }, [expandedChapterKey, setSearchParams]);
 
   useEffect(() => {
     if (!activeLevelKey) return;
@@ -800,8 +772,8 @@ const LearningArea = ({ isDayMode }) => {
   ), [articlesByTrack, selectedArticle]);
 
   return (
-    <div className="grid min-w-0 gap-3 md:gap-5 xl:grid-cols-[17rem_minmax(0,1fr)]">
-      <div className="-mx-3 min-w-0 overflow-hidden border-y border-white/10 md:hidden">
+    <div className="grid min-w-0 gap-3 md:gap-5 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-start">
+      <div className="-mx-3 min-w-0 overflow-hidden border-y border-white/10 lg:hidden">
         <div
           className="scrollbar-none flex w-full max-w-full snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain px-3 py-2"
           aria-label={t('community_learning.curriculum_label', 'AI LEARNING PATH')}
@@ -836,152 +808,45 @@ const LearningArea = ({ isDayMode }) => {
         </div>
       </div>
 
-      <aside className="hidden md:block xl:sticky xl:top-24 xl:self-start">
-        <div className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04]'}`}>
-          <div className={`mb-3 px-1 text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-orange-600' : 'text-amber-200'}`}>
-            {t('community_learning.curriculum_label', 'AI LEARNING PATH')}
-          </div>
-          <div className="space-y-1.5">
-            {CHAPTERS.map((chapter, index) => {
-              const Icon = chapter.icon;
-              const active = chapter.key === activeChapterKey;
-              const expanded = chapter.key === expandedChapterKey;
-              const tone = toneClasses[chapter.tone] || toneClasses.orange;
-              return (
-                  <div
-                    key={chapter.key}
-                    className={`rounded-lg border transition-all duration-200 ${
-                      expanded
-                        ? isDayMode
-                          ? 'border-orange-200 bg-orange-50/60 shadow-sm'
-                          : 'border-orange-300/15 bg-orange-300/[0.045] shadow-[0_14px_34px_rgba(0,0,0,0.22)]'
-                        : 'border-transparent'
-                    }`}
-                  >
-                    <div
-                      className={`flex w-full items-center rounded-md border transition-colors ${
-                        active
-                          ? isDayMode
-                            ? tone.card
-                            : tone.nightCard
-                          : isDayMode
-                            ? 'border-transparent text-slate-600 hover:bg-orange-50'
-                            : 'border-transparent text-gray-300 hover:bg-orange-300/[0.06]'
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleChapterChange(chapter.key)}
-                        className="flex min-h-[58px] min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
-                      >
-                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
-                          <Icon size={16} />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
-                          <span className="block truncate text-sm font-bold">
-                            {t(chapter.titleKey, chapter.titleFallback)}
-                          </span>
-                        </span>
-                        <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
-                      </button>
-                      <button
-                        type="button"
-                        aria-expanded={expanded}
-                        aria-label={t('community_learning.toggle_levels', '展开难度')}
-                        onClick={() => toggleChapterLevels(chapter.key)}
-                        className={`mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${
-                          isDayMode
-                            ? 'text-slate-500 hover:bg-orange-100 hover:text-orange-800'
-                            : 'text-gray-400 hover:bg-orange-300/10 hover:text-orange-100'
-                        }`}
-                      >
-                        <ChevronRight size={15} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
-                      </button>
-                    </div>
-                    <div
-                      className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
-                        expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                      }`}
-                    >
-                      <div className="overflow-hidden">
-                        <div className={`mx-2 mb-2 mt-1 rounded-md border p-1.5 ${
-                          isDayMode
-                            ? 'border-orange-100 bg-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]'
-                            : 'border-orange-300/15 bg-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
-                        }`}>
-                        {LEVELS.map((level) => {
-                          const levelActive = activeLevelKey === level.key;
-                          const count = articlesByChapterAndLevel[chapter.key]?.[level.key] || 0;
-                          return (
-                            <button
-                              key={level.key}
-                              type="button"
-                              onClick={() => handleChapterChange(chapter.key, level.key)}
-                              className={`group flex min-h-9 w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-bold transition-all ${
-                                levelActive
-                                  ? isDayMode
-                                    ? 'bg-orange-600 text-white shadow-sm'
-                                    : 'bg-amber-200 text-slate-950 shadow-[0_8px_20px_rgba(0,0,0,0.22)]'
-                                  : isDayMode
-                                    ? 'text-slate-500 hover:bg-orange-50 hover:text-orange-800'
-                                    : 'text-gray-400 hover:bg-orange-300/[0.08] hover:text-white'
-                              }`}
-                            >
-                              <span className="flex min-w-0 items-center gap-2">
-                                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                                  levelActive
-                                    ? isDayMode
-                                      ? 'bg-amber-300'
-                                      : 'bg-amber-500'
-                                    : isDayMode
-                                      ? 'bg-slate-300 group-hover:bg-slate-500'
-                                      : 'bg-white/20 group-hover:bg-white/45'
-                                }`} />
-                                <span>{t(level.titleKey, level.titleFallback)}</span>
-                              </span>
-                              <span className={`rounded px-1.5 py-0.5 text-[11px] ${
-                                levelActive
-                                  ? isDayMode
-                                    ? 'bg-white/15 text-white/80'
-                                    : 'bg-slate-950/10 text-slate-700'
-                                  : isDayMode
-                                    ? 'bg-slate-100 text-slate-500'
-                                    : 'bg-white/[0.06] text-gray-400'
-                              }`}>{count}</span>
-                            </button>
-                          );
-                        })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-            })}
-          </div>
-        </div>
+      <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
+        <nav
+          className={`border-l ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}
+          aria-label={t('community_learning.curriculum_label', 'AI LEARNING PATH')}
+        >
+          {CHAPTERS.map((chapter) => {
+            const active = chapter.key === activeChapterKey;
+            return (
+              <button
+                key={chapter.key}
+                type="button"
+                aria-pressed={active}
+                onClick={() => handleChapterChange(chapter.key)}
+                className={`block min-h-11 w-full border-l-2 px-4 py-2.5 text-left text-sm font-bold transition-colors ${
+                  active
+                    ? isDayMode
+                      ? 'border-orange-500 bg-orange-50 text-orange-800'
+                      : 'border-amber-300 bg-orange-400/10 text-amber-100'
+                    : isDayMode
+                      ? 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950'
+                      : 'border-transparent text-gray-400 hover:bg-white/[0.04] hover:text-white'
+                }`}
+              >
+                {t(chapter.titleKey, chapter.titleFallback)}
+              </button>
+            );
+          })}
+        </nav>
       </aside>
 
-      <section className={`min-w-0 rounded-lg border p-4 md:p-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04] backdrop-blur-sm'}`}>
-        <div className="mb-4 flex flex-col gap-3 md:mb-5 md:flex-row md:items-start md:justify-between md:gap-4">
-          <div>
-            <div className={`mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${isDayMode ? chapterTone.accent : chapterTone.nightAccent}`}>
-              <ActiveIcon size={14} />
-              {t(activeChapter.titleKey, activeChapter.titleFallback)}
-            </div>
-            <h2 className={`text-2xl font-black md:text-3xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-              {t('community_learning.chapter_overview', '章节概览')}
-            </h2>
-            <p className={`mt-2 max-w-2xl text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-              {t(activeChapter.summaryKey, activeChapter.summaryFallback)}
-            </p>
-          </div>
-          <span className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${isDayMode ? chapterTone.card : chapterTone.nightCard}`}>
-            <BookOpen size={14} />
-            {t(activeChapter.topicsKey, activeChapter.topicsFallback)}
-          </span>
+      <section className={`min-w-0 rounded-lg border p-4 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.04] backdrop-blur-sm'}`}>
+        <div className="mb-4 md:mb-5">
+          <h2 className={`flex items-center gap-2 text-2xl font-black md:text-3xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+            <ActiveIcon size={18} className={isDayMode ? chapterTone.accent : chapterTone.nightAccent} />
+            {t(activeChapter.titleKey, activeChapter.titleFallback)}
+          </h2>
+          <p className={`mt-1 max-w-3xl text-sm leading-6 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
+            {t(activeChapter.summaryKey, activeChapter.summaryFallback)}
+          </p>
         </div>
 
         <CommunitySearchInput
@@ -1017,18 +882,18 @@ const LearningArea = ({ isDayMode }) => {
                   ref={(node) => {
                     levelSectionRefs.current[level.key] = node;
                   }}
-                  className={`scroll-mt-28 rounded-lg border p-4 transition-all duration-300 md:p-5 ${
+                  className={`scroll-mt-28 rounded-lg border p-4 transition-colors duration-200 md:rounded-none md:border-x-0 md:border-b-0 md:bg-transparent md:px-0 md:py-5 md:shadow-none ${
                     levelActive
                       ? isDayMode
-                        ? 'border-orange-200 bg-orange-50/50 shadow-[0_18px_48px_rgba(249,115,22,0.1)]'
-                        : 'border-amber-300/25 bg-amber-300/[0.055] shadow-[0_18px_48px_rgba(245,158,11,0.08)]'
+                        ? 'border-orange-200 bg-orange-50/50 shadow-[0_18px_48px_rgba(249,115,22,0.1)] md:bg-transparent'
+                        : 'border-amber-300/25 bg-amber-300/[0.055] shadow-[0_18px_48px_rgba(245,158,11,0.08)] md:bg-transparent'
                       : isDayMode
-                        ? 'border-slate-200 bg-white'
-                        : 'border-white/10 bg-white/[0.035]'
+                        ? 'border-slate-200 bg-white md:bg-transparent'
+                        : 'border-white/10 bg-white/[0.035] md:bg-transparent'
                   }`}
                 >
-                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex min-w-0 gap-3">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between md:items-center">
+                    <div className="flex min-w-0 gap-3 md:items-center">
                       <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ${
                         levelActive
                           ? isDayMode
@@ -1038,16 +903,16 @@ const LearningArea = ({ isDayMode }) => {
                             ? 'bg-slate-300 ring-slate-100'
                             : 'bg-white/25 ring-white/[0.06]'
                       }`} />
-                      <div className="min-w-0">
+                      <div className="min-w-0 md:flex md:items-baseline md:gap-3">
                         <h3 className={`text-xl font-black ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
                           {levelTitle}
                         </h3>
-                        <p className={`mt-1 text-sm leading-6 ${isDayMode ? 'text-slate-600' : 'text-gray-400'}`}>
+                        <p className={`mt-1 text-sm leading-6 md:mt-0 ${isDayMode ? 'text-slate-600' : 'text-gray-400'}`}>
                           {t(level.descKey, level.descFallback)}
                         </p>
                       </div>
                     </div>
-                    <span className={`inline-flex shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-xs font-bold ${
+                    <span className={`inline-flex shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-xs font-bold md:border-0 md:bg-transparent md:px-0 ${
                       isDayMode
                         ? 'border-orange-200 bg-orange-50 text-orange-700'
                         : 'border-amber-300/20 bg-amber-300/10 text-amber-100'
@@ -1068,7 +933,7 @@ const LearningArea = ({ isDayMode }) => {
                         language={i18n.language}
                       />
                     ) : (
-                      <div className={`rounded-lg border border-dashed p-5 text-sm ${
+                      <div className={`rounded-lg border border-dashed p-5 text-sm md:rounded-none md:border-0 md:bg-transparent md:p-0 ${
                         isDayMode
                           ? 'border-slate-200 bg-slate-50 text-slate-500'
                           : 'border-white/10 bg-white/[0.03] text-gray-400'
@@ -1214,21 +1079,9 @@ const CommunityPosts = () => {
   const activeAreaConfig = AREAS.find((area) => area.key === activeArea) || AREAS[0];
 
   return (
-    <div className="space-y-3 md:space-y-5">
-      <section className={`hidden overflow-hidden rounded-lg border p-5 md:block md:p-7 ${isDayMode ? 'border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.045)]' : 'border-orange-300/15 bg-orange-300/[0.035] shadow-[0_18px_44px_rgba(0,0,0,0.22)] backdrop-blur-sm'}`}>
-        <div>
-          <div className={`mb-4 inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${isDayMode ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-orange-300/20 bg-orange-300/10 text-orange-100'}`}>
-            <Sparkles size={14} />
-            {t('community_learning.zone_badge', 'Learning Community')}
-          </div>
-          <h1 className={`max-w-3xl text-3xl font-black leading-tight md:text-5xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-            {t('community_learning.hero_title', '学习社区')}
-          </h1>
-        </div>
-      </section>
-
+    <div className="space-y-3 md:space-y-4">
       <nav
-        className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-3 md:border-0 md:px-0 ${
+        className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-7 md:px-0 ${
           isDayMode ? 'border-slate-200' : 'border-white/10'
         }`}
         aria-label={t('community_learning.area_nav_label', '学习社区分区')}
@@ -1243,24 +1096,20 @@ const CommunityPosts = () => {
               type="button"
               aria-pressed={active}
               onClick={() => handleAreaChange(area.key)}
-              className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:block md:min-h-[118px] md:rounded-lg md:border md:p-4 md:text-left ${
+              className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-colors md:min-h-12 md:justify-start md:gap-2 md:px-0 md:text-left md:text-sm ${
                 active
                   ? isDayMode
-                    ? tone.card
-                    : tone.nightCard
+                    ? `${tone.card} ${tone.desktopNav}`
+                    : `${tone.nightCard} ${tone.desktopNightNav}`
                   : isDayMode
-                    ? 'border-transparent text-slate-600 hover:text-slate-950 md:border-slate-200 md:bg-white md:hover:border-slate-300 md:hover:bg-slate-50'
-                    : 'border-transparent text-gray-300 hover:text-white md:border-white/10 md:bg-white/[0.035] md:hover:border-white/20 md:hover:bg-white/[0.06]'
+                    ? 'border-transparent text-slate-600 hover:text-slate-950 md:bg-transparent md:hover:border-slate-300'
+                    : 'border-transparent text-gray-300 hover:text-white md:bg-transparent md:hover:border-white/30'
               }`}
             >
-              <div className="flex items-center justify-between gap-3 md:mb-3">
-                <span className={`flex h-6 w-6 items-center justify-center rounded-md md:h-10 md:w-10 ${active ? 'md:bg-white/35' : isDayMode ? 'md:bg-slate-100' : 'md:bg-white/[0.06]'}`}>
-                  <Icon size={16} className="md:h-[19px] md:w-[19px]" />
-                </span>
-                {active ? <ArrowRight size={18} className="hidden md:block" /> : null}
-              </div>
-              <div className="truncate md:text-lg md:font-black">{t(area.titleKey, area.titleFallback)}</div>
-              <p className="mt-1 hidden text-sm leading-6 opacity-80 md:block">{t(area.descKey, area.descFallback)}</p>
+              <span className="flex h-6 w-6 items-center justify-center rounded-md md:h-7 md:w-7 md:bg-transparent">
+                <Icon size={16} className="md:h-[17px] md:w-[17px]" />
+              </span>
+              <span className="truncate md:font-black">{t(area.titleKey, area.titleFallback)}</span>
             </button>
           );
         })}

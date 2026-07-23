@@ -73,7 +73,7 @@
 html {
   scroll-behavior: smooth;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 ::selection {
@@ -87,7 +87,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   background-color: var(--theme-bg);
   color: var(--theme-text-primary);
@@ -103,6 +103,8 @@ body {
 }
 
 @supports not (overflow: clip) {
+  html,
+  body,
   #root {
     overflow-x: hidden;
   }

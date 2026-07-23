@@ -64,7 +64,7 @@ const AICommunity = () => {
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+64px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
+      className={`relative z-10 min-h-screen overflow-x-clip px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+64px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
         isDayMode ? "text-slate-950" : "text-white"
       }`}
     >
