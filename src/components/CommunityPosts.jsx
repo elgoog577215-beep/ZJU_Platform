@@ -776,7 +776,7 @@ const LearningArea = ({ isDayMode }) => {
   ), [articlesByTrack, selectedArticle]);
 
   return (
-    <div className="grid min-w-0 gap-3 md:gap-5 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-start">
+    <div className="grid min-w-0 gap-3 md:gap-5 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
       <div className="-mx-3 min-w-0 overflow-hidden border-y border-white/10 lg:hidden">
         <div
           className="scrollbar-none flex w-full max-w-full snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain px-3 py-2"
@@ -814,32 +814,49 @@ const LearningArea = ({ isDayMode }) => {
 
       <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
         <nav
-          className={`border-l ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}
+          className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.035]'}`}
           aria-label={t('community_learning.curriculum_label', 'AI LEARNING PATH')}
         >
-          {CHAPTERS.map((chapter) => {
-            const active = chapter.key === activeChapterKey;
-            const tone = toneClasses[chapter.tone] || toneClasses.violet;
-            return (
-              <button
-                key={chapter.key}
-                type="button"
-                aria-pressed={active}
-                onClick={() => handleChapterChange(chapter.key)}
-                className={`block min-h-11 w-full border-l-2 px-4 py-2.5 text-left text-sm font-bold transition-colors ${
-                  active
-                    ? isDayMode
-                      ? tone.card
-                      : tone.nightCard
-                    : isDayMode
-                      ? 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950'
-                      : 'border-transparent text-gray-400 hover:bg-white/[0.04] hover:text-white'
-                }`}
-              >
-                {t(chapter.titleKey, chapter.titleFallback)}
-              </button>
-            );
-          })}
+          <div className={`mb-3 px-1 text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-600' : 'text-violet-300'}`}>
+            {t('community_learning.curriculum_label', 'AI LEARNING PATH')}
+          </div>
+          <div className="space-y-1.5">
+            {CHAPTERS.map((chapter, index) => {
+              const Icon = chapter.icon;
+              const active = chapter.key === activeChapterKey;
+              const tone = toneClasses[chapter.tone] || toneClasses.violet;
+              return (
+                <button
+                  key={chapter.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => handleChapterChange(chapter.key)}
+                  className={`flex min-h-[58px] w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                    active
+                      ? isDayMode
+                        ? tone.card
+                        : tone.nightCard
+                      : isDayMode
+                        ? 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950'
+                        : 'border-transparent text-gray-300 hover:bg-white/[0.05] hover:text-white'
+                  }`}
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
+                    <Icon size={16} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="block truncate text-sm font-bold">
+                      {t(chapter.titleKey, chapter.titleFallback)}
+                    </span>
+                  </span>
+                  <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
       </aside>
 
