@@ -4,15 +4,19 @@ import {
   ArrowRight,
   BookOpen,
   Bot,
+  Braces,
   ChevronRight,
   Clock3,
+  Code2,
   FileStack,
   Gauge,
   Layers,
   MessageCircle,
+  RefreshCw,
   Search,
   Sparkles,
   Tag,
+  Terminal,
   Wrench,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -74,6 +78,11 @@ const LEARNING_KEYWORDS = [
   'llm',
   'model',
   'workflow',
+  'loop',
+  'codex',
+  'mcp',
+  'function calling',
+  'tool calling',
   'tutorial',
   'guide',
   'note',
@@ -91,6 +100,9 @@ const LEARNING_KEYWORDS = [
   '实践',
   '案例',
   '工具',
+  '编程',
+  '代码库',
+  '循环',
   '评测',
 ];
 
@@ -144,16 +156,52 @@ const CHAPTERS = [
     keywords: ['prompt', '提示词', 'few-shot', 'json', '结构化', 'schema', '思维链'],
   },
   {
+    key: 'context',
+    icon: Braces,
+    tone: 'amber',
+    titleKey: 'community_learning.chapter_context_title',
+    titleFallback: 'Context 工程',
+    summaryKey: 'community_learning.chapter_context_summary',
+    summaryFallback: '理解上下文窗口、文件选择、规则注入和压缩方法，让模型持续拿到正确的信息。',
+    topicsKey: 'community_learning.chapter_context_topics',
+    topicsFallback: '上下文窗口 / 文件选择 / 规则文件 / 压缩 / 上下文污染',
+    keywords: ['context', '上下文', '上下文窗口', '上下文工程', 'context window', '规则文件', 'agents.md', '压缩'],
+  },
+  {
     key: 'rag',
     icon: Layers,
     tone: 'emerald',
     titleKey: 'community_learning.chapter_rag_title',
     titleFallback: 'RAG 知识库',
     summaryKey: 'community_learning.chapter_rag_summary',
-    summaryFallback: '从上下文、长文档、Embedding 到向量库，学习让 AI 读资料、查资料、引用资料。',
+    summaryFallback: '从长文档、Embedding 到向量库，学习让 AI 查资料、引用资料并验证检索质量。',
     topicsKey: 'community_learning.chapter_rag_topics',
-    topicsFallback: '上下文 / 长文档 / Embedding / 向量库 / RAG 评测',
-    keywords: ['rag', '上下文', 'context', '长文档', 'embedding', '向量库', '知识库', '幻觉'],
+    topicsFallback: '切片 / Embedding / 向量库 / 检索重排 / RAG 评测',
+    keywords: ['rag', '长文档', 'embedding', '向量库', '知识库', '检索', '切片', 'chunk', 'rerank'],
+  },
+  {
+    key: 'tools',
+    icon: Wrench,
+    tone: 'orange',
+    titleKey: 'community_learning.chapter_tools_title',
+    titleFallback: '工具调用',
+    summaryKey: 'community_learning.chapter_tools_summary',
+    summaryFallback: '学习 Function Calling、MCP、命令行和权限控制，让模型安全地使用外部工具。',
+    topicsKey: 'community_learning.chapter_tools_topics',
+    topicsFallback: 'Function Calling / MCP / CLI / 文件系统 / 权限',
+    keywords: ['工具调用', 'tool calling', 'function calling', 'function call', 'mcp', '命令行', 'cli', '浏览器自动化', 'browser automation'],
+  },
+  {
+    key: 'agent-loop',
+    icon: RefreshCw,
+    tone: 'sky',
+    titleKey: 'community_learning.chapter_agent_loop_title',
+    titleFallback: 'Agent Loop',
+    summaryKey: 'community_learning.chapter_agent_loop_summary',
+    summaryFallback: '理解 Agent 如何观察、规划、行动、读取反馈，并在正确的条件下继续或停止。',
+    topicsKey: 'community_learning.chapter_agent_loop_topics',
+    topicsFallback: '观察 / 规划 / 行动 / 反馈 / 重试 / 停止条件',
+    keywords: ['agent loop', '循环', 'observe', 'plan', 'act', 'reflection', '反思', '重试', '停止条件'],
   },
   {
     key: 'agent',
@@ -162,10 +210,34 @@ const CHAPTERS = [
     titleKey: 'community_learning.chapter_agent_title',
     titleFallback: 'Agent 工作流',
     summaryKey: 'community_learning.chapter_agent_summary',
-    summaryFallback: '从工具调用、记忆、人机协同到自动化执行，理解 Agent 如何稳定做事。',
+    summaryFallback: '把任务规划、记忆、子 Agent 和人机协同组织成可重复执行的完整流程。',
     topicsKey: 'community_learning.chapter_agent_topics',
-    topicsFallback: '工具调用 / MCP / 记忆 / HITL / 自动化 / 可观测性',
-    keywords: ['agent', 'mcp', '工具调用', '记忆', 'human-in-the-loop', '自动化', '工作流', '可观测'],
+    topicsFallback: '任务规划 / 记忆 / 子 Agent / 多 Agent / HITL / 自动化',
+    keywords: ['agent', 'subagent', '子agent', '多agent', 'multi-agent', '记忆', 'human-in-the-loop', '自动化', '工作流', 'orchestration'],
+  },
+  {
+    key: 'ai-coding',
+    icon: Code2,
+    tone: 'violet',
+    titleKey: 'community_learning.chapter_ai_coding_title',
+    titleFallback: 'AI 编程',
+    summaryKey: 'community_learning.chapter_ai_coding_summary',
+    summaryFallback: '学习让 AI 理解代码库、修改代码、调试问题、运行测试并配合 Git 完成交付。',
+    topicsKey: 'community_learning.chapter_ai_coding_topics',
+    topicsFallback: '代码库理解 / 修改 / 调试 / 测试 / Git / 代码审查',
+    keywords: ['ai编程', 'ai 编程', '代码库', '代码助手', 'coding agent', 'debug', '调试', '单元测试', 'git', '代码审查'],
+  },
+  {
+    key: 'codex',
+    icon: Terminal,
+    tone: 'sky',
+    titleKey: 'community_learning.chapter_codex_title',
+    titleFallback: 'Codex 实战',
+    summaryKey: 'community_learning.chapter_codex_summary',
+    summaryFallback: '围绕真实仓库学习 Codex 的规则、Skills、MCP、任务协作和验证交付方法。',
+    topicsKey: 'community_learning.chapter_codex_topics',
+    topicsFallback: 'AGENTS.md / Skills / MCP / 任务管理 / Worktree / 验证',
+    keywords: ['codex', 'agents.md', 'skill', 'skills', 'worktree', 'codex cli', 'codex desktop'],
   },
   {
     key: 'launch',
@@ -181,7 +253,7 @@ const CHAPTERS = [
   },
   {
     key: 'cases',
-    icon: Wrench,
+    icon: BookOpen,
     tone: 'orange',
     titleKey: 'community_learning.chapter_cases_title',
     titleFallback: '高阶案例',
@@ -212,11 +284,11 @@ const ARTICLE_LEARNING_ROUTE = {
   50: { chapterKey: 'cases', levelKey: 'basic', order: 30, trackKey: 'ai-science-automation', trackOrder: 10 },
   49: { chapterKey: 'rag', levelKey: 'advanced', order: 30, trackKey: 'rag-engineering', trackOrder: 40 },
   48: { chapterKey: 'rag', levelKey: 'advanced', order: 10, trackKey: 'rag-engineering', trackOrder: 30 },
-  47: { chapterKey: 'launch', levelKey: 'expert', order: 40, trackKey: 'agent-memory-context', trackOrder: 30 },
+  47: { chapterKey: 'context', levelKey: 'expert', order: 40, trackKey: 'agent-memory-context', trackOrder: 30 },
   46: { chapterKey: 'launch', levelKey: 'basic', order: 20, trackKey: 'eval-feedback', trackOrder: 10 },
   45: { chapterKey: 'prompt', levelKey: 'advanced', order: 20, trackKey: 'prompt-practice', trackOrder: 40 },
   44: { chapterKey: 'rag', levelKey: 'expert', order: 10, trackKey: 'rag-engineering', trackOrder: 60 },
-  43: { chapterKey: 'agent', levelKey: 'basic', order: 10, trackKey: 'agent-tooling', trackOrder: 10 },
+  43: { chapterKey: 'tools', levelKey: 'basic', order: 10, trackKey: 'agent-tooling', trackOrder: 10 },
   42: { chapterKey: 'basics', levelKey: 'basic', order: 30, trackKey: 'llm-app-selection', trackOrder: 10 },
   41: { chapterKey: 'agent', levelKey: 'advanced', order: 10, trackKey: 'multi-agent-orchestration', trackOrder: 20 },
   40: { chapterKey: 'basics', levelKey: 'advanced', order: 20, trackKey: 'llm-parameters-reasoning', trackOrder: 20 },
@@ -225,21 +297,21 @@ const ARTICLE_LEARNING_ROUTE = {
   37: { chapterKey: 'agent', levelKey: 'advanced', order: 40, trackKey: 'agent-workflow', trackOrder: 20 },
   36: { chapterKey: 'launch', levelKey: 'advanced', order: 60, trackKey: 'launch-reliability', trackOrder: 20 },
   35: { chapterKey: 'agent', levelKey: 'advanced', order: 30, trackKey: 'agent-workflow', trackOrder: 15 },
-  34: { chapterKey: 'agent', levelKey: 'advanced', order: 20, trackKey: 'agent-memory-context', trackOrder: 20 },
+  34: { chapterKey: 'context', levelKey: 'advanced', order: 20, trackKey: 'agent-memory-context', trackOrder: 20 },
   33: { chapterKey: 'basics', levelKey: 'basic', order: 20, trackKey: 'model-data-publishing', trackOrder: 10 },
   32: { chapterKey: 'prompt', levelKey: 'basic', order: 10, trackKey: 'prompt-practice', trackOrder: 10 },
   31: { chapterKey: 'rag', levelKey: 'expert', order: 40, trackKey: 'rag-engineering', trackOrder: 50 },
-  30: { chapterKey: 'agent', levelKey: 'expert', order: 20, trackKey: 'agent-tooling', trackOrder: 30 },
+  30: { chapterKey: 'tools', levelKey: 'expert', order: 20, trackKey: 'agent-tooling', trackOrder: 30 },
   29: { chapterKey: 'launch', levelKey: 'advanced', order: 10, trackKey: 'eval-feedback', trackOrder: 30 },
   28: { chapterKey: 'cases', levelKey: 'basic', order: 50, trackKey: 'ai-algorithm-cases', trackOrder: 10 },
-  27: { chapterKey: 'agent', levelKey: 'advanced', order: 20, trackKey: 'agent-tooling', trackOrder: 20 },
-  26: { chapterKey: 'rag', levelKey: 'basic', order: 10, trackKey: 'agent-memory-context', trackOrder: 10 },
+  27: { chapterKey: 'tools', levelKey: 'advanced', order: 20, trackKey: 'agent-tooling', trackOrder: 20 },
+  26: { chapterKey: 'context', levelKey: 'basic', order: 10, trackKey: 'agent-memory-context', trackOrder: 10 },
   25: { chapterKey: 'prompt', levelKey: 'advanced', order: 10, trackKey: 'prompt-practice', trackOrder: 30 },
   24: { chapterKey: 'agent', levelKey: 'expert', order: 30, trackKey: 'multi-agent-orchestration', trackOrder: 40 },
-  23: { chapterKey: 'agent', levelKey: 'basic', order: 30, trackKey: 'agent-workflow', trackOrder: 10 },
+  23: { chapterKey: 'agent-loop', levelKey: 'basic', order: 30, trackKey: 'agent-workflow', trackOrder: 10 },
   22: { chapterKey: 'launch', levelKey: 'basic', order: 30, trackKey: 'agent-security', trackOrder: 10 },
   21: { chapterKey: 'launch', levelKey: 'expert', order: 30, trackKey: 'llm-parameters-reasoning', trackOrder: 30 },
-  20: { chapterKey: 'agent', levelKey: 'basic', order: 50, trackKey: 'browser-automation', trackOrder: 10 },
+  20: { chapterKey: 'tools', levelKey: 'basic', order: 50, trackKey: 'browser-automation', trackOrder: 10 },
   19: { chapterKey: 'agent', levelKey: 'expert', order: 40, trackKey: 'multi-agent-orchestration', trackOrder: 30 },
 };
 
@@ -330,10 +402,17 @@ const classifyChapter = (item) => {
   const explicit = ARTICLE_LEARNING_ROUTE[Number(item?.id)];
   if (explicit?.chapterKey) return explicit.chapterKey;
   const text = getText(item);
-  const matched = CHAPTERS.find((chapter) =>
-    chapter.keywords.some((keyword) => text.includes(keyword.toLowerCase())),
-  );
-  return matched?.key || 'cases';
+  const [matched] = CHAPTERS
+    .map((chapter) => ({
+      chapter,
+      score: chapter.keywords.reduce(
+        (total, keyword) => total + (text.includes(keyword.toLowerCase()) ? 1 : 0),
+        0,
+      ),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+  return matched?.chapter.key || 'cases';
 };
 
 const classifyLevel = (item) => {
@@ -823,13 +902,13 @@ const LearningArea = ({ isDayMode }) => {
 
       <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
         <nav
-          className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.035]'}`}
+          className={`max-h-[calc(100vh-7rem)] overflow-y-auto rounded-lg border p-2 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.035]'}`}
           aria-label={t('community_learning.curriculum_label', 'AI LEARNING PATH')}
         >
-          <div className={`mb-3 px-1 text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-600' : 'text-violet-300'}`}>
+          <div className={`mb-2 px-1 text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-600' : 'text-violet-300'}`}>
             {t('community_learning.curriculum_label', 'AI LEARNING PATH')}
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {CHAPTERS.map((chapter, index) => {
               const Icon = chapter.icon;
               const active = chapter.key === activeChapterKey;
@@ -840,7 +919,7 @@ const LearningArea = ({ isDayMode }) => {
                   type="button"
                   aria-pressed={active}
                   onClick={() => handleChapterChange(chapter.key)}
-                  className={`flex min-h-[58px] w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                  className={`flex min-h-11 w-full items-center gap-2.5 rounded-md border px-3 py-1 text-left transition-colors ${
                     active
                       ? isDayMode
                         ? tone.card
@@ -850,7 +929,7 @@ const LearningArea = ({ isDayMode }) => {
                         : 'border-transparent text-gray-300 hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
                     <Icon size={16} />
                   </span>
                   <span className="min-w-0">
@@ -865,21 +944,23 @@ const LearningArea = ({ isDayMode }) => {
                 </button>
               );
             })}
-            <div className={`mt-2 border-t pt-2 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
+            <div className={`mt-1.5 border-t pt-1.5 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
               <button
                 type="button"
                 onClick={handleCompanionResources}
-                className={`flex min-h-[58px] w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                className={`flex min-h-11 w-full items-center gap-2.5 rounded-md border px-3 py-1 text-left transition-colors ${
                   isDayMode
                     ? 'border-transparent text-sky-700 hover:border-sky-200 hover:bg-sky-50/70'
                     : 'border-transparent text-sky-200 hover:border-sky-400/20 hover:bg-sky-500/[0.055]'
                 }`}
               >
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isDayMode ? 'bg-sky-50' : 'bg-sky-500/[0.07]'}`}>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${isDayMode ? 'bg-sky-50' : 'bg-sky-500/[0.07]'}`}>
                   <FileStack size={16} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">07</span>
+                  <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
+                    {String(CHAPTERS.length + 1).padStart(2, '0')}
+                  </span>
                   <span className="block truncate text-sm font-bold">
                     {t('community_learning.companion_resources_title', '配套资源')}
                   </span>
