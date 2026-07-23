@@ -54,14 +54,14 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
   const accentHover = isTeam
     ? 'hover:border-violet-500/30'
     : isMaterials
-      ? 'hover:border-slate-400/40'
+      ? 'hover:border-emerald-500/30'
       : 'hover:border-amber-500/30';
   const accentShadow = isTeam
     ? 'hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.15)]'
     : isMaterials
-      ? 'hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.12)]'
+      ? 'hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.16)]'
       : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
-  const titleHover = isTeam ? 'group-hover:text-violet-300' : isMaterials ? 'group-hover:text-[#d8c8a8]' : 'group-hover:text-amber-300';
+  const titleHover = isTeam ? 'group-hover:text-violet-400' : isMaterials ? 'group-hover:text-emerald-400' : 'group-hover:text-amber-400';
 
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
   const materialMeta = isMaterials ? [
@@ -77,7 +77,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(post)}
-      className={`group relative overflow-hidden rounded-lg border p-3.5 backdrop-blur-xl transition-all duration-300 md:p-5 ${accentHover} cursor-pointer ${accentShadow} hover:-translate-y-0.5 ${isDayMode ? 'border-[#ddd6c8] bg-[#faf7f0]/88 shadow-[0_12px_30px_rgba(64,54,37,0.07)] hover:bg-[#fffaf0]' : 'border-[#2a312b] bg-[#121713] hover:border-[#485448] hover:bg-[#171d18]'}`}
+      className={`group relative overflow-hidden rounded-lg border p-3.5 backdrop-blur-xl transition-all duration-300 md:p-5 ${accentHover} cursor-pointer ${accentShadow} hover:-translate-y-0.5 ${isDayMode ? 'border-slate-200/80 bg-white/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:bg-white' : 'border-white/10 bg-white/[0.045] hover:bg-white/[0.07]'}`}
     >
       <div className="flex-1 space-y-2 md:space-y-2.5">
         {/* Status + Time */}
@@ -91,12 +91,12 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
         </div>
 
         {/* Title */}
-        <h3 className={`text-base font-bold md:text-xl ${titleHover} transition-colors leading-snug ${isDayMode ? 'text-[#201f1a]' : 'text-[#e7e0d2]'}`}>
+        <h3 className={`text-base font-bold md:text-xl ${titleHover} transition-colors leading-snug ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
           {post.title}
         </h3>
 
         {/* Excerpt */}
-        <p className={`line-clamp-2 text-[13px] leading-5 md:text-sm ${isDayMode ? 'text-[#756e61]' : 'text-[#a39c90]'}`}>
+        <p className={`line-clamp-2 text-[13px] leading-5 md:text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {post.excerpt || post.content}
         </p>
 
@@ -105,7 +105,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
             {materialMeta.map((item, metaIndex) => (
               <span
                 key={`${item}-${metaIndex}`}
-                className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${isDayMode ? 'border-[#ddd6c8] bg-[#f1eadc] text-[#625d51]' : 'border-[#323b34] bg-[#1a201b] text-[#bcb5a8]'}`}
+                className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${isDayMode ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-300/20 bg-emerald-300/10 text-emerald-100'}`}
               >
                 <BookOpen size={11} />
                 <span className="truncate">{item}</span>
