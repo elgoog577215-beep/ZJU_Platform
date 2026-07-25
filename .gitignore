@@ -26,6 +26,41 @@ output/*.pptx
 output/*.log
 output/~$*.pptx
 
+# Local review and document-generation artifacts
+# Keep these files on the workstation; they are not runtime/server assets.
+ui-audit-screenshots/
+outputs/
+tmp_docx_extract/
+tmp_docx_images/
+.codex/
+.codebase-memory/
+.tmp_*/
+pkcs11.txt
+
+# Private business and internal operating documents
+# This repository is public. Keep office documents and internal working papers local.
+*.docx
+*.pdf
+*.ppt
+*.pptx
+*.xlsx
+*.xls
+*.pages
+*.key
+*.numbers
+*商业计划书*
+*内部文书*
+*整体规划书*
+*融资材料*
+*路演材料*
+AGENTS.md
+AGENTS.backup-*.md
+AGENTS.compact-*.md
+docs/ai-memory/
+docs/archive/session-summaries/
+docs/roadmap/
+docs/ai-agent-operating-system.generated.md
+
 # Logs
 *.log
 npm-debug.log*
@@ -39,6 +74,7 @@ pnpm-debug.log*
 .env.*
 server/.env
 server-access.local.txt
+!server/.env.example
 
 # Android signing artifacts (keep release keys outside git)
 *.jks
