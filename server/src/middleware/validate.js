@@ -35,7 +35,12 @@ const changePasswordValidation = [
 
 const settingsValidation = [
   body('key').isIn(['site_title', 'site_description', 'allow_registrations', 'maintenance_mode', 'theme_color']).withMessage('Invalid setting key'),
-  body('value').notEmpty().withMessage('Value is required')
+  body('value').custom((value, { req }) => {
+    if (req.body?.key === 'allow_registrations') {
+      return value === true || value === false || String(value ?? '').trim().length > 0;
+    }
+    return value !== undefined && value !== null && String(value).trim().length > 0;
+  }).withMessage('Value is required')
 ];
 
 // FIX: BUG-22 — Add validation for resource create/update endpoints
