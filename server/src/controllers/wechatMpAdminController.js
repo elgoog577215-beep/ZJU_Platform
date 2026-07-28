@@ -271,12 +271,14 @@ const buildWechatMpImportPayload = async (req, res) => {
             article: req.body?.article || {},
             userId: req.user?.id,
         });
+        const importStatus =
+            analysis.analysis.status === "completed" ? req.body?.status : "pending";
         const result = buildWechatMpResourcePayload({
             resourceType: req.body?.resource_type || req.body?.resourceType || "event",
             article: req.body?.article || {},
             content: contentPayload,
             parsed: analysis.parsed,
-            status: req.body?.status,
+            status: importStatus,
         });
         return res.json({ ...result, analysis: analysis.analysis });
     } catch (error) {

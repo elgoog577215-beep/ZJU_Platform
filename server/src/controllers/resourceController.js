@@ -12,6 +12,7 @@ const {
 } = require("../services/eventIntelligenceService");
 const profileService = require("../services/profileService");
 const { canBypassReview } = require("../utils/userPermissions");
+const { normalizeEventWorkflowStatus } = require("../utils/resourceWorkflowStatus");
 const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
 
 const buildCommaSeparatedMatch = (field, value) => ({
@@ -231,6 +232,16 @@ const normalizeArticleWorkflowStatus = (table, requestedStatus, user = {}) => {
     return "approved";
 };
 
+const normalizeResourceWorkflowStatus = (table, requestedStatus, user = {}) => {
+    if (table === "articles") {
+        return normalizeArticleWorkflowStatus(table, requestedStatus, user);
+    }
+    if (table === "events") {
+        return normalizeEventWorkflowStatus(requestedStatus, user);
+    }
+    return null;
+};
+
 const restoreOwnHandler = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
@@ -274,7 +285,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
 
         // Determine status based on user role and optional workflow intent.
         const userRole = req.user ? req.user.role : "user";
-        const workflowStatus = normalizeArticleWorkflowStatus(
+        const workflowStatus = normalizeResourceWorkflowStatus(
             table,
             req.body.status,
             req.user || {}
@@ -1336,5 +1347,6 @@ module.exports = {
     fields,
     _test: {
         buildEventCollegeScopeFilter,
+        normalizeResourceWorkflowStatus,
     },
 };
