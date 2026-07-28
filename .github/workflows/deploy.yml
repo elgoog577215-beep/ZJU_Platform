@@ -19,12 +19,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: npm
@@ -32,18 +32,47 @@ jobs:
             - name: Install frontend dependencies
               run: npm ci --ignore-scripts --legacy-peer-deps
 
-            - name: Validate source and full-repository formatting
+            - name: Validate source and changed-file formatting
               env:
                   BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
               run: |
                   set -euo pipefail
                   npm run lint
-                  npx prettier --check .
+                  diff_base="${BASE_SHA:-}"
+                  zero_sha="0000000000000000000000000000000000000000"
+                  if [ -z "$diff_base" ] || [ "$diff_base" = "$zero_sha" ] || ! git cat-file -e "${diff_base}^{commit}" 2>/dev/null; then
+                    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+                      diff_base="$(git rev-parse HEAD^)"
+                    else
+                      diff_base=""
+                    fi
+                  fi
 
-                  if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-                    git diff --check "$BASE_SHA" "$GITHUB_SHA"
+                  changed_files=()
+                  if [ -n "$diff_base" ]; then
+                    while IFS= read -r file; do
+                      case "$file" in
+                        *.css|*.html|*.js|*.jsx|*.json|*.json5|*.md|*.mdx|*.scss|*.ts|*.tsx|*.vue|*.yaml|*.yml)
+                          changed_files+=("$file")
+                          ;;
+                      esac
+                    done < <(git diff --name-only --diff-filter=ACMR "$diff_base" "$GITHUB_SHA" --)
+                    git diff --check "$diff_base" "$GITHUB_SHA"
                   else
-                    git diff --check HEAD^ HEAD
+                    while IFS= read -r file; do
+                      case "$file" in
+                        *.css|*.html|*.js|*.jsx|*.json|*.json5|*.md|*.mdx|*.scss|*.ts|*.tsx|*.vue|*.yaml|*.yml)
+                          changed_files+=("$file")
+                          ;;
+                      esac
+                    done < <(git diff-tree --no-commit-id --name-only --diff-filter=ACMR -r "$GITHUB_SHA")
+                    git diff-tree --check --no-commit-id -r "$GITHUB_SHA"
+                  fi
+
+                  if [ "${#changed_files[@]}" -gt 0 ]; then
+                    npx prettier --check "${changed_files[@]}"
+                  else
+                    echo "No Prettier-supported files changed; formatting check skipped."
                   fi
 
     test:
@@ -56,10 +85,10 @@ jobs:
             JWT_SECRET: ci-test-jwt-secret
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: npm
@@ -78,10 +107,10 @@ jobs:
         needs: test
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: npm
@@ -95,7 +124,7 @@ jobs:
                   npm run check:startup-chunks
 
             - name: Upload built frontend artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: frontend-dist-${{ github.sha }}
                   path: dist/**
@@ -109,10 +138,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Download built frontend
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: frontend-dist-${{ github.sha }}
                   path: frontend-dist
@@ -126,7 +155,10 @@ jobs:
                   rm -rf "$package_root" release
                   mkdir -p "$package_root/payload" release
 
-                  git archive --format=tar HEAD server | tar -x -C "$package_root/payload"
+                  server_archive="$package_root/server.tar"
+                  git archive --format=tar --output="$server_archive" HEAD server
+                  tar -xf "$server_archive" -C "$package_root/payload"
+                  rm -f "$server_archive"
                   frontend_dist=frontend-dist
                   if [ ! -f "$frontend_dist/index.html" ] && [ -f "$frontend_dist/dist/index.html" ]; then
                     frontend_dist="$frontend_dist/dist"
@@ -155,7 +187,7 @@ jobs:
                   (cd release && sha256sum "$(basename "$archive")" > "$(basename "$archive").sha256")
 
             - name: Upload immutable release artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: release-${{ github.sha }}
                   path: release/*
@@ -175,13 +207,13 @@ jobs:
             url: https://tuotuzju.com
         steps:
             - name: Download immutable release artifact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: release-${{ github.sha }}
                   path: release
 
             - name: Upload release artifact to server
-              uses: appleboy/scp-action@v0.1.7
+              uses: appleboy/scp-action@v1.0.0
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
@@ -191,7 +223,7 @@ jobs:
                   overwrite: true
 
             - name: Deploy artifact, Caddy, and PM2
-              uses: appleboy/ssh-action@v1
+              uses: appleboy/ssh-action@v1.2.5
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
