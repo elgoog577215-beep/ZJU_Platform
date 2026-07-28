@@ -14,9 +14,11 @@ The WeChat parsing assistant, event recommendation assistant, and event category
 ## Capabilities
 
 ### New Capabilities
+
 - `event-intelligence-catalog`: Shared canonical catalog and normalization contract for event-related AI workflows, including direct model extraction against standard options and safe legacy data classification.
 
 ### Modified Capabilities
+
 - `event-ai-assistant`: Event recommendations must use the shared event intelligence catalog for category intent, labels, and scoring instead of private assistant-only taxonomy.
 - `wechat-event-link-autofill`: WeChat event autofill must ask the model to return canonical event fields directly and validate them against the shared catalog before returning parsed data.
 

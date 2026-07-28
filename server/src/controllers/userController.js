@@ -1,375 +1,436 @@
-const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const path = require('path');
-const sharp = require('sharp');
-const { getDb } = require('../config/db');
-const { createNotification } = require('./notificationController');
-const profileService = require('../services/profileService');
+const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
+const sharp = require("sharp");
+const { getDb } = require("../config/db");
+const { createNotification } = require("./notificationController");
+const profileService = require("../services/profileService");
 const {
-  canBypassReview,
-  normalizeAccountType,
-  normalizeAdminScope,
-  normalizeReviewPermission,
-} = require('../utils/userPermissions');
+    canBypassReview,
+    normalizeAccountType,
+    normalizeAdminScope,
+    normalizeReviewPermission,
+} = require("../utils/userPermissions");
 
 const NICKNAME_REGEX = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
-const IDENTITY_TYPES = new Set(['person', 'team', 'club', 'organization']);
-const LINK_STATUSES = new Set(['candidate', 'confirmed', 'rejected', 'revoked']);
+const IDENTITY_TYPES = new Set(["person", "team", "club", "organization"]);
+const LINK_STATUSES = new Set(["candidate", "confirmed", "rejected", "revoked"]);
 const CONTENT_STATUS_SOURCES = [
-  { key: 'photos', table: 'photos', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'videos', table: 'videos', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'music', table: 'music', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'articles', table: 'articles', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'events', table: 'events', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'news', table: 'news', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
-  { key: 'communityPosts', table: 'community_posts', ownerColumn: 'author_id' },
-  { key: 'projects', table: 'project_cards', ownerColumn: 'user_id', deletedWhere: "status != 'removed'" },
-  { key: 'competitionWorks', table: 'competition_works', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+    { key: "photos", table: "photos", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "videos", table: "videos", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "music", table: "music", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "articles", table: "articles", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "events", table: "events", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "news", table: "news", ownerColumn: "uploader_id", deletedColumn: "deleted_at" },
+    { key: "communityPosts", table: "community_posts", ownerColumn: "author_id" },
+    {
+        key: "projects",
+        table: "project_cards",
+        ownerColumn: "user_id",
+        deletedWhere: "status != 'removed'",
+    },
+    {
+        key: "competitionWorks",
+        table: "competition_works",
+        ownerColumn: "uploader_id",
+        deletedColumn: "deleted_at",
+    },
 ];
-const ORGANIZATION_PROFILE_TYPES = new Set(['club', 'organization', 'school', 'enterprise']);
+const ORGANIZATION_PROFILE_TYPES = new Set(["club", "organization", "school", "enterprise"]);
 const PROFILE_CONTENT_SOURCES = [
-  { key: 'photos', table: 'photos', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
-  { key: 'videos', table: 'videos', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
-  { key: 'music', table: 'music', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
-  { key: 'articles', table: 'articles', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
-  { key: 'news', table: 'news', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
-  { key: 'communityPosts', table: 'community_posts', profileColumn: 'publisher_profile_id' },
+    {
+        key: "photos",
+        table: "photos",
+        profileColumn: "publisher_profile_id",
+        deletedColumn: "deleted_at",
+    },
+    {
+        key: "videos",
+        table: "videos",
+        profileColumn: "publisher_profile_id",
+        deletedColumn: "deleted_at",
+    },
+    {
+        key: "music",
+        table: "music",
+        profileColumn: "publisher_profile_id",
+        deletedColumn: "deleted_at",
+    },
+    {
+        key: "articles",
+        table: "articles",
+        profileColumn: "publisher_profile_id",
+        deletedColumn: "deleted_at",
+    },
+    {
+        key: "news",
+        table: "news",
+        profileColumn: "publisher_profile_id",
+        deletedColumn: "deleted_at",
+    },
+    { key: "communityPosts", table: "community_posts", profileColumn: "publisher_profile_id" },
 ];
 
-const normalizeIdentityType = (value = '') => {
-  const type = String(value).trim().toLowerCase();
-  return type === 'organization' ? 'club' : type;
+const normalizeIdentityType = (value = "") => {
+    const type = String(value).trim().toLowerCase();
+    return type === "organization" ? "club" : type;
 };
 
-const isOrganizationIdentityType = (type) => type === 'club' || type === 'organization';
+const isOrganizationIdentityType = (type) => type === "club" || type === "organization";
 
-const normalizeIdentityName = (value = '') =>
-  String(value)
-    .trim()
-    .normalize('NFKC')
-    .replace(/\s+/g, '')
-    .toLowerCase();
+const normalizeIdentityName = (value = "") =>
+    String(value).trim().normalize("NFKC").replace(/\s+/g, "").toLowerCase();
 
 const buildWorkMatchText = (work = {}) =>
-  [
-    work.author,
-    work.honor_title,
-    work.title,
-    work.summary,
-    work.award,
-    work.grade,
-    work.major,
-  ]
-    .filter(Boolean)
-    .join(' ');
+    [work.author, work.honor_title, work.title, work.summary, work.award, work.grade, work.major]
+        .filter(Boolean)
+        .join(" ");
 
 const serializeIdentityClaim = (row) => ({
-  id: row.id,
-  user_id: row.user_id,
-  type: row.type,
-  display_name: row.display_name,
-  status: row.status,
-  created_at: row.created_at,
-  updated_at: row.updated_at,
+    id: row.id,
+    user_id: row.user_id,
+    type: row.type,
+    display_name: row.display_name,
+    status: row.status,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
 });
 
 const safeGet = async (db, sql, params = [], fallback = null) => {
-  try {
-    return await db.get(sql, params);
-  } catch {
-    return fallback;
-  }
+    try {
+        return await db.get(sql, params);
+    } catch {
+        return fallback;
+    }
 };
 
 const safeAll = async (db, sql, params = []) => {
-  try {
-    return await db.all(sql, params);
-  } catch {
-    return [];
-  }
+    try {
+        return await db.all(sql, params);
+    } catch {
+        return [];
+    }
 };
 
 const mergeStatusCounts = (target, rows = []) => {
-  for (const row of rows) {
-    const status = row.status || 'unknown';
-    const count = Number(row.count) || 0;
-    target[status] = (target[status] || 0) + count;
-  }
-  return target;
+    for (const row of rows) {
+        const status = row.status || "unknown";
+        const count = Number(row.count) || 0;
+        target[status] = (target[status] || 0) + count;
+    }
+    return target;
 };
 
 const countContentSource = async (db, source, userId) => {
-  const deletedWhere = source.deletedWhere
-    ? ` AND ${source.deletedWhere}`
-    : source.deletedColumn
-      ? ` AND ${source.deletedColumn} IS NULL`
-      : '';
-  const rows = await safeAll(
-    db,
-    `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+    const deletedWhere = source.deletedWhere
+        ? ` AND ${source.deletedWhere}`
+        : source.deletedColumn
+          ? ` AND ${source.deletedColumn} IS NULL`
+          : "";
+    const rows = await safeAll(
+        db,
+        `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
      FROM ${source.table}
      WHERE ${source.ownerColumn} = ?${deletedWhere}
      GROUP BY COALESCE(status, 'unknown')`,
-    [userId]
-  );
-  const byStatus = mergeStatusCounts({}, rows);
-  const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
-  return { key: source.key, total, byStatus };
+        [userId]
+    );
+    const byStatus = mergeStatusCounts({}, rows);
+    const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
+    return { key: source.key, total, byStatus };
 };
 
 const normalizeUserAccessFields = (user = {}) => ({
-  account_type: normalizeAccountType(user.account_type, user.organization_cr ? 'organization' : 'personal'),
-  review_permission: normalizeReviewPermission(
-    user.review_permission,
-    user.role === 'admin' ? 'admin' : 'normal',
-  ),
-  admin_scope: normalizeAdminScope(
-    user.admin_scope,
-    user.role === 'admin' ? 'platform' : 'none',
-  ),
+    account_type: normalizeAccountType(
+        user.account_type,
+        user.organization_cr ? "organization" : "personal"
+    ),
+    review_permission: normalizeReviewPermission(
+        user.review_permission,
+        user.role === "admin" ? "admin" : "normal"
+    ),
+    admin_scope: normalizeAdminScope(user.admin_scope, user.role === "admin" ? "platform" : "none"),
 });
 
 const serializePermissionSummary = (user = {}) => {
-  const normalized = normalizeUserAccessFields(user);
-  const reviewPermission = normalized.review_permission;
-  return {
-    accountType: normalized.account_type,
-    reviewPermission,
-    adminScope: normalized.admin_scope,
-    role: user.role || 'user',
-    isAdmin: user.role === 'admin',
-    canBypassReview: canBypassReview({ ...user, ...normalized }),
-    accountTypeKey: `account_type.${normalized.account_type}`,
-    reviewPermissionKey: `review_permission.${reviewPermission}`,
-    adminScopeKey: `admin_scope.${normalized.admin_scope}`,
-  };
+    const normalized = normalizeUserAccessFields(user);
+    const reviewPermission = normalized.review_permission;
+    return {
+        accountType: normalized.account_type,
+        reviewPermission,
+        adminScope: normalized.admin_scope,
+        role: user.role || "user",
+        isAdmin: user.role === "admin",
+        canBypassReview: canBypassReview({ ...user, ...normalized }),
+        accountTypeKey: `account_type.${normalized.account_type}`,
+        reviewPermissionKey: `review_permission.${reviewPermission}`,
+        adminScopeKey: `admin_scope.${normalized.admin_scope}`,
+    };
 };
 
 const getUserContentSummary = async (db, userId) => {
-  const contentSources = await Promise.all(
-    CONTENT_STATUS_SOURCES.map((source) => countContentSource(db, source, userId))
-  );
-  const byStatus = {};
-  const bySource = {};
-  let total = 0;
-  for (const source of contentSources) {
-    bySource[source.key] = source;
-    total += source.total;
-    mergeStatusCounts(byStatus, Object.entries(source.byStatus).map(([status, count]) => ({ status, count })));
-  }
-  return {
-    total,
-    byStatus,
-    bySource,
-    pending: byStatus.pending || 0,
-    approved: (byStatus.approved || 0) + (byStatus.published || 0),
-    drafts: byStatus.draft || 0,
-    rejected: byStatus.rejected || 0,
-  };
+    const contentSources = await Promise.all(
+        CONTENT_STATUS_SOURCES.map((source) => countContentSource(db, source, userId))
+    );
+    const byStatus = {};
+    const bySource = {};
+    let total = 0;
+    for (const source of contentSources) {
+        bySource[source.key] = source;
+        total += source.total;
+        mergeStatusCounts(
+            byStatus,
+            Object.entries(source.byStatus).map(([status, count]) => ({ status, count }))
+        );
+    }
+    return {
+        total,
+        byStatus,
+        bySource,
+        pending: byStatus.pending || 0,
+        approved: (byStatus.approved || 0) + (byStatus.published || 0),
+        drafts: byStatus.draft || 0,
+        rejected: byStatus.rejected || 0,
+    };
 };
 
 const loadPartnerRowsForProfiles = async (db, profileIds = []) => {
-  const ids = profileIds.filter(Boolean);
-  if (!ids.length) return new Map();
-  const rows = await safeAll(
-    db,
-    `SELECT id, profile_id, category, name, partner_scope, enabled, featured
+    const ids = profileIds.filter(Boolean);
+    if (!ids.length) return new Map();
+    const rows = await safeAll(
+        db,
+        `SELECT id, profile_id, category, name, partner_scope, enabled, featured
      FROM ecosystem_partners
      WHERE deleted_at IS NULL
-       AND profile_id IN (${ids.map(() => '?').join(',')})`,
-    ids
-  );
-  return new Map(rows.map((row) => [row.profile_id, row]));
+       AND profile_id IN (${ids.map(() => "?").join(",")})`,
+        ids
+    );
+    return new Map(rows.map((row) => [row.profile_id, row]));
 };
 
 const decorateOrganizationProfiles = async (db, profiles = []) => {
-  const partnerByProfileId = await loadPartnerRowsForProfiles(db, profiles.map((profile) => profile.id));
-  return profiles.map((profile) => {
-    const partner = partnerByProfileId.get(profile.id) || null;
-    return {
-      ...profileService.serializeProfile(profile),
-      member_role: profile.member_role || null,
-      partner: partner
-        ? {
-            id: partner.id,
-            name: partner.name,
-            category: partner.category,
-            partner_scope: partner.partner_scope || (partner.featured ? 'core_partner' : 'activity_provider'),
-            enabled: Boolean(partner.enabled),
-            featured: Boolean(partner.featured),
-          }
-        : null,
-    };
-  });
+    const partnerByProfileId = await loadPartnerRowsForProfiles(
+        db,
+        profiles.map((profile) => profile.id)
+    );
+    return profiles.map((profile) => {
+        const partner = partnerByProfileId.get(profile.id) || null;
+        return {
+            ...profileService.serializeProfile(profile),
+            member_role: profile.member_role || null,
+            partner: partner
+                ? {
+                      id: partner.id,
+                      name: partner.name,
+                      category: partner.category,
+                      partner_scope:
+                          partner.partner_scope ||
+                          (partner.featured ? "core_partner" : "activity_provider"),
+                      enabled: Boolean(partner.enabled),
+                      featured: Boolean(partner.featured),
+                  }
+                : null,
+        };
+    });
 };
 
 const buildOrganizationWorkspace = async (db, managedProfiles = []) => {
-  const organizationRows = managedProfiles.filter((profile) => ORGANIZATION_PROFILE_TYPES.has(profile.type));
-  const managed = await decorateOrganizationProfiles(db, organizationRows);
-  const byType = managed.reduce((summary, profile) => {
-    summary[profile.type] = (summary[profile.type] || 0) + 1;
-    return summary;
-  }, {});
-  return {
-    managed,
-    total: managed.length,
-    byType,
-    corePartners: managed.filter((profile) => profile.partner?.partner_scope === 'core_partner').length,
-    activityProviders: managed.filter((profile) => profile.partner?.partner_scope === 'activity_provider').length,
-  };
+    const organizationRows = managedProfiles.filter((profile) =>
+        ORGANIZATION_PROFILE_TYPES.has(profile.type)
+    );
+    const managed = await decorateOrganizationProfiles(db, organizationRows);
+    const byType = managed.reduce((summary, profile) => {
+        summary[profile.type] = (summary[profile.type] || 0) + 1;
+        return summary;
+    }, {});
+    return {
+        managed,
+        total: managed.length,
+        byType,
+        corePartners: managed.filter((profile) => profile.partner?.partner_scope === "core_partner")
+            .length,
+        activityProviders: managed.filter(
+            (profile) => profile.partner?.partner_scope === "activity_provider"
+        ).length,
+    };
 };
 
-const buildNextActions = ({ profileCompletion, identitySummary, contentSummary, outcomeSummary, organizationWorkspace }) => {
-  const actions = [];
-  for (const missing of profileCompletion?.missing || []) {
-    actions.push({
-      key: `complete_${missing}`,
-      target: targetForCompletionKey(missing),
-      priority: 'profile',
-    });
-  }
-  if ((identitySummary?.pending || 0) > 0) {
-    actions.push({ key: 'review_identity', target: 'identity', priority: 'identity' });
-  }
-  if ((contentSummary?.pending || 0) > 0) {
-    actions.push({ key: 'check_submissions', target: 'submissions', priority: 'content', count: contentSummary.pending });
-  }
-  if ((outcomeSummary?.candidate || 0) > 0) {
-    actions.push({ key: 'confirm_outcomes', target: 'identity', priority: 'outcome', count: outcomeSummary.candidate });
-  }
-  if ((organizationWorkspace?.total || 0) === 0) {
-    actions.push({ key: 'claim_organization', target: 'identity', priority: 'organization' });
-  }
-  return actions.slice(0, 6);
+const buildNextActions = ({
+    profileCompletion,
+    identitySummary,
+    contentSummary,
+    outcomeSummary,
+    organizationWorkspace,
+}) => {
+    const actions = [];
+    for (const missing of profileCompletion?.missing || []) {
+        actions.push({
+            key: `complete_${missing}`,
+            target: targetForCompletionKey(missing),
+            priority: "profile",
+        });
+    }
+    if ((identitySummary?.pending || 0) > 0) {
+        actions.push({ key: "review_identity", target: "identity", priority: "identity" });
+    }
+    if ((contentSummary?.pending || 0) > 0) {
+        actions.push({
+            key: "check_submissions",
+            target: "submissions",
+            priority: "content",
+            count: contentSummary.pending,
+        });
+    }
+    if ((outcomeSummary?.candidate || 0) > 0) {
+        actions.push({
+            key: "confirm_outcomes",
+            target: "identity",
+            priority: "outcome",
+            count: outcomeSummary.candidate,
+        });
+    }
+    if ((organizationWorkspace?.total || 0) === 0) {
+        actions.push({ key: "claim_organization", target: "identity", priority: "organization" });
+    }
+    return actions.slice(0, 6);
 };
 
 const targetForCompletionKey = (key) => {
-  if (key === 'activityProfile') return 'activity-profile';
-  if (key === 'identity' || key === 'managedProfile') return 'identity';
-  return 'profile-card';
+    if (key === "activityProfile") return "activity-profile";
+    if (key === "identity" || key === "managedProfile") return "identity";
+    return "profile-card";
 };
 
 const countProfileContent = async (db, profileId) => {
-  const byStatus = {};
-  let total = 0;
-  for (const source of PROFILE_CONTENT_SOURCES) {
-    const deletedWhere = source.deletedColumn ? ` AND ${source.deletedColumn} IS NULL` : '';
-    const rows = await safeAll(
-      db,
-      `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+    const byStatus = {};
+    let total = 0;
+    for (const source of PROFILE_CONTENT_SOURCES) {
+        const deletedWhere = source.deletedColumn ? ` AND ${source.deletedColumn} IS NULL` : "";
+        const rows = await safeAll(
+            db,
+            `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
        FROM ${source.table}
        WHERE ${source.profileColumn} = ?${deletedWhere}
        GROUP BY COALESCE(status, 'unknown')`,
-      [profileId]
-    );
-    mergeStatusCounts(byStatus, rows);
-    total += rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
-  }
-  const eventRows = await safeAll(
-    db,
-    `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+            [profileId]
+        );
+        mergeStatusCounts(byStatus, rows);
+        total += rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+    }
+    const eventRows = await safeAll(
+        db,
+        `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
      FROM events
      WHERE (publisher_profile_id = ? OR organizer_profile_id = ?)
        AND deleted_at IS NULL
      GROUP BY COALESCE(status, 'unknown')`,
-    [profileId, profileId]
-  );
-  mergeStatusCounts(byStatus, eventRows);
-  total += eventRows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
-  return {
-    total,
-    byStatus,
-    pending: byStatus.pending || 0,
-    approved: (byStatus.approved || 0) + (byStatus.published || 0),
-  };
+        [profileId, profileId]
+    );
+    mergeStatusCounts(byStatus, eventRows);
+    total += eventRows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+    return {
+        total,
+        byStatus,
+        pending: byStatus.pending || 0,
+        approved: (byStatus.approved || 0) + (byStatus.published || 0),
+    };
 };
 
 const completionItem = (key, completed, target) => ({ key, completed: Boolean(completed), target });
 
-const buildProfileCompletion = ({ user, profileCard, activityPreference, identityCounts, managedProfiles }) => {
-  const activityFields = [
-    activityPreference?.college,
-    activityPreference?.division,
-    activityPreference?.grade,
-    activityPreference?.campus,
-    activityPreference?.availability,
-    activityPreference?.interest_tags,
-  ].filter((value) => String(value || '').trim()).length;
-  const items = [
-    completionItem('nickname', user?.nickname, 'profile-card'),
-    completionItem('avatar', user?.avatar, 'profile-card'),
-    completionItem(
-      'profileCard',
-      profileCard?.slogan || profileCard?.tag_count > 0 || profileCard?.card_count > 0 || profileCard?.social_count > 0,
-      'profile-card'
-    ),
-    completionItem('activityProfile', activityFields >= 2, 'activity-profile'),
-    completionItem('identity', identityCounts.total > 0, 'identity'),
-    completionItem('managedProfile', managedProfiles.length > 0, 'identity'),
-  ];
-  const completed = items.filter((item) => item.completed).length;
-  return {
-    percent: Math.round((completed / items.length) * 100),
-    completed,
-    total: items.length,
-    items,
-    missing: items.filter((item) => !item.completed).map((item) => item.key),
-  };
+const buildProfileCompletion = ({
+    user,
+    profileCard,
+    activityPreference,
+    identityCounts,
+    managedProfiles,
+}) => {
+    const activityFields = [
+        activityPreference?.college,
+        activityPreference?.division,
+        activityPreference?.grade,
+        activityPreference?.campus,
+        activityPreference?.availability,
+        activityPreference?.interest_tags,
+    ].filter((value) => String(value || "").trim()).length;
+    const items = [
+        completionItem("nickname", user?.nickname, "profile-card"),
+        completionItem("avatar", user?.avatar, "profile-card"),
+        completionItem(
+            "profileCard",
+            profileCard?.slogan ||
+                profileCard?.tag_count > 0 ||
+                profileCard?.card_count > 0 ||
+                profileCard?.social_count > 0,
+            "profile-card"
+        ),
+        completionItem("activityProfile", activityFields >= 2, "activity-profile"),
+        completionItem("identity", identityCounts.total > 0, "identity"),
+        completionItem("managedProfile", managedProfiles.length > 0, "identity"),
+    ];
+    const completed = items.filter((item) => item.completed).length;
+    return {
+        percent: Math.round((completed / items.length) * 100),
+        completed,
+        total: items.length,
+        items,
+        missing: items.filter((item) => !item.completed).map((item) => item.key),
+    };
 };
 
 const buildUploadUrl = (file) => {
-  if (!file?.path) return null;
-  const marker = /uploads[\\/]/;
-  const relative = file.path.split(marker).pop();
-  return relative ? `/uploads/${relative.replace(/\\/g, '/')}` : null;
+    if (!file?.path) return null;
+    const marker = /uploads[\\/]/;
+    const relative = file.path.split(marker).pop();
+    return relative ? `/uploads/${relative.replace(/\\/g, "/")}` : null;
 };
 
 const serializeCompetitionWorkForProfile = (row, includeReviewState = false) => {
-  const item = {
-    id: row.id,
-    link_id: row.link_id,
-    type: 'competition_work',
-    title: row.title,
-    cover: row.cover_url,
-    image: row.cover_url,
-    created_at: row.created_at,
-    likes: 0,
-    competition_id: row.competition_id,
-    competition_title: row.competition_title,
-    author: row.author,
-    summary: row.summary,
-    award: row.award,
-    rank: row.rank,
-    public_consent: row.public_consent === undefined ? true : Boolean(row.public_consent),
-    target_path: `/hackathon?view=showcase&work=${row.id}`,
-    uploader_id: row.uploader_id,
-    uploader_name: row.uploader_name,
-    uploader_avatar: row.uploader_avatar,
-    identity_claim_id: row.identity_claim_id,
-    bound_identity_name: row.bound_identity_name,
-    bound_identity_type: row.bound_identity_type,
-    binding_status: row.binding_status,
-    matched_text: row.matched_text,
-  };
-  if (includeReviewState) {
-    item.status = row.status;
-    item.review_note = row.review_note;
-  }
-  return item;
+    const item = {
+        id: row.id,
+        link_id: row.link_id,
+        type: "competition_work",
+        title: row.title,
+        cover: row.cover_url,
+        image: row.cover_url,
+        created_at: row.created_at,
+        likes: 0,
+        competition_id: row.competition_id,
+        competition_title: row.competition_title,
+        author: row.author,
+        summary: row.summary,
+        award: row.award,
+        rank: row.rank,
+        public_consent: row.public_consent === undefined ? true : Boolean(row.public_consent),
+        target_path: `/hackathon?view=showcase&work=${row.id}`,
+        uploader_id: row.uploader_id,
+        uploader_name: row.uploader_name,
+        uploader_avatar: row.uploader_avatar,
+        identity_claim_id: row.identity_claim_id,
+        bound_identity_name: row.bound_identity_name,
+        bound_identity_type: row.bound_identity_type,
+        binding_status: row.binding_status,
+        matched_text: row.matched_text,
+    };
+    if (includeReviewState) {
+        item.status = row.status;
+        item.review_note = row.review_note;
+    }
+    return item;
 };
 
 const verifyInviteCode = async (db, inviteCode) => {
-  const settings = await db.get('SELECT value FROM settings WHERE key = ?', ['invite_code']);
-  return Boolean(settings && String(settings.value).trim() === String(inviteCode || '').trim());
+    const settings = await db.get("SELECT value FROM settings WHERE key = ?", ["invite_code"]);
+    return Boolean(settings && String(settings.value).trim() === String(inviteCode || "").trim());
 };
 
 const upsertVerifiedOrganizationClaim = async (db, userId, displayName) => {
-  const trimmedName = String(displayName || '').trim();
-  const normalizedName = normalizeIdentityName(trimmedName);
-  if (!userId || !trimmedName || !normalizedName) return null;
+    const trimmedName = String(displayName || "").trim();
+    const normalizedName = normalizeIdentityName(trimmedName);
+    if (!userId || !trimmedName || !normalizedName) return null;
 
-  const existing = await db.get(
-    `
+    const existing = await db.get(
+        `
     SELECT *
     FROM user_identity_claims
     WHERE user_id = ?
@@ -378,12 +439,12 @@ const upsertVerifiedOrganizationClaim = async (db, userId, displayName) => {
     ORDER BY id DESC
     LIMIT 1
     `,
-    [userId, normalizedName]
-  );
+        [userId, normalizedName]
+    );
 
-  if (existing) {
-    await db.run(
-      `
+    if (existing) {
+        await db.run(
+            `
       UPDATE user_identity_claims
       SET type = 'club',
           display_name = ?,
@@ -392,78 +453,79 @@ const upsertVerifiedOrganizationClaim = async (db, userId, displayName) => {
           updated_at = datetime('now')
       WHERE id = ?
       `,
-      [trimmedName, normalizedName, existing.id]
-    );
-    return db.get('SELECT * FROM user_identity_claims WHERE id = ?', [existing.id]);
-  }
+            [trimmedName, normalizedName, existing.id]
+        );
+        return db.get("SELECT * FROM user_identity_claims WHERE id = ?", [existing.id]);
+    }
 
-  const result = await db.run(
-    `
+    const result = await db.run(
+        `
     INSERT INTO user_identity_claims (
       user_id, type, display_name, normalized_name, status, created_at, updated_at
     ) VALUES (?, 'club', ?, ?, 'verified', datetime('now'), datetime('now'))
     `,
-    [userId, trimmedName, normalizedName]
-  );
-  return db.get('SELECT * FROM user_identity_claims WHERE id = ?', [result.lastID]);
+        [userId, trimmedName, normalizedName]
+    );
+    return db.get("SELECT * FROM user_identity_claims WHERE id = ?", [result.lastID]);
 };
 
 const createCandidateLinksForWork = async (db, work) => {
-  if (!work?.id) return [];
-  const normalizedText = normalizeIdentityName(buildWorkMatchText(work));
-  if (!normalizedText) return [];
+    if (!work?.id) return [];
+    const normalizedText = normalizeIdentityName(buildWorkMatchText(work));
+    if (!normalizedText) return [];
 
-  const claims = await db.all(
-    `
+    const claims = await db.all(
+        `
     SELECT id, user_id, type, display_name, normalized_name, status
     FROM user_identity_claims
     WHERE status IN ('pending', 'verified')
       AND normalized_name IS NOT NULL
       AND TRIM(normalized_name) != ''
     `
-  );
-  const matches = claims.filter((claim) => normalizedText.includes(claim.normalized_name));
-  for (const claim of matches) {
-    await db.run(
-      `
+    );
+    const matches = claims.filter((claim) => normalizedText.includes(claim.normalized_name));
+    for (const claim of matches) {
+        await db.run(
+            `
       INSERT OR IGNORE INTO competition_work_identity_links (
         work_id, claim_id, user_id, matched_text, match_source, status, confidence, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'auto', 'candidate', 1, datetime('now'), datetime('now'))
       `,
-      [work.id, claim.id, claim.user_id, claim.display_name]
-    );
-  }
-  return matches;
+            [work.id, claim.id, claim.user_id, claim.display_name]
+        );
+    }
+    return matches;
 };
 
 function validateNickname(raw) {
-  if (raw === null || raw === undefined) return { ok: true, value: null };
-  const trimmed = String(raw).trim();
-  if (trimmed === '') return { ok: true, value: null };
-  if (trimmed.length < 2 || trimmed.length > 20) {
-    return { ok: false, error: 'nickname 长度需为 2-20 字符' };
-  }
-  if (!NICKNAME_REGEX.test(trimmed)) {
-    return { ok: false, error: 'nickname 仅允许中英文、数字和下划线' };
-  }
-  return { ok: true, value: trimmed };
+    if (raw === null || raw === undefined) return { ok: true, value: null };
+    const trimmed = String(raw).trim();
+    if (trimmed === "") return { ok: true, value: null };
+    if (trimmed.length < 2 || trimmed.length > 20) {
+        return { ok: false, error: "nickname 长度需为 2-20 字符" };
+    }
+    if (!NICKNAME_REGEX.test(trimmed)) {
+        return { ok: false, error: "nickname 仅允许中英文、数字和下划线" };
+    }
+    return { ok: true, value: trimmed };
 }
 
 const getAllUsers = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const users = await db.all(
-      `SELECT id, username, role, account_type, review_permission, admin_scope,
+    try {
+        const db = await getDb();
+        const users = await db.all(
+            `SELECT id, username, role, account_type, review_permission, admin_scope,
               avatar, nickname, organization_cr, created_at
        FROM users
        ORDER BY datetime(created_at) DESC, id DESC`
-    );
-    const enriched = await Promise.all(users.map(async (user) => {
-      const normalized = normalizeUserAccessFields(user);
-      const [profileCounts, contentSummary] = await Promise.all([
-        safeGet(
-          db,
-          `SELECT
+        );
+        const enriched = await Promise.all(
+            users.map(async (user) => {
+                const normalized = normalizeUserAccessFields(user);
+                const [profileCounts, contentSummary] = await Promise.all([
+                    safeGet(
+                        db,
+                        `SELECT
              COUNT(*) AS managed_profile_count,
              SUM(CASE WHEN p.type IN ('club', 'organization', 'school', 'enterprise') THEN 1 ELSE 0 END) AS organization_profile_count
            FROM profile_members pm
@@ -472,33 +534,37 @@ const getAllUsers = async (req, res, next) => {
              AND pm.status = 'active'
              AND p.status = 'active'
              AND p.deleted_at IS NULL`,
-          [user.id],
-          { managed_profile_count: 0, organization_profile_count: 0 }
-        ),
-        getUserContentSummary(db, user.id),
-      ]);
-      return {
-        ...user,
-        ...normalized,
-        managed_profile_count: Number(profileCounts?.managed_profile_count) || 0,
-        organization_profile_count: Number(profileCounts?.organization_profile_count) || 0,
-        pending_content_count: Number(contentSummary.pending) || 0,
-        content_summary: {
-          total: contentSummary.total,
-          pending: contentSummary.pending,
-          approved: contentSummary.approved,
-          drafts: contentSummary.drafts,
-          rejected: contentSummary.rejected,
-        },
-      };
-    }));
-    res.json(enriched);
-  } catch (error) { next(error); }
+                        [user.id],
+                        { managed_profile_count: 0, organization_profile_count: 0 }
+                    ),
+                    getUserContentSummary(db, user.id),
+                ]);
+                return {
+                    ...user,
+                    ...normalized,
+                    managed_profile_count: Number(profileCounts?.managed_profile_count) || 0,
+                    organization_profile_count:
+                        Number(profileCounts?.organization_profile_count) || 0,
+                    pending_content_count: Number(contentSummary.pending) || 0,
+                    content_summary: {
+                        total: contentSummary.total,
+                        pending: contentSummary.pending,
+                        approved: contentSummary.approved,
+                        drafts: contentSummary.drafts,
+                        rejected: contentSummary.rejected,
+                    },
+                };
+            })
+        );
+        res.json(enriched);
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getFollowStats = async (db, profileUserId, viewerUserId = null) => {
-  const stats = await db.get(
-    `
+    const stats = await db.get(
+        `
     SELECT
       (SELECT COUNT(*) FROM user_follows WHERE following_id = ?) as followers_count,
       (SELECT COUNT(*) FROM user_follows WHERE follower_id = ?) as following_count,
@@ -515,193 +581,241 @@ const getFollowStats = async (db, profileUserId, viewerUserId = null) => {
         ) THEN 1 ELSE 0
       END as is_followed_by
     `,
-    [profileUserId, profileUserId, viewerUserId, viewerUserId, profileUserId, viewerUserId, profileUserId, viewerUserId]
-  );
-  return {
-    followers_count: stats?.followers_count || 0,
-    following_count: stats?.following_count || 0,
-    is_following: Boolean(stats?.is_following),
-    is_followed_by: Boolean(stats?.is_followed_by),
-  };
+        [
+            profileUserId,
+            profileUserId,
+            viewerUserId,
+            viewerUserId,
+            profileUserId,
+            viewerUserId,
+            profileUserId,
+            viewerUserId,
+        ]
+    );
+    return {
+        followers_count: stats?.followers_count || 0,
+        following_count: stats?.following_count || 0,
+        is_following: Boolean(stats?.is_following),
+        is_followed_by: Boolean(stats?.is_followed_by),
+    };
 };
 
 const updateUser = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const { id } = req.params;
-    const {
-      role,
-      password,
-      avatar,
-      organization_cr,
-      gender,
-      age,
-      nickname,
-      invitation_code,
-      account_type,
-      review_permission,
-      admin_scope,
-    } = req.body;
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const {
+            role,
+            password,
+            avatar,
+            organization_cr,
+            gender,
+            age,
+            nickname,
+            invitation_code,
+            account_type,
+            review_permission,
+            admin_scope,
+        } = req.body;
 
-    const user = await db.get('SELECT * FROM users WHERE id = ?', [id]);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+        const user = await db.get("SELECT * FROM users WHERE id = ?", [id]);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Validate invite code if setting organization
-    if (organization_cr !== undefined && organization_cr !== user.organization_cr) {
-        // Only require code if joining an organization (not clearing it)
-        if (organization_cr) {
-            if (!invitation_code) {
-                return res.status(400).json({ error: 'Invitation code required for Organization/Cr' });
+        // Validate invite code if setting organization
+        if (organization_cr !== undefined && organization_cr !== user.organization_cr) {
+            // Only require code if joining an organization (not clearing it)
+            if (organization_cr) {
+                if (!invitation_code) {
+                    return res
+                        .status(400)
+                        .json({ error: "Invitation code required for Organization/Cr" });
+                }
+                const inviteCodeValid = await verifyInviteCode(db, invitation_code);
+                if (!inviteCodeValid) {
+                    return res.status(400).json({ error: "Invalid invitation code" });
+                }
             }
-            const inviteCodeValid = await verifyInviteCode(db, invitation_code);
-            if (!inviteCodeValid) {
-                return res.status(400).json({ error: 'Invalid invitation code' });
+            await db.run("UPDATE users SET organization_cr = ? WHERE id = ?", [
+                organization_cr,
+                id,
+            ]);
+            if (organization_cr) {
+                await upsertVerifiedOrganizationClaim(db, id, organization_cr);
             }
         }
-        await db.run('UPDATE users SET organization_cr = ? WHERE id = ?', [organization_cr, id]);
-        if (organization_cr) {
-          await upsertVerifiedOrganizationClaim(db, id, organization_cr);
+
+        // FIX: BUG-01 — Only admins can change roles; ignore role field from non-admin users
+        if (req.user && req.user.role === "admin") {
+            if (role) {
+                const nextRole = role === "admin" ? "admin" : "user";
+                await db.run("UPDATE users SET role = ? WHERE id = ?", [nextRole, id]);
+                if (review_permission === undefined && admin_scope === undefined) {
+                    await db.run(
+                        "UPDATE users SET review_permission = ?, admin_scope = ? WHERE id = ?",
+                        [
+                            nextRole === "admin" ? "admin" : "normal",
+                            nextRole === "admin" ? "platform" : "none",
+                            id,
+                        ]
+                    );
+                }
+            }
+            if (account_type !== undefined) {
+                await db.run("UPDATE users SET account_type = ? WHERE id = ?", [
+                    normalizeAccountType(account_type),
+                    id,
+                ]);
+            }
+            if (review_permission !== undefined) {
+                await db.run("UPDATE users SET review_permission = ? WHERE id = ?", [
+                    normalizeReviewPermission(
+                        review_permission,
+                        user.role === "admin" ? "admin" : "normal"
+                    ),
+                    id,
+                ]);
+            }
+            if (admin_scope !== undefined) {
+                await db.run("UPDATE users SET admin_scope = ? WHERE id = ?", [
+                    normalizeAdminScope(admin_scope, user.role === "admin" ? "platform" : "none"),
+                    id,
+                ]);
+            }
         }
-    }
 
-    // FIX: BUG-01 — Only admins can change roles; ignore role field from non-admin users
-    if (req.user && req.user.role === 'admin') {
-      if (role) {
-        const nextRole = role === 'admin' ? 'admin' : 'user';
-        await db.run('UPDATE users SET role = ? WHERE id = ?', [nextRole, id]);
-        if (review_permission === undefined && admin_scope === undefined) {
-          await db.run(
-            'UPDATE users SET review_permission = ?, admin_scope = ? WHERE id = ?',
-            [nextRole === 'admin' ? 'admin' : 'normal', nextRole === 'admin' ? 'platform' : 'none', id]
-          );
+        if (avatar !== undefined)
+            await db.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, id]);
+        if (gender !== undefined)
+            await db.run("UPDATE users SET gender = ? WHERE id = ?", [gender, id]);
+        if (age !== undefined) await db.run("UPDATE users SET age = ? WHERE id = ?", [age, id]);
+        if (nickname !== undefined) {
+            const check = validateNickname(nickname);
+            if (!check.ok) {
+                return res.status(400).json({ error: check.error });
+            }
+            try {
+                await db.run("UPDATE users SET nickname = ? WHERE id = ?", [check.value, id]);
+            } catch (err) {
+                if (
+                    err &&
+                    (err.code === "SQLITE_CONSTRAINT" ||
+                        /UNIQUE constraint failed/i.test(err.message || ""))
+                ) {
+                    return res.status(409).json({ error: "该昵称已被使用" });
+                }
+                throw err;
+            }
         }
-      }
-      if (account_type !== undefined) {
-        await db.run(
-          'UPDATE users SET account_type = ? WHERE id = ?',
-          [normalizeAccountType(account_type), id]
-        );
-      }
-      if (review_permission !== undefined) {
-        await db.run(
-          'UPDATE users SET review_permission = ? WHERE id = ?',
-          [normalizeReviewPermission(review_permission, user.role === 'admin' ? 'admin' : 'normal'), id]
-        );
-      }
-      if (admin_scope !== undefined) {
-        await db.run(
-          'UPDATE users SET admin_scope = ? WHERE id = ?',
-          [normalizeAdminScope(admin_scope, user.role === 'admin' ? 'platform' : 'none'), id]
-        );
-      }
-    }
 
-    if (avatar !== undefined) await db.run('UPDATE users SET avatar = ? WHERE id = ?', [avatar, id]);
-    if (gender !== undefined) await db.run('UPDATE users SET gender = ? WHERE id = ?', [gender, id]);
-    if (age !== undefined) await db.run('UPDATE users SET age = ? WHERE id = ?', [age, id]);
-    if (nickname !== undefined) {
-      const check = validateNickname(nickname);
-      if (!check.ok) {
-        return res.status(400).json({ error: check.error });
-      }
-      try {
-        await db.run('UPDATE users SET nickname = ? WHERE id = ?', [check.value, id]);
-      } catch (err) {
-        if (err && (err.code === 'SQLITE_CONSTRAINT' || /UNIQUE constraint failed/i.test(err.message || ''))) {
-          return res.status(409).json({ error: '该昵称已被使用' });
+        if (password) {
+            if (password.length < 6) {
+                return res
+                    .status(400)
+                    .json({ error: "Password must be at least 6 characters long" });
+            }
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await db.run("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
         }
-        throw err;
-      }
-    }
 
-    if (password) {
-      if (password.length < 6) {
-        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-      }
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
+        res.json({ message: "User updated successfully" });
+    } catch (error) {
+        next(error);
     }
-
-    res.json({ message: 'User updated successfully' });
-  } catch (error) { next(error); }
 };
 
 const uploadOwnAvatar = async (req, res, next) => {
-  try {
-    if (!req.user?.id) return res.status(401).json({ error: 'Login required' });
-    if (!req.file) return res.status(400).json({ error: 'Avatar image is required' });
-    let avatar = buildUploadUrl(req.file);
-    if (!avatar || !avatar.startsWith('/uploads/avatars/')) {
-      return res.status(400).json({ error: 'Avatar upload failed' });
-    }
-    const cropSize = Math.min(1, Math.max(0.05, Number(req.body?.crop_size) || 1));
-    const cropX = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_x) || 0));
-    const cropY = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_y) || 0));
     try {
-      const image = sharp(req.file.path);
-      const metadata = await image.metadata();
-      const sourceWidth = metadata.width || 0;
-      const sourceHeight = metadata.height || 0;
-      if (sourceWidth > 0 && sourceHeight > 0) {
-        const side = Math.max(1, Math.floor(Math.min(sourceWidth, sourceHeight) * cropSize));
-        const left = Math.min(sourceWidth - side, Math.max(0, Math.floor(cropX * sourceWidth)));
-        const top = Math.min(sourceHeight - side, Math.max(0, Math.floor(cropY * sourceHeight)));
-        const parsed = path.parse(req.file.path);
-        const croppedPath = path.join(parsed.dir, `${parsed.name}-cropped.webp`);
-        await image.extract({ left, top, width: side, height: side }).resize(512, 512).webp({ quality: 86 }).toFile(croppedPath);
-        try { await fs.promises.unlink(req.file.path); } catch {}
-        avatar = buildUploadUrl({ path: croppedPath });
-      }
-    } catch (cropError) {
-      console.warn('Avatar crop warning:', cropError.message);
+        if (!req.user?.id) return res.status(401).json({ error: "Login required" });
+        if (!req.file) return res.status(400).json({ error: "Avatar image is required" });
+        let avatar = buildUploadUrl(req.file);
+        if (!avatar || !avatar.startsWith("/uploads/avatars/")) {
+            return res.status(400).json({ error: "Avatar upload failed" });
+        }
+        const cropSize = Math.min(1, Math.max(0.05, Number(req.body?.crop_size) || 1));
+        const cropX = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_x) || 0));
+        const cropY = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_y) || 0));
+        try {
+            const image = sharp(req.file.path);
+            const metadata = await image.metadata();
+            const sourceWidth = metadata.width || 0;
+            const sourceHeight = metadata.height || 0;
+            if (sourceWidth > 0 && sourceHeight > 0) {
+                const side = Math.max(
+                    1,
+                    Math.floor(Math.min(sourceWidth, sourceHeight) * cropSize)
+                );
+                const left = Math.min(
+                    sourceWidth - side,
+                    Math.max(0, Math.floor(cropX * sourceWidth))
+                );
+                const top = Math.min(
+                    sourceHeight - side,
+                    Math.max(0, Math.floor(cropY * sourceHeight))
+                );
+                const parsed = path.parse(req.file.path);
+                const croppedPath = path.join(parsed.dir, `${parsed.name}-cropped.webp`);
+                await image
+                    .extract({ left, top, width: side, height: side })
+                    .resize(512, 512)
+                    .webp({ quality: 86 })
+                    .toFile(croppedPath);
+                try {
+                    await fs.promises.unlink(req.file.path);
+                } catch {}
+                avatar = buildUploadUrl({ path: croppedPath });
+            }
+        } catch (cropError) {
+            console.warn("Avatar crop warning:", cropError.message);
+        }
+        const db = await getDb();
+        await db.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, req.user.id]);
+        const user = await db.get(
+            "SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?",
+            [req.user.id]
+        );
+        res.json({ avatar, user });
+    } catch (error) {
+        next(error);
     }
-    const db = await getDb();
-    await db.run('UPDATE users SET avatar = ? WHERE id = ?', [avatar, req.user.id]);
-    const user = await db.get(
-      'SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?',
-      [req.user.id]
-    );
-    res.json({ avatar, user });
-  } catch (error) { next(error); }
 };
 
 const getOwnOverview = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
 
-    const db = await getDb();
-    const user = await safeGet(
-      db,
-      `SELECT id, username, role, account_type, review_permission, admin_scope,
+        const db = await getDb();
+        const user = await safeGet(
+            db,
+            `SELECT id, username, role, account_type, review_permission, admin_scope,
               avatar, organization_cr, gender, age, nickname,
               profile_slogan, profile_status, created_at
        FROM users
        WHERE id = ?`,
-      [userId]
-    );
-    if (!user) return res.status(404).json({ error: 'User not found' });
+            [userId]
+        );
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-    const [
-      managedProfileRows,
-      identityRows,
-      profileCard,
-      activityPreference,
-      outcomeRows,
-      contentSummary,
-    ] = await Promise.all([
-      profileService.listManageableProfiles(db, userId),
-      safeAll(
-        db,
-        `SELECT type, status, COUNT(*) AS count
+        const [
+            managedProfileRows,
+            identityRows,
+            profileCard,
+            activityPreference,
+            outcomeRows,
+            contentSummary,
+        ] = await Promise.all([
+            profileService.listManageableProfiles(db, userId),
+            safeAll(
+                db,
+                `SELECT type, status, COUNT(*) AS count
          FROM user_identity_claims
          WHERE user_id = ?
          GROUP BY type, status`,
-        [userId]
-      ),
-      safeGet(
-        db,
-        `SELECT
+                [userId]
+            ),
+            safeGet(
+                db,
+                `SELECT
           u.profile_slogan AS slogan,
           u.profile_status AS status,
           (SELECT COUNT(*) FROM user_profile_tags WHERE user_id = u.id) AS tag_count,
@@ -709,95 +823,101 @@ const getOwnOverview = async (req, res, next) => {
           (SELECT COUNT(*) FROM user_profile_cards WHERE user_id = u.id AND is_visible = 1) AS card_count
          FROM users u
          WHERE u.id = ?`,
-        [userId],
-        {}
-      ),
-      safeGet(db, 'SELECT * FROM user_event_preferences WHERE user_id = ?', [userId], {}),
-      safeAll(
-        db,
-        `SELECT status, COUNT(*) AS count
+                [userId],
+                {}
+            ),
+            safeGet(db, "SELECT * FROM user_event_preferences WHERE user_id = ?", [userId], {}),
+            safeAll(
+                db,
+                `SELECT status, COUNT(*) AS count
          FROM competition_work_identity_links
          WHERE user_id = ?
          GROUP BY status`,
-        [userId]
-      ),
-      getUserContentSummary(db, userId),
-    ]);
+                [userId]
+            ),
+            getUserContentSummary(db, userId),
+        ]);
 
-    const managedProfiles = managedProfileRows.map((row) => profileService.serializeProfile(row));
-    const organizationWorkspace = await buildOrganizationWorkspace(db, managedProfileRows);
-    const permissionSummary = serializePermissionSummary(user);
-    const identitySummary = identityRows.reduce(
-      (summary, row) => {
-        const count = Number(row.count) || 0;
-        summary.total += count;
-        summary.byStatus[row.status || 'unknown'] = (summary.byStatus[row.status || 'unknown'] || 0) + count;
-        summary.byType[row.type || 'unknown'] = (summary.byType[row.type || 'unknown'] || 0) + count;
-        if (row.status === 'verified') summary.verified += count;
-        if (row.status === 'pending') summary.pending += count;
-        if (isOrganizationIdentityType(row.type)) summary.organizations += count;
-        return summary;
-      },
-      { total: 0, verified: 0, pending: 0, organizations: 0, byStatus: {}, byType: {} }
-    );
+        const managedProfiles = managedProfileRows.map((row) =>
+            profileService.serializeProfile(row)
+        );
+        const organizationWorkspace = await buildOrganizationWorkspace(db, managedProfileRows);
+        const permissionSummary = serializePermissionSummary(user);
+        const identitySummary = identityRows.reduce(
+            (summary, row) => {
+                const count = Number(row.count) || 0;
+                summary.total += count;
+                summary.byStatus[row.status || "unknown"] =
+                    (summary.byStatus[row.status || "unknown"] || 0) + count;
+                summary.byType[row.type || "unknown"] =
+                    (summary.byType[row.type || "unknown"] || 0) + count;
+                if (row.status === "verified") summary.verified += count;
+                if (row.status === "pending") summary.pending += count;
+                if (isOrganizationIdentityType(row.type)) summary.organizations += count;
+                return summary;
+            },
+            { total: 0, verified: 0, pending: 0, organizations: 0, byStatus: {}, byType: {} }
+        );
 
-    const outcomeByStatus = mergeStatusCounts({}, outcomeRows);
-    const outcomeTotal = Object.values(outcomeByStatus).reduce((sum, count) => sum + count, 0);
-    const outcomeSummary = {
-      total: outcomeTotal,
-      byStatus: outcomeByStatus,
-      candidate: outcomeByStatus.candidate || 0,
-      confirmed: outcomeByStatus.confirmed || 0,
-    };
-    const activityCompleted = [
-      activityPreference?.college,
-      activityPreference?.division,
-      activityPreference?.grade,
-      activityPreference?.campus,
-      activityPreference?.availability,
-      activityPreference?.interest_tags,
-    ].filter((value) => String(value || '').trim()).length;
+        const outcomeByStatus = mergeStatusCounts({}, outcomeRows);
+        const outcomeTotal = Object.values(outcomeByStatus).reduce((sum, count) => sum + count, 0);
+        const outcomeSummary = {
+            total: outcomeTotal,
+            byStatus: outcomeByStatus,
+            candidate: outcomeByStatus.candidate || 0,
+            confirmed: outcomeByStatus.confirmed || 0,
+        };
+        const activityCompleted = [
+            activityPreference?.college,
+            activityPreference?.division,
+            activityPreference?.grade,
+            activityPreference?.campus,
+            activityPreference?.availability,
+            activityPreference?.interest_tags,
+        ].filter((value) => String(value || "").trim()).length;
 
-    const profileCompletion = buildProfileCompletion({
-      user,
-      profileCard,
-      activityPreference,
-      identityCounts: identitySummary,
-      managedProfiles,
-    });
-    const nextActions = buildNextActions({
-      profileCompletion,
-      identitySummary,
-      contentSummary,
-      outcomeSummary,
-      organizationWorkspace,
-    });
+        const profileCompletion = buildProfileCompletion({
+            user,
+            profileCard,
+            activityPreference,
+            identityCounts: identitySummary,
+            managedProfiles,
+        });
+        const nextActions = buildNextActions({
+            profileCompletion,
+            identitySummary,
+            contentSummary,
+            outcomeSummary,
+            organizationWorkspace,
+        });
 
-    res.json({
-      account: { ...user, ...normalizeUserAccessFields(user) },
-      accountType: permissionSummary.accountType,
-      permissionSummary,
-      profileCompletion,
-      managedProfiles,
-      identitySummary,
-      organizationWorkspace,
-      contentSummary,
-      outcomeSummary,
-      nextActions,
-      activityProfile: {
-        completedFields: activityCompleted,
-        hasPreference: activityCompleted > 0,
-      },
-    });
-  } catch (error) { next(error); }
+        res.json({
+            account: { ...user, ...normalizeUserAccessFields(user) },
+            accountType: permissionSummary.accountType,
+            permissionSummary,
+            profileCompletion,
+            managedProfiles,
+            identitySummary,
+            organizationWorkspace,
+            contentSummary,
+            outcomeSummary,
+            nextActions,
+            activityProfile: {
+                completedFields: activityCompleted,
+                hasPreference: activityCompleted > 0,
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getAdminUserOrganizations = async (_req, res, next) => {
-  try {
-    const db = await getDb();
-    const rows = await safeAll(
-      db,
-      `SELECT p.*,
+    try {
+        const db = await getDb();
+        const rows = await safeAll(
+            db,
+            `SELECT p.*,
               ep.id AS partner_id,
               ep.category AS partner_category,
               ep.name AS partner_name,
@@ -814,13 +934,14 @@ const getAdminUserOrganizations = async (_req, res, next) => {
          CASE p.type WHEN 'club' THEN 1 WHEN 'organization' THEN 2 WHEN 'school' THEN 3 WHEN 'enterprise' THEN 4 ELSE 9 END,
          p.verified DESC,
          p.display_name ASC`
-    );
+        );
 
-    const organizations = await Promise.all(rows.map(async (row) => {
-      const [members, contentSummary, eventCountRow] = await Promise.all([
-        safeAll(
-          db,
-          `SELECT pm.user_id, pm.role AS member_role, pm.status AS member_status,
+        const organizations = await Promise.all(
+            rows.map(async (row) => {
+                const [members, contentSummary, eventCountRow] = await Promise.all([
+                    safeAll(
+                        db,
+                        `SELECT pm.user_id, pm.role AS member_role, pm.status AS member_status,
                   u.username, u.nickname, u.avatar, u.role,
                   u.account_type, u.review_permission, u.admin_scope
            FROM profile_members pm
@@ -829,159 +950,187 @@ const getAdminUserOrganizations = async (_req, res, next) => {
            ORDER BY
              CASE pm.role WHEN 'owner' THEN 1 WHEN 'admin' THEN 2 WHEN 'editor' THEN 3 ELSE 9 END,
              u.id ASC`,
-          [row.id]
-        ),
-        countProfileContent(db, row.id),
-        safeGet(
-          db,
-          `SELECT COUNT(*) AS count
+                        [row.id]
+                    ),
+                    countProfileContent(db, row.id),
+                    safeGet(
+                        db,
+                        `SELECT COUNT(*) AS count
            FROM events
            WHERE (publisher_profile_id = ? OR organizer_profile_id = ?)
              AND status = 'approved'
              AND deleted_at IS NULL`,
-          [row.id, row.id],
-          { count: 0 }
-        ),
-      ]);
-      const serialized = profileService.serializeProfile(row);
-      const partnerScope = row.partner_scope || (row.partner_featured ? 'core_partner' : 'activity_provider');
-      return {
-        ...serialized,
-        partner: row.partner_id
-          ? {
-              id: row.partner_id,
-              name: row.partner_name,
-              category: row.partner_category,
-              partner_scope: partnerScope,
-              enabled: Boolean(row.partner_enabled),
-              featured: Boolean(row.partner_featured),
-            }
-          : null,
-        members: members.map((member) => ({
-          user_id: member.user_id,
-          username: member.username,
-          nickname: member.nickname,
-          avatar: member.avatar,
-          role: member.role,
-          account_type: normalizeAccountType(member.account_type),
-          review_permission: normalizeReviewPermission(member.review_permission, member.role === 'admin' ? 'admin' : 'normal'),
-          admin_scope: normalizeAdminScope(member.admin_scope, member.role === 'admin' ? 'platform' : 'none'),
-          member_role: member.member_role,
-          member_status: member.member_status,
-        })),
-        member_count: members.length,
-        content_summary: contentSummary,
-        event_count: Number(eventCountRow?.count) || 0,
-      };
-    }));
+                        [row.id, row.id],
+                        { count: 0 }
+                    ),
+                ]);
+                const serialized = profileService.serializeProfile(row);
+                const partnerScope =
+                    row.partner_scope ||
+                    (row.partner_featured ? "core_partner" : "activity_provider");
+                return {
+                    ...serialized,
+                    partner: row.partner_id
+                        ? {
+                              id: row.partner_id,
+                              name: row.partner_name,
+                              category: row.partner_category,
+                              partner_scope: partnerScope,
+                              enabled: Boolean(row.partner_enabled),
+                              featured: Boolean(row.partner_featured),
+                          }
+                        : null,
+                    members: members.map((member) => ({
+                        user_id: member.user_id,
+                        username: member.username,
+                        nickname: member.nickname,
+                        avatar: member.avatar,
+                        role: member.role,
+                        account_type: normalizeAccountType(member.account_type),
+                        review_permission: normalizeReviewPermission(
+                            member.review_permission,
+                            member.role === "admin" ? "admin" : "normal"
+                        ),
+                        admin_scope: normalizeAdminScope(
+                            member.admin_scope,
+                            member.role === "admin" ? "platform" : "none"
+                        ),
+                        member_role: member.member_role,
+                        member_status: member.member_status,
+                    })),
+                    member_count: members.length,
+                    content_summary: contentSummary,
+                    event_count: Number(eventCountRow?.count) || 0,
+                };
+            })
+        );
 
-    res.json({ data: organizations });
-  } catch (error) { next(error); }
+        res.json({ data: organizations });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const deleteUser = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const { id } = req.params;
+    try {
+        const db = await getDb();
+        const { id } = req.params;
 
-    // Prevent deleting self
-    if (parseInt(id) === req.user.id) {
-        return res.status(400).json({ error: 'Cannot delete your own account' });
+        // Prevent deleting self
+        if (parseInt(id) === req.user.id) {
+            return res.status(400).json({ error: "Cannot delete your own account" });
+        }
+
+        await db.run("DELETE FROM user_follows WHERE follower_id = ? OR following_id = ?", [
+            id,
+            id,
+        ]);
+        await db.run("DELETE FROM users WHERE id = ?", [id]);
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        next(error);
     }
-
-    await db.run('DELETE FROM user_follows WHERE follower_id = ? OR following_id = ?', [id, id]);
-    await db.run('DELETE FROM users WHERE id = ?', [id]);
-    res.json({ message: 'User deleted successfully' });
-  } catch (error) { next(error); }
 };
 
 const getPublicProfile = async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
-        const user = await db.get('SELECT id, username, nickname, avatar, role, created_at, organization_cr, gender, age FROM users WHERE id = ?', [id]);
-        
+        const user = await db.get(
+            "SELECT id, username, nickname, avatar, role, created_at, organization_cr, gender, age FROM users WHERE id = ?",
+            [id]
+        );
+
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ error: "User not found" });
         }
 
         const viewerId = req.user?.id || null;
         const followStats = await getFollowStats(db, Number(id), viewerId);
         res.json({
-          ...user,
-          ...followStats
+            ...user,
+            ...followStats,
         });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const toggleFollowUser = async (req, res, next) => {
-  try {
-    // Self-follow guard — MUST be at top to cover both POST and DELETE routes.
-    // See openspec/changes/community-identity-and-follow-notifications Task 6.
-    if (Number(req.params.id) === Number(req.user?.id)) {
-      return res.status(400).json({ error: '不能关注自己' });
+    try {
+        // Self-follow guard — MUST be at top to cover both POST and DELETE routes.
+        // See openspec/changes/community-identity-and-follow-notifications Task 6.
+        if (Number(req.params.id) === Number(req.user?.id)) {
+            return res.status(400).json({ error: "不能关注自己" });
+        }
+
+        const db = await getDb();
+        const followerId = req.user?.id;
+        const followingId = Number(req.params.id);
+        if (!followerId) return res.status(401).json({ error: "Login required" });
+        if (!Number.isFinite(followingId))
+            return res.status(400).json({ error: "Invalid user id" });
+
+        const targetUser = await db.get("SELECT id, username, nickname FROM users WHERE id = ?", [
+            followingId,
+        ]);
+        if (!targetUser) return res.status(404).json({ error: "User not found" });
+
+        const existing = await db.get(
+            "SELECT id FROM user_follows WHERE follower_id = ? AND following_id = ?",
+            [followerId, followingId]
+        );
+
+        const isDeleteAction = req.method === "DELETE";
+        let following = false;
+        if (isDeleteAction) {
+            if (existing) {
+                await db.run("DELETE FROM user_follows WHERE id = ?", [existing.id]);
+            }
+            following = false;
+        } else if (existing) {
+            following = true;
+        } else {
+            await db.run(
+                'INSERT INTO user_follows (follower_id, following_id, created_at) VALUES (?, ?, datetime("now"))',
+                [followerId, followingId]
+            );
+            following = true;
+            const actor = await db.get("SELECT username, nickname FROM users WHERE id = ?", [
+                followerId,
+            ]);
+            const actorName = actor?.nickname || actor?.username || "有用户";
+            await createNotification(
+                followingId,
+                "follow",
+                `${actorName} 关注了你`,
+                followerId,
+                "user"
+            );
+        }
+
+        const stats = await getFollowStats(db, followingId, followerId);
+        res.json({
+            success: true,
+            following,
+            ...stats,
+        });
+    } catch (error) {
+        next(error);
     }
-
-    const db = await getDb();
-    const followerId = req.user?.id;
-    const followingId = Number(req.params.id);
-    if (!followerId) return res.status(401).json({ error: 'Login required' });
-    if (!Number.isFinite(followingId)) return res.status(400).json({ error: 'Invalid user id' });
-
-    const targetUser = await db.get('SELECT id, username, nickname FROM users WHERE id = ?', [followingId]);
-    if (!targetUser) return res.status(404).json({ error: 'User not found' });
-
-    const existing = await db.get(
-      'SELECT id FROM user_follows WHERE follower_id = ? AND following_id = ?',
-      [followerId, followingId]
-    );
-
-    const isDeleteAction = req.method === 'DELETE';
-    let following = false;
-    if (isDeleteAction) {
-      if (existing) {
-        await db.run('DELETE FROM user_follows WHERE id = ?', [existing.id]);
-      }
-      following = false;
-    } else if (existing) {
-      following = true;
-    } else {
-      await db.run(
-        'INSERT INTO user_follows (follower_id, following_id, created_at) VALUES (?, ?, datetime("now"))',
-        [followerId, followingId]
-      );
-      following = true;
-      const actor = await db.get('SELECT username, nickname FROM users WHERE id = ?', [followerId]);
-      const actorName = actor?.nickname || actor?.username || '有用户';
-      await createNotification(
-        followingId,
-        'follow',
-        `${actorName} 关注了你`,
-        followerId,
-        'user'
-      );
-    }
-
-    const stats = await getFollowStats(db, followingId, followerId);
-    res.json({
-      success: true,
-      following,
-      ...stats
-    });
-  } catch (error) { next(error); }
 };
 
 const listFollowers = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const { id } = req.params;
-    const viewerId = req.user?.id || null;
-    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
-    const offset = (page - 1) * limit;
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const viewerId = req.user?.id || null;
+        const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit || "20", 10), 1), 100);
+        const offset = (page - 1) * limit;
 
-    const rows = await db.all(
-      `
+        const rows = await db.all(
+            `
       SELECT
         u.id,
         u.username,
@@ -1004,33 +1153,38 @@ const listFollowers = async (req, res, next) => {
       ORDER BY f.created_at DESC
       LIMIT ? OFFSET ?
       `,
-      [viewerId, viewerId, id, limit, offset]
-    );
+            [viewerId, viewerId, id, limit, offset]
+        );
 
-    const total = await db.get('SELECT COUNT(*) as count FROM user_follows WHERE following_id = ?', [id]);
-    res.json({
-      data: rows.map((row) => ({ ...row, is_following: Boolean(row.is_following) })),
-      pagination: {
-        total: total?.count || 0,
-        page,
-        limit,
-        totalPages: Math.ceil((total?.count || 0) / limit)
-      }
-    });
-  } catch (error) { next(error); }
+        const total = await db.get(
+            "SELECT COUNT(*) as count FROM user_follows WHERE following_id = ?",
+            [id]
+        );
+        res.json({
+            data: rows.map((row) => ({ ...row, is_following: Boolean(row.is_following) })),
+            pagination: {
+                total: total?.count || 0,
+                page,
+                limit,
+                totalPages: Math.ceil((total?.count || 0) / limit),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const listFollowing = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const { id } = req.params;
-    const viewerId = req.user?.id || null;
-    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
-    const offset = (page - 1) * limit;
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const viewerId = req.user?.id || null;
+        const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit || "20", 10), 1), 100);
+        const offset = (page - 1) * limit;
 
-    const rows = await db.all(
-      `
+        const rows = await db.all(
+            `
       SELECT
         u.id,
         u.username,
@@ -1053,43 +1207,49 @@ const listFollowing = async (req, res, next) => {
       ORDER BY f.created_at DESC
       LIMIT ? OFFSET ?
       `,
-      [viewerId, viewerId, id, limit, offset]
-    );
+            [viewerId, viewerId, id, limit, offset]
+        );
 
-    const total = await db.get('SELECT COUNT(*) as count FROM user_follows WHERE follower_id = ?', [id]);
-    res.json({
-      data: rows.map((row) => ({ ...row, is_following: Boolean(row.is_following) })),
-      pagination: {
-        total: total?.count || 0,
-        page,
-        limit,
-        totalPages: Math.ceil((total?.count || 0) / limit)
-      }
-    });
-  } catch (error) { next(error); }
+        const total = await db.get(
+            "SELECT COUNT(*) as count FROM user_follows WHERE follower_id = ?",
+            [id]
+        );
+        res.json({
+            data: rows.map((row) => ({ ...row, is_following: Boolean(row.is_following) })),
+            pagination: {
+                total: total?.count || 0,
+                page,
+                limit,
+                totalPages: Math.ceil((total?.count || 0) / limit),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getFollowingIds = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const rows = await db.all(
-      'SELECT following_id FROM user_follows WHERE follower_id = ?',
-      [userId]
-    );
-    res.json({ ids: rows.map((row) => row.following_id) });
-  } catch (error) { next(error); }
+    try {
+        const db = await getDb();
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const rows = await db.all("SELECT following_id FROM user_follows WHERE follower_id = ?", [
+            userId,
+        ]);
+        res.json({ ids: rows.map((row) => row.following_id) });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getFollowRecommendations = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const limit = Math.min(Math.max(parseInt(req.query.limit || '8', 10), 1), 30);
-    const rows = await db.all(
-      `
+    try {
+        const db = await getDb();
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const limit = Math.min(Math.max(parseInt(req.query.limit || "8", 10), 1), 30);
+        const rows = await db.all(
+            `
       SELECT
         u.id,
         u.username,
@@ -1112,48 +1272,58 @@ const getFollowRecommendations = async (req, res, next) => {
       ORDER BY followers_count DESC, u.created_at DESC
       LIMIT ?
       `,
-      [userId, userId, limit]
-    );
-    res.json(rows);
-  } catch (error) { next(error); }
+            [userId, userId, limit]
+        );
+        res.json(rows);
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getFollowingFeed = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const limit = Math.min(Math.max(parseInt(req.query.limit || '40', 10), 1), 120);
-    const requestedType = String(req.query.type || 'all').toLowerCase();
+    try {
+        const db = await getDb();
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const limit = Math.min(Math.max(parseInt(req.query.limit || "40", 10), 1), 120);
+        const requestedType = String(req.query.type || "all").toLowerCase();
 
-    const followingRows = await db.all(
-      'SELECT following_id FROM user_follows WHERE follower_id = ?',
-      [userId]
-    );
-    const followingIds = followingRows.map((row) => row.following_id);
-    if (!followingIds.length) {
-      return res.json({ data: [] });
-    }
+        const followingRows = await db.all(
+            "SELECT following_id FROM user_follows WHERE follower_id = ?",
+            [userId]
+        );
+        const followingIds = followingRows.map((row) => row.following_id);
+        if (!followingIds.length) {
+            return res.json({ data: [] });
+        }
 
-    const placeholders = followingIds.map(() => '?').join(',');
-    const tableConfigs = [
-      { table: 'photos', type: 'photo', imageField: 'url', route: '/gallery' },
-      { table: 'music', type: 'music', imageField: 'cover', route: '/articles', hash: '#community-podcast' },
-      { table: 'videos', type: 'video', imageField: 'thumbnail', route: '/videos' },
-      { table: 'articles', type: 'article', imageField: 'cover', route: '/articles' },
-      { table: 'events', type: 'event', imageField: 'image', route: '/events' }
-    ];
-    const allowedTypes = new Set(['all', ...tableConfigs.map((item) => item.table)]);
-    if (!allowedTypes.has(requestedType)) {
-      return res.status(400).json({ error: 'Invalid type filter' });
-    }
-    const activeConfigs = requestedType === 'all'
-      ? tableConfigs
-      : tableConfigs.filter((item) => item.table === requestedType);
+        const placeholders = followingIds.map(() => "?").join(",");
+        const tableConfigs = [
+            { table: "photos", type: "photo", imageField: "url", route: "/gallery" },
+            {
+                table: "music",
+                type: "music",
+                imageField: "cover",
+                route: "/articles",
+                hash: "#community-podcast",
+            },
+            { table: "videos", type: "video", imageField: "thumbnail", route: "/videos" },
+            { table: "articles", type: "article", imageField: "cover", route: "/articles" },
+            { table: "events", type: "event", imageField: "image", route: "/events" },
+        ];
+        const allowedTypes = new Set(["all", ...tableConfigs.map((item) => item.table)]);
+        if (!allowedTypes.has(requestedType)) {
+            return res.status(400).json({ error: "Invalid type filter" });
+        }
+        const activeConfigs =
+            requestedType === "all"
+                ? tableConfigs
+                : tableConfigs.filter((item) => item.table === requestedType);
 
-    const chunks = await Promise.all(activeConfigs.map(async ({ table, type, imageField, route, hash = '' }) => {
-      const rows = await db.all(
-        `
+        const chunks = await Promise.all(
+            activeConfigs.map(async ({ table, type, imageField, route, hash = "" }) => {
+                const rows = await db.all(
+                    `
         SELECT
           r.id,
           r.title,
@@ -1173,160 +1343,197 @@ const getFollowingFeed = async (req, res, next) => {
         ORDER BY datetime(r.created_at) DESC, r.id DESC
         LIMIT ?
         `,
-        [...followingIds, limit]
-      );
-      return rows.map((row) => ({
-        ...row,
-        type,
-        resource_type: table,
-        author_name: row.author_nickname || row.author_username || '匿名用户',
-        target_path: type === 'music'
-          ? `${route}?music=${row.id}${hash}`
-          : `${route}?id=${row.id}${hash}`
-      }));
-    }));
+                    [...followingIds, limit]
+                );
+                return rows.map((row) => ({
+                    ...row,
+                    type,
+                    resource_type: table,
+                    author_name: row.author_nickname || row.author_username || "匿名用户",
+                    target_path:
+                        type === "music"
+                            ? `${route}?music=${row.id}${hash}`
+                            : `${route}?id=${row.id}${hash}`,
+                }));
+            })
+        );
 
-    const merged = chunks
-      .flat()
-      .sort((a, b) => {
-        const dateA = new Date(a.created_at || 0).getTime();
-        const dateB = new Date(b.created_at || 0).getTime();
-        if (dateA !== dateB) return dateB - dateA;
-        return (b.id || 0) - (a.id || 0);
-      })
-      .slice(0, limit);
+        const merged = chunks
+            .flat()
+            .sort((a, b) => {
+                const dateA = new Date(a.created_at || 0).getTime();
+                const dateB = new Date(b.created_at || 0).getTime();
+                if (dateA !== dateB) return dateB - dateA;
+                return (b.id || 0) - (a.id || 0);
+            })
+            .slice(0, limit);
 
-    res.json({ data: merged });
-  } catch (error) { next(error); }
+        res.json({ data: merged });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const listOwnIdentityClaims = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const db = await getDb();
-    const rows = await db.all(
-      `
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const db = await getDb();
+        const rows = await db.all(
+            `
       SELECT id, user_id, type, display_name, status, created_at, updated_at
       FROM user_identity_claims
       WHERE user_id = ?
       ORDER BY datetime(created_at) DESC, id DESC
       `,
-      [userId]
-    );
-    res.json(rows.map(serializeIdentityClaim));
-  } catch (error) { next(error); }
+            [userId]
+        );
+        res.json(rows.map(serializeIdentityClaim));
+    } catch (error) {
+        next(error);
+    }
 };
 
 const createOwnIdentityClaim = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const type = normalizeIdentityType(req.body?.type || '');
-    const displayName = String(req.body?.display_name || req.body?.displayName || '').trim();
-    const invitationCode = String(req.body?.invitation_code || req.body?.invitationCode || '').trim();
-    if (!IDENTITY_TYPES.has(type)) {
-      return res.status(400).json({ error: 'Invalid identity type' });
-    }
-    if (displayName.length < 2 || displayName.length > 80) {
-      return res.status(400).json({ error: 'Identity name must be 2-80 characters' });
-    }
-    const normalizedName = normalizeIdentityName(displayName);
-    if (!normalizedName) return res.status(400).json({ error: 'Identity name is required' });
-    const db = await getDb();
-    const isOrganization = isOrganizationIdentityType(type);
-    const status = 'pending';
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const type = normalizeIdentityType(req.body?.type || "");
+        const displayName = String(req.body?.display_name || req.body?.displayName || "").trim();
+        const invitationCode = String(
+            req.body?.invitation_code || req.body?.invitationCode || ""
+        ).trim();
+        if (!IDENTITY_TYPES.has(type)) {
+            return res.status(400).json({ error: "Invalid identity type" });
+        }
+        if (displayName.length < 2 || displayName.length > 80) {
+            return res.status(400).json({ error: "Identity name must be 2-80 characters" });
+        }
+        const normalizedName = normalizeIdentityName(displayName);
+        if (!normalizedName) return res.status(400).json({ error: "Identity name is required" });
+        const db = await getDb();
+        const isOrganization = isOrganizationIdentityType(type);
+        const status = "pending";
 
-    if (isOrganization && invitationCode) {
-      const inviteCodeValid = await verifyInviteCode(db, invitationCode);
-      if (!inviteCodeValid) {
-        return res.status(400).json({ error: 'Invalid invitation code' });
-      }
-      const claim = await upsertVerifiedOrganizationClaim(db, userId, displayName);
-      await db.run('UPDATE users SET organization_cr = ? WHERE id = ?', [displayName, userId]);
-      const works = await db.all(
-        "SELECT * FROM competition_works WHERE deleted_at IS NULL AND COALESCE(author, '') != ''"
-      );
-      for (const work of works) {
-        await createCandidateLinksForWork(db, work);
-      }
-      return res.status(201).json(serializeIdentityClaim(claim));
-    }
+        if (isOrganization && invitationCode) {
+            const inviteCodeValid = await verifyInviteCode(db, invitationCode);
+            if (!inviteCodeValid) {
+                return res.status(400).json({ error: "Invalid invitation code" });
+            }
+            const claim = await upsertVerifiedOrganizationClaim(db, userId, displayName);
+            await db.run("UPDATE users SET organization_cr = ? WHERE id = ?", [
+                displayName,
+                userId,
+            ]);
+            const works = await db.all(
+                "SELECT * FROM competition_works WHERE deleted_at IS NULL AND COALESCE(author, '') != ''"
+            );
+            for (const work of works) {
+                await createCandidateLinksForWork(db, work);
+            }
+            return res.status(201).json(serializeIdentityClaim(claim));
+        }
 
-    const result = await db.run(
-      `
+        const result = await db.run(
+            `
       INSERT INTO user_identity_claims (
         user_id, type, display_name, normalized_name, status, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
-      [userId, type, displayName, normalizedName, status]
-    );
-    const claim = await db.get('SELECT * FROM user_identity_claims WHERE id = ?', [result.lastID]);
-    const works = await db.all(
-      "SELECT * FROM competition_works WHERE deleted_at IS NULL AND COALESCE(author, '') != ''"
-    );
-    for (const work of works) {
-      await createCandidateLinksForWork(db, work);
+            [userId, type, displayName, normalizedName, status]
+        );
+        const claim = await db.get("SELECT * FROM user_identity_claims WHERE id = ?", [
+            result.lastID,
+        ]);
+        const works = await db.all(
+            "SELECT * FROM competition_works WHERE deleted_at IS NULL AND COALESCE(author, '') != ''"
+        );
+        for (const work of works) {
+            await createCandidateLinksForWork(db, work);
+        }
+        res.status(201).json(serializeIdentityClaim(claim));
+    } catch (error) {
+        next(error);
     }
-    res.status(201).json(serializeIdentityClaim(claim));
-  } catch (error) { next(error); }
 };
 
 const updateOwnIdentityClaim = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const claimId = Number(req.params.claimId);
-    if (!Number.isFinite(claimId)) return res.status(400).json({ error: 'Invalid claim id' });
-    const db = await getDb();
-    const existing = await db.get('SELECT * FROM user_identity_claims WHERE id = ? AND user_id = ?', [claimId, userId]);
-    if (!existing) return res.status(404).json({ error: 'Identity claim not found' });
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const claimId = Number(req.params.claimId);
+        if (!Number.isFinite(claimId)) return res.status(400).json({ error: "Invalid claim id" });
+        const db = await getDb();
+        const existing = await db.get(
+            "SELECT * FROM user_identity_claims WHERE id = ? AND user_id = ?",
+            [claimId, userId]
+        );
+        if (!existing) return res.status(404).json({ error: "Identity claim not found" });
 
-    const nextType = req.body?.type !== undefined ? normalizeIdentityType(req.body.type) : existing.type;
-    const nextDisplayName = req.body?.display_name !== undefined || req.body?.displayName !== undefined
-      ? String(req.body.display_name ?? req.body.displayName).trim()
-      : existing.display_name;
-    const requestedStatus = req.body?.status !== undefined ? String(req.body.status).trim() : existing.status;
-    const invitationCode = String(req.body?.invitation_code || req.body?.invitationCode || '').trim();
-    let nextStatus = requestedStatus === 'rejected' ? 'rejected' : existing.status;
-    if (!IDENTITY_TYPES.has(nextType)) return res.status(400).json({ error: 'Invalid identity type' });
-    if (nextDisplayName.length < 2 || nextDisplayName.length > 80) {
-      return res.status(400).json({ error: 'Identity name must be 2-80 characters' });
-    }
-    if (isOrganizationIdentityType(nextType) && invitationCode) {
-      const inviteCodeValid = await verifyInviteCode(db, invitationCode);
-      if (!inviteCodeValid) return res.status(400).json({ error: 'Invalid invitation code' });
-      nextStatus = 'verified';
-      await db.run('UPDATE users SET organization_cr = ? WHERE id = ?', [nextDisplayName, userId]);
-    }
-    await db.run(
-      `
+        const nextType =
+            req.body?.type !== undefined ? normalizeIdentityType(req.body.type) : existing.type;
+        const nextDisplayName =
+            req.body?.display_name !== undefined || req.body?.displayName !== undefined
+                ? String(req.body.display_name ?? req.body.displayName).trim()
+                : existing.display_name;
+        const requestedStatus =
+            req.body?.status !== undefined ? String(req.body.status).trim() : existing.status;
+        const invitationCode = String(
+            req.body?.invitation_code || req.body?.invitationCode || ""
+        ).trim();
+        let nextStatus = requestedStatus === "rejected" ? "rejected" : existing.status;
+        if (!IDENTITY_TYPES.has(nextType))
+            return res.status(400).json({ error: "Invalid identity type" });
+        if (nextDisplayName.length < 2 || nextDisplayName.length > 80) {
+            return res.status(400).json({ error: "Identity name must be 2-80 characters" });
+        }
+        if (isOrganizationIdentityType(nextType) && invitationCode) {
+            const inviteCodeValid = await verifyInviteCode(db, invitationCode);
+            if (!inviteCodeValid) return res.status(400).json({ error: "Invalid invitation code" });
+            nextStatus = "verified";
+            await db.run("UPDATE users SET organization_cr = ? WHERE id = ?", [
+                nextDisplayName,
+                userId,
+            ]);
+        }
+        await db.run(
+            `
       UPDATE user_identity_claims
       SET type = ?, display_name = ?, normalized_name = ?, status = ?, updated_at = datetime('now')
       WHERE id = ? AND user_id = ?
       `,
-      [nextType, nextDisplayName, normalizeIdentityName(nextDisplayName), nextStatus, claimId, userId]
-    );
-    const claim = await db.get('SELECT * FROM user_identity_claims WHERE id = ?', [claimId]);
-    res.json(serializeIdentityClaim(claim));
-  } catch (error) { next(error); }
+            [
+                nextType,
+                nextDisplayName,
+                normalizeIdentityName(nextDisplayName),
+                nextStatus,
+                claimId,
+                userId,
+            ]
+        );
+        const claim = await db.get("SELECT * FROM user_identity_claims WHERE id = ?", [claimId]);
+        res.json(serializeIdentityClaim(claim));
+    } catch (error) {
+        next(error);
+    }
 };
 
 const listOwnOutcomeLinks = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const status = String(req.query.status || 'all').toLowerCase();
-    const db = await getDb();
-    const params = [userId];
-    let statusClause = '';
-    if (status !== 'all') {
-      if (!LINK_STATUSES.has(status)) return res.status(400).json({ error: 'Invalid binding status' });
-      statusClause = ' AND l.status = ?';
-      params.push(status);
-    }
-    const rows = await db.all(
-      `
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const status = String(req.query.status || "all").toLowerCase();
+        const db = await getDb();
+        const params = [userId];
+        let statusClause = "";
+        if (status !== "all") {
+            if (!LINK_STATUSES.has(status))
+                return res.status(400).json({ error: "Invalid binding status" });
+            statusClause = " AND l.status = ?";
+            params.push(status);
+        }
+        const rows = await db.all(
+            `
       SELECT l.id AS link_id, l.status AS binding_status, l.matched_text, l.match_source,
              l.confidence, l.created_at AS linked_at, l.updated_at AS link_updated_at,
              ic.id AS identity_claim_id, ic.type AS bound_identity_type,
@@ -1345,44 +1552,46 @@ const listOwnOutcomeLinks = async (req, res, next) => {
         AND (c.deleted_at IS NULL OR c.id IS NULL)
       ORDER BY datetime(l.updated_at) DESC, l.id DESC
       `,
-      params
-    );
-    res.json(rows.map((row) => serializeCompetitionWorkForProfile(row, true)));
-  } catch (error) { next(error); }
+            params
+        );
+        res.json(rows.map((row) => serializeCompetitionWorkForProfile(row, true)));
+    } catch (error) {
+        next(error);
+    }
 };
 
 const updateOwnOutcomeLink = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Login required' });
-    const linkId = Number(req.params.linkId);
-    const action = String(req.body?.action || '').trim();
-    const statusByAction = {
-      confirm: 'confirmed',
-      reject: 'rejected',
-      revoke: 'revoked',
-    };
-    const nextStatus = statusByAction[action];
-    if (!Number.isFinite(linkId)) return res.status(400).json({ error: 'Invalid link id' });
-    if (!nextStatus) return res.status(400).json({ error: 'Invalid link action' });
-    const db = await getDb();
-    const existing = await db.get(
-      'SELECT id FROM competition_work_identity_links WHERE id = ? AND user_id = ?',
-      [linkId, userId]
-    );
-    if (!existing) return res.status(404).json({ error: 'Outcome link not found' });
-    await db.run(
-      `
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Login required" });
+        const linkId = Number(req.params.linkId);
+        const action = String(req.body?.action || "").trim();
+        const statusByAction = {
+            confirm: "confirmed",
+            reject: "rejected",
+            revoke: "revoked",
+        };
+        const nextStatus = statusByAction[action];
+        if (!Number.isFinite(linkId)) return res.status(400).json({ error: "Invalid link id" });
+        if (!nextStatus) return res.status(400).json({ error: "Invalid link action" });
+        const db = await getDb();
+        const existing = await db.get(
+            "SELECT id FROM competition_work_identity_links WHERE id = ? AND user_id = ?",
+            [linkId, userId]
+        );
+        if (!existing) return res.status(404).json({ error: "Outcome link not found" });
+        await db.run(
+            `
       UPDATE competition_work_identity_links
       SET status = ?,
           updated_at = datetime('now'),
           confirmed_at = CASE WHEN ? = 'confirmed' THEN datetime('now') ELSE confirmed_at END
       WHERE id = ? AND user_id = ?
       `,
-      [nextStatus, nextStatus, linkId, userId]
-    );
-    const row = await db.get(
-      `
+            [nextStatus, nextStatus, linkId, userId]
+        );
+        const row = await db.get(
+            `
       SELECT l.id AS link_id, l.status AS binding_status, l.matched_text, l.match_source,
              l.confidence, l.created_at AS linked_at, l.updated_at AS link_updated_at,
              ic.id AS identity_claim_id, ic.type AS bound_identity_type,
@@ -1397,28 +1606,33 @@ const updateOwnOutcomeLink = async (req, res, next) => {
       LEFT JOIN users u ON u.id = cw.uploader_id
       WHERE l.id = ?
       `,
-      [linkId]
-    );
-    res.json(serializeCompetitionWorkForProfile(row, true));
-  } catch (error) { next(error); }
+            [linkId]
+        );
+        res.json(serializeCompetitionWorkForProfile(row, true));
+    } catch (error) {
+        next(error);
+    }
 };
 
 const adminCreateOutcomeLink = async (req, res, next) => {
-  try {
-    const workId = Number(req.body?.work_id || req.body?.workId);
-    const claimId = Number(req.body?.claim_id || req.body?.claimId);
-    const requestedStatus = String(req.body?.status || 'confirmed').trim();
-    const status = LINK_STATUSES.has(requestedStatus) ? requestedStatus : 'confirmed';
-    if (!Number.isFinite(workId) || !Number.isFinite(claimId)) {
-      return res.status(400).json({ error: 'work_id and claim_id are required' });
-    }
-    const db = await getDb();
-    const claim = await db.get('SELECT * FROM user_identity_claims WHERE id = ?', [claimId]);
-    if (!claim) return res.status(404).json({ error: 'Identity claim not found' });
-    const work = await db.get('SELECT * FROM competition_works WHERE id = ? AND deleted_at IS NULL', [workId]);
-    if (!work) return res.status(404).json({ error: 'Competition work not found' });
-    await db.run(
-      `
+    try {
+        const workId = Number(req.body?.work_id || req.body?.workId);
+        const claimId = Number(req.body?.claim_id || req.body?.claimId);
+        const requestedStatus = String(req.body?.status || "confirmed").trim();
+        const status = LINK_STATUSES.has(requestedStatus) ? requestedStatus : "confirmed";
+        if (!Number.isFinite(workId) || !Number.isFinite(claimId)) {
+            return res.status(400).json({ error: "work_id and claim_id are required" });
+        }
+        const db = await getDb();
+        const claim = await db.get("SELECT * FROM user_identity_claims WHERE id = ?", [claimId]);
+        if (!claim) return res.status(404).json({ error: "Identity claim not found" });
+        const work = await db.get(
+            "SELECT * FROM competition_works WHERE id = ? AND deleted_at IS NULL",
+            [workId]
+        );
+        if (!work) return res.status(404).json({ error: "Competition work not found" });
+        await db.run(
+            `
       INSERT INTO competition_work_identity_links (
         work_id, claim_id, user_id, matched_text, match_source, status, confidence,
         created_at, updated_at, confirmed_at
@@ -1431,23 +1645,29 @@ const adminCreateOutcomeLink = async (req, res, next) => {
         updated_at = datetime('now'),
         confirmed_at = CASE WHEN excluded.status = 'confirmed' THEN datetime('now') ELSE competition_work_identity_links.confirmed_at END
       `,
-      [workId, claimId, claim.user_id, claim.display_name, status, status]
-    );
-    res.status(201).json({ success: true });
-  } catch (error) { next(error); }
+            [workId, claimId, claim.user_id, claim.display_name, status, status]
+        );
+        res.status(201).json({ success: true });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const adminUpdateOutcomeLink = async (req, res, next) => {
-  try {
-    const linkId = Number(req.params.linkId);
-    const status = String(req.body?.status || '').trim();
-    if (!Number.isFinite(linkId)) return res.status(400).json({ error: 'Invalid link id' });
-    if (!LINK_STATUSES.has(status)) return res.status(400).json({ error: 'Invalid binding status' });
-    const db = await getDb();
-    const existing = await db.get('SELECT id FROM competition_work_identity_links WHERE id = ?', [linkId]);
-    if (!existing) return res.status(404).json({ error: 'Outcome link not found' });
-    await db.run(
-      `
+    try {
+        const linkId = Number(req.params.linkId);
+        const status = String(req.body?.status || "").trim();
+        if (!Number.isFinite(linkId)) return res.status(400).json({ error: "Invalid link id" });
+        if (!LINK_STATUSES.has(status))
+            return res.status(400).json({ error: "Invalid binding status" });
+        const db = await getDb();
+        const existing = await db.get(
+            "SELECT id FROM competition_work_identity_links WHERE id = ?",
+            [linkId]
+        );
+        if (!existing) return res.status(404).json({ error: "Outcome link not found" });
+        await db.run(
+            `
       UPDATE competition_work_identity_links
       SET status = ?,
           match_source = 'manual_admin',
@@ -1455,20 +1675,22 @@ const adminUpdateOutcomeLink = async (req, res, next) => {
           confirmed_at = CASE WHEN ? = 'confirmed' THEN datetime('now') ELSE confirmed_at END
       WHERE id = ?
       `,
-      [status, status, linkId]
-    );
-    res.json({ success: true });
-  } catch (error) { next(error); }
+            [status, status, linkId]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getUserCompetitionWorks = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    const { id } = req.params;
-    const isOwner = req.user && String(req.user.id) === String(id);
-    const isAdmin = req.user?.role === 'admin';
-    const includeReviewState = Boolean(isOwner || isAdmin);
-    let query = `
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const isOwner = req.user && String(req.user.id) === String(id);
+        const isAdmin = req.user?.role === "admin";
+        const includeReviewState = Boolean(isOwner || isAdmin);
+        let query = `
       SELECT cw.*, c.title AS competition_title,
              l.id AS link_id,
              l.status AS binding_status,
@@ -1487,36 +1709,40 @@ const getUserCompetitionWorks = async (req, res, next) => {
         AND cw.deleted_at IS NULL
         AND (c.deleted_at IS NULL OR c.id IS NULL)
     `;
-    if (!includeReviewState) {
-      query += " AND l.status = 'confirmed' AND cw.status = 'approved' AND COALESCE(cw.public_consent, 1) = 1";
+        if (!includeReviewState) {
+            query +=
+                " AND l.status = 'confirmed' AND cw.status = 'approved' AND COALESCE(cw.public_consent, 1) = 1";
+        }
+        query +=
+            " ORDER BY datetime(COALESCE(cw.created_at, cw.updated_at, '1970-01-01')) DESC, cw.id DESC";
+        const rows = await db.all(query, [id]);
+        res.json(rows.map((row) => serializeCompetitionWorkForProfile(row, includeReviewState)));
+    } catch (error) {
+        next(error);
     }
-    query += " ORDER BY datetime(COALESCE(cw.created_at, cw.updated_at, '1970-01-01')) DESC, cw.id DESC";
-    const rows = await db.all(query, [id]);
-    res.json(rows.map((row) => serializeCompetitionWorkForProfile(row, includeReviewState)));
-  } catch (error) { next(error); }
 };
 
 const getUserResources = async (req, res, next) => {
     try {
-        const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+        const { serializeCommunityPost } = require("../utils/serializeCommunityPost");
 
         const db = await getDb();
         const { id } = req.params;
-        const tables = ['photos', 'videos', 'music', 'articles', 'events', 'news'];
+        const tables = ["photos", "videos", "music", "articles", "events", "news"];
         const typeSingular = {
-          photos: 'photo',
-          videos: 'video',
-          music: 'music',
-          articles: 'article',
-          events: 'event',
-          news: 'news',
+            photos: "photo",
+            videos: "video",
+            music: "music",
+            articles: "article",
+            events: "event",
+            news: "news",
         };
         let allResources = [];
 
         // Check if requester is the owner or admin
         const isOwner = req.user && String(req.user.id) === String(id);
         const viewerRole = req.user ? req.user.role : null;
-        const isAdmin = viewerRole === 'admin';
+        const isAdmin = viewerRole === "admin";
 
         for (const table of tables) {
             const typeValue = typeSingular[table];
@@ -1555,8 +1781,8 @@ const getUserResources = async (req, res, next) => {
         const postsRaw = await db.all(postsQuery, postsParams);
         const viewer = req.user ? { id: req.user.id, role: req.user.role } : null;
         const posts = postsRaw.map((p) => ({
-          ...serializeCommunityPost(p, viewer),
-          type: p.section, // 'help' or 'team'
+            ...serializeCommunityPost(p, viewer),
+            type: p.section, // 'help' or 'team'
         }));
         allResources = [...allResources, ...posts];
 
@@ -1585,10 +1811,10 @@ const getUserResources = async (req, res, next) => {
         worksQuery += " ORDER BY cw.id DESC";
         const competitionWorks = await db.all(worksQuery, [id]);
         allResources = [
-          ...allResources,
-          ...competitionWorks.map((work) =>
-            serializeCompetitionWorkForProfile(work, Boolean(isOwner || isAdmin))
-          )
+            ...allResources,
+            ...competitionWorks.map((work) =>
+                serializeCompetitionWorkForProfile(work, Boolean(isOwner || isAdmin))
+            ),
         ];
 
         // Project cards: owner column is user_id; visitors see only published,
@@ -1600,49 +1826,48 @@ const getUserResources = async (req, res, next) => {
                              WHERE user_id = ? AND status != 'removed'`;
         const projectParams = [id];
         if (!isOwner && !isAdmin) {
-          projectQuery += ` AND status = 'published'`;
+            projectQuery += ` AND status = 'published'`;
         }
         projectQuery += ` ORDER BY id DESC`;
         const projectRows = await db.all(projectQuery, projectParams);
-        allResources = [
-          ...allResources,
-          ...projectRows.map((p) => ({ ...p, type: 'project' })),
-        ];
+        allResources = [...allResources, ...projectRows.map((p) => ({ ...p, type: "project" }))];
 
         // Unified sort by created_at DESC (fallback to id for ties / missing timestamps)
         allResources.sort((a, b) => {
-          const ta = new Date(a.created_at || 0).getTime();
-          const tb = new Date(b.created_at || 0).getTime();
-          if (tb !== ta) return tb - ta;
-          return (b.id || 0) - (a.id || 0);
+            const ta = new Date(a.created_at || 0).getTime();
+            const tb = new Date(b.created_at || 0).getTime();
+            if (tb !== ta) return tb - ta;
+            return (b.id || 0) - (a.id || 0);
         });
 
         res.json(allResources);
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {
-  getAllUsers,
-  updateUser,
-  uploadOwnAvatar,
-  getOwnOverview,
-  getAdminUserOrganizations,
-  listOwnIdentityClaims,
-  createOwnIdentityClaim,
-  updateOwnIdentityClaim,
-  listOwnOutcomeLinks,
-  updateOwnOutcomeLink,
-  adminCreateOutcomeLink,
-  adminUpdateOutcomeLink,
-  createCandidateLinksForWork,
-  deleteUser,
-  getPublicProfile,
-  getUserResources,
-  getUserCompetitionWorks,
-  toggleFollowUser,
-  listFollowers,
-  listFollowing,
-  getFollowingIds,
-  getFollowRecommendations,
-  getFollowingFeed
+    getAllUsers,
+    updateUser,
+    uploadOwnAvatar,
+    getOwnOverview,
+    getAdminUserOrganizations,
+    listOwnIdentityClaims,
+    createOwnIdentityClaim,
+    updateOwnIdentityClaim,
+    listOwnOutcomeLinks,
+    updateOwnOutcomeLink,
+    adminCreateOutcomeLink,
+    adminUpdateOutcomeLink,
+    createCandidateLinksForWork,
+    deleteUser,
+    getPublicProfile,
+    getUserResources,
+    getUserCompetitionWorks,
+    toggleFollowUser,
+    listFollowers,
+    listFollowing,
+    getFollowingIds,
+    getFollowRecommendations,
+    getFollowingFeed,
 };

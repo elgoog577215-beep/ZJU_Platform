@@ -31,9 +31,9 @@
 - `appName`：与现有品牌名一致。
 - `webDir`：默认 `dist`。
 - `server`：
-  - 生产构建默认不写死本地地址。
-  - 开发调试可以临时设置 `url` 指向 `http://localhost:5180` 或局域网地址。
-  - iOS scheme 使用 Capacitor 默认安全配置，除非确有兼容问题再调整。
+    - 生产构建默认不写死本地地址。
+    - 开发调试可以临时设置 `url` 指向 `http://localhost:5180` 或局域网地址。
+    - iOS scheme 使用 Capacitor 默认安全配置，除非确有兼容问题再调整。
 
 配置中不得提交个人 Team ID、证书、Provisioning Profile、Apple ID、密码或私有 token。
 

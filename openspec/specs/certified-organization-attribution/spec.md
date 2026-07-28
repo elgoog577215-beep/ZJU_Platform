@@ -1,8 +1,11 @@
 # certified-organization-attribution Specification
 
 ## Purpose
+
 TBD - created by archiving change transition-certified-organization-attribution. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Certified Organization Attribution Preview
 
 系统 SHALL 为管理员提供历史活动归属候选预览，候选来源包括活动主办方文本、活动标题、活动描述、来源链接和认证组织别名。
@@ -54,4 +57,3 @@ TBD - created by archiving change transition-certified-organization-attribution.
 - **WHEN** 管理员确认历史活动归属到该 profile
 - **THEN** 该活动 SHOULD 出现在团委组织主体聚合中
 - **AND** 后续绑定组织成员 SHOULD NOT require reimporting the activity
-

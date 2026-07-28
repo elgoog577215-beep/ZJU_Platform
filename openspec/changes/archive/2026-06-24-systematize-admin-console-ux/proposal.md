@@ -41,20 +41,20 @@ The goal of this change is to make the admin console more orderly, efficient, an
 ## Impact
 
 - Affected frontend files:
-  - `src/App.jsx`
-  - `src/components/Admin/AdminAccessGate.jsx`
-  - `src/components/Admin/AdminDashboard.jsx`
-  - `src/components/Admin/ResourceManager.jsx`
-  - `src/components/Admin/AiAssistantManager.jsx`
-  - `src/components/Admin/AiModelConfigManager.jsx`
+    - `src/App.jsx`
+    - `src/components/Admin/AdminAccessGate.jsx`
+    - `src/components/Admin/AdminDashboard.jsx`
+    - `src/components/Admin/ResourceManager.jsx`
+    - `src/components/Admin/AiAssistantManager.jsx`
+    - `src/components/Admin/AiModelConfigManager.jsx`
 - Affected tests:
-  - `e2e/admin-console.spec.js`
+    - `e2e/admin-console.spec.js`
 - Backend/API impact:
-  - No new endpoint.
-  - Resource manager now sends the selected `status` to existing resource list endpoints.
-  - Local backend availability remains a runtime requirement for real `123 / 123456` login; the UI change makes that failure visible inside the admin access context.
+    - No new endpoint.
+    - Resource manager now sends the selected `status` to existing resource list endpoints.
+    - Local backend availability remains a runtime requirement for real `123 / 123456` login; the UI change makes that failure visible inside the admin access context.
 - Data safety:
-  - No migration or bulk data operation.
-  - Model-key deletion gains confirmation before the existing delete request is sent.
+    - No migration or bulk data operation.
+    - Model-key deletion gains confirmation before the existing delete request is sent.
 - Rollback strategy:
-  - Revert this change set. Since no schema or persisted data format changes are introduced, rollback is code-only.
+    - Revert this change set. Since no schema or persisted data format changes are introduced, rollback is code-only.

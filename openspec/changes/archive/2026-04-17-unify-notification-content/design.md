@@ -15,12 +15,12 @@
 选软迁移 —— `ADD COLUMN content` + 回填，**不** `DROP COLUMN title, message`。
 
 - 硬迁移（一步到位删旧列）代价：
-  - SQLite 老版本不支持 `DROP COLUMN`，需要"重建表 + 复制数据"套路，风险高
-  - 一旦 revert 代码，旧 controller 找不到 `title` / `message` 列，服务启动就崩
-  - git tag 救不了已执行的 DDL
+    - SQLite 老版本不支持 `DROP COLUMN`，需要"重建表 + 复制数据"套路，风险高
+    - 一旦 revert 代码，旧 controller 找不到 `title` / `message` 列，服务启动就崩
+    - git tag 救不了已执行的 DDL
 - 软迁移代价：
-  - 表日后会有两个半废字段占位
-  - 需要下一轮单独处理（已在 tasks 4.1 记录 tech-debt）
+    - 表日后会有两个半废字段占位
+    - 需要下一轮单独处理（已在 tasks 4.1 记录 tech-debt）
 
 软迁移让 `git reset --hard pre-msg-refactor-v1` 直接可行 —— 代码回滚后旧 controller 读 `message` / `title` 依然有数据（回填不破坏旧列）。
 
@@ -29,6 +29,7 @@
 即便所有通知都写进 `content`，`normalizeNotificationRow` 仍保留 `content ?? message ?? title` 的读顺序。
 
 理由：
+
 - **数据迁移窗口保护**：回填 SQL 在服务启动时跑；若某条通知在迁移未完成时被读，兜底读能保证旧数据可见
 - **回滚保护**：若回滚到 tag，然后又重新 forward 到本版本，兜底能覆盖夹缝期写入的旧格式数据
 - 代价几乎为零 —— 多两个 `||` 运算符
@@ -60,12 +61,12 @@
 
 ## Risks / Trade-offs
 
-| 风险 | 概率 | 缓解 |
-|---|---|---|
-| 回填 SQL 误覆盖已有 `content`（比如历史上某些行三列都有值） | 低 | `WHERE content IS NULL OR content = ''` 挡住 |
-| `createNotification` 改成单路径后，某处旧调用传了 `title` 参数（没传 `content`）导致新通知正文为空 | 中 | tasks 3.3 手动触发三种通知验证；同时检查调用点有没有人还在传 `title` |
-| 回滚后旧代码读到的仍然是空列（迁移不走回头路） | 低 | 回填不删旧列，`message` / `title` 仍保有历史值；tasks 3.5 做一次回滚演练 |
-| SQLite WAL 文件未 checkpoint 导致 tag 回滚后数据库状态不一致 | 低 | tasks 0.2 做 `.sqlite` 文件备份作为第二层保险 |
+| 风险                                                                                               | 概率 | 缓解                                                                     |
+| -------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------ |
+| 回填 SQL 误覆盖已有 `content`（比如历史上某些行三列都有值）                                        | 低   | `WHERE content IS NULL OR content = ''` 挡住                             |
+| `createNotification` 改成单路径后，某处旧调用传了 `title` 参数（没传 `content`）导致新通知正文为空 | 中   | tasks 3.3 手动触发三种通知验证；同时检查调用点有没有人还在传 `title`     |
+| 回滚后旧代码读到的仍然是空列（迁移不走回头路）                                                     | 低   | 回填不删旧列，`message` / `title` 仍保有历史值；tasks 3.5 做一次回滚演练 |
+| SQLite WAL 文件未 checkpoint 导致 tag 回滚后数据库状态不一致                                       | 低   | tasks 0.2 做 `.sqlite` 文件备份作为第二层保险                            |
 
 ## Out of Scope
 

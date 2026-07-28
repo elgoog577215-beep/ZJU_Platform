@@ -8,21 +8,21 @@
  */
 
 const FOCUSABLE_SELECTOR = [
-  'button:not([disabled])',
-  '[href]',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(', ');
+    "button:not([disabled])",
+    "[href]",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    '[tabindex]:not([tabindex="-1"])',
+].join(", ");
 
 const getFocusableElements = (container) => {
-  if (!container) return [];
+    if (!container) return [];
 
-  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter((element) => {
-    const style = window.getComputedStyle(element);
-    return style.display !== 'none' && style.visibility !== 'hidden';
-  });
+    return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter((element) => {
+        const style = window.getComputedStyle(element);
+        return style.display !== "none" && style.visibility !== "hidden";
+    });
 };
 
 /**
@@ -30,14 +30,18 @@ const getFocusableElements = (container) => {
  * @param {HTMLElement} element - 目标元素
  */
 export const focusElement = (element) => {
-  if (!element) return;
-  
-  element.focus();
-  
-  // 如果是可点击元素，添加可见的焦点样式
-  if (element.tabIndex >= 0) {
-    element.classList.add('focus-visible:outline-none', 'focus-visible:ring-2', 'focus-visible:ring-indigo-500');
-  }
+    if (!element) return;
+
+    element.focus();
+
+    // 如果是可点击元素，添加可见的焦点样式
+    if (element.tabIndex >= 0) {
+        element.classList.add(
+            "focus-visible:outline-none",
+            "focus-visible:ring-2",
+            "focus-visible:ring-indigo-500"
+        );
+    }
 };
 
 /**
@@ -45,13 +49,13 @@ export const focusElement = (element) => {
  * @param {HTMLElement} container - 容器元素
  */
 export const focusFirstElement = (container) => {
-  if (!container) return;
-  
-  const focusableElements = getFocusableElements(container);
-  
-  if (focusableElements.length > 0) {
-    focusableElements[0].focus();
-  }
+    if (!container) return;
+
+    const focusableElements = getFocusableElements(container);
+
+    if (focusableElements.length > 0) {
+        focusableElements[0].focus();
+    }
 };
 
 /**
@@ -59,13 +63,13 @@ export const focusFirstElement = (container) => {
  * @param {HTMLElement} container - 容器元素
  */
 export const focusLastElement = (container) => {
-  if (!container) return;
-  
-  const focusableElements = getFocusableElements(container);
-  
-  if (focusableElements.length > 0) {
-    focusableElements[focusableElements.length - 1].focus();
-  }
+    if (!container) return;
+
+    const focusableElements = getFocusableElements(container);
+
+    if (focusableElements.length > 0) {
+        focusableElements[focusableElements.length - 1].focus();
+    }
 };
 
 /**
@@ -74,46 +78,46 @@ export const focusLastElement = (container) => {
  * @returns {Function} 清理函数
  */
 export const trapFocus = (container) => {
-  if (!container) return () => {};
-  
-  const focusableElements = getFocusableElements(container);
-  if (focusableElements.length === 0) return () => {};
-  
-  const firstElement = focusableElements[0];
-  const lastElement = focusableElements[focusableElements.length - 1];
-  
-  const handleKeyDown = (e) => {
-    if (e.key !== 'Tab') return;
-    
-    if (e.shiftKey) {
-      if (document.activeElement === firstElement) {
-        e.preventDefault();
-        lastElement.focus();
-      }
-    } else {
-      if (document.activeElement === lastElement) {
-        e.preventDefault();
-        firstElement.focus();
-      }
-    }
-  };
-  
-  container.addEventListener('keydown', handleKeyDown);
-  
-  // 初始聚焦到第一个元素
-  firstElement?.focus();
-  
-  return () => {
-    container.removeEventListener('keydown', handleKeyDown);
-  };
+    if (!container) return () => {};
+
+    const focusableElements = getFocusableElements(container);
+    if (focusableElements.length === 0) return () => {};
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (e) => {
+        if (e.key !== "Tab") return;
+
+        if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            }
+        } else {
+            if (document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    };
+
+    container.addEventListener("keydown", handleKeyDown);
+
+    // 初始聚焦到第一个元素
+    firstElement?.focus();
+
+    return () => {
+        container.removeEventListener("keydown", handleKeyDown);
+    };
 };
 
 /**
  * 生成唯一的 ID（用于 ARIA 标签）
  */
 let idCounter = 0;
-export const generateId = (prefix = 'id') => {
-  return `${prefix}-${++idCounter}`;
+export const generateId = (prefix = "id") => {
+    return `${prefix}-${++idCounter}`;
 };
 
 /**
@@ -122,15 +126,15 @@ export const generateId = (prefix = 'id') => {
  * @returns {boolean} 是否可见
  */
 export const isElementVisible = (element) => {
-  if (!element) return false;
-  
-  const style = window.getComputedStyle(element);
-  return (
-    style.display !== 'none' &&
-    style.visibility !== 'hidden' &&
-    style.opacity !== '0' &&
-    element.offsetParent !== null
-  );
+    if (!element) return false;
+
+    const style = window.getComputedStyle(element);
+    return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        element.offsetParent !== null
+    );
 };
 
 /**
@@ -138,20 +142,20 @@ export const isElementVisible = (element) => {
  * @param {string} message - 要宣布的消息
  * @param {string} priority - 'polite' 或 'assertive'
  */
-export const announceToScreenReader = (message, priority = 'polite') => {
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', priority);
-  announcement.setAttribute('aria-atomic', 'true');
-  announcement.className = 'sr-only';
-  announcement.textContent = message;
-  
-  document.body.appendChild(announcement);
-  
-  // 清理
-  setTimeout(() => {
-    document.body.removeChild(announcement);
-  }, 1000);
+export const announceToScreenReader = (message, priority = "polite") => {
+    const announcement = document.createElement("div");
+    announcement.setAttribute("role", "status");
+    announcement.setAttribute("aria-live", priority);
+    announcement.setAttribute("aria-atomic", "true");
+    announcement.className = "sr-only";
+    announcement.textContent = message;
+
+    document.body.appendChild(announcement);
+
+    // 清理
+    setTimeout(() => {
+        document.body.removeChild(announcement);
+    }, 1000);
 };
 
 /**
@@ -164,25 +168,25 @@ export const announceToScreenReader = (message, priority = 'polite') => {
  * @param {Object} handlers - 处理函数对象
  */
 export const handleKeyboardNavigation = (e, handlers = {}) => {
-  const keyHandlers = {
-    Enter: handlers.onEnter,
-    Space: handlers.onSpace,
-    Escape: handlers.onEscape,
-    Tab: handlers.onTab,
-    ArrowUp: handlers.onArrowUp,
-    ArrowDown: handlers.onArrowDown,
-    ArrowLeft: handlers.onArrowLeft,
-    ArrowRight: handlers.onArrowRight,
-    Home: handlers.onHome,
-    End: handlers.onEnd,
-    ...handlers
-  };
-  
-  const handler = keyHandlers[e.key] || keyHandlers[e.code];
-  if (handler) {
-    e.preventDefault();
-    handler(e);
-  }
+    const keyHandlers = {
+        Enter: handlers.onEnter,
+        Space: handlers.onSpace,
+        Escape: handlers.onEscape,
+        Tab: handlers.onTab,
+        ArrowUp: handlers.onArrowUp,
+        ArrowDown: handlers.onArrowDown,
+        ArrowLeft: handlers.onArrowLeft,
+        ArrowRight: handlers.onArrowRight,
+        Home: handlers.onHome,
+        End: handlers.onEnd,
+        ...handlers,
+    };
+
+    const handler = keyHandlers[e.key] || keyHandlers[e.code];
+    if (handler) {
+        e.preventDefault();
+        handler(e);
+    }
 };
 
 /**
@@ -192,13 +196,13 @@ export const handleKeyboardNavigation = (e, handlers = {}) => {
  * @returns {Object} 可访问的按钮属性
  */
 export const getAccessibleButtonProps = (props = {}) => ({
-  role: 'button',
-  tabIndex: 0,
-  'aria-pressed': props['aria-pressed'],
-  'aria-disabled': props['aria-disabled'],
-  'aria-label': props['aria-label'],
-  'aria-labelledby': props['aria-labelledby'],
-  ...props
+    role: "button",
+    tabIndex: 0,
+    "aria-pressed": props["aria-pressed"],
+    "aria-disabled": props["aria-disabled"],
+    "aria-label": props["aria-label"],
+    "aria-labelledby": props["aria-labelledby"],
+    ...props,
 });
 
 /**
@@ -212,23 +216,23 @@ export const getAccessibleButtonProps = (props = {}) => ({
  * @returns {number} 对比度比率
  */
 export const getContrastRatio = (color1, color2) => {
-  const getLuminance = (hex) => {
-    const rgb = parseInt(hex.slice(1), 16);
-    const r = ((rgb >> 16) & 0xff) / 255;
-    const g = ((rgb >> 8) & 0xff) / 255;
-    const b = (rgb & 0xff) / 255;
-    
-    const a = [r, g, b].map((v) => {
-      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-    });
-    
-    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
-  };
-  
-  const l1 = getLuminance(color1);
-  const l2 = getLuminance(color2);
-  
-  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    const getLuminance = (hex) => {
+        const rgb = parseInt(hex.slice(1), 16);
+        const r = ((rgb >> 16) & 0xff) / 255;
+        const g = ((rgb >> 8) & 0xff) / 255;
+        const b = (rgb & 0xff) / 255;
+
+        const a = [r, g, b].map((v) => {
+            return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        });
+
+        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+
+    const l1 = getLuminance(color1);
+    const l2 = getLuminance(color2);
+
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 };
 
 /**
@@ -238,29 +242,29 @@ export const getContrastRatio = (color1, color2) => {
  * @param {string} level - 'AA' 或 'AAA'
  * @returns {boolean} 是否符合标准
  */
-export const meetsContrastRequirements = (color1, color2, level = 'AA') => {
-  const ratio = getContrastRatio(color1, color2);
-  
-  const requirements = {
-    AA: 4.5, // 普通文本
-    AAA: 7, // 增强对比度
-    'AA-large': 3, // 大文本
-    'AAA-large': 4.5 // 大文本增强
-  };
-  
-  return ratio >= requirements[level];
+export const meetsContrastRequirements = (color1, color2, level = "AA") => {
+    const ratio = getContrastRatio(color1, color2);
+
+    const requirements = {
+        AA: 4.5, // 普通文本
+        AAA: 7, // 增强对比度
+        "AA-large": 3, // 大文本
+        "AAA-large": 4.5, // 大文本增强
+    };
+
+    return ratio >= requirements[level];
 };
 
 export default {
-  focusElement,
-  focusFirstElement,
-  focusLastElement,
-  trapFocus,
-  generateId,
-  isElementVisible,
-  announceToScreenReader,
-  handleKeyboardNavigation,
-  getAccessibleButtonProps,
-  getContrastRatio,
-  meetsContrastRequirements
+    focusElement,
+    focusFirstElement,
+    focusLastElement,
+    trapFocus,
+    generateId,
+    isElementVisible,
+    announceToScreenReader,
+    handleKeyboardNavigation,
+    getAccessibleButtonProps,
+    getContrastRatio,
+    meetsContrastRequirements,
 };

@@ -8,12 +8,14 @@
 - 社区帖：`community_posts`（本次新增），包括 `section = 'help'` 和 `section = 'team'`
 
 筛选规则：
+
 - 非 owner 非 admin 访客：只见 `status = 'approved' AND deleted_at IS NULL` 的条目
 - 匿名求助贴（`is_anonymous = 1`）：非 owner 非 admin 访客 MUST 看不到该条
 - Owner 本人：看到全部自己的内容，包括 draft / pending / rejected 状态和匿名求助贴
 - Admin：看到全部（含他人的 draft / 匿名求助贴）以便审核
 
 返回格式：
+
 - 每条带 `type` 字段（`'photo' | 'music' | 'video' | 'article' | 'event' | 'news' | 'help' | 'team'`）
 - 统一字段：`id`, `type`, `title`, `cover`（可选）, `created_at`, `likes`
 - 按 `created_at DESC` 排序
@@ -78,6 +80,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 主页内容区 SHALL 使用大图 grid 卡片（保留平台既有"已发布" tab 的风格），而不是收藏页的小横条列表。
 
 每张卡片 MUST 包含：
+
 - cover 图（无 cover 的类型用占位渐变 + 类型图标）
 - 类型 badge（左上，按类型色彩）
 - 点赞数（右上）
@@ -103,6 +106,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 点击主页卡片 SHALL 跳转到对应资源的详情页（或资源所在列表的详情弹窗），并在详情页的返回操作上回到原主页的 URL 和滚动位置。
 
 实现约束：
+
 - 前端 navigate 时通过 react-router `state` 传递 `fromUserProfile: { userId, scrollY }`
 - 详情页返回（浏览器 back 或 UI 关闭按钮）时 `navigate(-1)`
 - 返回后主页 tab 选中状态、滚动位置保持不变
@@ -124,6 +128,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 资源详情弹窗 / 详情页 SHALL 把作者头像区块做成可点击入口，点击 navigate 到 `/profile/:uploaderId`。
 
 约束：
+
 - 当 `uploader_id` 为 null（匿名求助贴 / 孤儿资源）时：头像显示为灰底默认占位，`cursor: not-allowed`，不绑定 onClick
 - 当 `uploader_id` 存在：头像显示作者 avatar，`cursor: pointer`，hover 态加强
 - 组件：`CommunityDetailModal.jsx` 及其他包含作者区块的详情组件

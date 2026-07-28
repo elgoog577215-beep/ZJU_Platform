@@ -140,9 +140,9 @@ The AI community remains a single route at `/articles`, but is clearly structure
 
 2. Main stage.
    Switchable primary modules:
-   - Help board
-   - Tech articles
-   - Group directory
+    - Help board
+    - Tech articles
+    - Group directory
 
 3. Cross-module recommendation layer.
    Context-aware related content and next actions shown inside detail views and list entry points.
@@ -269,10 +269,10 @@ UI:
 
 - Article detail bottom area becomes a continue exploring zone
 - Recommended block order:
-  1. Related articles
-  2. Related help threads
-  3. Related news
-  4. Related groups
+    1. Related articles
+    2. Related help threads
+    3. Related news
+    4. Related groups
 
 ### 4. Group -> Topic / Article / Help
 
@@ -285,9 +285,9 @@ Each group can optionally bind to:
 UI:
 
 - Group card detail or expanded action panel shows:
-  - Suitable topics
-  - Recommended articles
-  - Latest help threads
+    - Suitable topics
+    - Recommended articles
+    - Latest help threads
 
 This makes groups part of the content system rather than isolated QR assets.
 

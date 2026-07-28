@@ -31,23 +31,23 @@
 ## Impact
 
 - 前端：
-  - `src/components/Admin/AdminDashboard.jsx`
-  - `src/components/Admin/Overview.jsx`
-  - `src/components/Admin/AiAssistantManager.jsx`
-  - `src/components/Admin/UserManager.jsx`
-  - `src/components/Admin/EcosystemPartnerManager.jsx`
-  - `src/components/Admin/AdminCommunity.jsx`
-  - 可能新增项目后台管理组件。
+    - `src/components/Admin/AdminDashboard.jsx`
+    - `src/components/Admin/Overview.jsx`
+    - `src/components/Admin/AiAssistantManager.jsx`
+    - `src/components/Admin/UserManager.jsx`
+    - `src/components/Admin/EcosystemPartnerManager.jsx`
+    - `src/components/Admin/AdminCommunity.jsx`
+    - 可能新增项目后台管理组件。
 - 后端：
-  - 第一阶段不要求数据库迁移。
-  - 后续项目后台入口可能复用或扩展 `projectCardController` 和 `/admin/projects/*`。
-  - AI 能力状态继续复用 `unifiedAiAssistantService`、`aiAgentRegistryService` 和搜索索引服务。
+    - 第一阶段不要求数据库迁移。
+    - 后续项目后台入口可能复用或扩展 `projectCardController` 和 `/admin/projects/*`。
+    - AI 能力状态继续复用 `unifiedAiAssistantService`、`aiAgentRegistryService` 和搜索索引服务。
 - 文档：
-  - `docs/roadmap/admin-console-architecture-audit-20260708.md`
-  - `docs/roadmap/product-iteration-queue.md`
+    - `docs/roadmap/admin-console-architecture-audit-20260708.md`
+    - `docs/roadmap/product-iteration-queue.md`
 - i18n：
-  - `public/locales/zh/translation.json`
-  - `public/locales/en/translation.json`
+    - `public/locales/zh/translation.json`
+    - `public/locales/en/translation.json`
 
 ## Not Doing
 

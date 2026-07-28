@@ -1,8 +1,11 @@
 # admin-layout-organization Specification
 
 ## Purpose
+
 TBD - created by archiving change organize-admin-console-layout. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Organized Admin Shell Hierarchy
 
 The admin shell SHALL separate orientation, navigation tools, and session actions so administrators can identify the current module and switch modules without scanning a crowded header.
@@ -74,4 +77,3 @@ The admin layout organization SHALL be covered by automated browser tests.
 - **GIVEN** the admin e2e test suite runs with mocked APIs
 - **WHEN** it opens desktop and mobile admin views
 - **THEN** it SHALL verify organized header controls, overview priority structure, resource status row, and mobile drawer behavior.
-

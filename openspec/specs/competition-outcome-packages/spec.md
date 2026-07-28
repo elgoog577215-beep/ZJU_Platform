@@ -1,8 +1,11 @@
 # competition-outcome-packages Specification
 
 ## Purpose
+
 TBD - created by archiving change manage-competition-outcome-packages. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Competition package must be the atomic outcome unit
 
 The system SHALL treat one competition package as the complete collection of outcome data for one competition, including promo videos, stage photos, excellent works, and review state.
@@ -88,4 +91,3 @@ External user submissions SHALL bind to the current display package at submit ti
 - **WHEN** an administrator switches current display to package B before approving it
 - **THEN** approving that content SHALL keep it under package A
 - **AND** it SHALL not appear publicly while package B is current display.
-

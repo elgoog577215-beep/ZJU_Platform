@@ -1,72 +1,72 @@
 {
-  "name": "server",
-  "version": "1.0.2",
-  "description": "Backend for Lumos Photography",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "migrate": "node scripts/migrate.js",
-    "migrate:safe": "node scripts/sync-schema-safe.js",
-    "seed": "node seed.js",
-    "seed:community": "node scripts/seedAiCommunityDemo.js",
-    "backup": "node scripts/backup.js",
-    "optimize-images": "node scripts/optimizeImages.js",
-    "check:ai-assistant": "node scripts/check-unified-ai-assistant.js",
-    "check:ai-runtime": "node scripts/check-unified-ai-runtime.js",
-    "check:hackathon-ai": "node scripts/check-hackathon-ai-assistant.js",
-    "check:wechat-ai": "node scripts/check-wechat-parser-agent.js",
-    "check:ai-agents": "node scripts/check-ai-agent-registry.js",
-    "eval:ai-golden": "node scripts/evaluate-ai-golden.js",
-    "bench:event-profiles": "node scripts/benchmark-event-profile-speed.js",
-    "bench:event-assistant-startup": "node scripts/benchmark-event-assistant-startup.js",
-    "stress:ai": "node scripts/stress-ai-assistants.js",
-    "eval:ai-live": "node scripts/live-evaluate-ai-assistants.js",
-    "agents:spec": "node scripts/generate-ai-agent-spec.js",
-    "profiles:refresh": "node scripts/refresh-event-ai-profiles.js",
-    "search:index:refresh": "node scripts/refresh-resource-search-index.js",
-    "events:classify": "node scripts/classify-event-categories.js --dry-run",
-    "events:classify:apply": "node scripts/classify-event-categories.js --apply",
-    "test:foundation": "node --test tests/platform-foundation.test.js",
-    "events:retire-tags": "node scripts/retire-event-tags.js --dry-run",
-    "events:retire-tags:apply": "node scripts/retire-event-tags.js --apply"
-  },
-  "dependencies": {
-    "apicache": "^1.6.3",
-    "axios": "1.13.2",
-    "bcryptjs": "^3.0.3",
-    "cheerio": "^1.1.2",
-    "compression": "^1.8.1",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^4.18.2",
-    "express-rate-limit": "^8.2.1",
-    "express-validator": "^7.3.1",
-    "helmet": "^8.1.0",
-    "hpp": "^0.2.3",
-    "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.10.1",
-    "multer": "^2.0.2",
-    "pdfjs-dist": "^5.6.205",
-    "playwright": "^1.59.1",
-    "sharp": "^0.33.0",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.6",
-    "word-extractor": "^1.0.4"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "overrides": {
-    "axios": "1.13.2"
-  },
-  "pnpm": {
+    "name": "server",
+    "version": "1.0.2",
+    "description": "Backend for Lumos Photography",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "migrate": "node scripts/migrate.js",
+        "migrate:safe": "node scripts/sync-schema-safe.js",
+        "seed": "node seed.js",
+        "seed:community": "node scripts/seedAiCommunityDemo.js",
+        "backup": "node scripts/backup.js",
+        "optimize-images": "node scripts/optimizeImages.js",
+        "check:ai-assistant": "node scripts/check-unified-ai-assistant.js",
+        "check:ai-runtime": "node scripts/check-unified-ai-runtime.js",
+        "check:hackathon-ai": "node scripts/check-hackathon-ai-assistant.js",
+        "check:wechat-ai": "node scripts/check-wechat-parser-agent.js",
+        "check:ai-agents": "node scripts/check-ai-agent-registry.js",
+        "eval:ai-golden": "node scripts/evaluate-ai-golden.js",
+        "bench:event-profiles": "node scripts/benchmark-event-profile-speed.js",
+        "bench:event-assistant-startup": "node scripts/benchmark-event-assistant-startup.js",
+        "stress:ai": "node scripts/stress-ai-assistants.js",
+        "eval:ai-live": "node scripts/live-evaluate-ai-assistants.js",
+        "agents:spec": "node scripts/generate-ai-agent-spec.js",
+        "profiles:refresh": "node scripts/refresh-event-ai-profiles.js",
+        "search:index:refresh": "node scripts/refresh-resource-search-index.js",
+        "events:classify": "node scripts/classify-event-categories.js --dry-run",
+        "events:classify:apply": "node scripts/classify-event-categories.js --apply",
+        "test:foundation": "node --test tests/platform-foundation.test.js",
+        "events:retire-tags": "node scripts/retire-event-tags.js --dry-run",
+        "events:retire-tags:apply": "node scripts/retire-event-tags.js --apply"
+    },
+    "dependencies": {
+        "apicache": "^1.6.3",
+        "axios": "1.13.2",
+        "bcryptjs": "^3.0.3",
+        "cheerio": "^1.1.2",
+        "compression": "^1.8.1",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^4.18.2",
+        "express-rate-limit": "^8.2.1",
+        "express-validator": "^7.3.1",
+        "helmet": "^8.1.0",
+        "hpp": "^0.2.3",
+        "jsonwebtoken": "^9.0.3",
+        "morgan": "^1.10.1",
+        "multer": "^2.0.2",
+        "pdfjs-dist": "^5.6.205",
+        "playwright": "^1.59.1",
+        "sharp": "^0.33.0",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.6",
+        "word-extractor": "^1.0.4"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "overrides": {
-      "axios": "1.13.2"
+        "axios": "1.13.2"
+    },
+    "pnpm": {
+        "overrides": {
+            "axios": "1.13.2"
+        }
     }
-  }
 }

@@ -7,6 +7,7 @@ This split is the source of the current mismatch: a WeChat article can still be 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Create one backend source of truth for event categories, aliases, campus options, audience options, and AI prompt context.
 - Make WeChat parsing produce canonical event fields directly by giving the model the standard catalog before extraction.
 - Keep a service-side validation layer so model output is accepted only when it matches the catalog or can be safely normalized.
@@ -15,6 +16,7 @@ This split is the source of the current mismatch: a WeChat article can still be 
 - Keep existing database fields and public APIs compatible.
 
 **Non-Goals:**
+
 - Do not build a full cross-site autonomous agent in this change.
 - Do not introduce a new database schema, vector store, or background job system.
 - Do not allow models to mutate data directly without service validation.
@@ -26,6 +28,7 @@ This split is the source of the current mismatch: a WeChat article can still be 
 ### 1. Add a shared event intelligence catalog module
 
 Create a shared CommonJS module under `server/src/constants/eventCatalog.js` (or equivalent) that exports:
+
 - `EVENT_CATEGORIES`
 - `EVENT_CATEGORY_ALIASES`
 - `EVENT_CATEGORY_LABELS`
@@ -41,6 +44,7 @@ Alternative considered: keep catalog in frontend `src/data/eventTaxonomy.js` and
 ### 2. Add a shared event intelligence service
 
 Create `server/src/services/eventIntelligenceService.js` to own catalog operations:
+
 - build compact model context for prompts
 - normalize category values
 - infer category from category/tags/title/description/content
@@ -55,6 +59,7 @@ Alternative considered: put normalization helpers directly in `wechat.js`. That 
 ### 3. WeChat parsing sends standard context before extraction
 
 Update `parseWithLLM` so the prompt contains the shared standard catalog and explicitly requires:
+
 - `category` must be one canonical value.
 - `target_audience` must use allowed audience values, comma-separated for multiple values, or `null`.
 - optional `category_confidence` and `category_reason` may be returned when the model can explain classification.
@@ -72,6 +77,7 @@ Alternative considered: move all recommendation logic into a single model prompt
 ### 5. Legacy classification script is safe by default
 
 Add `server/scripts/classify-event-categories.js` with:
+
 - `--dry-run` default mode that prints summary and planned changes without updating rows.
 - `--apply` mode that creates a SQLite backup first and then updates `events.category`.
 - `--min-confidence <number>` to avoid applying low-confidence changes.
@@ -99,6 +105,7 @@ Alternative considered: auto-run classification during server startup. That is r
 5. Spot-check `/api/events?category=<canonical>` and the AI activity assistant after classification.
 
 Rollback:
+
 - Revert the code change if runtime behavior regresses.
 - Restore the generated SQLite backup if `--apply` produced unacceptable classifications.
 

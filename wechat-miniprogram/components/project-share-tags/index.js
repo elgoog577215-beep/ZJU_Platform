@@ -1,8 +1,8 @@
 Component({
-  properties: {
-    sections: {
-      type: Array,
-      value: [],
+    properties: {
+        sections: {
+            type: Array,
+            value: [],
+        },
     },
-  },
 });

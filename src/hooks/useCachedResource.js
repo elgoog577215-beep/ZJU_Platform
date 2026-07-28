@@ -1,15 +1,27 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import api, { isCanceledRequest } from '../services/api';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import api, { isCanceledRequest } from "../services/api";
 
 const memoryCache = new Map();
 const inflightRequests = new Map();
 
-const LIST_ENDPOINT_PATTERN = /^\/(events|photos|videos|articles|community\/posts|news|ecosystem-partners)(\/)?$/;
-const LIST_RESPONSE_KEYS = ['items', 'results', 'rows', 'list', 'events', 'photos', 'videos', 'articles', 'posts', 'news'];
+const LIST_ENDPOINT_PATTERN =
+    /^\/(events|photos|videos|articles|community\/posts|news|ecosystem-partners)(\/)?$/;
+const LIST_RESPONSE_KEYS = [
+    "items",
+    "results",
+    "rows",
+    "list",
+    "events",
+    "photos",
+    "videos",
+    "articles",
+    "posts",
+    "news",
+];
 
 const normalizeListPayload = (value) => {
     if (Array.isArray(value)) return value;
-    if (!value || typeof value !== 'object') return [];
+    if (!value || typeof value !== "object") return [];
     for (const key of LIST_RESPONSE_KEYS) {
         if (Array.isArray(value[key])) return value[key];
     }
@@ -18,18 +30,19 @@ const normalizeListPayload = (value) => {
 
 const shouldNormalizeAsList = (endpoint) => LIST_ENDPOINT_PATTERN.test(endpoint);
 
-const normalizePayloadData = (endpoint, value) => (
-    shouldNormalizeAsList(endpoint) ? normalizeListPayload(value) : value
-);
+const normalizePayloadData = (endpoint, value) =>
+    shouldNormalizeAsList(endpoint) ? normalizeListPayload(value) : value;
 
 const buildRequestKey = (keyPrefix, endpoint, params = {}) => {
-    const sortedParams = Object.keys(params).sort().reduce((acc, key) => {
-        const value = params[key];
-        if (value !== undefined && value !== null && value !== '') {
-            acc[key] = value;
-        }
-        return acc;
-    }, {});
+    const sortedParams = Object.keys(params)
+        .sort()
+        .reduce((acc, key) => {
+            const value = params[key];
+            if (value !== undefined && value !== null && value !== "") {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
 
     const queryString = new URLSearchParams(sortedParams).toString();
     const cacheKey = `${keyPrefix}${endpoint}?${queryString}`;
@@ -48,8 +61,8 @@ const readStoredCache = (cacheKey) => {
         memoryCache.set(cacheKey, parsed);
         return parsed;
     } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.warn('Cache parse error', error);
+        if (process.env.NODE_ENV === "development") {
+            console.warn("Cache parse error", error);
         }
         localStorage.removeItem(cacheKey);
         memoryCache.delete(cacheKey);
@@ -63,8 +76,8 @@ const persistCache = (cacheKey, payload) => {
         try {
             localStorage.setItem(cacheKey, JSON.stringify(payload));
         } catch (error) {
-            if (process.env.NODE_ENV === 'development') {
-                console.warn('Failed to save to cache', error);
+            if (process.env.NODE_ENV === "development") {
+                console.warn("Failed to save to cache", error);
             }
         }
     }, 0);
@@ -79,14 +92,20 @@ const persistCache = (cacheKey, payload) => {
 const raceWithSignal = (sourcePromise, signal) => {
     if (!signal) return sourcePromise;
     if (signal.aborted) {
-        return Promise.reject(new DOMException('Aborted', 'AbortError'));
+        return Promise.reject(new DOMException("Aborted", "AbortError"));
     }
     return new Promise((resolve, reject) => {
-        const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
-        signal.addEventListener('abort', onAbort, { once: true });
+        const onAbort = () => reject(new DOMException("Aborted", "AbortError"));
+        signal.addEventListener("abort", onAbort, { once: true });
         sourcePromise.then(
-            (val) => { signal.removeEventListener('abort', onAbort); resolve(val); },
-            (err) => { signal.removeEventListener('abort', onAbort); reject(err); }
+            (val) => {
+                signal.removeEventListener("abort", onAbort);
+                resolve(val);
+            },
+            (err) => {
+                signal.removeEventListener("abort", onAbort);
+                reject(err);
+            }
         );
     });
 };
@@ -95,27 +114,30 @@ const fetchAndCacheResource = async (endpoint, requestParams, cacheKey, requestO
     const { signal, ...otherOptions } = requestOptions;
     let sharedPromise = inflightRequests.get(cacheKey);
     if (!sharedPromise) {
-        sharedPromise = api.get(endpoint, { params: requestParams, ...otherOptions }).then((res) => {
-            const responseData = res.data.data !== undefined ? res.data.data : res.data;
-            const newData = normalizePayloadData(endpoint, responseData);
-            const newPagination = res.data.pagination || {};
-            const payload = {
-                data: newData,
-                pagination: newPagination,
-                timestamp: Date.now()
-            };
-            persistCache(cacheKey, payload);
-            return payload;
-        }).finally(() => {
-            inflightRequests.delete(cacheKey);
-        });
+        sharedPromise = api
+            .get(endpoint, { params: requestParams, ...otherOptions })
+            .then((res) => {
+                const responseData = res.data.data !== undefined ? res.data.data : res.data;
+                const newData = normalizePayloadData(endpoint, responseData);
+                const newPagination = res.data.pagination || {};
+                const payload = {
+                    data: newData,
+                    pagination: newPagination,
+                    timestamp: Date.now(),
+                };
+                persistCache(cacheKey, payload);
+                return payload;
+            })
+            .finally(() => {
+                inflightRequests.delete(cacheKey);
+            });
         inflightRequests.set(cacheKey, sharedPromise);
     }
     return raceWithSignal(sharedPromise, signal);
 };
 
 export const prefetchCachedResource = async (endpoint, params = {}, options = {}) => {
-    const { keyPrefix = 'cache:v2:', ttl = 24 * 60 * 60 * 1000, silent = false } = options;
+    const { keyPrefix = "cache:v2:", ttl = 24 * 60 * 60 * 1000, silent = false } = options;
     const { cacheKey, queryString } = buildRequestKey(keyPrefix, endpoint, params);
     const cached = readStoredCache(cacheKey);
 
@@ -136,21 +158,25 @@ export const prefetchCachedResource = async (endpoint, params = {}, options = {}
  */
 export const useCachedResource = (endpoint, params = {}, options = {}) => {
     const {
-        keyPrefix = 'cache:v2:',
+        keyPrefix = "cache:v2:",
         ttl = 24 * 60 * 60 * 1000, // 24 hours default
         enabled = true,
         dependencies = [], // Extra dependencies to trigger refresh
-        silent = false
+        silent = false,
     } = options;
 
-    const { cacheKey, queryString } = useMemo(() => buildRequestKey(keyPrefix, endpoint, params), [keyPrefix, endpoint, params]);
+    const { cacheKey, queryString } = useMemo(
+        () => buildRequestKey(keyPrefix, endpoint, params),
+        [keyPrefix, endpoint, params]
+    );
     const initialCachedPayload = useMemo(() => {
         if (!enabled) return null;
         return readStoredCache(cacheKey);
     }, [cacheKey, enabled]);
-    const initialCachedData = initialCachedPayload?.data !== undefined
-        ? normalizePayloadData(endpoint, initialCachedPayload.data)
-        : [];
+    const initialCachedData =
+        initialCachedPayload?.data !== undefined
+            ? normalizePayloadData(endpoint, initialCachedPayload.data)
+            : [];
 
     const [data, setData] = useState(initialCachedData);
     const [pagination, setPagination] = useState(initialCachedPayload?.pagination || {});
@@ -166,14 +192,17 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
         }
     }, [dependencies]);
 
-    const refresh = useCallback((opts) => {
-        const shouldClearCache = opts === true || opts?.clearCache === true;
-        if (shouldClearCache) {
-            localStorage.removeItem(cacheKey);
-            memoryCache.delete(cacheKey);
-        }
-        setRefreshKey((prev) => prev + 1);
-    }, [cacheKey]);
+    const refresh = useCallback(
+        (opts) => {
+            const shouldClearCache = opts === true || opts?.clearCache === true;
+            if (shouldClearCache) {
+                localStorage.removeItem(cacheKey);
+                memoryCache.delete(cacheKey);
+            }
+            setRefreshKey((prev) => prev + 1);
+        },
+        [cacheKey]
+    );
 
     // FIX: BUG-09 — Add AbortController to cancel stale requests and prevent setState after unmount
     useEffect(() => {
@@ -210,7 +239,10 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
             // fresh data swaps in when request resolves.
             try {
                 const requestParams = Object.fromEntries(new URLSearchParams(queryString));
-                const payload = await fetchAndCacheResource(endpoint, requestParams, cacheKey, { silent, signal: abortController.signal });
+                const payload = await fetchAndCacheResource(endpoint, requestParams, cacheKey, {
+                    silent,
+                    signal: abortController.signal,
+                });
                 if (!abortController.signal.aborted) {
                     setData(payload.data);
                     setPagination(payload.pagination || {});
@@ -218,7 +250,7 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                 }
             } catch (err) {
                 if (abortController.signal.aborted || isCanceledRequest(err)) return;
-                if (!silent && process.env.NODE_ENV === 'development') {
+                if (!silent && process.env.NODE_ENV === "development") {
                     console.error(`Fetch error for ${endpoint}`, err);
                 }
                 if (!hasCache) {

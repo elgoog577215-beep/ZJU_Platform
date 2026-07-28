@@ -10,7 +10,7 @@ permissions:
     contents: read
 
 env:
-    NODE_VERSION: "20"
+    NODE_VERSION: "22"
     PRODUCTION_URL: https://tuotuzju.com
 
 jobs:
@@ -30,33 +30,15 @@ jobs:
                   cache: npm
 
             - name: Install frontend dependencies
-              run: npm ci --ignore-scripts
+              run: npm ci --ignore-scripts --legacy-peer-deps
 
-            - name: Validate source and changed-file formatting
+            - name: Validate source and full-repository formatting
               env:
                   BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
               run: |
                   set -euo pipefail
                   npm run lint
-
-                  if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-                    changed_files=$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
-                  else
-                    changed_files=$(git diff --name-only HEAD^ HEAD)
-                  fi
-
-                  prettier_files=()
-                  while IFS= read -r file; do
-                    case "$file" in
-                      *.css|*.html|*.js|*.jsx|*.json|*.md|*.mjs|*.prettierrc|*.ts|*.tsx|*.yaml|*.yml)
-                        [ -f "$file" ] && prettier_files+=("$file")
-                        ;;
-                    esac
-                  done <<< "$changed_files"
-
-                  if [ "${#prettier_files[@]}" -gt 0 ]; then
-                    npx prettier --check "${prettier_files[@]}"
-                  fi
+                  npx prettier --check .
 
                   if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
                     git diff --check "$BASE_SHA" "$GITHUB_SHA"
@@ -84,7 +66,7 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  npm ci --ignore-scripts
+                  npm ci --ignore-scripts --legacy-peer-deps
                   npm ci --prefix server --legacy-peer-deps
 
             - name: Run backend test suite
@@ -105,7 +87,7 @@ jobs:
                   cache: npm
 
             - name: Install frontend dependencies
-              run: npm ci --ignore-scripts
+              run: npm ci --ignore-scripts --legacy-peer-deps
 
             - name: Build frontend
               run: |
@@ -222,7 +204,8 @@ jobs:
                       artifact_dir="/tmp/zju-platform"
                       artifact="${artifact_dir}/zju-platform-${release_id}.tar.gz"
                       checksum="${artifact}.sha256"
-                      slot="${app_root}/.deployments/${release_id}"
+                      deployment_root="${app_root}/.deployments"
+                      slot="${deployment_root}/${release_id}"
                       stage="${slot}/stage"
                       previous="${slot}/previous"
                       payload="${stage}/payload"
@@ -237,6 +220,8 @@ jobs:
                         sha256sum --check "$(basename "$checksum")"
                       )
 
+                      mkdir -p "$deployment_root"
+                      find "$deployment_root" -mindepth 1 -maxdepth 1 -type d -exec rm -rf -- {} +
                       rm -rf "$slot"
                       mkdir -p "$stage" "$previous"
                       tar -xzf "$artifact" -C "$stage"
@@ -306,6 +291,12 @@ jobs:
                         cat "$health_file" 2>/dev/null || true
                         exit 1
                       fi
+
+                      rm -f "$health_file"
+                      find "$deployment_root" -mindepth 1 -maxdepth 1 -type d -exec rm -rf -- {} +
+                      find "$artifact_dir" -maxdepth 1 -type f \
+                        \( -name 'zju-platform-*.tar.gz' -o -name 'zju-platform-*.tar.gz.sha256' \) \
+                        -delete
 
     verify:
         name: HTTPS smoke test

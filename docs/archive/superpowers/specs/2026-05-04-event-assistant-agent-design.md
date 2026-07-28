@@ -90,15 +90,15 @@ Example:
 
 ```json
 {
-  "topics": ["AI", "技术创新"],
-  "categoryHints": ["tech_innovation"],
-  "lifecyclePreference": "upcoming_preferred",
-  "locationMode": "offline",
-  "audienceHints": ["新生", "全校"],
-  "benefitHints": ["score", "volunteer_time"],
-  "timeHints": ["this_weekend"],
-  "mustHave": [],
-  "niceToHave": ["线下", "适合新生", "有综测或志愿时长"]
+    "topics": ["AI", "技术创新"],
+    "categoryHints": ["tech_innovation"],
+    "lifecyclePreference": "upcoming_preferred",
+    "locationMode": "offline",
+    "audienceHints": ["新生", "全校"],
+    "benefitHints": ["score", "volunteer_time"],
+    "timeHints": ["this_weekend"],
+    "mustHave": [],
+    "niceToHave": ["线下", "适合新生", "有综测或志愿时长"]
 }
 ```
 
@@ -124,23 +124,23 @@ Example:
 
 ```json
 {
-  "college": "计算机科学与技术学院",
-  "division": "信息学部",
-  "grade": "本科一年级",
-  "campus": "紫金港",
-  "preferredCategories": [
-    { "value": "tech_innovation", "weight": 0.82 },
-    { "value": "competition_project", "weight": 0.45 }
-  ],
-  "preferredTags": [
-    { "value": "AI", "weight": 0.9 },
-    { "value": "黑客松", "weight": 0.62 }
-  ],
-  "benefitPreferences": {
-    "score": true,
-    "volunteerTime": false
-  },
-  "locationMode": "offline"
+    "college": "计算机科学与技术学院",
+    "division": "信息学部",
+    "grade": "本科一年级",
+    "campus": "紫金港",
+    "preferredCategories": [
+        { "value": "tech_innovation", "weight": 0.82 },
+        { "value": "competition_project", "weight": 0.45 }
+    ],
+    "preferredTags": [
+        { "value": "AI", "weight": 0.9 },
+        { "value": "黑客松", "weight": 0.62 }
+    ],
+    "benefitPreferences": {
+        "score": true,
+        "volunteerTime": false
+    },
+    "locationMode": "offline"
 }
 ```
 
@@ -362,11 +362,11 @@ Request:
 
 ```json
 {
-  "query": "想找 AI 相关活动，最好线下、适合新生、有综测",
-  "clarificationAnswer": "",
-  "clarificationUsed": false,
-  "allowHistoricalFallback": true,
-  "rememberPreference": false
+    "query": "想找 AI 相关活动，最好线下、适合新生、有综测",
+    "clarificationAnswer": "",
+    "clarificationUsed": false,
+    "allowHistoricalFallback": true,
+    "rememberPreference": false
 }
 ```
 
@@ -374,27 +374,27 @@ Response:
 
 ```json
 {
-  "type": "recommend",
-  "scope": "upcoming",
-  "understoodIntent": {
-    "chips": ["AI", "线下", "新生", "综测"]
-  },
-  "summary": "我优先筛选了未开始、AI 相关、适合新生且有收益标记的活动。",
-  "recommendations": [
-    {
-      "id": 2,
-      "event": {},
-      "score": 82,
-      "reason": "匹配 AI 和学习效率主题，地点为线下报告厅，面向全校师生。",
-      "matchSignals": ["topic:AI", "location:offline", "audience:全校"],
-      "warnings": [],
-      "isHistorical": false
-    }
-  ],
-  "actions": [
-    { "type": "open_event", "label": "查看详情" },
-    { "type": "remember_preference", "label": "记住这个偏好" }
-  ]
+    "type": "recommend",
+    "scope": "upcoming",
+    "understoodIntent": {
+        "chips": ["AI", "线下", "新生", "综测"]
+    },
+    "summary": "我优先筛选了未开始、AI 相关、适合新生且有收益标记的活动。",
+    "recommendations": [
+        {
+            "id": 2,
+            "event": {},
+            "score": 82,
+            "reason": "匹配 AI 和学习效率主题，地点为线下报告厅，面向全校师生。",
+            "matchSignals": ["topic:AI", "location:offline", "audience:全校"],
+            "warnings": [],
+            "isHistorical": false
+        }
+    ],
+    "actions": [
+        { "type": "open_event", "label": "查看详情" },
+        { "type": "remember_preference", "label": "记住这个偏好" }
+    ]
 }
 ```
 
@@ -402,11 +402,11 @@ Clarification response:
 
 ```json
 {
-  "type": "clarify",
-  "question": "你更想要未来可报名活动，还是也接受历史回顾资料？",
-  "understoodIntent": {
-    "chips": ["AI"]
-  }
+    "type": "clarify",
+    "question": "你更想要未来可报名活动，还是也接受历史回顾资料？",
+    "understoodIntent": {
+        "chips": ["AI"]
+    }
 }
 ```
 
@@ -414,10 +414,10 @@ Empty response:
 
 ```json
 {
-  "type": "empty",
-  "scope": "upcoming",
-  "summary": "暂时没有符合条件的未开始活动。",
-  "suggestions": ["放宽时间范围", "查看历史活动", "关注类似活动"]
+    "type": "empty",
+    "scope": "upcoming",
+    "summary": "暂时没有符合条件的未开始活动。",
+    "suggestions": ["放宽时间范围", "查看历史活动", "关注类似活动"]
 }
 ```
 
@@ -558,4 +558,3 @@ This phase can be implemented before Phase 2 if model operations are the larger 
 - The assistant can still return useful results when the model is unavailable.
 - Admins can manage model keys without exposing full secrets.
 - The UI communicates why each activity was recommended.
-

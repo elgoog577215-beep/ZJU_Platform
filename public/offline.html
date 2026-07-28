@@ -1,132 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>离线 - 拓途浙享</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>离线 - 拓途浙享</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        padding: 20px;
-      }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                    sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                padding: 20px;
+            }
 
-      .container {
-        text-align: center;
-        max-width: 500px;
-      }
+            .container {
+                text-align: center;
+                max-width: 500px;
+            }
 
-      .icon {
-        font-size: 80px;
-        margin-bottom: 20px;
-        opacity: 0.9;
-      }
+            .icon {
+                font-size: 80px;
+                margin-bottom: 20px;
+                opacity: 0.9;
+            }
 
-      h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        letter-spacing: -0.5px;
-      }
+            h1 {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                letter-spacing: -0.5px;
+            }
 
-      p {
-        font-size: 16px;
-        line-height: 1.6;
-        opacity: 0.9;
-        margin-bottom: 30px;
-      }
+            p {
+                font-size: 16px;
+                line-height: 1.6;
+                opacity: 0.9;
+                margin-bottom: 30px;
+            }
 
-      .btn {
-        display: inline-block;
-        padding: 14px 32px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50px;
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
+            .btn {
+                display: inline-block;
+                padding: 14px 32px;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50px;
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 16px;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
 
-      .btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
 
-      .tips {
-        margin-top: 40px;
-        padding-top: 30px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-      }
+            .tips {
+                margin-top: 40px;
+                padding-top: 30px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+            }
 
-      .tips h3 {
-        font-size: 18px;
-        margin-bottom: 15px;
-        opacity: 0.9;
-      }
+            .tips h3 {
+                font-size: 18px;
+                margin-bottom: 15px;
+                opacity: 0.9;
+            }
 
-      .tips ul {
-        text-align: left;
-        display: inline-block;
-        opacity: 0.8;
-        font-size: 14px;
-        line-height: 2;
-      }
+            .tips ul {
+                text-align: left;
+                display: inline-block;
+                opacity: 0.8;
+                font-size: 14px;
+                line-height: 2;
+            }
 
-      .tips li {
-        margin-bottom: 8px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="icon">📡</div>
-      <h1>您已离线</h1>
-      <p>
-        网络连接似乎出了问题。请检查您的网络设置后重试。<br />
-        您可以访问之前已缓存的内容。
-      </p>
-      
-      <button class="btn" onclick="window.location.reload()">
-        🔄 重试连接
-      </button>
+            .tips li {
+                margin-bottom: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">📡</div>
+            <h1>您已离线</h1>
+            <p>
+                网络连接似乎出了问题。请检查您的网络设置后重试。<br />
+                您可以访问之前已缓存的内容。
+            </p>
 
-      <div class="tips">
-        <h3>💡 小提示:</h3>
-        <ul>
-          <li>• 检查网络连接是否正常</li>
-          <li>• 刷新页面重新尝试连接</li>
-          <li>• 已访问的内容可以在离线时查看</li>
-          <li>• 恢复网络后数据会自动同步</li>
-        </ul>
-      </div>
-    </div>
+            <button class="btn" onclick="window.location.reload()">🔄 重试连接</button>
 
-    <script>
-      // 监听网络状态变化
-      window.addEventListener('online', () => {
-        window.location.reload();
-      });
+            <div class="tips">
+                <h3>💡 小提示:</h3>
+                <ul>
+                    <li>• 检查网络连接是否正常</li>
+                    <li>• 刷新页面重新尝试连接</li>
+                    <li>• 已访问的内容可以在离线时查看</li>
+                    <li>• 恢复网络后数据会自动同步</li>
+                </ul>
+            </div>
+        </div>
 
-      // 检查网络状态
-      if (navigator.onLine) {
-        window.location.reload();
-      }
-    </script>
-  </body>
+        <script>
+            // 监听网络状态变化
+            window.addEventListener("online", () => {
+                window.location.reload();
+            });
+
+            // 检查网络状态
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        </script>
+    </body>
 </html>

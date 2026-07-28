@@ -1,19 +1,23 @@
 import { createPortal } from "react-dom";
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
+import {
+    useContentPageEvents,
+    useMobileSortLabel,
+    useMobileToolbarSync,
+} from "../hooks/useContentPage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  Music as MusicIcon,
-  Volume2,
-  VolumeX,
-  Upload,
-  AlertCircle,
-  X,
+    Play,
+    Pause,
+    SkipForward,
+    SkipBack,
+    Music as MusicIcon,
+    Volume2,
+    VolumeX,
+    Upload,
+    AlertCircle,
+    X,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -33,988 +37,1025 @@ import SEO from "./SEO";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 
 const formatTime = (seconds) => {
-  const totalSeconds = Number(seconds);
-  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
-    return "0:00";
-  }
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = Math.floor(totalSeconds % 60);
-  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    const totalSeconds = Number(seconds);
+    if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+        return "0:00";
+    }
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = Math.floor(totalSeconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 };
 
 const TrackItem = memo(
-  ({
-    track,
-    activeTrackId,
-    isPlaying,
-    onClick,
-    onToggleFavorite,
-    canAnimate,
-    isDayMode,
-    compact = false,
-  }) => {
-    const { t } = useTranslation();
-    const isActive = track.id === activeTrackId;
-    const playTrackItem = () => onClick(track);
+    ({
+        track,
+        activeTrackId,
+        isPlaying,
+        onClick,
+        onToggleFavorite,
+        canAnimate,
+        isDayMode,
+        compact = false,
+    }) => {
+        const { t } = useTranslation();
+        const isActive = track.id === activeTrackId;
+        const playTrackItem = () => onClick(track);
 
-    return (
-      <motion.div
-        initial={canAnimate ? { opacity: 0, y: 10 } : false}
-        animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
-        transition={canAnimate ? { duration: 0.2, delay: 0.02 } : undefined}
-        className={`group relative flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
-          isActive
-            ? isDayMode
-              ? "bg-violet-50 border-violet-200/80 shadow-[0_12px_28px_rgba(168,85,247,0.1)]"
-              : "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-            : isDayMode
-              ? "day-card-lift hover:border-pink-200/80"
-              : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
-        }`}
-      >
-        <button
-          type="button"
-          aria-label={`${track.title} ${t("common.play", "播放")}`}
-          onClick={playTrackItem}
-          className={`absolute inset-0 z-10 rounded-xl border-0 bg-transparent p-0 text-left outline-none transition-shadow
+        return (
+            <motion.div
+                initial={canAnimate ? { opacity: 0, y: 10 } : false}
+                animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
+                transition={canAnimate ? { duration: 0.2, delay: 0.02 } : undefined}
+                className={`group relative flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
+                    isActive
+                        ? isDayMode
+                            ? "bg-violet-50 border-violet-200/80 shadow-[0_12px_28px_rgba(168,85,247,0.1)]"
+                            : "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                        : isDayMode
+                          ? "day-card-lift hover:border-pink-200/80"
+                          : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
+                }`}
+            >
+                <button
+                    type="button"
+                    aria-label={`${track.title} ${t("common.play", "播放")}`}
+                    onClick={playTrackItem}
+                    className={`absolute inset-0 z-10 rounded-xl border-0 bg-transparent p-0 text-left outline-none transition-shadow
             focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
             ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
-        />
-
-        <div className={`relative rounded-xl overflow-hidden shrink-0 shadow-lg ${compact ? "w-9 h-9" : "w-14 h-14 md:w-16 md:h-16"}`}>
-          <SmartImage
-            src={getThumbnailUrl(track.cover)}
-            alt={track.title}
-            type="music"
-            className="w-full h-full"
-            imageClassName={`w-full h-full object-cover transition-transform duration-700 ${isActive && isPlaying ? "scale-110" : "group-hover:scale-110"}`}
-            iconSize={24}
-          />
-          <div
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isDayMode ? "bg-slate-900/20" : "bg-black/40"} ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-          >
-            {isActive && isPlaying ? (
-              <div className="flex gap-0.5 items-end h-4">
-                <span
-                  className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
-                  style={{ animationDelay: "0s" }}
                 />
-                <span
-                  className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
-                  style={{ animationDelay: "0.2s" }}
-                />
-                <span
-                  className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
-                  style={{ animationDelay: "0.4s" }}
-                />
-              </div>
-            ) : (
-              <Play
-                size={24}
-                className="text-white fill-white drop-shadow-lg"
-              />
-            )}
-          </div>
-        </div>
 
-        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-          <h4
-            className={`font-bold truncate ${compact ? "text-xs" : "text-base md:text-lg"} ${isActive ? (isDayMode ? "text-violet-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-violet-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
-          >
-            {track.title}
-          </h4>
-          <span className={`truncate ${compact ? "text-[10px] max-w-full" : "text-xs max-w-[150px]"} ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-            {track.artist}
-          </span>
-        </div>
+                <div
+                    className={`relative rounded-xl overflow-hidden shrink-0 shadow-lg ${compact ? "w-9 h-9" : "w-14 h-14 md:w-16 md:h-16"}`}
+                >
+                    <SmartImage
+                        src={getThumbnailUrl(track.cover)}
+                        alt={track.title}
+                        type="music"
+                        className="w-full h-full"
+                        imageClassName={`w-full h-full object-cover transition-transform duration-700 ${isActive && isPlaying ? "scale-110" : "group-hover:scale-110"}`}
+                        iconSize={24}
+                    />
+                    <div
+                        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isDayMode ? "bg-slate-900/20" : "bg-black/40"} ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                    >
+                        {isActive && isPlaying ? (
+                            <div className="flex gap-0.5 items-end h-4">
+                                <span
+                                    className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
+                                    style={{ animationDelay: "0s" }}
+                                />
+                                <span
+                                    className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
+                                    style={{ animationDelay: "0.2s" }}
+                                />
+                                <span
+                                    className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]"
+                                    style={{ animationDelay: "0.4s" }}
+                                />
+                            </div>
+                        ) : (
+                            <Play size={24} className="text-white fill-white drop-shadow-lg" />
+                        )}
+                    </div>
+                </div>
 
-        {!compact && (
-          <div
-            className="relative z-20 flex items-center gap-3 md:gap-5 mr-2"
-          >
-            <span
-              className={`text-xs font-mono hidden sm:block px-2 py-1 rounded-md border ${isDayMode ? "text-slate-500 bg-slate-100/90 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
-            >
-              {formatTime(track.duration)}
-            </span>
-            <FavoriteButton
-              itemId={track.id}
-              itemType="music"
-              size={18}
-              showCount={true}
-              count={track.likes || 0}
-              favorited={track.favorited}
-              initialFavorited={track.favorited}
-              className={`p-2.5 rounded-full transition-all border ${
-                isActive
-                  ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-                  : isDayMode
-                    ? "bg-white/85 text-slate-500 border-violet-100/80 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200/80"
-                    : "bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10"
-              }`}
-              onToggle={(favorited, likes) =>
-                onToggleFavorite(track.id, favorited, likes)
-              }
-            />
-          </div>
-        )}
-      </motion.div>
-    );
-  },
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                    <h4
+                        className={`font-bold truncate ${compact ? "text-xs" : "text-base md:text-lg"} ${isActive ? (isDayMode ? "text-violet-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-violet-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
+                    >
+                        {track.title}
+                    </h4>
+                    <span
+                        className={`truncate ${compact ? "text-[10px] max-w-full" : "text-xs max-w-[150px]"} ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
+                        {track.artist}
+                    </span>
+                </div>
+
+                {!compact && (
+                    <div className="relative z-20 flex items-center gap-3 md:gap-5 mr-2">
+                        <span
+                            className={`text-xs font-mono hidden sm:block px-2 py-1 rounded-md border ${isDayMode ? "text-slate-500 bg-slate-100/90 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
+                        >
+                            {formatTime(track.duration)}
+                        </span>
+                        <FavoriteButton
+                            itemId={track.id}
+                            itemType="music"
+                            size={18}
+                            showCount={true}
+                            count={track.likes || 0}
+                            favorited={track.favorited}
+                            initialFavorited={track.favorited}
+                            className={`p-2.5 rounded-full transition-all border ${
+                                isActive
+                                    ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                                    : isDayMode
+                                      ? "bg-white/85 text-slate-500 border-violet-100/80 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200/80"
+                                      : "bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10"
+                            }`}
+                            onToggle={(favorited, likes) =>
+                                onToggleFavorite(track.id, favorited, likes)
+                            }
+                        />
+                    </div>
+                )}
+            </motion.div>
+        );
+    }
 );
 TrackItem.displayName = "TrackItem";
 
 const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false }) => {
-  const { t } = useTranslation();
-  const { settings, uiMode } = useSettings();
-  const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const {
-    currentTrack,
-    isPlaying,
-    playTrack,
-    togglePlay,
-    nextTrack,
-    prevTrack,
-    audioRef,
-  } = useMusic();
-  const prefersReducedMotion = useReducedMotion();
-  const isDayMode = uiMode === "day";
-  const [tracks, setTracks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [sort, setSort] = useState("newest");
-  const [error, setError] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [showAllCompactTracks, setShowAllCompactTracks] = useState(false);
-  const isPaginationEnabled = settings.pagination_enabled === "true";
-  const pageSize = sidebarCompact ? 8 : (isPaginationEnabled ? 12 : 20);
-  const hasMore = !isPaginationEnabled && currentPage < totalPages;
-  const playButtonClass = isDayMode
-    ? "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)]"
-    : "bg-gradient-to-br from-cyan-400 to-blue-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]";
+    const { t } = useTranslation();
+    const { settings, uiMode } = useSettings();
+    const { user } = useAuth();
+    const [searchParams] = useSearchParams();
+    const { currentTrack, isPlaying, playTrack, togglePlay, nextTrack, prevTrack, audioRef } =
+        useMusic();
+    const prefersReducedMotion = useReducedMotion();
+    const isDayMode = uiMode === "day";
+    const [tracks, setTracks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [sort, setSort] = useState("newest");
+    const [error, setError] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [showAllCompactTracks, setShowAllCompactTracks] = useState(false);
+    const isPaginationEnabled = settings.pagination_enabled === "true";
+    const pageSize = sidebarCompact ? 8 : isPaginationEnabled ? 12 : 20;
+    const hasMore = !isPaginationEnabled && currentPage < totalPages;
+    const playButtonClass = isDayMode
+        ? "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)]"
+        : "bg-gradient-to-br from-cyan-400 to-blue-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]";
 
-  // Deep linking
-  useEffect(() => {
-    const id = searchParams.get("music") || (!embedded ? searchParams.get("id") : null);
-    if (id) {
-      api
-        .get(`/music/${id}`)
-        .then((res) => {
-          if (res.data) {
-            // If deep linked, play immediately
-            playTrack(res.data);
-          }
-        })
-        .catch((err) => {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Failed to fetch deep linked music", err);
-          }
-        });
-    }
-  }, [searchParams]);
+    // Deep linking
+    useEffect(() => {
+        const id = searchParams.get("music") || (!embedded ? searchParams.get("id") : null);
+        if (id) {
+            api.get(`/music/${id}`)
+                .then((res) => {
+                    if (res.data) {
+                        // If deep linked, play immediately
+                        playTrack(res.data);
+                    }
+                })
+                .catch((err) => {
+                    if (process.env.NODE_ENV === "development") {
+                        console.error("Failed to fetch deep linked music", err);
+                    }
+                });
+        }
+    }, [searchParams]);
 
-  // Local state for volume/progress UI in this specific view
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(0.5);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const mobileSortLabel = useMobileSortLabel(sort, t);
-  const ignoreMobileFilter = useCallback(() => {}, []);
-  useContentPageEvents("audio", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
-  useMobileToolbarSync(0, mobileSortLabel);
-  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
-  useBodyScrollLock(isMobileSortOpen);
+    // Local state for volume/progress UI in this specific view
+    const [progress, setProgress] = useState(0);
+    const [volume, setVolume] = useState(0.5);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isUploadOpen, setIsUploadOpen] = useState(false);
+    const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+    const mobileSortLabel = useMobileSortLabel(sort, t);
+    const ignoreMobileFilter = useCallback(() => {}, []);
+    useContentPageEvents("audio", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
+    useMobileToolbarSync(0, mobileSortLabel);
+    useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
+    useBodyScrollLock(isMobileSortOpen);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sort, settings.pagination_enabled]);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sort, settings.pagination_enabled]);
 
-  // FIX: BUG-15 — Add AbortController to cancel stale requests on rapid sort/filter changes
-  useEffect(() => {
-    const abortController = new AbortController();
-    setLoading(true);
-    const params = {
-      page: currentPage,
-      limit: pageSize,
-      sort,
-    };
+    // FIX: BUG-15 — Add AbortController to cancel stale requests on rapid sort/filter changes
+    useEffect(() => {
+        const abortController = new AbortController();
+        setLoading(true);
+        const params = {
+            page: currentPage,
+            limit: pageSize,
+            sort,
+        };
 
-    api
-      .get("/music", { params, signal: abortController.signal })
-      .then((res) => {
-        if (abortController.signal.aborted) return;
-        const nextTracks = res.data.data || [];
-        const nextTotalPages = res.data.pagination?.totalPages || 1;
+        api.get("/music", { params, signal: abortController.signal })
+            .then((res) => {
+                if (abortController.signal.aborted) return;
+                const nextTracks = res.data.data || [];
+                const nextTotalPages = res.data.pagination?.totalPages || 1;
 
-        setTracks((prev) => {
-          if (isPaginationEnabled || currentPage === 1) return nextTracks;
-          const seen = new Set(prev.map((item) => item.id));
-          const appended = nextTracks.filter((item) => !seen.has(item.id));
-          return appended.length === 0 ? prev : [...prev, ...appended];
-        });
-        setTotalPages(nextTotalPages);
-        setLoading(false);
+                setTracks((prev) => {
+                    if (isPaginationEnabled || currentPage === 1) return nextTracks;
+                    const seen = new Set(prev.map((item) => item.id));
+                    const appended = nextTracks.filter((item) => !seen.has(item.id));
+                    return appended.length === 0 ? prev : [...prev, ...appended];
+                });
+                setTotalPages(nextTotalPages);
+                setLoading(false);
+                setError(false);
+            })
+            .catch((err) => {
+                if (abortController.signal.aborted) return;
+                if (process.env.NODE_ENV === "development") {
+                    console.error("Failed to fetch music:", err);
+                }
+                setLoading(false);
+                setError(true);
+            });
+
+        return () => abortController.abort();
+    }, [currentPage, sort, settings.pagination_enabled, refreshKey, pageSize, isPaginationEnabled]);
+
+    const refresh = () => {
+        setLoading(true);
         setError(false);
-      })
-      .catch((err) => {
-        if (abortController.signal.aborted) return;
-        if (process.env.NODE_ENV === "development") {
-          console.error("Failed to fetch music:", err);
-        }
-        setLoading(false);
-        setError(true);
-      });
-
-    return () => abortController.abort();
-  }, [
-    currentPage,
-    sort,
-    settings.pagination_enabled,
-    refreshKey,
-    pageSize,
-    isPaginationEnabled,
-  ]);
-
-  const refresh = () => {
-    setLoading(true);
-    setError(false);
-    setRefreshKey((k) => k + 1);
-  };
-
-  const addTrack = (newItem) => {
-    api
-      .post("/music", newItem)
-      .then(() => {
-        refresh({ clearCache: true });
-      })
-      .catch((err) => {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Failed to save music", err);
-        }
-      });
-  };
-
-  useEffect(() => {
-    const audio = audioRef.current;
-
-    const updateProgress = () => setProgress(audio.currentTime);
-    // Ended event is handled in context
-
-    audio.addEventListener("timeupdate", updateProgress);
-
-    // Sync local state with audioRef on mount and when track changes
-    setProgress(audio.currentTime);
-    setVolume(audio.volume);
-    setIsMuted(audio.muted);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateProgress);
+        setRefreshKey((k) => k + 1);
     };
-  }, [audioRef, currentTrack]); // Re-bind when currentTrack changes to ensure UI sync
 
-  const handleSeek = (e) => {
-    const time = parseFloat(e.target.value);
-    audioRef.current.currentTime = time;
-    setProgress(time);
-  };
+    const addTrack = (newItem) => {
+        api.post("/music", newItem)
+            .then(() => {
+                refresh({ clearCache: true });
+            })
+            .catch((err) => {
+                if (process.env.NODE_ENV === "development") {
+                    console.error("Failed to save music", err);
+                }
+            });
+    };
 
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    audioRef.current.volume = newVolume;
-    setIsMuted(newVolume === 0);
-  };
+    useEffect(() => {
+        const audio = audioRef.current;
 
-  const toggleMute = () => {
-    if (isMuted) {
-      audioRef.current.volume = volume;
-      setIsMuted(false);
-    } else {
-      audioRef.current.volume = 0;
-      setIsMuted(true);
-    }
-  };
+        const updateProgress = () => setProgress(audio.currentTime);
+        // Ended event is handled in context
 
-  const handleNext = () => nextTrack();
-  const handlePrev = () => prevTrack();
+        audio.addEventListener("timeupdate", updateProgress);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+        // Sync local state with audioRef on mount and when track changes
+        setProgress(audio.currentTime);
+        setVolume(audio.volume);
+        setIsMuted(audio.muted);
 
-  const handleUpload = (newItem) => {
-    addTrack(newItem);
-  };
+        return () => {
+            audio.removeEventListener("timeupdate", updateProgress);
+        };
+    }, [audioRef, currentTrack]); // Re-bind when currentTrack changes to ensure UI sync
 
-  // Playback Speed State
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
-  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+    const handleSeek = (e) => {
+        const time = parseFloat(e.target.value);
+        audioRef.current.currentTime = time;
+        setProgress(time);
+    };
 
-  const handleSpeedChange = () => {
-    const currentIndex = speedOptions.indexOf(playbackSpeed);
-    const nextIndex = (currentIndex + 1) % speedOptions.length;
-    const newSpeed = speedOptions[nextIndex];
-    setPlaybackSpeed(newSpeed);
-    audioRef.current.playbackRate = newSpeed;
-  };
+    const handleVolumeChange = (e) => {
+        const newVolume = parseFloat(e.target.value);
+        setVolume(newVolume);
+        audioRef.current.volume = newVolume;
+        setIsMuted(newVolume === 0);
+    };
 
-  // Reset speed when track changes
-  useEffect(() => {
-    setPlaybackSpeed(1.0);
-    if (audioRef.current) audioRef.current.playbackRate = 1.0;
-  }, [currentTrack]);
+    const toggleMute = () => {
+        if (isMuted) {
+            audioRef.current.volume = volume;
+            setIsMuted(false);
+        } else {
+            audioRef.current.volume = 0;
+            setIsMuted(true);
+        }
+    };
 
-  // Local state for player track (likes/favorited) when not in current list
-  const [playerTrackState, setPlayerTrackState] = useState({});
+    const handleNext = () => nextTrack();
+    const handlePrev = () => prevTrack();
 
-  // Reset player track state when track changes
-  useEffect(() => {
-    setPlayerTrackState({});
-  }, [currentTrack?.id]);
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
 
-  const defaultTrack = {
-    title: t("music.select_track"),
-    artist: t("music.to_start"),
-    duration: 0,
-    cover: "",
-    audio: "",
-  };
-  const activeTrackObj = currentTrack || defaultTrack;
-  const activeTrackInList = tracks.find((t) => t.id === activeTrackObj.id);
+    const handleUpload = (newItem) => {
+        addTrack(newItem);
+    };
 
-  // Merge sources: List > Local State > Context/Default
-  const activeTrack = {
-    ...activeTrackObj,
-    ...playerTrackState,
-    ...(activeTrackInList || {}),
-  };
-  const visibleCompactTracks = showAllCompactTracks ? tracks : tracks.slice(0, 3);
-  const canToggleCompactTracks = tracks.length > 3;
+    // Playback Speed State
+    const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+    const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
-  const handleTrackClick = (track) => {
-    playTrack(track);
-  };
+    const handleSpeedChange = () => {
+        const currentIndex = speedOptions.indexOf(playbackSpeed);
+        const nextIndex = (currentIndex + 1) % speedOptions.length;
+        const newSpeed = speedOptions[nextIndex];
+        setPlaybackSpeed(newSpeed);
+        audioRef.current.playbackRate = newSpeed;
+    };
 
-  const handleTrackToggleFavorite = useCallback(
-    (trackId, favorited, likes) => {
-      setTracks((prev) =>
-        prev.map((t) =>
-          t.id === trackId
-            ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited }
-            : t,
-        ),
-      );
+    // Reset speed when track changes
+    useEffect(() => {
+        setPlaybackSpeed(1.0);
+        if (audioRef.current) audioRef.current.playbackRate = 1.0;
+    }, [currentTrack]);
 
-      // Also update current player track state if it matches
-      if (currentTrack && currentTrack.id === trackId) {
-        setPlayerTrackState((prev) => ({
-          ...prev,
-          likes: likes !== undefined ? likes : prev.likes,
-          favorited,
-        }));
-      }
-    },
-    [setTracks, currentTrack],
-  );
+    // Local state for player track (likes/favorited) when not in current list
+    const [playerTrackState, setPlayerTrackState] = useState({});
 
-  const Wrapper = embedded ? "div" : "section";
-  const wrapperClass = embedded
-    ? "relative"
-    : "pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden";
+    // Reset player track state when track changes
+    useEffect(() => {
+        setPlayerTrackState({});
+    }, [currentTrack?.id]);
 
-  return (
-    <Wrapper className={wrapperClass}>
-      {!embedded && (
-        <SEO
-          title="播客"
-          description="收听校园播客、原创音乐与精选音频内容。"
-        />
-      )}
-      {/* Ambient Background — only on standalone page */}
-      {!embedded && (
-        <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-          {!isDayMode && (
-            <>
-              <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-500/10" />
-              <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
-            </>
-          )}
-          <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-pink-200/14" : "bg-indigo-500/10"}`} />
-        </div>
-      )}
+    const defaultTrack = {
+        title: t("music.select_track"),
+        artist: t("music.to_start"),
+        duration: 0,
+        cover: "",
+        audio: "",
+    };
+    const activeTrackObj = currentTrack || defaultTrack;
+    const activeTrackInList = tracks.find((t) => t.id === activeTrackObj.id);
 
-      {embedded ? (
-        /* Embedded: singleColumn sidebar hides toolbar entirely; other embedded shows compact toolbar */
-        !singleColumn && (
-          <div className="mb-4 flex items-center justify-end gap-2">
-            <MobileContentToolbar
-              isDayMode={isDayMode}
-              resultCount={tracks.length}
-              sortLabel={mobileSortLabel}
-              onOpenSort={() => setIsMobileSortOpen(true)}
-            />
-            <div className="hidden md:flex items-center gap-2">
-              <SortSelector sort={sort} onSortChange={setSort} />
-              <button
-                onClick={() => {
-                  if (!user) { toast.error(t("auth.signin_required")); return; }
-                  setIsUploadOpen(true);
-                }}
-                className={`p-2 rounded-full border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
-                title={t("common.upload_music")}
-              >
-                <Upload size={16} />
-              </button>
-            </div>
-          </div>
-        )
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="mb-4 md:mb-12 relative z-40 text-center"
-        >
-          <div className="md:hidden mb-3 text-left">
-            <h1
-              className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
-            >
-              {t("music.title")}
-            </h1>
-            <p
-              className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-            >
-              {t("music.subtitle")}
-            </p>
-          </div>
-          <MobileContentToolbar
-            isDayMode={isDayMode}
-            resultCount={tracks.length}
-            sortLabel={mobileSortLabel}
-            onOpenSort={() => setIsMobileSortOpen(true)}
-          />
-          <div className="hidden md:block">
-            <h2
-              className={`text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6 ${isDayMode ? "text-slate-900" : "text-white"}`}
-            >
-              {t("music.title")}
-            </h2>
-            <p
-              className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-            >
-              {t("music.subtitle")}
-            </p>
-          </div>
-          <div className="hidden md:flex items-center gap-4 w-full justify-center xl:absolute xl:right-0 xl:top-0 xl:w-auto">
-            <div className="w-40 md:w-48">
-              <SortSelector sort={sort} onSortChange={setSort} />
-            </div>
-            <button
-              onClick={() => {
-                if (!user) { toast.error(t("auth.signin_required")); return; }
-                setIsUploadOpen(true);
-              }}
-              className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
-              title={t("common.upload_music")}
-            >
-              <Upload size={18} className="md:w-5 md:h-5" />
-            </button>
-          </div>
-        </motion.div>
-      )}
+    // Merge sources: List > Local State > Context/Default
+    const activeTrack = {
+        ...activeTrackObj,
+        ...playerTrackState,
+        ...(activeTrackInList || {}),
+    };
+    const visibleCompactTracks = showAllCompactTracks ? tracks : tracks.slice(0, 3);
+    const canToggleCompactTracks = tracks.length > 3;
 
-      {/* Mobile Sort Drawer (Bottom Sheet) */}
-      {createPortal(
-        isMobileSortOpen ? (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => setIsMobileSortOpen(false)}
-              className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="music-mobile-sort-title"
-              className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
-            >
-              <div
-                className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
-              >
-                <div>
-                  <h3
-                    id="music-mobile-sort-title"
-                    className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                  >
-                    {t("common.sort", "排序")}
-                  </h3>
-                  <p
-                    className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                  >
-                    {t("sort_filter.title", "选择排序方式")}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileSortOpen(false)}
-                  aria-label={t("common.close", "关闭")}
-                  className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-4">
-                <SortSelector
-                  sort={sort}
-                  onSortChange={(val) => {
-                    setSort(val);
-                    setTimeout(() => setIsMobileSortOpen(false), 300);
-                  }}
-                  className="w-full"
-                  renderMode="list"
-                />
-              </div>
-            </motion.div>
-          </>
-        ) : null,
-        document.body,
-      )}
+    const handleTrackClick = (track) => {
+        playTrack(track);
+    };
 
-      {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
+    const handleTrackToggleFavorite = useCallback(
+        (trackId, favorited, likes) => {
+            setTracks((prev) =>
+                prev.map((t) =>
+                    t.id === trackId
+                        ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited }
+                        : t
+                )
+            );
 
-      {sidebarCompact ? (
-        <div className={`rounded-lg border p-3 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.045]"}`}>
-          <div className="flex items-start gap-3">
-            <div className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}>
-              <SmartImage
-                src={activeTrack.cover}
-                alt={activeTrack.title}
-                type="music"
-                className="h-full w-full"
-                imageClassName="h-full w-full object-cover"
-                iconSize={26}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
-                {t("music.now_playing", "正在播放")}
-              </p>
-              <h3 className={`mt-1 truncate text-sm font-black ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                {activeTrack.title}
-              </h3>
-              <p className={`mt-0.5 truncate text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                {activeTrack.artist}
-              </p>
-              <div className="mt-2 flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label={t("common.previous_track", "上一首")}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
-                >
-                  <SkipBack size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  aria-label={isPlaying ? t("common.pause", "暂停") : t("common.play", "播放")}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${playButtonClass}`}
-                >
-                  {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label={t("common.next_track", "下一首")}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
-                >
-                  <SkipForward size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
+            // Also update current player track state if it matches
+            if (currentTrack && currentTrack.id === trackId) {
+                setPlayerTrackState((prev) => ({
+                    ...prev,
+                    likes: likes !== undefined ? likes : prev.likes,
+                    favorited,
+                }));
+            }
+        },
+        [setTracks, currentTrack]
+    );
 
-          <div className={`my-3 h-px ${isDayMode ? "bg-slate-200/70" : "bg-white/10"}`} />
+    const Wrapper = embedded ? "div" : "section";
+    const wrapperClass = embedded
+        ? "relative"
+        : "pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden";
 
-          <div className={`space-y-2 ${showAllCompactTracks ? "max-h-[430px] overflow-y-auto pr-1 custom-scrollbar" : ""}`}>
-            {loading && tracks.length === 0 ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className={`flex items-center gap-2 rounded-lg border p-2 animate-pulse ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"}`}>
-                  <div className={`h-9 w-9 rounded-md ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className={`h-3 w-4/5 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
-                    <div className={`h-2.5 w-1/2 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
-                  </div>
-                </div>
-              ))
-            ) : error ? (
-              <button
-                type="button"
-                onClick={refresh}
-                className={`w-full rounded-lg border p-3 text-sm ${isDayMode ? "border-rose-200 bg-rose-50 text-rose-700" : "border-rose-500/20 bg-rose-500/10 text-rose-300"}`}
-              >
-                {t("common.retry", "重试")}
-              </button>
-            ) : tracks.length === 0 ? (
-              <div className={`rounded-lg border p-3 text-center text-xs ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.03] text-gray-400"}`}>
-                {t("music.no_tracks", "暂无音频")}
-              </div>
-            ) : (
-              visibleCompactTracks.map((track, index) => (
-                <TrackItem
-                  key={track.id}
-                  track={track}
-                  activeTrackId={activeTrack.id}
-                  isPlaying={isPlaying}
-                  onClick={handleTrackClick}
-                  onToggleFavorite={handleTrackToggleFavorite}
-                  canAnimate={!prefersReducedMotion && index < 3}
-                  isDayMode={isDayMode}
-                  compact
-                />
-              ))
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowAllCompactTracks((value) => !value)}
-            disabled={!canToggleCompactTracks}
-            className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${isDayMode ? "border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100 disabled:hover:bg-violet-50" : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15 disabled:hover:bg-cyan-400/10"}`}
-          >
-            {showAllCompactTracks
-              ? t("community.collapse_podcast", "收起播客")
-              : t("community.view_more_podcast", "查看更多播客")}
-          </button>
-        </div>
-      ) : (
-      <div className={`w-full grid items-start relative ${singleColumn ? "grid-cols-1 gap-4" : embedded ? "lg:grid-cols-2 gap-4 md:gap-6" : "lg:grid-cols-2 max-w-6xl mx-auto gap-6 md:gap-16"}`}>
-        {/* Player View - Hidden on Mobile */}
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className={`hidden md:block backdrop-blur-2xl border rounded-3xl shadow-2xl relative overflow-hidden ${embedded ? "p-4" : "p-6 md:p-12"} ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a]/50 border-white/20"}`}
-        >
-          <div
-            className={`absolute inset-0 backdrop-blur-3xl z-0 rounded-3xl ${isDayMode ? "bg-slate-100/35" : "bg-white/5"}`}
-            style={{
-              backgroundImage: `url(${activeTrack.cover})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-          <div
-            className={`absolute inset-0 z-0 ${isDayMode ? "bg-white/45" : "bg-black/40"}`}
-          />
-
-          {/* Content Wrapper to ensure z-index above background */}
-          <div className="relative z-10">
-            {/* Header — hidden when embedded (parent already has section title) */}
+    return (
+        <Wrapper className={wrapperClass}>
+            {!embedded && <SEO title="播客" description="收听校园播客、原创音乐与精选音频内容。" />}
+            {/* Ambient Background — only on standalone page */}
             {!embedded && (
-              <div
-                className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
-              >
-                <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
-                  <MusicIcon size={24} />
+                <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
+                    {!isDayMode && (
+                        <>
+                            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-500/10" />
+                            <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
+                        </>
+                    )}
+                    <div
+                        className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-pink-200/14" : "bg-indigo-500/10"}`}
+                    />
                 </div>
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold font-serif">
-                    {t("music.title")}
-                  </h2>
-                </div>
-              </div>
             )}
 
-            {/* Vinyl / Cover */}
-            <div className="flex justify-center mb-4 md:mb-6">
-              <div
-                className={`relative rounded-full border-4 overflow-hidden ${isPlaying && !prefersReducedMotion ? "animate-[spin_4s_linear_infinite]" : ""} ${singleColumn ? "w-32 h-32" : "w-48 h-48 md:w-56 md:h-56"} ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
-                style={{ animationPlayState: isPlaying ? "running" : "paused" }}
-              >
+            {embedded ? (
+                /* Embedded: singleColumn sidebar hides toolbar entirely; other embedded shows compact toolbar */
+                !singleColumn && (
+                    <div className="mb-4 flex items-center justify-end gap-2">
+                        <MobileContentToolbar
+                            isDayMode={isDayMode}
+                            resultCount={tracks.length}
+                            sortLabel={mobileSortLabel}
+                            onOpenSort={() => setIsMobileSortOpen(true)}
+                        />
+                        <div className="hidden md:flex items-center gap-2">
+                            <SortSelector sort={sort} onSortChange={setSort} />
+                            <button
+                                onClick={() => {
+                                    if (!user) {
+                                        toast.error(t("auth.signin_required"));
+                                        return;
+                                    }
+                                    setIsUploadOpen(true);
+                                }}
+                                className={`p-2 rounded-full border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
+                                title={t("common.upload_music")}
+                            >
+                                <Upload size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true }}
+                    className="mb-4 md:mb-12 relative z-40 text-center"
+                >
+                    <div className="md:hidden mb-3 text-left">
+                        <h1
+                            className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+                        >
+                            {t("music.title")}
+                        </h1>
+                        <p
+                            className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                        >
+                            {t("music.subtitle")}
+                        </p>
+                    </div>
+                    <MobileContentToolbar
+                        isDayMode={isDayMode}
+                        resultCount={tracks.length}
+                        sortLabel={mobileSortLabel}
+                        onOpenSort={() => setIsMobileSortOpen(true)}
+                    />
+                    <div className="hidden md:block">
+                        <h2
+                            className={`text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                        >
+                            {t("music.title")}
+                        </h2>
+                        <p
+                            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                        >
+                            {t("music.subtitle")}
+                        </p>
+                    </div>
+                    <div className="hidden md:flex items-center gap-4 w-full justify-center xl:absolute xl:right-0 xl:top-0 xl:w-auto">
+                        <div className="w-40 md:w-48">
+                            <SortSelector sort={sort} onSortChange={setSort} />
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (!user) {
+                                    toast.error(t("auth.signin_required"));
+                                    return;
+                                }
+                                setIsUploadOpen(true);
+                            }}
+                            className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+                            title={t("common.upload_music")}
+                        >
+                            <Upload size={18} className="md:w-5 md:h-5" />
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Mobile Sort Drawer (Bottom Sheet) */}
+            {createPortal(
+                isMobileSortOpen ? (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            onClick={() => setIsMobileSortOpen(false)}
+                            className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="music-mobile-sort-title"
+                            className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
+                        >
+                            <div
+                                className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
+                            >
+                                <div>
+                                    <h3
+                                        id="music-mobile-sort-title"
+                                        className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                    >
+                                        {t("common.sort", "排序")}
+                                    </h3>
+                                    <p
+                                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                    >
+                                        {t("sort_filter.title", "选择排序方式")}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileSortOpen(false)}
+                                    aria-label={t("common.close", "关闭")}
+                                    className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="p-4">
+                                <SortSelector
+                                    sort={sort}
+                                    onSortChange={(val) => {
+                                        setSort(val);
+                                        setTimeout(() => setIsMobileSortOpen(false), 300);
+                                    }}
+                                    className="w-full"
+                                    renderMode="list"
+                                />
+                            </div>
+                        </motion.div>
+                    </>
+                ) : null,
+                document.body
+            )}
+
+            {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
+
+            {sidebarCompact ? (
                 <div
-                  className={`absolute inset-0 bg-gradient-to-tr pointer-events-none z-10 rounded-full ${isDayMode ? "from-white/40 to-transparent" : "from-white/20 to-transparent"}`}
-                />
-                <SmartImage
-                  src={activeTrack.cover}
-                  alt={activeTrack.title}
-                  type="music"
-                  className="w-full h-full"
-                  imageClassName="w-full h-full object-cover"
-                  iconSize={64}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div
-                    className={`w-8 h-8 rounded-full border-2 ${isDayMode ? "bg-white border-slate-200/90" : "bg-black border-white/20"}`}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="text-center mb-4 relative">
-              <h2
-                className={`font-bold mb-1 px-4 truncate ${singleColumn ? "text-base" : "text-3xl mb-2 px-8"} ${isDayMode ? "text-slate-900" : "text-white"}`}
-              >
-                {activeTrack.title}
-              </h2>
-              <p className={`text-cyan-400 font-medium ${singleColumn ? "text-xs mb-2" : "mb-4"}`}>
-                {activeTrack.artist}
-              </p>
-
-              <div className="flex items-center justify-center gap-4 mb-4"></div>
-
-              {activeTrack.id && (
-                <div className="flex justify-center">
-                  <FavoriteButton
-                    itemId={activeTrack.id}
-                    itemType="music"
-                    size={20}
-                    showCount={true}
-                    count={activeTrack.likes}
-                    favorited={activeTrack.favorited}
-                    initialFavorited={activeTrack.favorited}
-                    className={`p-2 rounded-full transition-colors border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700" : "bg-white/5 hover:bg-cyan-500/20 border-white/10"}`}
-                    onToggle={handleTrackToggleFavorite}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Progress */}
-            <div className="mb-8">
-              <input
-                type="range"
-                min="0"
-                max={activeTrack.duration || 100}
-                value={progress}
-                onChange={handleSeek}
-                aria-label={t("music.seek", "播放进度")}
-                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-violet-100/90 accent-violet-600 hover:accent-violet-700" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
-              />
-              <div
-                className={`flex justify-between text-xs font-mono mt-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-              >
-                <span>{formatTime(progress)}</span>
-                <span>{formatTime(activeTrack.duration)}</span>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex flex-col items-center gap-6 mb-6">
-              <div className="flex items-center justify-center gap-8">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label={t("common.previous_track", "上一首")}
-                  className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
-                  title={t("common.previous_track")}
+                    className={`rounded-lg border p-3 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.045]"}`}
                 >
-                  <SkipBack size={28} />
-                </button>
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  aria-label={isPlaying ? t("common.pause", "暂停") : t("common.play", "播放")}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all ${playButtonClass}`}
-                  title={isPlaying ? t("common.pause") : t("common.play")}
-                >
-                  {isPlaying ? (
-                    <Pause size={32} fill="currentColor" />
-                  ) : (
-                    <Play size={32} fill="currentColor" className="ml-1" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label={t("common.next_track", "下一首")}
-                  className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
-                  title={t("common.next_track")}
-                >
-                  <SkipForward size={28} />
-                </button>
-              </div>
-
-              {/* Speed Control — hidden in sidebar */}
-              {!singleColumn && (
-                <button
-                  type="button"
-                  onClick={handleSpeedChange}
-                  aria-label={t("common.playback_speed", "播放速度")}
-                  className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
-                  title={t("common.playback_speed")}
-                >
-                  {playbackSpeed}x {t("common.speed")}
-                </button>
-              )}
-            </div>
-
-            {/* Volume — hidden in sidebar */}
-            {!singleColumn && (
-              <div
-                className={`flex items-center gap-3 justify-center ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-              >
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  aria-label={isMuted ? t("common.unmute", "取消静音") : t("common.mute", "静音")}
-                  className={`p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-white/80 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
-                  title={isMuted ? t("common.unmute") : t("common.mute")}
-                >
-                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  aria-label={t("common.volume", "音量")}
-                  className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? "bg-slate-200/90 accent-slate-500 hover:accent-slate-700" : "bg-white/10 accent-gray-400 hover:accent-white"}`}
-                />
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Playlist View */}
-        <div className="flex flex-col min-h-0 md:h-[600px]">
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="overflow-visible md:flex-1 md:overflow-y-auto custom-scrollbar pr-0 md:pr-2"
-          >
-            <div
-              className={`mb-3 flex items-center gap-2 sticky top-0 z-10 rounded-lg border backdrop-blur-2xl shadow-lg md:gap-3 md:rounded-xl ${singleColumn ? "p-2.5 md:p-3" : "p-3 md:p-4"} ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
-            >
-              <div className={`rounded-md bg-cyan-500/20 text-cyan-400 md:rounded-full ${singleColumn ? "p-2" : "p-2 md:p-3"}`}>
-                <MusicIcon size={singleColumn ? 16 : 20} className="md:h-6 md:w-6" />
-              </div>
-              <h3 className={`font-bold ${singleColumn ? "text-sm" : "text-base md:text-2xl"}`}>
-                {t("music.title")} ({tracks.length})
-              </h3>
-            </div>
-
-            <div className="space-y-2">
-              {loading && tracks.length === 0 ? (
-                // Loading Skeleton
-                [...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-3 rounded-lg p-3 animate-pulse md:gap-4 md:rounded-xl md:p-4 ${isDayMode ? "day-card-lift" : "bg-white/5"}`}
-                  >
-                    <div
-                      className={`h-10 w-10 flex-shrink-0 rounded-md md:h-12 md:w-12 md:rounded-lg ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
-                    />
-                    <div className="flex-1 space-y-1.5 md:space-y-2">
-                      <div
-                        className={`h-3.5 rounded w-1/3 md:h-4 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
-                      />
-                      <div
-                        className={`h-2.5 rounded w-1/4 md:h-3 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
-                      />
+                    <div className="flex items-start gap-3">
+                        <div
+                            className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}
+                        >
+                            <SmartImage
+                                src={activeTrack.cover}
+                                alt={activeTrack.title}
+                                type="music"
+                                className="h-full w-full"
+                                imageClassName="h-full w-full object-cover"
+                                iconSize={26}
+                            />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p
+                                className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}
+                            >
+                                {t("music.now_playing", "正在播放")}
+                            </p>
+                            <h3
+                                className={`mt-1 truncate text-sm font-black ${isDayMode ? "text-slate-900" : "text-white"}`}
+                            >
+                                {activeTrack.title}
+                            </h3>
+                            <p
+                                className={`mt-0.5 truncate text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                            >
+                                {activeTrack.artist}
+                            </p>
+                            <div className="mt-2 flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={handlePrev}
+                                    aria-label={t("common.previous_track", "上一首")}
+                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
+                                >
+                                    <SkipBack size={14} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={togglePlay}
+                                    aria-label={
+                                        isPlaying
+                                            ? t("common.pause", "暂停")
+                                            : t("common.play", "播放")
+                                    }
+                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${playButtonClass}`}
+                                >
+                                    {isPlaying ? (
+                                        <Pause size={14} fill="currentColor" />
+                                    ) : (
+                                        <Play size={14} fill="currentColor" className="ml-0.5" />
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    aria-label={t("common.next_track", "下一首")}
+                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
+                                >
+                                    <SkipForward size={14} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                ))
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center md:py-12">
-                  <AlertCircle
-                    size={36}
-                    className="mx-auto mb-3 text-red-400 opacity-50 md:mb-4 md:h-12 md:w-12"
-                  />
-                  <p
-                    className={`mb-4 text-sm md:mb-6 md:text-base ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
-                  >
-                    {t("common.error_fetching_data", "获取数据失败")}
-                  </p>
-                  <button
-                    onClick={refresh}
-                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
-                  >
-                    {t("common.retry", "重试")}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {tracks.length === 0 && (
-                    <div
-                    className={`py-8 text-center md:py-12 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    <MusicIcon
-                        size={36}
-                        className="mx-auto mb-3 opacity-20 md:mb-4 md:h-12 md:w-12"
-                      />
-                      <p>{t("music.no_tracks")}</p>
-                    </div>
-                  )}
-                  {tracks.map((track, index) => (
-                    <TrackItem
-                      key={track.id}
-                      track={track}
-                      activeTrackId={activeTrack.id}
-                      isPlaying={isPlaying}
-                      onClick={handleTrackClick}
-                      onToggleFavorite={handleTrackToggleFavorite}
-                      canAnimate={!prefersReducedMotion && index < 10}
-                      isDayMode={isDayMode}
-                      compact={singleColumn}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
-          </motion.div>
-          {!loading &&
-            !error &&
-            tracks.length > 0 &&
-            !isPaginationEnabled &&
-            hasMore && (
-              <div className="mt-6 flex items-center justify-center">
-                <motion.button
-                  whileHover={
-                    prefersReducedMotion ? undefined : { scale: 1.02 }
-                  }
-                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
-                >
-                  {t("common.load_more", "加载更多")}
-                </motion.button>
-              </div>
-            )}
-          {settings.pagination_enabled === "true" && (
-            <div className="mt-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      )}
 
-      <UploadModal
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        onUpload={handleUpload}
-        type="audio"
-      />
-    </Wrapper>
-  );
+                    <div className={`my-3 h-px ${isDayMode ? "bg-slate-200/70" : "bg-white/10"}`} />
+
+                    <div
+                        className={`space-y-2 ${showAllCompactTracks ? "max-h-[430px] overflow-y-auto pr-1 custom-scrollbar" : ""}`}
+                    >
+                        {loading && tracks.length === 0 ? (
+                            [...Array(3)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`flex items-center gap-2 rounded-lg border p-2 animate-pulse ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"}`}
+                                >
+                                    <div
+                                        className={`h-9 w-9 rounded-md ${isDayMode ? "bg-slate-200" : "bg-white/10"}`}
+                                    />
+                                    <div className="min-w-0 flex-1 space-y-1.5">
+                                        <div
+                                            className={`h-3 w-4/5 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`}
+                                        />
+                                        <div
+                                            className={`h-2.5 w-1/2 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`}
+                                        />
+                                    </div>
+                                </div>
+                            ))
+                        ) : error ? (
+                            <button
+                                type="button"
+                                onClick={refresh}
+                                className={`w-full rounded-lg border p-3 text-sm ${isDayMode ? "border-rose-200 bg-rose-50 text-rose-700" : "border-rose-500/20 bg-rose-500/10 text-rose-300"}`}
+                            >
+                                {t("common.retry", "重试")}
+                            </button>
+                        ) : tracks.length === 0 ? (
+                            <div
+                                className={`rounded-lg border p-3 text-center text-xs ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.03] text-gray-400"}`}
+                            >
+                                {t("music.no_tracks", "暂无音频")}
+                            </div>
+                        ) : (
+                            visibleCompactTracks.map((track, index) => (
+                                <TrackItem
+                                    key={track.id}
+                                    track={track}
+                                    activeTrackId={activeTrack.id}
+                                    isPlaying={isPlaying}
+                                    onClick={handleTrackClick}
+                                    onToggleFavorite={handleTrackToggleFavorite}
+                                    canAnimate={!prefersReducedMotion && index < 3}
+                                    isDayMode={isDayMode}
+                                    compact
+                                />
+                            ))
+                        )}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setShowAllCompactTracks((value) => !value)}
+                        disabled={!canToggleCompactTracks}
+                        className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${isDayMode ? "border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100 disabled:hover:bg-violet-50" : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15 disabled:hover:bg-cyan-400/10"}`}
+                    >
+                        {showAllCompactTracks
+                            ? t("community.collapse_podcast", "收起播客")
+                            : t("community.view_more_podcast", "查看更多播客")}
+                    </button>
+                </div>
+            ) : (
+                <div
+                    className={`w-full grid items-start relative ${singleColumn ? "grid-cols-1 gap-4" : embedded ? "lg:grid-cols-2 gap-4 md:gap-6" : "lg:grid-cols-2 max-w-6xl mx-auto gap-6 md:gap-16"}`}
+                >
+                    {/* Player View - Hidden on Mobile */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className={`hidden md:block backdrop-blur-2xl border rounded-3xl shadow-2xl relative overflow-hidden ${embedded ? "p-4" : "p-6 md:p-12"} ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a]/50 border-white/20"}`}
+                    >
+                        <div
+                            className={`absolute inset-0 backdrop-blur-3xl z-0 rounded-3xl ${isDayMode ? "bg-slate-100/35" : "bg-white/5"}`}
+                            style={{
+                                backgroundImage: `url(${activeTrack.cover})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                            }}
+                        />
+                        <div
+                            className={`absolute inset-0 z-0 ${isDayMode ? "bg-white/45" : "bg-black/40"}`}
+                        />
+
+                        {/* Content Wrapper to ensure z-index above background */}
+                        <div className="relative z-10">
+                            {/* Header — hidden when embedded (parent already has section title) */}
+                            {!embedded && (
+                                <div
+                                    className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
+                                >
+                                    <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
+                                        <MusicIcon size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl md:text-2xl font-bold font-serif">
+                                            {t("music.title")}
+                                        </h2>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Vinyl / Cover */}
+                            <div className="flex justify-center mb-4 md:mb-6">
+                                <div
+                                    className={`relative rounded-full border-4 overflow-hidden ${isPlaying && !prefersReducedMotion ? "animate-[spin_4s_linear_infinite]" : ""} ${singleColumn ? "w-32 h-32" : "w-48 h-48 md:w-56 md:h-56"} ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
+                                    style={{ animationPlayState: isPlaying ? "running" : "paused" }}
+                                >
+                                    <div
+                                        className={`absolute inset-0 bg-gradient-to-tr pointer-events-none z-10 rounded-full ${isDayMode ? "from-white/40 to-transparent" : "from-white/20 to-transparent"}`}
+                                    />
+                                    <SmartImage
+                                        src={activeTrack.cover}
+                                        alt={activeTrack.title}
+                                        type="music"
+                                        className="w-full h-full"
+                                        imageClassName="w-full h-full object-cover"
+                                        iconSize={64}
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div
+                                            className={`w-8 h-8 rounded-full border-2 ${isDayMode ? "bg-white border-slate-200/90" : "bg-black border-white/20"}`}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Info */}
+                            <div className="text-center mb-4 relative">
+                                <h2
+                                    className={`font-bold mb-1 px-4 truncate ${singleColumn ? "text-base" : "text-3xl mb-2 px-8"} ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    {activeTrack.title}
+                                </h2>
+                                <p
+                                    className={`text-cyan-400 font-medium ${singleColumn ? "text-xs mb-2" : "mb-4"}`}
+                                >
+                                    {activeTrack.artist}
+                                </p>
+
+                                <div className="flex items-center justify-center gap-4 mb-4"></div>
+
+                                {activeTrack.id && (
+                                    <div className="flex justify-center">
+                                        <FavoriteButton
+                                            itemId={activeTrack.id}
+                                            itemType="music"
+                                            size={20}
+                                            showCount={true}
+                                            count={activeTrack.likes}
+                                            favorited={activeTrack.favorited}
+                                            initialFavorited={activeTrack.favorited}
+                                            className={`p-2 rounded-full transition-colors border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700" : "bg-white/5 hover:bg-cyan-500/20 border-white/10"}`}
+                                            onToggle={handleTrackToggleFavorite}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Progress */}
+                            <div className="mb-8">
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={activeTrack.duration || 100}
+                                    value={progress}
+                                    onChange={handleSeek}
+                                    aria-label={t("music.seek", "播放进度")}
+                                    className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-violet-100/90 accent-violet-600 hover:accent-violet-700" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
+                                />
+                                <div
+                                    className={`flex justify-between text-xs font-mono mt-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                >
+                                    <span>{formatTime(progress)}</span>
+                                    <span>{formatTime(activeTrack.duration)}</span>
+                                </div>
+                            </div>
+
+                            {/* Controls */}
+                            <div className="flex flex-col items-center gap-6 mb-6">
+                                <div className="flex items-center justify-center gap-8">
+                                    <button
+                                        type="button"
+                                        onClick={handlePrev}
+                                        aria-label={t("common.previous_track", "上一首")}
+                                        className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
+                                        title={t("common.previous_track")}
+                                    >
+                                        <SkipBack size={28} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={togglePlay}
+                                        aria-label={
+                                            isPlaying
+                                                ? t("common.pause", "暂停")
+                                                : t("common.play", "播放")
+                                        }
+                                        className={`w-20 h-20 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all ${playButtonClass}`}
+                                        title={isPlaying ? t("common.pause") : t("common.play")}
+                                    >
+                                        {isPlaying ? (
+                                            <Pause size={32} fill="currentColor" />
+                                        ) : (
+                                            <Play size={32} fill="currentColor" className="ml-1" />
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        aria-label={t("common.next_track", "下一首")}
+                                        className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
+                                        title={t("common.next_track")}
+                                    >
+                                        <SkipForward size={28} />
+                                    </button>
+                                </div>
+
+                                {/* Speed Control — hidden in sidebar */}
+                                {!singleColumn && (
+                                    <button
+                                        type="button"
+                                        onClick={handleSpeedChange}
+                                        aria-label={t("common.playback_speed", "播放速度")}
+                                        className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
+                                        title={t("common.playback_speed")}
+                                    >
+                                        {playbackSpeed}x {t("common.speed")}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Volume — hidden in sidebar */}
+                            {!singleColumn && (
+                                <div
+                                    className={`flex items-center gap-3 justify-center ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={toggleMute}
+                                        aria-label={
+                                            isMuted
+                                                ? t("common.unmute", "取消静音")
+                                                : t("common.mute", "静音")
+                                        }
+                                        className={`p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-white/80 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
+                                        title={isMuted ? t("common.unmute") : t("common.mute")}
+                                    >
+                                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                    </button>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.01"
+                                        value={volume}
+                                        onChange={handleVolumeChange}
+                                        aria-label={t("common.volume", "音量")}
+                                        className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? "bg-slate-200/90 accent-slate-500 hover:accent-slate-700" : "bg-white/10 accent-gray-400 hover:accent-white"}`}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Playlist View */}
+                    <div className="flex flex-col min-h-0 md:h-[600px]">
+                        <motion.div
+                            initial={{ opacity: 0, x: 50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6 }}
+                            viewport={{ once: true }}
+                            className="overflow-visible md:flex-1 md:overflow-y-auto custom-scrollbar pr-0 md:pr-2"
+                        >
+                            <div
+                                className={`mb-3 flex items-center gap-2 sticky top-0 z-10 rounded-lg border backdrop-blur-2xl shadow-lg md:gap-3 md:rounded-xl ${singleColumn ? "p-2.5 md:p-3" : "p-3 md:p-4"} ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
+                            >
+                                <div
+                                    className={`rounded-md bg-cyan-500/20 text-cyan-400 md:rounded-full ${singleColumn ? "p-2" : "p-2 md:p-3"}`}
+                                >
+                                    <MusicIcon
+                                        size={singleColumn ? 16 : 20}
+                                        className="md:h-6 md:w-6"
+                                    />
+                                </div>
+                                <h3
+                                    className={`font-bold ${singleColumn ? "text-sm" : "text-base md:text-2xl"}`}
+                                >
+                                    {t("music.title")} ({tracks.length})
+                                </h3>
+                            </div>
+
+                            <div className="space-y-2">
+                                {loading && tracks.length === 0 ? (
+                                    // Loading Skeleton
+                                    [...Array(5)].map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className={`flex items-center gap-3 rounded-lg p-3 animate-pulse md:gap-4 md:rounded-xl md:p-4 ${isDayMode ? "day-card-lift" : "bg-white/5"}`}
+                                        >
+                                            <div
+                                                className={`h-10 w-10 flex-shrink-0 rounded-md md:h-12 md:w-12 md:rounded-lg ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                                            />
+                                            <div className="flex-1 space-y-1.5 md:space-y-2">
+                                                <div
+                                                    className={`h-3.5 rounded w-1/3 md:h-4 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                                                />
+                                                <div
+                                                    className={`h-2.5 rounded w-1/4 md:h-3 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : error ? (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center md:py-12">
+                                        <AlertCircle
+                                            size={36}
+                                            className="mx-auto mb-3 text-red-400 opacity-50 md:mb-4 md:h-12 md:w-12"
+                                        />
+                                        <p
+                                            className={`mb-4 text-sm md:mb-6 md:text-base ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                        >
+                                            {t("common.error_fetching_data", "获取数据失败")}
+                                        </p>
+                                        <button
+                                            onClick={refresh}
+                                            className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+                                        >
+                                            {t("common.retry", "重试")}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {tracks.length === 0 && (
+                                            <div
+                                                className={`py-8 text-center md:py-12 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                            >
+                                                <MusicIcon
+                                                    size={36}
+                                                    className="mx-auto mb-3 opacity-20 md:mb-4 md:h-12 md:w-12"
+                                                />
+                                                <p>{t("music.no_tracks")}</p>
+                                            </div>
+                                        )}
+                                        {tracks.map((track, index) => (
+                                            <TrackItem
+                                                key={track.id}
+                                                track={track}
+                                                activeTrackId={activeTrack.id}
+                                                isPlaying={isPlaying}
+                                                onClick={handleTrackClick}
+                                                onToggleFavorite={handleTrackToggleFavorite}
+                                                canAnimate={!prefersReducedMotion && index < 10}
+                                                isDayMode={isDayMode}
+                                                compact={singleColumn}
+                                            />
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                        {!loading &&
+                            !error &&
+                            tracks.length > 0 &&
+                            !isPaginationEnabled &&
+                            hasMore && (
+                                <div className="mt-6 flex items-center justify-center">
+                                    <motion.button
+                                        whileHover={
+                                            prefersReducedMotion ? undefined : { scale: 1.02 }
+                                        }
+                                        whileTap={
+                                            prefersReducedMotion ? undefined : { scale: 0.98 }
+                                        }
+                                        onClick={() => setCurrentPage((prev) => prev + 1)}
+                                        className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+                                    >
+                                        {t("common.load_more", "加载更多")}
+                                    </motion.button>
+                                </div>
+                            )}
+                        {settings.pagination_enabled === "true" && (
+                            <div className="mt-4">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <UploadModal
+                isOpen={isUploadOpen}
+                onClose={() => setIsUploadOpen(false)}
+                onUpload={handleUpload}
+                type="audio"
+            />
+        </Wrapper>
+    );
 };
 
 export default Music;

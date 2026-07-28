@@ -25,13 +25,13 @@
 ## Impact
 
 - 主要影响前端组件和样式：
-  - `src/index.css`
-  - `src/components/Navbar.jsx`
-  - `src/components/MobileNavbar.jsx`
-  - `src/components/Events.jsx`
-  - `src/components/Videos.jsx`
-  - `src/components/Admin/AdminAccessGate.jsx`
-  - 可能涉及 `SearchPalette.jsx`、`EventFilterPanel.jsx`、`UploadModal.jsx` 中少量高频入口样式。
+    - `src/index.css`
+    - `src/components/Navbar.jsx`
+    - `src/components/MobileNavbar.jsx`
+    - `src/components/Events.jsx`
+    - `src/components/Videos.jsx`
+    - `src/components/Admin/AdminAccessGate.jsx`
+    - 可能涉及 `SearchPalette.jsx`、`EventFilterPanel.jsx`、`UploadModal.jsx` 中少量高频入口样式。
 - 不涉及后端 API、SQLite 表结构、鉴权逻辑、上传流程和路由语义。
 - 风险主要来自 Tailwind 类名变更导致的响应式布局偏差，需要通过桌面端、移动端截图和 `npm run build` 验证。
 - 回滚策略：本轮改动保持在前端样式和局部布局内，如出现明显视觉或交互回归，可按文件级 diff 回退对应组件，不需要数据库或接口回滚。

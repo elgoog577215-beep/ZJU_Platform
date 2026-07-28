@@ -1,8 +1,11 @@
 # notifications-persistence Specification
 
 ## Purpose
+
 TBD - created by archiving change unify-notification-content. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Notification Content Single Source
 
 通知正文在服务端持久化层 SHALL 只通过 `notifications.content` 列表达。
@@ -87,14 +90,14 @@ TBD - created by archiving change unify-notification-content. Update Purpose aft
 
 `NotificationCenter.jsx` 的 `buildNotificationTargetPath` SHALL 支持 `new_content` type 的路由映射，根据 `related_resource_type` 跳转到对应的资源详情位置：
 
-| related_resource_type | 跳转路径 |
-|---|---|
-| `article` | `/articles?id={id}` |
-| `photo` | `/gallery?id={id}` |
-| `music` | `/music?id={id}` |
-| `video` | `/videos?id={id}` |
-| `event` | `/events?id={id}` |
-| `news` | `/news?id={id}` 或等价路径 |
+| related_resource_type | 跳转路径                   |
+| --------------------- | -------------------------- |
+| `article`             | `/articles?id={id}`        |
+| `photo`               | `/gallery?id={id}`         |
+| `music`               | `/music?id={id}`           |
+| `video`               | `/videos?id={id}`          |
+| `event`               | `/events?id={id}`          |
+| `news`                | `/news?id={id}` 或等价路径 |
 
 未识别的 `related_resource_type` SHALL fallback 到通知列表（不 navigate），并在 console 打 warning。
 
@@ -109,4 +112,3 @@ TBD - created by archiving change unify-notification-content. Update Purpose aft
 - **GIVEN** 通知 `{ type:'new_content', related_resource_type:'unknown_type', related_resource_id:99 }`（脏数据）
 - **WHEN** 用户点击
 - **THEN** 不 navigate；console.warn 提示未识别的资源类型；通知自身 MAY 被标记为已读
-

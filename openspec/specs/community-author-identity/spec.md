@@ -1,16 +1,22 @@
 # community-author-identity Specification
 
 ## Purpose
+
 TBD - created by archiving change community-identity-and-follow-notifications. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Author Display Name Fallback
+
 Author and uploader identity SHALL continue using nickname first and username as fallback, and avatar fields SHALL use `users.avatar` when available.
 
 #### Scenario: Competition work uploader fallback
+
 - **WHEN** a competition work is returned with uploader identity
 - **THEN** uploader display uses nickname or username and includes avatar when available.
 
 #### Scenario: Bound outcome identity display
+
 - **WHEN** a competition work is returned with confirmed bound identity information
 - **THEN** the response preserves original author/team text
 - **AND** includes confirmed identity display information separately when available.
@@ -92,10 +98,9 @@ Author and uploader identity SHALL continue using nickname first and username as
 
 > **Deprecated (removed 2026-04-18)**: The earlier requirements for
 > `Anonymous Help Post Opt-in`, `Anonymous Help Post Server-side
-> Redaction`, `Single Serializer Coverage Guarantee`, and
+Redaction`, `Single Serializer Coverage Guarantee`, and
 > `PostComposer Anonymous Checkbox` were dropped. Rationale: since
 > nicknames are freely editable per user, an explicit anonymous flag
 > provided no meaningful privacy that nickname choice couldn't already
 > deliver. The `community_posts.is_anonymous` column remains in the
 > schema for backwards compatibility but is always written as 0.
-

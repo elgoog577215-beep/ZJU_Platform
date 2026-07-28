@@ -1,12 +1,12 @@
 Component({
-  properties: {
-    project: {
-      type: Object,
-      value: {},
+    properties: {
+        project: {
+            type: Object,
+            value: {},
+        },
+        copy: {
+            type: Object,
+            value: {},
+        },
     },
-    copy: {
-      type: Object,
-      value: {},
-    },
-  },
 });

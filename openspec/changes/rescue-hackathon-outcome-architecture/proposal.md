@@ -8,9 +8,9 @@ The product should treat a hackathon as an event domain that curates existing co
 
 - Establish one visible public outcome submission entry from the hackathon showcase and winner stories pages.
 - Route outcome media by canonical content ownership:
-  - stage photos -> photo live/gallery API
-  - promo videos -> video API
-  - winning works/stories -> hackathon work/story API
+    - stage photos -> photo live/gallery API
+    - promo videos -> video API
+    - winning works/stories -> hackathon work/story API
 - Remove the legacy "competition outcome package" UI from admin operations and keep backend compatibility only until a later archive/migration.
 - Define the public read model as a composed outcome page: event metadata, approved photos, approved videos, approved works, and honor/story details.
 - Keep personal contact data, raw upload metadata, IP addresses, and private review fields out of public responses.

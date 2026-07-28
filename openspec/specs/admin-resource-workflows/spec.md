@@ -1,8 +1,11 @@
 # admin-resource-workflows Specification
 
 ## Purpose
+
 TBD - created by archiving change refine-admin-resource-workflows. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Resource lists must ignore stale responses
 
 Admin resource list requests SHALL only update visible list state when the response belongs to the latest request for that resource manager instance.
@@ -41,4 +44,3 @@ Mobile resource cards SHALL visually communicate when an item is selected and ke
 - **WHEN** the administrator selects an item from a mobile resource card
 - **THEN** the card shall show selected styling
 - **AND** edit/delete actions shall remain visible without causing layout shift.
-

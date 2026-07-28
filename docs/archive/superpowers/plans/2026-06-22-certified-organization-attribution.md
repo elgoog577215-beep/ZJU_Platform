@@ -32,11 +32,11 @@
 ### Task 2: Backend TDD
 
 - [x] Write service tests proving:
-  - exact organizer alias creates a strong candidate;
-  - title/body text creates medium candidates;
-  - location-only evidence does not create strong candidates;
-  - applying candidates updates publisher/organizer profile IDs but keeps uploader and created time;
-  - applying candidates writes migration logs.
+    - exact organizer alias creates a strong candidate;
+    - title/body text creates medium candidates;
+    - location-only evidence does not create strong candidates;
+    - applying candidates updates publisher/organizer profile IDs but keeps uploader and created time;
+    - applying candidates writes migration logs.
 - [x] Run the test and confirm it fails because the service does not exist yet.
 - [x] Implement the minimal service.
 - [x] Re-run the service test until it passes.
@@ -46,8 +46,8 @@
 - [x] Add `event_attribution_migration_logs` table and indexes in `runMigrations.js`.
 - [x] Add controller wrappers for preview and apply.
 - [x] Mount routes:
-  - `GET /api/admin/event-attribution/candidates`
-  - `POST /api/admin/event-attribution/apply`
+    - `GET /api/admin/event-attribution/candidates`
+    - `POST /api/admin/event-attribution/apply`
 - [x] Ensure both routes use `authenticateToken` and `isAdmin`.
 
 ### Task 4: Admin UI

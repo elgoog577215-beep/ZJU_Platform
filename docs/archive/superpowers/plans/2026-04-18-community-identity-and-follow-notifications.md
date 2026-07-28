@@ -8,6 +8,7 @@ created: 2026-04-18
 ## Overview
 
 把 4 件事收口到一个 change：
+
 1. 修复 SQL 漏洞导致的"假匿名" — 作者身份用 `COALESCE(u.nickname, u.username)` 兜底
 2. 为 `users.nickname` 补编辑入口 + 全局唯一约束
 3. `community_posts` 加 `is_anonymous` opt-in + 服务端脱敏 helper + CI 覆盖 assertion
@@ -16,6 +17,7 @@ created: 2026-04-18
 同时附带：PublicProfile 内容区改造为类型 tabs + 大图 grid（保留"已发布"风格）；资源详情头像可点跳主页；禁止 self-follow。
 
 **Scope hard limits**:
+
 - 后端只动 6 文件：`resourceController.js`, `newsController.js`, `userController.js`, `communityController.js`, `notificationController.js`, `runMigrations.js`
 - 前端只动 4 文件：`PublicProfile.jsx`, `PostComposer.jsx`, `CommunityDetailModal.jsx`, `NotificationCenter.jsx`
 - `getFollowingFeed` **不动**（保持其 `author_nickname` / `author_username` 分字段现状）
@@ -25,6 +27,7 @@ created: 2026-04-18
 - 不重命名 `community_posts.author_id`（保留 author_id vs uploader_id 的不一致）
 
 **字段命名提醒**（Eng-R3）：
+
 - 资源表 6 张：作者字段名为 `uploader_id`
 - `community_posts` 表：作者字段名为 `author_id`
 - 每个涉及 SQL/代码的 Task 都已标注使用正确字段名
@@ -55,6 +58,7 @@ ls -la server/database.sqlite.bak.pre-identity-follow-*
 ## Task 1: Database Migration
 
 **Files**:
+
 - Modify: `server/src/config/runMigrations.js`
 
 ### Step 1.1 — 在 `users` 表 migration 之后追加 nickname UNIQUE partial index
@@ -62,26 +66,26 @@ ls -la server/database.sqlite.bak.pre-identity-follow-*
 找到 `runMigrations.js` 里 `if (!userColumns.includes('nickname'))` 块（约 line 285）。在该块之后追加：
 
 ```js
-  // Migration: Nickname partial unique index.
-  // See openspec/changes/community-identity-and-follow-notifications/ for full context.
-  try {
+// Migration: Nickname partial unique index.
+// See openspec/changes/community-identity-and-follow-notifications/ for full context.
+try {
     const nicknameCollisions = await db.all(
-      `SELECT nickname, GROUP_CONCAT(id) AS ids, COUNT(*) AS cnt
+        `SELECT nickname, GROUP_CONCAT(id) AS ids, COUNT(*) AS cnt
        FROM users WHERE nickname IS NOT NULL AND nickname <> ''
        GROUP BY nickname HAVING cnt > 1`
     );
     if (nicknameCollisions.length > 0) {
-      console.warn(
-        '[Migration warning] nickname collisions detected, please resolve before UNIQUE enforcement:',
-        nicknameCollisions,
-      );
+        console.warn(
+            "[Migration warning] nickname collisions detected, please resolve before UNIQUE enforcement:",
+            nicknameCollisions
+        );
     }
     await db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nickname
                    ON users(nickname) WHERE nickname IS NOT NULL`);
-    console.log('✅ users.nickname partial UNIQUE index ready');
-  } catch (err) {
-    console.warn('Migration warning (users.nickname unique):', err.message);
-  }
+    console.log("✅ users.nickname partial UNIQUE index ready");
+} catch (err) {
+    console.warn("Migration warning (users.nickname unique):", err.message);
+}
 ```
 
 ### Step 1.2 — 在 `community_posts` 的 migration 之后追加 `is_anonymous` column
@@ -89,17 +93,17 @@ ls -la server/database.sqlite.bak.pre-identity-follow-*
 找到 `runMigrations.js` 里 `CREATE TABLE IF NOT EXISTS community_posts` 块（约 line 455）之后。追加：
 
 ```js
-  // Migration: community_posts.is_anonymous opt-in flag (help posts only).
-  try {
-    const postsInfo = await db.all('PRAGMA table_info(community_posts)');
+// Migration: community_posts.is_anonymous opt-in flag (help posts only).
+try {
+    const postsInfo = await db.all("PRAGMA table_info(community_posts)");
     const postsColumns = new Set(postsInfo.map((c) => c.name));
-    if (!postsColumns.has('is_anonymous')) {
-      await db.exec(`ALTER TABLE community_posts ADD COLUMN is_anonymous INTEGER DEFAULT 0`);
-      console.log('✅ Added community_posts.is_anonymous column');
+    if (!postsColumns.has("is_anonymous")) {
+        await db.exec(`ALTER TABLE community_posts ADD COLUMN is_anonymous INTEGER DEFAULT 0`);
+        console.log("✅ Added community_posts.is_anonymous column");
     }
-  } catch (err) {
-    console.warn('Migration warning (community_posts.is_anonymous):', err.message);
-  }
+} catch (err) {
+    console.warn("Migration warning (community_posts.is_anonymous):", err.message);
+}
 ```
 
 **注意**: SQLite 没有 BOOLEAN，用 INTEGER 存 0/1。JS 层读出时 `Boolean(row.is_anonymous)` 正常工作。
@@ -117,6 +121,7 @@ node -e "require('./src/config/runMigrations').runMigrations().then(() => { cons
 ## Task 2: Resource Author SQL Fallback
 
 **Files**:
+
 - Modify: `server/src/controllers/resourceController.js`
 - Modify: `server/src/controllers/newsController.js`
 - Test: 手动 curl 新老用户的 article
@@ -170,6 +175,7 @@ curl -s "http://localhost:3000/api/articles?limit=3" | python -c "import json,sy
 ## Task 3: Backend · Nickname Editing API
 
 **Files**:
+
 - Modify: `server/src/controllers/userController.js`（`updateUser` 函数）
 
 ### Step 3.1 — 新增 validateNickname helper
@@ -180,16 +186,16 @@ curl -s "http://localhost:3000/api/articles?limit=3" | python -c "import json,sy
 const NICKNAME_REGEX = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
 
 function validateNickname(raw) {
-  if (raw === null || raw === undefined) return { ok: true, value: null };
-  const trimmed = String(raw).trim();
-  if (trimmed === '') return { ok: true, value: null };
-  if (trimmed.length < 2 || trimmed.length > 20) {
-    return { ok: false, error: 'nickname 长度需为 2-20 字符' };
-  }
-  if (!NICKNAME_REGEX.test(trimmed)) {
-    return { ok: false, error: 'nickname 仅允许中英文、数字和下划线' };
-  }
-  return { ok: true, value: trimmed };
+    if (raw === null || raw === undefined) return { ok: true, value: null };
+    const trimmed = String(raw).trim();
+    if (trimmed === "") return { ok: true, value: null };
+    if (trimmed.length < 2 || trimmed.length > 20) {
+        return { ok: false, error: "nickname 长度需为 2-20 字符" };
+    }
+    if (!NICKNAME_REGEX.test(trimmed)) {
+        return { ok: false, error: "nickname 仅允许中英文、数字和下划线" };
+    }
+    return { ok: true, value: trimmed };
 }
 ```
 
@@ -199,18 +205,22 @@ function validateNickname(raw) {
 
 ```js
 if (nickname !== undefined) {
-  const check = validateNickname(nickname);
-  if (!check.ok) {
-    return res.status(400).json({ error: check.error });
-  }
-  try {
-    await db.run('UPDATE users SET nickname = ? WHERE id = ?', [check.value, id]);
-  } catch (err) {
-    if (err && (err.code === 'SQLITE_CONSTRAINT' || /UNIQUE constraint failed/i.test(err.message || ''))) {
-      return res.status(409).json({ error: '该昵称已被使用' });
+    const check = validateNickname(nickname);
+    if (!check.ok) {
+        return res.status(400).json({ error: check.error });
     }
-    throw err;
-  }
+    try {
+        await db.run("UPDATE users SET nickname = ? WHERE id = ?", [check.value, id]);
+    } catch (err) {
+        if (
+            err &&
+            (err.code === "SQLITE_CONSTRAINT" ||
+                /UNIQUE constraint failed/i.test(err.message || ""))
+        ) {
+            return res.status(409).json({ error: "该昵称已被使用" });
+        }
+        throw err;
+    }
 }
 ```
 
@@ -239,6 +249,7 @@ curl -X PUT http://localhost:3000/api/users/me $AUTH -d '{"nickname":""}'       
 ## Task 4: Backend · serializeCommunityPost Helper + 读路径审计
 
 **Files**:
+
 - Create: `server/src/utils/serializeCommunityPost.js`
 - Modify: `server/src/controllers/communityController.js`
 
@@ -257,26 +268,26 @@ curl -X PUT http://localhost:3000/api/users/me $AUTH -d '{"nickname":""}'       
  * @returns {object} serialized post safe to return
  */
 function serializeCommunityPost(post, viewer) {
-  if (!post) return post;
+    if (!post) return post;
 
-  const isAnonymous = Boolean(post.is_anonymous);
-  if (!isAnonymous) return { ...post };
+    const isAnonymous = Boolean(post.is_anonymous);
+    if (!isAnonymous) return { ...post };
 
-  const viewerId = viewer && viewer.id != null ? Number(viewer.id) : null;
-  const viewerRole = viewer && viewer.role ? String(viewer.role) : null;
-  const authorId = post.author_id != null ? Number(post.author_id) : null;
-  const isOwner = viewerId !== null && authorId !== null && viewerId === authorId;
-  const isAdmin = viewerRole === 'admin';
+    const viewerId = viewer && viewer.id != null ? Number(viewer.id) : null;
+    const viewerRole = viewer && viewer.role ? String(viewer.role) : null;
+    const authorId = post.author_id != null ? Number(post.author_id) : null;
+    const isOwner = viewerId !== null && authorId !== null && viewerId === authorId;
+    const isAdmin = viewerRole === "admin";
 
-  if (isOwner || isAdmin) return { ...post };
+    if (isOwner || isAdmin) return { ...post };
 
-  return {
-    ...post,
-    author_id: null,
-    author_name: null,
-    author_avatar: null,
-    uploader_id: null,   // 防御性：某些 join 别名可能带此字段
-  };
+    return {
+        ...post,
+        author_id: null,
+        author_name: null,
+        author_avatar: null,
+        uploader_id: null, // 防御性：某些 join 别名可能带此字段
+    };
 }
 
 module.exports = { serializeCommunityPost };
@@ -291,6 +302,7 @@ grep -n "FROM community_posts\|from community_posts" src --include="*.js" -r
 ```
 
 预计覆盖：
+
 - `communityController.js` 的 list / detail / my-posts
 - `userController.js` `getUserResources`（Task 6 一并）
 
@@ -319,8 +331,8 @@ res.json(serializeCommunityPost(post, viewer));
 在 `createPost`（或等效 handler）里，确保：
 
 ```js
-const section = String(req.body.section || '').toLowerCase();
-const isAnonymous = section === 'help' ? (req.body.is_anonymous ? 1 : 0) : 0;
+const section = String(req.body.section || "").toLowerCase();
+const isAnonymous = section === "help" ? (req.body.is_anonymous ? 1 : 0) : 0;
 // INSERT INTO community_posts (..., is_anonymous, ...) VALUES (..., ?, ...)
 ```
 
@@ -331,39 +343,44 @@ const isAnonymous = section === 'help' ? (req.body.is_anonymous ? 1 : 0) : 0;
 `server/src/utils/__tests__/serializeCommunityPost.test.js`:
 
 ```js
-const { serializeCommunityPost } = require('../serializeCommunityPost');
+const { serializeCommunityPost } = require("../serializeCommunityPost");
 
-describe('serializeCommunityPost', () => {
-  const post = {
-    id: 100, author_id: 7, author_name: 'xsh', author_avatar: 'a.png',
-    is_anonymous: 1, title: 't', content: 'c',
-  };
+describe("serializeCommunityPost", () => {
+    const post = {
+        id: 100,
+        author_id: 7,
+        author_name: "xsh",
+        author_avatar: "a.png",
+        is_anonymous: 1,
+        title: "t",
+        content: "c",
+    };
 
-  test('non-anonymous: returns as-is', () => {
-    expect(serializeCommunityPost({ ...post, is_anonymous: 0 }, null).author_name).toBe('xsh');
-  });
+    test("non-anonymous: returns as-is", () => {
+        expect(serializeCommunityPost({ ...post, is_anonymous: 0 }, null).author_name).toBe("xsh");
+    });
 
-  test('anonymous + visitor: redacted', () => {
-    const out = serializeCommunityPost(post, null);
-    expect(out.author_name).toBeNull();
-    expect(out.author_id).toBeNull();
-    expect(out.author_avatar).toBeNull();
-  });
+    test("anonymous + visitor: redacted", () => {
+        const out = serializeCommunityPost(post, null);
+        expect(out.author_name).toBeNull();
+        expect(out.author_id).toBeNull();
+        expect(out.author_avatar).toBeNull();
+    });
 
-  test('anonymous + other user: redacted', () => {
-    const out = serializeCommunityPost(post, { id: 99, role: 'user' });
-    expect(out.author_name).toBeNull();
-  });
+    test("anonymous + other user: redacted", () => {
+        const out = serializeCommunityPost(post, { id: 99, role: "user" });
+        expect(out.author_name).toBeNull();
+    });
 
-  test('anonymous + owner: full visibility', () => {
-    const out = serializeCommunityPost(post, { id: 7, role: 'user' });
-    expect(out.author_name).toBe('xsh');
-  });
+    test("anonymous + owner: full visibility", () => {
+        const out = serializeCommunityPost(post, { id: 7, role: "user" });
+        expect(out.author_name).toBe("xsh");
+    });
 
-  test('anonymous + admin: full visibility', () => {
-    const out = serializeCommunityPost(post, { id: 99, role: 'admin' });
-    expect(out.author_name).toBe('xsh');
-  });
+    test("anonymous + admin: full visibility", () => {
+        const out = serializeCommunityPost(post, { id: 99, role: "admin" });
+        expect(out.author_name).toBe("xsh");
+    });
 });
 ```
 
@@ -372,6 +389,7 @@ describe('serializeCommunityPost', () => {
 ## Task 5: Backend · fanOutNewContent Helper
 
 **Files**:
+
 - Modify: `server/src/controllers/notificationController.js`
 - Modify: `server/src/controllers/resourceController.js`
 - Modify: `server/src/controllers/newsController.js`
@@ -384,61 +402,66 @@ describe('serializeCommunityPost', () => {
 
 ```js
 const RESOURCE_TYPE_LABEL = {
-  article: '文章',
-  photo: '图片',
-  music: '音乐',
-  video: '视频',
-  event: '活动',
-  news: '新闻',
+    article: "文章",
+    photo: "图片",
+    music: "音乐",
+    video: "视频",
+    event: "活动",
+    news: "新闻",
 };
 
 async function fanOutNewContent({ authorId, resourceType, resourceId, title }) {
-  if (!authorId || !resourceType || !resourceId) return;
-  const label = RESOURCE_TYPE_LABEL[resourceType];
-  if (!label) return;   // 未知类型不 fan-out
+    if (!authorId || !resourceType || !resourceId) return;
+    const label = RESOURCE_TYPE_LABEL[resourceType];
+    if (!label) return; // 未知类型不 fan-out
 
-  try {
-    const db = await getDb();
-    // Author display name (nickname || username)
-    const author = await db.get(
-      'SELECT username, nickname FROM users WHERE id = ?',
-      [authorId]
-    );
-    if (!author) return;
-    const authorName = author.nickname || author.username || '某用户';
+    try {
+        const db = await getDb();
+        // Author display name (nickname || username)
+        const author = await db.get("SELECT username, nickname FROM users WHERE id = ?", [
+            authorId,
+        ]);
+        if (!author) return;
+        const authorName = author.nickname || author.username || "某用户";
 
-    // Followers, filtering banned + deleted (if column exists)
-    const userCols = await db.all('PRAGMA table_info(users)');
-    const hasDeletedAt = userCols.some((c) => c.name === 'deleted_at');
-    const followerQuery = hasDeletedAt
-      ? `SELECT uf.follower_id FROM user_follows uf
+        // Followers, filtering banned + deleted (if column exists)
+        const userCols = await db.all("PRAGMA table_info(users)");
+        const hasDeletedAt = userCols.some((c) => c.name === "deleted_at");
+        const followerQuery = hasDeletedAt
+            ? `SELECT uf.follower_id FROM user_follows uf
          JOIN users u ON u.id = uf.follower_id
          WHERE uf.following_id = ?
            AND (u.role IS NULL OR u.role != 'banned')
            AND u.deleted_at IS NULL`
-      : `SELECT uf.follower_id FROM user_follows uf
+            : `SELECT uf.follower_id FROM user_follows uf
          JOIN users u ON u.id = uf.follower_id
          WHERE uf.following_id = ?
            AND (u.role IS NULL OR u.role != 'banned')`;
-    const rows = await db.all(followerQuery, [authorId]);
+        const rows = await db.all(followerQuery, [authorId]);
 
-    const safeTitle = title && String(title).trim() ? String(title).trim() : '（无标题）';
-    const content = `${authorName} 发布了新${label}《${safeTitle}》`;
+        const safeTitle = title && String(title).trim() ? String(title).trim() : "（无标题）";
+        const content = `${authorName} 发布了新${label}《${safeTitle}》`;
 
-    for (const row of rows) {
-      await createNotification(row.follower_id, 'new_content', content, resourceId, resourceType);
+        for (const row of rows) {
+            await createNotification(
+                row.follower_id,
+                "new_content",
+                content,
+                resourceId,
+                resourceType
+            );
+        }
+    } catch (err) {
+        console.error("[fanOutNewContent] error:", err);
     }
-  } catch (err) {
-    console.error('[fanOutNewContent] error:', err);
-  }
 }
 
 module.exports = {
-  createNotification,
-  fanOutNewContent,
-  getNotifications,
-  markAsRead,
-  deleteNotification,
+    createNotification,
+    fanOutNewContent,
+    getNotifications,
+    markAsRead,
+    deleteNotification,
 };
 ```
 
@@ -449,22 +472,22 @@ module.exports = {
 在 `resourceController.js` 顶部 import：
 
 ```js
-const { createNotification, fanOutNewContent } = require('./notificationController');
+const { createNotification, fanOutNewContent } = require("./notificationController");
 ```
 
 在 `createHandler` 里 `db.run(sql, values)` 成功后（约 line 111），追加：
 
 ```js
 // Fan-out follow notifications (skip for admin moderation updates etc.)
-const FANOUT_TABLES = new Set(['photos', 'music', 'videos', 'articles', 'events']);
-if (FANOUT_TABLES.has(table) && status !== 'rejected') {
-  // fan-out async-ish: don't await if perf matters, but keep sync for now per design
-  await fanOutNewContent({
-    authorId: uploader_id,
-    resourceType: table.slice(0, -1),   // 'articles' -> 'article'
-    resourceId: result.lastID,
-    title: req.body.title,
-  });
+const FANOUT_TABLES = new Set(["photos", "music", "videos", "articles", "events"]);
+if (FANOUT_TABLES.has(table) && status !== "rejected") {
+    // fan-out async-ish: don't await if perf matters, but keep sync for now per design
+    await fanOutNewContent({
+        authorId: uploader_id,
+        resourceType: table.slice(0, -1), // 'articles' -> 'article'
+        resourceId: result.lastID,
+        title: req.body.title,
+    });
 }
 ```
 
@@ -473,13 +496,13 @@ if (FANOUT_TABLES.has(table) && status !== 'rejected') {
 `newsController.js` 的 createNews handler 里 INSERT 成功后追加：
 
 ```js
-const { fanOutNewContent } = require('./notificationController');
+const { fanOutNewContent } = require("./notificationController");
 // ...
 await fanOutNewContent({
-  authorId: req.user.id,
-  resourceType: 'news',
-  resourceId: result.lastID,
-  title: req.body.title,
+    authorId: req.user.id,
+    resourceType: "news",
+    resourceId: result.lastID,
+    title: req.body.title,
 });
 ```
 
@@ -504,6 +527,7 @@ await fanOutNewContent({
 ## Task 6: Backend · Self-Follow Guard + getUserResources 扩展
 
 **Files**:
+
 - Modify: `server/src/controllers/userController.js`
 
 **字段**: 资源表 `uploader_id`; `community_posts.author_id`。
@@ -516,7 +540,7 @@ await fanOutNewContent({
 const targetId = Number(req.params.id);
 const viewerId = Number(req.user.id);
 if (Number.isFinite(targetId) && targetId === viewerId) {
-  return res.status(400).json({ error: '不能关注自己' });
+    return res.status(400).json({ error: "不能关注自己" });
 }
 ```
 
@@ -527,9 +551,9 @@ if (Number.isFinite(targetId) && targetId === viewerId) {
 找 `getUserResources`（约 line 403）：
 
 ```js
-const tables = ['photos', 'videos', 'music', 'articles', 'events'];
+const tables = ["photos", "videos", "music", "articles", "events"];
 // 改为：
-const tables = ['photos', 'videos', 'music', 'articles', 'events', 'news'];
+const tables = ["photos", "videos", "music", "articles", "events", "news"];
 ```
 
 循环体内保持原 `WHERE uploader_id = ?` 不变（news 也用 uploader_id）。
@@ -539,11 +563,11 @@ const tables = ['photos', 'videos', 'music', 'articles', 'events', 'news'];
 `getUserResources` 在 `for (const table of tables)` 循环**之后**、`allResources.sort` **之前**，追加：
 
 ```js
-const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+const { serializeCommunityPost } = require("../utils/serializeCommunityPost");
 
 // community_posts: author_id (not uploader_id)
 const viewerRole = req.user ? req.user.role : null;
-const isAdmin = viewerRole === 'admin';
+const isAdmin = viewerRole === "admin";
 const isOwnerOfTarget = req.user && String(req.user.id) === String(id);
 
 let postsQuery = `SELECT cp.*,
@@ -556,17 +580,17 @@ let postsQuery = `SELECT cp.*,
 const postsParams = [id];
 
 if (!isOwnerOfTarget && !isAdmin) {
-  postsQuery += ` AND cp.status = 'approved' AND cp.deleted_at IS NULL`;
-  // Anonymous filter: visitors 不看匿名求助贴
-  postsQuery += ` AND NOT (cp.section = 'help' AND cp.is_anonymous = 1)`;
+    postsQuery += ` AND cp.status = 'approved' AND cp.deleted_at IS NULL`;
+    // Anonymous filter: visitors 不看匿名求助贴
+    postsQuery += ` AND NOT (cp.section = 'help' AND cp.is_anonymous = 1)`;
 }
 postsQuery += ` ORDER BY cp.id DESC`;
 
 const postsRaw = await db.all(postsQuery, postsParams);
 const viewer = req.user ? { id: req.user.id, role: req.user.role } : null;
 const posts = postsRaw.map((p) => ({
-  ...serializeCommunityPost(p, viewer),
-  type: p.section, // 'help' or 'team'
+    ...serializeCommunityPost(p, viewer),
+    type: p.section, // 'help' or 'team'
 }));
 allResources = [...allResources, ...posts];
 ```
@@ -579,8 +603,14 @@ allResources = [...allResources, ...posts];
 let query = `SELECT *, '${table}' as type FROM ${table} WHERE uploader_id = ?`;
 // 原本 query 已经 SELECT *，但需要把 type 显式设为单数形式（避免前端要 table 名）
 // 改为：
-const typeSingular = { photos: 'photo', videos: 'video', music: 'music',
-                       articles: 'article', events: 'event', news: 'news' }[table];
+const typeSingular = {
+    photos: "photo",
+    videos: "video",
+    music: "music",
+    articles: "article",
+    events: "event",
+    news: "news",
+}[table];
 let query = `SELECT *, ? as type FROM ${table} WHERE uploader_id = ?`;
 const params = [typeSingular, id];
 ```
@@ -605,6 +635,7 @@ curl http://localhost:3000/api/users/B_ID/resources  -H "Authorization: Bearer $
 ## Task 7: Backend · Serializer Coverage Pre-commit Assertion
 
 **Files**:
+
 - Create: `server/scripts/check-community-post-serializer.sh`
 - Modify: `package.json` (husky hook 或 CI 步骤)
 
@@ -672,6 +703,7 @@ npm run check:posts-serializer
 ## Task 8: Frontend · Nickname Input in PublicProfile Settings
 
 **Files**:
+
 - Modify: `src/components/PublicProfile.jsx`
 
 ### Step 8.1 — profileData 增加 nickname 字段
@@ -680,9 +712,9 @@ npm run check:posts-serializer
 
 ```js
 const [profileData, setProfileData] = useState({
-  organization: user?.organization_cr || '',
-  nickname: user?.nickname || '',
-  // ... 其它字段保持
+    organization: user?.organization_cr || "",
+    nickname: user?.nickname || "",
+    // ... 其它字段保持
 });
 ```
 
@@ -694,23 +726,29 @@ const [profileData, setProfileData] = useState({
 
 ```jsx
 <div className="pt-2">
-  <label className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-    {t("user_profile.fields.nickname", "显示名称")}
-  </label>
-  <input
-    type="text"
-    value={profileData.nickname}
-    onChange={(e) => setProfileData({ ...profileData, nickname: e.target.value })}
-    placeholder={t("user_profile.fields.nickname_placeholder", "2-20 字符，可选；不填则显示账号名")}
-    maxLength={20}
-    className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${
-      isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900"
+    <label
+        className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+    >
+        {t("user_profile.fields.nickname", "显示名称")}
+    </label>
+    <input
+        type="text"
+        value={profileData.nickname}
+        onChange={(e) => setProfileData({ ...profileData, nickname: e.target.value })}
+        placeholder={t(
+            "user_profile.fields.nickname_placeholder",
+            "2-20 字符，可选；不填则显示账号名"
+        )}
+        maxLength={20}
+        className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${
+            isDayMode
+                ? "bg-slate-50 border border-slate-200/80 text-slate-900"
                 : "bg-black/20 border border-white/10 text-white"
-    }`}
-  />
-  <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-    {t("user_profile.fields.nickname_help", "允许中英文、数字、下划线；留空则清空。")}
-  </p>
+        }`}
+    />
+    <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+        {t("user_profile.fields.nickname_help", "允许中英文、数字、下划线；留空则清空。")}
+    </p>
 </div>
 ```
 
@@ -722,13 +760,13 @@ const [profileData, setProfileData] = useState({
 
 ```js
 try {
-  await api.put(`/users/${user.id}`, body);
-  toast.success(t('user_profile.saved', '已保存'));
-  refetchUser();
+    await api.put(`/users/${user.id}`, body);
+    toast.success(t("user_profile.saved", "已保存"));
+    refetchUser();
 } catch (err) {
-  const status = err?.response?.status;
-  const errMsg = err?.response?.data?.error || t('common.save_failed', '保存失败');
-  toast.error(errMsg);   // 409 时展示 "该昵称已被使用"
+    const status = err?.response?.status;
+    const errMsg = err?.response?.data?.error || t("common.save_failed", "保存失败");
+    toast.error(errMsg); // 409 时展示 "该昵称已被使用"
 }
 ```
 
@@ -741,6 +779,7 @@ try {
 ## Task 9: Frontend · Anonymous Checkbox in PostComposer
 
 **Files**:
+
 - Modify: `src/components/PostComposer.jsx`
 
 ### Step 9.1 — state 增加 isAnonymous
@@ -759,7 +798,7 @@ const [isAnonymous, setIsAnonymous] = useState(false);
 
 ```js
 if (isHelp) {
-  body.is_anonymous = isAnonymous ? 1 : 0;
+    body.is_anonymous = isAnonymous ? 1 : 0;
 }
 ```
 
@@ -809,6 +848,7 @@ if (isHelp) {
 ## Task 10: Frontend · Clickable Author Avatar in CommunityDetailModal
 
 **Files**:
+
 - Modify: `src/components/CommunityDetailModal.jsx`
 
 ### Step 10.1 — 引入 useNavigate
@@ -816,7 +856,7 @@ if (isHelp) {
 顶部：
 
 ```js
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 // 组件内:
 const navigate = useNavigate();
 ```
@@ -830,21 +870,29 @@ const uploaderId = item?.uploader_id ?? item?.author_id;
 const canGoProfile = uploaderId != null;
 
 <div
-  role={canGoProfile ? 'button' : undefined}
-  tabIndex={canGoProfile ? 0 : undefined}
-  onClick={canGoProfile ? () => navigate(`/profile/${uploaderId}`) : undefined}
-  onKeyDown={canGoProfile ? (e) => { if (e.key === 'Enter') navigate(`/profile/${uploaderId}`) } : undefined}
-  className={`flex items-center gap-3 ${canGoProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-70'}`}
+    role={canGoProfile ? "button" : undefined}
+    tabIndex={canGoProfile ? 0 : undefined}
+    onClick={canGoProfile ? () => navigate(`/profile/${uploaderId}`) : undefined}
+    onKeyDown={
+        canGoProfile
+            ? (e) => {
+                  if (e.key === "Enter") navigate(`/profile/${uploaderId}`);
+              }
+            : undefined
+    }
+    className={`flex items-center gap-3 ${canGoProfile ? "cursor-pointer hover:opacity-80" : "cursor-not-allowed opacity-70"}`}
 >
-  {item.author_avatar ? (
-    <img src={item.author_avatar} alt="" className="w-full h-full object-cover" />
-  ) : (
-    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${canGoProfile ? 'bg-white/10' : 'bg-white/5 text-gray-500'}`}>
-      {canGoProfile ? '?' : '?'}
-    </div>
-  )}
-  <span>{item.author_name || t('common.anonymous', '匿名用户')}</span>
-</div>
+    {item.author_avatar ? (
+        <img src={item.author_avatar} alt="" className="w-full h-full object-cover" />
+    ) : (
+        <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${canGoProfile ? "bg-white/10" : "bg-white/5 text-gray-500"}`}
+        >
+            {canGoProfile ? "?" : "?"}
+        </div>
+    )}
+    <span>{item.author_name || t("common.anonymous", "匿名用户")}</span>
+</div>;
 ```
 
 **关键**: 匿名求助贴后端脱敏后 `uploader_id = null`，自动 `canGoProfile = false`，UI 不可点。
@@ -859,6 +907,7 @@ const canGoProfile = uploaderId != null;
 ## Task 11: Frontend · PublicProfile Content Tabs + Grid Cards + Route Memory
 
 **Files**:
+
 - Modify: `src/components/PublicProfile.jsx`
 
 依赖 Task 6 的 `/users/:id/resources` 新 payload。
@@ -867,37 +916,37 @@ const canGoProfile = uploaderId != null;
 
 ```js
 const CONTENT_TYPES = [
-  { key: 'all', label: '所有' },
-  { key: 'photo', label: '图片' },
-  { key: 'video', label: '视频' },
-  { key: 'music', label: '音乐' },
-  { key: 'article', label: '文章' },
-  { key: 'event', label: '活动' },
-  { key: 'news', label: '新闻' },
-  { key: 'help', label: '求助' },
-  { key: 'team', label: '组队' },
+    { key: "all", label: "所有" },
+    { key: "photo", label: "图片" },
+    { key: "video", label: "视频" },
+    { key: "music", label: "音乐" },
+    { key: "article", label: "文章" },
+    { key: "event", label: "活动" },
+    { key: "news", label: "新闻" },
+    { key: "help", label: "求助" },
+    { key: "team", label: "组队" },
 ];
 
-const [activeContentType, setActiveContentType] = useState('all');
+const [activeContentType, setActiveContentType] = useState("all");
 ```
 
 ### Step 11.2 — 聚合 counts + 过滤
 
 ```js
 const contentByType = useMemo(() => {
-  const map = { all: allResources };
-  for (const t of CONTENT_TYPES) {
-    if (t.key === 'all') continue;
-    map[t.key] = allResources.filter((r) => r.type === t.key);
-  }
-  return map;
+    const map = { all: allResources };
+    for (const t of CONTENT_TYPES) {
+        if (t.key === "all") continue;
+        map[t.key] = allResources.filter((r) => r.type === t.key);
+    }
+    return map;
 }, [allResources]);
 
 const visibleContent = contentByType[activeContentType] || [];
 const tabsWithCount = CONTENT_TYPES.map((t) => ({
-  ...t,
-  count: (contentByType[t.key] || []).length,
-})).filter((t) => t.key === 'all' || t.count > 0);  // 0 条的 tab 隐藏
+    ...t,
+    count: (contentByType[t.key] || []).length,
+})).filter((t) => t.key === "all" || t.count > 0); // 0 条的 tab 隐藏
 ```
 
 ### Step 11.3 — 替换"已发布"tab 渲染为类型 tabs + grid 卡片
@@ -905,36 +954,40 @@ const tabsWithCount = CONTENT_TYPES.map((t) => ({
 把原来的"已发布" tab 块换成：
 
 ```jsx
-{activeTab === 'published' && (
-  <>
-    <div className="flex flex-wrap gap-2 mb-6">
-      {tabsWithCount.map((t) => (
-        <button
-          key={t.key}
-          onClick={() => setActiveContentType(t.key)}
-          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-            activeContentType === t.key
-              ? 'bg-indigo-600 text-white'
-              : isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-gray-300'
-          }`}
-        >
-          {t.label} <span className="opacity-70">{t.count}</span>
-        </button>
-      ))}
-    </div>
+{
+    activeTab === "published" && (
+        <>
+            <div className="flex flex-wrap gap-2 mb-6">
+                {tabsWithCount.map((t) => (
+                    <button
+                        key={t.key}
+                        onClick={() => setActiveContentType(t.key)}
+                        className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                            activeContentType === t.key
+                                ? "bg-indigo-600 text-white"
+                                : isDayMode
+                                  ? "bg-slate-100 text-slate-600"
+                                  : "bg-white/5 text-gray-300"
+                        }`}
+                    >
+                        {t.label} <span className="opacity-70">{t.count}</span>
+                    </button>
+                ))}
+            </div>
 
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {visibleContent.map((item) => (
-        <ProfileContentCard
-          key={`${item.type}-${item.id}`}
-          item={item}
-          onClick={() => handleContentClick(item)}
-          isDayMode={isDayMode}
-        />
-      ))}
-    </div>
-  </>
-)}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {visibleContent.map((item) => (
+                    <ProfileContentCard
+                        key={`${item.type}-${item.id}`}
+                        item={item}
+                        onClick={() => handleContentClick(item)}
+                        isDayMode={isDayMode}
+                    />
+                ))}
+            </div>
+        </>
+    );
+}
 ```
 
 ### Step 11.4 — 写 ProfileContentCard 组件
@@ -943,41 +996,54 @@ const tabsWithCount = CONTENT_TYPES.map((t) => ({
 
 ```jsx
 const TYPE_META = {
-  photo:   { label: '图片', color: 'from-pink-500 to-rose-400', icon: '📷' },
-  video:   { label: '视频', color: 'from-emerald-500 to-teal-400', icon: '📹' },
-  music:   { label: '音乐', color: 'from-purple-500 to-fuchsia-400', icon: '🎵' },
-  article: { label: '文章', color: 'from-orange-500 to-amber-400', icon: '📝' },
-  event:   { label: '活动', color: 'from-blue-500 to-cyan-400', icon: '🎪' },
-  news:    { label: '新闻', color: 'from-gray-500 to-slate-400', icon: '📰' },
-  help:    { label: '求助', color: 'from-yellow-500 to-amber-400', icon: '💬' },
-  team:    { label: '组队', color: 'from-indigo-500 to-violet-400', icon: '👥' },
+    photo: { label: "图片", color: "from-pink-500 to-rose-400", icon: "📷" },
+    video: { label: "视频", color: "from-emerald-500 to-teal-400", icon: "📹" },
+    music: { label: "音乐", color: "from-purple-500 to-fuchsia-400", icon: "🎵" },
+    article: { label: "文章", color: "from-orange-500 to-amber-400", icon: "📝" },
+    event: { label: "活动", color: "from-blue-500 to-cyan-400", icon: "🎪" },
+    news: { label: "新闻", color: "from-gray-500 to-slate-400", icon: "📰" },
+    help: { label: "求助", color: "from-yellow-500 to-amber-400", icon: "💬" },
+    team: { label: "组队", color: "from-indigo-500 to-violet-400", icon: "👥" },
 };
 
 function ProfileContentCard({ item, onClick, isDayMode }) {
-  const meta = TYPE_META[item.type] || TYPE_META.article;
-  const cover = item.cover || item.url || item.thumbnail;
-  const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
-  return (
-    <div onClick={onClick} className="group cursor-pointer rounded-2xl overflow-hidden border border-white/10 hover:border-orange-400/40 transition bg-white/5">
-      <div className="aspect-[3/4] relative">
-        {cover ? (
-          <img src={cover} alt={item.title || ''} className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-60 flex items-center justify-center text-5xl`}>
-            {meta.icon}
-          </div>
-        )}
-        <div className="absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold bg-black/60 backdrop-blur text-white">
-          {meta.label}
+    const meta = TYPE_META[item.type] || TYPE_META.article;
+    const cover = item.cover || item.url || item.thumbnail;
+    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString() : "";
+    return (
+        <div
+            onClick={onClick}
+            className="group cursor-pointer rounded-2xl overflow-hidden border border-white/10 hover:border-orange-400/40 transition bg-white/5"
+        >
+            <div className="aspect-[3/4] relative">
+                {cover ? (
+                    <img
+                        src={cover}
+                        alt={item.title || ""}
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                ) : (
+                    <div
+                        className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-60 flex items-center justify-center text-5xl`}
+                    >
+                        {meta.icon}
+                    </div>
+                )}
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold bg-black/60 backdrop-blur text-white">
+                    {meta.label}
+                </div>
+                {!!item.likes && (
+                    <div className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] bg-black/60 backdrop-blur text-white">
+                        ♥ {item.likes}
+                    </div>
+                )}
+            </div>
+            <div className="px-3 py-2 bg-black/50 backdrop-blur">
+                <div className="text-sm font-semibold line-clamp-1">{item.title || "(无标题)"}</div>
+                <div className="text-[10px] text-gray-400 mt-1">{dateStr}</div>
+            </div>
         </div>
-        {!!item.likes && <div className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] bg-black/60 backdrop-blur text-white">♥ {item.likes}</div>}
-      </div>
-      <div className="px-3 py-2 bg-black/50 backdrop-blur">
-        <div className="text-sm font-semibold line-clamp-1">{item.title || '(无标题)'}</div>
-        <div className="text-[10px] text-gray-400 mt-1">{dateStr}</div>
-      </div>
-    </div>
-  );
+    );
 }
 ```
 
@@ -985,26 +1051,26 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
 
 ```js
 const handleContentClick = (item) => {
-  const path = {
-    photo: `/gallery?id=${item.id}`,
-    video: `/videos?id=${item.id}`,
-    music: `/music?id=${item.id}`,
-    article: `/articles?id=${item.id}&tab=tech`,
-    event: `/events?id=${item.id}`,
-    news: `/news?id=${item.id}`,
-    help: `/articles?tab=help&post=${item.id}`,
-    team: `/articles?tab=team&post=${item.id}`,
-  }[item.type];
-  if (!path) return;
-  navigate(path, {
-    state: {
-      fromUserProfile: {
-        userId: user?.id,
-        scrollY: window.scrollY,
-        contentTab: activeContentType,
-      },
-    },
-  });
+    const path = {
+        photo: `/gallery?id=${item.id}`,
+        video: `/videos?id=${item.id}`,
+        music: `/music?id=${item.id}`,
+        article: `/articles?id=${item.id}&tab=tech`,
+        event: `/events?id=${item.id}`,
+        news: `/news?id=${item.id}`,
+        help: `/articles?tab=help&post=${item.id}`,
+        team: `/articles?tab=team&post=${item.id}`,
+    }[item.type];
+    if (!path) return;
+    navigate(path, {
+        state: {
+            fromUserProfile: {
+                userId: user?.id,
+                scrollY: window.scrollY,
+                contentTab: activeContentType,
+            },
+        },
+    });
 };
 ```
 
@@ -1014,13 +1080,13 @@ PublicProfile 组件 mount 或 `location.state` 变化时：
 
 ```js
 useEffect(() => {
-  const state = location.state?.fromUserProfile;
-  if (state && String(state.userId) === String(user?.id)) {
-    if (state.contentTab) setActiveContentType(state.contentTab);
-    if (typeof state.scrollY === 'number') {
-      setTimeout(() => window.scrollTo(0, state.scrollY), 0);
+    const state = location.state?.fromUserProfile;
+    if (state && String(state.userId) === String(user?.id)) {
+        if (state.contentTab) setActiveContentType(state.contentTab);
+        if (typeof state.scrollY === "number") {
+            setTimeout(() => window.scrollTo(0, state.scrollY), 0);
+        }
     }
-  }
 }, [location.state, user?.id]);
 ```
 
@@ -1035,6 +1101,7 @@ useEffect(() => {
 ## Task 12: Frontend · NotificationCenter new_content Routing
 
 **Files**:
+
 - Modify: `src/components/NotificationCenter.jsx`
 
 ### Step 12.1 — 扩展 buildNotificationTargetPath
@@ -1043,24 +1110,24 @@ useEffect(() => {
 
 ```js
 const RESOURCE_PATH = {
-  article: 'articles',
-  photo: 'gallery',
-  music: 'music',
-  video: 'videos',
-  event: 'events',
-  news: 'news',
+    article: "articles",
+    photo: "gallery",
+    music: "music",
+    video: "videos",
+    event: "events",
+    news: "news",
 };
 
 // 在函数里:
-if (notification?.type === 'new_content') {
-  const resourceType = notification?.related_resource_type;
-  const resourceId = notification?.related_resource_id;
-  const base = RESOURCE_PATH[resourceType];
-  if (!base || !resourceId) {
-    console.warn('[Notification] Unknown resource type:', resourceType);
-    return null;
-  }
-  return `/${base}?id=${resourceId}`;
+if (notification?.type === "new_content") {
+    const resourceType = notification?.related_resource_type;
+    const resourceId = notification?.related_resource_id;
+    const base = RESOURCE_PATH[resourceType];
+    if (!base || !resourceId) {
+        console.warn("[Notification] Unknown resource type:", resourceType);
+        return null;
+    }
+    return `/${base}?id=${resourceId}`;
 }
 ```
 
@@ -1083,27 +1150,28 @@ grep -rn "dangerouslySetInnerHTML" D:/xsh/cursor/zju/ZJU_Platform/src/components
 ## Task 13: E2E Smoke + 文档 + 清理
 
 **Files**:
+
 - Create: `e2e/specs/identity-follow.spec.js`
 - Modify: `COMMUNITY_DEV.md`
 
 ### Step 13.1 — 写 E2E smoke（按 tasks.md section 11 的 7 个场景）
 
-参考项目现有 playwright 配置（`playwright.config.js`）和既有 spec（e2e 目录下的 *.spec.js），新建：
+参考项目现有 playwright 配置（`playwright.config.js`）和既有 spec（e2e 目录下的 \*.spec.js），新建：
 
 ```js
 // e2e/specs/identity-follow.spec.js
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require("@playwright/test");
 
-test.describe('Identity & Follow Notifications', () => {
-  test('new user publishes article without nickname', async ({ page }) => {
-    // 注册 → 发 article → 另一账号看作者显示为 username
-  });
-  test('nickname collision returns 409', async ({ page }) => {});
-  test('follow triggers new_content notification within 60s', async ({ page }) => {});
-  test('anonymous help post does not trigger notification', async ({ page }) => {});
-  test('self-follow rejected 400', async ({ request }) => {});
-  test('detail avatar click navigates to profile, back restores', async ({ page }) => {});
-  test('profile tab memory: change tab + scroll + detail back', async ({ page }) => {});
+test.describe("Identity & Follow Notifications", () => {
+    test("new user publishes article without nickname", async ({ page }) => {
+        // 注册 → 发 article → 另一账号看作者显示为 username
+    });
+    test("nickname collision returns 409", async ({ page }) => {});
+    test("follow triggers new_content notification within 60s", async ({ page }) => {});
+    test("anonymous help post does not trigger notification", async ({ page }) => {});
+    test("self-follow rejected 400", async ({ request }) => {});
+    test("detail avatar click navigates to profile, back restores", async ({ page }) => {});
+    test("profile tab memory: change tab + scroll + detail back", async ({ page }) => {});
 });
 ```
 

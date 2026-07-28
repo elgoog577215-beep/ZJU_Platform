@@ -1,8 +1,11 @@
 # admin-scroll-navigation-flow Specification
 
 ## Purpose
+
 TBD - created by archiving change enhance-admin-scroll-and-jump-flow. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Admin Module Jump Controls
 
 The admin console SHALL provide compact controls for direct and sequential navigation between administrator modules without requiring sidebar scrolling.
@@ -76,4 +79,3 @@ The admin scroll and jump behavior SHALL be covered by automated browser tests u
 - **GIVEN** the admin e2e test suite runs
 - **WHEN** it exercises desktop and mobile admin navigation
 - **THEN** it SHALL verify quick jump, resource list interaction, back-to-top behavior, and mobile body scroll restoration.
-

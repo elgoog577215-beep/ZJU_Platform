@@ -46,24 +46,24 @@ flowchart TD
 ### Backend Shape
 
 - `unifiedAiAssistantService`
-  - exposes module overview,
-  - scans event data through existing taxonomy/intelligence rules,
-  - writes run and suggestion records,
-  - applies selected suggestions with conflict checks.
+    - exposes module overview,
+    - scans event data through existing taxonomy/intelligence rules,
+    - writes run and suggestion records,
+    - applies selected suggestions with conflict checks.
 - `aiAssistantController`
-  - admin-only endpoints for overview, scan, and apply.
+    - admin-only endpoints for overview, scan, and apply.
 - New audit tables
-  - `ai_assistant_runs`,
-  - `ai_event_governance_suggestions`.
+    - `ai_assistant_runs`,
+    - `ai_event_governance_suggestions`.
 
 ### Frontend Shape
 
 - Admin menu entry becomes `AI 助手`.
 - Workspace sections:
-  - `总览`: what the assistant can do and what is already connected,
-  - `活动治理`: scan, review, and apply database classification suggestions,
-  - `模型 Key`: existing key manager,
-  - `解析入口`: visible placeholder for future WeChat/content parsing integration.
+    - `总览`: what the assistant can do and what is already connected,
+    - `活动治理`: scan, review, and apply database classification suggestions,
+    - `模型 Key`: existing key manager,
+    - `解析入口`: visible placeholder for future WeChat/content parsing integration.
 
 ## Data Flow
 
@@ -78,20 +78,20 @@ flowchart TD
 ## Key Decisions
 
 - Start with rule-backed governance, then layer model reasoning later.
-  - This gives deterministic, testable improvements immediately.
-  - Model calls can be added for low-confidence or ambiguous cases.
+    - This gives deterministic, testable improvements immediately.
+    - Model calls can be added for low-confidence or ambiguous cases.
 - Keep event recommendation API unchanged.
-  - The front-facing assistant remains stable while the platform foundation grows.
+    - The front-facing assistant remains stable while the platform foundation grows.
 - Store suggestions instead of directly editing events.
-  - This makes the assistant “看得见，摸得着”: admins can see what it found, why it thinks so, and what changed.
+    - This makes the assistant “看得见，摸得着”: admins can see what it found, why it thinks so, and what changed.
 - Integrate key management as a module, not a separate product.
-  - API keys become the assistant’s model power source rather than a hidden settings island.
+    - API keys become the assistant’s model power source rather than a hidden settings island.
 
 ## Risks
 
 - Classification confidence can be over-trusted.
-  - Mitigation: scan does not mutate data, apply is explicit, low-confidence suggestions stay review-only.
+    - Mitigation: scan does not mutate data, apply is explicit, low-confidence suggestions stay review-only.
 - Admin UI can become too wordy.
-  - Mitigation: use compact status cards, direct verbs, and concise rows.
+    - Mitigation: use compact status cards, direct verbs, and concise rows.
 - Future assistant skills can become tangled.
-  - Mitigation: use a module registry and skill-like service functions behind one controller surface.
+    - Mitigation: use a module registry and skill-like service functions behind one controller surface.

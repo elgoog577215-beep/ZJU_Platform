@@ -10,17 +10,17 @@
 
 ## 文件结构
 
-| 路径 | 说明 |
-|------|------|
-| `src/community/CommunityLayout.jsx` | 根节点 `zju-community-mirror`、mirror CSS、面包屑、`Outlet`、侧栏、播客；dev 下健康检查冒烟 |
+| 路径                                      | 说明                                                                                                          |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `src/community/CommunityLayout.jsx`       | 根节点 `zju-community-mirror`、mirror CSS、面包屑、`Outlet`、侧栏、播客；dev 下健康检查冒烟                   |
 | `src/community/CommunityMirrorChrome.jsx` | 顶栏：`site-head` + **`site-head-inner`**（与主内容同宽居中）、`NavLink` 版块、主题、搜索、`details` 发帖菜单 |
-| `src/community/CommunitySectionPage.jsx` | `help` / `tech` / `rules` 等版块：原型类名与结构 |
-| `src/community/CommunitySidebar.jsx` | 侧栏卡片、脉搏、快捷链接、推荐作者 |
-| `src/community/CommunityPodcastFloat.jsx` | 播客浮窗：折叠 + **方案 C**（拖动、贴边成球、`ORB=56`、小球纵向滑动、Enter 展开） |
-| `src/community/constants.js` | 版块 slug、`HELP_PREVIEW_ROWS`、标签 key 列表 |
-| `src/community/zju-community-mirror.css` | 集中样式：token、`--zcu-shell-max`、栅格、Hero、feed、侧栏、播客、`prefers-reduced-motion` |
-| `src/services/platformClient.js` | 社区 dev 冒烟：`/api/health`、`/api/auth/me` 等轻量封装 |
-| `index.html` | 补充原型字体：**Figtree、Newsreader、Syne**（与 CSS 变量一致） |
+| `src/community/CommunitySectionPage.jsx`  | `help` / `tech` / `rules` 等版块：原型类名与结构                                                              |
+| `src/community/CommunitySidebar.jsx`      | 侧栏卡片、脉搏、快捷链接、推荐作者                                                                            |
+| `src/community/CommunityPodcastFloat.jsx` | 播客浮窗：折叠 + **方案 C**（拖动、贴边成球、`ORB=56`、小球纵向滑动、Enter 展开）                             |
+| `src/community/constants.js`              | 版块 slug、`HELP_PREVIEW_ROWS`、标签 key 列表                                                                 |
+| `src/community/zju-community-mirror.css`  | 集中样式：token、`--zcu-shell-max`、栅格、Hero、feed、侧栏、播客、`prefers-reduced-motion`                    |
+| `src/services/platformClient.js`          | 社区 dev 冒烟：`/api/health`、`/api/auth/me` 等轻量封装                                                       |
+| `index.html`                              | 补充原型字体：**Figtree、Newsreader、Syne**（与 CSS 变量一致）                                                |
 
 ## 布局与居中
 

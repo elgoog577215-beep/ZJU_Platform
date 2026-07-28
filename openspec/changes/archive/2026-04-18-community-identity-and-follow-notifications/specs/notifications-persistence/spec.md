@@ -25,14 +25,14 @@
 
 `NotificationCenter.jsx` 的 `buildNotificationTargetPath` SHALL 支持 `new_content` type 的路由映射，根据 `related_resource_type` 跳转到对应的资源详情位置：
 
-| related_resource_type | 跳转路径 |
-|---|---|
-| `article` | `/articles?id={id}` |
-| `photo` | `/gallery?id={id}` |
-| `music` | `/music?id={id}` |
-| `video` | `/videos?id={id}` |
-| `event` | `/events?id={id}` |
-| `news` | `/news?id={id}` 或等价路径 |
+| related_resource_type | 跳转路径                   |
+| --------------------- | -------------------------- |
+| `article`             | `/articles?id={id}`        |
+| `photo`               | `/gallery?id={id}`         |
+| `music`               | `/music?id={id}`           |
+| `video`               | `/videos?id={id}`          |
+| `event`               | `/events?id={id}`          |
+| `news`                | `/news?id={id}` 或等价路径 |
 
 未识别的 `related_resource_type` SHALL fallback 到通知列表（不 navigate），并在 console 打 warning。
 

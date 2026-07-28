@@ -1,20 +1,20 @@
-const { getDb } = require('../config/db');
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
-const sharp = require('sharp');
-const { searchGlobalContent } = require('../services/globalSearchService');
-const { listPendingCompetitionItems } = require('./competitionController');
+const { getDb } = require("../config/db");
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const sharp = require("sharp");
+const { searchGlobalContent } = require("../services/globalSearchService");
+const { listPendingCompetitionItems } = require("./competitionController");
 const {
     completeNativeUploadSession,
     createNativeUploadSession,
     failNativeUploadSession,
     getNativeUploadSession,
-} = require('../services/nativeUploadSessionService');
+} = require("../services/nativeUploadSessionService");
 const {
     createNativePosterSession,
     getNativePosterSession,
-} = require('../services/nativePosterSessionService');
+} = require("../services/nativePosterSessionService");
 const {
     scrapeWeChat,
     parseWithLLM,
@@ -22,13 +22,13 @@ const {
     wechatCache,
     CACHE_TTL,
     downloadWeChatImage,
-} = require('../utils/wechat');
+} = require("../utils/wechat");
 
 const runCrawler = async (url, source) => {
     if (!url) {
         return {
-            status: 'skipped',
-            message: '请提供需要解析的活动通知链接。',
+            status: "skipped",
+            message: "请提供需要解析的活动通知链接。",
             events: [],
             total: 0,
             added: 0,
@@ -37,11 +37,11 @@ const runCrawler = async (url, source) => {
 
     const cleanedUrl = cleanWeChatUrl(url);
     const hostname = new URL(cleanedUrl).hostname;
-    const isWeChatUrl = hostname.includes('weixin.qq.com') || hostname.includes('mp.weixin.qq.com');
+    const isWeChatUrl = hostname.includes("weixin.qq.com") || hostname.includes("mp.weixin.qq.com");
     if (!isWeChatUrl) {
         return {
-            status: 'skipped',
-            message: '当前爬虫入口已接入微信公众号活动/通知解析；普通网页源还未实现。',
+            status: "skipped",
+            message: "当前爬虫入口已接入微信公众号活动/通知解析；普通网页源还未实现。",
             source: source || hostname,
             events: [],
             total: 0,
@@ -53,7 +53,7 @@ const runCrawler = async (url, source) => {
         const { data, timestamp } = wechatCache.get(cleanedUrl);
         if (Date.now() - timestamp < CACHE_TTL) {
             return {
-                status: 'parsed',
+                status: "parsed",
                 source: source || data?.source_college || data?.organizer || hostname,
                 events: [data],
                 total: 1,
@@ -67,8 +67,8 @@ const runCrawler = async (url, source) => {
     const scrapedData = await scrapeWeChat(cleanedUrl);
     const parsedData = await parseWithLLM(scrapedData);
     if (!parsedData.content) parsedData.content = scrapedData.content;
-    parsedData.title = parsedData.title || scrapedData.title || 'Untitled';
-    parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || '';
+    parsedData.title = parsedData.title || scrapedData.title || "Untitled";
+    parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || "";
     parsedData.link = cleanedUrl;
 
     if (scrapedData.coverImage) {
@@ -88,7 +88,7 @@ const runCrawler = async (url, source) => {
     });
 
     return {
-        status: 'parsed',
+        status: "parsed",
         source: source || parsedData.source_college || parsedData.organizer || hostname,
         events: [parsedData],
         total: 1,
@@ -103,19 +103,21 @@ const searchContent = async (req, res, next) => {
         const { q } = req.query;
         if (!q || String(q).trim().length < 2) {
             return res.json({
-                query: String(q || '').trim(),
+                query: String(q || "").trim(),
                 parsed_query: null,
                 total: 0,
                 search_time_ms: 0,
                 groups: [],
                 results: [],
-                legacy: []
+                legacy: [],
             });
         }
 
         const result = await searchGlobalContent(db, q);
         res.json(result);
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getDateKey = (date = new Date()) => date.toISOString().slice(0, 10);
@@ -133,7 +135,7 @@ const generateRecentDateKeys = (days = 7) => {
 };
 
 const getRelativeThresholdLabel = (minutesDiff) => {
-    if (minutesDiff < 1) return 'just_now';
+    if (minutesDiff < 1) return "just_now";
     if (minutesDiff < 60) return `${Math.floor(minutesDiff)}m`;
     if (minutesDiff < 1440) return `${Math.floor(minutesDiff / 60)}h`;
     return `${Math.floor(minutesDiff / 1440)}d`;
@@ -145,33 +147,54 @@ const getSiteMetrics = async (req, res, next) => {
         const today = getDateKey();
         const recentDateKeys = generateRecentDateKeys(7);
         const sevenDaysAgo = recentDateKeys[0];
-        const previousWindowStart = getDateKey(new Date(Date.now() - (13 * 24 * 60 * 60 * 1000)));
-        const previousWindowEnd = getDateKey(new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)));
-        const contentTables = ['photos', 'music', 'videos', 'articles', 'events'];
+        const previousWindowStart = getDateKey(new Date(Date.now() - 13 * 24 * 60 * 60 * 1000));
+        const previousWindowEnd = getDateKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+        const contentTables = ["photos", "music", "videos", "articles", "events"];
 
-        const contentStats = await Promise.all(contentTables.map(async (table) => {
-            const [uploads, likes] = await Promise.all([
-                db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL`),
-                db.get(`SELECT COALESCE(SUM(likes), 0) as total FROM ${table} WHERE deleted_at IS NULL`)
-            ]);
+        const contentStats = await Promise.all(
+            contentTables.map(async (table) => {
+                const [uploads, likes] = await Promise.all([
+                    db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL`),
+                    db.get(
+                        `SELECT COALESCE(SUM(likes), 0) as total FROM ${table} WHERE deleted_at IS NULL`
+                    ),
+                ]);
 
-            return {
-                table,
-                uploads: uploads?.count || 0,
-                likes: likes?.total || 0
-            };
-        }));
+                return {
+                    table,
+                    uploads: uploads?.count || 0,
+                    likes: likes?.total || 0,
+                };
+            })
+        );
 
         const totalUploads = contentStats.reduce((sum, item) => sum + item.uploads, 0);
         const totalEngagement = contentStats.reduce((sum, item) => sum + item.likes, 0);
 
-        const [totalViewsRow, todayViewsRow, todayVisitorsRow, totalVisitorsRow, totalUsersRow, activeCreatorsRow, latestVisitRow, latestUploadRow] = await Promise.all([
-            db.get('SELECT COUNT(*) as count FROM site_visit_events').catch(() => ({ count: 0 })),
-            db.get('SELECT COUNT(*) as count FROM site_visit_events WHERE date_key = ?', [today]).catch(() => ({ count: 0 })),
-            db.get('SELECT COUNT(*) as count FROM site_daily_visitors WHERE date_key = ?', [today]).catch(() => ({ count: 0 })),
-            db.get('SELECT COUNT(*) as count FROM site_daily_visitors').catch(() => ({ count: 0 })),
-            db.get('SELECT COUNT(*) as count FROM users').catch(() => ({ count: 0 })),
-            db.get(`
+        const [
+            totalViewsRow,
+            todayViewsRow,
+            todayVisitorsRow,
+            totalVisitorsRow,
+            totalUsersRow,
+            activeCreatorsRow,
+            latestVisitRow,
+            latestUploadRow,
+        ] = await Promise.all([
+            db.get("SELECT COUNT(*) as count FROM site_visit_events").catch(() => ({ count: 0 })),
+            db
+                .get("SELECT COUNT(*) as count FROM site_visit_events WHERE date_key = ?", [today])
+                .catch(() => ({ count: 0 })),
+            db
+                .get("SELECT COUNT(*) as count FROM site_daily_visitors WHERE date_key = ?", [
+                    today,
+                ])
+                .catch(() => ({ count: 0 })),
+            db.get("SELECT COUNT(*) as count FROM site_daily_visitors").catch(() => ({ count: 0 })),
+            db.get("SELECT COUNT(*) as count FROM users").catch(() => ({ count: 0 })),
+            db
+                .get(
+                    `
                 SELECT COUNT(DISTINCT uploader_id) as count
                 FROM (
                     SELECT uploader_id FROM photos WHERE uploader_id IS NOT NULL
@@ -184,9 +207,15 @@ const getSiteMetrics = async (req, res, next) => {
                     UNION ALL
                     SELECT uploader_id FROM events WHERE uploader_id IS NOT NULL
                 )
-            `).catch(() => ({ count: 0 })),
-            db.get('SELECT MAX(created_at) as updated_at FROM site_visit_events').catch(() => ({ updated_at: null })),
-            db.get(`
+            `
+                )
+                .catch(() => ({ count: 0 })),
+            db
+                .get("SELECT MAX(created_at) as updated_at FROM site_visit_events")
+                .catch(() => ({ updated_at: null })),
+            db
+                .get(
+                    `
                 SELECT MAX(created_at) as updated_at
                 FROM (
                     SELECT created_at FROM photos WHERE deleted_at IS NULL AND created_at IS NOT NULL
@@ -199,26 +228,40 @@ const getSiteMetrics = async (req, res, next) => {
                     UNION ALL
                     SELECT created_at FROM events WHERE deleted_at IS NULL AND created_at IS NOT NULL
                 )
-            `).catch(() => ({ updated_at: null }))
+            `
+                )
+                .catch(() => ({ updated_at: null })),
         ]);
 
-        const visitsTrendRows = await db.all(`
+        const visitsTrendRows = await db
+            .all(
+                `
             SELECT date_key, COUNT(*) as views
             FROM site_visit_events
             WHERE date_key >= ?
             GROUP BY date_key
             ORDER BY date_key ASC
-        `, [sevenDaysAgo]).catch(() => []);
+        `,
+                [sevenDaysAgo]
+            )
+            .catch(() => []);
 
-        const uniqueVisitorsTrendRows = await db.all(`
+        const uniqueVisitorsTrendRows = await db
+            .all(
+                `
             SELECT date_key, COUNT(*) as visitors
             FROM site_daily_visitors
             WHERE date_key >= ?
             GROUP BY date_key
             ORDER BY date_key ASC
-        `, [sevenDaysAgo]).catch(() => []);
+        `,
+                [sevenDaysAgo]
+            )
+            .catch(() => []);
 
-        const uploadTrendRows = await db.all(`
+        const uploadTrendRows = await db
+            .all(
+                `
             SELECT date_key, SUM(upload_count) as uploads
             FROM (
                 SELECT substr(created_at, 1, 10) as date_key, COUNT(*) as upload_count FROM photos WHERE deleted_at IS NULL AND created_at IS NOT NULL GROUP BY substr(created_at, 1, 10)
@@ -234,9 +277,14 @@ const getSiteMetrics = async (req, res, next) => {
             WHERE date_key >= ?
             GROUP BY date_key
             ORDER BY date_key ASC
-        `, [sevenDaysAgo]).catch(() => []);
+        `,
+                [sevenDaysAgo]
+            )
+            .catch(() => []);
 
-        const todayUploadsRow = await db.get(`
+        const todayUploadsRow = await db
+            .get(
+                `
             SELECT COALESCE(SUM(upload_count), 0) as count
             FROM (
                 SELECT COUNT(*) as upload_count FROM photos WHERE deleted_at IS NULL AND substr(created_at, 1, 10) = ?
@@ -249,21 +297,36 @@ const getSiteMetrics = async (req, res, next) => {
                 UNION ALL
                 SELECT COUNT(*) as upload_count FROM events WHERE deleted_at IS NULL AND substr(created_at, 1, 10) = ?
             )
-        `, [today, today, today, today, today]).catch(() => ({ count: 0 }));
+        `,
+                [today, today, today, today, today]
+            )
+            .catch(() => ({ count: 0 }));
 
-        const currentPeriodViews = await db.get(`
+        const currentPeriodViews = await db
+            .get(
+                `
             SELECT COUNT(*) as count
             FROM site_visit_events
             WHERE date_key >= ?
-        `, [sevenDaysAgo]).catch(() => ({ count: 0 }));
+        `,
+                [sevenDaysAgo]
+            )
+            .catch(() => ({ count: 0 }));
 
-        const previousPeriodViews = await db.get(`
+        const previousPeriodViews = await db
+            .get(
+                `
             SELECT COUNT(*) as count
             FROM site_visit_events
             WHERE date_key >= ? AND date_key < ?
-        `, [previousWindowStart, previousWindowEnd]).catch(() => ({ count: 0 }));
+        `,
+                [previousWindowStart, previousWindowEnd]
+            )
+            .catch(() => ({ count: 0 }));
 
-        const currentPeriodUploads = await db.get(`
+        const currentPeriodUploads = await db
+            .get(
+                `
             SELECT COALESCE(SUM(upload_count), 0) as count
             FROM (
                 SELECT COUNT(*) as upload_count FROM photos WHERE deleted_at IS NULL AND substr(created_at, 1, 10) >= ?
@@ -276,9 +339,14 @@ const getSiteMetrics = async (req, res, next) => {
                 UNION ALL
                 SELECT COUNT(*) as upload_count FROM events WHERE deleted_at IS NULL AND substr(created_at, 1, 10) >= ?
             )
-        `, [sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo]).catch(() => ({ count: 0 }));
+        `,
+                [sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo]
+            )
+            .catch(() => ({ count: 0 }));
 
-        const previousPeriodUploads = await db.get(`
+        const previousPeriodUploads = await db
+            .get(
+                `
             SELECT COALESCE(SUM(upload_count), 0) as count
             FROM (
                 SELECT COUNT(*) as upload_count FROM photos WHERE deleted_at IS NULL AND substr(created_at, 1, 10) >= ? AND substr(created_at, 1, 10) < ?
@@ -291,24 +359,34 @@ const getSiteMetrics = async (req, res, next) => {
                 UNION ALL
                 SELECT COUNT(*) as upload_count FROM events WHERE deleted_at IS NULL AND substr(created_at, 1, 10) >= ? AND substr(created_at, 1, 10) < ?
             )
-        `, [
-            previousWindowStart, previousWindowEnd,
-            previousWindowStart, previousWindowEnd,
-            previousWindowStart, previousWindowEnd,
-            previousWindowStart, previousWindowEnd,
-            previousWindowStart, previousWindowEnd
-        ]).catch(() => ({ count: 0 }));
+        `,
+                [
+                    previousWindowStart,
+                    previousWindowEnd,
+                    previousWindowStart,
+                    previousWindowEnd,
+                    previousWindowStart,
+                    previousWindowEnd,
+                    previousWindowStart,
+                    previousWindowEnd,
+                    previousWindowStart,
+                    previousWindowEnd,
+                ]
+            )
+            .catch(() => ({ count: 0 }));
 
-        const visitsTrendMap = new Map(visitsTrendRows.map(row => [row.date_key, row.views]));
-        const visitorsTrendMap = new Map(uniqueVisitorsTrendRows.map(row => [row.date_key, row.visitors]));
-        const uploadsTrendMap = new Map(uploadTrendRows.map(row => [row.date_key, row.uploads]));
+        const visitsTrendMap = new Map(visitsTrendRows.map((row) => [row.date_key, row.views]));
+        const visitorsTrendMap = new Map(
+            uniqueVisitorsTrendRows.map((row) => [row.date_key, row.visitors])
+        );
+        const uploadsTrendMap = new Map(uploadTrendRows.map((row) => [row.date_key, row.uploads]));
 
         const trend = recentDateKeys.map((dateKey) => ({
             date: dateKey,
-            label: dateKey.slice(5).replace('-', '/'),
+            label: dateKey.slice(5).replace("-", "/"),
             views: visitsTrendMap.get(dateKey) || 0,
             visitors: visitorsTrendMap.get(dateKey) || 0,
-            uploads: uploadsTrendMap.get(dateKey) || 0
+            uploads: uploadsTrendMap.get(dateKey) || 0,
         }));
 
         const growthRate = (current, previous) => {
@@ -316,13 +394,20 @@ const getSiteMetrics = async (req, res, next) => {
             return Math.round(((current - previous) / previous) * 100);
         };
 
-        const latestUpdateCandidates = [latestVisitRow?.updated_at, latestUploadRow?.updated_at].filter(Boolean);
-        const updatedAt = latestUpdateCandidates.length > 0
-            ? latestUpdateCandidates.sort((left, right) => new Date(right) - new Date(left))[0]
-            : new Date().toISOString();
+        const latestUpdateCandidates = [
+            latestVisitRow?.updated_at,
+            latestUploadRow?.updated_at,
+        ].filter(Boolean);
+        const updatedAt =
+            latestUpdateCandidates.length > 0
+                ? latestUpdateCandidates.sort((left, right) => new Date(right) - new Date(left))[0]
+                : new Date().toISOString();
 
         const generatedAt = new Date().toISOString();
-        const minutesDiff = Math.max((new Date(generatedAt) - new Date(updatedAt)) / (1000 * 60), 0);
+        const minutesDiff = Math.max(
+            (new Date(generatedAt) - new Date(updatedAt)) / (1000 * 60),
+            0
+        );
 
         res.json({
             summary: {
@@ -334,13 +419,19 @@ const getSiteMetrics = async (req, res, next) => {
                 totalUploads,
                 totalEngagement,
                 totalUsers: totalUsersRow?.count || 0,
-                activeCreators: activeCreatorsRow?.count || 0
+                activeCreators: activeCreatorsRow?.count || 0,
             },
             growth: {
                 views7d: currentPeriodViews?.count || 0,
                 uploads7d: currentPeriodUploads?.count || 0,
-                viewsChange: growthRate(currentPeriodViews?.count || 0, previousPeriodViews?.count || 0),
-                uploadsChange: growthRate(currentPeriodUploads?.count || 0, previousPeriodUploads?.count || 0)
+                viewsChange: growthRate(
+                    currentPeriodViews?.count || 0,
+                    previousPeriodViews?.count || 0
+                ),
+                uploadsChange: growthRate(
+                    currentPeriodUploads?.count || 0,
+                    previousPeriodUploads?.count || 0
+                ),
             },
             breakdown: contentStats.reduce((accumulator, item) => {
                 accumulator[item.table] = item.uploads;
@@ -350,31 +441,34 @@ const getSiteMetrics = async (req, res, next) => {
             meta: {
                 updatedAt,
                 generatedAt,
-                freshnessLabel: getRelativeThresholdLabel(minutesDiff)
-            }
+                freshnessLabel: getRelativeThresholdLabel(minutesDiff),
+            },
         });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const trackVisit = async (req, res, next) => {
     try {
         const db = await getDb();
-        const { visitorKey, pagePath = '/' } = req.body || {};
+        const { visitorKey, pagePath = "/" } = req.body || {};
 
-        if (!visitorKey || typeof visitorKey !== 'string') {
-            return res.status(400).json({ error: 'visitorKey is required' });
+        if (!visitorKey || typeof visitorKey !== "string") {
+            return res.status(400).json({ error: "visitorKey is required" });
         }
 
         const sanitizedVisitorKey = visitorKey.slice(0, 128);
-        const sanitizedPath = typeof pagePath === 'string' ? pagePath.slice(0, 255) : '/';
+        const sanitizedPath = typeof pagePath === "string" ? pagePath.slice(0, 255) : "/";
         const dateKey = getDateKey();
 
-        if (sanitizedPath.startsWith('/admin') || req.user?.role === 'admin') {
-            return res.json({ success: true, ignored: 'admin' });
+        if (sanitizedPath.startsWith("/admin") || req.user?.role === "admin") {
+            return res.json({ success: true, ignored: "admin" });
         }
 
-        const recentVisit = await db.get(
-            `
+        const recentVisit = await db
+            .get(
+                `
                 SELECT id
                 FROM site_visit_events
                 WHERE visitor_key = ?
@@ -382,36 +476,39 @@ const trackVisit = async (req, res, next) => {
                   AND created_at >= datetime('now', '-10 minutes')
                 LIMIT 1
             `,
-            [sanitizedVisitorKey, sanitizedPath]
-        ).catch(() => null);
+                [sanitizedVisitorKey, sanitizedPath]
+            )
+            .catch(() => null);
 
         if (recentVisit) {
             return res.json({ success: true, deduped: true });
         }
 
         await db.run(
-            'INSERT INTO site_visit_events (visitor_key, page_path, date_key) VALUES (?, ?, ?)',
+            "INSERT INTO site_visit_events (visitor_key, page_path, date_key) VALUES (?, ?, ?)",
             [sanitizedVisitorKey, sanitizedPath, dateKey]
         );
 
         await db.run(
-            'INSERT OR IGNORE INTO site_daily_visitors (date_key, visitor_key, first_path) VALUES (?, ?, ?)',
+            "INSERT OR IGNORE INTO site_daily_visitors (date_key, visitor_key, first_path) VALUES (?, ?, ?)",
             [dateKey, sanitizedVisitorKey, sanitizedPath]
         );
 
         res.json({ success: true });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getStats = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    
-    // Helper to get detailed stats for a table
-    // FIX: O3 — Merge 4 queries per table into a single query
-    const getTableStats = async (table) => {
-        try {
-          const row = await db.get(`
+    try {
+        const db = await getDb();
+
+        // Helper to get detailed stats for a table
+        // FIX: O3 — Merge 4 queries per table into a single query
+        const getTableStats = async (table) => {
+            try {
+                const row = await db.get(`
             SELECT
               COUNT(*) as total,
               SUM(CASE WHEN deleted_at IS NULL AND status = 'approved' THEN 1 ELSE 0 END) as active,
@@ -419,46 +516,76 @@ const getStats = async (req, res, next) => {
               SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) as deleted
             FROM ${table}
           `);
-          return {
-              total: row?.total || 0,
-              active: row?.active || 0,
-              pending: row?.pending || 0,
-              deleted: row?.deleted || 0
-          };
-        } catch (err) {
-          console.error(`[Stats] Error getting stats for ${table}:`, err.message);
-          return { total: 0, active: 0, pending: 0, deleted: 0 };
-        }
-    };
+                return {
+                    total: row?.total || 0,
+                    active: row?.active || 0,
+                    pending: row?.pending || 0,
+                    deleted: row?.deleted || 0,
+                };
+            } catch (err) {
+                console.error(`[Stats] Error getting stats for ${table}:`, err.message);
+                return { total: 0, active: 0, pending: 0, deleted: 0 };
+            }
+        };
 
-    const [photos, music, videos, articles, events, users, audit, totalEventViewsRow, totalEventRegistrationsRow, upcomingEventsRow, recentEventViewsRow, recentEventRegistrationsRow, hottestEvents] = await Promise.all([
-      getTableStats('photos'),
-      getTableStats('music'),
-      getTableStats('videos'),
-      getTableStats('articles'),
-      getTableStats('events'),
-      db.get('SELECT COUNT(*) as count FROM users').catch(() => ({ count: 0 })),
-      db.get('SELECT COUNT(*) as count FROM audit_logs').catch(() => ({ count: 0 })),
-      db.get('SELECT COALESCE(SUM(views), 0) as count FROM events WHERE deleted_at IS NULL').catch(() => ({ count: 0 })),
-      db.get('SELECT COUNT(*) as count FROM event_registrations').catch(() => ({ count: 0 })),
-      db.get(`
+        const [
+            photos,
+            music,
+            videos,
+            articles,
+            events,
+            users,
+            audit,
+            totalEventViewsRow,
+            totalEventRegistrationsRow,
+            upcomingEventsRow,
+            recentEventViewsRow,
+            recentEventRegistrationsRow,
+            hottestEvents,
+        ] = await Promise.all([
+            getTableStats("photos"),
+            getTableStats("music"),
+            getTableStats("videos"),
+            getTableStats("articles"),
+            getTableStats("events"),
+            db.get("SELECT COUNT(*) as count FROM users").catch(() => ({ count: 0 })),
+            db.get("SELECT COUNT(*) as count FROM audit_logs").catch(() => ({ count: 0 })),
+            db
+                .get("SELECT COALESCE(SUM(views), 0) as count FROM events WHERE deleted_at IS NULL")
+                .catch(() => ({ count: 0 })),
+            db.get("SELECT COUNT(*) as count FROM event_registrations").catch(() => ({ count: 0 })),
+            db
+                .get(
+                    `
         SELECT COUNT(*) as count
         FROM events
         WHERE deleted_at IS NULL
           AND status = 'approved'
           AND date >= date('now', 'localtime')
-      `).catch(() => ({ count: 0 })),
-      db.get(`
+      `
+                )
+                .catch(() => ({ count: 0 })),
+            db
+                .get(
+                    `
         SELECT COUNT(*) as count
         FROM event_view_events
         WHERE date_key >= date('now', '-6 days')
-      `).catch(() => ({ count: 0 })),
-      db.get(`
+      `
+                )
+                .catch(() => ({ count: 0 })),
+            db
+                .get(
+                    `
         SELECT COUNT(*) as count
         FROM event_registrations
         WHERE created_at >= datetime('now', '-6 days')
-      `).catch(() => ({ count: 0 })),
-      db.all(`
+      `
+                )
+                .catch(() => ({ count: 0 })),
+            db
+                .all(
+                    `
         SELECT
           events.id,
           events.title,
@@ -473,145 +600,157 @@ const getStats = async (req, res, next) => {
         WHERE events.deleted_at IS NULL
         ORDER BY COALESCE(events.views, 0) DESC, registrations DESC, events.date DESC
         LIMIT 5
-      `).catch(() => [])
-    ]);
+      `
+                )
+                .catch(() => []),
+        ]);
 
-    const dbPath = path.join(__dirname, '../../database.sqlite');
-    let dbSize = 0;
-    if (fs.existsSync(dbPath)) {
-        dbSize = fs.statSync(dbPath).size;
+        const dbPath = path.join(__dirname, "../../database.sqlite");
+        let dbSize = 0;
+        if (fs.existsSync(dbPath)) {
+            dbSize = fs.statSync(dbPath).size;
+        }
+
+        res.json({
+            counts: {
+                photos: photos.total,
+                music: music.total,
+                videos: videos.total,
+                articles: articles.total,
+                events: events.total,
+                users: users.count,
+                audit_logs: audit.count,
+            },
+            breakdown: {
+                photos,
+                music,
+                videos,
+                articles,
+                events,
+            },
+            eventAnalytics: {
+                totalViews: totalEventViewsRow?.count || 0,
+                totalRegistrations: totalEventRegistrationsRow?.count || 0,
+                upcomingCount: upcomingEventsRow?.count || 0,
+                views7d: recentEventViewsRow?.count || 0,
+                registrations7d: recentEventRegistrationsRow?.count || 0,
+                hottestEvents,
+            },
+            system: {
+                uptime: process.uptime(),
+                nodeVersion: process.version,
+                platform: process.platform,
+                dbSize,
+            },
+        });
+    } catch (error) {
+        console.error("Stats Error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-
-    res.json({
-      counts: {
-        photos: photos.total,
-        music: music.total,
-        videos: videos.total,
-        articles: articles.total,
-        events: events.total,
-        users: users.count,
-        audit_logs: audit.count
-      },
-      breakdown: {
-        photos,
-        music,
-        videos,
-        articles,
-        events
-      },
-      eventAnalytics: {
-        totalViews: totalEventViewsRow?.count || 0,
-        totalRegistrations: totalEventRegistrationsRow?.count || 0,
-        upcomingCount: upcomingEventsRow?.count || 0,
-        views7d: recentEventViewsRow?.count || 0,
-        registrations7d: recentEventRegistrationsRow?.count || 0,
-        hottestEvents
-      },
-      system: {
-        uptime: process.uptime(),
-        nodeVersion: process.version,
-        platform: process.platform,
-        dbSize
-      }
-    });
-  } catch (error) {
-    console.error('Stats Error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
 };
 
 const buildUploadResponse = (req) => {
-  const response = {};
+    const response = {};
 
-  // Build URL that includes the subdirectory (images/, videos/, etc.)
-  const buildUrl = (fileObj) => {
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    const relativePath = path.relative(uploadsDir, fileObj.path).replace(/\\/g, '/');
-    return `/uploads/${relativePath}`;
-  };
+    // Build URL that includes the subdirectory (images/, videos/, etc.)
+    const buildUrl = (fileObj) => {
+        const uploadsDir = path.join(__dirname, "../../uploads");
+        const relativePath = path.relative(uploadsDir, fileObj.path).replace(/\\/g, "/");
+        return `/uploads/${relativePath}`;
+    };
 
-  if (req.files && req.files['file']) {
-    response.fileUrl = buildUrl(req.files['file'][0]);
-  }
-  if (req.files && req.files['cover']) {
-    response.coverUrl = buildUrl(req.files['cover'][0]);
-  }
+    if (req.files && req.files["file"]) {
+        response.fileUrl = buildUrl(req.files["file"][0]);
+    }
+    if (req.files && req.files["cover"]) {
+        response.coverUrl = buildUrl(req.files["cover"][0]);
+    }
 
-  const uploadedFile = req.files?.file?.[0] || req.files?.cover?.[0] || null;
-  if (uploadedFile) {
-    response.name = uploadedFile.originalname || uploadedFile.filename || '';
-    response.size = uploadedFile.size || 0;
-    response.mime = uploadedFile.mimetype || '';
-  }
+    const uploadedFile = req.files?.file?.[0] || req.files?.cover?.[0] || null;
+    if (uploadedFile) {
+        response.name = uploadedFile.originalname || uploadedFile.filename || "";
+        response.size = uploadedFile.size || 0;
+        response.mime = uploadedFile.mimetype || "";
+    }
 
-  return response;
+    return response;
 };
 
 const handleUpload = (req, res, next) => {
-  try {
-    res.json(buildUploadResponse(req));
-  } catch (error) { next(error); }
+    try {
+        res.json(buildUploadResponse(req));
+    } catch (error) {
+        next(error);
+    }
 };
 
 const createNativeUploadSessionHandler = (req, res, next) => {
-  try {
-    const session = createNativeUploadSession(req.user.id, {
-      field: req.body?.field,
-      accept: req.body?.accept,
-    });
-    res.json(session);
-  } catch (error) { next(error); }
+    try {
+        const session = createNativeUploadSession(req.user.id, {
+            field: req.body?.field,
+            accept: req.body?.accept,
+        });
+        res.json(session);
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getNativeUploadSessionHandler = (req, res, next) => {
-  try {
-    const session = getNativeUploadSession(req.user.id, req.params.sessionId);
-    res.json(session);
-  } catch (error) { next(error); }
+    try {
+        const session = getNativeUploadSession(req.user.id, req.params.sessionId);
+        res.json(session);
+    } catch (error) {
+        next(error);
+    }
 };
 
 const handleNativeUpload = (req, res, next) => {
-  try {
-    const uploadToken = req.headers['x-native-upload-token'];
-    const response = buildUploadResponse(req);
-    if (!response.fileUrl && !response.coverUrl) {
-      return res.status(400).json({
-        error: 'No file uploaded',
-        errorCode: 'NATIVE_UPLOAD_EMPTY',
-      });
-    }
-    if (req.nativeUploadSession?.field === 'cover' && !response.coverUrl) {
-      return res.status(400).json({
-        error: 'Cover upload session requires a cover file',
-        errorCode: 'NATIVE_UPLOAD_FIELD_MISMATCH',
-      });
-    }
-    if (req.nativeUploadSession?.field === 'file' && !response.fileUrl) {
-      return res.status(400).json({
-        error: 'File upload session requires a file',
-        errorCode: 'NATIVE_UPLOAD_FIELD_MISMATCH',
-      });
-    }
+    try {
+        const uploadToken = req.headers["x-native-upload-token"];
+        const response = buildUploadResponse(req);
+        if (!response.fileUrl && !response.coverUrl) {
+            return res.status(400).json({
+                error: "No file uploaded",
+                errorCode: "NATIVE_UPLOAD_EMPTY",
+            });
+        }
+        if (req.nativeUploadSession?.field === "cover" && !response.coverUrl) {
+            return res.status(400).json({
+                error: "Cover upload session requires a cover file",
+                errorCode: "NATIVE_UPLOAD_FIELD_MISMATCH",
+            });
+        }
+        if (req.nativeUploadSession?.field === "file" && !response.fileUrl) {
+            return res.status(400).json({
+                error: "File upload session requires a file",
+                errorCode: "NATIVE_UPLOAD_FIELD_MISMATCH",
+            });
+        }
 
-    const session = completeNativeUploadSession(uploadToken, response);
-    res.json({
-      ...response,
-      session,
-    });
-  } catch (error) { next(error); }
+        const session = completeNativeUploadSession(uploadToken, response);
+        res.json({
+            ...response,
+            session,
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const cancelNativeUpload = (req, res, next) => {
-  try {
-    const uploadToken = req.headers['x-native-upload-token'];
-    const session = failNativeUploadSession(uploadToken, 'NATIVE_UPLOAD_CANCELED');
-    res.json(session);
-  } catch (error) { next(error); }
+    try {
+        const uploadToken = req.headers["x-native-upload-token"];
+        const session = failNativeUploadSession(uploadToken, "NATIVE_UPLOAD_CANCELED");
+        res.json(session);
+    } catch (error) {
+        next(error);
+    }
 };
 
 const buildAbsoluteApiUrl = (req, pathname) => {
-    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-    const host = req.get('x-forwarded-host') || req.get('host');
+    const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
+    const host = req.get("x-forwarded-host") || req.get("host");
     return `${protocol}://${host}${pathname}`;
 };
 
@@ -626,37 +765,48 @@ const createNativePosterSessionHandler = async (req, res, next) => {
             ...session,
             imageUrl: buildAbsoluteApiUrl(req, imagePath),
         });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getNativePosterSessionImageHandler = async (req, res, next) => {
     try {
         const session = await getNativePosterSession(req.params.sessionId, req.query.token);
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(session.fileName)}"`);
-        res.setHeader('Cache-Control', 'private, max-age=600');
+        res.setHeader("Content-Type", "image/png");
+        res.setHeader(
+            "Content-Disposition",
+            `inline; filename="${encodeURIComponent(session.fileName)}"`
+        );
+        res.setHeader("Cache-Control", "private, max-age=600");
         res.sendFile(session.filePath);
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
-const uploadRoot = path.resolve(__dirname, '../../uploads');
-const imageVariantRoot = path.join(uploadRoot, '_variants');
+const uploadRoot = path.resolve(__dirname, "../../uploads");
+const imageVariantRoot = path.join(uploadRoot, "_variants");
 const variantWidths = [320, 480, 640, 960, 1200, 1600];
-const allowedVariantExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.bmp']);
+const allowedVariantExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp"]);
 
 const pickVariantWidth = (value) => {
     const requested = Number.parseInt(value, 10);
     if (!Number.isFinite(requested)) return 960;
-    return variantWidths.find((width) => width >= requested) || variantWidths[variantWidths.length - 1];
+    return (
+        variantWidths.find((width) => width >= requested) || variantWidths[variantWidths.length - 1]
+    );
 };
 
 const resolveUploadImagePath = (src) => {
-    const cleanSrc = String(src || '').split('?')[0].replace(/\\/g, '/');
-    if (!cleanSrc.startsWith('/uploads/') || cleanSrc.includes('\0') || cleanSrc.includes('..')) {
+    const cleanSrc = String(src || "")
+        .split("?")[0]
+        .replace(/\\/g, "/");
+    if (!cleanSrc.startsWith("/uploads/") || cleanSrc.includes("\0") || cleanSrc.includes("..")) {
         return null;
     }
 
-    const relativePath = cleanSrc.replace(/^\/uploads\//, '');
+    const relativePath = cleanSrc.replace(/^\/uploads\//, "");
     const resolvedPath = path.resolve(uploadRoot, relativePath);
     if (!resolvedPath.startsWith(uploadRoot + path.sep)) {
         return null;
@@ -674,16 +824,21 @@ const getImageVariant = async (req, res, next) => {
     try {
         const resolved = resolveUploadImagePath(req.query.src);
         if (!resolved || !fs.existsSync(resolved.resolvedPath)) {
-            return res.status(404).json({ error: 'Image not found' });
+            return res.status(404).json({ error: "Image not found" });
         }
 
         const width = pickVariantWidth(req.query.w || req.query.width);
-        const quality = Math.min(Math.max(Number.parseInt(req.query.q || req.query.quality, 10) || 78, 50), 88);
+        const quality = Math.min(
+            Math.max(Number.parseInt(req.query.q || req.query.quality, 10) || 78, 50),
+            88
+        );
         const sourceStat = fs.statSync(resolved.resolvedPath);
         const cacheKey = crypto
-            .createHash('sha1')
-            .update(`${resolved.cleanSrc}:${sourceStat.mtimeMs}:${sourceStat.size}:${width}:${quality}`)
-            .digest('hex');
+            .createHash("sha1")
+            .update(
+                `${resolved.cleanSrc}:${sourceStat.mtimeMs}:${sourceStat.size}:${width}:${quality}`
+            )
+            .digest("hex");
         const variantDir = path.join(imageVariantRoot, String(width));
         const variantPath = path.join(variantDir, `${cacheKey}.webp`);
 
@@ -696,9 +851,9 @@ const getImageVariant = async (req, res, next) => {
                 .toFile(variantPath);
         }
 
-        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
-        res.setHeader('Content-Type', 'image/webp');
-        res.setHeader('Vary', 'Accept');
+        res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+        res.setHeader("Content-Type", "image/webp");
+        res.setHeader("Vary", "Accept");
         return res.sendFile(variantPath);
     } catch (error) {
         return next(error);
@@ -706,37 +861,49 @@ const getImageVariant = async (req, res, next) => {
 };
 
 const downloadDbBackup = (req, res, next) => {
-  const dbPath = path.join(__dirname, '../../database.sqlite');
-  if (fs.existsSync(dbPath)) {
-    res.download(dbPath, `backup-${Date.now()}.sqlite`);
-  } else {
-    res.status(404).json({ error: 'Database file not found' });
-  }
+    const dbPath = path.join(__dirname, "../../database.sqlite");
+    if (fs.existsSync(dbPath)) {
+        res.download(dbPath, `backup-${Date.now()}.sqlite`);
+    } else {
+        res.status(404).json({ error: "Database file not found" });
+    }
 };
 
 const getFeaturedContent = async (req, res, next) => {
-  try {
-    const db = await getDb();
-    
-    // Fetch featured items, falling back to recent ones if not enough featured
-    // ORDER BY featured DESC ensures featured items come first
-    // Only show active (approved, not deleted) items
-    const [photos, music, videos, articles, events] = await Promise.all([
-      db.all('SELECT * FROM photos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM music WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM videos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM articles WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM events WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10')
-    ]);
+    try {
+        const db = await getDb();
 
-    res.json({
-      photos,
-      music,
-      videos,
-      articles,
-      events
-    });
-  } catch (error) { next(error); }
+        // Fetch featured items, falling back to recent ones if not enough featured
+        // ORDER BY featured DESC ensures featured items come first
+        // Only show active (approved, not deleted) items
+        const [photos, music, videos, articles, events] = await Promise.all([
+            db.all(
+                'SELECT * FROM photos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'
+            ),
+            db.all(
+                'SELECT * FROM music WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'
+            ),
+            db.all(
+                'SELECT * FROM videos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'
+            ),
+            db.all(
+                'SELECT * FROM articles WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'
+            ),
+            db.all(
+                'SELECT * FROM events WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'
+            ),
+        ]);
+
+        res.json({
+            photos,
+            music,
+            videos,
+            articles,
+            events,
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const crawlEvents = async (req, res, next) => {
@@ -747,7 +914,7 @@ const crawlEvents = async (req, res, next) => {
         res.json({ success: true, ...result });
     } catch (error) {
         console.error("Crawler failed:", error);
-        res.status(500).json({ error: 'Crawler failed', details: error.message });
+        res.status(500).json({ error: "Crawler failed", details: error.message });
     }
 };
 
@@ -758,15 +925,18 @@ const getAuditLogs = async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
 
-        const logs = await db.all(`
+        const logs = await db.all(
+            `
             SELECT audit_logs.*, users.username as admin_name 
             FROM audit_logs 
             LEFT JOIN users ON audit_logs.admin_id = users.id 
             ORDER BY audit_logs.created_at DESC 
             LIMIT ? OFFSET ?
-        `, [limit, offset]);
-        
-        const count = await db.get('SELECT COUNT(*) as count FROM audit_logs');
+        `,
+            [limit, offset]
+        );
+
+        const count = await db.get("SELECT COUNT(*) as count FROM audit_logs");
 
         res.json({
             data: logs,
@@ -774,36 +944,48 @@ const getAuditLogs = async (req, res, next) => {
                 total: count.count,
                 page,
                 limit,
-                totalPages: Math.ceil(count.count / limit)
-            }
+                totalPages: Math.ceil(count.count / limit),
+            },
         });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const getPendingContent = async (req, res, next) => {
     try {
         const db = await getDb();
-        
+
         // Fetch pending items from all tables (only active ones)
         const [photos, music, videos, articles, events, competitionItems] = await Promise.all([
-            db.all("SELECT *, 'photos' as resource_type, url as preview_image FROM photos WHERE status = 'pending' AND deleted_at IS NULL"),
-            db.all("SELECT *, 'music' as resource_type, cover as preview_image FROM music WHERE status = 'pending' AND deleted_at IS NULL"),
-            db.all("SELECT *, 'videos' as resource_type, thumbnail as preview_image FROM videos WHERE status = 'pending' AND deleted_at IS NULL"),
-            db.all("SELECT *, 'articles' as resource_type, cover as preview_image FROM articles WHERE status = 'pending' AND deleted_at IS NULL"),
-            db.all("SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL"),
-            listPendingCompetitionItems(db).catch(() => [])
+            db.all(
+                "SELECT *, 'photos' as resource_type, url as preview_image FROM photos WHERE status = 'pending' AND deleted_at IS NULL"
+            ),
+            db.all(
+                "SELECT *, 'music' as resource_type, cover as preview_image FROM music WHERE status = 'pending' AND deleted_at IS NULL"
+            ),
+            db.all(
+                "SELECT *, 'videos' as resource_type, thumbnail as preview_image FROM videos WHERE status = 'pending' AND deleted_at IS NULL"
+            ),
+            db.all(
+                "SELECT *, 'articles' as resource_type, cover as preview_image FROM articles WHERE status = 'pending' AND deleted_at IS NULL"
+            ),
+            db.all(
+                "SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL"
+            ),
+            listPendingCompetitionItems(db).catch(() => []),
         ]);
 
         // Combine and sort (newest first based on ID as proxy)
         const allPending = [
-            ...photos.map(i => ({ ...i, type: 'photos' })),
-            ...music.map(i => ({ ...i, type: 'music' })),
-            ...videos.map(i => ({ ...i, type: 'videos' })),
-            ...articles.map(i => ({ ...i, type: 'articles' })),
-            ...events.map(i => ({ ...i, type: 'events' })),
-            ...competitionItems
+            ...photos.map((i) => ({ ...i, type: "photos" })),
+            ...music.map((i) => ({ ...i, type: "music" })),
+            ...videos.map((i) => ({ ...i, type: "videos" })),
+            ...articles.map((i) => ({ ...i, type: "articles" })),
+            ...events.map((i) => ({ ...i, type: "events" })),
+            ...competitionItems,
         ];
-        
+
         // Sort by creation time first, then ID as a fallback.
         allPending.sort((a, b) => {
             const rightTime = new Date(b.created_at || 0).getTime();
@@ -813,25 +995,27 @@ const getPendingContent = async (req, res, next) => {
         });
 
         res.json(allPending);
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {
-  getStats,
-  getSiteMetrics,
-  trackVisit,
-  handleUpload,
-  createNativeUploadSessionHandler,
-  getNativeUploadSessionHandler,
-  handleNativeUpload,
-  cancelNativeUpload,
-  createNativePosterSessionHandler,
-  getNativePosterSessionImageHandler,
-  getImageVariant,
-  downloadDbBackup,
-  getFeaturedContent,
-  crawlEvents,
-  searchContent,
-  getAuditLogs,
-  getPendingContent,
+    getStats,
+    getSiteMetrics,
+    trackVisit,
+    handleUpload,
+    createNativeUploadSessionHandler,
+    getNativeUploadSessionHandler,
+    handleNativeUpload,
+    cancelNativeUpload,
+    createNativePosterSessionHandler,
+    getNativePosterSessionImageHandler,
+    getImageVariant,
+    downloadDbBackup,
+    getFeaturedContent,
+    crawlEvents,
+    searchContent,
+    getAuditLogs,
+    getPendingContent,
 };

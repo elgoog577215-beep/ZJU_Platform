@@ -1,8 +1,11 @@
 # profile-share-card Specification
 
 ## Purpose
+
 定义个人与组织 profile 如何作为可传播数字名片对外展示、分享、扫码回流，并约束公开信息、隐私边界、i18n 与响应式可用性。
+
 ## Requirements
+
 ### Requirement: 个人与组织主页首屏名片化
 
 系统 SHALL 在个人 profile 与组织 profile 的公开主页首屏展示可快速识别的身份摘要。

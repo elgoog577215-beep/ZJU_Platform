@@ -1,43 +1,43 @@
 {
-  "appid": "wx5997943336c6cac5",
-  "projectname": "tuotuzju-webview-miniapp",
-  "description": "Tuotu ZJU WeChat Mini Program WebView shell",
-  "miniprogramRoot": "./",
-  "compileType": "miniprogram",
-  "setting": {
-    "urlCheck": false,
-    "es6": true,
-    "postcss": true,
-    "minified": true,
-    "enhance": true,
-    "compileWorklet": false,
-    "uglifyFileName": false,
-    "uploadWithSourceMap": true,
-    "packNpmManually": false,
-    "packNpmRelationList": [],
-    "minifyWXSS": true,
-    "minifyWXML": true,
-    "localPlugins": false,
-    "disableUseStrict": false,
-    "useCompilerPlugins": false,
-    "condition": false,
-    "swc": false,
-    "disableSWC": true,
-    "babelSetting": {
-      "ignore": [],
-      "disablePlugins": [],
-      "outputPath": ""
-    }
-  },
-  "simulatorType": "wechat",
-  "simulatorPluginLibVersion": {},
-  "condition": {},
-  "srcMiniprogramRoot": "./",
-  "libVersion": "3.16.1",
-  "packOptions": {
-    "ignore": [],
-    "include": []
-  },
-  "isGameTourist": false,
-  "editorSetting": {}
+    "appid": "wx5997943336c6cac5",
+    "projectname": "tuotuzju-webview-miniapp",
+    "description": "Tuotu ZJU WeChat Mini Program WebView shell",
+    "miniprogramRoot": "./",
+    "compileType": "miniprogram",
+    "setting": {
+        "urlCheck": false,
+        "es6": true,
+        "postcss": true,
+        "minified": true,
+        "enhance": true,
+        "compileWorklet": false,
+        "uglifyFileName": false,
+        "uploadWithSourceMap": true,
+        "packNpmManually": false,
+        "packNpmRelationList": [],
+        "minifyWXSS": true,
+        "minifyWXML": true,
+        "localPlugins": false,
+        "disableUseStrict": false,
+        "useCompilerPlugins": false,
+        "condition": false,
+        "swc": false,
+        "disableSWC": true,
+        "babelSetting": {
+            "ignore": [],
+            "disablePlugins": [],
+            "outputPath": ""
+        }
+    },
+    "simulatorType": "wechat",
+    "simulatorPluginLibVersion": {},
+    "condition": {},
+    "srcMiniprogramRoot": "./",
+    "libVersion": "3.16.1",
+    "packOptions": {
+        "ignore": [],
+        "include": []
+    },
+    "isGameTourist": false,
+    "editorSetting": {}
 }

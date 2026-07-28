@@ -19,9 +19,9 @@
 
 - 继续调用现有 `parseWithLLM`，任务仍为 `wechat_event_parse`，不增加第二次模型调用。
 - 扩展输出字段：
-  - `is_activity_candidate`：是否属于适合活动栏目的活动类推文。
-  - `activity_confidence`：0-1 的活动候选置信度。
-  - `activity_reason`：简短判断依据。
+    - `is_activity_candidate`：是否属于适合活动栏目的活动类推文。
+    - `activity_confidence`：0-1 的活动候选置信度。
+    - `activity_reason`：简短判断依据。
 - Prompt 明确要求：讲座、比赛、培训、报名、志愿、招聘/交流等有明确参与动作或活动信息的内容可以作为候选；新闻报道、成果回顾、政策说明、纯通知且无具体活动安排等内容判为非候选。
 - 服务端使用保守阈值 `activity_confidence >= 0.70` 且 `is_activity_candidate = true` 才进入活动表。
 - 文章表新增活动筛选状态、原因和关联 `event_id`，确保失败可重试、拒绝可追踪、成功可幂等。

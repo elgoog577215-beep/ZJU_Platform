@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * Linkify plain text: find http(s) URLs inside a string and wrap them as
@@ -26,12 +26,12 @@ export const URL_REGEX = /(https?:\/\/[^\s<>"'，。；：！？,]+)/g;
 const TRAILING_PUNCT = /[.,;:!?)\]}>"'，。；：！？）】»]+$/;
 
 function splitTrailingPunct(raw) {
-  const match = raw.match(TRAILING_PUNCT);
-  if (!match) return { url: raw, trailing: '' };
-  return {
-    url: raw.slice(0, -match[0].length),
-    trailing: match[0],
-  };
+    const match = raw.match(TRAILING_PUNCT);
+    if (!match) return { url: raw, trailing: "" };
+    return {
+        url: raw.slice(0, -match[0].length),
+        trailing: match[0],
+    };
 }
 
 /**
@@ -40,33 +40,33 @@ function splitTrailingPunct(raw) {
  * surrounding element has white-space: pre-wrap).
  */
 export function LinkifiedText({ text }) {
-  if (!text || typeof text !== 'string') return text ?? null;
-  const parts = text.split(URL_REGEX);
-  return (
-    <>
-      {parts.map((part, idx) => {
-        if (idx % 2 === 1) {
-          // Capture groups land on odd indices — those are URLs.
-          const { url, trailing } = splitTrailingPunct(part);
-          if (!url) return part;
-          return (
-            <React.Fragment key={idx}>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="linkified-url"
-              >
-                {url}
-              </a>
-              {trailing}
-            </React.Fragment>
-          );
-        }
-        return part;
-      })}
-    </>
-  );
+    if (!text || typeof text !== "string") return text ?? null;
+    const parts = text.split(URL_REGEX);
+    return (
+        <>
+            {parts.map((part, idx) => {
+                if (idx % 2 === 1) {
+                    // Capture groups land on odd indices — those are URLs.
+                    const { url, trailing } = splitTrailingPunct(part);
+                    if (!url) return part;
+                    return (
+                        <React.Fragment key={idx}>
+                            <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="linkified-url"
+                            >
+                                {url}
+                            </a>
+                            {trailing}
+                        </React.Fragment>
+                    );
+                }
+                return part;
+            })}
+        </>
+    );
 }
 
 /**
@@ -78,68 +78,68 @@ export function LinkifiedText({ text }) {
  * parsing is removed — only inner content is returned.
  */
 export function linkifyHtml(html) {
-  if (!html || typeof html !== 'string') return html || '';
-  if (typeof DOMParser === 'undefined') return html; // SSR / non-browser
+    if (!html || typeof html !== "string") return html || "";
+    if (typeof DOMParser === "undefined") return html; // SSR / non-browser
 
-  const doc = new DOMParser().parseFromString(
-    `<body><div id="__linkify_root">${html}</div></body>`,
-    'text/html',
-  );
-  const root = doc.getElementById('__linkify_root');
-  if (!root) return html;
+    const doc = new DOMParser().parseFromString(
+        `<body><div id="__linkify_root">${html}</div></body>`,
+        "text/html"
+    );
+    const root = doc.getElementById("__linkify_root");
+    if (!root) return html;
 
-  linkifyNode(root);
-  return root.innerHTML;
+    linkifyNode(root);
+    return root.innerHTML;
 }
 
-const SKIP_TAGS = new Set(['A', 'CODE', 'PRE', 'SCRIPT', 'STYLE', 'TEXTAREA']);
+const SKIP_TAGS = new Set(["A", "CODE", "PRE", "SCRIPT", "STYLE", "TEXTAREA"]);
 
 function linkifyNode(node) {
-  if (!node || !node.childNodes) return;
-  // Snapshot children because we may replace text nodes in-place.
-  for (const child of Array.from(node.childNodes)) {
-    if (child.nodeType === 3 /* TEXT_NODE */) {
-      linkifyTextNode(child);
-    } else if (child.nodeType === 1 /* ELEMENT_NODE */) {
-      if (!SKIP_TAGS.has(child.tagName)) {
-        linkifyNode(child);
-      }
+    if (!node || !node.childNodes) return;
+    // Snapshot children because we may replace text nodes in-place.
+    for (const child of Array.from(node.childNodes)) {
+        if (child.nodeType === 3 /* TEXT_NODE */) {
+            linkifyTextNode(child);
+        } else if (child.nodeType === 1 /* ELEMENT_NODE */) {
+            if (!SKIP_TAGS.has(child.tagName)) {
+                linkifyNode(child);
+            }
+        }
     }
-  }
 }
 
 function linkifyTextNode(textNode) {
-  const value = textNode.nodeValue;
-  if (!value || !URL_REGEX.test(value)) return;
-  // Reset regex state — URL_REGEX uses /g flag so lastIndex persists.
-  URL_REGEX.lastIndex = 0;
+    const value = textNode.nodeValue;
+    if (!value || !URL_REGEX.test(value)) return;
+    // Reset regex state — URL_REGEX uses /g flag so lastIndex persists.
+    URL_REGEX.lastIndex = 0;
 
-  const parts = value.split(URL_REGEX);
-  if (parts.length === 1) return;
+    const parts = value.split(URL_REGEX);
+    if (parts.length === 1) return;
 
-  const doc = textNode.ownerDocument;
-  const fragment = doc.createDocumentFragment();
-  parts.forEach((part, idx) => {
-    if (idx % 2 === 1) {
-      const { url, trailing } = splitTrailingPunct(part);
-      if (!url) {
-        fragment.appendChild(doc.createTextNode(part));
-        return;
-      }
-      const a = doc.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.className = 'linkified-url';
-      a.textContent = url;
-      fragment.appendChild(a);
-      if (trailing) fragment.appendChild(doc.createTextNode(trailing));
-    } else if (part) {
-      fragment.appendChild(doc.createTextNode(part));
-    }
-  });
+    const doc = textNode.ownerDocument;
+    const fragment = doc.createDocumentFragment();
+    parts.forEach((part, idx) => {
+        if (idx % 2 === 1) {
+            const { url, trailing } = splitTrailingPunct(part);
+            if (!url) {
+                fragment.appendChild(doc.createTextNode(part));
+                return;
+            }
+            const a = doc.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.className = "linkified-url";
+            a.textContent = url;
+            fragment.appendChild(a);
+            if (trailing) fragment.appendChild(doc.createTextNode(trailing));
+        } else if (part) {
+            fragment.appendChild(doc.createTextNode(part));
+        }
+    });
 
-  textNode.parentNode.replaceChild(fragment, textNode);
+    textNode.parentNode.replaceChild(fragment, textNode);
 }
 
 export default LinkifiedText;

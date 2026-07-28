@@ -7,6 +7,7 @@
 3. 生命周期 `Dropdown` + `SortSelector`：并排放在一个 `grid` 里，无容器
 
 三个区域各自独立，视觉上割裂，且存在以下已知 bug：
+
 - `Dropdown` 的触发按钮内 `<span>` 没有 `min-w-0`，外层 `div` 有 `truncate`，导致长名字（如公众号名）被截断
 - `TagFilter` 的 `fetchTags` 只依赖 `type`，不传入当前 `filters`，所以属性筛选变化后标签计数不更新
 - 默认 `sort` 为 `'newest'`（按 id 倒序），不反映活动时间顺序
@@ -14,12 +15,14 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - 修复 Dropdown 长文本截断 bug
 - 修复 TagFilter 计数不响应属性筛选变化的 bug
 - 将默认排序改为 `date_desc`
 - 将三个筛选区域整合为单一 `EventFilterPanel` 组件，统一视觉、统一状态、提供全局清除
 
 **Non-Goals:**
+
 - 不改变后端 API 结构（仅利用现有的 query param 机制）
 - 不重构 `Dropdown` 组件本身的其他行为
 - 不改变 `TagFilter` 和 `AdvancedFilter` 的内部逻辑（可复用为子组件）
@@ -30,12 +33,14 @@
 ### 1. Dropdown 截断修复：去掉外层 truncate，改为 `overflow-hidden text-ellipsis` 作用于 span
 
 当前 `Dropdown.jsx` 触发按钮结构：
+
 ```
 <div className="flex items-center gap-3 truncate">   ← truncate 在这里
   <Icon />
   <span>{label}</span>                               ← span 没有 min-w-0
 </div>
 ```
+
 `truncate` 是 `overflow-hidden + text-overflow: ellipsis + whitespace-nowrap` 的组合，但它作用在 flex 容器上，会把整个内容区（含图标）一起截断。
 
 修复方案：将 `truncate` 从外层 div 移除，改为在 `<span>` 上加 `truncate min-w-0 flex-1`，让图标固定宽度、文字自适应截断。下拉菜单选项的 `<span className="truncate pr-2">` 同理，加 `min-w-0`。
@@ -56,6 +61,7 @@
 ### 4. 整合为 EventFilterPanel
 
 新建 `src/components/EventFilterPanel.jsx`，接收所有筛选状态作为 props，内部渲染：
+
 - `AdvancedFilter`（属性筛选）
 - `TagFilter`（标签筛选，传入当前 filters）
 - 生命周期 Dropdown

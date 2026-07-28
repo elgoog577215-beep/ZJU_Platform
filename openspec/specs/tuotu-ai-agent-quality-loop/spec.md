@@ -1,8 +1,11 @@
 # tuotu-ai-agent-quality-loop Specification
 
 ## Purpose
+
 TBD - created by archiving change upgrade-tuotu-ai-agents-quality. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Agent Quality Profile
 
 The system SHALL expose a quality profile for every registered production AI Agent.
@@ -67,4 +70,3 @@ The system SHALL generate a readable AI Agent quality spec from the registry.
 
 - **WHEN** an operator runs the agent spec generation command
 - **THEN** the Markdown output SHALL include maturity dimensions, Agent quality profiles, related Agents, evaluation checks, and next improvement items.
-

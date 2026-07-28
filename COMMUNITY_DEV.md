@@ -8,7 +8,7 @@
 
 1. **后端**：`server` 默认端口 **5181**（见 `server/index.js` 中 `PORT`）。根路径挂载 `app.use('/api', apiRoutes)`。
 2. **前端**：Vite 开发服务器将 `/api`、`/uploads` 代理到 `http://localhost:5181`，可通过环境变量覆盖：
-   - `VITE_API_PROXY_TARGET`（例如 `http://127.0.0.1:5181`）
+    - `VITE_API_PROXY_TARGET`（例如 `http://127.0.0.1:5181`）
 3. **生产构建**：前端使用相对路径 **`/api`**，应与静态资源同源或由网关反代。
 
 ## 启动示例

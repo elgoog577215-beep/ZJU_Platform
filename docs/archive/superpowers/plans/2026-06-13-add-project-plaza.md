@@ -55,49 +55,85 @@ CREATE INDEX IF NOT EXISTS idx_project_cards_likes ON project_cards (likes DESC,
 要点（不写占位，关键逻辑给全）：
 
 ```js
-const { getDb } = require('../config/db');
+const { getDb } = require("../config/db");
 
-const PROGRESS = new Set(['idea', 'dev', 'live', 'pause']);
-const parseArr = (raw) => { try { const v = JSON.parse(raw || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
+const PROGRESS = new Set(["idea", "dev", "live", "pause"]);
+const parseArr = (raw) => {
+    try {
+        const v = JSON.parse(raw || "[]");
+        return Array.isArray(v) ? v : [];
+    } catch {
+        return [];
+    }
+};
 
 const serialize = (row, { viewer } = {}) => {
-  const isOwner = viewer && String(viewer) === String(row.user_id);
-  const loggedIn = Boolean(viewer);
-  return {
-    id: row.id, user_id: row.user_id, title: row.title, intro: row.intro,
-    content: row.content, progress: row.progress,
-    need_tags: parseArr(row.need_tags), tech_tags: parseArr(row.tech_tags),
-    repo_url: row.repo_url, cover_url: row.cover_url, images: parseArr(row.images_json),
-    status: row.status, likes: row.likes, views: row.views,
-    created_at: row.created_at, updated_at: row.updated_at,
-    // 联系方式：仅登录可见
-    contact_locked: !loggedIn,
-    contact_wechat: loggedIn ? row.contact_wechat : null,
-    contact_email: loggedIn ? row.contact_email : null,
-  };
+    const isOwner = viewer && String(viewer) === String(row.user_id);
+    const loggedIn = Boolean(viewer);
+    return {
+        id: row.id,
+        user_id: row.user_id,
+        title: row.title,
+        intro: row.intro,
+        content: row.content,
+        progress: row.progress,
+        need_tags: parseArr(row.need_tags),
+        tech_tags: parseArr(row.tech_tags),
+        repo_url: row.repo_url,
+        cover_url: row.cover_url,
+        images: parseArr(row.images_json),
+        status: row.status,
+        likes: row.likes,
+        views: row.views,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        // 联系方式：仅登录可见
+        contact_locked: !loggedIn,
+        contact_wechat: loggedIn ? row.contact_wechat : null,
+        contact_email: loggedIn ? row.contact_email : null,
+    };
 };
 
 const validate = (body) => {
-  if (!body.title || !String(body.title).trim()) return '项目名称必填';
-  if (body.progress && !PROGRESS.has(body.progress)) return '进度取值非法';
-  if (body.repo_url && !/^https:\/\//i.test(body.repo_url)) return '仓库链接需为 https';
-  return null;
+    if (!body.title || !String(body.title).trim()) return "项目名称必填";
+    if (body.progress && !PROGRESS.has(body.progress)) return "进度取值非法";
+    if (body.repo_url && !/^https:\/\//i.test(body.repo_url)) return "仓库链接需为 https";
+    return null;
 };
 
 // POST /api/projects  (authenticateToken + rate limit)
-const createProject = async (req, res, next) => { /* validate → INSERT → return serialize */ };
+const createProject = async (req, res, next) => {
+    /* validate → INSERT → return serialize */
+};
 // PUT /api/projects/:id  (owner check)
-const updateProject = async (req, res, next) => { /* owner check → UPDATE → updated_at */ };
+const updateProject = async (req, res, next) => {
+    /* owner check → UPDATE → updated_at */
+};
 // DELETE /api/projects/:id  (owner check)
-const deleteProject = async (req, res, next) => { /* owner check → DELETE */ };
+const deleteProject = async (req, res, next) => {
+    /* owner check → DELETE */
+};
 // GET /api/projects  list: WHERE status='published' + filters(q/progress/need) + pagination
-const listProjects = async (req, res, next) => { /* build WHERE, need 用 json LIKE 或 EXISTS, map serialize(no contact for列表) */ };
+const listProjects = async (req, res, next) => {
+    /* build WHERE, need 用 json LIKE 或 EXISTS, map serialize(no contact for列表) */
+};
 // GET /api/projects/:id  detail: views++ then serialize with viewer = req.user?.id
-const getProject = async (req, res, next) => { /* UPDATE views=views+1; return serialize({viewer}) */ };
+const getProject = async (req, res, next) => {
+    /* UPDATE views=views+1; return serialize({viewer}) */
+};
 // POST /api/projects/:id/report  → reports
-const reportProject = async (req, res, next) => { /* insert report target_type='project' */ };
+const reportProject = async (req, res, next) => {
+    /* insert report target_type='project' */
+};
 
-module.exports = { createProject, updateProject, deleteProject, listProjects, getProject, reportProject };
+module.exports = {
+    createProject,
+    updateProject,
+    deleteProject,
+    listProjects,
+    getProject,
+    reportProject,
+};
 ```
 
 需求标签筛选用 `need_tags LIKE '%"缺人"%'`（JSON 数组里查值）；搜索 `title LIKE ? OR tech_tags LIKE ?` + join users 查 owner name。
@@ -111,14 +147,14 @@ module.exports = { createProject, updateProject, deleteProject, listProjects, ge
 **Files**: Modify `server/src/routes/api.js`（复用现有 `authenticateToken` / `optionalAuth` / `isAdmin` / `customRateLimit` / 上传中间件）
 
 ```js
-const pc = require('../controllers/projectCardController');
-router.get('/projects', optionalAuth, pc.listProjects);
-router.get('/projects/:id', optionalAuth, pc.getProject);
-router.post('/projects', authenticateToken, projectCreateLimiter, pc.createProject);
-router.put('/projects/:id', authenticateToken, pc.updateProject);
-router.delete('/projects/:id', authenticateToken, pc.deleteProject);
-router.post('/projects/:id/report', authenticateToken, pc.reportProject);
-router.put('/admin/projects/:id/takedown', authenticateToken, isAdmin, pc.takedownProject);
+const pc = require("../controllers/projectCardController");
+router.get("/projects", optionalAuth, pc.listProjects);
+router.get("/projects/:id", optionalAuth, pc.getProject);
+router.post("/projects", authenticateToken, projectCreateLimiter, pc.createProject);
+router.put("/projects/:id", authenticateToken, pc.updateProject);
+router.delete("/projects/:id", authenticateToken, pc.deleteProject);
+router.post("/projects/:id/report", authenticateToken, pc.reportProject);
+router.put("/admin/projects/:id/takedown", authenticateToken, isAdmin, pc.takedownProject);
 ```
 
 封面/照片上传：复用个人名片封面上传同款 multer 端点（`uploadProfileCardCover` 路径），前端拿 `/uploads/...` 存入 `images_json`。`projectCreateLimiter` 仿 `communityPostCreateLimiter`。
@@ -132,29 +168,36 @@ router.put('/admin/projects/:id/takedown', authenticateToken, isAdmin, pc.takedo
 **Files**: Modify `server/src/controllers/favoriteController.js`, `notificationController.js`, `userController.js`
 
 ### 4a favoriteController.js（收藏=点赞 + 自动通知）
+
 ```js
 // FAVORITE_TABLE_MAP 增加：
 'project': 'project_cards',
 // FAVORITE_RESOURCE_META 增加：
 project: { table: 'project_cards', ownerColumn: 'user_id', label: '项目' },
 ```
+
 > 加完这两行，收藏 toggle、likes 重算、`resolveFavoriteTarget`、`createNotification(owner,'favorite',…,'project')` 全自动生效（owner!=actor 才发，已有判断）。
 
 ### 4b notificationController.js
+
 ```js
 // RESOURCE_TYPE_LABEL 增加：
 project: '项目',
 ```
 
 ### 4c userController.js — `getUserResources` 聚合项目
+
 仿 community_posts 段落，新增（注意 `user_id` 不是 `uploader_id`；访客只见 published，本人见草稿）：
+
 ```js
 const projectRows = await db.all(
-  `SELECT id, title, intro AS description, cover_url AS cover, likes, status, created_at
+    `SELECT id, title, intro AS description, cover_url AS cover, likes, status, created_at
      FROM project_cards
-    WHERE user_id = ? ${isOwner ? '' : "AND status = 'published'"}
-    ORDER BY created_at DESC`, [targetUserId]);
-const projects = projectRows.map((p) => ({ ...p, type: 'project' }));
+    WHERE user_id = ? ${isOwner ? "" : "AND status = 'published'"}
+    ORDER BY created_at DESC`,
+    [targetUserId]
+);
+const projects = projectRows.map((p) => ({ ...p, type: "project" }));
 // 合并进 resources 数组
 ```
 
@@ -175,12 +218,14 @@ const projects = projectRows.map((p) => ({ ...p, type: 'project' }));
 **Files**: Create `src/components/ProjectPlaza.jsx`, `ProjectDetailModal.jsx`, `ProjectCreateEdit.jsx`；参考 `src/components/ProjectPlazaPreview.jsx`（删之）。
 
 产品化改造：
+
 - 去掉 `variant` 风格开关 → `const { uiMode } = useSettings(); const isDayMode = uiMode === 'day';`，用 Tailwind 条件类（仿 AICommunity 的 `isDayMode ? ... : ...`）替换 scoped CSS。暗色=赛博蓝黑(青色 accent)、白天=活泼。
 - mock 数据 → `getProjects()` / `getProject(id)`（api.js）。
 - 卡片 `♥` → `toggleFavorite({itemId, itemType:'project'})`，未登录弹登录。
 - 详情弹窗：长正文 `content` 分段渲染（文本转义）；概要数据保留；联系方式 `contact_locked` 时显示"登录后查看"。
 
 ### 6a 广场读 ?id= 开详情 + fromFavorites 返回（仿 Events.jsx）
+
 ```jsx
 const [searchParams] = useSearchParams();
 const location = useLocation();
@@ -189,13 +234,17 @@ const [selected, setSelected] = useState(null);
 const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
 
 useEffect(() => {
-  const id = searchParams.get('id');
-  if (id) getProject(id).then((r) => setSelected(r.data));
+    const id = searchParams.get("id");
+    if (id) getProject(id).then((r) => setSelected(r.data));
 }, [searchParams]);
 
 const closeDetail = useCallback(() => {
-  if (fromFavoritesRef.current) { fromFavoritesRef.current = false; navigate(-2); return; }
-  setSelected(null);
+    if (fromFavoritesRef.current) {
+        fromFavoritesRef.current = false;
+        navigate(-2);
+        return;
+    }
+    setSelected(null);
 }, [navigate]);
 useBackClose(selected !== null, closeDetail);
 ```
@@ -209,6 +258,7 @@ useBackClose(selected !== null, closeDetail);
 **Files**: Modify `src/App.jsx`, `Navbar.jsx`, `MobileNavbar.jsx`, `PublicProfile.jsx`, `services/api.js`, `i18n.js`；Delete `ProjectPlazaPreview.jsx`。
 
 ### 7a App.jsx
+
 ```jsx
 const ProjectPlaza = lazy(() => import('./components/ProjectPlaza'));
 const ProjectCreateEdit = lazy(() => import('./components/ProjectCreateEdit'));
@@ -220,6 +270,7 @@ const ProjectCreateEdit = lazy(() => import('./components/ProjectCreateEdit'));
 ```
 
 ### 7b PublicProfile.jsx — 项目分类 + 收藏返回路由
+
 ```js
 // buildFavoriteTargetPath routeMap 增加：
 project: "/projects",

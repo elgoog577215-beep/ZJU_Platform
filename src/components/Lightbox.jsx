@@ -1,328 +1,425 @@
-import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Download, Info, Camera, Aperture, Clock, Grid } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
-import FavoriteButton from './FavoriteButton';
-import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
-import api from '../services/api';
-import { getHighResUrl, getThumbnailUrl } from '../utils/imageUtils';
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Download,
+    Info,
+    Camera,
+    Aperture,
+    Clock,
+    Grid,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
+import FavoriteButton from "./FavoriteButton";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
+import api from "../services/api";
+import { getHighResUrl, getThumbnailUrl } from "../utils/imageUtils";
 
 const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) => {
-  const { t } = useTranslation();
-  const [showInfo, setShowInfo] = useState(false);
-  const [activeTab, setActiveTab] = useState('info'); // 'info', 'related'
-  const { user } = useAuth();
-  const { uiMode } = useSettings();
-  const [isApp, setIsApp] = useState(false);
-  const [relatedPhotos, setRelatedPhotos] = useState([]);
-  const isDayMode = uiMode === 'day';
-  const hasPrev = typeof onPrev === 'function';
-  const hasNext = typeof onNext === 'function';
+    const { t } = useTranslation();
+    const [showInfo, setShowInfo] = useState(false);
+    const [activeTab, setActiveTab] = useState("info"); // 'info', 'related'
+    const { user } = useAuth();
+    const { uiMode } = useSettings();
+    const [isApp, setIsApp] = useState(false);
+    const [relatedPhotos, setRelatedPhotos] = useState([]);
+    const isDayMode = uiMode === "day";
+    const hasPrev = typeof onPrev === "function";
+    const hasNext = typeof onNext === "function";
 
-  useEffect(() => {
-    if (photo?.id) {
-        api.get(`/photos/${photo.id}/related?limit=6`, { silent: true })
-           .then(res => setRelatedPhotos(res.data))
-           .catch(() => setRelatedPhotos([]));
-    }
-  }, [photo?.id]);
-  
-  useBackClose(true, onClose);
-  useBodyScrollLock(true);
-
-  useEffect(() => {
-    const checkApp = () => {
-        if (window.NativeBridge) {
-            setIsApp(true);
-            return true;
+    useEffect(() => {
+        if (photo?.id) {
+            api.get(`/photos/${photo.id}/related?limit=6`, { silent: true })
+                .then((res) => setRelatedPhotos(res.data))
+                .catch(() => setRelatedPhotos([]));
         }
-        return false;
-    };
+    }, [photo?.id]);
 
-    if (checkApp()) return;
+    useBackClose(true, onClose);
+    useBodyScrollLock(true);
 
-    const interval = setInterval(() => {
-        if (checkApp()) {
+    useEffect(() => {
+        const checkApp = () => {
+            if (window.NativeBridge) {
+                setIsApp(true);
+                return true;
+            }
+            return false;
+        };
+
+        if (checkApp()) return;
+
+        const interval = setInterval(() => {
+            if (checkApp()) {
+                clearInterval(interval);
+            }
+        }, 500);
+
+        const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+        return () => {
             clearInterval(interval);
+            clearTimeout(timeout);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+            if (e.key === "ArrowRight" && hasNext) onNext();
+            if (e.key === "ArrowLeft" && hasPrev) onPrev();
+            if (e.key === "i") setShowInfo((prev) => !prev);
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [hasNext, hasPrev, onClose, onNext, onPrev]);
+
+    const handleDownload = async () => {
+        try {
+            const response = await fetch(photo.url);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = photo.title || t("lightbox.download");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success(t("lightbox.download_started"));
+        } catch (error) {
+            console.error(error);
+            toast.error(t("lightbox.download_failed"));
         }
-    }, 500);
-
-    const timeout = setTimeout(() => clearInterval(interval), 5000);
-
-    return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
     };
-  }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight' && hasNext) onNext();
-      if (e.key === 'ArrowLeft' && hasPrev) onPrev();
-      if (e.key === 'i') setShowInfo(prev => !prev);
+    const displayImageUrl = getHighResUrl(photo.url);
+
+    // Mock Exif Data (since we don't have it in DB yet)
+    const exif = {
+        camera: "Sony A7R IV",
+        lens: "FE 24-70mm GM",
+        aperture: "f/2.8",
+        shutter: "1/250s",
+        iso: "100",
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasNext, hasPrev, onClose, onNext, onPrev]);
 
-  const handleDownload = async () => {
-      try {
-          const response = await fetch(photo.url);
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = photo.title || t('lightbox.download');
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          toast.success(t('lightbox.download_started'));
-      } catch (error) {
-          console.error(error);
-          toast.error(t('lightbox.download_failed'));
-      }
-  };
-
-  const displayImageUrl = getHighResUrl(photo.url);
-
-  // Mock Exif Data (since we don't have it in DB yet)
-  const exif = {
-      camera: 'Sony A7R IV',
-      lens: 'FE 24-70mm GM',
-      aperture: 'f/2.8',
-      shutter: '1/250s',
-      iso: '100'
-  };
-
-  const lightboxContent = (
-        <motion.div 
+    const lightboxContent = (
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             role="dialog"
             aria-modal="true"
-            aria-label={photo.title || t('lightbox.title')}
-            className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${isDayMode ? 'bg-transparent' : 'bg-black/95 backdrop-blur-md'}`}
+            aria-label={photo.title || t("lightbox.title")}
+            className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${isDayMode ? "bg-transparent" : "bg-black/95 backdrop-blur-md"}`}
             onClick={onClose}
         >
             {/* Top Controls */}
-            <div className="absolute top-4 right-4 flex gap-4 z-50" onClick={e => e.stopPropagation()}>
-                <div className={`flex items-center gap-2 rounded-full p-1 border ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-black/40 border-white/10 backdrop-blur-md'}`}>
-            <FavoriteButton 
-              itemId={photo.id}
-              itemType="photo"
-              className={isDayMode ? 'p-3 hover:bg-indigo-50 rounded-full text-slate-600 hover:text-indigo-500' : 'p-3 hover:bg-white/10 rounded-full'}
-              onToggle={onLikeToggle}
-              favorited={photo.favorited}
-              initialFavorited={photo.favorited}
-            />
-            <button 
-              type="button"
-              onClick={handleDownload}
-              aria-label={t('lightbox.download')}
-              className={`hidden md:block p-3 rounded-full transition-all ${isDayMode ? 'text-slate-500 hover:text-green-500 hover:bg-green-50' : 'text-white/70 hover:text-green-400 hover:bg-white/10'}`}
-              title={t('lightbox.download')}
+            <div
+                className="absolute top-4 right-4 flex gap-4 z-50"
+                onClick={(e) => e.stopPropagation()}
             >
-              <Download size={20} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowInfo(!showInfo)}
-              aria-label={t('lightbox.info')}
-              aria-pressed={showInfo}
-              className={`p-3 rounded-full transition-all ${showInfo ? (isDayMode ? 'text-indigo-600 bg-indigo-50' : 'text-white bg-white/20') : (isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-white/70 hover:text-white hover:bg-white/10')}`}
-              title={t('lightbox.info')}
-            >
-              <Info size={20} aria-hidden="true" />
-            </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('common.close')}
-          className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white hover:bg-red-50 text-slate-500 hover:text-red-500 border-slate-200/80' : 'bg-black/40 hover:bg-red-500/20 text-white/70 hover:text-red-400 border-white/10 backdrop-blur-md'}`}
-        >
-          <X size={24} aria-hidden="true" />
-        </button>
-      </div>
-
-      {/* Main Image */}
-      <div 
-        className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {hasPrev && (
-          <button
-            type="button"
-            onClick={onPrev}
-            aria-label={t('lightbox.previous_photo')}
-            className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-          >
-            <ChevronLeft size={48} aria-hidden="true" />
-          </button>
-        )}
-
-        <motion.img
-          key={photo.id}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          src={displayImageUrl}
-          alt={photo.title}
-          className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-        />
-
-        {hasNext && (
-          <button
-            type="button"
-            onClick={onNext}
-            aria-label={t('lightbox.next_photo')}
-            className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-          >
-            <ChevronRight size={48} aria-hidden="true" />
-          </button>
-        )}
-
-        {/* Bottom Info Bar */}
-        <div className="absolute -bottom-16 left-0 right-0 text-center">
-          <h3 className={`text-2xl font-serif font-bold mb-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{photo.title}</h3>
-          <p className={`text-sm uppercase tracking-widest ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{photo.category}</p>
-        </div>
-      </div>
-
-      {/* Info Side Panel */}
-      <AnimatePresence>
-        {showInfo && (
-            <motion.div 
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className={`fixed top-0 right-0 bottom-0 w-full sm:w-80 md:w-96 border-l md:border-l flex flex-col z-[70] ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-[#1a1a1a]/95 border-white/10 backdrop-blur-xl'}`}
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-center p-6 pb-2">
-                    <div className="flex gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('info')}
-                            aria-pressed={activeTab === 'info'}
-                            className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'info' ? (isDayMode ? 'text-slate-900 border-indigo-500' : 'text-white border-indigo-500') : (isDayMode ? 'text-slate-400 border-transparent hover:text-slate-700' : 'text-gray-500 border-transparent hover:text-gray-300')}`}
-                        >
-                            {t('lightbox.info')}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('related')}
-                            aria-pressed={activeTab === 'related'}
-                            className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'related' ? (isDayMode ? 'text-slate-900 border-indigo-500' : 'text-white border-indigo-500') : (isDayMode ? 'text-slate-400 border-transparent hover:text-slate-700' : 'text-gray-500 border-transparent hover:text-gray-300')}`}
-                        >
-                            {t('lightbox.related', 'Related')}
-                        </button>
-                    </div>
-                    <button type="button" onClick={() => setShowInfo(false)} aria-label={t('common.close')} className={isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}>
-                        <X size={20} aria-hidden="true" />
+                <div
+                    className={`flex items-center gap-2 rounded-full p-1 border ${isDayMode ? "bg-white border-slate-200/80" : "bg-black/40 border-white/10 backdrop-blur-md"}`}
+                >
+                    <FavoriteButton
+                        itemId={photo.id}
+                        itemType="photo"
+                        className={
+                            isDayMode
+                                ? "p-3 hover:bg-indigo-50 rounded-full text-slate-600 hover:text-indigo-500"
+                                : "p-3 hover:bg-white/10 rounded-full"
+                        }
+                        onToggle={onLikeToggle}
+                        favorited={photo.favorited}
+                        initialFavorited={photo.favorited}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleDownload}
+                        aria-label={t("lightbox.download")}
+                        className={`hidden md:block p-3 rounded-full transition-all ${isDayMode ? "text-slate-500 hover:text-green-500 hover:bg-green-50" : "text-white/70 hover:text-green-400 hover:bg-white/10"}`}
+                        title={t("lightbox.download")}
+                    >
+                        <Download size={20} aria-hidden="true" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowInfo(!showInfo)}
+                        aria-label={t("lightbox.info")}
+                        aria-pressed={showInfo}
+                        className={`p-3 rounded-full transition-all ${showInfo ? (isDayMode ? "text-indigo-600 bg-indigo-50" : "text-white bg-white/20") : isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100" : "text-white/70 hover:text-white hover:bg-white/10"}`}
+                        title={t("lightbox.info")}
+                    >
+                        <Info size={20} aria-hidden="true" />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-4">
-                    {activeTab === 'info' ? (
-                        <div className="space-y-6">
-                            <div>
-                                <h4 className={`text-sm font-bold uppercase mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.title')}</h4>
-                                <p className={`text-lg font-serif ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{photo.title}</p>
-                            </div>
-                            
-                            <div>
-                                <h4 className={`text-sm font-bold uppercase mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.category')}</h4>
-                                <span className={`px-3 py-1 rounded-full text-sm ${isDayMode ? 'bg-slate-100 text-slate-700 border border-slate-200/80' : 'bg-white/10 text-white'}`}>{photo.category}</span>
-                            </div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label={t("common.close")}
+                    className={`p-3 rounded-full transition-all border ${isDayMode ? "bg-white hover:bg-red-50 text-slate-500 hover:text-red-500 border-slate-200/80" : "bg-black/40 hover:bg-red-500/20 text-white/70 hover:text-red-400 border-white/10 backdrop-blur-md"}`}
+                >
+                    <X size={24} aria-hidden="true" />
+                </button>
+            </div>
 
-                            <div className={`border-t pt-6 ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-                                <h4 className={`text-sm font-bold uppercase mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('lightbox.exif')}</h4>
-                                <div className="space-y-4">
-                                    <div className={`flex items-center gap-3 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-                                        <Camera size={18} className="text-indigo-400" />
-                                        <span>{exif.camera}</span>
-                                    </div>
-                                    <div className={`flex items-center gap-3 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-                                        <Aperture size={18} className="text-purple-400" />
-                                        <div className="flex gap-4">
-                                            <span>{exif.lens}</span>
-                                            <span>{exif.aperture}</span>
-                                        </div>
-                                    </div>
-                                    <div className={`flex items-center gap-3 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-                                        <Clock size={18} className="text-pink-400" />
-                                        <div className="flex gap-4">
-                                            <span>{exif.shutter}</span>
-                                            <span>ISO {exif.iso}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className={`border-t pt-6 ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-                                <h4 className={`text-sm font-bold uppercase mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('lightbox.stats')}</h4>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div className={`p-4 rounded-xl text-center ${isDayMode ? 'bg-slate-50 border border-slate-200/80' : 'bg-white/5'}`}>
-                                        <div className={`text-2xl font-bold mb-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{photo.likes || 0}</div>
-                                        <div className={`text-xs uppercase ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('lightbox.likes')}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
-                            {relatedPhotos.map(p => (
+            {/* Main Image */}
+            <div
+                className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {hasPrev && (
+                    <button
+                        type="button"
+                        onClick={onPrev}
+                        aria-label={t("lightbox.previous_photo")}
+                        className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? "text-slate-400 hover:text-slate-900 hover:bg-white" : "text-white/50 hover:text-white hover:bg-white/5"}`}
+                    >
+                        <ChevronLeft size={48} aria-hidden="true" />
+                    </button>
+                )}
+
+                <motion.img
+                    key={photo.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    src={displayImageUrl}
+                    alt={photo.title}
+                    className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
+                />
+
+                {hasNext && (
+                    <button
+                        type="button"
+                        onClick={onNext}
+                        aria-label={t("lightbox.next_photo")}
+                        className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? "text-slate-400 hover:text-slate-900 hover:bg-white" : "text-white/50 hover:text-white hover:bg-white/5"}`}
+                    >
+                        <ChevronRight size={48} aria-hidden="true" />
+                    </button>
+                )}
+
+                {/* Bottom Info Bar */}
+                <div className="absolute -bottom-16 left-0 right-0 text-center">
+                    <h3
+                        className={`text-2xl font-serif font-bold mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                    >
+                        {photo.title}
+                    </h3>
+                    <p
+                        className={`text-sm uppercase tracking-widest ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
+                        {photo.category}
+                    </p>
+                </div>
+            </div>
+
+            {/* Info Side Panel */}
+            <AnimatePresence>
+                {showInfo && (
+                    <motion.div
+                        initial={{ x: "100%" }}
+                        animate={{ x: 0 }}
+                        exit={{ x: "100%" }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className={`fixed top-0 right-0 bottom-0 w-full sm:w-80 md:w-96 border-l md:border-l flex flex-col z-[70] ${isDayMode ? "bg-white border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10 backdrop-blur-xl"}`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center p-6 pb-2">
+                            <div className="flex gap-4">
                                 <button
-                                    key={p.id}
                                     type="button"
-                                    onClick={() => onSelect && onSelect(p)}
-                                    aria-label={t('lightbox.view_related_photo', 'View {{title}}', { title: p.title })}
-                                    className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
+                                    onClick={() => setActiveTab("info")}
+                                    aria-pressed={activeTab === "info"}
+                                    className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === "info" ? (isDayMode ? "text-slate-900 border-indigo-500" : "text-white border-indigo-500") : isDayMode ? "text-slate-400 border-transparent hover:text-slate-700" : "text-gray-500 border-transparent hover:text-gray-300"}`}
                                 >
-                                    <img 
-                                        src={getThumbnailUrl(p.thumbnail || p.url)}
-                                        alt={p.title} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                                        loading="lazy"
-                                        decoding="async"
-                                    />
-                                    <div className={`absolute inset-0 transition-colors ${isDayMode ? 'bg-white/10 group-hover:bg-transparent' : 'bg-black/20 group-hover:bg-transparent'}`} />
-                                    <div className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white' : 'bg-gradient-to-t from-black/80 to-transparent'}`}>
-                                        <p className={`text-xs truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{p.title}</p>
-                                    </div>
+                                    {t("lightbox.info")}
                                 </button>
-                            ))}
-                            {relatedPhotos.length === 0 && (
-                                <div className={`col-span-2 text-center py-8 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                                    <Grid size={32} className="mx-auto mb-2 opacity-50" />
-                                    <p>{t('lightbox.no_related', 'No related photos found')}</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab("related")}
+                                    aria-pressed={activeTab === "related"}
+                                    className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === "related" ? (isDayMode ? "text-slate-900 border-indigo-500" : "text-white border-indigo-500") : isDayMode ? "text-slate-400 border-transparent hover:text-slate-700" : "text-gray-500 border-transparent hover:text-gray-300"}`}
+                                >
+                                    {t("lightbox.related", "Related")}
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowInfo(false)}
+                                aria-label={t("common.close")}
+                                className={
+                                    isDayMode
+                                        ? "text-slate-400 hover:text-slate-900"
+                                        : "text-gray-400 hover:text-white"
+                                }
+                            >
+                                <X size={20} aria-hidden="true" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-4">
+                            {activeTab === "info" ? (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h4
+                                            className={`text-sm font-bold uppercase mb-2 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            {t("common.title")}
+                                        </h4>
+                                        <p
+                                            className={`text-lg font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                        >
+                                            {photo.title}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4
+                                            className={`text-sm font-bold uppercase mb-2 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            {t("common.category")}
+                                        </h4>
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-sm ${isDayMode ? "bg-slate-100 text-slate-700 border border-slate-200/80" : "bg-white/10 text-white"}`}
+                                        >
+                                            {photo.category}
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        className={`border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                    >
+                                        <h4
+                                            className={`text-sm font-bold uppercase mb-4 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            {t("lightbox.exif")}
+                                        </h4>
+                                        <div className="space-y-4">
+                                            <div
+                                                className={`flex items-center gap-3 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                            >
+                                                <Camera size={18} className="text-indigo-400" />
+                                                <span>{exif.camera}</span>
+                                            </div>
+                                            <div
+                                                className={`flex items-center gap-3 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                            >
+                                                <Aperture size={18} className="text-purple-400" />
+                                                <div className="flex gap-4">
+                                                    <span>{exif.lens}</span>
+                                                    <span>{exif.aperture}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className={`flex items-center gap-3 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                            >
+                                                <Clock size={18} className="text-pink-400" />
+                                                <div className="flex gap-4">
+                                                    <span>{exif.shutter}</span>
+                                                    <span>ISO {exif.iso}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className={`border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                    >
+                                        <h4
+                                            className={`text-sm font-bold uppercase mb-4 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            {t("lightbox.stats")}
+                                        </h4>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div
+                                                className={`p-4 rounded-xl text-center ${isDayMode ? "bg-slate-50 border border-slate-200/80" : "bg-white/5"}`}
+                                            >
+                                                <div
+                                                    className={`text-2xl font-bold mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                >
+                                                    {photo.likes || 0}
+                                                </div>
+                                                <div
+                                                    className={`text-xs uppercase ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                >
+                                                    {t("lightbox.likes")}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
+                                    {relatedPhotos.map((p) => (
+                                        <button
+                                            key={p.id}
+                                            type="button"
+                                            onClick={() => onSelect && onSelect(p)}
+                                            aria-label={t(
+                                                "lightbox.view_related_photo",
+                                                "View {{title}}",
+                                                { title: p.title }
+                                            )}
+                                            className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white border-slate-200/80 hover:border-indigo-300/80" : "bg-white/5 border-white/10 hover:border-indigo-500/50"}`}
+                                        >
+                                            <img
+                                                src={getThumbnailUrl(p.thumbnail || p.url)}
+                                                alt={p.title}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                            <div
+                                                className={`absolute inset-0 transition-colors ${isDayMode ? "bg-white/10 group-hover:bg-transparent" : "bg-black/20 group-hover:bg-transparent"}`}
+                                            />
+                                            <div
+                                                className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? "bg-white" : "bg-gradient-to-t from-black/80 to-transparent"}`}
+                                            >
+                                                <p
+                                                    className={`text-xs truncate ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                >
+                                                    {p.title}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                    {relatedPhotos.length === 0 && (
+                                        <div
+                                            className={`col-span-2 text-center py-8 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            <Grid size={32} className="mx-auto mb-2 opacity-50" />
+                                            <p>
+                                                {t(
+                                                    "lightbox.no_related",
+                                                    "No related photos found"
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
-            </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
 
-
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-
-  return createPortal(lightboxContent, document.body);
+    return createPortal(lightboxContent, document.body);
 };
 
 export default Lightbox;

@@ -35,17 +35,17 @@
 ## Impact
 
 - Affected frontend files:
-  - `src/components/Admin/AdminDashboard.jsx`
-  - `src/components/Admin/AdminUI.jsx`
-  - `src/components/Admin/Overview.jsx`
-  - `src/components/Admin/ResourceManager.jsx`
-  - `src/components/Admin/HackathonManager.jsx`
-  - `src/index.css`
+    - `src/components/Admin/AdminDashboard.jsx`
+    - `src/components/Admin/AdminUI.jsx`
+    - `src/components/Admin/Overview.jsx`
+    - `src/components/Admin/ResourceManager.jsx`
+    - `src/components/Admin/HackathonManager.jsx`
+    - `src/index.css`
 - Affected tests:
-  - New or updated Playwright coverage under `e2e/`.
+    - New or updated Playwright coverage under `e2e/`.
 - Backend/API impact:
-  - No API contract changes.
-  - No data model changes.
-  - Existing admin endpoints continue to be consumed as-is.
+    - No API contract changes.
+    - No data model changes.
+    - Existing admin endpoints continue to be consumed as-is.
 - Rollback strategy:
-  - Revert this change set to restore the prior admin UI. Because no data migration or backend contract change is introduced, rollback has no data recovery step.
+    - Revert this change set to restore the prior admin UI. Because no data migration or backend contract change is introduced, rollback has no data recovery step.

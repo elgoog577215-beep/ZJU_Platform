@@ -36,12 +36,12 @@
 
 - 作者显示名遵循 `nickname` 优先、`username` 兜底规则
 - 资源类型中文名映射：
-  - `article` → "文章"
-  - `photo` → "图片"
-  - `music` → "音乐"
-  - `video` → "视频"
-  - `event` → "活动"
-  - `news` → "新闻"
+    - `article` → "文章"
+    - `photo` → "图片"
+    - `music` → "音乐"
+    - `video` → "视频"
+    - `event` → "活动"
+    - `news` → "新闻"
 - 标题取资源表中的 `title` 字段，若为空或 null 则使用 "（无标题）"
 - 文案在后端 fan-out 时组装并写入 `notifications.content` 列，**不在前端动态合成**
 

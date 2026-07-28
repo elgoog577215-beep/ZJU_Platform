@@ -25,18 +25,18 @@
 ## Impact
 
 - Frontend:
-  - 后台黑客松/比赛管理页面需要更明确地呈现“比赛成果包”概念。
-  - 比赛包列表需要显示包级统计和当前展示状态。
-  - 上传/编辑素材与作品时应明确绑定当前选中的比赛包。
+    - 后台黑客松/比赛管理页面需要更明确地呈现“比赛成果包”概念。
+    - 比赛包列表需要显示包级统计和当前展示状态。
+    - 上传/编辑素材与作品时应明确绑定当前选中的比赛包。
 - Backend:
-  - 复用现有 competition outcome controller/routes。
-  - 保持 `setFeaturedCompetition` 保证仅一个当前展示包。
-  - 确认列表统计按比赛包聚合宣传片、照片、作品、待审核数。
+    - 复用现有 competition outcome controller/routes。
+    - 保持 `setFeaturedCompetition` 保证仅一个当前展示包。
+    - 确认列表统计按比赛包聚合宣传片、照片、作品、待审核数。
 - Database:
-  - 复用 `competitions`, `competition_media`, `competition_works` 关系。
-  - 不新增表；必要时只补充索引或字段兜底。
+    - 复用 `competitions`, `competition_media`, `competition_works` 关系。
+    - 不新增表；必要时只补充索引或字段兜底。
 - Deployment:
-  - 无独立部署依赖。
-  - 涉及数据前仍需备份 SQLite。
+    - 无独立部署依赖。
+    - 涉及数据前仍需备份 SQLite。
 - Rollback:
-  - 主要是后台体验和文案/状态表达调整；回滚代码不应影响现有数据。
+    - 主要是后台体验和文案/状态表达调整；回滚代码不应影响现有数据。

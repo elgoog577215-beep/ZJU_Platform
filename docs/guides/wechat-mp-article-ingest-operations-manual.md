@@ -96,26 +96,26 @@ flowchart TD
 
 系统默认创建并启用一个每 12 小时检测一次的登录态检查任务：
 
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| Token 自动验活 | 开启 | 独立于每日文章采集开关 |
-| 检测间隔 | 12 小时 | 可配置为 1–168 小时 |
-| 调度检查频率 | 每分钟检查一次 | 不是每分钟都请求微信接口，只有到期才检测 |
-| 每日文章采集 | 关闭 | 首次配置时需要管理员明确开启 |
-| 每日采集时间 | 03:30 | 使用配置时区 |
-| 默认时区 | `Asia/Shanghai` | 采集时间和验活时间均按服务端配置处理 |
+| 配置           | 默认值          | 说明                                     |
+| -------------- | --------------- | ---------------------------------------- |
+| Token 自动验活 | 开启            | 独立于每日文章采集开关                   |
+| 检测间隔       | 12 小时         | 可配置为 1–168 小时                      |
+| 调度检查频率   | 每分钟检查一次  | 不是每分钟都请求微信接口，只有到期才检测 |
+| 每日文章采集   | 关闭            | 首次配置时需要管理员明确开启             |
+| 每日采集时间   | 03:30           | 使用配置时区                             |
+| 默认时区       | `Asia/Shanghai` | 采集时间和验活时间均按服务端配置处理     |
 
 Token 验活任务在服务启动后会立即尝试检查一次，之后由后台定时器每分钟判断是否到达下一次检测时间。服务重启、登录态更新或真实接口调用后，页面会刷新到最新状态。
 
 ### 5.3 页面上的登录态状态
 
-| 状态 | 含义 | 管理员操作 |
-| --- | --- | --- |
-| 有效 | 最近一次检查确认微信公众平台登录态可用 | 可以采集和抓正文 |
-| 已过期 | 微信返回 `invalid session`、登录超时或等价的失效信号 | 重新点击“开始登录”扫码 |
-| 检查中 | 正在请求微信公众平台 | 等待状态刷新，不要重复启动登录 |
-| 未配置 | 服务端没有完整 token/cookie | 执行扫码登录 |
-| 检查失败 | 当前请求无法确认状态，例如网络超时 | 先刷新或稍后重试；连续失败时检查服务端网络 |
+| 状态     | 含义                                                 | 管理员操作                                 |
+| -------- | ---------------------------------------------------- | ------------------------------------------ |
+| 有效     | 最近一次检查确认微信公众平台登录态可用               | 可以采集和抓正文                           |
+| 已过期   | 微信返回 `invalid session`、登录超时或等价的失效信号 | 重新点击“开始登录”扫码                     |
+| 检查中   | 正在请求微信公众平台                                 | 等待状态刷新，不要重复启动登录             |
+| 未配置   | 服务端没有完整 token/cookie                          | 执行扫码登录                               |
+| 检查失败 | 当前请求无法确认状态，例如网络超时                   | 先刷新或稍后重试；连续失败时检查服务端网络 |
 
 Token 验活只能发现失效，不能替管理员自动重新扫码。检测到过期后，必须重新完成一次扫码登录。
 
@@ -145,17 +145,17 @@ Token 验活只能发现失效，不能替管理员自动重新扫码。检测�
 
 ### 6.3 采集设置
 
-| 设置项 | 默认值 | 作用 |
-| --- | --- | --- |
-| 开启每日采集 | 关闭 | 开启后，系统在每日配置时间触发一次增量任务 |
-| 每日开始时间 | `03:30` | 使用 `HH:mm`，例如 `07:05` |
-| 时区 | `Asia/Shanghai` | 决定每日任务在哪个本地时间触发 |
-| Token 自动验活 | 开启 | 控制独立的登录态检查任务 |
-| Token 检测间隔 | `12` 小时 | 有效范围 1–168 小时 |
-| 每页文章数 | `20` | 有效范围 1–100 |
-| 最大页数 | `1` | 有效范围 1–5；页数越多，访问时间越长 |
-| 抓取正文 | 开启 | 在文章列表之外继续抓正文、HTML 和图片 |
-| 自动解析 | 开启 | 有正文后自动调用 AI 并执行活动候选筛选 |
+| 设置项         | 默认值          | 作用                                       |
+| -------------- | --------------- | ------------------------------------------ |
+| 开启每日采集   | 关闭            | 开启后，系统在每日配置时间触发一次增量任务 |
+| 每日开始时间   | `03:30`         | 使用 `HH:mm`，例如 `07:05`                 |
+| 时区           | `Asia/Shanghai` | 决定每日任务在哪个本地时间触发             |
+| Token 自动验活 | 开启            | 控制独立的登录态检查任务                   |
+| Token 检测间隔 | `12` 小时       | 有效范围 1–168 小时                        |
+| 每页文章数     | `20`            | 有效范围 1–100                             |
+| 最大页数       | `1`             | 有效范围 1–5；页数越多，访问时间越长       |
+| 抓取正文       | 开启            | 在文章列表之外继续抓正文、HTML 和图片      |
+| 自动解析       | 开启            | 有正文后自动调用 AI 并执行活动候选筛选     |
 
 保存配置后，页面会重新读取后端归一化后的值。无效时区会回退到 `Asia/Shanghai`；时间会标准化为两位小时和分钟。
 
@@ -163,11 +163,11 @@ Token 验活只能发现失效，不能替管理员自动重新扫码。检测�
 
 系统在批量采集时保留随机等待，以降低连续访问带来的风险。默认值如下：
 
-| 场景 | 默认值 | 说明 |
-| --- | --- | --- |
-| 相邻公众号查询 | `95–125` 秒 | 处理不同公众号之间的查询间隔 |
-| 自动翻页 | `10–25` 秒 | 页面之间暂停；当前单独保存的页面暂停值默认是 10 秒 |
-| 相邻正文抓取 | `10–20` 秒 | 多篇文章连续抓正文时使用 |
+| 场景           | 默认值      | 说明                                               |
+| -------------- | ----------- | -------------------------------------------------- |
+| 相邻公众号查询 | `95–125` 秒 | 处理不同公众号之间的查询间隔                       |
+| 自动翻页       | `10–25` 秒  | 页面之间暂停；当前单独保存的页面暂停值默认是 10 秒 |
+| 相邻正文抓取   | `10–20` 秒  | 多篇文章连续抓正文时使用                           |
 
 不要为了追求速度把等待时间改成极短值。采集任务可能因此更容易触发微信侧限制，也可能导致任务耗时和失败率波动。
 
@@ -299,12 +299,12 @@ activity_reason = AI 判断理由
 
 ### 8.4 未通过和失败状态
 
-| 文章状态 | 说明 | 后续动作 |
-| --- | --- | --- |
-| `not_screened` | 尚未完成活动候选筛选 | 检查是否已解析完成；必要时重试解析 |
-| `accepted` | 通过候选筛选，已关联活动 | 到活动管理或审核中心审核 `pending` 活动 |
-| `rejected` | 不是候选，或置信度低于 0.70 | 通常无需处理；可查看判断理由 |
-| `failed` | 候选判断通过，但活动写入失败 | 检查活动数据库错误或原文链接，再重试解析 |
+| 文章状态       | 说明                         | 后续动作                                 |
+| -------------- | ---------------------------- | ---------------------------------------- |
+| `not_screened` | 尚未完成活动候选筛选         | 检查是否已解析完成；必要时重试解析       |
+| `accepted`     | 通过候选筛选，已关联活动     | 到活动管理或审核中心审核 `pending` 活动  |
+| `rejected`     | 不是候选，或置信度低于 0.70  | 通常无需处理；可查看判断理由             |
+| `failed`       | 候选判断通过，但活动写入失败 | 检查活动数据库错误或原文链接，再重试解析 |
 
 如果 AI 判断为候选但置信度低于 `0.70`，系统仍会标记为 `rejected`，并记录“低于阈值”的原因。该阈值是后端固定业务规则，不在当前页面提供单独的可视化调节器。
 
@@ -400,18 +400,18 @@ activity_reason = AI 判断理由
 
 ### 11.3 常见文章级状态
 
-| 字段 | 常见值 | 含义 |
-| --- | --- | --- |
-| `content_status` | `not_fetched` | 只有文章元数据，尚未取得正文 |
-| `content_status` | `fetched` | 正文已保存 |
-| `extraction_status` | `not_started` | 尚未调用 AI |
-| `extraction_status` | `processing` | AI 解析进行中 |
-| `extraction_status` | `completed` | 已保存结构化解析结果 |
-| `extraction_status` | `failed` | 本次解析失败，可重试 |
-| `activity_status` | `not_screened` | 尚未完成活动候选判断 |
-| `activity_status` | `accepted` | 已生成或关联活动 |
-| `activity_status` | `rejected` | 未进入活动栏目 |
-| `activity_status` | `failed` | 候选活动写入失败 |
+| 字段                | 常见值         | 含义                         |
+| ------------------- | -------------- | ---------------------------- |
+| `content_status`    | `not_fetched`  | 只有文章元数据，尚未取得正文 |
+| `content_status`    | `fetched`      | 正文已保存                   |
+| `extraction_status` | `not_started`  | 尚未调用 AI                  |
+| `extraction_status` | `processing`   | AI 解析进行中                |
+| `extraction_status` | `completed`    | 已保存结构化解析结果         |
+| `extraction_status` | `failed`       | 本次解析失败，可重试         |
+| `activity_status`   | `not_screened` | 尚未完成活动候选判断         |
+| `activity_status`   | `accepted`     | 已生成或关联活动             |
+| `activity_status`   | `rejected`     | 未进入活动栏目               |
+| `activity_status`   | `failed`       | 候选活动写入失败             |
 
 ## 12. 重试与故障排查
 
@@ -531,34 +531,34 @@ activity_reason = AI 判断理由
 
 ### 14.1 登录和手动采集
 
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| `GET` | `/admin/wechat-mp/status` | 获取浏览器运行环境、登录信息和 Token 健康状态 |
-| `POST` | `/admin/wechat-mp/login/start` | 发起扫码登录 |
-| `GET` | `/admin/wechat-mp/login/status` | 查询扫码登录进度 |
-| `POST` | `/admin/wechat-mp/login/cancel` | 取消扫码登录 |
-| `POST` | `/admin/wechat-mp/accounts/search` | 搜索公众号候选 |
-| `POST` | `/admin/wechat-mp/articles` | 获取文章列表 |
-| `POST` | `/admin/wechat-mp/article-content` | 获取指定文章正文 |
-| `POST` | `/admin/wechat-mp/parse` | 解析已有正文 |
-| `POST` | `/admin/wechat-mp/import-payload` | 构造文章或活动导入数据 |
+| 方法   | 路径                               | 用途                                          |
+| ------ | ---------------------------------- | --------------------------------------------- |
+| `GET`  | `/admin/wechat-mp/status`          | 获取浏览器运行环境、登录信息和 Token 健康状态 |
+| `POST` | `/admin/wechat-mp/login/start`     | 发起扫码登录                                  |
+| `GET`  | `/admin/wechat-mp/login/status`    | 查询扫码登录进度                              |
+| `POST` | `/admin/wechat-mp/login/cancel`    | 取消扫码登录                                  |
+| `POST` | `/admin/wechat-mp/accounts/search` | 搜索公众号候选                                |
+| `POST` | `/admin/wechat-mp/articles`        | 获取文章列表                                  |
+| `POST` | `/admin/wechat-mp/article-content` | 获取指定文章正文                              |
+| `POST` | `/admin/wechat-mp/parse`           | 解析已有正文                                  |
+| `POST` | `/admin/wechat-mp/import-payload`  | 构造文章或活动导入数据                        |
 
 ### 14.2 每日增量采集
 
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| `GET` | `/admin/wechat-mp/ingest` | 获取配置、公众号、最近任务和文章总览 |
-| `GET` | `/admin/wechat-mp/ingest/settings` | 获取增量采集配置 |
-| `PUT` | `/admin/wechat-mp/ingest/settings` | 保存增量采集配置 |
-| `GET` | `/admin/wechat-mp/ingest/accounts` | 获取公众号列表 |
-| `POST` | `/admin/wechat-mp/ingest/accounts` | 新增或更新公众号 |
-| `PUT` | `/admin/wechat-mp/ingest/accounts/:id` | 更新公众号 |
-| `DELETE` | `/admin/wechat-mp/ingest/accounts/:id` | 删除公众号 |
-| `POST` | `/admin/wechat-mp/ingest/accounts/import` | 上传 JSON/CSV/TSV/TXT 账号列表 |
-| `POST` | `/admin/wechat-mp/ingest/run` | 手动启动一次增量采集 |
-| `GET` | `/admin/wechat-mp/ingest/runs` | 查询运行记录 |
-| `GET` | `/admin/wechat-mp/ingest/articles` | 查询增量文章及解析、筛选状态 |
-| `POST` | `/admin/wechat-mp/ingest/articles/:id/parse` | 重试指定文章的 AI 解析和活动筛选 |
+| 方法     | 路径                                         | 用途                                 |
+| -------- | -------------------------------------------- | ------------------------------------ |
+| `GET`    | `/admin/wechat-mp/ingest`                    | 获取配置、公众号、最近任务和文章总览 |
+| `GET`    | `/admin/wechat-mp/ingest/settings`           | 获取增量采集配置                     |
+| `PUT`    | `/admin/wechat-mp/ingest/settings`           | 保存增量采集配置                     |
+| `GET`    | `/admin/wechat-mp/ingest/accounts`           | 获取公众号列表                       |
+| `POST`   | `/admin/wechat-mp/ingest/accounts`           | 新增或更新公众号                     |
+| `PUT`    | `/admin/wechat-mp/ingest/accounts/:id`       | 更新公众号                           |
+| `DELETE` | `/admin/wechat-mp/ingest/accounts/:id`       | 删除公众号                           |
+| `POST`   | `/admin/wechat-mp/ingest/accounts/import`    | 上传 JSON/CSV/TSV/TXT 账号列表       |
+| `POST`   | `/admin/wechat-mp/ingest/run`                | 手动启动一次增量采集                 |
+| `GET`    | `/admin/wechat-mp/ingest/runs`               | 查询运行记录                         |
+| `GET`    | `/admin/wechat-mp/ingest/articles`           | 查询增量文章及解析、筛选状态         |
+| `POST`   | `/admin/wechat-mp/ingest/articles/:id/parse` | 重试指定文章的 AI 解析和活动筛选     |
 
 ## 15. 数据与实现位置（供维护人员参考）
 
@@ -574,13 +574,13 @@ activity_reason = AI 判断理由
 
 增量采集使用以下 SQLite 表：
 
-| 表 | 用途 |
-| --- | --- |
-| `wechat_mp_ingest_settings` | 单行全局配置 |
-| `wechat_mp_ingest_accounts` | 长期公众号列表和账号级覆盖配置 |
+| 表                          | 用途                                     |
+| --------------------------- | ---------------------------------------- |
+| `wechat_mp_ingest_settings` | 单行全局配置                             |
+| `wechat_mp_ingest_accounts` | 长期公众号列表和账号级覆盖配置           |
 | `wechat_mp_ingest_articles` | 文章元数据、正文、解析结果和活动筛选结果 |
-| `wechat_mp_ingest_runs` | 每次手动或定时任务的运行记录 |
-| `events` | 通过活动候选筛选后创建的现有活动记录 |
+| `wechat_mp_ingest_runs`     | 每次手动或定时任务的运行记录             |
+| `events`                    | 通过活动候选筛选后创建的现有活动记录     |
 
 ## 16. 版本与行为约定
 

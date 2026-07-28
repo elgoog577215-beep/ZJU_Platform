@@ -1,8 +1,11 @@
 # global-ai-search-platform Specification
 
 ## Purpose
+
 TBD - created by archiving change global-ai-search-platform. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: 全站语言解析式搜索
 
 系统 SHALL 通过统一搜索入口解析自然语言查询，并检索活动、AI 社区和影像库资源。
@@ -72,4 +75,3 @@ TBD - created by archiving change global-ai-search-platform. Update Purpose afte
 - **WHEN** 后续接入真实 embedding 或外部向量库
 - **THEN** 系统可以替换 `embedding_text` / `vector_json` 的生成和检索实现
 - **AND** 全站搜索 API 和前端结果协议不需要变化
-

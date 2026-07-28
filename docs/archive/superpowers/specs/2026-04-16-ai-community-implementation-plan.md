@@ -339,9 +339,9 @@ Data design:
 
 - Add a new block type: `code`
 - Fields:
-  - `language`
-  - `text`
-  - optional `caption`
+    - `language`
+    - `text`
+    - optional `caption`
 
 Editor scope:
 
@@ -426,10 +426,10 @@ Acceptance:
 ### P4.2 Community Metrics
 
 - Expose at least:
-  - article reads
-  - article shares
-  - news-to-article click-through
-  - article-to-group click-through
+    - article reads
+    - article shares
+    - news-to-article click-through
+    - article-to-group click-through
 
 ## Suggested Execution Order
 

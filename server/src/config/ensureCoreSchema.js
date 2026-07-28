@@ -1,5 +1,5 @@
 async function ensureCoreSchema(db) {
-  await db.exec(`
+    await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -288,9 +288,9 @@ async function ensureCoreSchema(db) {
     );
   `);
 
-  console.log('✅ Core schema ready');
+    console.log("✅ Core schema ready");
 }
 
 module.exports = {
-  ensureCoreSchema
+    ensureCoreSchema,
 };

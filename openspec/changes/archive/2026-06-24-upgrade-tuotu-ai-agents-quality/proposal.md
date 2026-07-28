@@ -26,18 +26,18 @@ Tuotu 目前已经有活动推荐、黑客松教练、微信解析、后台治�
 ## Impact
 
 - Backend:
-  - `server/src/services/aiAgentRegistryService.js`
-  - 可能新增 Agent 质量辅助服务或检查脚本
-  - AI 相关 npm scripts
+    - `server/src/services/aiAgentRegistryService.js`
+    - 可能新增 Agent 质量辅助服务或检查脚本
+    - AI 相关 npm scripts
 - Docs/OpenSpec:
-  - `openspec/changes/upgrade-tuotu-ai-agents-quality/**`
-  - `docs/ai-agent-operating-system.generated.md`
+    - `openspec/changes/upgrade-tuotu-ai-agents-quality/**`
+    - `docs/ai-agent-operating-system.generated.md`
 - Admin overview:
-  - 通过已有 `/api/admin/ai-assistant/overview` 暴露更完整的 Agent 质量与协同摘要
+    - 通过已有 `/api/admin/ai-assistant/overview` 暴露更完整的 Agent 质量与协同摘要
 - Validation:
-  - Agent registry check
-  - AI golden/stress checks
-  - OpenSpec validation
-  - lint/build
+    - Agent registry check
+    - AI golden/stress checks
+    - OpenSpec validation
+    - lint/build
 - Rollback:
-  - 本变更是 additive。若出现问题，可回退新增的质量字段、检查脚本和生成文档，不需要回滚数据库。
+    - 本变更是 additive。若出现问题，可回退新增的质量字段、检查脚本和生成文档，不需要回滚数据库。

@@ -1,8 +1,11 @@
 # ai-agent-runtime-observability Specification
 
 ## Purpose
+
 TBD - created by archiving change upgrade-ai-agent-runtime-observability. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Per-Agent Runtime Health
 
 The system SHALL expose runtime health for each registered AI Agent using recent assistant run summaries.
@@ -69,4 +72,3 @@ Repeatable checks SHALL validate runtime observability structure.
 
 - **WHEN** the AI Agent spec is generated
 - **THEN** the generated Markdown SHALL include runtime health and model health sections.
-

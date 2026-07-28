@@ -1,8 +1,11 @@
 # ai-community-unified-content Specification
 
 ## Purpose
+
 TBD - created by archiving change unify-ai-community-content. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: AI 社区主内容区统一四个版面
 
 系统 SHALL 在 AI 社区主内容区提供 `技术分享`、`求助问答`、`新闻热点`、`组队协作` 四个版面，并允许普通用户进入所有版面。
@@ -101,4 +104,3 @@ TBD - created by archiving change unify-ai-community-content. Update Purpose aft
 - **WHEN** 页面加载
 - **THEN** 系统将旧 `tab` 参数迁移到当前版面参数
 - **AND** 打开对应组队协作详情。
-

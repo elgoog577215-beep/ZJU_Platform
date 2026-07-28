@@ -1,8 +1,8 @@
 {
-  "usingComponents": {
-    "project-share-hero": "/components/project-share-hero/index",
-    "project-share-meta": "/components/project-share-meta/index",
-    "project-share-tags": "/components/project-share-tags/index",
-    "project-share-actions": "/components/project-share-actions/index"
-  }
+    "usingComponents": {
+        "project-share-hero": "/components/project-share-hero/index",
+        "project-share-meta": "/components/project-share-meta/index",
+        "project-share-tags": "/components/project-share-tags/index",
+        "project-share-actions": "/components/project-share-actions/index"
+    }
 }

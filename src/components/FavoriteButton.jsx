@@ -1,142 +1,142 @@
-import React, { useState, useEffect } from 'react';
-import { Heart } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Heart } from "lucide-react";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
-const FavoriteButton = ({ 
-  itemId, 
-  itemType, 
-  initialFavorited, 
-  favorited, // Controlled state
-  className = "", 
-  size = 20, 
-  showCount = false,
-  count = 0,
-  onToggle,
-  testId
+const FavoriteButton = ({
+    itemId,
+    itemType,
+    initialFavorited,
+    favorited, // Controlled state
+    className = "",
+    size = 20,
+    showCount = false,
+    count = 0,
+    onToggle,
+    testId,
 }) => {
-  const [isFavorited, setIsFavorited] = useState(() => {
-    if (favorited !== undefined) return favorited;
-    return !!initialFavorited;
-  });
-  const [loading, setLoading] = useState(false);
-  const [likeCount, setLikeCount] = useState(typeof count === 'number' ? count : 0);
-  const { user } = useAuth();
-  const { t } = useTranslation();
-  const favoriteLabel = isFavorited
-    ? t('common.unfavorite', '取消收藏')
-    : t('common.favorite', '收藏');
-  
-  // Sync with controlled prop if provided
-  useEffect(() => {
-    if (favorited !== undefined) {
-      setIsFavorited(favorited);
-    }
-  }, [favorited]);
+    const [isFavorited, setIsFavorited] = useState(() => {
+        if (favorited !== undefined) return favorited;
+        return !!initialFavorited;
+    });
+    const [loading, setLoading] = useState(false);
+    const [likeCount, setLikeCount] = useState(typeof count === "number" ? count : 0);
+    const { user } = useAuth();
+    const { t } = useTranslation();
+    const favoriteLabel = isFavorited
+        ? t("common.unfavorite", "取消收藏")
+        : t("common.favorite", "收藏");
 
-  // Sync with initialFavorited if it changes (e.g. from parent re-fetch)
-  // But be careful not to overwrite local optimistic state if we are interacting
-  useEffect(() => {
-      if (initialFavorited !== undefined && favorited === undefined) {
-          setIsFavorited(initialFavorited);
-      }
-  }, [initialFavorited, favorited]);
-
-  useEffect(() => {
-    setLikeCount(typeof count === 'number' ? count : 0);
-  }, [count]);
-
-  // Check status on mount if not provided or if we want to be sure
-  useEffect(() => {
-    let mounted = true;
-    
-    const checkStatus = async () => {
-      if (!user || !itemId || !itemType) return;
-      if (favorited !== undefined) return;
-      
-      try {
-        const res = await api.get(`/favorites/check?itemId=${itemId}&itemType=${itemType}`);
-        if (mounted) setIsFavorited(res.data.favorited);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error("Failed to check favorite status", error);
+    // Sync with controlled prop if provided
+    useEffect(() => {
+        if (favorited !== undefined) {
+            setIsFavorited(favorited);
         }
-      }
+    }, [favorited]);
+
+    // Sync with initialFavorited if it changes (e.g. from parent re-fetch)
+    // But be careful not to overwrite local optimistic state if we are interacting
+    useEffect(() => {
+        if (initialFavorited !== undefined && favorited === undefined) {
+            setIsFavorited(initialFavorited);
+        }
+    }, [initialFavorited, favorited]);
+
+    useEffect(() => {
+        setLikeCount(typeof count === "number" ? count : 0);
+    }, [count]);
+
+    // Check status on mount if not provided or if we want to be sure
+    useEffect(() => {
+        let mounted = true;
+
+        const checkStatus = async () => {
+            if (!user || !itemId || !itemType) return;
+            if (favorited !== undefined) return;
+
+            try {
+                const res = await api.get(`/favorites/check?itemId=${itemId}&itemType=${itemType}`);
+                if (mounted) setIsFavorited(res.data.favorited);
+            } catch (error) {
+                if (process.env.NODE_ENV === "development") {
+                    console.error("Failed to check favorite status", error);
+                }
+            }
+        };
+
+        if (user) {
+            checkStatus();
+        } else {
+            setIsFavorited(false);
+        }
+
+        return () => {
+            mounted = false;
+        };
+    }, [itemId, itemType, user, favorited, initialFavorited]);
+
+    const handleToggle = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!user) {
+            toast.error(t("auth.signin_required"));
+            return;
+        }
+
+        if (loading) return;
+
+        // Optimistic update
+        const previousState = isFavorited;
+        const previousLikes = likeCount;
+        setIsFavorited(!previousState);
+        setLikeCount(previousState ? Math.max(0, previousLikes - 1) : previousLikes + 1);
+        setLoading(true);
+
+        try {
+            const res = await api.post("/favorites/toggle", { itemId, itemType });
+            // Backend returns { favorited: true/false }
+            setIsFavorited(res.data.favorited);
+            if (typeof res.data.likes === "number") {
+                setLikeCount(res.data.likes);
+            }
+
+            if (onToggle) onToggle(res.data.favorited, res.data.likes);
+        } catch (error) {
+            // Revert on error
+            setIsFavorited(previousState);
+            setLikeCount(previousLikes);
+            if (process.env.NODE_ENV === "development") {
+                console.error("Failed to toggle favorite", error);
+            }
+            toast.error(t("common.error_occurred", "发生错误"));
+        } finally {
+            setLoading(false);
+        }
     };
 
-    if (user) {
-        checkStatus();
-    } else {
-        setIsFavorited(false);
-    }
-
-    return () => { mounted = false; };
-  }, [itemId, itemType, user, favorited, initialFavorited]);
-
-  const handleToggle = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!user) {
-      toast.error(t('auth.signin_required'));
-      return;
-    }
-
-    if (loading) return;
-
-    // Optimistic update
-    const previousState = isFavorited;
-    const previousLikes = likeCount;
-    setIsFavorited(!previousState);
-    setLikeCount(previousState ? Math.max(0, previousLikes - 1) : previousLikes + 1);
-    setLoading(true);
-
-    try {
-      const res = await api.post('/favorites/toggle', { itemId, itemType });
-      // Backend returns { favorited: true/false }
-      setIsFavorited(res.data.favorited);
-      if (typeof res.data.likes === 'number') {
-        setLikeCount(res.data.likes);
-      }
-      
-      if (onToggle) onToggle(res.data.favorited, res.data.likes);
-    } catch (error) {
-      // Revert on error
-      setIsFavorited(previousState);
-      setLikeCount(previousLikes);
-      if (process.env.NODE_ENV === 'development') {
-          console.error("Failed to toggle favorite", error);
-      }
-      toast.error(t('common.error_occurred', '发生错误'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      aria-label={favoriteLabel}
-      aria-pressed={isFavorited}
-      aria-busy={loading || undefined}
-      data-testid={testId}
-      className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group transition-transform active:scale-95 motion-reduce:transform-none ${className}`}
-      disabled={loading}
-    >
-      <div className="relative">
-        <Heart 
-          size={size} 
-          className={`transition-colors duration-300 ${isFavorited ? 'fill-pink-500 text-pink-500' : 'text-current group-hover:text-pink-500'}`} 
-        />
-      </div>
-      {showCount && (
-        <span className="text-xs font-medium">{likeCount}</span>
-      )}
-    </button>
-  );
+    return (
+        <button
+            type="button"
+            onClick={handleToggle}
+            aria-label={favoriteLabel}
+            aria-pressed={isFavorited}
+            aria-busy={loading || undefined}
+            data-testid={testId}
+            className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group transition-transform active:scale-95 motion-reduce:transform-none ${className}`}
+            disabled={loading}
+        >
+            <div className="relative">
+                <Heart
+                    size={size}
+                    className={`transition-colors duration-300 ${isFavorited ? "fill-pink-500 text-pink-500" : "text-current group-hover:text-pink-500"}`}
+                />
+            </div>
+            {showCount && <span className="text-xs font-medium">{likeCount}</span>}
+        </button>
+    );
 };
 
 export default FavoriteButton;

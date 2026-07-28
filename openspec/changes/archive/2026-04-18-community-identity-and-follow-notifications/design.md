@@ -7,6 +7,7 @@
 - 用户当前的认知："这是一个匿名 policy"——但其实是 SQL 漏洞 + UI 缺失导致的假象。
 
 关注系统的基础设施已经存在：
+
 - `user_follows` 表（`follower_id`, `following_id`, UNIQUE, 外键 CASCADE），索引齐全
 - `/users/:id/follow` POST/DELETE toggle, `/followers`, `/following`, `/following/ids`, `/following/feed`, `/recommendations/follow`
 - `PublicProfile.jsx` 有关注按钮 + UI
@@ -21,6 +22,7 @@ PublicProfile 的 `getUserResources` 返回的内容集合也不完整：只查�
 ## Goals / Non-Goals
 
 **Goals:**
+
 - 恢复所有资源的作者真实身份显示（当 `nickname` 缺失时用 `username` 兜底）
 - 让普通用户可编辑 nickname，字段全局唯一
 - 引入 `community_posts.is_anonymous` opt-in 字段，替代 SQL 漏洞驱动的假匿名
@@ -31,6 +33,7 @@ PublicProfile 的 `getUserResources` 返回的内容集合也不完整：只查�
 - 可安全回滚：所有数据库变更独立、幂等、可 drop
 
 **Non-Goals:**
+
 - 不扩展 Feed 页面（`/users/following/feed` 的范围保持现状）
 - 不给所有卡片列表加头像点击（仅详情弹窗做；列表的作者头像入口等下一轮迭代）
 - 不上邮件、短信、微信推送（仅站内通知）
@@ -44,6 +47,7 @@ PublicProfile 的 `getUserResources` 返回的内容集合也不完整：只查�
 ### D1: nickname fallback 用 `COALESCE(nickname, username)` 而不是 `nickname || username`
 
 **Alternatives:**
+
 - (a) 保持现状，仅加 nickname 编辑入口 → 不解决老用户看不到作者的核心问题
 - (b) 迁移时把 users.nickname backfill 为 username → 会让用户失去"nickname 是昵称"的语义，且 backfill 后 nickname 唯一约束会直接因 username 不冲突偶尔冲突（邮箱/学号作为 username 时反而不冲突，实际可行，但污染字段语义）
 - (c) **[选用]** SQL 层 `COALESCE(u.nickname, u.username) AS author_name`，数据层保持 nickname 语义干净
@@ -55,6 +59,7 @@ PublicProfile 的 `getUserResources` 返回的内容集合也不完整：只查�
 SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(nickname) WHERE nickname IS NOT NULL`。这样所有 NULL 值都不参与唯一约束（历史数据无需 backfill 就能满足），只有用户主动设置了 nickname 才进入唯一池。
 
 **Alternatives:**
+
 - (a) 全字段 UNIQUE：会因为历史上大量 NULL 互相冲突（SQLite 把多个 NULL 视为相等？实际 SQLite 视 NULL 不等所以可行，但语义不清晰）
 - (b) 应用层校验：不做 DB 级约束，只在 updateUser 里 SELECT + check → 有 race condition 风险
 
@@ -67,10 +72,12 @@ SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(n
 ### D4: fan-out 通知在资源创建事务之后、同步调用
 
 在 `createHandler` 的 `db.run(INSERT ...)` 成功后，同步调用 `fanOutNewContent(authorId, resourceType, resourceId, title)`。该 helper 内部：
+
 1. `SELECT follower_id FROM user_follows WHERE following_id = ?`
 2. 遍历每个 follower_id，调用 `createNotification(follower_id, 'new_content', content, resourceId, resourceType)`
 
 **Alternatives:**
+
 - (a) 用消息队列（BullMQ / Redis）异步 fan-out → 项目当前不用 Redis，引入重型依赖违背 YAGNI
 - (b) 单条 BATCH INSERT 替代逐条 createNotification → 性能更好，但牺牲 `createNotification` 已有的错误处理和一致性；当前粉丝规模小，直接循环调用
 - (c) **[选用]** 同步循环 `createNotification`
@@ -80,10 +87,12 @@ SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(n
 ### D5: 通知文案在后端生成并写入 content 列，前端不重新组装
 
 `fanOutNewContent` 把文案（比如"`xsh_zju` 发布了新文章《CUDA 性能优化》"）写入 `notifications.content`，前端直接展示。优点：
+
 - 作者改了 nickname 后历史通知不会随之变化（历史一致性）
 - 前端不需要知道每种类型对应的 i18n key
 
 **Alternatives:**
+
 - 前端模板化：通知只存 structured data，前端根据 resourceType + data 拼字符串 → i18n 支持更灵活，但前端需要大量类型 switch
 
 **Rationale:** 当前项目 notifications 都是后端文案，保持一致。若未来要多语言切换再做前端模板化。
@@ -91,11 +100,13 @@ SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(n
 ### D6: 匿名求助贴的脱敏在后端完成，不依赖前端判断
 
 读取 `community_posts` 时，如果 `is_anonymous = 1` 且 (viewer 不是作者) 且 (viewer 不是 admin)：
+
 - `author_name` → `null`（前端兜底显示"匿名用户"）
 - `author_avatar` → `null`
 - `uploader_id` / `author_id` → `null`（避免前端拿到 id 去猜）
 
 **Alternatives:**
+
 - 前端判断 is_anonymous 后自行隐藏 → 一旦前端不更新或绕过前端调 API 就泄露身份，不安全
 
 **Rationale:** 隐私字段必须在服务端 strip，前端只做展示。
@@ -147,37 +158,19 @@ SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(n
 ## Migration Plan
 
 **Phase 1 — 数据库迁移（runMigrations）**
+
 1. `ALTER TABLE community_posts ADD COLUMN is_anonymous BOOLEAN DEFAULT 0`（幂等，用现有 PRAGMA table_info 检测模式）
 2. `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nickname ON users(nickname) WHERE nickname IS NOT NULL`
 3. 新增 pre-migration 脚本：检查 nickname 冲突，打 warning 但不中止
 
-**Phase 2 — 后端**
-4. `resourceController.js` + `newsController.js` 修 COALESCE
-5. `userController.updateUser` 加 nickname 唯一性校验（提交时 try/catch SQLite UNIQUE 冲突 → 409）
-6. `userController.toggleFollowUser` 加 self-follow 禁止
-7. `userController.getUserResources` 扩 news + community_posts，加脱敏
-8. `communityController.createPost` 接受 is_anonymous（仅 section=help）
-9. `communityController` 读路径统一脱敏 helper
-10. `notificationController` 新增 `fanOutNewContent` helper
-11. 在 `resourceController.createHandler` 和 `newsController` 发布成功后调用 fan-out
+**Phase 2 — 后端** 4. `resourceController.js` + `newsController.js` 修 COALESCE 5. `userController.updateUser` 加 nickname 唯一性校验（提交时 try/catch SQLite UNIQUE 冲突 → 409）6. `userController.toggleFollowUser` 加 self-follow 禁止 7. `userController.getUserResources` 扩 news + community_posts，加脱敏 8. `communityController.createPost` 接受 is_anonymous（仅 section=help）9. `communityController` 读路径统一脱敏 helper 10. `notificationController` 新增 `fanOutNewContent` helper 11. 在 `resourceController.createHandler` 和 `newsController` 发布成功后调用 fan-out
 
-**Phase 3 — 前端**
-12. `PublicProfile.jsx` settings tab 加 nickname 输入框
-13. `PostComposer.jsx` help section 底部加匿名 checkbox
-14. `CommunityDetailModal.jsx` 作者头像 onClick 跳 `/profile/:id`，匿名态样式
-15. `PublicProfile.jsx` 内容区改造为类型 tabs + 3 列 grid 卡片，接入 getUserResources 新 payload
-16. 路由记忆：navigate 时传 state，返回时 `navigate(-1)`
+**Phase 3 — 前端** 12. `PublicProfile.jsx` settings tab 加 nickname 输入框 13. `PostComposer.jsx` help section 底部加匿名 checkbox 14. `CommunityDetailModal.jsx` 作者头像 onClick 跳 `/profile/:id`，匿名态样式15. `PublicProfile.jsx` 内容区改造为类型 tabs + 3 列 grid 卡片，接入 getUserResources 新 payload 16. 路由记忆：navigate 时传 state，返回时 `navigate(-1)`
 
-**Phase 4 — E2E smoke**
-17. 新用户注册 → 发文章 → 他人看到真实 username（不匿名）
-18. 设 nickname → 再发文章 → 他人看到 nickname
-19. nickname 冲突 → 409 + 前端 toast
-20. 关注 A → A 发资源 → 铃铛 1 分钟内红点 + 通知内容正确
-21. A 发匿名求助贴 → 粉丝**不**收到通知
-22. A 主页对访客：匿名求助贴不可见；对 A 本人：可见
-23. 详情页点头像 → 跳 A 主页 → 返回 → 回到原详情页
+**Phase 4 — E2E smoke** 17. 新用户注册 → 发文章 → 他人看到真实 username（不匿名）18. 设 nickname → 再发文章 → 他人看到 nickname 19. nickname 冲突 → 409 + 前端 toast 20. 关注 A → A 发资源 → 铃铛 1 分钟内红点 + 通知内容正确 21. A 发匿名求助贴 → 粉丝**不**收到通知 22. A 主页对访客：匿名求助贴不可见；对 A 本人：可见 23. 详情页点头像 → 跳 A 主页 → 返回 → 回到原详情页
 
 **Rollback 策略**
+
 - DB：`DROP INDEX idx_users_nickname`, `ALTER TABLE community_posts DROP COLUMN is_anonymous`（SQLite 不支持 DROP COLUMN，需 rebuild；备份脚本 `server/database.sqlite.bak.pre-*` 作为安全网）
 - 后端代码：所有修改可 revert commit；fan-out helper 未被外部依赖，新增删除均安全
 - 前端：单独的 React 组件改动，可 revert；nickname 输入框删掉后 NULL 字段照常存在
@@ -186,10 +179,10 @@ SQLite 支持 partial index：`CREATE UNIQUE INDEX idx_users_nickname ON users(n
 
 - **Q1**: nickname 设置 UI 的 placeholder 文案是 "给自己起个昵称" 还是更学院气的 "显示名称"？→ 由 /plan 阶段的 impeccable-clarify 决定，不阻塞架构
 - **Q2**: tabs 里计数 "所有 42"的计数是否 include 匿名贴？
-  - 对作者本人：include（他知道自己发了匿名的）
-  - 对访客：exclude（否则计数泄露数量）
-  - 规则收口：count 计算和内容返回同源，都按脱敏规则过滤后再 count。确认到 specs 里。
+    - 对作者本人：include（他知道自己发了匿名的）
+    - 对访客：exclude（否则计数泄露数量）
+    - 规则收口：count 计算和内容返回同源，都按脱敏规则过滤后再 count。确认到 specs 里。
 - **Q3**: fan-out 时如果作者的粉丝已被 ban（用户状态为 banned），要不要跳过？
-  - 建议：跳过（banned 用户不应该收新通知）；在 fan-out helper 查粉丝时顺便 JOIN `users` 过滤 role != 'banned'
-  - 放 specs 里明确
+    - 建议：跳过（banned 用户不应该收新通知）；在 fan-out helper 查粉丝时顺便 JOIN `users` 过滤 role != 'banned'
+    - 放 specs 里明确
 - **Q4**: `user-profile-content-aggregation` capability 里的"大图 grid 卡片"是否需要响应式（手机两列/桌面三列）？→ 设计层面按目前 PublicProfile 样式延续，具体断点放 /plan

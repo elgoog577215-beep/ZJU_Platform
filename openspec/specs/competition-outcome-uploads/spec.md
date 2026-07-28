@@ -1,8 +1,11 @@
 # competition-outcome-uploads Specification
 
 ## Purpose
+
 TBD - created by archiving change enhance-competition-outcome-uploads. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Competition outcomes must support a featured reusable competition
 
 The system SHALL support multiple competitions and SHALL expose one featured competition as the public competition outcome page source.
@@ -96,4 +99,3 @@ Approved competition promo videos, stage photos, and works SHALL display only in
 - **WHEN** a competition promo video is approved
 - **THEN** it SHALL appear in the relevant competition outcome page
 - **AND** it SHALL NOT automatically appear in the global videos page.
-

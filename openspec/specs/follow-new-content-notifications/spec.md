@@ -1,8 +1,11 @@
 # follow-new-content-notifications Specification
 
 ## Purpose
+
 TBD - created by archiving change community-identity-and-follow-notifications. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Fan-out Notification on New Resource
 
 当任一"被关注"用户发布下列 6 种资源之一（photos / music / videos / articles / news / events）且资源状态为 `'approved'` 或 `'pending'` 之外的可见状态时，后端 SHALL 在资源 INSERT 成功后同步向该作者的**每个粉丝**写入一条 `type = 'new_content'` 的通知。
@@ -39,12 +42,12 @@ TBD - created by archiving change community-identity-and-follow-notifications. U
 
 - 作者显示名遵循 `nickname` 优先、`username` 兜底规则
 - 资源类型中文名映射：
-  - `article` → "文章"
-  - `photo` → "图片"
-  - `music` → "音乐"
-  - `video` → "视频"
-  - `event` → "活动"
-  - `news` → "新闻"
+    - `article` → "文章"
+    - `photo` → "图片"
+    - `music` → "音乐"
+    - `video` → "视频"
+    - `event` → "活动"
+    - `news` → "新闻"
 - 标题取资源表中的 `title` 字段，若为空或 null 则使用 "（无标题）"
 - 文案在后端 fan-out 时组装并写入 `notifications.content` 列，**不在前端动态合成**
 
@@ -119,4 +122,3 @@ TBD - created by archiving change community-identity-and-follow-notifications. U
 - **GIVEN** 作者 B 发新 article，fan-out 完成，粉丝 C 已登录但当前未打开 NotificationCenter
 - **WHEN** C 等待最多 60 秒
 - **THEN** NotificationCenter 的轮询 fetchNotifications 至少触发一次；unreadCount 增加 1；铃铛红点刷新
-

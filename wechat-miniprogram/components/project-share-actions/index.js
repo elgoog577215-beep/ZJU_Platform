@@ -1,16 +1,16 @@
 Component({
-  properties: {
-    copy: {
-      type: Object,
-      value: {},
+    properties: {
+        copy: {
+            type: Object,
+            value: {},
+        },
     },
-  },
-  methods: {
-    openDetail() {
-      this.triggerEvent("opendetail");
+    methods: {
+        openDetail() {
+            this.triggerEvent("opendetail");
+        },
+        openPlaza() {
+            this.triggerEvent("openplaza");
+        },
     },
-    openPlaza() {
-      this.triggerEvent("openplaza");
-    },
-  },
 });

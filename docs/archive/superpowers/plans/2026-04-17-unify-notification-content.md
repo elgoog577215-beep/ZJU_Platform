@@ -10,6 +10,7 @@ created: 2026-04-17
 把 `notifications` 表的通知正文收拢到 `content` 单列，清除 `createNotification` 里的 dead-code 分支。软迁移（旧列保留）+ git tag 作回滚锚点。
 
 **Scope hard limits**:
+
 - 只触 2 个文件：`server/src/config/runMigrations.js`、`server/src/controllers/notificationController.js`
 - 不改前端
 - 不动 `createNotification` 的调用方
@@ -42,6 +43,7 @@ ls -la server/database.sqlite.bak.pre-msg-refactor-v1
 ## Task 1: Schema Migration (Add content Column + Backfill)
 
 **Files**:
+
 - Modify: `server/src/config/runMigrations.js`
 
 ### Step 1.1 — 在 notifications 表 CREATE 后追加迁移块
@@ -49,14 +51,14 @@ ls -la server/database.sqlite.bak.pre-msg-refactor-v1
 在 `runMigrations.js` 的 `CREATE TABLE IF NOT EXISTS notifications ... ✅ Notifications table ready` 紧随其后（第 140 行 `}` 之后、下一个 `try` 块之前），插入一段新的迁移块：
 
 ```js
-  // Migration: Unify notification content to single `content` column.
-  // See openspec/changes/unify-notification-content/ for full context.
-  try {
-    const notifInfo = await db.all('PRAGMA table_info(notifications)');
+// Migration: Unify notification content to single `content` column.
+// See openspec/changes/unify-notification-content/ for full context.
+try {
+    const notifInfo = await db.all("PRAGMA table_info(notifications)");
     const notifColumns = new Set(notifInfo.map((c) => c.name));
-    if (!notifColumns.has('content')) {
-      await db.exec(`ALTER TABLE notifications ADD COLUMN content TEXT`);
-      console.log('✅ Added notifications.content column');
+    if (!notifColumns.has("content")) {
+        await db.exec(`ALTER TABLE notifications ADD COLUMN content TEXT`);
+        console.log("✅ Added notifications.content column");
     }
     // Idempotent backfill: only fill rows where content is unset.
     // COALESCE order matches normalizeNotificationRow: message > title.
@@ -65,15 +67,16 @@ ls -la server/database.sqlite.bak.pre-msg-refactor-v1
       SET content = COALESCE(message, title)
       WHERE content IS NULL
     `);
-    console.log('✅ Notifications content column backfilled');
-  } catch (err) {
-    if (!err.message.includes('duplicate column')) {
-      console.warn('Migration warning (notifications.content):', err.message);
+    console.log("✅ Notifications content column backfilled");
+} catch (err) {
+    if (!err.message.includes("duplicate column")) {
+        console.warn("Migration warning (notifications.content):", err.message);
     }
-  }
+}
 ```
 
 **Design notes**:
+
 - 把这段放在 `notifications` 表创建之后、其他表创建之前，保证先建表后加列
 - `PRAGMA table_info` 检查保证幂等（重复跑不重复 ADD）
 - 回填 `WHERE content IS NULL` 避免覆盖新写入的 content
@@ -82,6 +85,7 @@ ls -la server/database.sqlite.bak.pre-msg-refactor-v1
 ### Step 1.2 — 手动幂等性验证
 
 启动后端，看日志应当输出两次：
+
 ```
 ✅ Added notifications.content column           （首次）
 ✅ Notifications content column backfilled      （首次）
@@ -101,27 +105,30 @@ node -e "const {getDb}=require('./server/src/config/db');(async()=>{const db=awa
 ## Task 2: Controller Refactor (Single-Path INSERT + Dead Code Removal)
 
 **Files**:
+
 - Modify: `server/src/controllers/notificationController.js`
 
 ### Step 2.1 — 替换文件头部 import/helper 区域
 
 当前（line 1-10）：
+
 ```js
-const { getDb } = require('../config/db');
+const { getDb } = require("../config/db");
 
 let notificationColumnCache = null;
 
 const getNotificationColumns = async (db) => {
     if (notificationColumnCache) return notificationColumnCache;
-    const info = await db.all('PRAGMA table_info(notifications)');
+    const info = await db.all("PRAGMA table_info(notifications)");
     notificationColumnCache = new Set(info.map((col) => col.name));
     return notificationColumnCache;
 };
 ```
 
 **替换为**：
+
 ```js
-const { getDb } = require('../config/db');
+const { getDb } = require("../config/db");
 ```
 
 删除 `notificationColumnCache` 和 `getNotificationColumns` —— 迁移后 `content` 列一定存在，无需运行时探测。
@@ -131,7 +138,13 @@ const { getDb } = require('../config/db');
 当前（line 33-59）整块替换为：
 
 ```js
-const createNotification = async (userId, type, content, resourceId = null, resourceType = null) => {
+const createNotification = async (
+    userId,
+    type,
+    content,
+    resourceId = null,
+    resourceType = null
+) => {
     try {
         const db = await getDb();
         const payload = JSON.stringify({
@@ -139,16 +152,17 @@ const createNotification = async (userId, type, content, resourceId = null, reso
             related_resource_type: resourceType,
         });
         await db.run(
-            'INSERT INTO notifications (user_id, type, content, data) VALUES (?, ?, ?, ?)',
+            "INSERT INTO notifications (user_id, type, content, data) VALUES (?, ?, ?, ?)",
             [userId, type, content, payload]
         );
     } catch (error) {
-        console.error('[Notification] Create error:', error);
+        console.error("[Notification] Create error:", error);
     }
 };
 ```
 
 **Design notes**:
+
 - 签名保持不变：`(userId, type, content, resourceId, resourceType)` —— 调用方（favoriteController 等）一个字都不用改
 - `data` JSON 继续承载 `related_resource_id / related_resource_type`，维持现状
 - 不再写 `title` / `message` 列 —— 新通知这两列保持 NULL
@@ -211,6 +225,7 @@ const {getDb}=require('./server/src/config/db');
 在浏览器中用 `seed_admin` 登录，对 `demo_user` 的任意一张照片点一个收藏（`FavoriteButton`）。这会触发 `favoriteController.toggleFavorite → createNotification`。
 
 然后查库：
+
 ```bash
 node -e "
 const {getDb}=require('./server/src/config/db');
@@ -229,6 +244,7 @@ const {getDb}=require('./server/src/config/db');
 ### Step 3.4 — AC5 前端展示验证
 
 浏览器中以 `demo_user` 身份登录，打开铃铛（Navbar.jsx:329 的 NotificationCenter）。
+
 - 应看到刚才 seed_admin 收藏产生的通知条
 - 通知正文应该读起来通顺，不是空的或带奇怪字符
 - 若能同时看到旧通知（迁移前的），它们的文本也应正常显示（来自回填的 content 列）
@@ -251,6 +267,7 @@ git show pre-msg-refactor-v1:server/src/controllers/notificationController.js | 
 ## Task 4: Brain Tech-Debt Entry
 
 **Files**:
+
 - Create: `C:/Users/xsh/.claude/codingsys-brain/decisions/003-notification-content-column-soft-migration.md`
 
 ### Step 4.1 — 写一条 decision 记录
@@ -259,21 +276,26 @@ git show pre-msg-refactor-v1:server/src/controllers/notificationController.js | 
 # 003: Notifications 表 content 列软迁移（保留旧列）
 
 ## 状态
+
 Accepted · 2026-04-17
 
 ## 上下文
+
 notifications 表历史上积累了 title/message/data 三列，代码里还有一条指向不存在的 content 列的 dead-code 分支。要收拢到单一 `content` 列，且用户明确要求"只靠 git tag 回滚"。
 
 ## 决策
+
 软迁移：ADD COLUMN content + 回填 COALESCE(message, title)，但**不 DROP** 旧列 title / message。createNotification 改为单路径只写 content。
 
 ## 理由
+
 - git tag 能回滚代码，不能回滚已执行的 DROP COLUMN
 - SQLite 的 DROP COLUMN 需要重建表，风险高
 - 保留旧列让 `git reset --hard pre-msg-refactor-v1` 后旧代码读 message/title 仍能看到数据
 - 代价：表多出两列半废字段，下一轮单独清理
 
 ## 后续
+
 - 生产跑满一周无异常 → 开 `drop-legacy-notification-columns` 把旧列和 normalize 的兜底读一起下掉
 - 若期间发现新 bug → 回滚 tag，分析再做
 ```
@@ -298,6 +320,7 @@ node -e "const {getDb}=require('./server/src/config/db');(async()=>{const db=awa
 ### Step 5.2 — 部署后确认迁移日志
 
 服务器启动日志必须包含：
+
 ```
 ✅ Added notifications.content column           （首次部署）
 ✅ Notifications content column backfilled

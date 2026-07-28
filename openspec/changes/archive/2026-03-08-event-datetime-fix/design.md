@@ -11,6 +11,7 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - 日期输入升级为 `datetime-local`，步长 30 分钟
 - 存储格式升级为 `YYYY-MM-DDTHH:MM`（ISO 8601 local datetime，无时区后缀）
 - 展示函数正确显示时间，并修复时区导致的 isSameDay 误判
@@ -19,6 +20,7 @@
 - 向后兼容旧的 `YYYY-MM-DD` 数据（解析时补 `T00:00`）
 
 **Non-Goals:**
+
 - 不做数据库 schema 迁移（TEXT 字段天然兼容）
 - 不做历史数据批量更新
 - 不引入时区支持（所有时间视为本地时间）

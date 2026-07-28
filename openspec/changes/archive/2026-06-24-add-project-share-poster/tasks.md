@@ -1,10 +1,12 @@
 # Tasks: add-project-share-poster
 
 ## 1. 规格
+
 - [x] 1.1 新增 project-plaza 分享海报 requirement。
 - [x] 1.2 `openspec validate add-project-share-poster --strict` 通过。
 
 ## 2. 前端实现
+
 - [x] 2.1 新增浏览器端二维码与 PNG 导出依赖。
 - [x] 2.2 新增 `ProjectSharePoster` 组件，支持预览、下载、复制链接和系统分享。
 - [x] 2.3 项目详情弹窗增加“生成海报”按钮，打开预览后再下载。
@@ -13,6 +15,7 @@
 - [x] 2.6 海报展示站点 logo、发起人昵称和头像，昵称为空时回退用户名。
 
 ## 3. 验证
+
 - [x] 3.1 `npm run build` 通过。
 - [x] 3.2 浏览器检查 `/projects` 项目详情海报入口、预览弹窗、二维码渲染、下载按钮。
 - [x] 3.3 英文模式检查新增海报文案无中文残留。

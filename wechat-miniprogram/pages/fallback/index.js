@@ -1,18 +1,18 @@
 Page({
-  data: {
-    reason: "load",
-  },
+    data: {
+        reason: "load",
+    },
 
-  onLoad(options) {
-    const params = options || {};
-    this.setData({
-      reason: params.reason || "load",
-    });
-  },
+    onLoad(options) {
+        const params = options || {};
+        this.setData({
+            reason: params.reason || "load",
+        });
+    },
 
-  openHome() {
-    wx.reLaunch({
-      url: "/pages/home/index",
-    });
-  },
+    openHome() {
+        wx.reLaunch({
+            url: "/pages/home/index",
+        });
+    },
 });

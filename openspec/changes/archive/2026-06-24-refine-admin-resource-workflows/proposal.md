@@ -28,9 +28,9 @@ This follow-up pass makes resource workflows feel steadier and more polished wit
 ## Impact
 
 - Frontend:
-  - `src/components/Admin/ResourceManager.jsx`
-  - `src/components/Admin/AdminUI.jsx` if shared controls need small ergonomic polish
+    - `src/components/Admin/ResourceManager.jsx`
+    - `src/components/Admin/AdminUI.jsx` if shared controls need small ergonomic polish
 - Tests:
-  - `e2e/admin-console.spec.js`
+    - `e2e/admin-console.spec.js`
 - Rollback:
-  - Code-only revert. No persisted data shape changes.
+    - Code-only revert. No persisted data shape changes.

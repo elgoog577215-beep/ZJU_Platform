@@ -23,25 +23,25 @@
 
 ### `project_cards`（新表）
 
-| 列 | 类型 | 说明 |
-|---|---|---|
-| `id` | INTEGER PK | |
-| `user_id` | INTEGER FK→users | 发起人/作者 |
-| `title` | TEXT NOT NULL | 项目名称（≤40） |
-| `intro` | TEXT | 一句话简介（≤80，卡片展示） |
-| `content` | TEXT | 长正文「项目介绍」（名片主体，按文本分段） |
-| `progress` | TEXT | 进度枚举：`idea`/`dev`/`live`/`pause` |
-| `need_tags` | TEXT | 需求标签 JSON 数组（缺人/缺设计/缺讨论/找测试…） |
-| `tech_tags` | TEXT | 技术栈/特点标签 JSON 数组 |
-| `repo_url` | TEXT | 仓库链接（https 校验） |
-| `contact_wechat` | TEXT | 微信（仅登录可见） |
-| `contact_email` | TEXT | 邮箱（仅登录可见） |
-| `cover_url` | TEXT | 封面（images 的第一张，冗余便于列表） |
-| `images_json` | TEXT | 项目照片 URL JSON 数组 |
-| `status` | TEXT | `draft`/`published`/`removed`，默认 `published` |
-| `likes` | INTEGER | 收藏/点赞数，从 `favorites` 重算（自愈，与现有表一致） |
-| `views` | INTEGER | 浏览数 |
-| `created_at` / `updated_at` | TEXT | |
+| 列                          | 类型             | 说明                                                   |
+| --------------------------- | ---------------- | ------------------------------------------------------ |
+| `id`                        | INTEGER PK       |                                                        |
+| `user_id`                   | INTEGER FK→users | 发起人/作者                                            |
+| `title`                     | TEXT NOT NULL    | 项目名称（≤40）                                        |
+| `intro`                     | TEXT             | 一句话简介（≤80，卡片展示）                            |
+| `content`                   | TEXT             | 长正文「项目介绍」（名片主体，按文本分段）             |
+| `progress`                  | TEXT             | 进度枚举：`idea`/`dev`/`live`/`pause`                  |
+| `need_tags`                 | TEXT             | 需求标签 JSON 数组（缺人/缺设计/缺讨论/找测试…）       |
+| `tech_tags`                 | TEXT             | 技术栈/特点标签 JSON 数组                              |
+| `repo_url`                  | TEXT             | 仓库链接（https 校验）                                 |
+| `contact_wechat`            | TEXT             | 微信（仅登录可见）                                     |
+| `contact_email`             | TEXT             | 邮箱（仅登录可见）                                     |
+| `cover_url`                 | TEXT             | 封面（images 的第一张，冗余便于列表）                  |
+| `images_json`               | TEXT             | 项目照片 URL JSON 数组                                 |
+| `status`                    | TEXT             | `draft`/`published`/`removed`，默认 `published`        |
+| `likes`                     | INTEGER          | 收藏/点赞数，从 `favorites` 重算（自愈，与现有表一致） |
+| `views`                     | INTEGER          | 浏览数                                                 |
+| `created_at` / `updated_at` | TEXT             |                                                        |
 
 索引：`(status, progress, created_at)`、`(user_id)`、`(likes, created_at)`。
 
@@ -49,17 +49,17 @@
 
 ## 3. 复用映射（每一处只加一项）
 
-| 现有系统 | 文件 | 接入点 |
-|---|---|---|
-| 收藏=点赞 | `favoriteController.js` | `FAVORITE_RESOURCE_META['project'] = {label:'项目', table:'project_cards', ownerCol:'user_id', titleCol:'title'}`；`resolveFavoriteTarget` 处理 `project`；`likes` 重算 SQL 复用 |
-| 收藏通知 | `favoriteController.js` 已自动 | 收藏 add 时 `createNotification(owner,'favorite',…,itemId,'project')`，owner!=actor 才发；无需新代码 |
-| 通知文案 | `notificationController.js` | `RESOURCE_TYPE_LABEL['project'] = '项目'` |
-| 主页聚合 | `userController.js getUserResources` | 增加 `project_cards` 查询，映射 `type:'project'`，访客只见 `status='published'`，本人可见草稿 |
-| 收藏筛选/类型 | `PublicProfile.jsx` | `favoriteTypeOptions` / 内容类型筛选增加"项目" |
-| 收藏→详情→返回 | `PublicProfile.jsx buildFavoriteTargetPath` | 增加 `project: "/projects"` → 生成 `/projects?id={id}`，`navigate(path,{state:{fromFavorites:true}})` |
-| 返回栈 | `ProjectPlaza.jsx` | 仿 `Events.jsx`：`fromFavoritesRef = useRef(location.state?.fromFavorites)`；`useBackClose(open, close)`；close 时 `fromFavoritesRef` → `navigate(-2)` |
-| 图片上传 | 现有 `uploadProfileCardCover` 同款 | 复用 multer 上传 + `/uploads/` 校验（JPG/PNG/WebP·5MB） |
-| 举报 | `community_reports` 模式 | 扩展支持 `target_type='project'`（加 `project_id` 或复用通用 report）；管理员下架 = `status='removed'` |
+| 现有系统       | 文件                                        | 接入点                                                                                                                                                                           |
+| -------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 收藏=点赞      | `favoriteController.js`                     | `FAVORITE_RESOURCE_META['project'] = {label:'项目', table:'project_cards', ownerCol:'user_id', titleCol:'title'}`；`resolveFavoriteTarget` 处理 `project`；`likes` 重算 SQL 复用 |
+| 收藏通知       | `favoriteController.js` 已自动              | 收藏 add 时 `createNotification(owner,'favorite',…,itemId,'project')`，owner!=actor 才发；无需新代码                                                                             |
+| 通知文案       | `notificationController.js`                 | `RESOURCE_TYPE_LABEL['project'] = '项目'`                                                                                                                                        |
+| 主页聚合       | `userController.js getUserResources`        | 增加 `project_cards` 查询，映射 `type:'project'`，访客只见 `status='published'`，本人可见草稿                                                                                    |
+| 收藏筛选/类型  | `PublicProfile.jsx`                         | `favoriteTypeOptions` / 内容类型筛选增加"项目"                                                                                                                                   |
+| 收藏→详情→返回 | `PublicProfile.jsx buildFavoriteTargetPath` | 增加 `project: "/projects"` → 生成 `/projects?id={id}`，`navigate(path,{state:{fromFavorites:true}})`                                                                            |
+| 返回栈         | `ProjectPlaza.jsx`                          | 仿 `Events.jsx`：`fromFavoritesRef = useRef(location.state?.fromFavorites)`；`useBackClose(open, close)`；close 时 `fromFavoritesRef` → `navigate(-2)`                           |
+| 图片上传       | 现有 `uploadProfileCardCover` 同款          | 复用 multer 上传 + `/uploads/` 校验（JPG/PNG/WebP·5MB）                                                                                                                          |
+| 举报           | `community_reports` 模式                    | 扩展支持 `target_type='project'`（加 `project_id` 或复用通用 report）；管理员下架 = `status='removed'`                                                                           |
 
 ## 4. API
 

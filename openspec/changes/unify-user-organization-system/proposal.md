@@ -29,9 +29,9 @@
 ## 数据和 API 影响
 
 - `users` 增加 `account_type`、`review_permission`、`admin_scope` 字段：
-  - `account_type`: `personal` 或 `organization`。
-  - `review_permission`: `normal`、`trusted` 或 `admin`。
-  - `admin_scope`: 管理员范围，当前默认 `platform`。
+    - `account_type`: `personal` 或 `organization`。
+    - `review_permission`: `normal`、`trusted` 或 `admin`。
+    - `admin_scope`: 管理员范围，当前默认 `platform`。
 - `GET /api/users/me/overview` 增加权限、账号类型、组织工作台和下一步建议。
 - `GET /api/admin/users` 返回账号类型、发布审核权限、组织数量和内容状态摘要。
 - `PUT /api/admin/users/:id` 允许管理员修改 `account_type`、`review_permission`、`admin_scope` 和旧 `role`。
@@ -49,4 +49,3 @@
 - 风险：旧数据库缺少字段时可能导致启动或列表报错。处理方式是在 migration 中使用 `ensureColumns` 补齐字段，并给旧账号回填默认值。
 - 风险：权限字段和旧 `role` 可能语义重叠。处理方式是保留 `role = admin` 作为后台访问判断，同时让 `review_permission = admin` 只作为发布审核能力的表达。
 - 回滚：字段为向后兼容新增字段，不删除旧字段；若前端需要回滚，可继续使用旧 `/admin/users` 返回中的 `role`。
-

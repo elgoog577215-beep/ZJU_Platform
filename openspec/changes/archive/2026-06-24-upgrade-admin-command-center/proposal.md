@@ -31,12 +31,12 @@ This change upgrades the admin frontend into a more efficient command center:
 ## Impact
 
 - Affected frontend files:
-  - `src/components/Admin/AdminDashboard.jsx`
-  - `src/components/Admin/Overview.jsx`
-  - `src/components/Admin/AdminUI.jsx` if shared primitives need small polish
+    - `src/components/Admin/AdminDashboard.jsx`
+    - `src/components/Admin/Overview.jsx`
+    - `src/components/Admin/AdminUI.jsx` if shared primitives need small polish
 - Affected tests:
-  - `e2e/admin-console.spec.js`
+    - `e2e/admin-console.spec.js`
 - Affected docs/spec:
-  - New OpenSpec change under `openspec/changes/upgrade-admin-command-center`
+    - New OpenSpec change under `openspec/changes/upgrade-admin-command-center`
 - Rollback:
-  - Code-only revert. No persisted data format changes are introduced.
+    - Code-only revert. No persisted data format changes are introduced.

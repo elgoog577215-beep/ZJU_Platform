@@ -1,29 +1,29 @@
 const createEventAssistantResponseBuilder = ({
-  buildClarificationResponse,
-  buildFallbackRecommendationResponse,
-  buildAiRecommendationResponse,
+    buildClarificationResponse,
+    buildFallbackRecommendationResponse,
+    buildAiRecommendationResponse,
 }) => ({
-  clarification(options) {
-    return buildClarificationResponse(options);
-  },
+    clarification(options) {
+        return buildClarificationResponse(options);
+    },
 
-  fallbackRecommendation(options) {
-    return buildFallbackRecommendationResponse(options);
-  },
+    fallbackRecommendation(options) {
+        return buildFallbackRecommendationResponse(options);
+    },
 
-  aiRecommendation(options) {
-    return buildAiRecommendationResponse(options);
-  },
+    aiRecommendation(options) {
+        return buildAiRecommendationResponse(options);
+    },
 
-  empty(options) {
-    return {
-      type: 'empty',
-      recommendationMode: 'empty',
-      ...options,
-    };
-  },
+    empty(options) {
+        return {
+            type: "empty",
+            recommendationMode: "empty",
+            ...options,
+        };
+    },
 });
 
 module.exports = {
-  createEventAssistantResponseBuilder,
+    createEventAssistantResponseBuilder,
 };

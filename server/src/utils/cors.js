@@ -1,96 +1,90 @@
 const DEFAULT_DEV_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:5180',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'capacitor://localhost'
+    "http://localhost:5173",
+    "http://localhost:5180",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "capacitor://localhost",
 ];
 
 const DEFAULT_PRODUCTION_FALLBACK_ORIGINS = [
-  'https://tuotuzju.com',
-  'capacitor://localhost',
-  'http://118.31.78.72'
+    "https://tuotuzju.com",
+    "capacitor://localhost",
+    "http://118.31.78.72",
 ];
 
 const normalizeOrigin = (value) => {
-  if (typeof value !== 'string' || value.trim() === '') {
-    return null;
-  }
-
-  try {
-    const parsed = new URL(value.trim());
-    if (parsed.origin && parsed.origin !== 'null') {
-      return parsed.origin;
+    if (typeof value !== "string" || value.trim() === "") {
+        return null;
     }
 
-    if (parsed.protocol && parsed.host) {
-      return `${parsed.protocol}//${parsed.host}`;
-    }
+    try {
+        const parsed = new URL(value.trim());
+        if (parsed.origin && parsed.origin !== "null") {
+            return parsed.origin;
+        }
 
-    return null;
-  } catch {
-    return null;
-  }
+        if (parsed.protocol && parsed.host) {
+            return `${parsed.protocol}//${parsed.host}`;
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
 };
 
 const splitOriginList = (value) => {
-  if (typeof value !== 'string' || value.trim() === '') {
-    return [];
-  }
+    if (typeof value !== "string" || value.trim() === "") {
+        return [];
+    }
 
-  return value
-    .split(',')
-    .map((item) => normalizeOrigin(item))
-    .filter(Boolean);
+    return value
+        .split(",")
+        .map((item) => normalizeOrigin(item))
+        .filter(Boolean);
 };
 
 const uniq = (values) => Array.from(new Set(values));
 
-const hasExplicitProductionOrigins = (env = process.env) => (
-  splitOriginList(env.CORS_ALLOWED_ORIGINS).length > 0
-  || splitOriginList(env.CORS_ORIGIN).length > 0
-  || splitOriginList(env.FRONTEND_URL).length > 0
-);
+const hasExplicitProductionOrigins = (env = process.env) =>
+    splitOriginList(env.CORS_ALLOWED_ORIGINS).length > 0 ||
+    splitOriginList(env.CORS_ORIGIN).length > 0 ||
+    splitOriginList(env.FRONTEND_URL).length > 0;
 
 const getAllowedOrigins = (env = process.env) => {
-  const nodeEnv = env.NODE_ENV || 'development';
-  const explicitOrigins = uniq([
-    ...splitOriginList(env.CORS_ALLOWED_ORIGINS),
-    ...splitOriginList(env.CORS_ORIGIN),
-    ...splitOriginList(env.FRONTEND_URL)
-  ]);
+    const nodeEnv = env.NODE_ENV || "development";
+    const explicitOrigins = uniq([
+        ...splitOriginList(env.CORS_ALLOWED_ORIGINS),
+        ...splitOriginList(env.CORS_ORIGIN),
+        ...splitOriginList(env.FRONTEND_URL),
+    ]);
 
-  if (nodeEnv === 'production') {
-    return explicitOrigins.length > 0
-      ? explicitOrigins
-      : DEFAULT_PRODUCTION_FALLBACK_ORIGINS;
-  }
+    if (nodeEnv === "production") {
+        return explicitOrigins.length > 0 ? explicitOrigins : DEFAULT_PRODUCTION_FALLBACK_ORIGINS;
+    }
 
-  return uniq([
-    ...explicitOrigins,
-    ...DEFAULT_DEV_ORIGINS
-  ]);
+    return uniq([...explicitOrigins, ...DEFAULT_DEV_ORIGINS]);
 };
 
 const isOriginAllowed = (origin, allowedOrigins) => {
-  if (!origin) {
-    return true;
-  }
+    if (!origin) {
+        return true;
+    }
 
-  const normalizedOrigin = normalizeOrigin(origin);
-  if (!normalizedOrigin) {
-    return false;
-  }
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (!normalizedOrigin) {
+        return false;
+    }
 
-  return allowedOrigins.includes(normalizedOrigin);
+    return allowedOrigins.includes(normalizedOrigin);
 };
 
 module.exports = {
-  DEFAULT_DEV_ORIGINS,
-  DEFAULT_PRODUCTION_FALLBACK_ORIGINS,
-  normalizeOrigin,
-  splitOriginList,
-  hasExplicitProductionOrigins,
-  getAllowedOrigins,
-  isOriginAllowed
+    DEFAULT_DEV_ORIGINS,
+    DEFAULT_PRODUCTION_FALLBACK_ORIGINS,
+    normalizeOrigin,
+    splitOriginList,
+    hasExplicitProductionOrigins,
+    getAllowedOrigins,
+    isOriginAllowed,
 };

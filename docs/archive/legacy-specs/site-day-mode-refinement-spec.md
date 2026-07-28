@@ -15,22 +15,22 @@ Day mode should feel like a refined morning glass interface: clean ink, transluc
 ## Design Direction
 
 1. Add a reusable day-mode canvas:
-   - fixed soft body background with sky, lilac, mint, and warm glows;
-   - subtle paper/grid texture;
-   - page-level translucent wash that keeps content readable.
+    - fixed soft body background with sky, lilac, mint, and warm glows;
+    - subtle paper/grid texture;
+    - page-level translucent wash that keeps content readable.
 2. Add refined day materials:
-   - `day-fine-surface` for elevated panels;
-   - `day-chrome-surface` for nav, footer, and bottom bars;
-   - `day-card-lift` for content cards;
-   - `day-quiet-button` for secondary controls.
+    - `day-fine-surface` for elevated panels;
+    - `day-chrome-surface` for nav, footer, and bottom bars;
+    - `day-card-lift` for content cards;
+    - `day-quiet-button` for secondary controls.
 3. Apply the materials to high-frequency surfaces first:
-   - Navbar, MobileNavbar, Footer, PlatformStats;
-   - Gallery, Music, Videos shells, controls, drawers, cards;
-   - keep Events and Articles glow direction intact while benefiting from global canvas.
+    - Navbar, MobileNavbar, Footer, PlatformStats;
+    - Gallery, Music, Videos shells, controls, drawers, cards;
+    - keep Events and Articles glow direction intact while benefiting from global canvas.
 4. Interaction rules:
-   - hover glow must be narrow and edge-based, not broad fog;
-   - shadows stay cool and low-opacity;
-   - motion stays subtle and respects reduced motion.
+    - hover glow must be narrow and edge-based, not broad fog;
+    - shadows stay cool and low-opacity;
+    - motion stays subtle and respects reduced motion.
 
 ## Success Checks
 

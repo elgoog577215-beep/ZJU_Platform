@@ -18,9 +18,9 @@
 ## 3. 新闻入口全屏覆盖
 
 - [x] 3.1 `src/components/AICommunity.jsx:160-194` 外层 `motion.div` 的 className：
-  - `inset-x-0 bottom-0` → `inset-0`
-  - 去掉 `max-h-[86vh]`、`rounded-t-3xl`
-  - 背景 `bg-black/80` / `bg-white/65` → 不透明 `bg-[#0f0f0f]` / `bg-white`
+    - `inset-x-0 bottom-0` → `inset-0`
+    - 去掉 `max-h-[86vh]`、`rounded-t-3xl`
+    - 背景 `bg-black/80` / `bg-white/65` → 不透明 `bg-[#0f0f0f]` / `bg-white`
 - [x] 3.2 入场动画：`y: '100%'` → `opacity + scale 0.98→1`（或纯 `opacity`）。
 - [x] 3.3 删除外层 `<h3>新闻热榜</h3>` + X 的容器（`AICommunity.jsx:179-190`）。
 - [x] 3.4 X 按钮改成 `absolute top-4 right-4`，尺寸 40×40，lucide `X` size 24；触摸热区用 `p-2` 以上。
@@ -31,8 +31,8 @@
 ## 4. Verification
 
 - [x] 4.1 Chrome DevTools iPhone 16 Pro 预设：
-  - 未登录点"我的" → AuthModal 弹出，不跳 `/me`
-  - 登录成功后再点"我的" → 跳 `/user/${id}`
+    - 未登录点"我的" → AuthModal 弹出，不跳 `/me`
+    - 登录成功后再点"我的" → 跳 `/user/${id}`
 - [x] 4.2 同预设：点 AI 社区"新闻热榜"入口 → 全屏覆盖，底部 MobileNavbar 不可见；右上角 X 点击关闭；硬件返回（或 devtools 的 back 按钮）也能关闭。
 - [x] 4.3 StrictMode 自检：dev 模式打开覆盖层，观察是否存在打开后立即关闭的 double-mount race；若有，对 `useBackClose` 的调用套 `setTimeout(0)` 模式。
 - [ ] 4.4 iOS Safari 真机（或 Safari macOS 响应式设计模式）确认 `100dvh` 下地址栏显隐都不截断内容。

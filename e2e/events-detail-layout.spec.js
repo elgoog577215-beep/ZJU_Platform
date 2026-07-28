@@ -6,222 +6,211 @@ const DESKTOP_VIEWPORT = { width: 1440, height: 1100 };
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getModalHeroRect = async (page, title) =>
-  page.evaluate((eventTitle) => {
-    const images = [...document.querySelectorAll("img")].filter(
-      (img) => img.alt === eventTitle,
-    );
-    const target = images.at(-1);
-    if (!target) return null;
-    const rect = target.getBoundingClientRect();
-    return {
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
-      right: rect.right,
-      bottom: rect.bottom,
-    };
-  }, title);
+    page.evaluate((eventTitle) => {
+        const images = [...document.querySelectorAll("img")].filter(
+            (img) => img.alt === eventTitle
+        );
+        const target = images.at(-1);
+        if (!target) return null;
+        const rect = target.getBoundingClientRect();
+        return {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            right: rect.right,
+            bottom: rect.bottom,
+        };
+    }, title);
 
 const isCloseButtonTopmost = async (page) =>
-  page.evaluate(() => {
-    const closeButtons = [
-      ...document.querySelectorAll('button[aria-label="关闭"]'),
-    ];
-    const button = closeButtons.at(-1);
-    if (!button) return false;
-    const rect = button.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    const topElement = document.elementFromPoint(x, y);
-    return button === topElement || button.contains(topElement);
-  });
+    page.evaluate(() => {
+        const closeButtons = [...document.querySelectorAll('button[aria-label="关闭"]')];
+        const button = closeButtons.at(-1);
+        if (!button) return false;
+        const rect = button.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const topElement = document.elementFromPoint(x, y);
+        return button === topElement || button.contains(topElement);
+    });
 
 const getFirstEvent = async (request) => {
-  const response = await request.get(
-    "/api/events?page=1&limit=1&sort=date_desc&status=approved",
-  );
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  expect(payload.data?.length).toBeGreaterThan(0);
-  return payload.data[0];
+    const response = await request.get("/api/events?page=1&limit=1&sort=date_desc&status=approved");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.data?.length).toBeGreaterThan(0);
+    return payload.data[0];
 };
 
 const openEventDetail = async (page, eventId) => {
-  await page.goto(`/events?id=${eventId}`);
-  await expect(page.getByRole("button", { name: "关闭" })).toBeVisible();
+    await page.goto(`/events?id=${eventId}`);
+    await expect(page.getByRole("button", { name: "关闭" })).toBeVisible();
 };
 
 test.describe("event detail layout regression", () => {
-  test("mobile detail keeps header content inside the sheet and locks body scroll", async ({
-    page,
-    request,
-  }) => {
-    await page.setViewportSize(MOBILE_VIEWPORT);
-    const event = await getFirstEvent(request);
+    test("mobile detail keeps header content inside the sheet and locks body scroll", async ({
+        page,
+        request,
+    }) => {
+        await page.setViewportSize(MOBILE_VIEWPORT);
+        const event = await getFirstEvent(request);
 
-    await openEventDetail(page, event.id);
+        await openEventDetail(page, event.id);
 
-    const closeButton = page.getByRole("button", { name: "关闭" });
-    const title = page.getByRole("heading", {
-      level: 2,
-      name: new RegExp(escapeRegExp(event.title)),
+        const closeButton = page.getByRole("button", { name: "关闭" });
+        const title = page.getByRole("heading", {
+            level: 2,
+            name: new RegExp(escapeRegExp(event.title)),
+        });
+
+        await expect(title).toBeVisible();
+        await expect(closeButton).toBeVisible();
+
+        const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
+        expect(bodyOverflow).toBe("hidden");
+
+        const heroRect = await getModalHeroRect(page, event.title);
+        const closeRect = await closeButton.boundingBox();
+        const titleRect = await title.boundingBox();
+
+        expect(heroRect).not.toBeNull();
+        expect(closeRect).not.toBeNull();
+        expect(titleRect).not.toBeNull();
+
+        expect(heroRect.y).toBeGreaterThanOrEqual(0);
+        expect(titleRect.y).toBeGreaterThanOrEqual(heroRect.bottom + 8);
+        expect(closeRect.y + closeRect.height).toBeLessThanOrEqual(heroRect.bottom);
+        expect(await isCloseButtonTopmost(page)).toBeTruthy();
+
+        await closeButton.click();
+        await expect(closeButton).toHaveCount(0);
+        await expect(title).toHaveCount(0);
+        await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
     });
 
-    await expect(title).toBeVisible();
-    await expect(closeButton).toBeVisible();
+    test("miniapp mobile detail scrolls on the outer sheet without locking body", async ({
+        page,
+        request,
+    }) => {
+        await page.setViewportSize(MOBILE_VIEWPORT);
+        const event = await getFirstEvent(request);
 
-    const bodyOverflow = await page.evaluate(
-      () => document.body.style.overflow,
-    );
-    expect(bodyOverflow).toBe("hidden");
+        await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
+        const dialog = page.getByRole("dialog", { name: event.title });
+        await expect(dialog).toBeVisible();
 
-    const heroRect = await getModalHeroRect(page, event.title);
-    const closeRect = await closeButton.boundingBox();
-    const titleRect = await title.boundingBox();
+        await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
 
-    expect(heroRect).not.toBeNull();
-    expect(closeRect).not.toBeNull();
-    expect(titleRect).not.toBeNull();
+        await expect
+            .poll(() =>
+                dialog.evaluate((element) => ({
+                    scrollTop: element.scrollTop,
+                    scrollHeight: element.scrollHeight,
+                    clientHeight: element.clientHeight,
+                }))
+            )
+            .toMatchObject({
+                scrollTop: 0,
+            });
 
-    expect(heroRect.y).toBeGreaterThanOrEqual(0);
-    expect(titleRect.y).toBeGreaterThanOrEqual(heroRect.bottom + 8);
-    expect(closeRect.y + closeRect.height).toBeLessThanOrEqual(heroRect.bottom);
-    expect(await isCloseButtonTopmost(page)).toBeTruthy();
+        const scrollContainer = page.locator(".event-detail-modal-panel-miniapp");
+        const panelBefore = await scrollContainer.evaluate((element) => ({
+            scrollTop: element.scrollTop,
+            scrollHeight: element.scrollHeight,
+            clientHeight: element.clientHeight,
+        }));
+        expect(panelBefore.scrollHeight).toBeGreaterThan(panelBefore.clientHeight);
 
-    await closeButton.click();
-    await expect(closeButton).toHaveCount(0);
-    await expect(title).toHaveCount(0);
-    await expect
-      .poll(() => page.evaluate(() => document.body.style.overflow))
-      .toBe("");
-  });
+        await page.mouse.move(195, 560);
+        await page.mouse.wheel(0, 700);
+        await expect
+            .poll(() => scrollContainer.evaluate((element) => element.scrollTop))
+            .toBeGreaterThan(panelBefore.scrollTop);
 
-  test("miniapp mobile detail scrolls on the outer sheet without locking body", async ({
-    page,
-    request,
-  }) => {
-    await page.setViewportSize(MOBILE_VIEWPORT);
-    const event = await getFirstEvent(request);
-
-    await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
-    const dialog = page.getByRole("dialog", { name: event.title });
-    await expect(dialog).toBeVisible();
-
-    await expect
-      .poll(() => page.evaluate(() => document.body.style.overflow))
-      .toBe("");
-
-    await expect
-      .poll(() =>
-        dialog.evaluate((element) => ({
-          scrollTop: element.scrollTop,
-          scrollHeight: element.scrollHeight,
-          clientHeight: element.clientHeight,
-        })),
-      )
-      .toMatchObject({
-        scrollTop: 0,
-      });
-
-    const scrollContainer = page.locator(".event-detail-modal-panel-miniapp");
-    const panelBefore = await scrollContainer.evaluate((element) => ({
-      scrollTop: element.scrollTop,
-      scrollHeight: element.scrollHeight,
-      clientHeight: element.clientHeight,
-    }));
-    expect(panelBefore.scrollHeight).toBeGreaterThan(panelBefore.clientHeight);
-
-    await page.mouse.move(195, 560);
-    await page.mouse.wheel(0, 700);
-    await expect
-      .poll(() => scrollContainer.evaluate((element) => element.scrollTop))
-      .toBeGreaterThan(panelBefore.scrollTop);
-
-    await page.mouse.wheel(0, 5000);
-    await expect
-      .poll(() =>
-        scrollContainer.evaluate(
-          (element) =>
-            element.scrollTop + element.clientHeight >=
-            element.scrollHeight - 8,
-        ),
-      )
-      .toBeTruthy();
-  });
-
-  test("miniapp mobile detail opens native share page and keeps create entry visible", async ({
-    page,
-    request,
-  }) => {
-    await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.addInitScript(() => {
-      window.__miniShareMessages = [];
-      window.__miniNavigateUrls = [];
-      window.__webShareCalled = false;
-      Object.defineProperty(window.navigator, "share", {
-        configurable: true,
-        value: async () => {
-          window.__webShareCalled = true;
-        },
-      });
-      window.wx = {
-        miniProgram: {
-          navigateTo: ({ url, success }) => {
-            window.__miniNavigateUrls.push(url);
-            success?.();
-          },
-          postMessage: (message) => {
-            window.__miniShareMessages.push(message);
-          },
-        },
-      };
-    });
-    const event = await getFirstEvent(request);
-
-    await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
-    await expect(page.getByRole("dialog", { name: event.title })).toBeVisible();
-    await expect(page.getByTestId("event-detail-share-mobile")).toBeVisible();
-    await page.getByTestId("event-detail-share-mobile").click();
-
-    await expect
-      .poll(() => page.evaluate(() => window.__miniNavigateUrls.length))
-      .toBeGreaterThan(0);
-
-    const result = await page.evaluate(() => ({
-      nativeShareUrl: window.__miniNavigateUrls.at(-1),
-      webShareCalled: window.__webShareCalled,
-    }));
-    expect(result.webShareCalled).toBe(false);
-    expect(result.nativeShareUrl).toContain("/pages/native-share/index?");
-    expect(decodeURIComponent(result.nativeShareUrl)).toContain(`path=/events?id=${event.id}`);
-    expect(decodeURIComponent(result.nativeShareUrl)).toContain("imageUrl=http");
-    expect(decodeURIComponent(result.nativeShareUrl)).toContain(event.title);
-
-    await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
-    await expect(page.getByTestId("event-create-mobile")).toBeVisible();
-  });
-
-  test("desktop detail keeps the close button topmost above the hero overlay", async ({
-    page,
-    request,
-  }) => {
-    await page.setViewportSize(DESKTOP_VIEWPORT);
-    const event = await getFirstEvent(request);
-
-    await openEventDetail(page, event.id);
-
-    const closeButton = page.getByRole("button", { name: "关闭" });
-    const title = page.getByRole("heading", {
-      level: 2,
-      name: new RegExp(escapeRegExp(event.title)),
+        await page.mouse.wheel(0, 5000);
+        await expect
+            .poll(() =>
+                scrollContainer.evaluate(
+                    (element) =>
+                        element.scrollTop + element.clientHeight >= element.scrollHeight - 8
+                )
+            )
+            .toBeTruthy();
     });
 
-    await expect(closeButton).toBeVisible();
-    await expect(title).toBeVisible();
-    expect(await isCloseButtonTopmost(page)).toBeTruthy();
+    test("miniapp mobile detail opens native share page and keeps create entry visible", async ({
+        page,
+        request,
+    }) => {
+        await page.setViewportSize(MOBILE_VIEWPORT);
+        await page.addInitScript(() => {
+            window.__miniShareMessages = [];
+            window.__miniNavigateUrls = [];
+            window.__webShareCalled = false;
+            Object.defineProperty(window.navigator, "share", {
+                configurable: true,
+                value: async () => {
+                    window.__webShareCalled = true;
+                },
+            });
+            window.wx = {
+                miniProgram: {
+                    navigateTo: ({ url, success }) => {
+                        window.__miniNavigateUrls.push(url);
+                        success?.();
+                    },
+                    postMessage: (message) => {
+                        window.__miniShareMessages.push(message);
+                    },
+                },
+            };
+        });
+        const event = await getFirstEvent(request);
 
-    await closeButton.click();
-    await expect(closeButton).toHaveCount(0);
-  });
+        await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
+        await expect(page.getByRole("dialog", { name: event.title })).toBeVisible();
+        await expect(page.getByTestId("event-detail-share-mobile")).toBeVisible();
+        await page.getByTestId("event-detail-share-mobile").click();
+
+        await expect
+            .poll(() => page.evaluate(() => window.__miniNavigateUrls.length))
+            .toBeGreaterThan(0);
+
+        const result = await page.evaluate(() => ({
+            nativeShareUrl: window.__miniNavigateUrls.at(-1),
+            webShareCalled: window.__webShareCalled,
+        }));
+        expect(result.webShareCalled).toBe(false);
+        expect(result.nativeShareUrl).toContain("/pages/native-share/index?");
+        expect(decodeURIComponent(result.nativeShareUrl)).toContain(`path=/events?id=${event.id}`);
+        expect(decodeURIComponent(result.nativeShareUrl)).toContain("imageUrl=http");
+        expect(decodeURIComponent(result.nativeShareUrl)).toContain(event.title);
+
+        await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
+        await expect(page.getByTestId("event-create-mobile")).toBeVisible();
+    });
+
+    test("desktop detail keeps the close button topmost above the hero overlay", async ({
+        page,
+        request,
+    }) => {
+        await page.setViewportSize(DESKTOP_VIEWPORT);
+        const event = await getFirstEvent(request);
+
+        await openEventDetail(page, event.id);
+
+        const closeButton = page.getByRole("button", { name: "关闭" });
+        const title = page.getByRole("heading", {
+            level: 2,
+            name: new RegExp(escapeRegExp(event.title)),
+        });
+
+        await expect(closeButton).toBeVisible();
+        await expect(title).toBeVisible();
+        expect(await isCloseButtonTopmost(page)).toBeTruthy();
+
+        await closeButton.click();
+        await expect(closeButton).toHaveCount(0);
+    });
 });

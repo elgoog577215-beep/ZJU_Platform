@@ -1,8 +1,8 @@
-const { getDb } = require('../config/db');
+const { getDb } = require("../config/db");
 
 const safeParseNotificationData = (raw) => {
     if (!raw) return {};
-    if (typeof raw === 'object') return raw;
+    if (typeof raw === "object") return raw;
     try {
         return JSON.parse(raw);
     } catch {
@@ -14,14 +14,22 @@ const normalizeNotificationRow = (row) => {
     const data = safeParseNotificationData(row?.data);
     return {
         ...row,
-        content: row?.content || row?.message || row?.title || '',
-        related_resource_id: row?.related_resource_id ?? data.related_resource_id ?? data.resourceId ?? null,
-        related_resource_type: row?.related_resource_type ?? data.related_resource_type ?? data.resourceType ?? null,
+        content: row?.content || row?.message || row?.title || "",
+        related_resource_id:
+            row?.related_resource_id ?? data.related_resource_id ?? data.resourceId ?? null,
+        related_resource_type:
+            row?.related_resource_type ?? data.related_resource_type ?? data.resourceType ?? null,
         is_read: Boolean(row?.is_read),
     };
 };
 
-const createNotification = async (userId, type, content, resourceId = null, resourceType = null) => {
+const createNotification = async (
+    userId,
+    type,
+    content,
+    resourceId = null,
+    resourceType = null
+) => {
     try {
         const db = await getDb();
         const payload = JSON.stringify({
@@ -29,22 +37,22 @@ const createNotification = async (userId, type, content, resourceId = null, reso
             related_resource_type: resourceType,
         });
         await db.run(
-            'INSERT INTO notifications (user_id, type, content, data) VALUES (?, ?, ?, ?)',
+            "INSERT INTO notifications (user_id, type, content, data) VALUES (?, ?, ?, ?)",
             [userId, type, content, payload]
         );
     } catch (error) {
-        console.error('[Notification] Create error:', error);
+        console.error("[Notification] Create error:", error);
     }
 };
 
 const RESOURCE_TYPE_LABEL = {
-    article: '文章',
-    photo: '图片',
-    music: '音乐',
-    video: '视频',
-    event: '活动',
-    news: '新闻',
-    project: '项目',
+    article: "文章",
+    photo: "图片",
+    music: "音乐",
+    video: "视频",
+    event: "活动",
+    news: "新闻",
+    project: "项目",
 };
 
 /**
@@ -69,16 +77,15 @@ const fanOutNewContent = async ({ authorId, resourceType, resourceId, title }) =
     try {
         const db = await getDb();
         // Author display name (nickname || username)
-        const author = await db.get(
-            'SELECT username, nickname FROM users WHERE id = ?',
-            [authorId]
-        );
+        const author = await db.get("SELECT username, nickname FROM users WHERE id = ?", [
+            authorId,
+        ]);
         if (!author) return;
-        const authorName = author.nickname || author.username || '某用户';
+        const authorName = author.nickname || author.username || "某用户";
 
         // Followers, excluding banned (+ deleted_at when the column exists)
-        const userCols = await db.all('PRAGMA table_info(users)');
-        const hasDeletedAt = userCols.some((c) => c.name === 'deleted_at');
+        const userCols = await db.all("PRAGMA table_info(users)");
+        const hasDeletedAt = userCols.some((c) => c.name === "deleted_at");
         const followerQuery = hasDeletedAt
             ? `SELECT uf.follower_id FROM user_follows uf
                JOIN users u ON u.id = uf.follower_id
@@ -91,14 +98,20 @@ const fanOutNewContent = async ({ authorId, resourceType, resourceId, title }) =
                  AND (u.role IS NULL OR u.role != 'banned')`;
         const rows = await db.all(followerQuery, [authorId]);
 
-        const safeTitle = title && String(title).trim() ? String(title).trim() : '（无标题）';
+        const safeTitle = title && String(title).trim() ? String(title).trim() : "（无标题）";
         const content = `${authorName} 发布了新${label}《${safeTitle}》`;
 
         for (const row of rows) {
-            await createNotification(row.follower_id, 'new_content', content, resourceId, resourceType);
+            await createNotification(
+                row.follower_id,
+                "new_content",
+                content,
+                resourceId,
+                resourceType
+            );
         }
     } catch (err) {
-        console.error('[fanOutNewContent] error:', err);
+        console.error("[fanOutNewContent] error:", err);
     }
 };
 
@@ -113,17 +126,14 @@ const getNotifications = async (req, res, next) => {
         // FIX: O1 — Parallelize 3 independent queries with Promise.all()
         const [notifications, countResult, unreadCountResult] = await Promise.all([
             db.all(
-                'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
                 [userId, limit, offset]
             ),
+            db.get("SELECT COUNT(*) as count FROM notifications WHERE user_id = ?", [userId]),
             db.get(
-                'SELECT COUNT(*) as count FROM notifications WHERE user_id = ?',
+                "SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0",
                 [userId]
             ),
-            db.get(
-                'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
-                [userId]
-            )
         ]);
 
         res.json({
@@ -133,10 +143,12 @@ const getNotifications = async (req, res, next) => {
                 total: countResult.count,
                 page,
                 limit,
-                totalPages: Math.ceil(countResult.count / limit)
-            }
+                totalPages: Math.ceil(countResult.count / limit),
+            },
         });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const markAsRead = async (req, res, next) => {
@@ -145,14 +157,19 @@ const markAsRead = async (req, res, next) => {
         const userId = req.user.id;
         const { id } = req.params;
 
-        if (id === 'all') {
-            await db.run('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [userId]);
+        if (id === "all") {
+            await db.run("UPDATE notifications SET is_read = 1 WHERE user_id = ?", [userId]);
         } else {
-            await db.run('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?', [id, userId]);
+            await db.run("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", [
+                id,
+                userId,
+            ]);
         }
 
         res.json({ success: true });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 const deleteNotification = async (req, res, next) => {
@@ -161,14 +178,16 @@ const deleteNotification = async (req, res, next) => {
         const userId = req.user.id;
         const { id } = req.params;
 
-        if (id === 'all') {
-            await db.run('DELETE FROM notifications WHERE user_id = ?', [userId]);
+        if (id === "all") {
+            await db.run("DELETE FROM notifications WHERE user_id = ?", [userId]);
         } else {
-            await db.run('DELETE FROM notifications WHERE id = ? AND user_id = ?', [id, userId]);
+            await db.run("DELETE FROM notifications WHERE id = ? AND user_id = ?", [id, userId]);
         }
 
         res.json({ success: true });
-    } catch (error) { next(error); }
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {
@@ -176,5 +195,5 @@ module.exports = {
     fanOutNewContent,
     getNotifications,
     markAsRead,
-    deleteNotification
+    deleteNotification,
 };

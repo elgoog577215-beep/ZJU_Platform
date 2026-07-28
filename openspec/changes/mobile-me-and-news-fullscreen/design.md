@@ -26,11 +26,11 @@
 - 用户要的是"覆盖整页"，半屏抽屉再调高是妥协，不是解决
 - z-index 不变（当前 `z-[130]`，高于 `MobileNavbar` 的 `z-[100]`，只要背景不透明就能完整遮住导航栏）
 - 关键 CSS 调整：
-  - `inset-x-0 bottom-0` → `inset-0`（四边贴齐）
-  - `max-h-[86vh]` → `h-dvh` 或去掉高度限制（动态视口高度，规避 iOS Safari 地址栏收起的 100vh 坑）
-  - `rounded-t-3xl` → 全部去掉（全屏不需要圆角）
-  - `y: '100%'` 滑入 → 改为淡入 + 轻微缩放（`opacity + scale 0.98→1`），匹配"全屏接管"的心理模型，而非"从底部抽屉推上来"
-  - 背景 `bg-white/65` 或 `bg-black/80` → 不透明 `bg-white` 或 `bg-[#0f0f0f]`，彻底盖住 MobileNavbar
+    - `inset-x-0 bottom-0` → `inset-0`（四边贴齐）
+    - `max-h-[86vh]` → `h-dvh` 或去掉高度限制（动态视口高度，规避 iOS Safari 地址栏收起的 100vh 坑）
+    - `rounded-t-3xl` → 全部去掉（全屏不需要圆角）
+    - `y: '100%'` 滑入 → 改为淡入 + 轻微缩放（`opacity + scale 0.98→1`），匹配"全屏接管"的心理模型，而非"从底部抽屉推上来"
+    - 背景 `bg-white/65` 或 `bg-black/80` → 不透明 `bg-white` 或 `bg-[#0f0f0f]`，彻底盖住 MobileNavbar
 
 ### 3. 关闭交互：useBackClose + X 按钮
 
@@ -58,12 +58,12 @@
 
 ## Risks / Trade-offs
 
-| 风险 | 概率 | 缓解 |
-|---|---|---|
-| `useBackClose` StrictMode race 复发 | 中 | 套用 `useBackClose.js` 现有的 setTimeout(0) 实现；复用同一个 hook 而非自建 history 逻辑 |
-| 全屏后没有 backdrop 感，用户不知道还能返回 | 低 | 右上角 X 按钮明显、尺寸足够、有 hover 动效（rotate-90） |
-| `100dvh` 在老 Android WebView 不支持 | 低 | fallback 到 `min-h-screen`；主要目标是 iOS Safari 的 addressbar 坑 |
-| AuthModal 登录成功后用户停留在原页（没自动跳 profile） | 中 | AuthContext 更新后用户下次点击"我的"才会跳；本轮不做"登录成功后自动 navigate"，保持和桌面端一致的行为。若后续反馈强烈，单独开 change |
+| 风险                                                   | 概率 | 缓解                                                                                                                                 |
+| ------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `useBackClose` StrictMode race 复发                    | 中   | 套用 `useBackClose.js` 现有的 setTimeout(0) 实现；复用同一个 hook 而非自建 history 逻辑                                              |
+| 全屏后没有 backdrop 感，用户不知道还能返回             | 低   | 右上角 X 按钮明显、尺寸足够、有 hover 动效（rotate-90）                                                                              |
+| `100dvh` 在老 Android WebView 不支持                   | 低   | fallback 到 `min-h-screen`；主要目标是 iOS Safari 的 addressbar 坑                                                                   |
+| AuthModal 登录成功后用户停留在原页（没自动跳 profile） | 中   | AuthContext 更新后用户下次点击"我的"才会跳；本轮不做"登录成功后自动 navigate"，保持和桌面端一致的行为。若后续反馈强烈，单独开 change |
 
 ## Out of Scope
 

@@ -30,29 +30,29 @@ Reference mature consumer apps such as WeChat, Xiaohongshu, Instagram, Notion, a
 Use a mobile-first account hub for owners:
 
 1. Account summary
-   - Avatar, display name, role, organization.
-   - Compact member meta instead of oversized hero treatment.
-   - One primary edit action and optional follow action for visitors.
+    - Avatar, display name, role, organization.
+    - Compact member meta instead of oversized hero treatment.
+    - One primary edit action and optional follow action for visitors.
 
 2. Signal stats
-   - Works, likes, followers, following.
-   - Tappable social counts switch to relations where relevant.
+    - Works, likes, followers, following.
+    - Tappable social counts switch to relations where relevant.
 
 3. Quick actions
-   - Owner: edit profile, messages, favorites, settings.
-   - Visitor: follow and view works/relations.
-   - Actions use icons, 44px touch targets, concise labels.
+    - Owner: edit profile, messages, favorites, settings.
+    - Visitor: follow and view works/relations.
+    - Actions use icons, 44px touch targets, concise labels.
 
 4. Content navigation
-   - Owner: Works, Favorites, Messages, Settings.
-   - Visitor: Works, Relations.
-   - On mobile, use a segmented control with even-width buttons instead of long overflowing chips.
+    - Owner: Works, Favorites, Messages, Settings.
+    - Visitor: Works, Relations.
+    - On mobile, use a segmented control with even-width buttons instead of long overflowing chips.
 
 5. Section presentation
-   - Works remain image/content cards.
-   - Favorites use list cards because saved content is a utility workflow.
-   - Messages embed the notification center but get a clean section header.
-   - Settings become grouped account/security/preferences cards with stable spacing.
+    - Works remain image/content cards.
+    - Favorites use list cards because saved content is a utility workflow.
+    - Messages embed the notification center but get a clean section header.
+    - Settings become grouped account/security/preferences cards with stable spacing.
 
 ## Scope
 

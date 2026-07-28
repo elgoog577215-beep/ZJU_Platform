@@ -63,10 +63,10 @@ npm run cap:add:ios
 
 ```json
 {
-  "server": {
-    "url": "http://你的局域网IP:5180",
-    "cleartext": true
-  }
+    "server": {
+        "url": "http://你的局域网IP:5180",
+        "cleartext": true
+    }
 }
 ```
 

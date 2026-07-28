@@ -1,8 +1,11 @@
 # agentic-ai-operating-system Specification
 
 ## Purpose
+
 TBD - created by archiving change agentic-ai-operating-system. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: AI Agent Registry
 
 The system SHALL maintain a machine-readable registry for all production AI agents and AI support modules.
@@ -109,4 +112,3 @@ The event recommendation agent SHALL return user-facing reasoning traces without
 - **AND** it SHALL include bounded `clarificationOptions`
 - **AND** it SHALL include bounded `provisionalRecommendations` when candidates are available
 - **AND** it SHALL include a reasoning trace explaining why clarification is useful.
-

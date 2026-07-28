@@ -24,14 +24,14 @@
 ## Impact
 
 - 前端：
-  - `src/components/ProjectPlaza.jsx`：详情弹窗增加生成海报入口，根组件管理海报预览状态。
-  - `src/components/ProjectSharePoster.jsx`：新增海报预览、二维码生成、PNG 导出、复制链接和系统分享。
-  - `src/components/projectPlaza.styles.js`：新增海报弹窗与 1080×1440 海报样式。
-  - `server/src/controllers/projectCardController.js`：项目列表与详情返回发起人展示名和头像，昵称为空时回退用户名。
-  - `public/locales/zh/translation.json`、`public/locales/en/translation.json`：新增文案。
-  - `package.json`、`package-lock.json`：新增 `html-to-image` 与 `qrcode`。
+    - `src/components/ProjectPlaza.jsx`：详情弹窗增加生成海报入口，根组件管理海报预览状态。
+    - `src/components/ProjectSharePoster.jsx`：新增海报预览、二维码生成、PNG 导出、复制链接和系统分享。
+    - `src/components/projectPlaza.styles.js`：新增海报弹窗与 1080×1440 海报样式。
+    - `server/src/controllers/projectCardController.js`：项目列表与详情返回发起人展示名和头像，昵称为空时回退用户名。
+    - `public/locales/zh/translation.json`、`public/locales/en/translation.json`：新增文案。
+    - `package.json`、`package-lock.json`：新增 `html-to-image` 与 `qrcode`。
 - 验证：
-  - OpenSpec strict validate。
-  - 前端构建。
-  - 桌面与移动页面打开项目详情，检查海报预览、二维码、下载按钮、复制链接。
-  - 英文模式检查新增海报相关文案。
+    - OpenSpec strict validate。
+    - 前端构建。
+    - 桌面与移动页面打开项目详情，检查海报预览、二维码、下载按钮、复制链接。
+    - 英文模式检查新增海报相关文案。

@@ -30,16 +30,16 @@ Mobile already hides many of them, which is correct for density. The main issue 
 ## Implemented Scope
 
 1. Add a mobile More sheet to the top bar.
-   - Shows secondary destinations that desktop nav exposes but bottom nav omits.
-   - Shows theme toggle, language switcher, auth/profile, and logout when relevant.
+    - Shows secondary destinations that desktop nav exposes but bottom nav omits.
+    - Shows theme toggle, language switcher, auth/profile, and logout when relevant.
 
 2. Reuse `MobileContentToolbar` across content pages.
-   - Events keeps its existing toolbar.
-   - Gallery, Videos, Music, and Tech feed gain the same entry pattern.
+    - Events keeps its existing toolbar.
+    - Gallery, Videos, Music, and Tech feed gain the same entry pattern.
 
 3. Preserve existing page-specific drawers.
-   - Sort and filter drawers are not rewritten.
-   - Existing upload routes continue through the mobile top Publish button.
+    - Sort and filter drawers are not rewritten.
+    - Existing upload routes continue through the mobile top Publish button.
 
 ## Toolbar Contract
 
@@ -61,4 +61,3 @@ Required checks:
 - Top bar has no more than three visible controls.
 - Gallery, Videos, Music, Events, and Tech feed all expose sort/filter access on mobile.
 - More sheet opens and closes, and secondary links are reachable.
-

@@ -1,626 +1,633 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const path = require('path');
-const bcrypt = require('bcryptjs');
-const { getDb, pool } = require('./src/config/db');
-const { runMigrations } = require('./src/config/runMigrations');
+const path = require("path");
+const bcrypt = require("bcryptjs");
+const { getDb, pool } = require("./src/config/db");
+const { runMigrations } = require("./src/config/runMigrations");
 
-const databaseFile = process.env.DATABASE_FILE || path.join(__dirname, 'database.sqlite');
+const databaseFile = process.env.DATABASE_FILE || path.join(__dirname, "database.sqlite");
 
 const settingsSeed = {
-  pagination_enabled: 'false',
-  theme: 'cyber',
-  language: 'zh',
-  site_title: '拓途浙享 | TUOTUZJU',
-  hero_title: '浙江大学信息聚合平台',
-  hero_subtitle: '打破信息差，共建信息网络',
-  about_title: '浙江大学信息聚合平台',
-  about_subtitle: '打破信息差，共建信息网络',
-  about_intro: '我们致力于消除信息差，提供一个优质信息共享平台。',
-  about_detail: '欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！',
-  contact_email: 'service@tuotuzju.com',
-  contact_phone: '0571-87950000',
-  contact_address: 'AI生态团队'
+    pagination_enabled: "false",
+    theme: "cyber",
+    language: "zh",
+    site_title: "拓途浙享 | TUOTUZJU",
+    hero_title: "浙江大学信息聚合平台",
+    hero_subtitle: "打破信息差，共建信息网络",
+    about_title: "浙江大学信息聚合平台",
+    about_subtitle: "打破信息差，共建信息网络",
+    about_intro: "我们致力于消除信息差，提供一个优质信息共享平台。",
+    about_detail:
+        "欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！",
+    contact_email: "service@tuotuzju.com",
+    contact_phone: "0571-87950000",
+    contact_address: "AI生态团队",
 };
 
 const usersSeed = [
-  {
-    username: process.env.SEED_ADMIN_USERNAME || 'seed_admin',
-    password: process.env.SEED_ADMIN_PASSWORD || 'Admin123456',
-    role: 'admin',
-    nickname: '种子管理员',
-    organization_cr: '拓途浙享',
-    created_at: '2026-03-01 09:00:00'
-  },
-  {
-    username: process.env.SEED_USER_USERNAME || 'demo_user',
-    password: process.env.SEED_USER_PASSWORD || 'Demo123456',
-    role: 'user',
-    nickname: '演示用户',
-    organization_cr: '浙江大学',
-    created_at: '2026-03-02 10:30:00'
-  }
+    {
+        username: process.env.SEED_ADMIN_USERNAME || "seed_admin",
+        password: process.env.SEED_ADMIN_PASSWORD || "Admin123456",
+        role: "admin",
+        nickname: "种子管理员",
+        organization_cr: "拓途浙享",
+        created_at: "2026-03-01 09:00:00",
+    },
+    {
+        username: process.env.SEED_USER_USERNAME || "demo_user",
+        password: process.env.SEED_USER_PASSWORD || "Demo123456",
+        role: "user",
+        nickname: "演示用户",
+        organization_cr: "浙江大学",
+        created_at: "2026-03-02 10:30:00",
+    },
 ];
 
 const photosSeed = [
-  {
-    title: '求是晨光',
-    url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop&q=80',
-    tags: '校园,摄影,晨光',
-    size: 'large',
-    featured: 1,
-    created_at: '2026-03-20 08:00:00'
-  },
-  {
-    title: '图书馆一角',
-    url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&auto=format&fit=crop&q=80',
-    tags: '学习,空间,记录',
-    size: 'wide',
-    featured: 0,
-    created_at: '2026-03-24 14:00:00'
-  },
-  {
-    title: '夜色跑道',
-    url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&auto=format&fit=crop&q=80',
-    tags: '运动,夜景,校园',
-    size: 'tall',
-    featured: 0,
-    created_at: '2026-03-26 20:00:00'
-  }
+    {
+        title: "求是晨光",
+        url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop&q=80",
+        tags: "校园,摄影,晨光",
+        size: "large",
+        featured: 1,
+        created_at: "2026-03-20 08:00:00",
+    },
+    {
+        title: "图书馆一角",
+        url: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&auto=format&fit=crop&q=80",
+        tags: "学习,空间,记录",
+        size: "wide",
+        featured: 0,
+        created_at: "2026-03-24 14:00:00",
+    },
+    {
+        title: "夜色跑道",
+        url: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&auto=format&fit=crop&q=80",
+        tags: "运动,夜景,校园",
+        size: "tall",
+        featured: 0,
+        created_at: "2026-03-26 20:00:00",
+    },
 ];
 
 const musicSeed = [
-  {
-    title: '求是之声',
-    artist: '拓途乐队',
-    duration: 228,
-    cover: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&auto=format&fit=crop&q=80',
-    audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    tags: '校园,原创,轻音乐',
-    featured: 1,
-    created_at: '2026-03-18 19:30:00'
-  },
-  {
-    title: '西溪晚风',
-    artist: '湖畔录音室',
-    duration: 203,
-    cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&auto=format&fit=crop&q=80',
-    audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-    tags: '治愈,校园,夜晚',
-    featured: 0,
-    created_at: '2026-03-22 21:00:00'
-  }
+    {
+        title: "求是之声",
+        artist: "拓途乐队",
+        duration: 228,
+        cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&auto=format&fit=crop&q=80",
+        audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        tags: "校园,原创,轻音乐",
+        featured: 1,
+        created_at: "2026-03-18 19:30:00",
+    },
+    {
+        title: "西溪晚风",
+        artist: "湖畔录音室",
+        duration: 203,
+        cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&auto=format&fit=crop&q=80",
+        audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        tags: "治愈,校园,夜晚",
+        featured: 0,
+        created_at: "2026-03-22 21:00:00",
+    },
 ];
 
 const videosSeed = [
-  {
-    title: '社团招新回顾',
-    thumbnail: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1200&auto=format&fit=crop&q=80',
-    video: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
-    tags: '社团,活动,招新',
-    featured: 1,
-    created_at: '2026-03-17 12:00:00'
-  },
-  {
-    title: '实验室开放日',
-    thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80',
-    video: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
-    tags: '科研,实验室,开放日',
-    featured: 0,
-    created_at: '2026-03-25 15:30:00'
-  }
+    {
+        title: "社团招新回顾",
+        thumbnail:
+            "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1200&auto=format&fit=crop&q=80",
+        video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4",
+        tags: "社团,活动,招新",
+        featured: 1,
+        created_at: "2026-03-17 12:00:00",
+    },
+    {
+        title: "实验室开放日",
+        thumbnail:
+            "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80",
+        video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4",
+        tags: "科研,实验室,开放日",
+        featured: 0,
+        created_at: "2026-03-25 15:30:00",
+    },
 ];
 
 const articlesSeed = [
-  {
-    title: '如何高效发现校内活动',
-    date: '2026-03-21',
-    excerpt: '从讲座、比赛到公益志愿，整理一套更适合学生的信息获取方式。',
-    tag: '校园指南',
-    tags: '校园指南,活动,信息整合',
-    cover: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>拓途浙享希望减少“知道得晚、错过报名”的问题。好的活动信息，应该被更早、更清晰地看见。</p>',
-    category: 'tech',
-    featured: 1,
-    created_at: '2026-03-16 09:30:00'
-  },
-  {
-    title: '志愿活动记录模板',
-    date: '2026-03-23',
-    excerpt: '给活动发起者和参与者一套更清晰的记录方式，方便后续沉淀和复盘。',
-    tag: '志愿服务',
-    tags: '志愿服务,模板,复盘',
-    cover: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>一篇活动记录不只用于存档，也能帮助后来者快速理解活动价值和参与方式。</p>',
-    category: 'tech',
-    featured: 0,
-    created_at: '2026-03-24 11:15:00'
-  },
-  {
-    title: '校园创作者为什么需要统一展示平台',
-    date: '2026-03-26',
-    excerpt: '作品、活动和文章如果分散在多个渠道，往往很难形成长期影响。',
-    tag: '平台思考',
-    tags: '平台思考,创作,展示',
-    cover: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>统一的平台能让创作、活动、互动之间形成连接，也更方便后续做数据分析和运营。</p>',
-    category: 'tech',
-    featured: 0,
-    created_at: '2026-03-27 16:45:00'
-  },
-  {
-    title: '学院 AI 讲座周报（第 12 期）',
-    date: '2026-03-29',
-    excerpt: '整理本周校内外 AI 方向公开讲座、开放课程与参赛通知。',
-    tag: '社区新闻',
-    tags: '新闻,讲座,AI,周报',
-    cover: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>本期收录 7 场公开讲座与 2 场比赛说明会，建议按研究方向提前预约。</p>',
-    category: 'news',
-    featured: 1,
-    created_at: '2026-03-29 10:20:00'
-  },
-  {
-    title: '开源社群动态：四月协作日程',
-    date: '2026-03-30',
-    excerpt: '发布四月开源协作安排，含新手 onboarding 与 maintainer office hour。',
-    tag: '社区新闻',
-    tags: '新闻,开源,社区',
-    cover: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>欢迎对开源感兴趣的同学报名参与，本月新增文档翻译与 issue triage 专场。</p>',
-    category: 'news',
-    featured: 0,
-    created_at: '2026-03-30 18:00:00'
-  },
-  {
-    title: '校园算力开放时段调整公告',
-    date: '2026-04-01',
-    excerpt: '实验教学周期间，公共 GPU 机房开放时段与预约规则更新。',
-    tag: '社区新闻',
-    tags: '新闻,算力,GPU',
-    cover: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&auto=format&fit=crop&q=80',
-    content: '<p>夜间时段将优先保障课程实验，科研任务建议提前两天提交预约申请。</p>',
-    category: 'news',
-    featured: 0,
-    created_at: '2026-04-01 09:00:00'
-  }
+    {
+        title: "如何高效发现校内活动",
+        date: "2026-03-21",
+        excerpt: "从讲座、比赛到公益志愿，整理一套更适合学生的信息获取方式。",
+        tag: "校园指南",
+        tags: "校园指南,活动,信息整合",
+        cover: "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&auto=format&fit=crop&q=80",
+        content:
+            "<p>拓途浙享希望减少“知道得晚、错过报名”的问题。好的活动信息，应该被更早、更清晰地看见。</p>",
+        category: "tech",
+        featured: 1,
+        created_at: "2026-03-16 09:30:00",
+    },
+    {
+        title: "志愿活动记录模板",
+        date: "2026-03-23",
+        excerpt: "给活动发起者和参与者一套更清晰的记录方式，方便后续沉淀和复盘。",
+        tag: "志愿服务",
+        tags: "志愿服务,模板,复盘",
+        cover: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&auto=format&fit=crop&q=80",
+        content: "<p>一篇活动记录不只用于存档，也能帮助后来者快速理解活动价值和参与方式。</p>",
+        category: "tech",
+        featured: 0,
+        created_at: "2026-03-24 11:15:00",
+    },
+    {
+        title: "校园创作者为什么需要统一展示平台",
+        date: "2026-03-26",
+        excerpt: "作品、活动和文章如果分散在多个渠道，往往很难形成长期影响。",
+        tag: "平台思考",
+        tags: "平台思考,创作,展示",
+        cover: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=1200&auto=format&fit=crop&q=80",
+        content:
+            "<p>统一的平台能让创作、活动、互动之间形成连接，也更方便后续做数据分析和运营。</p>",
+        category: "tech",
+        featured: 0,
+        created_at: "2026-03-27 16:45:00",
+    },
+    {
+        title: "学院 AI 讲座周报（第 12 期）",
+        date: "2026-03-29",
+        excerpt: "整理本周校内外 AI 方向公开讲座、开放课程与参赛通知。",
+        tag: "社区新闻",
+        tags: "新闻,讲座,AI,周报",
+        cover: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&auto=format&fit=crop&q=80",
+        content: "<p>本期收录 7 场公开讲座与 2 场比赛说明会，建议按研究方向提前预约。</p>",
+        category: "news",
+        featured: 1,
+        created_at: "2026-03-29 10:20:00",
+    },
+    {
+        title: "开源社群动态：四月协作日程",
+        date: "2026-03-30",
+        excerpt: "发布四月开源协作安排，含新手 onboarding 与 maintainer office hour。",
+        tag: "社区新闻",
+        tags: "新闻,开源,社区",
+        cover: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&auto=format&fit=crop&q=80",
+        content: "<p>欢迎对开源感兴趣的同学报名参与，本月新增文档翻译与 issue triage 专场。</p>",
+        category: "news",
+        featured: 0,
+        created_at: "2026-03-30 18:00:00",
+    },
+    {
+        title: "校园算力开放时段调整公告",
+        date: "2026-04-01",
+        excerpt: "实验教学周期间，公共 GPU 机房开放时段与预约规则更新。",
+        tag: "社区新闻",
+        tags: "新闻,算力,GPU",
+        cover: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&auto=format&fit=crop&q=80",
+        content: "<p>夜间时段将优先保障课程实验，科研任务建议提前两天提交预约申请。</p>",
+        category: "news",
+        featured: 0,
+        created_at: "2026-04-01 09:00:00",
+    },
 ];
 
 const communityPostsSeed = [
-  {
-    section: 'help',
-    title: 'PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路',
-    content: '在 VS Build Tools 和 CUDA 环境都安装后，编译自定义 op 仍然报符号缺失，想请教大家怎么定位。',
-    tags: 'PyTorch,CUDA,Windows',
-    status: 'approved',
-    post_status: 'open',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '环境：Python 3.11、CUDA 12.1、PyTorch 2.4。' },
-      { type: 'text', text: '错误信息集中在 C++ extension 链接阶段。' }
-    ]),
-    created_at: '2026-04-02 10:00:00'
-  },
-  {
-    section: 'help',
-    title: '大模型微调显存不足问题已解决，分享排查记录',
-    content: '把 batch size 与 gradient checkpointing 调整后，24GB 显存可以稳定训练。',
-    tags: 'LLM,显存,微调',
-    status: 'approved',
-    post_status: 'solved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '最终配置：batch size 2 + accumulation 8。' },
-      { type: 'text', text: '建议先用 profile 工具观察激活占用。' }
-    ]),
-    created_at: '2026-04-03 09:30:00'
-  },
-  {
-    section: 'help',
-    title: '求推荐适合课程项目的 RAG 基线实现',
-    content: '课程项目要求两周内出结果，希望选择上手快、可解释性好的方案。',
-    tags: 'RAG,课程项目,检索',
-    status: 'approved',
-    post_status: 'open',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '优先考虑 LangChain 或 LlamaIndex 的轻量组合。' }
-    ]),
-    created_at: '2026-04-04 15:40:00'
-  },
-  {
-    section: 'team',
-    title: 'CVPR 复现小队招募：视频理解方向',
-    content: '希望招募 3 名同学一起做论文复现，按周推进实验与报告。',
-    tags: 'CV,论文复现,组队',
-    status: 'approved',
-    post_status: 'recruiting',
-    deadline: '2026-05-10',
-    max_members: 4,
-    current_members: 2,
-    link: 'https://example.com/team/cvpr-reproduce',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '方向：视频动作识别与多模态融合。' },
-      { type: 'text', text: '每周两次站会，要求能稳定投入。' }
-    ]),
-    created_at: '2026-04-02 20:00:00'
-  },
-  {
-    section: 'team',
-    title: 'AI 黑客松队伍补位：前端 + Prompt 工程',
-    content: '已有后端和算法同学，缺 1 位前端与 1 位 prompt 工程同学。',
-    tags: '黑客松,前端,Prompt',
-    status: 'approved',
-    post_status: 'full',
-    deadline: '2026-04-20',
-    max_members: 5,
-    current_members: 5,
-    link: 'https://example.com/team/hackathon-ai',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '目标是完成可演示的 AI 助手产品 MVP。' }
-    ]),
-    created_at: '2026-04-01 18:20:00'
-  },
-  {
-    section: 'team',
-    title: '校园数据可视化项目协作招募',
-    content: '寻找对数据分析与交互可视化感兴趣的同学，共建公开展示站点。',
-    tags: '数据可视化,协作,开源',
-    status: 'approved',
-    post_status: 'recruiting',
-    deadline: '2026-05-30',
-    max_members: 6,
-    current_members: 3,
-    link: 'https://example.com/team/dataviz-campus',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '使用 React + ECharts，数据源来自公开校园统计。' }
-    ]),
-    created_at: '2026-04-05 11:10:00'
-  },
-  // --- tech 版块 ---
-  {
-    section: 'tech',
-    title: 'LoRA 微调 LLaMA-3 实战总结',
-    content: '记录在单卡 A100 上使用 LoRA 微调 LLaMA-3-8B 的完整流程与踩坑经验。',
-    tags: 'LoRA,LLaMA,微调',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '使用 PEFT + bitsandbytes 实现 4-bit 量化训练。' },
-      { type: 'text', text: '最终在自建数据集上 BLEU 提升了 12%。' }
-    ]),
-    created_at: '2026-04-03 14:00:00'
-  },
-  {
-    section: 'tech',
-    title: '用 LangGraph 构建多 Agent 工作流',
-    content: '分享基于 LangGraph 的多 Agent 编排方案，适合课程项目快速搭建原型。',
-    tags: 'LangGraph,Agent,工作流',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '核心思路是将任务拆分为 planner、executor、reviewer 三个角色。' }
-    ]),
-    created_at: '2026-04-04 10:30:00'
-  },
-  {
-    section: 'tech',
-    title: 'CUDA 并行优化入门：从矩阵乘法说起',
-    content: '从最基础的矩阵乘法 kernel 出发，逐步介绍 shared memory 和 warp-level 优化技巧。',
-    tags: 'CUDA,GPU,并行计算',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '包含完整的 benchmark 对比和 Nsight 分析截图。' }
-    ]),
-    created_at: '2026-04-06 09:00:00'
-  },
-  // --- news 版块 ---
-  {
-    section: 'news',
-    title: 'GPT-5 发布：多模态能力大幅提升',
-    content: 'OpenAI 正式发布 GPT-5，在推理、多模态理解等方面均有显著进步，社区热议中。',
-    tags: 'GPT-5,OpenAI,行业动态',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '关键改进：原生多模态、更长上下文窗口、推理准确率提升。' }
-    ]),
-    created_at: '2026-04-01 08:00:00'
-  },
-  {
-    section: 'news',
-    title: '浙大 AI 实验室两篇论文入选 ICML 2026',
-    content: '浙大计算机学院 AI 实验室在强化学习与图神经网络方向各有一篇论文被 ICML 2026 接收。',
-    tags: 'ICML,浙大,论文',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '感兴趣的同学可以关注实验室主页获取预印本链接。' }
-    ]),
-    created_at: '2026-04-02 12:00:00'
-  },
-  {
-    section: 'news',
-    title: '国内首个高校 AI 算力共享平台上线',
-    content: '教育部联合多所高校推出 AI 算力共享平台，浙大为首批接入高校之一。',
-    tags: '算力,高校,政策',
-    status: 'approved',
-    content_blocks: JSON.stringify([
-      { type: 'text', text: '学生可通过校园账号申请 GPU 时长，支持 A100/H100。' }
-    ]),
-    created_at: '2026-04-05 16:00:00'
-  }
+    {
+        section: "help",
+        title: "PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路",
+        content:
+            "在 VS Build Tools 和 CUDA 环境都安装后，编译自定义 op 仍然报符号缺失，想请教大家怎么定位。",
+        tags: "PyTorch,CUDA,Windows",
+        status: "approved",
+        post_status: "open",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "环境：Python 3.11、CUDA 12.1、PyTorch 2.4。" },
+            { type: "text", text: "错误信息集中在 C++ extension 链接阶段。" },
+        ]),
+        created_at: "2026-04-02 10:00:00",
+    },
+    {
+        section: "help",
+        title: "大模型微调显存不足问题已解决，分享排查记录",
+        content: "把 batch size 与 gradient checkpointing 调整后，24GB 显存可以稳定训练。",
+        tags: "LLM,显存,微调",
+        status: "approved",
+        post_status: "solved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "最终配置：batch size 2 + accumulation 8。" },
+            { type: "text", text: "建议先用 profile 工具观察激活占用。" },
+        ]),
+        created_at: "2026-04-03 09:30:00",
+    },
+    {
+        section: "help",
+        title: "求推荐适合课程项目的 RAG 基线实现",
+        content: "课程项目要求两周内出结果，希望选择上手快、可解释性好的方案。",
+        tags: "RAG,课程项目,检索",
+        status: "approved",
+        post_status: "open",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "优先考虑 LangChain 或 LlamaIndex 的轻量组合。" },
+        ]),
+        created_at: "2026-04-04 15:40:00",
+    },
+    {
+        section: "team",
+        title: "CVPR 复现小队招募：视频理解方向",
+        content: "希望招募 3 名同学一起做论文复现，按周推进实验与报告。",
+        tags: "CV,论文复现,组队",
+        status: "approved",
+        post_status: "recruiting",
+        deadline: "2026-05-10",
+        max_members: 4,
+        current_members: 2,
+        link: "https://example.com/team/cvpr-reproduce",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "方向：视频动作识别与多模态融合。" },
+            { type: "text", text: "每周两次站会，要求能稳定投入。" },
+        ]),
+        created_at: "2026-04-02 20:00:00",
+    },
+    {
+        section: "team",
+        title: "AI 黑客松队伍补位：前端 + Prompt 工程",
+        content: "已有后端和算法同学，缺 1 位前端与 1 位 prompt 工程同学。",
+        tags: "黑客松,前端,Prompt",
+        status: "approved",
+        post_status: "full",
+        deadline: "2026-04-20",
+        max_members: 5,
+        current_members: 5,
+        link: "https://example.com/team/hackathon-ai",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "目标是完成可演示的 AI 助手产品 MVP。" },
+        ]),
+        created_at: "2026-04-01 18:20:00",
+    },
+    {
+        section: "team",
+        title: "校园数据可视化项目协作招募",
+        content: "寻找对数据分析与交互可视化感兴趣的同学，共建公开展示站点。",
+        tags: "数据可视化,协作,开源",
+        status: "approved",
+        post_status: "recruiting",
+        deadline: "2026-05-30",
+        max_members: 6,
+        current_members: 3,
+        link: "https://example.com/team/dataviz-campus",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "使用 React + ECharts，数据源来自公开校园统计。" },
+        ]),
+        created_at: "2026-04-05 11:10:00",
+    },
+    // --- tech 版块 ---
+    {
+        section: "tech",
+        title: "LoRA 微调 LLaMA-3 实战总结",
+        content: "记录在单卡 A100 上使用 LoRA 微调 LLaMA-3-8B 的完整流程与踩坑经验。",
+        tags: "LoRA,LLaMA,微调",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "使用 PEFT + bitsandbytes 实现 4-bit 量化训练。" },
+            { type: "text", text: "最终在自建数据集上 BLEU 提升了 12%。" },
+        ]),
+        created_at: "2026-04-03 14:00:00",
+    },
+    {
+        section: "tech",
+        title: "用 LangGraph 构建多 Agent 工作流",
+        content: "分享基于 LangGraph 的多 Agent 编排方案，适合课程项目快速搭建原型。",
+        tags: "LangGraph,Agent,工作流",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "核心思路是将任务拆分为 planner、executor、reviewer 三个角色。" },
+        ]),
+        created_at: "2026-04-04 10:30:00",
+    },
+    {
+        section: "tech",
+        title: "CUDA 并行优化入门：从矩阵乘法说起",
+        content: "从最基础的矩阵乘法 kernel 出发，逐步介绍 shared memory 和 warp-level 优化技巧。",
+        tags: "CUDA,GPU,并行计算",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "包含完整的 benchmark 对比和 Nsight 分析截图。" },
+        ]),
+        created_at: "2026-04-06 09:00:00",
+    },
+    // --- news 版块 ---
+    {
+        section: "news",
+        title: "GPT-5 发布：多模态能力大幅提升",
+        content: "OpenAI 正式发布 GPT-5，在推理、多模态理解等方面均有显著进步，社区热议中。",
+        tags: "GPT-5,OpenAI,行业动态",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "关键改进：原生多模态、更长上下文窗口、推理准确率提升。" },
+        ]),
+        created_at: "2026-04-01 08:00:00",
+    },
+    {
+        section: "news",
+        title: "浙大 AI 实验室两篇论文入选 ICML 2026",
+        content:
+            "浙大计算机学院 AI 实验室在强化学习与图神经网络方向各有一篇论文被 ICML 2026 接收。",
+        tags: "ICML,浙大,论文",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "感兴趣的同学可以关注实验室主页获取预印本链接。" },
+        ]),
+        created_at: "2026-04-02 12:00:00",
+    },
+    {
+        section: "news",
+        title: "国内首个高校 AI 算力共享平台上线",
+        content: "教育部联合多所高校推出 AI 算力共享平台，浙大为首批接入高校之一。",
+        tags: "算力,高校,政策",
+        status: "approved",
+        content_blocks: JSON.stringify([
+            { type: "text", text: "学生可通过校园账号申请 GPU 时长，支持 A100/H100。" },
+        ]),
+        created_at: "2026-04-05 16:00:00",
+    },
 ];
 
 const communityCommentsSeed = [
-  {
-    postTitle: 'PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路',
-    author: '演示用户',
-    content: '可以先检查一下 `cl` 和 `nvcc` 的 PATH 顺序，我之前是这个问题。',
-    created_at: '2026-04-02 11:00:00'
-  },
-  {
-    postTitle: '大模型微调显存不足问题已解决，分享排查记录',
-    author: '演示用户',
-    content: '确认了，gradient checkpointing 确实能大幅减少显存占用，感谢分享！',
-    created_at: '2026-04-03 10:00:00',
-    isBestAnswer: true
-  },
-  {
-    postTitle: '求推荐适合课程项目的 RAG 基线实现',
-    author: '种子管理员',
-    content: '建议先用 BM25 + 向量检索双路召回，评估指标更稳。',
-    created_at: '2026-04-04 16:10:00'
-  }
+    {
+        postTitle: "PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路",
+        author: "演示用户",
+        content: "可以先检查一下 `cl` 和 `nvcc` 的 PATH 顺序，我之前是这个问题。",
+        created_at: "2026-04-02 11:00:00",
+    },
+    {
+        postTitle: "大模型微调显存不足问题已解决，分享排查记录",
+        author: "演示用户",
+        content: "确认了，gradient checkpointing 确实能大幅减少显存占用，感谢分享！",
+        created_at: "2026-04-03 10:00:00",
+        isBestAnswer: true,
+    },
+    {
+        postTitle: "求推荐适合课程项目的 RAG 基线实现",
+        author: "种子管理员",
+        content: "建议先用 BM25 + 向量检索双路召回，评估指标更稳。",
+        created_at: "2026-04-04 16:10:00",
+    },
 ];
 
 const communityGroupsSeed = [
-  {
-    name: 'AI 社区总群',
-    description: '发布社群公告、活动速递与平台更新，适合新加入同学。',
-    platform: 'wechat',
-    invite_link: 'https://example.com/groups/main',
-    member_count: 128,
-    category: '综合交流',
-    review_status: 'approved',
-    is_recommended: 1,
-    sort_order: 12,
-    valid_until: '2026-12-31',
-    is_expired: 0
-  },
-  {
-    name: '技术分享群',
-    description: '聚焦工程实践与论文复现，欢迎分享项目进展与踩坑记录。',
-    platform: 'qq',
-    invite_link: 'https://example.com/groups/tech',
-    member_count: 76,
-    category: '技术交流',
-    review_status: 'approved',
-    is_recommended: 1,
-    sort_order: 9,
-    valid_until: '2026-10-01',
-    is_expired: 0
-  },
-  {
-    name: 'AI Builders',
-    description: '英文频道，面向 AI 项目协作与开源贡献讨论。',
-    platform: 'discord',
-    invite_link: 'https://discord.gg/example',
-    member_count: 42,
-    category: '国际交流',
-    review_status: 'pending',
-    is_recommended: 0,
-    sort_order: 2,
-    valid_until: '2026-09-01',
-    is_expired: 0
-  },
-  {
-    name: '已过期示例群',
-    description: '用于展示过期状态样式与管理流程。',
-    platform: 'wechat',
-    invite_link: 'https://example.com/groups/expired',
-    member_count: 18,
-    category: '测试',
-    review_status: 'approved',
-    is_recommended: 0,
-    sort_order: 1,
-    valid_until: '2025-12-31',
-    is_expired: 1,
-    review_note: '二维码已过期，请更新后重新提交'
-  },
-  {
-    name: '驳回示例群',
-    description: '用于展示审核驳回状态与备注。',
-    platform: 'telegram',
-    invite_link: 'https://t.me/example_group',
-    member_count: 5,
-    category: '测试',
-    review_status: 'rejected',
-    is_recommended: 0,
-    sort_order: 0,
-    valid_until: '2026-08-01',
-    is_expired: 0,
-    review_note: '邀请链接格式不规范，请补充有效二维码'
-  }
+    {
+        name: "AI 社区总群",
+        description: "发布社群公告、活动速递与平台更新，适合新加入同学。",
+        platform: "wechat",
+        invite_link: "https://example.com/groups/main",
+        member_count: 128,
+        category: "综合交流",
+        review_status: "approved",
+        is_recommended: 1,
+        sort_order: 12,
+        valid_until: "2026-12-31",
+        is_expired: 0,
+    },
+    {
+        name: "技术分享群",
+        description: "聚焦工程实践与论文复现，欢迎分享项目进展与踩坑记录。",
+        platform: "qq",
+        invite_link: "https://example.com/groups/tech",
+        member_count: 76,
+        category: "技术交流",
+        review_status: "approved",
+        is_recommended: 1,
+        sort_order: 9,
+        valid_until: "2026-10-01",
+        is_expired: 0,
+    },
+    {
+        name: "AI Builders",
+        description: "英文频道，面向 AI 项目协作与开源贡献讨论。",
+        platform: "discord",
+        invite_link: "https://discord.gg/example",
+        member_count: 42,
+        category: "国际交流",
+        review_status: "pending",
+        is_recommended: 0,
+        sort_order: 2,
+        valid_until: "2026-09-01",
+        is_expired: 0,
+    },
+    {
+        name: "已过期示例群",
+        description: "用于展示过期状态样式与管理流程。",
+        platform: "wechat",
+        invite_link: "https://example.com/groups/expired",
+        member_count: 18,
+        category: "测试",
+        review_status: "approved",
+        is_recommended: 0,
+        sort_order: 1,
+        valid_until: "2025-12-31",
+        is_expired: 1,
+        review_note: "二维码已过期，请更新后重新提交",
+    },
+    {
+        name: "驳回示例群",
+        description: "用于展示审核驳回状态与备注。",
+        platform: "telegram",
+        invite_link: "https://t.me/example_group",
+        member_count: 5,
+        category: "测试",
+        review_status: "rejected",
+        is_recommended: 0,
+        sort_order: 0,
+        valid_until: "2026-08-01",
+        is_expired: 0,
+        review_note: "邀请链接格式不规范，请补充有效二维码",
+    },
 ];
 
 const newsSeed = [
-  {
-    title: 'AI 社区周报：本周活动与资源更新',
-    excerpt: '汇总本周 AI 社区重点活动、讲座、项目协作与资源上新。',
-    content: '本周新增 6 场讲座、3 个开源协作任务，建议优先关注周末报名截止项。',
-    source_name: 'tuotuzju.com',
-    source_url: 'https://tuotuzju.com/news/weekly-01',
-    import_type: 'manual',
-    hot_score: 168,
-    is_pinned: 1,
-    pin_weight: 12,
-    featured: 1,
-    status: 'approved',
-    created_at: '2026-04-09 08:30:00'
-  },
-  {
-    title: '浙大 AI 公开讲座开放报名',
-    excerpt: '本周末将举办大模型工程化专题讲座，名额有限。',
-    content: '讲座聚焦推理优化、服务稳定性、评测闭环，面向全校学生开放。',
-    source_name: 'zju.edu.cn',
-    source_url: 'https://www.zju.edu.cn/lecture/ai-engineering',
-    import_type: 'external',
-    hot_score: 96,
-    is_pinned: 0,
-    pin_weight: 0,
-    featured: 1,
-    status: 'approved',
-    created_at: '2026-04-10 12:00:00'
-  },
-  {
-    title: 'GPU 公共算力时段调整通知',
-    excerpt: '实验教学周期间，GPU 机房开放时段将进行临时调整。',
-    content: '夜间时段优先保障课程实验任务，科研作业建议提前预约。',
-    source_name: 'lab.zju.edu.cn',
-    source_url: 'https://lab.zju.edu.cn/notice/gpu-schedule',
-    import_type: 'external',
-    hot_score: 82,
-    is_pinned: 0,
-    pin_weight: 0,
-    featured: 0,
-    status: 'approved',
-    created_at: '2026-04-11 09:20:00'
-  },
-  {
-    title: '导入草稿示例：LLM Benchmark 新榜单',
-    excerpt: '用于测试导入后编辑确认发布流程。',
-    content: '该条目处于草稿状态，用于测试管理员编辑与发布链路。',
-    source_name: 'benchmark.example.com',
-    source_url: 'https://benchmark.example.com/llm/rankings',
-    import_type: 'external',
-    hot_score: 20,
-    is_pinned: 0,
-    pin_weight: 0,
-    featured: 0,
-    status: 'draft',
-    created_at: '2026-04-11 10:00:00'
-  },
-  {
-    title: '待审核示例：校园 AI 创客营开放申请',
-    excerpt: '用于测试待审核筛选与审核动作。',
-    content: '该条目用于测试 pending -> approved/rejected 审核流。',
-    source_name: 'maker.example.com',
-    source_url: 'https://maker.example.com/ai-camp',
-    import_type: 'manual',
-    hot_score: 35,
-    is_pinned: 0,
-    pin_weight: 0,
-    featured: 0,
-    status: 'pending',
-    created_at: '2026-04-12 08:00:00'
-  },
-  {
-    title: '驳回示例：失效来源新闻',
-    excerpt: '用于测试失效来源 fallback 提示。',
-    content: '该条目来源可能不可达，前端会提示复制标题+来源进行搜索。',
-    source_name: 'legacy.example.org',
-    source_url: 'https://legacy.example.org/unreachable-news',
-    import_type: 'external',
-    hot_score: 10,
-    is_pinned: 0,
-    pin_weight: 0,
-    featured: 0,
-    status: 'rejected',
-    created_at: '2026-04-12 09:00:00'
-  }
+    {
+        title: "AI 社区周报：本周活动与资源更新",
+        excerpt: "汇总本周 AI 社区重点活动、讲座、项目协作与资源上新。",
+        content: "本周新增 6 场讲座、3 个开源协作任务，建议优先关注周末报名截止项。",
+        source_name: "tuotuzju.com",
+        source_url: "https://tuotuzju.com/news/weekly-01",
+        import_type: "manual",
+        hot_score: 168,
+        is_pinned: 1,
+        pin_weight: 12,
+        featured: 1,
+        status: "approved",
+        created_at: "2026-04-09 08:30:00",
+    },
+    {
+        title: "浙大 AI 公开讲座开放报名",
+        excerpt: "本周末将举办大模型工程化专题讲座，名额有限。",
+        content: "讲座聚焦推理优化、服务稳定性、评测闭环，面向全校学生开放。",
+        source_name: "zju.edu.cn",
+        source_url: "https://www.zju.edu.cn/lecture/ai-engineering",
+        import_type: "external",
+        hot_score: 96,
+        is_pinned: 0,
+        pin_weight: 0,
+        featured: 1,
+        status: "approved",
+        created_at: "2026-04-10 12:00:00",
+    },
+    {
+        title: "GPU 公共算力时段调整通知",
+        excerpt: "实验教学周期间，GPU 机房开放时段将进行临时调整。",
+        content: "夜间时段优先保障课程实验任务，科研作业建议提前预约。",
+        source_name: "lab.zju.edu.cn",
+        source_url: "https://lab.zju.edu.cn/notice/gpu-schedule",
+        import_type: "external",
+        hot_score: 82,
+        is_pinned: 0,
+        pin_weight: 0,
+        featured: 0,
+        status: "approved",
+        created_at: "2026-04-11 09:20:00",
+    },
+    {
+        title: "导入草稿示例：LLM Benchmark 新榜单",
+        excerpt: "用于测试导入后编辑确认发布流程。",
+        content: "该条目处于草稿状态，用于测试管理员编辑与发布链路。",
+        source_name: "benchmark.example.com",
+        source_url: "https://benchmark.example.com/llm/rankings",
+        import_type: "external",
+        hot_score: 20,
+        is_pinned: 0,
+        pin_weight: 0,
+        featured: 0,
+        status: "draft",
+        created_at: "2026-04-11 10:00:00",
+    },
+    {
+        title: "待审核示例：校园 AI 创客营开放申请",
+        excerpt: "用于测试待审核筛选与审核动作。",
+        content: "该条目用于测试 pending -> approved/rejected 审核流。",
+        source_name: "maker.example.com",
+        source_url: "https://maker.example.com/ai-camp",
+        import_type: "manual",
+        hot_score: 35,
+        is_pinned: 0,
+        pin_weight: 0,
+        featured: 0,
+        status: "pending",
+        created_at: "2026-04-12 08:00:00",
+    },
+    {
+        title: "驳回示例：失效来源新闻",
+        excerpt: "用于测试失效来源 fallback 提示。",
+        content: "该条目来源可能不可达，前端会提示复制标题+来源进行搜索。",
+        source_name: "legacy.example.org",
+        source_url: "https://legacy.example.org/unreachable-news",
+        import_type: "external",
+        hot_score: 10,
+        is_pinned: 0,
+        pin_weight: 0,
+        featured: 0,
+        status: "rejected",
+        created_at: "2026-04-12 09:00:00",
+    },
 ];
 
 const eventsSeed = [
-  {
-    title: '春季校园市集志愿招募',
-    date: '2026-04-12 09:00:00',
-    end_date: '2026-04-12 17:30:00',
-    location: '紫金港校区主广场',
-    tags: '志愿,市集,校园',
-    status: 'approved',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&auto=format&fit=crop&q=80',
-    description: '协助春季校园市集的现场指引、秩序维护与摊位协调。',
-    content: '<p>欢迎希望积累活动组织经验的同学参与。活动结束后会提供志愿服务证明。</p>',
-    link: 'https://example.com/events/spring-market',
-    featured: 1,
-    score: '4.8',
-    target_audience: '本科生,研究生',
-    organizer: 'AI生态团队',
-    volunteer_time: '8 小时',
-    category: '志愿服务',
-    views: 18,
-    created_at: '2026-03-20 09:00:00'
-  },
-  {
-    title: 'AI 工具效率分享会',
-    date: '2026-04-18 14:00:00',
-    end_date: '2026-04-18 16:00:00',
-    location: '图书馆报告厅',
-    tags: '讲座,AI,学习效率',
-    status: 'approved',
-    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80',
-    description: '围绕学习、资料整理、活动运营三类场景，分享 AI 工具的真实使用经验。',
-    content: '<p>本次活动会结合校内场景，介绍信息整合、内容生产和协作流程的实践案例。</p>',
-    link: 'https://example.com/events/ai-workshop',
-    featured: 0,
-    score: '4.7',
-    target_audience: '全校师生',
-    organizer: '信息素养协会',
-    volunteer_time: '',
-    category: '学术讲座',
-    views: 11,
-    created_at: '2026-03-22 13:00:00'
-  },
-  {
-    title: '社区助老数字服务日',
-    date: '2026-03-28 09:30:00',
-    end_date: '2026-03-28 12:00:00',
-    location: '文三路社区中心',
-    tags: '公益,助老,数字服务',
-    status: 'approved',
-    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&auto=format&fit=crop&q=80',
-    description: '帮助社区老人解决手机支付、挂号和线上出行等常见问题。',
-    content: '<p>活动已顺利结束，欢迎上传现场照片与心得，帮助更多团队复用活动经验。</p>',
-    link: 'https://example.com/events/community-service',
-    featured: 0,
-    score: '4.9',
-    target_audience: '志愿者',
-    organizer: '青年志愿者协会',
-    volunteer_time: '3 小时',
-    category: '公益实践',
-    views: 26,
-    created_at: '2026-03-12 10:00:00'
-  },
-  {
-    title: '跨学科项目招募说明会',
-    date: '2026-04-25 19:00:00',
-    end_date: '2026-04-25 20:30:00',
-    location: '线上会议',
-    tags: '项目,招募,跨学科',
-    status: 'pending',
-    image: 'https://images.unsplash.com/photo-1515169067868-5387ec356754?w=1200&auto=format&fit=crop&q=80',
-    description: '面向想做真实项目的同学，介绍选题方向、协作机制和报名方式。',
-    content: '<p>该活动仍在审核中，用于验证后台审核流和待审核列表。</p>',
-    link: 'https://example.com/events/project-open-call',
-    featured: 0,
-    score: '4.6',
-    target_audience: '本科生,研究生',
-    organizer: '创新实践中心',
-    volunteer_time: '',
-    category: '项目招募',
-    views: 0,
-    created_at: '2026-03-27 18:20:00'
-  }
+    {
+        title: "春季校园市集志愿招募",
+        date: "2026-04-12 09:00:00",
+        end_date: "2026-04-12 17:30:00",
+        location: "紫金港校区主广场",
+        tags: "志愿,市集,校园",
+        status: "approved",
+        image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&auto=format&fit=crop&q=80",
+        description: "协助春季校园市集的现场指引、秩序维护与摊位协调。",
+        content: "<p>欢迎希望积累活动组织经验的同学参与。活动结束后会提供志愿服务证明。</p>",
+        link: "https://example.com/events/spring-market",
+        featured: 1,
+        score: "4.8",
+        target_audience: "本科生,研究生",
+        organizer: "AI生态团队",
+        volunteer_time: "8 小时",
+        category: "志愿服务",
+        views: 18,
+        created_at: "2026-03-20 09:00:00",
+    },
+    {
+        title: "AI 工具效率分享会",
+        date: "2026-04-18 14:00:00",
+        end_date: "2026-04-18 16:00:00",
+        location: "图书馆报告厅",
+        tags: "讲座,AI,学习效率",
+        status: "approved",
+        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80",
+        description: "围绕学习、资料整理、活动运营三类场景，分享 AI 工具的真实使用经验。",
+        content: "<p>本次活动会结合校内场景，介绍信息整合、内容生产和协作流程的实践案例。</p>",
+        link: "https://example.com/events/ai-workshop",
+        featured: 0,
+        score: "4.7",
+        target_audience: "全校师生",
+        organizer: "信息素养协会",
+        volunteer_time: "",
+        category: "学术讲座",
+        views: 11,
+        created_at: "2026-03-22 13:00:00",
+    },
+    {
+        title: "社区助老数字服务日",
+        date: "2026-03-28 09:30:00",
+        end_date: "2026-03-28 12:00:00",
+        location: "文三路社区中心",
+        tags: "公益,助老,数字服务",
+        status: "approved",
+        image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&auto=format&fit=crop&q=80",
+        description: "帮助社区老人解决手机支付、挂号和线上出行等常见问题。",
+        content: "<p>活动已顺利结束，欢迎上传现场照片与心得，帮助更多团队复用活动经验。</p>",
+        link: "https://example.com/events/community-service",
+        featured: 0,
+        score: "4.9",
+        target_audience: "志愿者",
+        organizer: "青年志愿者协会",
+        volunteer_time: "3 小时",
+        category: "公益实践",
+        views: 26,
+        created_at: "2026-03-12 10:00:00",
+    },
+    {
+        title: "跨学科项目招募说明会",
+        date: "2026-04-25 19:00:00",
+        end_date: "2026-04-25 20:30:00",
+        location: "线上会议",
+        tags: "项目,招募,跨学科",
+        status: "pending",
+        image: "https://images.unsplash.com/photo-1515169067868-5387ec356754?w=1200&auto=format&fit=crop&q=80",
+        description: "面向想做真实项目的同学，介绍选题方向、协作机制和报名方式。",
+        content: "<p>该活动仍在审核中，用于验证后台审核流和待审核列表。</p>",
+        link: "https://example.com/events/project-open-call",
+        featured: 0,
+        score: "4.6",
+        target_audience: "本科生,研究生",
+        organizer: "创新实践中心",
+        volunteer_time: "",
+        category: "项目招募",
+        views: 0,
+        created_at: "2026-03-27 18:20:00",
+    },
 ];
 
 const messagesSeed = [
-  {
-    name: '王同学',
-    email: 'student@example.com',
-    message: '希望后续可以增加按学院筛选活动的功能。',
-    date: '2026-03-28T08:30:00.000Z',
-    read: 0
-  }
+    {
+        name: "王同学",
+        email: "student@example.com",
+        message: "希望后续可以增加按学院筛选活动的功能。",
+        date: "2026-03-28T08:30:00.000Z",
+        read: 0,
+    },
 ];
 
 async function resetDatabase(db) {
-  console.log('🧹 Resetting database...');
-  await db.exec('PRAGMA foreign_keys = OFF');
-  await db.exec(`
+    console.log("🧹 Resetting database...");
+    await db.exec("PRAGMA foreign_keys = OFF");
+    await db.exec(`
     DROP TABLE IF EXISTS event_registrations;
     DROP TABLE IF EXISTS event_view_events;
     DROP TABLE IF EXISTS site_daily_visitors;
@@ -645,366 +652,478 @@ async function resetDatabase(db) {
     DROP TABLE IF EXISTS photos;
     DROP TABLE IF EXISTS users;
   `);
-  await db.exec('PRAGMA foreign_keys = ON');
+    await db.exec("PRAGMA foreign_keys = ON");
 }
 
 async function insertSettings(db) {
-  for (const [key, value] of Object.entries(settingsSeed)) {
-    await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
-  }
+    for (const [key, value] of Object.entries(settingsSeed)) {
+        await db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [key, value]);
+    }
 }
 
 async function insertUsers(db) {
-  const insertedUsers = [];
+    const insertedUsers = [];
 
-  for (const user of usersSeed) {
-    const password = await bcrypt.hash(user.password, 10);
-    const result = await db.run(
-      `
+    for (const user of usersSeed) {
+        const password = await bcrypt.hash(user.password, 10);
+        const result = await db.run(
+            `
         INSERT INTO users (username, password, role, nickname, organization_cr, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
       `,
-      [user.username, password, user.role, user.nickname, user.organization_cr, user.created_at]
-    );
+            [
+                user.username,
+                password,
+                user.role,
+                user.nickname,
+                user.organization_cr,
+                user.created_at,
+            ]
+        );
 
-    insertedUsers.push({ ...user, id: result.lastID });
-  }
+        insertedUsers.push({ ...user, id: result.lastID });
+    }
 
-  return insertedUsers;
+    return insertedUsers;
 }
 
 async function insertContent(db, users) {
-  const adminId = users.find(user => user.role === 'admin')?.id || null;
+    const adminId = users.find((user) => user.role === "admin")?.id || null;
 
-  for (const photo of photosSeed) {
-    await db.run(
-      `
+    for (const photo of photosSeed) {
+        await db.run(
+            `
         INSERT INTO photos (url, title, tags, size, gameType, gameDescription, featured, status, uploader_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
       `,
-      [photo.url, photo.title, photo.tags, photo.size, null, null, photo.featured, adminId, photo.created_at]
-    );
-  }
+            [
+                photo.url,
+                photo.title,
+                photo.tags,
+                photo.size,
+                null,
+                null,
+                photo.featured,
+                adminId,
+                photo.created_at,
+            ]
+        );
+    }
 
-  for (const track of musicSeed) {
-    await db.run(
-      `
+    for (const track of musicSeed) {
+        await db.run(
+            `
         INSERT INTO music (title, artist, duration, cover, audio, featured, tags, status, uploader_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
       `,
-      [track.title, track.artist, track.duration, track.cover, track.audio, track.featured, track.tags, adminId, track.created_at]
-    );
-  }
+            [
+                track.title,
+                track.artist,
+                track.duration,
+                track.cover,
+                track.audio,
+                track.featured,
+                track.tags,
+                adminId,
+                track.created_at,
+            ]
+        );
+    }
 
-  for (const video of videosSeed) {
-    await db.run(
-      `
+    for (const video of videosSeed) {
+        await db.run(
+            `
         INSERT INTO videos (title, tags, thumbnail, video, featured, status, uploader_id, created_at)
         VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)
       `,
-      [video.title, video.tags, video.thumbnail, video.video, video.featured, adminId, video.created_at]
-    );
-  }
+            [
+                video.title,
+                video.tags,
+                video.thumbnail,
+                video.video,
+                video.featured,
+                adminId,
+                video.created_at,
+            ]
+        );
+    }
 
-  for (const article of articlesSeed) {
-    await db.run(
-      `
+    for (const article of articlesSeed) {
+        await db.run(
+            `
         INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, category, featured, status, uploader_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
       `,
-      [article.title, article.date, article.excerpt, article.tag, article.tags, article.content, article.cover, article.category || 'tech', article.featured, adminId, article.created_at]
-    );
-  }
+            [
+                article.title,
+                article.date,
+                article.excerpt,
+                article.tag,
+                article.tags,
+                article.content,
+                article.cover,
+                article.category || "tech",
+                article.featured,
+                adminId,
+                article.created_at,
+            ]
+        );
+    }
 
-  for (const event of eventsSeed) {
-    await db.run(
-      `
+    for (const event of eventsSeed) {
+        await db.run(
+            `
         INSERT INTO events (
           title, date, end_date, location, tags, status, image, description, content, link,
           featured, likes, views, uploader_id, score, target_audience, organizer, volunteer_time, category, created_at
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      [
-        event.title,
-        event.date,
-        event.end_date,
-        event.location,
-        event.tags,
-        event.status,
-        event.image,
-        event.description,
-        event.content,
-        event.link,
-        event.featured,
-        event.views,
-        adminId,
-        event.score,
-        event.target_audience,
-        event.organizer,
-        event.volunteer_time,
-        event.category,
-        event.created_at
-      ]
-    );
-  }
+            [
+                event.title,
+                event.date,
+                event.end_date,
+                event.location,
+                event.tags,
+                event.status,
+                event.image,
+                event.description,
+                event.content,
+                event.link,
+                event.featured,
+                event.views,
+                adminId,
+                event.score,
+                event.target_audience,
+                event.organizer,
+                event.volunteer_time,
+                event.category,
+                event.created_at,
+            ]
+        );
+    }
 
-  for (const message of messagesSeed) {
-    await db.run(
-      'INSERT INTO messages (name, email, message, date, read) VALUES (?, ?, ?, ?, ?)',
-      [message.name, message.email, message.message, message.date, message.read]
-    );
-  }
+    for (const message of messagesSeed) {
+        await db.run(
+            "INSERT INTO messages (name, email, message, date, read) VALUES (?, ?, ?, ?, ?)",
+            [message.name, message.email, message.message, message.date, message.read]
+        );
+    }
 }
 
 async function insertCommunityData(db, users) {
-  const adminUser = users.find(user => user.role === 'admin');
-  const demoUser = users.find(user => user.role === 'user');
-  const adminId = adminUser?.id || null;
-  const demoId = demoUser?.id || adminId;
+    const adminUser = users.find((user) => user.role === "admin");
+    const demoUser = users.find((user) => user.role === "user");
+    const adminId = adminUser?.id || null;
+    const demoId = demoUser?.id || adminId;
 
-  const postIdByTitle = new Map();
-  for (const item of communityPostsSeed) {
-    const result = await db.run(
-      `
+    const postIdByTitle = new Map();
+    for (const item of communityPostsSeed) {
+        const result = await db.run(
+            `
         INSERT INTO community_posts (
           section, title, content, content_blocks, tags, status, post_status, deadline, max_members, current_members,
           link, author_id, author_name, author_avatar, created_at, updated_at
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
       `,
-      [
-        item.section,
-        item.title,
-        item.content,
-        item.content_blocks || null,
-        item.tags || '',
-        item.status || 'approved',
-        item.post_status || (item.section === 'team' ? 'recruiting' : item.section === 'help' ? 'open' : 'published'),
-        item.deadline || null,
-        item.max_members || null,
-        item.current_members || 0,
-        item.link || null,
-        adminId,
-        adminUser?.nickname || adminUser?.username || '管理员',
-        item.created_at,
-        item.created_at
-      ]
-    );
-    postIdByTitle.set(item.title, result.lastID);
-  }
+            [
+                item.section,
+                item.title,
+                item.content,
+                item.content_blocks || null,
+                item.tags || "",
+                item.status || "approved",
+                item.post_status ||
+                    (item.section === "team"
+                        ? "recruiting"
+                        : item.section === "help"
+                          ? "open"
+                          : "published"),
+                item.deadline || null,
+                item.max_members || null,
+                item.current_members || 0,
+                item.link || null,
+                adminId,
+                adminUser?.nickname || adminUser?.username || "管理员",
+                item.created_at,
+                item.created_at,
+            ]
+        );
+        postIdByTitle.set(item.title, result.lastID);
+    }
 
-  for (const item of communityCommentsSeed) {
-    const postId = postIdByTitle.get(item.postTitle);
-    if (!postId) continue;
-    const commentResult = await db.run(
-      `
+    for (const item of communityCommentsSeed) {
+        const postId = postIdByTitle.get(item.postTitle);
+        if (!postId) continue;
+        const commentResult = await db.run(
+            `
         INSERT INTO comments (resource_type, resource_id, user_id, author, content, avatar, created_at)
         VALUES ('community_post', ?, ?, ?, ?, NULL, ?)
       `,
-      [postId, demoId, item.author, item.content, item.created_at]
-    );
-    // Link best answer for solved posts
-    if (item.isBestAnswer && commentResult.lastID) {
-      await db.run(
-        'UPDATE community_posts SET solved_comment_id = ? WHERE id = ?',
-        [commentResult.lastID, postId]
-      );
+            [postId, demoId, item.author, item.content, item.created_at]
+        );
+        // Link best answer for solved posts
+        if (item.isBestAnswer && commentResult.lastID) {
+            await db.run("UPDATE community_posts SET solved_comment_id = ? WHERE id = ?", [
+                commentResult.lastID,
+                postId,
+            ]);
+        }
     }
-  }
 
-  await db.run(
-    `
+    await db.run(
+        `
       UPDATE community_posts
       SET comments_count = (
         SELECT COUNT(*) FROM comments
         WHERE resource_type = 'community_post' AND resource_id = community_posts.id
       )
     `
-  );
+    );
 
-  const recruitingPosts = await db.all(
-    `SELECT id, author_id, max_members, current_members FROM community_posts WHERE section = 'team'`
-  );
-  for (const post of recruitingPosts) {
-    const ownerId = post.author_id || adminId;
-    if (ownerId) {
-      await db.run(
-        `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
-        [post.id, ownerId]
-      );
+    const recruitingPosts = await db.all(
+        `SELECT id, author_id, max_members, current_members FROM community_posts WHERE section = 'team'`
+    );
+    for (const post of recruitingPosts) {
+        const ownerId = post.author_id || adminId;
+        if (ownerId) {
+            await db.run(
+                `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
+                [post.id, ownerId]
+            );
+        }
+        if (demoId && demoId !== ownerId && (post.current_members || 0) > 1) {
+            await db.run(
+                `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
+                [post.id, demoId]
+            );
+        }
     }
-    if (demoId && demoId !== ownerId && (post.current_members || 0) > 1) {
-      await db.run(
-        `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
-        [post.id, demoId]
-      );
-    }
-  }
 }
 
 async function syncTags(db) {
-  const resources = ['photos', 'music', 'videos', 'articles', 'events'];
-  const tagCounter = new Map();
+    const resources = ["photos", "music", "videos", "articles", "events"];
+    const tagCounter = new Map();
 
-  for (const table of resources) {
-    const rows = await db.all(`SELECT tags FROM ${table} WHERE tags IS NOT NULL AND TRIM(tags) <> ''`);
-    for (const row of rows) {
-      const tags = String(row.tags).split(',').map(tag => tag.trim()).filter(Boolean);
-      for (const tag of tags) {
-        tagCounter.set(tag, (tagCounter.get(tag) || 0) + 1);
-      }
+    for (const table of resources) {
+        const rows = await db.all(
+            `SELECT tags FROM ${table} WHERE tags IS NOT NULL AND TRIM(tags) <> ''`
+        );
+        for (const row of rows) {
+            const tags = String(row.tags)
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean);
+            for (const tag of tags) {
+                tagCounter.set(tag, (tagCounter.get(tag) || 0) + 1);
+            }
+        }
     }
-  }
 
-  for (const [tag, count] of tagCounter.entries()) {
-    await db.run('INSERT INTO tags (name, count, created_at) VALUES (?, ?, datetime(\'now\'))', [tag, count]);
-  }
+    for (const [tag, count] of tagCounter.entries()) {
+        await db.run("INSERT INTO tags (name, count, created_at) VALUES (?, ?, datetime('now'))", [
+            tag,
+            count,
+        ]);
+    }
 }
 
 async function seedAnalytics(db, users) {
-  const demoUser = users.find(user => user.role === 'user');
-  const events = await db.all('SELECT id, title FROM events ORDER BY id ASC');
-  const eventByTitle = Object.fromEntries(events.map(event => [event.title, event]));
+    const demoUser = users.find((user) => user.role === "user");
+    const events = await db.all("SELECT id, title FROM events ORDER BY id ASC");
+    const eventByTitle = Object.fromEntries(events.map((event) => [event.title, event]));
 
-  const siteVisits = [
-    { visitorKey: 'visitor-a', pagePath: '/', dateKey: '2026-03-26', createdAt: '2026-03-26 09:00:00' },
-    { visitorKey: 'visitor-b', pagePath: '/events', dateKey: '2026-03-27', createdAt: '2026-03-27 10:00:00' },
-    { visitorKey: 'visitor-c', pagePath: '/articles', dateKey: '2026-03-28', createdAt: '2026-03-28 11:00:00' },
-    { visitorKey: 'visitor-a', pagePath: '/events', dateKey: '2026-03-28', createdAt: '2026-03-28 15:30:00' },
-    { visitorKey: 'visitor-d', pagePath: '/', dateKey: '2026-03-29', createdAt: '2026-03-29 09:45:00' },
-    { visitorKey: 'visitor-e', pagePath: '/events/1', dateKey: '2026-03-30', createdAt: '2026-03-30 16:20:00' }
-  ];
+    const siteVisits = [
+        {
+            visitorKey: "visitor-a",
+            pagePath: "/",
+            dateKey: "2026-03-26",
+            createdAt: "2026-03-26 09:00:00",
+        },
+        {
+            visitorKey: "visitor-b",
+            pagePath: "/events",
+            dateKey: "2026-03-27",
+            createdAt: "2026-03-27 10:00:00",
+        },
+        {
+            visitorKey: "visitor-c",
+            pagePath: "/articles",
+            dateKey: "2026-03-28",
+            createdAt: "2026-03-28 11:00:00",
+        },
+        {
+            visitorKey: "visitor-a",
+            pagePath: "/events",
+            dateKey: "2026-03-28",
+            createdAt: "2026-03-28 15:30:00",
+        },
+        {
+            visitorKey: "visitor-d",
+            pagePath: "/",
+            dateKey: "2026-03-29",
+            createdAt: "2026-03-29 09:45:00",
+        },
+        {
+            visitorKey: "visitor-e",
+            pagePath: "/events/1",
+            dateKey: "2026-03-30",
+            createdAt: "2026-03-30 16:20:00",
+        },
+    ];
 
-  for (const visit of siteVisits) {
-    await db.run(
-      'INSERT INTO site_visit_events (visitor_key, page_path, date_key, created_at) VALUES (?, ?, ?, ?)',
-      [visit.visitorKey, visit.pagePath, visit.dateKey, visit.createdAt]
-    );
+    for (const visit of siteVisits) {
+        await db.run(
+            "INSERT INTO site_visit_events (visitor_key, page_path, date_key, created_at) VALUES (?, ?, ?, ?)",
+            [visit.visitorKey, visit.pagePath, visit.dateKey, visit.createdAt]
+        );
 
-    await db.run(
-      'INSERT OR IGNORE INTO site_daily_visitors (date_key, visitor_key, first_path, created_at) VALUES (?, ?, ?, ?)',
-      [visit.dateKey, visit.visitorKey, visit.pagePath, visit.createdAt]
-    );
-  }
-
-  const eventViews = [
-    { title: '春季校园市集志愿招募', visitorKey: 'visitor-a', dateKey: '2026-03-28', createdAt: '2026-03-28 09:00:00' },
-    { title: '春季校园市集志愿招募', visitorKey: 'visitor-b', dateKey: '2026-03-29', createdAt: '2026-03-29 11:20:00' },
-    { title: 'AI 工具效率分享会', visitorKey: 'visitor-c', dateKey: '2026-03-29', createdAt: '2026-03-29 13:10:00' },
-    { title: '社区助老数字服务日', visitorKey: 'visitor-d', dateKey: '2026-03-27', createdAt: '2026-03-27 08:40:00' }
-  ];
-
-  for (const view of eventViews) {
-    const event = eventByTitle[view.title];
-    if (!event) continue;
-
-    await db.run(
-      'INSERT INTO event_view_events (event_id, visitor_key, date_key, created_at) VALUES (?, ?, ?, ?)',
-      [event.id, view.visitorKey, view.dateKey, view.createdAt]
-    );
-  }
-
-  if (demoUser) {
-    const registrationTargets = ['春季校园市集志愿招募', 'AI 工具效率分享会'];
-    for (const title of registrationTargets) {
-      const event = eventByTitle[title];
-      if (!event) continue;
-
-      await db.run(
-        'INSERT OR IGNORE INTO event_registrations (event_id, user_id, created_at) VALUES (?, ?, ?)',
-        [event.id, demoUser.id, '2026-03-30 12:00:00']
-      );
+        await db.run(
+            "INSERT OR IGNORE INTO site_daily_visitors (date_key, visitor_key, first_path, created_at) VALUES (?, ?, ?, ?)",
+            [visit.dateKey, visit.visitorKey, visit.pagePath, visit.createdAt]
+        );
     }
-  }
+
+    const eventViews = [
+        {
+            title: "春季校园市集志愿招募",
+            visitorKey: "visitor-a",
+            dateKey: "2026-03-28",
+            createdAt: "2026-03-28 09:00:00",
+        },
+        {
+            title: "春季校园市集志愿招募",
+            visitorKey: "visitor-b",
+            dateKey: "2026-03-29",
+            createdAt: "2026-03-29 11:20:00",
+        },
+        {
+            title: "AI 工具效率分享会",
+            visitorKey: "visitor-c",
+            dateKey: "2026-03-29",
+            createdAt: "2026-03-29 13:10:00",
+        },
+        {
+            title: "社区助老数字服务日",
+            visitorKey: "visitor-d",
+            dateKey: "2026-03-27",
+            createdAt: "2026-03-27 08:40:00",
+        },
+    ];
+
+    for (const view of eventViews) {
+        const event = eventByTitle[view.title];
+        if (!event) continue;
+
+        await db.run(
+            "INSERT INTO event_view_events (event_id, visitor_key, date_key, created_at) VALUES (?, ?, ?, ?)",
+            [event.id, view.visitorKey, view.dateKey, view.createdAt]
+        );
+    }
+
+    if (demoUser) {
+        const registrationTargets = ["春季校园市集志愿招募", "AI 工具效率分享会"];
+        for (const title of registrationTargets) {
+            const event = eventByTitle[title];
+            if (!event) continue;
+
+            await db.run(
+                "INSERT OR IGNORE INTO event_registrations (event_id, user_id, created_at) VALUES (?, ?, ?)",
+                [event.id, demoUser.id, "2026-03-30 12:00:00"]
+            );
+        }
+    }
 }
 
 async function insertCommunityGroups(db, users) {
-  const adminId = users.find(u => u.role === 'admin')?.id || null;
-  for (const g of communityGroupsSeed) {
-    await db.run(
-      `INSERT INTO community_groups (
+    const adminId = users.find((u) => u.role === "admin")?.id || null;
+    for (const g of communityGroupsSeed) {
+        await db.run(
+            `INSERT INTO community_groups (
         name, description, platform, qr_code_url, invite_link, member_count, category, created_by,
         review_status, is_recommended, sort_order, valid_until, is_expired, review_note
       )
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        g.name,
-        g.description,
-        g.platform,
-        g.qr_code_url || null,
-        g.invite_link || null,
-        g.member_count || 0,
-        g.category || null,
-        adminId,
-        g.review_status || 'approved',
-        g.is_recommended ? 1 : 0,
-        g.sort_order || 0,
-        g.valid_until || null,
-        g.is_expired ? 1 : 0,
-        g.review_note || null
-      ]
-    );
-  }
+            [
+                g.name,
+                g.description,
+                g.platform,
+                g.qr_code_url || null,
+                g.invite_link || null,
+                g.member_count || 0,
+                g.category || null,
+                adminId,
+                g.review_status || "approved",
+                g.is_recommended ? 1 : 0,
+                g.sort_order || 0,
+                g.valid_until || null,
+                g.is_expired ? 1 : 0,
+                g.review_note || null,
+            ]
+        );
+    }
 }
 
 async function insertCommunityNews(db, users) {
-  const adminId = users.find(u => u.role === 'admin')?.id || null;
-  for (const item of newsSeed) {
-    await db.run(
-      `INSERT INTO news (
+    const adminId = users.find((u) => u.role === "admin")?.id || null;
+    for (const item of newsSeed) {
+        await db.run(
+            `INSERT INTO news (
         title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, hot_score,
         is_pinned, pin_weight, featured, status, uploader_id, created_at, updated_at
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        item.title,
-        item.excerpt || '',
-        item.content || '',
-        item.content_blocks || null,
-        item.cover || null,
-        item.source_name || null,
-        item.source_url || null,
-        item.import_type || 'manual',
-        item.hot_score || 0,
-        item.is_pinned ? 1 : 0,
-        item.pin_weight || 0,
-        item.featured ? 1 : 0,
-        item.status || 'approved',
-        adminId,
-        item.created_at || new Date().toISOString().slice(0, 19).replace('T', ' '),
-        item.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
-      ]
-    );
-  }
+            [
+                item.title,
+                item.excerpt || "",
+                item.content || "",
+                item.content_blocks || null,
+                item.cover || null,
+                item.source_name || null,
+                item.source_url || null,
+                item.import_type || "manual",
+                item.hot_score || 0,
+                item.is_pinned ? 1 : 0,
+                item.pin_weight || 0,
+                item.featured ? 1 : 0,
+                item.status || "approved",
+                adminId,
+                item.created_at || new Date().toISOString().slice(0, 19).replace("T", " "),
+                item.created_at || new Date().toISOString().slice(0, 19).replace("T", " "),
+            ]
+        );
+    }
 }
 
 async function seed() {
-  console.log(`📦 Target database: ${databaseFile}`);
-  const db = await getDb();
+    console.log(`📦 Target database: ${databaseFile}`);
+    const db = await getDb();
 
-  await resetDatabase(db);
-  await runMigrations(db);
+    await resetDatabase(db);
+    await runMigrations(db);
 
-  console.log('🌱 Seeding essential demo data...');
-  await insertSettings(db);
-  const users = await insertUsers(db);
-  await insertContent(db, users);
-  await insertCommunityData(db, users);
-  await insertCommunityGroups(db, users);
-  await insertCommunityNews(db, users);
-  await syncTags(db);
-  await seedAnalytics(db, users);
+    console.log("🌱 Seeding essential demo data...");
+    await insertSettings(db);
+    const users = await insertUsers(db);
+    await insertContent(db, users);
+    await insertCommunityData(db, users);
+    await insertCommunityGroups(db, users);
+    await insertCommunityNews(db, users);
+    await syncTags(db);
+    await seedAnalytics(db, users);
 
-  await pool.close();
+    await pool.close();
 
-  console.log('✅ Seed completed — default accounts created (see env vars or source for credentials)');
+    console.log(
+        "✅ Seed completed — default accounts created (see env vars or source for credentials)"
+    );
 }
 
 seed().catch(async (error) => {
-  console.error('❌ Seed failed:', error);
-  try {
-    await pool.close();
-  } catch {}
-  process.exit(1);
+    console.error("❌ Seed failed:", error);
+    try {
+        await pool.close();
+    } catch {}
+    process.exit(1);
 });

@@ -21,14 +21,14 @@ Hackathon content is split by ownership:
 
 1. Visitor clicks "提交成果" or a contextual upload button.
 2. Modal starts with the relevant type:
-   - showcase main CTA defaults to stage photo
-   - live photo CTA defaults to stage photo
-   - works CTA defaults to work/story
+    - showcase main CTA defaults to stage photo
+    - live photo CTA defaults to stage photo
+    - works CTA defaults to work/story
 3. Authenticated user submits.
 4. Media is saved through the generic upload service, then attached to the canonical channel:
-   - `POST /photos`
-   - `POST /videos`
-   - `POST /competitions/current/works`
+    - `POST /photos`
+    - `POST /videos`
+    - `POST /competitions/current/works`
 5. Non-admin submissions remain pending until review.
 
 ## Admin Boundary

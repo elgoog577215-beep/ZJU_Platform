@@ -1,22 +1,22 @@
 {
-  "pages": [
-    "pages/webview/index",
-    "pages/index/index",
-    "pages/home/index",
-    "pages/login/index",
-    "pages/native-upload/index",
-    "pages/native-share/index",
-    "pages/native-poster-save/index",
-    "pages/subscribe/index",
-    "pages/fallback/index"
-  ],
-  "window": {
-    "navigationBarTitleText": "\u62d3\u9014\u6d59\u4eab | TUOTUZJU",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#f8fafc",
-    "backgroundTextStyle": "dark"
-  },
-  "style": "v2",
-  "sitemapLocation": "sitemap.json"
+    "pages": [
+        "pages/webview/index",
+        "pages/index/index",
+        "pages/home/index",
+        "pages/login/index",
+        "pages/native-upload/index",
+        "pages/native-share/index",
+        "pages/native-poster-save/index",
+        "pages/subscribe/index",
+        "pages/fallback/index"
+    ],
+    "window": {
+        "navigationBarTitleText": "\u62d3\u9014\u6d59\u4eab | TUOTUZJU",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f8fafc",
+        "backgroundTextStyle": "dark"
+    },
+    "style": "v2",
+    "sitemapLocation": "sitemap.json"
 }

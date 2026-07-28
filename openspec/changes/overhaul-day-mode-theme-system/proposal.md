@@ -20,24 +20,26 @@
 ## Capabilities
 
 ### New Capabilities
+
 - `ui-theme-system`: Provide a shared semantic theme layer for public-site and admin UI, with distinct day/night expressions and reusable tokens for surfaces, text, overlays, borders, shadows, and accent states.
 
 ### Modified Capabilities
+
 - `overview`: The repository overview now includes a cross-app theme system that governs public pages and admin surfaces, rather than relying on page-local day-mode overrides.
 
 ## Impact
 
 - Affected frontend foundation:
-  - `src/index.css`
-  - `src/context/SettingsContext.jsx`
-  - `src/components/BackgroundSystem.jsx`
+    - `src/index.css`
+    - `src/context/SettingsContext.jsx`
+    - `src/components/BackgroundSystem.jsx`
 - Affected public UI areas:
-  - `src/components/Hero.jsx`
-  - `src/components/Navbar.jsx`
-  - `src/components/HomeCategories.jsx`
-  - content listing and detail components such as `Articles.jsx`, `Videos.jsx`, `Gallery.jsx`, `Events.jsx`, `SearchPalette.jsx`, `PublicProfile.jsx`
+    - `src/components/Hero.jsx`
+    - `src/components/Navbar.jsx`
+    - `src/components/HomeCategories.jsx`
+    - content listing and detail components such as `Articles.jsx`, `Videos.jsx`, `Gallery.jsx`, `Events.jsx`, `SearchPalette.jsx`, `PublicProfile.jsx`
 - Affected admin UI areas:
-  - `src/components/Admin/*`
+    - `src/components/Admin/*`
 - No database migration is required.
 - Main risk areas are visual regressions, insufficient contrast in white surfaces, and theme drift between legacy components and token-driven components.
 - Rollback remains straightforward: revert the theme-system change set and restore the prior CSS/token mapping without data loss.

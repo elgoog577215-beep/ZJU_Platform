@@ -1,8 +1,11 @@
 # smart-ai-assistant-v2 Specification
 
 ## Purpose
+
 TBD - created by archiving change smart-ai-assistant-v2. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Unified assistant tasks shall use the shared model runtime
 
 AI-facing assistants SHALL call a shared orchestration layer above the existing unified model runtime so that task names, JSON contracts, model status, and fallback behavior are consistent.
@@ -30,4 +33,3 @@ The hackathon page SHALL expose an AI coach that answers user questions using la
 
 - WHEN the model cannot complete the answer
 - THEN the assistant SHALL return a fallback plan with `modelStatus.fallbackUsed=true`.
-

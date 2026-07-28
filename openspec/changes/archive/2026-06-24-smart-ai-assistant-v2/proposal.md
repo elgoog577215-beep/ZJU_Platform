@@ -32,20 +32,20 @@ For this change, the first concrete product slice is the hackathon page. A hacka
 ## Impact
 
 - Frontend:
-  - Add a compact hackathon AI coach panel to the `/hackathon` page.
-  - Display summary, recommended focus, preparation steps, risk notes, and model/fallback status.
+    - Add a compact hackathon AI coach panel to the `/hackathon` page.
+    - Display summary, recommended focus, preparation steps, risk notes, and model/fallback status.
 - Backend:
-  - Add a reusable assistant orchestrator wrapper over `unifiedAiRuntimeService.callJson`.
-  - Add a hackathon assistant service and public API route.
-  - Reuse the existing ModelScope/OpenAI-compatible configuration and failover.
+    - Add a reusable assistant orchestrator wrapper over `unifiedAiRuntimeService.callJson`.
+    - Add a hackathon assistant service and public API route.
+    - Reuse the existing ModelScope/OpenAI-compatible configuration and failover.
 - Database:
-  - No schema change required.
-  - Reads public settings to enrich the hackathon context when available.
+    - No schema change required.
+    - Reads public settings to enrich the hackathon context when available.
 - AI / standard data:
-  - Use a structured hackathon profile and candidate advice cards as a small index.
-  - Require strict JSON output with confidence, intent, recommendation, plan, and warnings.
+    - Use a structured hackathon profile and candidate advice cards as a small index.
+    - Require strict JSON output with confidence, intent, recommendation, plan, and warnings.
 - Deployment:
-  - Code-only deployment. Existing model config continues to power the new endpoint.
+    - Code-only deployment. Existing model config continues to power the new endpoint.
 
 ## Scenarios
 

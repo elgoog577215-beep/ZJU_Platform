@@ -25,17 +25,17 @@ The next step is to make the AI layer maintainable as an agent system. Each agen
 ## Impact
 
 - Backend:
-  - Add an AI agent registry service.
-  - Reuse the registry in unified assistant overview.
-  - Add registry health checks and generated spec tooling.
+    - Add an AI agent registry service.
+    - Reuse the registry in unified assistant overview.
+    - Add registry health checks and generated spec tooling.
 - Frontend:
-  - Admin AI overview receives richer module metadata without changing endpoint shape.
+    - Admin AI overview receives richer module metadata without changing endpoint shape.
 - Data:
-  - No schema changes.
+    - No schema changes.
 - AI / standard data:
-  - Define common maturity dimensions across prompts, logic chains, standard libraries, indexes, memory, contracts, guardrails, fallback, evaluation, observability, auto-update, safety, and cost.
+    - Define common maturity dimensions across prompts, logic chains, standard libraries, indexes, memory, contracts, guardrails, fallback, evaluation, observability, auto-update, safety, and cost.
 - Deployment:
-  - Code-only change. Existing model config continues to power model calls.
+    - Code-only change. Existing model config continues to power model calls.
 
 ## Operating Loop
 

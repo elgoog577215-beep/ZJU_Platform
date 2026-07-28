@@ -37,6 +37,7 @@
 ## Impact
 
 **后端**
+
 - `server/src/controllers/resourceController.js` — `getOneHandler` / `getAllHandler` 的 author_name SQL；`createHandler` 发布后调用 fan-out；新增禁止 self-follow 校验
 - `server/src/controllers/newsController.js` — 同样修 COALESCE + 发布 fan-out
 - `server/src/controllers/communityController.js` — 求助贴 create/read 支持 `is_anonymous` 和脱敏
@@ -45,17 +46,20 @@
 - `server/src/config/runMigrations.js` — `users.nickname` 增加 UNIQUE INDEX；`community_posts.is_anonymous` 添加列 + backfill
 
 **前端**
+
 - `src/components/PublicProfile.jsx` — settings tab 加 nickname 输入框；内容区从"已发布"改造为类型 tabs + 大图 grid；self-owner 隐藏关注按钮
 - `src/components/PostComposer.jsx` — help section 底部加"匿名发布"checkbox
 - `src/components/CommunityDetailModal.jsx` — 作者头像加 onClick → `/profile/:id`；匿名态样式
 - `src/components/NotificationCenter.jsx` — 零改动（现有 60s 轮询 + 跳转 buildNotificationTargetPath 支持扩展 new_content type）
 
 **数据库迁移**
+
 - `ALTER TABLE community_posts ADD COLUMN is_anonymous BOOLEAN DEFAULT 0`（幂等）
 - `CREATE UNIQUE INDEX idx_users_nickname ON users(nickname) WHERE nickname IS NOT NULL`（SQLite partial index）
 - 可回滚：两个 migration 都独立，回滚只需 drop index 和 drop column
 
 **不做**
+
 - Feed 页面扩展（仍仅 photos/music/videos/articles/events，不扩展到 news 或 community_posts）
 - 非详情页的卡片列表头像点击（仅详情页做）
 - 邮件/微信外部推送（仅站内通知）

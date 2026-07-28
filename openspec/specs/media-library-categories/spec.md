@@ -1,8 +1,11 @@
 # media-library-categories Specification
 
 ## Purpose
+
 TBD - created by archiving change unify-media-library-categories. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: 影像库统一浏览入口
 
 系统 SHALL 提供一个 `/media` 影像库页面，用于统一浏览图片和视频，同时保持后端图片与视频资源分离。
@@ -110,4 +113,3 @@ TBD - created by archiving change unify-media-library-categories. Update Purpose
 - **GIVEN** 用户访问 `/videos?id=<videoId>`
 - **WHEN** 页面加载
 - **THEN** 系统仍可打开对应视频体验。
-

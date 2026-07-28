@@ -30,15 +30,15 @@
 ## Impact
 
 - Affected frontend files:
-  - `src/components/Admin/AdminDashboard.jsx`
-  - `src/components/Admin/AdminUI.jsx`
-  - `src/components/Admin/Overview.jsx`
-  - `src/components/Admin/ResourceManager.jsx`
-  - `src/index.css`
+    - `src/components/Admin/AdminDashboard.jsx`
+    - `src/components/Admin/AdminUI.jsx`
+    - `src/components/Admin/Overview.jsx`
+    - `src/components/Admin/ResourceManager.jsx`
+    - `src/index.css`
 - Affected tests:
-  - `e2e/admin-console.spec.js`
+    - `e2e/admin-console.spec.js`
 - Backend/API impact:
-  - No API contract changes.
-  - No database changes.
+    - No API contract changes.
+    - No database changes.
 - Rollback strategy:
-  - Revert this frontend/test change set. No data migration or backend rollback is required.
+    - Revert this frontend/test change set. No data migration or backend rollback is required.

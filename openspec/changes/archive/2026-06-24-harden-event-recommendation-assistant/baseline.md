@@ -6,15 +6,15 @@
 
 - `server/src/utils/eventAssistant.js` 当前扫描到 107 个顶层常量/函数。
 - 关键职责集中位置：
-  - 用户画像：`loadUserEventProfile`，约第 896 行。
-  - 本地评分：`scoreEvent`，约第 1040 行。
-  - 候选排序：`rankCandidates`，约第 1185 行。
-  - AI 候选池：`buildAiCandidatePool`，约第 1444 行。
-  - 模型重排：`rerankCandidatesWithModel`，约第 2040 行。
-  - AI 推荐响应：`buildAiRecommendationResponse`，约第 2123 行。
-  - 主链路：`runUnifiedEventAssistantTurn`，约第 2509 行。
-  - 运行记录：`recordEventAssistantRun`，约第 2705 行。
-  - 推荐反馈：`recordEventAssistantFeedback`，约第 2779 行。
+    - 用户画像：`loadUserEventProfile`，约第 896 行。
+    - 本地评分：`scoreEvent`，约第 1040 行。
+    - 候选排序：`rankCandidates`，约第 1185 行。
+    - AI 候选池：`buildAiCandidatePool`，约第 1444 行。
+    - 模型重排：`rerankCandidatesWithModel`，约第 2040 行。
+    - AI 推荐响应：`buildAiRecommendationResponse`，约第 2123 行。
+    - 主链路：`runUnifiedEventAssistantTurn`，约第 2509 行。
+    - 运行记录：`recordEventAssistantRun`，约第 2705 行。
+    - 推荐反馈：`recordEventAssistantFeedback`，约第 2779 行。
 
 结论：当前文件同时承担意图、召回、排序、画像、解释、遥测、反馈和响应组装职责，符合本 change 中“需要拆分服务边界”的判断。
 

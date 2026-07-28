@@ -1,91 +1,91 @@
-import { useEffect, useId, useRef } from 'react';
-import { isMiniProgramWebView } from '../utils/miniProgramEnv';
+import { useEffect, useId, useRef } from "react";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 /**
  * Hook to handle closing modals/overlays with the system back button.
  * Uses URL Hash (#modal) to ensure robust history tracking in WebViews.
- * 
+ *
  * @param {boolean} isOpen - Whether the modal is open
  * @param {function} onClose - Function to call to close the modal
  */
 export const useBackClose = (isOpen, onClose) => {
-  const id = useId();
-  const isClosingRef = useRef(false);
-  const hashRef = useRef(null);
-  const onCloseRef = useRef(onClose);
+    const id = useId();
+    const isClosingRef = useRef(false);
+    const hashRef = useRef(null);
+    const onCloseRef = useRef(onClose);
 
-  if (hashRef.current == null) {
-    hashRef.current = `modal-${id.replaceAll(':', '')}`;
-  }
+    if (hashRef.current == null) {
+        hashRef.current = `modal-${id.replaceAll(":", "")}`;
+    }
 
-  // Keep onCloseRef updated
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+    // Keep onCloseRef updated
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
 
-  useEffect(() => {
-    if (!isOpen) return;
+    useEffect(() => {
+        if (!isOpen) return;
 
-    const newHash = `#${hashRef.current}`;
-    const openedPath = `${window.location.pathname}${window.location.search}`;
-    const cleanupRef = { current: null };
+        const newHash = `#${hashRef.current}`;
+        const openedPath = `${window.location.pathname}${window.location.search}`;
+        const cleanupRef = { current: null };
 
-    // Defer side effects by a macrotask so React.StrictMode's dev-time
-    // unmount/remount cycle cancels out: if the first mount is cancelled
-    // before the timer fires, we never push history at all. Without this,
-    // the strict-mode cleanup's history.back() fires the second mount's
-    // popstate listener and prematurely closes the modal.
-    let timer = setTimeout(() => {
-      timer = null;
-      isClosingRef.current = false;
+        // Defer side effects by a macrotask so React.StrictMode's dev-time
+        // unmount/remount cycle cancels out: if the first mount is cancelled
+        // before the timer fires, we never push history at all. Without this,
+        // the strict-mode cleanup's history.back() fires the second mount's
+        // popstate listener and prematurely closes the modal.
+        let timer = setTimeout(() => {
+            timer = null;
+            isClosingRef.current = false;
 
-      if (window.location.hash !== newHash) {
-        window.history.pushState({ modalOpen: true, id: hashRef.current }, '', newHash);
-      }
-
-      const handlePopState = () => {
-        if (window.location.hash !== newHash) {
-          isClosingRef.current = true;
-          if (onCloseRef.current) onCloseRef.current();
-        }
-      };
-      window.addEventListener('popstate', handlePopState);
-      cleanupRef.current = () => {
-        window.removeEventListener('popstate', handlePopState);
-        if (!isClosingRef.current && window.location.hash === newHash) {
-          window.setTimeout(() => {
-            const currentPath = `${window.location.pathname}${window.location.search}`;
-            if (currentPath === openedPath && window.location.hash === newHash) {
-              window.history.back();
+            if (window.location.hash !== newHash) {
+                window.history.pushState({ modalOpen: true, id: hashRef.current }, "", newHash);
             }
-          }, 0);
-        }
-      };
-    }, 0);
 
-    return () => {
-      if (timer !== null) {
-        clearTimeout(timer);
-        return;
-      }
-      if (cleanupRef.current) cleanupRef.current();
-    };
-  }, [isOpen]); // Removed onClose from dependency array
+            const handlePopState = () => {
+                if (window.location.hash !== newHash) {
+                    isClosingRef.current = true;
+                    if (onCloseRef.current) onCloseRef.current();
+                }
+            };
+            window.addEventListener("popstate", handlePopState);
+            cleanupRef.current = () => {
+                window.removeEventListener("popstate", handlePopState);
+                if (!isClosingRef.current && window.location.hash === newHash) {
+                    window.setTimeout(() => {
+                        const currentPath = `${window.location.pathname}${window.location.search}`;
+                        if (currentPath === openedPath && window.location.hash === newHash) {
+                            window.history.back();
+                        }
+                    }, 0);
+                }
+            };
+        }, 0);
 
-  // Compatibility return for existing usage
-  return { onNavigate: () => {} }; 
+        return () => {
+            if (timer !== null) {
+                clearTimeout(timer);
+                return;
+            }
+            if (cleanupRef.current) cleanupRef.current();
+        };
+    }, [isOpen]); // Removed onClose from dependency array
+
+    // Compatibility return for existing usage
+    return { onNavigate: () => {} };
 };
 
 export const useBodyScrollLock = (isLocked) => {
-  useEffect(() => {
-    if (!isLocked || typeof document === 'undefined') return undefined;
-    if (isMiniProgramWebView()) return undefined;
+    useEffect(() => {
+        if (!isLocked || typeof document === "undefined") return undefined;
+        if (isMiniProgramWebView()) return undefined;
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
 
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isLocked]);
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, [isLocked]);
 };

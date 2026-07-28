@@ -5,10 +5,12 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - 解析成功后，若 `eventLink` 为空，自动将 `wechatUrl` 填入
 - 清除解析数据时，同步清空 `eventLink`
 
 **Non-Goals:**
+
 - 不修改后端或 API
 - 不改变 LLM prompt 或解析逻辑
 - 不在 `eventLink` 已有值时覆盖

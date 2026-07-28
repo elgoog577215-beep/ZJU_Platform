@@ -1,123 +1,148 @@
 export const parseContentBlocks = (raw) => {
-  if (!raw) return [];
-  try {
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+    if (!raw) return [];
+    try {
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
 };
 
-export const slugifyHeading = (text = '', index = 0) => {
-  const base = String(text || '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\u4e00-\u9fa5\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  return base ? `${base}-${index}` : `section-${index}`;
+export const slugifyHeading = (text = "", index = 0) => {
+    const base = String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\u4e00-\u9fa5\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    return base ? `${base}-${index}` : `section-${index}`;
 };
 
 export const extractTocItems = (blocks = []) => {
-  return (Array.isArray(blocks) ? blocks : [])
-    .map((block, index) => ({ block, index }))
-    .filter(({ block }) => block?.type === 'text' && block?.style === 'heading' && String(block?.text || '').trim())
-    .map(({ block, index }) => ({
-      id: slugifyHeading(block.text, index),
-      title: String(block.text || '').trim(),
-      index,
-    }));
+    return (Array.isArray(blocks) ? blocks : [])
+        .map((block, index) => ({ block, index }))
+        .filter(
+            ({ block }) =>
+                block?.type === "text" &&
+                block?.style === "heading" &&
+                String(block?.text || "").trim()
+        )
+        .map(({ block, index }) => ({
+            id: slugifyHeading(block.text, index),
+            title: String(block.text || "").trim(),
+            index,
+        }));
 };
 
 export const flattenLinkedResources = (linkedResources = {}) => {
-  const groups = [
-    { key: 'articles', label: '相关文章', items: linkedResources?.articles || [] },
-    { key: 'posts', label: '相关讨论', items: linkedResources?.posts || [] },
-    { key: 'news', label: '相关新闻', items: linkedResources?.news || [] },
-    { key: 'groups', label: '相关社群', items: linkedResources?.groups || [] },
-  ];
-  return groups.filter((group) => Array.isArray(group.items) && group.items.length > 0);
+    const groups = [
+        { key: "articles", label: "相关文章", items: linkedResources?.articles || [] },
+        { key: "posts", label: "相关讨论", items: linkedResources?.posts || [] },
+        { key: "news", label: "相关新闻", items: linkedResources?.news || [] },
+        { key: "groups", label: "相关社群", items: linkedResources?.groups || [] },
+    ];
+    return groups.filter((group) => Array.isArray(group.items) && group.items.length > 0);
 };
 
 export const calculateReadingTime = (text, t) => {
-  const wordsPerMinute = 200;
-  const words = text ? text.split(/\s+/).length : 0;
-  const minutes = Math.ceil(words / wordsPerMinute);
-  return `${minutes} ${t('common.min_read')}`;
+    const wordsPerMinute = 200;
+    const words = text ? text.split(/\s+/).length : 0;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} ${t("common.min_read")}`;
 };
 
 export const formatBytes = (bytes = 0) => {
-  if (!bytes || Number.isNaN(bytes)) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (!bytes || Number.isNaN(bytes)) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const getFileTypeLabel = (name = '', mime = '') => {
-  const ext = name.split('.').pop()?.toUpperCase();
-  if (ext && ext.length <= 5) return ext;
-  if (mime.includes('pdf')) return 'PDF';
-  if (mime.includes('word')) return 'DOC';
-  if (mime.includes('excel') || mime.includes('sheet')) return 'XLS';
-  if (mime.includes('powerpoint') || mime.includes('presentation')) return 'PPT';
-  if (mime.includes('zip') || mime.includes('rar')) return 'ZIP';
-  return 'FILE';
+export const getFileTypeLabel = (name = "", mime = "") => {
+    const ext = name.split(".").pop()?.toUpperCase();
+    if (ext && ext.length <= 5) return ext;
+    if (mime.includes("pdf")) return "PDF";
+    if (mime.includes("word")) return "DOC";
+    if (mime.includes("excel") || mime.includes("sheet")) return "XLS";
+    if (mime.includes("powerpoint") || mime.includes("presentation")) return "PPT";
+    if (mime.includes("zip") || mime.includes("rar")) return "ZIP";
+    return "FILE";
 };
 
-export const getFileTypeBadgeClass = (name = '', mime = '', isDayMode = false) => {
-  const n = getFileTypeLabel(name, mime);
-  const map = { PDF: 'red', DOC: 'blue', DOCX: 'blue', XLS: 'emerald', XLSX: 'emerald', CSV: 'emerald', PPT: 'orange', PPTX: 'orange', ZIP: 'violet', RAR: 'violet' };
-  const c = map[n];
-  if (c) return isDayMode ? `bg-${c}-50 text-${c}-600 border-${c}-200` : `bg-${c}-500/15 text-${c}-200 border-${c}-400/30`;
-  return isDayMode ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-white/10 text-gray-300 border-white/10';
+export const getFileTypeBadgeClass = (name = "", mime = "", isDayMode = false) => {
+    const n = getFileTypeLabel(name, mime);
+    const map = {
+        PDF: "red",
+        DOC: "blue",
+        DOCX: "blue",
+        XLS: "emerald",
+        XLSX: "emerald",
+        CSV: "emerald",
+        PPT: "orange",
+        PPTX: "orange",
+        ZIP: "violet",
+        RAR: "violet",
+    };
+    const c = map[n];
+    if (c)
+        return isDayMode
+            ? `bg-${c}-50 text-${c}-600 border-${c}-200`
+            : `bg-${c}-500/15 text-${c}-200 border-${c}-400/30`;
+    return isDayMode
+        ? "bg-slate-100 text-slate-600 border-slate-200"
+        : "bg-white/10 text-gray-300 border-white/10";
 };
 
 /** Shared theme class-name maps to reduce isDayMode ternary repetition */
 export const communityTheme = (isDayMode) => ({
-  // Modal
-  modalBackdrop: isDayMode ? 'bg-transparent' : 'bg-black/90',
-  modalSurface: isDayMode ? 'bg-white' : 'bg-[#0a0a0a]',
-  closeBtn: isDayMode
-    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80'
-    : 'bg-black/40 hover:bg-black/60 text-white border-white/10',
-  titleOverlay: isDayMode
-    ? 'bg-white'
-    : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent',
-  gradientTo: isDayMode ? 'to-slate-100' : 'to-gray-900',
+    // Modal
+    modalBackdrop: isDayMode ? "bg-transparent" : "bg-black/90",
+    modalSurface: isDayMode ? "bg-white" : "bg-[#0a0a0a]",
+    closeBtn: isDayMode
+        ? "bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80"
+        : "bg-black/40 hover:bg-black/60 text-white border-white/10",
+    titleOverlay: isDayMode
+        ? "bg-white"
+        : "bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent",
+    gradientTo: isDayMode ? "to-slate-100" : "to-gray-900",
 
-  // Text
-  textPrimary: isDayMode ? 'text-slate-900' : 'text-white',
-  textSecondary: isDayMode ? 'text-slate-500' : 'text-gray-400',
-  textTertiary: isDayMode ? 'text-slate-400' : 'text-gray-500',
-  textContent: isDayMode ? 'text-slate-700' : 'text-gray-300',
+    // Text
+    textPrimary: isDayMode ? "text-slate-900" : "text-white",
+    textSecondary: isDayMode ? "text-slate-500" : "text-gray-400",
+    textTertiary: isDayMode ? "text-slate-400" : "text-gray-500",
+    textContent: isDayMode ? "text-slate-700" : "text-gray-300",
 
-  // Surfaces & borders
-  borderSubtle: isDayMode ? 'border-slate-200/80' : 'border-white/5',
-  avatarBg: isDayMode ? 'bg-slate-100' : 'bg-gray-700',
-  contentBlock: isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10',
-  prose: isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300',
+    // Surfaces & borders
+    borderSubtle: isDayMode ? "border-slate-200/80" : "border-white/5",
+    avatarBg: isDayMode ? "bg-slate-100" : "bg-gray-700",
+    contentBlock: isDayMode
+        ? "bg-slate-50/80 border-slate-200/80"
+        : "bg-white/[0.03] border-white/10",
+    prose: isDayMode ? "prose-slate text-slate-700" : "prose-invert text-gray-300",
 
-  // Cards & skeleton
-  card: isDayMode
-    ? 'bg-white border-slate-200/80'
-    : 'bg-white/[0.045] border-white/10',
-  cardHover: isDayMode
-    ? 'bg-white hover:bg-white border-slate-200/80 hover:border-slate-300'
-    : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10',
-  skeleton: isDayMode ? 'bg-slate-100' : 'bg-white/5',
-  skeletonStrong: isDayMode ? 'bg-slate-100' : 'bg-white/10',
+    // Cards & skeleton
+    card: isDayMode ? "bg-white border-slate-200/80" : "bg-white/[0.045] border-white/10",
+    cardHover: isDayMode
+        ? "bg-white hover:bg-white border-slate-200/80 hover:border-slate-300"
+        : "bg-white/[0.045] hover:bg-white/[0.07] border-white/10",
+    skeleton: isDayMode ? "bg-slate-100" : "bg-white/5",
+    skeletonStrong: isDayMode ? "bg-slate-100" : "bg-white/10",
 
-  // Buttons
-  btnSecondary: isDayMode
-    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80 shadow-none'
-    : 'bg-white/10 hover:bg-white/20 text-white border-white/10',
-  btnLoadMore: isDayMode
-    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80'
-    : 'bg-white/10 hover:bg-white/15 text-white border-white/10',
+    // Buttons
+    btnSecondary: isDayMode
+        ? "bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80 shadow-none"
+        : "bg-white/10 hover:bg-white/20 text-white border-white/10",
+    btnLoadMore: isDayMode
+        ? "bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80"
+        : "bg-white/10 hover:bg-white/15 text-white border-white/10",
 
-  // Comment area
-  commentBg: isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10',
-  commentItem: isDayMode ? 'bg-slate-50/60 border-slate-200/60' : 'bg-white/[0.02] border-white/5',
-  inputBg: isDayMode ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500',
+    // Comment area
+    commentBg: isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-white/[0.03] border-white/10",
+    commentItem: isDayMode
+        ? "bg-slate-50/60 border-slate-200/60"
+        : "bg-white/[0.02] border-white/5",
+    inputBg: isDayMode
+        ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
+        : "bg-white/5 border-white/10 text-white placeholder:text-gray-500",
 });

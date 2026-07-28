@@ -15,17 +15,17 @@ Only one competition should be featured at a time. The implementation should enf
 Add a dedicated competition outcome controller and routes under `/api`:
 
 - Public/current data:
-  - `GET /competitions/current/outcome`: returns the featured approved competition with approved media and works.
+    - `GET /competitions/current/outcome`: returns the featured approved competition with approved media and works.
 - User submissions:
-  - `POST /competitions/current/media`: authenticated users submit one promo video or one stage photo to the current featured competition.
-  - `POST /competitions/current/works`: authenticated users submit one work record to the current featured competition.
+    - `POST /competitions/current/media`: authenticated users submit one promo video or one stage photo to the current featured competition.
+    - `POST /competitions/current/works`: authenticated users submit one work record to the current featured competition.
 - Admin management:
-  - `GET/POST/PUT/DELETE /admin/competitions`
-  - `PUT /admin/competitions/:id/feature`
-  - `GET/PUT/DELETE /admin/competition-media/:id`
-  - `PUT /admin/competition-media/:id/review`
-  - `GET/PUT/DELETE /admin/competition-works/:id`
-  - `PUT /admin/competition-works/:id/review`
+    - `GET/POST/PUT/DELETE /admin/competitions`
+    - `PUT /admin/competitions/:id/feature`
+    - `GET/PUT/DELETE /admin/competition-media/:id`
+    - `PUT /admin/competition-media/:id/review`
+    - `GET/PUT/DELETE /admin/competition-works/:id`
+    - `PUT /admin/competition-works/:id/review`
 
 Status rules:
 

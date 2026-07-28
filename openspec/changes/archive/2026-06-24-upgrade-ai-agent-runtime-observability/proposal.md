@@ -26,17 +26,17 @@ Tuotu AI Agent 体系已经能声明质量画像和协同关系，但后台还�
 ## Impact
 
 - Backend:
-  - `server/src/services/unifiedAiAssistantService.js`
-  - `server/src/services/aiAgentRegistryService.js`
-  - `server/src/services/unifiedAiRuntimeService.js` 如需补充轻量摘要 helper
-  - AI 检查脚本和 golden/stress 断言
+    - `server/src/services/unifiedAiAssistantService.js`
+    - `server/src/services/aiAgentRegistryService.js`
+    - `server/src/services/unifiedAiRuntimeService.js` 如需补充轻量摘要 helper
+    - AI 检查脚本和 golden/stress 断言
 - Docs/OpenSpec:
-  - `openspec/changes/upgrade-ai-agent-runtime-observability/**`
-  - `docs/ai-agent-operating-system.generated.md`
+    - `openspec/changes/upgrade-ai-agent-runtime-observability/**`
+    - `docs/ai-agent-operating-system.generated.md`
 - Admin overview:
-  - 通过已有 `/api/admin/ai-assistant/overview` 返回新增运行健康结构
+    - 通过已有 `/api/admin/ai-assistant/overview` 返回新增运行健康结构
 - Data model:
-  - 复用已有 `ai_assistant_runs`、`ai_model_configs`、运行 summary JSON
-  - 不新增迁移，不自动写入模型配置状态
+    - 复用已有 `ai_assistant_runs`、`ai_model_configs`、运行 summary JSON
+    - 不新增迁移，不自动写入模型配置状态
 - Rollback:
-  - 本变更是 additive。若出现问题，回退新增 health summary、检查和生成文档即可。
+    - 本变更是 additive。若出现问题，回退新增 health summary、检查和生成文档即可。

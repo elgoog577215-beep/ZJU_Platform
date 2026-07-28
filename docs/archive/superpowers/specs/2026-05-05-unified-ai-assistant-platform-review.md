@@ -7,13 +7,13 @@ Date: 2026-05-05
 - Added a unified AI assistant OpenSpec change with proposal, design, requirements, and tasks.
 - Added backend assistant platform endpoints for admin overview, event governance scan, and safe apply.
 - Added assistant audit tables:
-  - `ai_assistant_runs`
-  - `ai_event_governance_suggestions`
+    - `ai_assistant_runs`
+    - `ai_event_governance_suggestions`
 - Added an admin AI assistant workspace with four sections:
-  - overview,
-  - event governance,
-  - model key management,
-  - parsing entrance.
+    - overview,
+    - event governance,
+    - model key management,
+    - parsing entrance.
 - Kept the existing user-facing event recommendation endpoint compatible.
 
 ## Ideal State Comparison
@@ -53,10 +53,10 @@ Remaining gaps:
 - Added a repeatable sample-data check: `npm run check:ai-assistant`.
 - The check covers assistant overview, governance scan, scan immutability, safe apply, audit records, and conflict skipping.
 - Upgraded the admin governance list so each suggestion shows a clear status after apply:
-  - pending,
-  - applied,
-  - skipped,
-  - skipped because of conflict.
+    - pending,
+    - applied,
+    - skipped,
+    - skipped because of conflict.
 - Added an apply summary banner so admins can immediately see how many suggestions were written and whether conflicts happened.
 
 ## Verification

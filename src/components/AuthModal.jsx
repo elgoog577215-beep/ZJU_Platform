@@ -1,223 +1,277 @@
-import React, { useId, useState } from 'react';
-import ReactDOM from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Lock, ArrowRight, Loader, AlertCircle, MessageCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
-import { useTranslation } from 'react-i18next';
-import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
-import { isMiniProgramWebView } from '../utils/miniProgramEnv';
-import { buildWechatLoginBridgeUrl, navigateToMiniProgramPage } from '../utils/wechatMiniProgramBridge';
+import React, { useId, useState } from "react";
+import ReactDOM from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, User, Lock, ArrowRight, Loader, AlertCircle, MessageCircle } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
+import { useTranslation } from "react-i18next";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
+import {
+    buildWechatLoginBridgeUrl,
+    navigateToMiniProgramPage,
+} from "../utils/wechatMiniProgramBridge";
 
 const AuthModal = ({ isOpen, onClose }) => {
-  const { t } = useTranslation();
-  useBackClose(isOpen, onClose);
-  useBodyScrollLock(isOpen);
-  const dialogTitleId = useId();
-  const usernameId = useId();
-  const passwordId = useId();
-  const errorId = useId();
-  
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [wechatLoading, setWechatLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { login, register } = useAuth();
-  const { uiMode } = useSettings();
-  const isDayMode = uiMode === 'day';
-  const canUseWechatLogin = isLogin && isMiniProgramWebView();
+    const { t } = useTranslation();
+    useBackClose(isOpen, onClose);
+    useBodyScrollLock(isOpen);
+    const dialogTitleId = useId();
+    const usernameId = useId();
+    const passwordId = useId();
+    const errorId = useId();
 
-  const switchMode = () => {
-    setIsLogin((value) => !value);
-    setError('');
-  };
+    const [isLogin, setIsLogin] = useState(true);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [wechatLoading, setWechatLoading] = useState(false);
+    const [error, setError] = useState("");
+    const { login, register } = useAuth();
+    const { uiMode } = useSettings();
+    const isDayMode = uiMode === "day";
+    const canUseWechatLogin = isLogin && isMiniProgramWebView();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!username || !password) {
-        setError(t('auth.error_missing_fields', 'Please fill in all fields'));
-        return;
-    }
+    const switchMode = () => {
+        setIsLogin((value) => !value);
+        setError("");
+    };
 
-    setLoading(true);
-    const success = isLogin 
-      ? await login(username, password)
-      : await register(username, password);
-    
-    setLoading(false);
-    if (success) {
-      onClose();
-      setUsername('');
-      setPassword('');
-    }
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
 
-  const handleWechatLogin = async () => {
-    if (typeof window === 'undefined') return;
+        if (!username || !password) {
+            setError(t("auth.error_missing_fields", "Please fill in all fields"));
+            return;
+        }
 
-    setError('');
-    setWechatLoading(true);
+        setLoading(true);
+        const success = isLogin
+            ? await login(username, password)
+            : await register(username, password);
 
-    try {
-      const redirectPath = `${window.location.pathname}${window.location.search}${window.location.hash}` || '/events';
-      await navigateToMiniProgramPage(buildWechatLoginBridgeUrl(redirectPath));
-    } catch (err) {
-      setError(t('auth.wechat_bridge_unavailable'));
-    } finally {
-      setWechatLoading(false);
-    }
-  };
+        setLoading(false);
+        if (success) {
+            onClose();
+            setUsername("");
+            setPassword("");
+        }
+    };
 
-  if (!isOpen) return null;
+    const handleWechatLogin = async () => {
+        if (typeof window === "undefined") return;
 
-  return ReactDOM.createPortal(
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className={`absolute inset-0 backdrop-blur-3xl ${isDayMode ? 'bg-white/60' : 'bg-black/40'}`}
-        />
-        
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={dialogTitleId}
-          aria-describedby={error ? errorId : undefined}
-          className={`relative w-full max-w-md backdrop-blur-3xl border rounded-lg shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? 'bg-white border-violet-100/80 shadow-[0_24px_64px_rgba(168,85,247,0.12)]' : 'bg-[#0a0a0a]/80 border-white/10'}`}
-        >
-          {/* Glass Effect Background */}
-          <div className={`absolute inset-0 pointer-events-none ${isDayMode ? 'bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.08),transparent_38%)]' : 'bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50'}`} />
-          <button 
-            type="button"
-            onClick={onClose}
-            aria-label={t('common.close', '关闭')}
-            className={`absolute top-4 right-4 transition-colors z-20 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
+        setError("");
+        setWechatLoading(true);
 
-          <div className="text-center mb-8 relative z-10">
-            <h2 id={dialogTitleId} className={`text-3xl font-bold mb-2 tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-              {isLogin ? t('auth.welcome_back') : t('auth.join_lumos')}
-            </h2>
-            <p className={`text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-              {isLogin ? t('auth.signin_desc') : t('auth.signup_desc')}
-            </p>
-          </div>
+        try {
+            const redirectPath =
+                `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+                "/events";
+            await navigateToMiniProgramPage(buildWechatLoginBridgeUrl(redirectPath));
+        } catch (err) {
+            setError(t("auth.wechat_bridge_unavailable"));
+        } finally {
+            setWechatLoading(false);
+        }
+    };
 
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                id={errorId}
-                role="alert"
-                initial={{ opacity: 0, y: -10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -10, height: 0 }}
-                className={`relative z-10 mb-6 border rounded-xl p-3 flex items-center gap-3 ${isDayMode ? 'bg-red-50 border-red-200/80' : 'bg-red-500/10 border-red-500/20'}`}
-              >
-                <AlertCircle className="text-red-400 shrink-0" size={18} aria-hidden="true" />
-                <p className={`text-sm font-medium ${isDayMode ? 'text-red-600' : 'text-red-200'}`}>{error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    if (!isOpen) return null;
 
-          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-            <div>
-              <label htmlFor={usernameId} className="block text-xs font-bold text-indigo-400 uppercase mb-2 tracking-wider">{t('auth.username')}</label>
-              <div className="relative group">
-                <User className={`absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-400 transition-colors ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`} size={18} aria-hidden="true" />
-                <input
-                  id={usernameId}
-                  type="text" 
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
-                  placeholder={t('auth.username_placeholder')}
+    return ReactDOM.createPortal(
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className={`absolute inset-0 backdrop-blur-3xl ${isDayMode ? "bg-white/60" : "bg-black/40"}`}
                 />
-              </div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={dialogTitleId}
+                    aria-describedby={error ? errorId : undefined}
+                    className={`relative w-full max-w-md backdrop-blur-3xl border rounded-lg shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_24px_64px_rgba(168,85,247,0.12)]" : "bg-[#0a0a0a]/80 border-white/10"}`}
+                >
+                    {/* Glass Effect Background */}
+                    <div
+                        className={`absolute inset-0 pointer-events-none ${isDayMode ? "bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.08),transparent_38%)]" : "bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50"}`}
+                    />
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label={t("common.close", "关闭")}
+                        className={`absolute top-4 right-4 transition-colors z-20 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center ${isDayMode ? "text-slate-400 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                    >
+                        <X size={20} aria-hidden="true" />
+                    </button>
+
+                    <div className="text-center mb-8 relative z-10">
+                        <h2
+                            id={dialogTitleId}
+                            className={`text-3xl font-bold mb-2 tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+                        >
+                            {isLogin ? t("auth.welcome_back") : t("auth.join_lumos")}
+                        </h2>
+                        <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                            {isLogin ? t("auth.signin_desc") : t("auth.signup_desc")}
+                        </p>
+                    </div>
+
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div
+                                id={errorId}
+                                role="alert"
+                                initial={{ opacity: 0, y: -10, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: "auto" }}
+                                exit={{ opacity: 0, y: -10, height: 0 }}
+                                className={`relative z-10 mb-6 border rounded-xl p-3 flex items-center gap-3 ${isDayMode ? "bg-red-50 border-red-200/80" : "bg-red-500/10 border-red-500/20"}`}
+                            >
+                                <AlertCircle
+                                    className="text-red-400 shrink-0"
+                                    size={18}
+                                    aria-hidden="true"
+                                />
+                                <p
+                                    className={`text-sm font-medium ${isDayMode ? "text-red-600" : "text-red-200"}`}
+                                >
+                                    {error}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+                        <div>
+                            <label
+                                htmlFor={usernameId}
+                                className="block text-xs font-bold text-indigo-400 uppercase mb-2 tracking-wider"
+                            >
+                                {t("auth.username")}
+                            </label>
+                            <div className="relative group">
+                                <User
+                                    className={`absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-400 transition-colors ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                    size={18}
+                                    aria-hidden="true"
+                                />
+                                <input
+                                    id={usernameId}
+                                    type="text"
+                                    autoComplete="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? "bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white" : "bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5"}`}
+                                    placeholder={t("auth.username_placeholder")}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor={passwordId}
+                                className="block text-xs font-bold text-indigo-400 uppercase mb-2 tracking-wider"
+                            >
+                                {t("auth.password")}
+                            </label>
+                            <div className="relative group">
+                                <Lock
+                                    className={`absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-400 transition-colors ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                    size={18}
+                                    aria-hidden="true"
+                                />
+                                <input
+                                    id={passwordId}
+                                    type="password"
+                                    autoComplete={isLogin ? "current-password" : "new-password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? "bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white" : "bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5"}`}
+                                    placeholder={t("auth.password_placeholder")}
+                                    minLength={6}
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            aria-busy={loading || undefined}
+                            className={`w-full text-white font-bold py-4 sm:py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-[0_12px_26px_rgba(124,58,237,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
+                        >
+                            {loading ? (
+                                <Loader className="animate-spin" size={20} aria-hidden="true" />
+                            ) : (
+                                <>
+                                    {isLogin ? t("auth.sign_in") : t("auth.create_account")}
+                                    <ArrowRight size={18} aria-hidden="true" />
+                                </>
+                            )}
+                            {loading ? (
+                                <span className="sr-only">{t("common.loading")}</span>
+                            ) : null}
+                        </button>
+                    </form>
+
+                    {canUseWechatLogin && (
+                        <div className="relative z-10 mt-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <span
+                                    className={`h-px flex-1 ${isDayMode ? "bg-slate-200" : "bg-white/10"}`}
+                                />
+                                <span
+                                    className={`text-xs font-semibold ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                >
+                                    {t("auth.or")}
+                                </span>
+                                <span
+                                    className={`h-px flex-1 ${isDayMode ? "bg-slate-200" : "bg-white/10"}`}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleWechatLogin}
+                                disabled={loading || wechatLoading}
+                                aria-busy={wechatLoading || undefined}
+                                className={`w-full font-bold py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-[#07c160] text-white hover:bg-[#06ad56] shadow-[0_12px_26px_rgba(7,193,96,0.16)]" : "bg-[#07c160] text-white hover:bg-[#06ad56] shadow-lg shadow-emerald-500/15"}`}
+                            >
+                                {wechatLoading ? (
+                                    <Loader className="animate-spin" size={20} aria-hidden="true" />
+                                ) : (
+                                    <MessageCircle size={18} aria-hidden="true" />
+                                )}
+                                {wechatLoading
+                                    ? t("auth.wechat_signing_in")
+                                    : t("auth.wechat_sign_in")}
+                            </button>
+                        </div>
+                    )}
+
+                    <div
+                        className={`mt-8 text-center text-sm relative z-10 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
+                        {isLogin ? t("auth.no_account") : t("auth.has_account")}
+                        <button
+                            type="button"
+                            onClick={switchMode}
+                            className={`font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500 py-2 px-1 ${isDayMode ? "text-slate-900 hover:text-indigo-500" : "text-white hover:text-indigo-400"}`}
+                        >
+                            {isLogin ? t("auth.sign_up") : t("auth.log_in")}
+                        </button>
+                    </div>
+                </motion.div>
             </div>
-
-            <div>
-              <label htmlFor={passwordId} className="block text-xs font-bold text-indigo-400 uppercase mb-2 tracking-wider">{t('auth.password')}</label>
-              <div className="relative group">
-                <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-400 transition-colors ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`} size={18} aria-hidden="true" />
-                <input
-                  id={passwordId}
-                  type="password" 
-                  autoComplete={isLogin ? "current-password" : "new-password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
-                  placeholder={t('auth.password_placeholder')}
-                  minLength={6}
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              aria-busy={loading || undefined}
-              className={`w-full text-white font-bold py-4 sm:py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-[0_12px_26px_rgba(124,58,237,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
-            >
-              {loading ? <Loader className="animate-spin" size={20} aria-hidden="true" /> : (
-                <>
-                  {isLogin ? t('auth.sign_in') : t('auth.create_account')}
-                  <ArrowRight size={18} aria-hidden="true" />
-                </>
-              )}
-              {loading ? <span className="sr-only">{t('common.loading')}</span> : null}
-            </button>
-          </form>
-
-          {canUseWechatLogin && (
-            <div className="relative z-10 mt-6">
-              <div className="mb-4 flex items-center gap-3">
-                <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
-                <span className={`text-xs font-semibold ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                  {t('auth.or')}
-                </span>
-                <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
-              </div>
-              <button
-                type="button"
-                onClick={handleWechatLogin}
-                disabled={loading || wechatLoading}
-                aria-busy={wechatLoading || undefined}
-                className={`w-full font-bold py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] min-h-[44px] ${isDayMode ? 'bg-[#07c160] text-white hover:bg-[#06ad56] shadow-[0_12px_26px_rgba(7,193,96,0.16)]' : 'bg-[#07c160] text-white hover:bg-[#06ad56] shadow-lg shadow-emerald-500/15'}`}
-              >
-                {wechatLoading ? <Loader className="animate-spin" size={20} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
-                {wechatLoading ? t('auth.wechat_signing_in') : t('auth.wechat_sign_in')}
-              </button>
-            </div>
-          )}
-
-          <div className={`mt-8 text-center text-sm relative z-10 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-            {isLogin ? t('auth.no_account') : t('auth.has_account')}
-            <button 
-              type="button"
-              onClick={switchMode}
-              className={`font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500 py-2 px-1 ${isDayMode ? 'text-slate-900 hover:text-indigo-500' : 'text-white hover:text-indigo-400'}`}
-            >
-              {isLogin ? t('auth.sign_up') : t('auth.log_in')}
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>,
-    document.body
-  );
+        </AnimatePresence>,
+        document.body
+    );
 };
 
 export default AuthModal;

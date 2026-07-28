@@ -1,8 +1,11 @@
 # admin-command-center Specification
 
 ## Purpose
+
 TBD - created by archiving change upgrade-admin-command-center. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Admin navigation must support intent search
 
 The admin sidebar and mobile drawer SHALL let administrators search modules by group, label, or description.
@@ -51,4 +54,3 @@ The shell upgrade SHALL preserve URL-addressable modules, quick jump, adjacent c
 
 - **WHEN** the admin Playwright spec is run
 - **THEN** it shall verify command-center metrics, searchable navigation, recent shortcuts, mobile drawer search, and existing resource/AI flows.
-

@@ -1,30 +1,30 @@
 .project-share-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16rpx;
 }
 
 .project-share-meta-card {
-  min-height: 118rpx;
-  box-sizing: border-box;
-  padding: 22rpx 20rpx;
-  border: 1rpx solid rgba(15, 23, 42, 0.1);
-  border-radius: 8rpx;
-  background: #ffffff;
+    min-height: 118rpx;
+    box-sizing: border-box;
+    padding: 22rpx 20rpx;
+    border: 1rpx solid rgba(15, 23, 42, 0.1);
+    border-radius: 8rpx;
+    background: #ffffff;
 }
 
 .project-share-meta-card text {
-  display: block;
-  color: #64748b;
-  font-size: 23rpx;
-  font-weight: 800;
+    display: block;
+    color: #64748b;
+    font-size: 23rpx;
+    font-weight: 800;
 }
 
 .project-share-meta-card view {
-  margin-top: 8rpx;
-  color: #0f172a;
-  font-size: 30rpx;
-  font-weight: 900;
-  line-height: 1.2;
-  word-break: break-word;
+    margin-top: 8rpx;
+    color: #0f172a;
+    font-size: 30rpx;
+    font-weight: 900;
+    line-height: 1.2;
+    word-break: break-word;
 }

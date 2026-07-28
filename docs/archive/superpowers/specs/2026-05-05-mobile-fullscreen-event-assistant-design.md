@@ -118,13 +118,13 @@ Add:
 Update:
 
 - `EventAssistantPanel`
-  - Add a `variant` prop.
-  - Support `variant="fullscreen"` to reduce nested card chrome and fit the mobile full-screen layout.
+    - Add a `variant` prop.
+    - Support `variant="fullscreen"` to reduce nested card chrome and fit the mobile full-screen layout.
 - `Events`
-  - Add `isMobileAssistantOpen` state.
-  - Render launcher on mobile.
-  - Render full-screen assistant via portal.
-  - Remove assistant mode from mobile filter drawer.
+    - Add `isMobileAssistantOpen` state.
+    - Render launcher on mobile.
+    - Render full-screen assistant via portal.
+    - Remove assistant mode from mobile filter drawer.
 
 Keep:
 

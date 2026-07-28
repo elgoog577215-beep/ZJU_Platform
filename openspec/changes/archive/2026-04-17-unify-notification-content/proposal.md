@@ -3,6 +3,7 @@
 当前 `notifications` 表实际只有 `title / message / data` 三列在用（真实 schema：`id, user_id, type, title, message, data, is_read, created_at`）。`createNotification` 里有一条"if content 列存在就写 content"的 dead-code 分支 —— 这条分支从来没有被执行过，因为 `content` 列根本没在 schema 里。`normalizeNotificationRow` 依然做 `content ?? message ?? title` 三级兜底读，这反映出开发者预期了 `content` 列但没落实。
 
 结果：
+
 - 代码里写着 "content 是通知正文的主字段"，实际存储里 content 列根本不存在
 - 新增通知类型的开发者读代码会误解 schema
 - 这条 dead-code 分支永远不会被执行，但它掩盖了"notifications 正文没有单一事实源"这个问题
@@ -23,16 +24,18 @@
 ## Capabilities
 
 ### Modified Capabilities
+
 - `notifications-persistence`: 通知正文的写入与读取路径在服务端层面统一到 `content` 列。
 
 ### New Capabilities
+
 - None.
 
 ## Impact
 
 - 受影响后端：
-  - `server/src/config/runMigrations.js` — 增加 `content` 列 + 一次性回填
-  - `server/src/controllers/notificationController.js` — `createNotification` 单路径化、`normalizeNotificationRow` 读顺序调整
+    - `server/src/config/runMigrations.js` — 增加 `content` 列 + 一次性回填
+    - `server/src/controllers/notificationController.js` — `createNotification` 单路径化、`normalizeNotificationRow` 读顺序调整
 - 受影响前端：无（API 返回的 `content` 字段语义不变）
 - 数据库：**非破坏性变更**，旧列保留
 - 回滚点：动工前打 `git tag pre-msg-refactor-v1`；回滚只需 `git reset --hard pre-msg-refactor-v1`，无需数据库恢复（旧列还在）

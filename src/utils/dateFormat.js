@@ -10,21 +10,21 @@
  * @param {object} options - 格式化选项
  * @returns {string} 格式化后的日期字符串
  */
-export const formatDate = (date, locale = 'zh-CN', options = {}) => {
-  const dateObj = new Date(date);
-  
-  if (isNaN(dateObj.getTime())) {
-    console.error('Invalid date:', date);
-    return '';
-  }
+export const formatDate = (date, locale = "zh-CN", options = {}) => {
+    const dateObj = new Date(date);
 
-  const defaultOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  };
+    if (isNaN(dateObj.getTime())) {
+        console.error("Invalid date:", date);
+        return "";
+    }
 
-  return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
+    const defaultOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    };
+
+    return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
 };
 
 /**
@@ -34,19 +34,19 @@ export const formatDate = (date, locale = 'zh-CN', options = {}) => {
  * @param {object} options - 格式化选项
  * @returns {string} 格式化后的时间字符串
  */
-export const formatTime = (date, locale = 'zh-CN', options = {}) => {
-  const dateObj = new Date(date);
-  
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
+export const formatTime = (date, locale = "zh-CN", options = {}) => {
+    const dateObj = new Date(date);
 
-  const defaultOptions = {
-    hour: '2-digit',
-    minute: '2-digit',
-  };
+    if (isNaN(dateObj.getTime())) {
+        return "";
+    }
 
-  return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
+    const defaultOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+    };
+
+    return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
 };
 
 /**
@@ -56,22 +56,22 @@ export const formatTime = (date, locale = 'zh-CN', options = {}) => {
  * @param {object} options - 格式化选项
  * @returns {string} 格式化后的日期时间字符串
  */
-export const formatDateTime = (date, locale = 'zh-CN', options = {}) => {
-  const dateObj = new Date(date);
-  
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
+export const formatDateTime = (date, locale = "zh-CN", options = {}) => {
+    const dateObj = new Date(date);
 
-  const defaultOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  };
+    if (isNaN(dateObj.getTime())) {
+        return "";
+    }
 
-  return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
+    const defaultOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    };
+
+    return new Intl.DateTimeFormat(locale, { ...defaultOptions, ...options }).format(dateObj);
 };
 
 /**
@@ -80,36 +80,36 @@ export const formatDateTime = (date, locale = 'zh-CN', options = {}) => {
  * @param {string} locale - 语言环境
  * @returns {string} 相对时间字符串
  */
-export const formatRelativeTime = (date, locale = 'zh-CN') => {
-  const dateObj = new Date(date);
-  const now = new Date();
-  
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
+export const formatRelativeTime = (date, locale = "zh-CN") => {
+    const dateObj = new Date(date);
+    const now = new Date();
 
-  const diffInSeconds = Math.floor((now - dateObj) / 1000);
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-  const diffInMonths = Math.floor(diffInDays / 30);
-  const diffInYears = Math.floor(diffInDays / 365);
+    if (isNaN(dateObj.getTime())) {
+        return "";
+    }
 
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    const diffInSeconds = Math.floor((now - dateObj) / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
 
-  if (diffInSeconds < 60) {
-    return rtf.format(-diffInSeconds, 'second');
-  } else if (diffInMinutes < 60) {
-    return rtf.format(-diffInMinutes, 'minute');
-  } else if (diffInHours < 24) {
-    return rtf.format(-diffInHours, 'hour');
-  } else if (diffInDays < 30) {
-    return rtf.format(-diffInDays, 'day');
-  } else if (diffInMonths < 12) {
-    return rtf.format(-diffInMonths, 'month');
-  } else {
-    return rtf.format(-diffInYears, 'year');
-  }
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+
+    if (diffInSeconds < 60) {
+        return rtf.format(-diffInSeconds, "second");
+    } else if (diffInMinutes < 60) {
+        return rtf.format(-diffInMinutes, "minute");
+    } else if (diffInHours < 24) {
+        return rtf.format(-diffInHours, "hour");
+    } else if (diffInDays < 30) {
+        return rtf.format(-diffInDays, "day");
+    } else if (diffInMonths < 12) {
+        return rtf.format(-diffInMonths, "month");
+    } else {
+        return rtf.format(-diffInYears, "year");
+    }
 };
 
 /**
@@ -119,16 +119,16 @@ export const formatRelativeTime = (date, locale = 'zh-CN') => {
  * @param {object} options - 格式化选项
  * @returns {string} 格式化后的数字字符串
  */
-export const formatNumber = (number, locale = 'zh-CN', options = {}) => {
-  if (typeof number !== 'number' || isNaN(number)) {
-    return '';
-  }
+export const formatNumber = (number, locale = "zh-CN", options = {}) => {
+    if (typeof number !== "number" || isNaN(number)) {
+        return "";
+    }
 
-  const defaultOptions = {
-    useGrouping: true,
-  };
+    const defaultOptions = {
+        useGrouping: true,
+    };
 
-  return new Intl.NumberFormat(locale, { ...defaultOptions, ...options }).format(number);
+    return new Intl.NumberFormat(locale, { ...defaultOptions, ...options }).format(number);
 };
 
 /**
@@ -138,15 +138,15 @@ export const formatNumber = (number, locale = 'zh-CN', options = {}) => {
  * @param {string} locale - 语言环境
  * @returns {string} 格式化后的货币字符串
  */
-export const formatCurrency = (amount, currency = 'CNY', locale = 'zh-CN') => {
-  if (typeof amount !== 'number' || isNaN(amount)) {
-    return '';
-  }
+export const formatCurrency = (amount, currency = "CNY", locale = "zh-CN") => {
+    if (typeof amount !== "number" || isNaN(amount)) {
+        return "";
+    }
 
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-  }).format(amount);
+    return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+    }).format(amount);
 };
 
 /**
@@ -155,16 +155,20 @@ export const formatCurrency = (amount, currency = 'CNY', locale = 'zh-CN') => {
  * @param {string} locale - 语言环境
  * @returns {string} 格式化后的文件大小
  */
-export const formatFileSize = (bytes, locale = 'zh-CN') => {
-  if (bytes === 0) return '0 B';
-  
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 2,
-  }).format(bytes / Math.pow(k, i)) + ' ' + sizes[i];
+export const formatFileSize = (bytes, locale = "zh-CN") => {
+    if (bytes === 0) return "0 B";
+
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return (
+        new Intl.NumberFormat(locale, {
+            maximumFractionDigits: 2,
+        }).format(bytes / Math.pow(k, i)) +
+        " " +
+        sizes[i]
+    );
 };
 
 /**
@@ -174,14 +178,14 @@ export const formatFileSize = (bytes, locale = 'zh-CN') => {
  * @param {'long'|'short'|'narrow'} format - 格式
  * @returns {string} 星期几
  */
-export const getWeekday = (date, locale = 'zh-CN', format = 'short') => {
-  const dateObj = new Date(date);
-  
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
+export const getWeekday = (date, locale = "zh-CN", format = "short") => {
+    const dateObj = new Date(date);
 
-  return new Intl.DateTimeFormat(locale, { weekday: format }).format(dateObj);
+    if (isNaN(dateObj.getTime())) {
+        return "";
+    }
+
+    return new Intl.DateTimeFormat(locale, { weekday: format }).format(dateObj);
 };
 
 /**
@@ -190,12 +194,14 @@ export const getWeekday = (date, locale = 'zh-CN', format = 'short') => {
  * @returns {boolean}
  */
 export const isToday = (date) => {
-  const dateObj = new Date(date);
-  const today = new Date();
-  
-  return dateObj.getFullYear() === today.getFullYear() &&
-         dateObj.getMonth() === today.getMonth() &&
-         dateObj.getDate() === today.getDate();
+    const dateObj = new Date(date);
+    const today = new Date();
+
+    return (
+        dateObj.getFullYear() === today.getFullYear() &&
+        dateObj.getMonth() === today.getMonth() &&
+        dateObj.getDate() === today.getDate()
+    );
 };
 
 /**
@@ -204,13 +210,15 @@ export const isToday = (date) => {
  * @returns {boolean}
  */
 export const isYesterday = (date) => {
-  const dateObj = new Date(date);
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  return dateObj.getFullYear() === yesterday.getFullYear() &&
-         dateObj.getMonth() === yesterday.getMonth() &&
-         dateObj.getDate() === yesterday.getDate();
+    const dateObj = new Date(date);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    return (
+        dateObj.getFullYear() === yesterday.getFullYear() &&
+        dateObj.getMonth() === yesterday.getMonth() &&
+        dateObj.getDate() === yesterday.getDate()
+    );
 };
 
 /**
@@ -220,31 +228,31 @@ export const isYesterday = (date) => {
  * @param {string} locale - 语言环境
  * @returns {string} 智能格式化后的日期字符串
  */
-export const formatSmartDate = (date, locale = 'zh-CN') => {
-  const dateObj = new Date(date);
-  
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
+export const formatSmartDate = (date, locale = "zh-CN") => {
+    const dateObj = new Date(date);
 
-  if (isToday(dateObj)) {
-    return formatTime(dateObj, locale);
-  }
-  
-  if (isYesterday(dateObj)) {
-    return locale === 'zh-CN' ? '昨天' : 'Yesterday';
-  }
-  
-  const now = new Date();
-  const diffInDays = Math.floor((now - dateObj) / (1000 * 60 * 60 * 24));
-  
-  if (diffInDays < 7) {
-    return getWeekday(dateObj, locale, 'long');
-  }
-  
-  if (dateObj.getFullYear() === now.getFullYear()) {
-    return formatDate(dateObj, locale, { month: 'long', day: 'numeric' });
-  }
-  
-  return formatDate(dateObj, locale);
+    if (isNaN(dateObj.getTime())) {
+        return "";
+    }
+
+    if (isToday(dateObj)) {
+        return formatTime(dateObj, locale);
+    }
+
+    if (isYesterday(dateObj)) {
+        return locale === "zh-CN" ? "昨天" : "Yesterday";
+    }
+
+    const now = new Date();
+    const diffInDays = Math.floor((now - dateObj) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays < 7) {
+        return getWeekday(dateObj, locale, "long");
+    }
+
+    if (dateObj.getFullYear() === now.getFullYear()) {
+        return formatDate(dateObj, locale, { month: "long", day: "numeric" });
+    }
+
+    return formatDate(dateObj, locale);
 };

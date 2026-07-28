@@ -124,6 +124,7 @@
 后端在序列化 community_posts 输出时 SHALL 对匿名求助贴做字段脱敏，仅当访客既非作者本人、也非 admin 时生效。
 
 被脱敏的字段（设置为 `null`）：
+
 - `author_name`
 - `author_avatar`
 - `uploader_id` / `author_id`
@@ -159,8 +160,8 @@
 
 - 本次 change 实现阶段 MUST 在 `server/src/controllers/communityController.js`（或任何引用 `community_posts` 的 controller）中审计全部读路径
 - 项目 MUST 新增自动化 assertion：
-  - 方案 A（推荐）：添加 pre-commit 或 CI 脚本，grep 源码中出现 `FROM community_posts` 或 `.get/.all('SELECT...community_posts')` 的行，对比白名单（允许列表为 helper 内部的 SQL）；白名单外命中则 CI 失败
-  - 方案 B：添加测试用例遍历所有 `/community/posts*` 响应，断言 is_anonymous=1 的帖对访客脱敏
+    - 方案 A（推荐）：添加 pre-commit 或 CI 脚本，grep 源码中出现 `FROM community_posts` 或 `.get/.all('SELECT...community_posts')` 的行，对比白名单（允许列表为 helper 内部的 SQL）；白名单外命中则 CI 失败
+    - 方案 B：添加测试用例遍历所有 `/community/posts*` 响应，断言 is_anonymous=1 的帖对访客脱敏
 - 新增读路径（如管理后台 list、search 返回 posts）MUST 同步经过 helper
 
 #### Scenario: New read path must go through helper

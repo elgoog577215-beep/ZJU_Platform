@@ -1,490 +1,522 @@
 const {
-  EVENT_CATEGORIES,
-  EVENT_CATEGORY_ALIASES,
-  EVENT_CATEGORY_LABELS,
-  EVENT_AUDIENCE_GROUPS,
-  EVENT_AUDIENCE_OPTIONS,
-  EVENT_AUDIENCE_ALIASES,
-  EVENT_CAMPUS_OPTIONS,
-} = require('../constants/eventCatalog');
+    EVENT_CATEGORIES,
+    EVENT_CATEGORY_ALIASES,
+    EVENT_CATEGORY_LABELS,
+    EVENT_AUDIENCE_GROUPS,
+    EVENT_AUDIENCE_OPTIONS,
+    EVENT_AUDIENCE_ALIASES,
+    EVENT_CAMPUS_OPTIONS,
+} = require("../constants/eventCatalog");
 
 const CATEGORY_VALUES = new Set(EVENT_CATEGORIES.map((item) => item.value));
 const CATEGORY_LABEL_LOOKUP = new Map(EVENT_CATEGORIES.map((item) => [item.label, item.value]));
-const COLLEGE_NOTICE_TAG = '学院通知';
+const COLLEGE_NOTICE_TAG = "学院通知";
 const COLLEGE_NOTICE_TYPES = [
-  'academic',
-  'evaluation',
-  'bonus',
-  'volunteer',
-  'lecture',
-  'competition',
-  'administrative',
-  'registration',
-  'voting',
-  'other',
+    "academic",
+    "evaluation",
+    "bonus",
+    "volunteer",
+    "lecture",
+    "competition",
+    "administrative",
+    "registration",
+    "voting",
+    "other",
 ];
 
 const PRIORITY_SOURCE_COLLEGES = [
-  '云峰学园',
-  '丹青学园',
-  '蓝田学园',
-  '紫云碧峰学园',
-  '港湾家园',
-  '海宁国际校区',
+    "云峰学园",
+    "丹青学园",
+    "蓝田学园",
+    "紫云碧峰学园",
+    "港湾家园",
+    "海宁国际校区",
 ];
 
-const normalizeText = (value = '') => String(value || '')
-  .replace(/\s+/g, ' ')
-  .trim();
+const normalizeText = (value = "") =>
+    String(value || "")
+        .replace(/\s+/g, " ")
+        .trim();
 
-const normalizeLookupText = (value = '') => normalizeText(value).toLowerCase();
+const normalizeLookupText = (value = "") => normalizeText(value).toLowerCase();
 
 const unique = (items) => [...new Set(items.filter(Boolean))];
 
-const EVENT_SOURCE_COLLEGE_OPTIONS = EVENT_AUDIENCE_OPTIONS.filter((item) => item !== '全校');
+const EVENT_SOURCE_COLLEGE_OPTIONS = EVENT_AUDIENCE_OPTIONS.filter((item) => item !== "全校");
 const EVENT_SOURCE_COLLEGE_MATCH_OPTIONS = [
-  ...PRIORITY_SOURCE_COLLEGES.filter((item) => EVENT_SOURCE_COLLEGE_OPTIONS.includes(item)),
-  ...EVENT_SOURCE_COLLEGE_OPTIONS.filter((item) => !PRIORITY_SOURCE_COLLEGES.includes(item)),
+    ...PRIORITY_SOURCE_COLLEGES.filter((item) => EVENT_SOURCE_COLLEGE_OPTIONS.includes(item)),
+    ...EVENT_SOURCE_COLLEGE_OPTIONS.filter((item) => !PRIORITY_SOURCE_COLLEGES.includes(item)),
 ];
 
-const getStandardOption = (options, hints, fallback) => (
-  options.find((item) => hints.some((hint) => String(item).includes(hint))) || fallback
-);
+const getStandardOption = (options, hints, fallback) =>
+    options.find((item) => hints.some((hint) => String(item).includes(hint))) || fallback;
 
 const STANDARD_AUDIENCES = {
-  all: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['全校'], '全校'),
-  undergraduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['本科'], '本科生'),
-  graduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['研究生'], '研究生'),
-  master: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['硕士'], '硕士生'),
-  doctor: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['博士'], '博士生'),
-  freshman: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['新生'], '新生'),
+    all: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["全校"], "全校"),
+    undergraduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["本科"], "本科生"),
+    graduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["研究生"], "研究生"),
+    master: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["硕士"], "硕士生"),
+    doctor: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["博士"], "博士生"),
+    freshman: getStandardOption(EVENT_AUDIENCE_OPTIONS, ["新生"], "新生"),
 };
 
 const STANDARD_CAMPUSES = {
-  zijingang: getStandardOption(EVENT_CAMPUS_OPTIONS, ['紫金港'], '紫金港'),
-  yuquan: getStandardOption(EVENT_CAMPUS_OPTIONS, ['玉泉'], '玉泉'),
-  xixi: getStandardOption(EVENT_CAMPUS_OPTIONS, ['西溪'], '西溪'),
-  huajiachi: getStandardOption(EVENT_CAMPUS_OPTIONS, ['华家池'], '华家池'),
-  zhijiang: getStandardOption(EVENT_CAMPUS_OPTIONS, ['之江'], '之江'),
-  zhoushan: getStandardOption(EVENT_CAMPUS_OPTIONS, ['舟山'], '舟山'),
-  haining: getStandardOption(EVENT_CAMPUS_OPTIONS, ['海宁'], '海宁'),
-  online: getStandardOption(EVENT_CAMPUS_OPTIONS, ['线上'], '线上'),
+    zijingang: getStandardOption(EVENT_CAMPUS_OPTIONS, ["紫金港"], "紫金港"),
+    yuquan: getStandardOption(EVENT_CAMPUS_OPTIONS, ["玉泉"], "玉泉"),
+    xixi: getStandardOption(EVENT_CAMPUS_OPTIONS, ["西溪"], "西溪"),
+    huajiachi: getStandardOption(EVENT_CAMPUS_OPTIONS, ["华家池"], "华家池"),
+    zhijiang: getStandardOption(EVENT_CAMPUS_OPTIONS, ["之江"], "之江"),
+    zhoushan: getStandardOption(EVENT_CAMPUS_OPTIONS, ["舟山"], "舟山"),
+    haining: getStandardOption(EVENT_CAMPUS_OPTIONS, ["海宁"], "海宁"),
+    online: getStandardOption(EVENT_CAMPUS_OPTIONS, ["线上"], "线上"),
 };
 
 const CAMPUS_ALIAS_RULES = [
-  { value: STANDARD_CAMPUSES.zijingang, pattern: /\b(zi\s*jin\s*gang|zijingang|zjg)\b/i },
-  { value: STANDARD_CAMPUSES.yuquan, pattern: /\b(yu\s*quan|yuquan|yq)\b/i },
-  { value: STANDARD_CAMPUSES.xixi, pattern: /\b(xi\s*xi|xixi)\b/i },
-  { value: STANDARD_CAMPUSES.huajiachi, pattern: /\b(hua\s*jia\s*chi|huajiachi|hjc)\b/i },
-  { value: STANDARD_CAMPUSES.zhijiang, pattern: /\b(zhi\s*jiang|zhijiang)\b/i },
-  { value: STANDARD_CAMPUSES.zhoushan, pattern: /\b(zhou\s*shan|zhoushan)\b/i },
-  { value: STANDARD_CAMPUSES.haining, pattern: /\b(hai\s*ning|haining|hn)\b/i },
-  { value: STANDARD_CAMPUSES.online, pattern: /\b(online|live\s*stream|livestream|remote)\b/i },
+    { value: STANDARD_CAMPUSES.zijingang, pattern: /\b(zi\s*jin\s*gang|zijingang|zjg)\b/i },
+    { value: STANDARD_CAMPUSES.yuquan, pattern: /\b(yu\s*quan|yuquan|yq)\b/i },
+    { value: STANDARD_CAMPUSES.xixi, pattern: /\b(xi\s*xi|xixi)\b/i },
+    { value: STANDARD_CAMPUSES.huajiachi, pattern: /\b(hua\s*jia\s*chi|huajiachi|hjc)\b/i },
+    { value: STANDARD_CAMPUSES.zhijiang, pattern: /\b(zhi\s*jiang|zhijiang)\b/i },
+    { value: STANDARD_CAMPUSES.zhoushan, pattern: /\b(zhou\s*shan|zhoushan)\b/i },
+    { value: STANDARD_CAMPUSES.haining, pattern: /\b(hai\s*ning|haining|hn)\b/i },
+    { value: STANDARD_CAMPUSES.online, pattern: /\b(online|live\s*stream|livestream|remote)\b/i },
 ];
 
 const ENGLISH_AUDIENCE_RULES = [
-  { value: STANDARD_AUDIENCES.all, pattern: /\b(all\s+(students|zju)|all\s+participants|everyone|whole\s+school|open\s+to\s+all)\b/i },
-  { value: STANDARD_AUDIENCES.undergraduate, pattern: /\b(undergraduates?|undergrads?|bachelors?)\b/i },
-  { value: STANDARD_AUDIENCES.graduate, pattern: /\b(graduate\s+students?|postgraduates?)\b/i },
-  { value: STANDARD_AUDIENCES.master, pattern: /\b(masters?|master'?s)\b/i },
-  { value: STANDARD_AUDIENCES.doctor, pattern: /\b(phd|doctoral|doctorate)\b/i },
-  { value: STANDARD_AUDIENCES.freshman, pattern: /\b(freshmen|freshman|first[-\s]?year)\b/i },
+    {
+        value: STANDARD_AUDIENCES.all,
+        pattern:
+            /\b(all\s+(students|zju)|all\s+participants|everyone|whole\s+school|open\s+to\s+all)\b/i,
+    },
+    {
+        value: STANDARD_AUDIENCES.undergraduate,
+        pattern: /\b(undergraduates?|undergrads?|bachelors?)\b/i,
+    },
+    { value: STANDARD_AUDIENCES.graduate, pattern: /\b(graduate\s+students?|postgraduates?)\b/i },
+    { value: STANDARD_AUDIENCES.master, pattern: /\b(masters?|master'?s)\b/i },
+    { value: STANDARD_AUDIENCES.doctor, pattern: /\b(phd|doctoral|doctorate)\b/i },
+    { value: STANDARD_AUDIENCES.freshman, pattern: /\b(freshmen|freshman|first[-\s]?year)\b/i },
 ];
 
 const splitList = (value) => {
-  if (Array.isArray(value)) return value;
-  return normalizeText(value)
-    .split(/[,，、;；\s/|]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+    if (Array.isArray(value)) return value;
+    return normalizeText(value)
+        .split(/[,，、;；\s/|]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
 };
 
 const CATEGORY_LOOKUP = (() => {
-  const lookup = new Map();
+    const lookup = new Map();
 
-  for (const item of EVENT_CATEGORIES) {
-    lookup.set(normalizeLookupText(item.value), item.value);
-    lookup.set(normalizeLookupText(item.label), item.value);
-  }
-
-  for (const [category, aliases] of Object.entries(EVENT_CATEGORY_ALIASES)) {
-    lookup.set(normalizeLookupText(category), category);
-    for (const alias of aliases) {
-      lookup.set(normalizeLookupText(alias), category);
+    for (const item of EVENT_CATEGORIES) {
+        lookup.set(normalizeLookupText(item.value), item.value);
+        lookup.set(normalizeLookupText(item.label), item.value);
     }
-  }
 
-  return lookup;
+    for (const [category, aliases] of Object.entries(EVENT_CATEGORY_ALIASES)) {
+        lookup.set(normalizeLookupText(category), category);
+        for (const alias of aliases) {
+            lookup.set(normalizeLookupText(alias), category);
+        }
+    }
+
+    return lookup;
 })();
 
 const CATEGORY_RULES = [
-  ['lecture', /学术|科研|讲座|论坛|报告|论文|课题组|导师|实验室|读书会|分享会|宣讲会|沙龙|会议/i],
-  ['competition', /竞赛|比赛|挑战赛|挑战杯|黑客松|训练营|路演|成果展/i],
-  ['volunteer', /志愿|公益|社会实践|支教|助老|服务日|社区服务/i],
-  ['recruitment', /招新|招募|招聘|实习|就业|职业|简历|面试|offer|学生会|研究生会|学生组织/i],
-  ['culture_sports', /文体|美育|艺术|展览|演出|音乐|体育|运动|文化节|电影/i],
-  ['exchange', /国际|交流|留学|交换|访学|海外|外事|校友|企业交流|跨校/i],
+    ["lecture", /学术|科研|讲座|论坛|报告|论文|课题组|导师|实验室|读书会|分享会|宣讲会|沙龙|会议/i],
+    ["competition", /竞赛|比赛|挑战赛|挑战杯|黑客松|训练营|路演|成果展/i],
+    ["volunteer", /志愿|公益|社会实践|支教|助老|服务日|社区服务/i],
+    ["recruitment", /招新|招募|招聘|实习|就业|职业|简历|面试|offer|学生会|研究生会|学生组织/i],
+    ["culture_sports", /文体|美育|艺术|展览|演出|音乐|体育|运动|文化节|电影/i],
+    ["exchange", /国际|交流|留学|交换|访学|海外|外事|校友|企业交流|跨校/i],
 ];
 
-const getCategoryLabel = (category) => EVENT_CATEGORY_LABELS[category] || category || '';
+const getCategoryLabel = (category) => EVENT_CATEGORY_LABELS[category] || category || "";
 
 const normalizeEventCategory = (value) => {
-  const normalized = normalizeLookupText(value);
-  if (!normalized) return '';
-  if (CATEGORY_LOOKUP.has(normalized)) return CATEGORY_LOOKUP.get(normalized);
+    const normalized = normalizeLookupText(value);
+    if (!normalized) return "";
+    if (CATEGORY_LOOKUP.has(normalized)) return CATEGORY_LOOKUP.get(normalized);
 
-  for (const [key, category] of CATEGORY_LOOKUP.entries()) {
-    if (key && normalized.includes(key)) return category;
-  }
+    for (const [key, category] of CATEGORY_LOOKUP.entries()) {
+        if (key && normalized.includes(key)) return category;
+    }
 
-  return '';
+    return "";
 };
 
 const normalizeCollegeNoticeType = (value) => {
-  const normalized = normalizeText(value);
-  if (!normalized) return '';
-  if (COLLEGE_NOTICE_TYPES.includes(normalized)) return normalized;
+    const normalized = normalizeText(value);
+    if (!normalized) return "";
+    if (COLLEGE_NOTICE_TYPES.includes(normalized)) return normalized;
 
-  if (/保研|推免|课程|学业|培养|考试|选课|教务|补考|缓考|学籍|毕业|论文|答辩/.test(normalized)) return 'academic';
-  if (/评奖|评优|奖学金|荣誉|十佳|优秀|先进|公示名单/.test(normalized)) return 'evaluation';
-  if (/加分|综测|素质分|二课|第二课堂|第三课堂|积分/.test(normalized)) return 'bonus';
-  if (/志愿|志愿者|公益|社会实践/.test(normalized)) return 'volunteer';
-  if (/讲座|报告|论坛|分享|沙龙|宣讲/.test(normalized)) return 'lecture';
-  if (/竞赛|比赛|挑战杯|黑客松|大赛|赛道/.test(normalized)) return 'competition';
-  if (/报名|招募|申请|征集|推荐|遴选|选拔/.test(normalized)) return 'registration';
-  if (/投票|评选|点赞|网络评审/.test(normalized)) return 'voting';
-  if (/通知|事务|安排|调整|汇总|提醒|公示|公告|名单|值班|会议|缴费|领取/.test(normalized)) return 'administrative';
-  return 'other';
+    if (/保研|推免|课程|学业|培养|考试|选课|教务|补考|缓考|学籍|毕业|论文|答辩/.test(normalized))
+        return "academic";
+    if (/评奖|评优|奖学金|荣誉|十佳|优秀|先进|公示名单/.test(normalized)) return "evaluation";
+    if (/加分|综测|素质分|二课|第二课堂|第三课堂|积分/.test(normalized)) return "bonus";
+    if (/志愿|志愿者|公益|社会实践/.test(normalized)) return "volunteer";
+    if (/讲座|报告|论坛|分享|沙龙|宣讲/.test(normalized)) return "lecture";
+    if (/竞赛|比赛|挑战杯|黑客松|大赛|赛道/.test(normalized)) return "competition";
+    if (/报名|招募|申请|征集|推荐|遴选|选拔/.test(normalized)) return "registration";
+    if (/投票|评选|点赞|网络评审/.test(normalized)) return "voting";
+    if (/通知|事务|安排|调整|汇总|提醒|公示|公告|名单|值班|会议|缴费|领取/.test(normalized))
+        return "administrative";
+    return "other";
 };
 
 const inferEventSourceCollege = (event = {}) => {
-  const source = [
-    event.source_college,
-    event.organizer,
-    event.author,
-    event.target_audience,
-    event.title,
-    event.description,
-    event.content,
-  ].map(normalizeText).filter(Boolean).join(' ');
+    const source = [
+        event.source_college,
+        event.organizer,
+        event.author,
+        event.target_audience,
+        event.title,
+        event.description,
+        event.content,
+    ]
+        .map(normalizeText)
+        .filter(Boolean)
+        .join(" ");
 
-  if (!source) return '';
+    if (!source) return "";
 
-  const direct = EVENT_SOURCE_COLLEGE_MATCH_OPTIONS.find((item) => source.includes(item));
-  if (direct) return direct;
+    const direct = EVENT_SOURCE_COLLEGE_MATCH_OPTIONS.find((item) => source.includes(item));
+    if (direct) return direct;
 
-  if (/云峰/.test(source)) return '云峰学园';
-  if (/丹青/.test(source)) return '丹青学园';
-  if (/蓝田/.test(source)) return '蓝田学园';
-  if (/求是/.test(source)) return '求是学院';
-  if (/竺可桢|竺院/.test(source)) return '竺可桢学院';
-  if (/计算机/.test(source)) return '计算机科学与技术学院';
-  if (/软件/.test(source)) return '软件学院';
-  if (/人工智能/.test(source)) return '人工智能学院';
-  if (/集成电路/.test(source)) return '集成电路学院';
-  if (/信电|信息与电子/.test(source)) return '信息与电子工程学院';
-  if (/控制/.test(source)) return '控制科学与工程学院';
-  if (/光电/.test(source)) return '光电科学与工程学院';
+    if (/云峰/.test(source)) return "云峰学园";
+    if (/丹青/.test(source)) return "丹青学园";
+    if (/蓝田/.test(source)) return "蓝田学园";
+    if (/求是/.test(source)) return "求是学院";
+    if (/竺可桢|竺院/.test(source)) return "竺可桢学院";
+    if (/计算机/.test(source)) return "计算机科学与技术学院";
+    if (/软件/.test(source)) return "软件学院";
+    if (/人工智能/.test(source)) return "人工智能学院";
+    if (/集成电路/.test(source)) return "集成电路学院";
+    if (/信电|信息与电子/.test(source)) return "信息与电子工程学院";
+    if (/控制/.test(source)) return "控制科学与工程学院";
+    if (/光电/.test(source)) return "光电科学与工程学院";
 
-  return '';
+    return "";
 };
 
 const inferCollegeNoticeSignal = (event = {}) => {
-  const text = [
-    event.title,
-    event.description,
-    event.content,
-    event.organizer,
-    event.author,
-    event.target_audience,
-    event.tags,
-  ].map((value) => {
-    if (Array.isArray(value)) return value.join(' ');
-    return normalizeText(value);
-  }).filter(Boolean).join(' ');
+    const text = [
+        event.title,
+        event.description,
+        event.content,
+        event.organizer,
+        event.author,
+        event.target_audience,
+        event.tags,
+    ]
+        .map((value) => {
+            if (Array.isArray(value)) return value.join(" ");
+            return normalizeText(value);
+        })
+        .filter(Boolean)
+        .join(" ");
 
-  if (!text) return false;
+    if (!text) return false;
 
-  const tags = splitList(event.tags);
-  if (tags.includes(COLLEGE_NOTICE_TAG) || tags.includes('college_notice')) return true;
-  if (/学院通知|学园通知|学院公告|学园公告|学院公示|学园公示/.test(text)) return true;
+    const tags = splitList(event.tags);
+    if (tags.includes(COLLEGE_NOTICE_TAG) || tags.includes("college_notice")) return true;
+    if (/学院通知|学园通知|学院公告|学园公告|学院公示|学园公示/.test(text)) return true;
 
-  const sourceCollege = inferEventSourceCollege(event);
-  const hasNoticeTerm = /通知|公告|公示|报名|招募|申请|评奖|评优|奖学金|综测|素质分|加分|推免|保研|教务|课程|考试|名单|选拔|推荐|征集|投票/.test(text);
-  return Boolean(sourceCollege && hasNoticeTerm);
+    const sourceCollege = inferEventSourceCollege(event);
+    const hasNoticeTerm =
+        /通知|公告|公示|报名|招募|申请|评奖|评优|奖学金|综测|素质分|加分|推免|保研|教务|课程|考试|名单|选拔|推荐|征集|投票/.test(
+            text
+        );
+    return Boolean(sourceCollege && hasNoticeTerm);
 };
 
 const normalizeCollegeNoticeFields = (payload = {}, source = {}) => {
-  const merged = {
-    ...source,
-    ...payload,
-    author: payload.author || source.author,
-    tags: Array.isArray(payload.tags) ? payload.tags.join(' ') : payload.tags,
-  };
-  const explicitFlag = payload.is_college_notice;
-  const isExplicitTrue = explicitFlag === true || explicitFlag === 1 || explicitFlag === '1' || explicitFlag === 'true';
-  const isCollegeNotice = isExplicitTrue || inferCollegeNoticeSignal(merged);
-
-  if (!isCollegeNotice) {
-    return {
-      is_college_notice: 0,
-      notice_type: null,
-      source_college: null,
+    const merged = {
+        ...source,
+        ...payload,
+        author: payload.author || source.author,
+        tags: Array.isArray(payload.tags) ? payload.tags.join(" ") : payload.tags,
     };
-  }
+    const explicitFlag = payload.is_college_notice;
+    const isExplicitTrue =
+        explicitFlag === true ||
+        explicitFlag === 1 ||
+        explicitFlag === "1" ||
+        explicitFlag === "true";
+    const isCollegeNotice = isExplicitTrue || inferCollegeNoticeSignal(merged);
 
-  return {
-    is_college_notice: 1,
-    notice_type: normalizeCollegeNoticeType(payload.notice_type || payload.noticeType || payload.type || merged.title || merged.description) || 'other',
-    source_college: inferEventSourceCollege({
-      ...merged,
-      source_college: payload.source_college || payload.sourceCollege,
-    }),
-  };
+    if (!isCollegeNotice) {
+        return {
+            is_college_notice: 0,
+            notice_type: null,
+            source_college: null,
+        };
+    }
+
+    return {
+        is_college_notice: 1,
+        notice_type:
+            normalizeCollegeNoticeType(
+                payload.notice_type ||
+                    payload.noticeType ||
+                    payload.type ||
+                    merged.title ||
+                    merged.description
+            ) || "other",
+        source_college: inferEventSourceCollege({
+            ...merged,
+            source_college: payload.source_college || payload.sourceCollege,
+        }),
+    };
 };
 
-const detectCategories = (text = '') => {
-  const lowered = normalizeLookupText(text);
-  if (!lowered) return [];
+const detectCategories = (text = "") => {
+    const lowered = normalizeLookupText(text);
+    if (!lowered) return [];
 
-  const matches = [];
-  for (const [category, aliases] of Object.entries(EVENT_CATEGORY_ALIASES)) {
-    const allTerms = [category, EVENT_CATEGORY_LABELS[category], ...aliases]
-      .map(normalizeLookupText)
-      .filter(Boolean);
-    if (allTerms.some((term) => lowered.includes(term))) {
-      matches.push(category);
+    const matches = [];
+    for (const [category, aliases] of Object.entries(EVENT_CATEGORY_ALIASES)) {
+        const allTerms = [category, EVENT_CATEGORY_LABELS[category], ...aliases]
+            .map(normalizeLookupText)
+            .filter(Boolean);
+        if (allTerms.some((term) => lowered.includes(term))) {
+            matches.push(category);
+        }
     }
-  }
 
-  for (const [category, pattern] of CATEGORY_RULES) {
-    if (pattern.test(text) && !matches.includes(category)) {
-      matches.push(category);
+    for (const [category, pattern] of CATEGORY_RULES) {
+        if (pattern.test(text) && !matches.includes(category)) {
+            matches.push(category);
+        }
     }
-  }
 
-  return matches;
+    return matches;
 };
 
-const buildEventSearchText = (event = {}) => [
-  event.category,
-  event.tags,
-  event.title,
-  event.description,
-  event.content,
-  event.organizer,
-  event.location,
-  event.target_audience,
-].map((value) => {
-  if (Array.isArray(value)) return value.join(' ');
-  return normalizeText(value);
-}).filter(Boolean).join(' ');
+const buildEventSearchText = (event = {}) =>
+    [
+        event.category,
+        event.tags,
+        event.title,
+        event.description,
+        event.content,
+        event.organizer,
+        event.location,
+        event.target_audience,
+    ]
+        .map((value) => {
+            if (Array.isArray(value)) return value.join(" ");
+            return normalizeText(value);
+        })
+        .filter(Boolean)
+        .join(" ");
 
 const classifyEventCategory = (event = {}) => {
-  const explicit = normalizeEventCategory(event.category);
-  if (explicit) {
-    const canonical = CATEGORY_VALUES.has(normalizeText(event.category)) || CATEGORY_LABEL_LOOKUP.has(normalizeText(event.category));
-    return {
-      category: explicit,
-      confidence: canonical ? 1 : 0.92,
-      reason: canonical
-        ? `已有标准分类：${getCategoryLabel(explicit)}`
-        : `旧分类/别名「${normalizeText(event.category)}」映射为${getCategoryLabel(explicit)}`,
-      source: canonical ? 'category' : 'alias',
-    };
-  }
+    const explicit = normalizeEventCategory(event.category);
+    if (explicit) {
+        const canonical =
+            CATEGORY_VALUES.has(normalizeText(event.category)) ||
+            CATEGORY_LABEL_LOOKUP.has(normalizeText(event.category));
+        return {
+            category: explicit,
+            confidence: canonical ? 1 : 0.92,
+            reason: canonical
+                ? `已有标准分类：${getCategoryLabel(explicit)}`
+                : `旧分类/别名「${normalizeText(event.category)}」映射为${getCategoryLabel(explicit)}`,
+            source: canonical ? "category" : "alias",
+        };
+    }
 
-  const tagCategories = splitList(event.tags)
-    .map(normalizeEventCategory)
-    .filter(Boolean);
-  const strongTagCategory = tagCategories.find((category) => category !== 'other');
-  if (strongTagCategory) {
-    return {
-      category: strongTagCategory,
-      confidence: 0.82,
-      reason: `标签信号映射为${getCategoryLabel(strongTagCategory)}`,
-      source: 'tags',
-    };
-  }
+    const tagCategories = splitList(event.tags).map(normalizeEventCategory).filter(Boolean);
+    const strongTagCategory = tagCategories.find((category) => category !== "other");
+    if (strongTagCategory) {
+        return {
+            category: strongTagCategory,
+            confidence: 0.82,
+            reason: `标签信号映射为${getCategoryLabel(strongTagCategory)}`,
+            source: "tags",
+        };
+    }
 
-  const text = buildEventSearchText(event);
-  const detected = detectCategories(text).filter((category) => category !== 'other');
-  if (detected.length > 0) {
-    return {
-      category: detected[0],
-      confidence: 0.72,
-      reason: `标题/简介关键词推断为${getCategoryLabel(detected[0])}`,
-      source: 'text',
-    };
-  }
+    const text = buildEventSearchText(event);
+    const detected = detectCategories(text).filter((category) => category !== "other");
+    if (detected.length > 0) {
+        return {
+            category: detected[0],
+            confidence: 0.72,
+            reason: `标题/简介关键词推断为${getCategoryLabel(detected[0])}`,
+            source: "text",
+        };
+    }
 
-  if (tagCategories.includes('other') || detectCategories(text).includes('other')) {
-    return {
-      category: 'other',
-      confidence: 0.65,
-      reason: '仅匹配到泛校园活动信号，归为其他',
-      source: 'text',
-    };
-  }
+    if (tagCategories.includes("other") || detectCategories(text).includes("other")) {
+        return {
+            category: "other",
+            confidence: 0.65,
+            reason: "仅匹配到泛校园活动信号，归为其他",
+            source: "text",
+        };
+    }
 
-  return {
-    category: 'other',
-    confidence: 0.45,
-    reason: '没有足够标准分类信号，需人工确认',
-    source: 'fallback',
-  };
+    return {
+        category: "other",
+        confidence: 0.45,
+        reason: "没有足够标准分类信号，需人工确认",
+        source: "fallback",
+    };
 };
 
 const normalizeEventAudience = (value) => {
-  const rawItems = splitList(value);
-  const raw = normalizeText(Array.isArray(value) ? value.join(' ') : value);
-  if (!raw && rawItems.length === 0) return '';
+    const rawItems = splitList(value);
+    const raw = normalizeText(Array.isArray(value) ? value.join(" ") : value);
+    if (!raw && rawItems.length === 0) return "";
 
-  if (/全校|所有学生|全体学生|全体师生|全校师生|师生/.test(raw)
-    || ENGLISH_AUDIENCE_RULES[0].pattern.test(raw)) {
-    return STANDARD_AUDIENCES.all;
-  }
+    if (
+        /全校|所有学生|全体学生|全体师生|全校师生|师生/.test(raw) ||
+        ENGLISH_AUDIENCE_RULES[0].pattern.test(raw)
+    ) {
+        return STANDARD_AUDIENCES.all;
+    }
 
-  const exact = rawItems.filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
-  const included = EVENT_AUDIENCE_OPTIONS.filter((item) => raw.includes(item));
-  const broad = EVENT_AUDIENCE_ALIASES
-    .filter((item) => raw.includes(item))
-    .map((item) => {
-      if (item === '本科') return '本科生';
-      if (item === '硕士') return '硕士生';
-      if (item === '博士') return '博士生';
-      return item;
-    })
-    .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item) || item === '全校');
-  const english = ENGLISH_AUDIENCE_RULES
-    .filter((rule) => rule.pattern.test(raw))
-    .map((rule) => rule.value)
-    .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
+    const exact = rawItems.filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
+    const included = EVENT_AUDIENCE_OPTIONS.filter((item) => raw.includes(item));
+    const broad = EVENT_AUDIENCE_ALIASES.filter((item) => raw.includes(item))
+        .map((item) => {
+            if (item === "本科") return "本科生";
+            if (item === "硕士") return "硕士生";
+            if (item === "博士") return "博士生";
+            return item;
+        })
+        .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item) || item === "全校");
+    const english = ENGLISH_AUDIENCE_RULES.filter((rule) => rule.pattern.test(raw))
+        .map((rule) => rule.value)
+        .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
 
-  return unique([...exact, ...included, ...broad, ...english]).join(',');
+    return unique([...exact, ...included, ...broad, ...english]).join(",");
 };
 
 const detectCampusTerms = (value) => {
-  const raw = normalizeText(Array.isArray(value) ? value.join(' ') : value);
-  if (!raw) return [];
-  const direct = EVENT_CAMPUS_OPTIONS.filter((item) => raw.includes(item));
-  const aliasMatches = CAMPUS_ALIAS_RULES
-    .filter((rule) => rule.pattern.test(raw))
-    .map((rule) => rule.value)
-    .filter((item) => EVENT_CAMPUS_OPTIONS.includes(item));
-  return unique([...direct, ...aliasMatches]);
+    const raw = normalizeText(Array.isArray(value) ? value.join(" ") : value);
+    if (!raw) return [];
+    const direct = EVENT_CAMPUS_OPTIONS.filter((item) => raw.includes(item));
+    const aliasMatches = CAMPUS_ALIAS_RULES.filter((rule) => rule.pattern.test(raw))
+        .map((rule) => rule.value)
+        .filter((item) => EVENT_CAMPUS_OPTIONS.includes(item));
+    return unique([...direct, ...aliasMatches]);
 };
 
 const detectAudienceTerms = (value) => {
-  const normalized = normalizeEventAudience(value);
-  return splitList(normalized).filter((item) => (
-    EVENT_AUDIENCE_OPTIONS.includes(item) || item === STANDARD_AUDIENCES.all
-  ));
+    const normalized = normalizeEventAudience(value);
+    return splitList(normalized).filter(
+        (item) => EVENT_AUDIENCE_OPTIONS.includes(item) || item === STANDARD_AUDIENCES.all
+    );
 };
 
 const buildEventCatalogPromptContext = () => ({
-  categories: EVENT_CATEGORIES.map((item) => ({
-    value: item.value,
-    label: item.label,
-    description: item.description,
-    aliases: EVENT_CATEGORY_ALIASES[item.value] || [],
-  })),
-  campuses: EVENT_CAMPUS_OPTIONS,
-  audiences: EVENT_AUDIENCE_OPTIONS,
-  audienceGroups: EVENT_AUDIENCE_GROUPS,
+    categories: EVENT_CATEGORIES.map((item) => ({
+        value: item.value,
+        label: item.label,
+        description: item.description,
+        aliases: EVENT_CATEGORY_ALIASES[item.value] || [],
+    })),
+    campuses: EVENT_CAMPUS_OPTIONS,
+    audiences: EVENT_AUDIENCE_OPTIONS,
+    audienceGroups: EVENT_AUDIENCE_GROUPS,
 });
 
 const buildEventCatalogPromptText = () => {
-  const context = buildEventCatalogPromptContext();
-  return [
-    '【网站标准活动库】',
-    '活动大类只能从以下 value 中选择，返回时必须使用 value，不要返回中文标签或自造分类：',
-    ...context.categories.map((item) => (
-      `- ${item.value} (${item.label}): ${item.description}; 常见别名：${item.aliases.slice(0, 14).join('、')}`
-    )),
-    '',
-    `校区/形式标准项：${context.campuses.join('、')}`,
-    `面向对象标准项：${context.audiences.join('、')}`,
-    `学院通知来源学院标准项：${EVENT_SOURCE_COLLEGE_OPTIONS.join('、')}`,
-    '学院通知类型只能从 academic、evaluation、bonus、volunteer、lecture、competition、administrative、registration、voting、other 中选择。',
-    '活动标签已停用；不要生成 tags，活动归类只使用 category。',
-  ].join('\n');
+    const context = buildEventCatalogPromptContext();
+    return [
+        "【网站标准活动库】",
+        "活动大类只能从以下 value 中选择，返回时必须使用 value，不要返回中文标签或自造分类：",
+        ...context.categories.map(
+            (item) =>
+                `- ${item.value} (${item.label}): ${item.description}; 常见别名：${item.aliases.slice(0, 14).join("、")}`
+        ),
+        "",
+        `校区/形式标准项：${context.campuses.join("、")}`,
+        `面向对象标准项：${context.audiences.join("、")}`,
+        `学院通知来源学院标准项：${EVENT_SOURCE_COLLEGE_OPTIONS.join("、")}`,
+        "学院通知类型只能从 academic、evaluation、bonus、volunteer、lecture、competition、administrative、registration、voting、other 中选择。",
+        "活动标签已停用；不要生成 tags，活动归类只使用 category。",
+    ].join("\n");
 };
 
 const getEventCategoryFilterTerms = (value) => {
-  const normalized = normalizeText(value);
-  if (normalized === 'college_notice' || normalized === '学院通知') {
-    return ['学院通知'];
-  }
+    const normalized = normalizeText(value);
+    if (normalized === "college_notice" || normalized === "学院通知") {
+        return ["学院通知"];
+    }
 
-  const canonical = normalizeEventCategory(normalized) || normalized;
-  const category = EVENT_CATEGORIES.find((item) => item.value === canonical);
-  const label = category?.label;
-  const aliases = EVENT_CATEGORY_ALIASES[canonical] || [];
+    const canonical = normalizeEventCategory(normalized) || normalized;
+    const category = EVENT_CATEGORIES.find((item) => item.value === canonical);
+    const label = category?.label;
+    const aliases = EVENT_CATEGORY_ALIASES[canonical] || [];
 
-  return unique([
-    canonical,
-    label,
-    ...aliases,
-  ].map(normalizeText)).filter(Boolean);
+    return unique([canonical, label, ...aliases].map(normalizeText)).filter(Boolean);
 };
 
 const validateParsedEventPayload = (payload = {}, source = {}) => {
-  const eventText = buildEventSearchText({
-    ...source,
-    ...payload,
-    tags: Array.isArray(payload.tags) ? payload.tags.join(' ') : payload.tags,
-  });
-  const classification = classifyEventCategory({
-    category: payload.category,
-    tags: payload.tags,
-    title: payload.title || source.title,
-    description: payload.description,
-    content: payload.content || source.content || eventText,
-  });
-  const normalizedAudience = normalizeEventAudience(payload.target_audience);
-  const confidence = Number(payload.category_confidence);
-  const modelCategory = normalizeEventCategory(payload.category);
-  const modelCategoryAccepted = Boolean(modelCategory && modelCategory === classification.category);
-  const categoryConfidence = Number.isFinite(confidence) && modelCategoryAccepted
-    ? Math.min(Math.max(0, confidence), classification.confidence)
-    : classification.confidence;
-  const modelReason = normalizeText(payload.category_reason);
-  const collegeNoticeFields = normalizeCollegeNoticeFields(payload, source);
+    const eventText = buildEventSearchText({
+        ...source,
+        ...payload,
+        tags: Array.isArray(payload.tags) ? payload.tags.join(" ") : payload.tags,
+    });
+    const classification = classifyEventCategory({
+        category: payload.category,
+        tags: payload.tags,
+        title: payload.title || source.title,
+        description: payload.description,
+        content: payload.content || source.content || eventText,
+    });
+    const normalizedAudience = normalizeEventAudience(payload.target_audience);
+    const confidence = Number(payload.category_confidence);
+    const modelCategory = normalizeEventCategory(payload.category);
+    const modelCategoryAccepted = Boolean(
+        modelCategory && modelCategory === classification.category
+    );
+    const categoryConfidence =
+        Number.isFinite(confidence) && modelCategoryAccepted
+            ? Math.min(Math.max(0, confidence), classification.confidence)
+            : classification.confidence;
+    const modelReason = normalizeText(payload.category_reason);
+    const collegeNoticeFields = normalizeCollegeNoticeFields(payload, source);
 
-  return {
-    ...payload,
-    category: classification.category,
-    category_label: getCategoryLabel(classification.category),
-    category_confidence: categoryConfidence,
-    category_reason: modelCategoryAccepted && modelReason ? modelReason : classification.reason,
-    category_source: classification.source,
-    target_audience: normalizedAudience || null,
-    tags: [],
-    ...collegeNoticeFields,
-  };
+    return {
+        ...payload,
+        category: classification.category,
+        category_label: getCategoryLabel(classification.category),
+        category_confidence: categoryConfidence,
+        category_reason: modelCategoryAccepted && modelReason ? modelReason : classification.reason,
+        category_source: classification.source,
+        target_audience: normalizedAudience || null,
+        tags: [],
+        ...collegeNoticeFields,
+    };
 };
 
 module.exports = {
-  EVENT_CATEGORIES,
-  EVENT_CATEGORY_ALIASES,
-  EVENT_CATEGORY_LABELS,
-  EVENT_AUDIENCE_OPTIONS,
-  EVENT_AUDIENCE_ALIASES,
-  EVENT_CAMPUS_OPTIONS,
-  buildEventCatalogPromptContext,
-  buildEventCatalogPromptText,
-  classifyEventCategory,
-  detectCategories,
-  detectAudienceTerms,
-  detectCampusTerms,
-  getEventCategoryFilterTerms,
-  getCategoryLabel,
-  inferCollegeNoticeSignal,
-  inferEventSourceCollege,
-  normalizeCollegeNoticeFields,
-  normalizeCollegeNoticeType,
-  normalizeEventAudience,
-  normalizeEventCategory,
-  validateParsedEventPayload,
+    EVENT_CATEGORIES,
+    EVENT_CATEGORY_ALIASES,
+    EVENT_CATEGORY_LABELS,
+    EVENT_AUDIENCE_OPTIONS,
+    EVENT_AUDIENCE_ALIASES,
+    EVENT_CAMPUS_OPTIONS,
+    buildEventCatalogPromptContext,
+    buildEventCatalogPromptText,
+    classifyEventCategory,
+    detectCategories,
+    detectAudienceTerms,
+    detectCampusTerms,
+    getEventCategoryFilterTerms,
+    getCategoryLabel,
+    inferCollegeNoticeSignal,
+    inferEventSourceCollege,
+    normalizeCollegeNoticeFields,
+    normalizeCollegeNoticeType,
+    normalizeEventAudience,
+    normalizeEventCategory,
+    validateParsedEventPayload,
 };

@@ -1,28 +1,28 @@
 schema: spec-driven
 context: |
-  Project: ZJU_Platform
-  Frontend: React 18 + Vite + TailwindCSS
-  Backend: Node.js + Express + SQLite
-  Languages: zh-CN primary with multilingual locales
-  Main domain: campus content aggregation (events, articles, podcasts, gallery, videos)
-  Routing: react-router-dom
-  API prefix: /api via Vite proxy
-  Important commands:
-    - npm run dev
-    - npm run lint
-    - npm run build
-    - npm run test:e2e:smoke
+    Project: ZJU_Platform
+    Frontend: React 18 + Vite + TailwindCSS
+    Backend: Node.js + Express + SQLite
+    Languages: zh-CN primary with multilingual locales
+    Main domain: campus content aggregation (events, articles, podcasts, gallery, videos)
+    Routing: react-router-dom
+    API prefix: /api via Vite proxy
+    Important commands:
+      - npm run dev
+      - npm run lint
+      - npm run build
+      - npm run test:e2e:smoke
 rules:
-  proposal:
-    - 默认使用中文撰写正文；目录名、change id、spec id、代码标识、命令和字段名可以保留英文。
-    - 清楚说明用户可见影响和不做范围。
-    - 涉及后端时说明 API 和数据模型影响。
-    - 高风险变更必须包含回滚策略。
-  design:
-    - 前后端职责分开说明。
-    - 新增文件前优先复用现有组件和工具函数。
-    - UI 变更需要说明可访问性和性能影响。
-  tasks:
-    - 任务使用中文描述，保持小而可独立验证，并按依赖顺序排列。
-    - 至少包含 lint、构建或等价检查任务。
-    - 涉及删除、迁移或破坏性操作时必须包含数据安全检查。
+    proposal:
+        - 默认使用中文撰写正文；目录名、change id、spec id、代码标识、命令和字段名可以保留英文。
+        - 清楚说明用户可见影响和不做范围。
+        - 涉及后端时说明 API 和数据模型影响。
+        - 高风险变更必须包含回滚策略。
+    design:
+        - 前后端职责分开说明。
+        - 新增文件前优先复用现有组件和工具函数。
+        - UI 变更需要说明可访问性和性能影响。
+    tasks:
+        - 任务使用中文描述，保持小而可独立验证，并按依赖顺序排列。
+        - 至少包含 lint、构建或等价检查任务。
+        - 涉及删除、迁移或破坏性操作时必须包含数据安全检查。

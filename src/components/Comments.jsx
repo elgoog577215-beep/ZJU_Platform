@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import { Send, Trash2, User } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
+import { Send, Trash2, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 
 const Comments = ({ resourceId, resourceType }) => {
     const { t } = useTranslation();
     const { user } = useAuth();
     const [comments, setComments] = useState([]);
-    const [newComment, setNewComment] = useState('');
+    const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -20,10 +20,12 @@ const Comments = ({ resourceId, resourceType }) => {
 
     const fetchComments = async () => {
         try {
-            const res = await api.get(`/comments?resourceId=${resourceId}&resourceType=${resourceType}`);
+            const res = await api.get(
+                `/comments?resourceId=${resourceId}&resourceType=${resourceType}`
+            );
             setComments(res.data);
         } catch (error) {
-            console.error('Failed to fetch comments', error);
+            console.error("Failed to fetch comments", error);
         } finally {
             setLoading(false);
         }
@@ -34,61 +36,71 @@ const Comments = ({ resourceId, resourceType }) => {
         if (!newComment.trim()) return;
 
         if (!user) {
-            toast.error(t('auth.signin_required'));
+            toast.error(t("auth.signin_required"));
             return;
         }
 
         setSubmitting(true);
         try {
-            const res = await api.post('/comments', {
+            const res = await api.post("/comments", {
                 resourceId,
                 resourceType,
-                content: newComment
+                content: newComment,
             });
             setComments([res.data, ...comments]);
-            setNewComment('');
-            toast.success(t('comments.posted'));
+            setNewComment("");
+            toast.success(t("comments.posted"));
         } catch (error) {
-            console.error('Failed to post comment', error);
-            toast.error(t('comments.post_failed'));
+            console.error("Failed to post comment", error);
+            toast.error(t("comments.post_failed"));
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm(t('common.confirm_delete'))) return;
-        
+        if (!window.confirm(t("common.confirm_delete"))) return;
+
         try {
             await api.delete(`/comments/${id}`);
-            setComments(comments.filter(c => c.id !== id));
-            toast.success(t('comments.deleted'));
+            setComments(comments.filter((c) => c.id !== id));
+            toast.success(t("comments.deleted"));
         } catch (error) {
-            console.error('Failed to delete comment', error);
-            toast.error(t('comments.delete_failed'));
+            console.error("Failed to delete comment", error);
+            toast.error(t("comments.delete_failed"));
         }
     };
 
     return (
         <div className="flex flex-col h-full">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                {t('comments.title')} <span className="text-sm font-normal text-gray-500" aria-label={`${comments.length} ${t('comments.title')}`}>({comments.length})</span>
+                {t("comments.title")}{" "}
+                <span
+                    className="text-sm font-normal text-gray-500"
+                    aria-label={`${comments.length} ${t("comments.title")}`}
+                >
+                    ({comments.length})
+                </span>
             </h3>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 pr-2 space-y-4" aria-busy={loading || undefined}>
+            <div
+                className="flex-1 overflow-y-auto custom-scrollbar mb-4 pr-2 space-y-4"
+                aria-busy={loading || undefined}
+            >
                 {loading ? (
                     <div className="flex justify-center py-4" role="status" aria-live="polite">
-                        <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-                        <span className="sr-only">{t('comments.loading')}</span>
+                        <div
+                            className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"
+                            aria-hidden="true"
+                        />
+                        <span className="sr-only">{t("comments.loading")}</span>
                     </div>
                 ) : comments.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">
-                        {t('comments.empty')}
-                    </div>
+                    <div className="text-center text-gray-500 py-8">{t("comments.empty")}</div>
                 ) : (
                     <AnimatePresence initial={false}>
                         {comments.map((comment) => (
-                            <motion.div 
+                            <motion.div
                                 key={comment.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -107,27 +119,35 @@ const Comments = ({ resourceId, resourceType }) => {
                                                     decoding="async"
                                                 />
                                             ) : (
-                                                comment.author?.charAt(0).toUpperCase() || '?'
+                                                comment.author?.charAt(0).toUpperCase() || "?"
                                             )}
                                         </div>
                                         <div>
-                                            <span className="text-sm font-medium text-white block leading-tight">{comment.author}</span>
-                                            <span className="text-[10px] text-gray-500">{new Date(comment.created_at).toLocaleString()}</span>
+                                            <span className="text-sm font-medium text-white block leading-tight">
+                                                {comment.author}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500">
+                                                {new Date(comment.created_at).toLocaleString()}
+                                            </span>
                                         </div>
                                     </div>
                                     {/* FIX: BUG-18 — Use String() to normalize ID types for comparison */}
-                                    {(user && (String(user.id) === String(comment.user_id) || user.role === 'admin')) && (
-                                        <button 
-                                            type="button"
-                                            onClick={() => handleDelete(comment.id)}
-                                            aria-label={t('comments.delete')}
-                                            className="text-gray-500 hover:text-red-400 transition-colors p-1"
-                                        >
-                                            <Trash2 size={14} aria-hidden="true" />
-                                        </button>
-                                    )}
+                                    {user &&
+                                        (String(user.id) === String(comment.user_id) ||
+                                            user.role === "admin") && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(comment.id)}
+                                                aria-label={t("comments.delete")}
+                                                className="text-gray-500 hover:text-red-400 transition-colors p-1"
+                                            >
+                                                <Trash2 size={14} aria-hidden="true" />
+                                            </button>
+                                        )}
                                 </div>
-                                <p className="text-sm text-gray-300 pl-10 whitespace-pre-wrap">{comment.content}</p>
+                                <p className="text-sm text-gray-300 pl-10 whitespace-pre-wrap">
+                                    {comment.content}
+                                </p>
                             </motion.div>
                         ))}
                     </AnimatePresence>
@@ -140,22 +160,29 @@ const Comments = ({ resourceId, resourceType }) => {
                         <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value.slice(0, 500))}
-                            placeholder={t('comments.placeholder')}
-                            aria-label={t('comments.placeholder')}
+                            placeholder={t("comments.placeholder")}
+                            aria-label={t("comments.placeholder")}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all resize-none h-20 text-sm custom-scrollbar"
                         />
                         <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 font-mono">
                             {newComment.length}/500
                         </div>
                     </div>
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         disabled={!newComment.trim() || submitting}
-                        aria-label={submitting ? t('comments.submitting') : t('comments.submit')}
+                        aria-label={submitting ? t("comments.submitting") : t("comments.submit")}
                         aria-busy={submitting || undefined}
                         className="absolute top-2 right-2 p-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-indigo-500/20 active:scale-95"
                     >
-                        {submitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
+                        {submitting ? (
+                            <div
+                                className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                                aria-hidden="true"
+                            />
+                        ) : (
+                            <Send size={16} aria-hidden="true" />
+                        )}
                     </button>
                 </form>
             </div>

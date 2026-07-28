@@ -1,12 +1,17 @@
 # 拓途浙享平台 — 代码库概览 Spec
 
 ## Purpose
+
 以可执行规格的形式沉淀系统全貌，帮助开发者与 AI agent 快速理解平台边界、关键模块、数据模型与已知风险。
+
 ## Requirements
+
 ### Requirement: 代码库概览规范可用于快速上手
+
 系统 SHALL 提供一份结构化概览，覆盖技术栈、架构、数据模型、认证、路由、管理员后台体验约束与主要风险点，作为后续变更提案与设计的基础上下文。
 
 #### Scenario: 新成员或 AI agent 首次接触仓库
+
 - **WHEN** 读者首次阅读 overview 规格
 - **THEN** 读者可以在一次阅读中获得系统构成、核心约束、管理员后台工作台边界和主要历史遗留问题
 - **THEN** 读者能够据此制定后续 proposal/design/tasks
@@ -95,11 +100,13 @@ Browser
 ### 五类资源（共用 resourceController）
 
 所有资源都有这些公共字段：
+
 ```
 id, title, tags, featured, likes, status, uploader_id, deleted_at
 ```
 
 各类型特有字段（来自 resourceController.fields）：
+
 ```
 photos:   url, size, gameType, gameDescription
 music:    artist, duration, cover, audio
@@ -169,6 +176,7 @@ PUT    /api/{resource}/:id/status    updateStatus  — 需要 admin
 ```
 
 **内容审核流程**：
+
 ```
 用户上传 → status='pending' → 管理员审核 → status='approved'/'rejected'
 公开接口默认只返回 status='approved' 的内容
@@ -205,6 +213,7 @@ src/
 ```
 
 **路由**：
+
 ```
 /           Home (Hero + HomeCategories + About)
 /gallery    Gallery
@@ -224,9 +233,11 @@ src/
 ## 八、特色功能
 
 ### 微信文章解析
+
 `POST /api/resources/parse-wechat`（路由直接写在 index.js 里，不在 api.js）
 
 流程：
+
 ```
 WeChat URL → scrapeWeChat (cheerio) → parseWithLLM (OpenAI-compatible API)
 → downloadWeChatImage (绕过防盗链) → 返回结构化活动数据
@@ -235,15 +246,19 @@ WeChat URL → scrapeWeChat (cheerio) → parseWithLLM (OpenAI-compatible API)
 LLM 用于从文章正文提取活动信息（日期、地点、主办方等），有浙大校历上下文注入。需要配置 `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`。
 
 ### 全局音乐播放器
+
 `MusicContext` 持有一个 `useRef(new Audio())` 实例，跨页面保持播放状态。`GlobalPlayer` 组件悬浮在页面底部。
 
 ### 三维背景
+
 `BackgroundSystem` 用 Three.js / React Three Fiber 渲染背景特效，有多个场景（cyber 等），由 `SettingsContext.backgroundScene` 控制。
 
 ### 国际化
+
 i18next，支持 7 种语言：zh / en / ar / es / fr / ja / ko。翻译文件在 `public/locales/`。
 
 ### PWA
+
 vite-plugin-pwa，有 manifest 和 service worker。
 
 ---
@@ -253,33 +268,40 @@ vite-plugin-pwa，有 manifest 和 service worker。
 这些是读代码时实际观察到的，不是推测：
 
 **数据库 Schema 管理混乱**
+
 - 没有正式的 migration 系统（虽然 db.js 里有 `migrate()` 方法，但实际 migration 是在 index.js 启动时用 `ALTER TABLE` 硬写的）
 - `seed.js` 的建表语句和实际运行时的表结构不同步（如 `end_date` 字段）
 - `event_registrations` 表在 eventController 里被使用，但不在 seed.js 里建表，也不在 index.js 的 migration 里——这个表可能不存在
 
 **字段命名不一致**
+
 - `organization` vs `organization_cr`（DB 字段名 vs API 传参名）
 - `articles` 表同时有 `tag` 和 `tags` 两个字段
 
 **认证双轨**
+
 - 普通用户走数据库，管理员快速登录走环境变量，两套逻辑并存
 - adminLogin 硬编码 id=1，与数据库解耦
 
 **路由注册不一致**
+
 - 微信解析路由直接写在 index.js 里，不在 api.js 的路由文件里
 - 事件注册路由在 api.js 里用 eventController，但 `event_registrations` 表的存在性存疑
 
 **前端状态管理**
+
 - 没有全局状态管理库（无 Redux/Zustand/Pinia）
 - 用 React Context + SWR 组合，但各页面组件自己管理本地状态，没有统一模式
 - `SettingsContext` 里有硬编码的联系方式（手机号、邮箱）
 
 **安全**
+
 - `SECRET_KEY` 有不安全的 fallback
 - `adminLogin` 用明文字符串比较密码（不是 bcrypt）
 - 上传文件存在 `uploads/` 子目录（images/videos/audio），但 `server/uploads/` 根目录下也直接有文件（历史遗留）
 
 **前端 token 存储**
+
 - `api.js` interceptor 同时读 `sessionStorage` 和 `localStorage`
 - `AuthContext` 只写 `localStorage`
 - 两处逻辑不完全对称

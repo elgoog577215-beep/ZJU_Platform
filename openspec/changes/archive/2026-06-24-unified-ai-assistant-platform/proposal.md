@@ -9,10 +9,10 @@ We need one visible AI assistant platform: the same assistant core should unders
 - Add a unified AI assistant architecture and admin workspace.
 - Keep the existing user-facing event recommendation endpoint compatible.
 - Add admin-side event library governance:
-  - scan events without mutating data,
-  - suggest category/tag/audience normalization,
-  - apply selected high-confidence suggestions,
-  - keep run and suggestion records for traceability.
+    - scan events without mutating data,
+    - suggest category/tag/audience normalization,
+    - apply selected high-confidence suggestions,
+    - keep run and suggestion records for traceability.
 - Move AI model key management into the unified AI assistant admin workspace.
 - Provide a clear product structure for future WeChat parsing and other assistant skills without coupling them directly to recommendation UI.
 
@@ -23,15 +23,15 @@ We need one visible AI assistant platform: the same assistant core should unders
 ## Impact
 
 - Backend:
-  - Add assistant platform service, controller, routes, and database migration tables for assistant runs and event governance suggestions.
-  - Reuse the existing event taxonomy and AI model configuration services.
+    - Add assistant platform service, controller, routes, and database migration tables for assistant runs and event governance suggestions.
+    - Reuse the existing event taxonomy and AI model configuration services.
 - Frontend:
-  - Add a unified admin AI assistant workspace.
-  - Preserve the existing public event assistant UI and APIs.
+    - Add a unified admin AI assistant workspace.
+    - Preserve the existing public event assistant UI and APIs.
 - Data:
-  - Add non-destructive audit tables.
-  - Event updates only happen through explicit admin apply actions.
+    - Add non-destructive audit tables.
+    - Event updates only happen through explicit admin apply actions.
 - Rollback:
-  - UI can be hidden by reverting the admin entry.
-  - API additions are isolated.
-  - New database tables are additive and do not change existing event schema.
+    - UI can be hidden by reverting the admin entry.
+    - API additions are isolated.
+    - New database tables are additive and do not change existing event schema.

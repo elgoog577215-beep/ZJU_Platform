@@ -8,10 +8,12 @@ created: 2026-04-17
 ## Overview
 
 修两条移动端 UX 真实坑：
+
 1. `MobileNavbar.jsx:27` 未登录态硬编码 `/me` → 404。改为 dispatch `open-auth-modal` 事件，触发全站 AuthModal。
 2. `AICommunity.jsx:160-194` 新闻入口 bottom-sheet 抽屉 → 改为全屏覆盖 modal，右上角 X + `useBackClose` 返回键关闭。
 
 **关键前置发现（/plan 阶段已验证）：**
+
 - AuthContext **不**暴露 `openAuthModal`，但 `Navbar.jsx:159-163` 已监听 `window` 上的 `"open-auth-modal"` 自定义事件，Navbar 在移动端仍挂载（仅内部 DOM 用 `md:hidden` 隐藏），AuthModal 组件始终在 DOM 中可唤起 → **不改 AuthContext**，MobileNavbar 直接 dispatch 事件。
 - `useBackClose(isOpen, onClose)` 签名是 **两参**，内部用 `useId()` 生成唯一 hash；不需要传 key。已内置 `setTimeout(0)` 防 StrictMode double-mount race。
 - `AICommunity` 的 `isMobileNewsOpen` state 已经支持深链（`searchParams.get('news')` → `setIsMobileNewsOpen(true)`）。
@@ -19,15 +21,18 @@ created: 2026-04-17
 ## Files
 
 ### Modify
+
 - `src/components/MobileNavbar.jsx` — "我的" 分流（Link vs button）
 - `src/components/AICommunity.jsx` — 新闻 drawer → 全屏 modal + useBackClose
 
 ### Test (手动 E2E)
+
 - Chrome DevTools iPhone 16 Pro 预设
 - StrictMode dev 环境（`<React.StrictMode>` 已在 `src/main.jsx`）
 - iOS Safari 响应式设计模式（100dvh 兼容性）
 
 ### NOT Create
+
 - ❌ 不新建 `/me` 路由页
 - ❌ 不改 `AuthContext.jsx`（用 window event 绕开）
 - ❌ 不改 `CommunityNewsRail.jsx` 内部结构
@@ -57,6 +62,7 @@ git tag | grep pre-mobile-ux-v1        # 验证 tag 存在
 ## Task 1: MobileNavbar "我的" 分流
 
 **Files**:
+
 - Modify: `src/components/MobileNavbar.jsx`
 
 ### Step 1.1: `navItems` path 去硬编码 `/me`
@@ -64,24 +70,36 @@ git tag | grep pre-mobile-ux-v1        # 验证 tag 存在
 **File**: `src/components/MobileNavbar.jsx:22-28`
 
 **替换前（line 22-28）：**
+
 ```jsx
 const navItems = [
-  { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
-  { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
-  { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
-  { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
-  { key: "me", path: user ? `/user/${user.id}` : "/me", icon: UserCircle, label: t("nav.profile", "我的") },
+    { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
+    { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
+    { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
+    { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
+    {
+        key: "me",
+        path: user ? `/user/${user.id}` : "/me",
+        icon: UserCircle,
+        label: t("nav.profile", "我的"),
+    },
 ];
 ```
 
 **替换后：**
+
 ```jsx
 const navItems = [
-  { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
-  { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
-  { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
-  { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
-  { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
+    { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
+    { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
+    { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
+    { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
+    {
+        key: "me",
+        path: user ? `/user/${user.id}` : null,
+        icon: UserCircle,
+        label: t("nav.profile", "我的"),
+    },
 ];
 ```
 
@@ -90,22 +108,24 @@ const navItems = [
 **File**: `src/components/MobileNavbar.jsx:30-35`
 
 **替换前：**
+
 ```jsx
 const isItemActive = (path, key) => {
-  if (key === "me") {
-    return location.pathname === "/me" || location.pathname.startsWith("/user/");
-  }
-  return location.pathname === path;
+    if (key === "me") {
+        return location.pathname === "/me" || location.pathname.startsWith("/user/");
+    }
+    return location.pathname === path;
 };
 ```
 
 **替换后：**
+
 ```jsx
 const isItemActive = (path, key) => {
-  if (key === "me") {
-    return location.pathname.startsWith("/user/");
-  }
-  return location.pathname === path;
+    if (key === "me") {
+        return location.pathname.startsWith("/user/");
+    }
+    return location.pathname === path;
 };
 ```
 
@@ -116,79 +136,76 @@ const isItemActive = (path, key) => {
 **策略**：提取内部视觉块（motion.div 内容）为一个 const，再根据 `item.key === 'me' && !user` 在外层渲染 `<button>` 而不是 `<Link>`。
 
 **替换前（line 47-70，完整 `return (<Link ...>...</Link>)` 块）：**
+
 ```jsx
 return (
-  <Link
-    key={item.key}
-    to={item.path}
-    aria-label={item.label}
-    className={`relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
-  >
-    <motion.div
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
-      className="flex flex-col items-center gap-1"
+    <Link
+        key={item.key}
+        to={item.path}
+        aria-label={item.label}
+        className={`relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
     >
-      <div
-        className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
-      >
-        <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-      </div>
-      <span
-        className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
-      >
-        {item.label}
-      </span>
-    </motion.div>
-  </Link>
+        <motion.div
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
+            className="flex flex-col items-center gap-1"
+        >
+            <div
+                className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
+            >
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+            </div>
+            <span
+                className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
+            >
+                {item.label}
+            </span>
+        </motion.div>
+    </Link>
 );
 ```
 
 **替换后：**
+
 ```jsx
 const sharedClassName = `relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
 
 const inner = (
-  <motion.div
-    whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
-    className="flex flex-col items-center gap-1"
-  >
-    <div
-      className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
+    <motion.div
+        whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
+        className="flex flex-col items-center gap-1"
     >
-      <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-    </div>
-    <span
-      className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
-    >
-      {item.label}
-    </span>
-  </motion.div>
+        <div
+            className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
+        >
+            <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+        </div>
+        <span
+            className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
+        >
+            {item.label}
+        </span>
+    </motion.div>
 );
 
 // 未登录态的 "me" 渲染为 button，dispatch 全站 AuthModal 事件
 if (item.key === "me" && !user) {
-  return (
-    <button
-      key={item.key}
-      type="button"
-      aria-label={item.label}
-      onClick={() => window.dispatchEvent(new Event("open-auth-modal"))}
-      className={sharedClassName}
-    >
-      {inner}
-    </button>
-  );
+    return (
+        <button
+            key={item.key}
+            type="button"
+            aria-label={item.label}
+            onClick={() => window.dispatchEvent(new Event("open-auth-modal"))}
+            className={sharedClassName}
+        >
+            {inner}
+        </button>
+    );
 }
 
 return (
-  <Link
-    key={item.key}
-    to={item.path}
-    aria-label={item.label}
-    className={sharedClassName}
-  >
-    {inner}
-  </Link>
+    <Link key={item.key} to={item.path} aria-label={item.label} className={sharedClassName}>
+        {inner}
+    </Link>
 );
 ```
 
@@ -213,6 +230,7 @@ Logged-out users trigger the AuthModal instead of hitting a 404."
 ## Task 2: AICommunity 新闻入口全屏化
 
 **Files**:
+
 - Modify: `src/components/AICommunity.jsx`
 
 ### Step 2.1: 引入 useBackClose hook
@@ -222,7 +240,7 @@ Logged-out users trigger the AuthModal instead of hitting a 404."
 在现有 imports 附近加一行：
 
 ```jsx
-import { useBackClose } from '../hooks/useBackClose';
+import { useBackClose } from "../hooks/useBackClose";
 ```
 
 ### Step 2.2: 在组件体内调用 useBackClose
@@ -241,80 +259,85 @@ useBackClose(isMobileNewsOpen, () => setIsMobileNewsOpen(false));
 **File**: `src/components/AICommunity.jsx:160-195`
 
 **替换前（line 160-195）：**
+
 ```jsx
 <AnimatePresence>
-  {isMobileNewsOpen && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className={`fixed inset-0 z-[130] md:hidden ${isDayMode ? 'bg-white/65' : 'bg-black/80'} backdrop-blur-md`}
-      onClick={() => setIsMobileNewsOpen(false)}
-    >
-      <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-        className={`absolute inset-x-0 bottom-0 max-h-[86vh] rounded-t-3xl border-t p-3 overflow-y-auto ${
-          isDayMode ? 'bg-white border-slate-200' : 'bg-[#0f0f0f] border-white/10'
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 z-10 pb-2 mb-2 flex items-center justify-between">
-          <h3 className={`text-sm font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-            {t('community.news_board', '新闻热榜')}
-          </h3>
-          <button
-            type="button"
+    {isMobileNewsOpen && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed inset-0 z-[130] md:hidden ${isDayMode ? "bg-white/65" : "bg-black/80"} backdrop-blur-md`}
             onClick={() => setIsMobileNewsOpen(false)}
-            className={`p-2 rounded-full border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/5 text-white border-white/10'}`}
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <CommunityNewsRail />
-      </motion.div>
-    </motion.div>
-  )}
+        >
+            <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 28, stiffness: 260 }}
+                className={`absolute inset-x-0 bottom-0 max-h-[86vh] rounded-t-3xl border-t p-3 overflow-y-auto ${
+                    isDayMode ? "bg-white border-slate-200" : "bg-[#0f0f0f] border-white/10"
+                }`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="sticky top-0 z-10 pb-2 mb-2 flex items-center justify-between">
+                    <h3
+                        className={`text-sm font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                    >
+                        {t("community.news_board", "新闻热榜")}
+                    </h3>
+                    <button
+                        type="button"
+                        onClick={() => setIsMobileNewsOpen(false)}
+                        className={`p-2 rounded-full border ${isDayMode ? "bg-white text-slate-700 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+                <CommunityNewsRail />
+            </motion.div>
+        </motion.div>
+    )}
 </AnimatePresence>
 ```
 
 **替换后：**
+
 ```jsx
 <AnimatePresence>
-  {isMobileNewsOpen && (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.18, ease: 'easeOut' }}
-      className={`fixed inset-0 z-[130] md:hidden overflow-y-auto ${
-        isDayMode ? 'bg-white' : 'bg-[#0f0f0f]'
-      }`}
-      style={{ minHeight: '100vh', height: '100dvh' }}
-    >
-      <button
-        type="button"
-        aria-label={t('common.close', '关闭')}
-        onClick={() => setIsMobileNewsOpen(false)}
-        className={`absolute top-4 right-4 z-10 p-2 rounded-full border transition-transform hover:rotate-90 ${
-          isDayMode
-            ? 'bg-white text-slate-700 border-slate-200 shadow-sm'
-            : 'bg-white/5 text-white border-white/10'
-        }`}
-      >
-        <X size={24} />
-      </button>
-      <div className="p-3 pt-16">
-        <CommunityNewsRail />
-      </div>
-    </motion.div>
-  )}
+    {isMobileNewsOpen && (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={`fixed inset-0 z-[130] md:hidden overflow-y-auto ${
+                isDayMode ? "bg-white" : "bg-[#0f0f0f]"
+            }`}
+            style={{ minHeight: "100vh", height: "100dvh" }}
+        >
+            <button
+                type="button"
+                aria-label={t("common.close", "关闭")}
+                onClick={() => setIsMobileNewsOpen(false)}
+                className={`absolute top-4 right-4 z-10 p-2 rounded-full border transition-transform hover:rotate-90 ${
+                    isDayMode
+                        ? "bg-white text-slate-700 border-slate-200 shadow-sm"
+                        : "bg-white/5 text-white border-white/10"
+                }`}
+            >
+                <X size={24} />
+            </button>
+            <div className="p-3 pt-16">
+                <CommunityNewsRail />
+            </div>
+        </motion.div>
+    )}
 </AnimatePresence>
 ```
 
 **关键变化总览：**
+
 - `inset-x-0 bottom-0` + `max-h-[86vh]` + `rounded-t-3xl` → `inset-0` + `100dvh`（fallback `100vh`）
 - `bg-white/65` / `bg-black/80` 半透明 + `backdrop-blur-md` → 不透明 `bg-white` / `bg-[#0f0f0f]`
 - `y: '100%'` 滑入 → `opacity + scale 0.98→1` 淡入
@@ -351,38 +374,47 @@ Integrate useBackClose for hardware back button + StrictMode safety."
 逐条 AC 跑通。用 DevTools iPhone 16 Pro 预设 + StrictMode dev 环境。
 
 ### AC1: 未登录点"我的" → AuthModal
+
 - localStorage 清空 → 刷新 `/` → 底部点"我的"
 - 期望：AuthModal 弹出；`location.pathname` 不变（仍 `/`）
 
 ### AC2: 已登录点"我的" → 跳 profile
+
 - 登录成功 → 底部点"我的"
 - 期望：`location.pathname === '/user/${user.id}'`；PublicProfile 渲染
 
 ### AC3: 登录成功后无缝衔接
+
 - 从 AC1 状态在弹窗内完成登录 → AuthModal 关闭 → 再点"我的"
 - 期望：走 `/user/${user.id}` 分支
 
 ### AC4: 新闻全屏覆盖
+
 - 访问 `/articles` → 点"新闻热榜"入口
 - 期望：全屏不透明覆盖；底部 MobileNavbar 视觉不可见；右上角可见 X；覆盖层显示 `CommunityNewsRail` 内容
 
 ### AC5: X 关闭 + URL 清理
+
 - 从 AC4 状态点 X
 - 期望：覆盖层关闭；URL 无 `news=` 残留（现有 `updateParams({ tab: currentTab })` 路径已处理）
 
 ### AC6: 硬件返回关闭
+
 - 从 AC4 状态按 DevTools 的 back 按钮（或移动真机硬件返回）
 - 期望：行为同 AC5（关覆盖层，不回上页）
 
 ### AC7: StrictMode double-mount safety
+
 - dev 环境（StrictMode 已启用）
 - 期望：打开覆盖层后保持打开，不自关
 
 ### AC8: 深链打开
+
 - 直接访问 `/articles?news=123`
 - 期望：页面加载完即自动打开覆盖层（现有 `useEffect` 已处理）
 
 ### AC9: 标题唯一
+
 - 打开覆盖层
 - 期望：视觉上只有 1 处"新闻热榜"标题（来自 `CommunityNewsRail` 内部 `Newspaper` icon 旁）
 

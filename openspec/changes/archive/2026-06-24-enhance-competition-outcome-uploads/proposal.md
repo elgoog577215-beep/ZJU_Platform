@@ -25,19 +25,19 @@
 ## Impact
 
 - Frontend:
-  - 比赛成果页和优秀作品页从静态数据改为接口数据。
-  - 新增统一成果上传弹窗/表单。
-  - 后台黑客松/比赛管理扩展为比赛成果管理。
-  - 审核中心增加比赛素材/作品类型。
+    - 比赛成果页和优秀作品页从静态数据改为接口数据。
+    - 新增统一成果上传弹窗/表单。
+    - 后台黑客松/比赛管理扩展为比赛成果管理。
+    - 审核中心增加比赛素材/作品类型。
 - Backend:
-  - 新增 competition outcome 相关 controller/routes。
-  - 复用现有鉴权、文件上传、安全扫描、管理员审核模式。
-  - 新增当前主推比赛读取、用户提交、管理员管理和审核接口。
+    - 新增 competition outcome 相关 controller/routes。
+    - 复用现有鉴权、文件上传、安全扫描、管理员审核模式。
+    - 新增当前主推比赛读取、用户提交、管理员管理和审核接口。
 - Database:
-  - 新增 `competitions`、`competition_media`、`competition_works` 表及索引。
-  - 新增迁移和 core schema 兜底定义。
+    - 新增 `competitions`、`competition_media`、`competition_works` 表及索引。
+    - 新增迁移和 core schema 兜底定义。
 - Deployment:
-  - 需要在发布前备份 SQLite 数据库。
-  - 上传目录继续使用现有 `server/uploads` 机制。
+    - 需要在发布前备份 SQLite 数据库。
+    - 上传目录继续使用现有 `server/uploads` 机制。
 - Rollback:
-  - 代码回滚后新增表可保留不影响现有功能；若需要彻底回滚，先备份数据库，再移除新增表。
+    - 代码回滚后新增表可保留不影响现有功能；若需要彻底回滚，先备份数据库，再移除新增表。

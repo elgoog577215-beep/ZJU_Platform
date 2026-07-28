@@ -24,14 +24,14 @@
 ## Impact
 
 - 前端：
-  - `src/components/ProfilePage.jsx`：优化个人/组织主页首屏，增加分享名片入口。
-  - 新增 profile 分享名片组件，复用现有二维码、PNG 导出、复制链接和原生分享思路。
-  - 补充响应式样式，保证桌面端和微信内移动端可读。
-  - `public/locales/zh/translation.json`、`public/locales/en/translation.json`：新增文案。
+    - `src/components/ProfilePage.jsx`：优化个人/组织主页首屏，增加分享名片入口。
+    - 新增 profile 分享名片组件，复用现有二维码、PNG 导出、复制链接和原生分享思路。
+    - 补充响应式样式，保证桌面端和微信内移动端可读。
+    - `public/locales/zh/translation.json`、`public/locales/en/translation.json`：新增文案。
 - 后端：
-  - 第一期开销尽量保持前端聚合，不新增数据库表。
-  - 如现有 profile 响应缺失分享所需的公开字段，只补公开只读字段，不改变权限模型。
+    - 第一期开销尽量保持前端聚合，不新增数据库表。
+    - 如现有 profile 响应缺失分享所需的公开字段，只补公开只读字段，不改变权限模型。
 - 验证：
-  - OpenSpec validate。
-  - 前端 build 或 lint。
-  - 浏览器 smoke 检查个人页、组织页、分享弹层、二维码渲染、复制链接、PNG 下载和移动端布局。
+    - OpenSpec validate。
+    - 前端 build 或 lint。
+    - 浏览器 smoke 检查个人页、组织页、分享弹层、二维码渲染、复制链接、PNG 下载和移动端布局。

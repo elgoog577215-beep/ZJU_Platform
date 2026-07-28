@@ -19,10 +19,10 @@ Allow AI community post creation to import document content from `pdf`, `doc`, `
 - Use `word-extractor` for legacy `.doc` and modern `.docx`.
 - Normalize imported text into the community `content_blocks` shape.
 - Return:
-  - `title`
-  - `plain_text`
-  - `content_blocks`
-  - `meta`
+    - `title`
+    - `plain_text`
+    - `content_blocks`
+    - `meta`
 - Clean up uploaded import files after parsing so import does not create stored attachments.
 
 ## Frontend
@@ -31,10 +31,10 @@ Allow AI community post creation to import document content from `pdf`, `doc`, `
 - Keep the existing attachment block flow unchanged.
 - If the composer already contains content, confirm before replacing the body.
 - Preserve imported block styles such as:
-  - `heading`
-  - `list`
-  - `quote`
-  - `code`
+    - `heading`
+    - `list`
+    - `quote`
+    - `code`
 
 ## Validation
 

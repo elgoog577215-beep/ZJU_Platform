@@ -35,19 +35,19 @@
 ## 影响范围
 
 - 可能新增文件：
-  - `capacitor.config.*`
-  - `ios/`
-  - `docs/guides/ios-capacitor-app-guide.md`
-  - `package.json` 中的 Capacitor 依赖和脚本
+    - `capacitor.config.*`
+    - `ios/`
+    - `docs/guides/ios-capacitor-app-guide.md`
+    - `package.json` 中的 Capacitor 依赖和脚本
 - 可能调整文件：
-  - `src/utils/displayMode.js`
-  - `src/index.css`
-  - `vite.config.js`
-  - `public/manifest.json` 相关产物规则
+    - `src/utils/displayMode.js`
+    - `src/index.css`
+    - `vite.config.js`
+    - `public/manifest.json` 相关产物规则
 - 不影响：
-  - `android-twa/`
-  - `server/`
-  - 现有 Web 路由和 API 合约
+    - `android-twa/`
+    - `server/`
+    - 现有 Web 路由和 API 合约
 
 ## 风险
 

@@ -1,8 +1,11 @@
 # hackathon-member-honors Specification
 
 ## Purpose
+
 TBD - created by archiving change add-hackathon-member-honors. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Approved Winning Works Show Public Honors
 
 The system SHALL show approved hackathon works with a public honor title and optional winner profile fields.
@@ -45,4 +48,3 @@ The system SHALL let admins edit honor titles and public story fields.
 - GIVEN an admin opens the hackathon manager
 - WHEN they edit a work record
 - THEN they can update honor title, grade, major, highlight, experience, public consent, sort order, and review status.
-

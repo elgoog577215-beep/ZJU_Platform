@@ -1,8 +1,11 @@
 # admin-console-systematization Specification
 
 ## Purpose
+
 TBD - created by archiving change systematize-admin-console-ux. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Admin access must remain in admin context
 
 When a user opens `/admin` without an authenticated admin session, the application SHALL show an admin-specific access gate instead of redirecting to the public home page.
@@ -102,4 +105,3 @@ Automated browser tests SHALL cover the admin access gate, module deep links, re
 - **WHEN** the admin console Playwright spec is run with mocked API responses
 - **THEN** it shall verify unauthenticated admin entry remains in admin context
 - **AND** it shall verify URL tab navigation and AI/model-key cleanup behavior.
-

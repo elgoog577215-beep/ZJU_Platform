@@ -1,208 +1,200 @@
 import { expect, test } from "@playwright/test";
 
 const partner = {
-  id: 901,
-  category: "organization",
-  name: "浙江大学学生会",
-  name_en: "ZJU Student Union",
-  description: "链接学生组织与校园活动的合作社团。",
-  description_en: "A campus organization that connects student groups and events.",
-  cooperation_direction: "学生活动共创与校园传播",
-  cooperation_direction_en: "Student activity co-creation and campus outreach",
-  event_organizer_aliases: ["浙江大学学生会", "ZJU Student Union", "校学生会"],
-  sort_order: 10,
-  event_count: 1,
-  enabled: true,
-  featured: true,
-  partner_scope: "core_partner",
-  link_url: "https://example.com/student-union",
+    id: 901,
+    category: "organization",
+    name: "浙江大学学生会",
+    name_en: "ZJU Student Union",
+    description: "链接学生组织与校园活动的合作社团。",
+    description_en: "A campus organization that connects student groups and events.",
+    cooperation_direction: "学生活动共创与校园传播",
+    cooperation_direction_en: "Student activity co-creation and campus outreach",
+    event_organizer_aliases: ["浙江大学学生会", "ZJU Student Union", "校学生会"],
+    sort_order: 10,
+    event_count: 1,
+    enabled: true,
+    featured: true,
+    partner_scope: "core_partner",
+    link_url: "https://example.com/student-union",
 };
 
 const manyPartners = Array.from({ length: 14 }, (_, index) => ({
-  ...partner,
-  id: 901 + index,
-  name: index === 13 ? "Overflow Campus Org" : `${partner.name} ${index + 1}`,
-  name_en: index === 13 ? "Overflow Campus Org" : `Partner Org ${index + 1}`,
-  description: index === 13 ? "Directory-only organization" : partner.description,
-  featured: index !== 13,
-  partner_scope: index === 13 ? "activity_provider" : "core_partner",
-  cooperation_direction:
-    index === 13 ? "Directory search coverage" : partner.cooperation_direction,
-  event_organizer_aliases:
-    index === 13 ? ["Overflow Campus Org"] : [`${partner.name} ${index + 1}`],
-  sort_order: 10 + index,
-  event_count: index === 13 ? 8 : Math.max(1, 14 - index),
+    ...partner,
+    id: 901 + index,
+    name: index === 13 ? "Overflow Campus Org" : `${partner.name} ${index + 1}`,
+    name_en: index === 13 ? "Overflow Campus Org" : `Partner Org ${index + 1}`,
+    description: index === 13 ? "Directory-only organization" : partner.description,
+    featured: index !== 13,
+    partner_scope: index === 13 ? "activity_provider" : "core_partner",
+    cooperation_direction:
+        index === 13 ? "Directory search coverage" : partner.cooperation_direction,
+    event_organizer_aliases:
+        index === 13 ? ["Overflow Campus Org"] : [`${partner.name} ${index + 1}`],
+    sort_order: 10 + index,
+    event_count: index === 13 ? 8 : Math.max(1, 14 - index),
 }));
 
 const baseEvents = [
-  {
-    id: 7101,
-    title: "学生会专场分享会",
-    description: "活动协作与校园传播经验分享。",
-    date: "2026-06-20T10:00:00.000Z",
-    location: "紫金港校区",
-    organizer: "浙江大学学生会",
-    category: "lecture",
-    target_audience: "all",
-    status: "approved",
-  },
-  {
-    id: 7102,
-    title: "校园公益行动",
-    description: "志愿服务主题活动。",
-    date: "2026-06-22T14:00:00.000Z",
-    location: "玉泉校区",
-    organizer: "浙江大学红十字会",
-    category: "volunteer",
-    target_audience: "all",
-    status: "approved",
-  },
+    {
+        id: 7101,
+        title: "学生会专场分享会",
+        description: "活动协作与校园传播经验分享。",
+        date: "2026-06-20T10:00:00.000Z",
+        location: "紫金港校区",
+        organizer: "浙江大学学生会",
+        category: "lecture",
+        target_audience: "all",
+        status: "approved",
+    },
+    {
+        id: 7102,
+        title: "校园公益行动",
+        description: "志愿服务主题活动。",
+        date: "2026-06-22T14:00:00.000Z",
+        location: "玉泉校区",
+        organizer: "浙江大学红十字会",
+        category: "volunteer",
+        target_audience: "all",
+        status: "approved",
+    },
 ];
 
 const installEventsMocks = async (page, partners = [partner], eventRequests = []) => {
-  await page.addInitScript(() => {
-    localStorage.clear();
-    localStorage.setItem("ui_mode_v2", "day");
-  });
-
-  await page.route("**/api/**", async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
-    const path = url.pathname.replace(/^\/api/, "");
-
-    if (path === "/settings") {
-      return route.fulfill({
-        json: {
-          site_title: "拓途浙享 | TUOTUZJU",
-          pagination_enabled: "false",
-          language: "zh",
-        },
-      });
-    }
-
-    if (path === "/auth/me") {
-      return route.fulfill({ status: 401, json: { error: "unauthorized" } });
-    }
-
-    if (path === "/ecosystem-partners") {
-      return route.fulfill({ json: partners });
-    }
-
-    if (path === "/events" && request.method() === "GET") {
-      const organizerAny = url.searchParams.get("organizer_any");
-      eventRequests.push({
-        organizerAny,
-        url: url.toString(),
-      });
-      const terms = organizerAny
-        ? organizerAny
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : [];
-      const data = terms.length
-        ? baseEvents.filter((event) => terms.includes(event.organizer))
-        : baseEvents;
-
-      return route.fulfill({
-        json: {
-          data,
-          pagination: { page: 1, total: data.length, totalPages: 1 },
-        },
-      });
-    }
-
-    return route.fulfill({
-      json: { data: [], pagination: { page: 1, total: 0, totalPages: 1 } },
+    await page.addInitScript(() => {
+        localStorage.clear();
+        localStorage.setItem("ui_mode_v2", "day");
     });
-  });
+
+    await page.route("**/api/**", async (route) => {
+        const request = route.request();
+        const url = new URL(request.url());
+        const path = url.pathname.replace(/^\/api/, "");
+
+        if (path === "/settings") {
+            return route.fulfill({
+                json: {
+                    site_title: "拓途浙享 | TUOTUZJU",
+                    pagination_enabled: "false",
+                    language: "zh",
+                },
+            });
+        }
+
+        if (path === "/auth/me") {
+            return route.fulfill({ status: 401, json: { error: "unauthorized" } });
+        }
+
+        if (path === "/ecosystem-partners") {
+            return route.fulfill({ json: partners });
+        }
+
+        if (path === "/events" && request.method() === "GET") {
+            const organizerAny = url.searchParams.get("organizer_any");
+            eventRequests.push({
+                organizerAny,
+                url: url.toString(),
+            });
+            const terms = organizerAny
+                ? organizerAny
+                      .split(",")
+                      .map((item) => item.trim())
+                      .filter(Boolean)
+                : [];
+            const data = terms.length
+                ? baseEvents.filter((event) => terms.includes(event.organizer))
+                : baseEvents;
+
+            return route.fulfill({
+                json: {
+                    data,
+                    pagination: { page: 1, total: data.length, totalPages: 1 },
+                },
+            });
+        }
+
+        return route.fulfill({
+            json: { data: [], pagination: { page: 1, total: 0, totalPages: 1 } },
+        });
+    });
 };
 
 test.describe("events organization partner filter", () => {
-  test("desktop button filters events by organization", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1366, height: 960 });
-    const eventRequests = [];
-    await installEventsMocks(page, [partner], eventRequests);
+    test("desktop button filters events by organization", async ({ page }) => {
+        await page.setViewportSize({ width: 1366, height: 960 });
+        const eventRequests = [];
+        await installEventsMocks(page, [partner], eventRequests);
 
-    await page.goto("/events");
+        await page.goto("/events");
 
-    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
-    await expect(filterBar).toBeVisible();
-    await expect(filterBar.getByRole("button").first()).toContainText("全部");
-    await expect(filterBar.getByTestId("organization-partner-button-901")).toContainText("1 场");
+        const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+        await expect(filterBar).toBeVisible();
+        await expect(filterBar.getByRole("button").first()).toContainText("全部");
+        await expect(filterBar.getByTestId("organization-partner-button-901")).toContainText(
+            "1 场"
+        );
 
-    await filterBar.getByTestId("organization-partner-button-901").click();
-    await expect
-      .poll(() =>
-        eventRequests.some((item) =>
-          item.organizerAny?.includes("浙江大学学生会"),
-        ),
-      )
-      .toBe(true);
-    await expect(page).toHaveURL(/\/events/);
-    await expect(page.getByTestId("organization-partner-active-filter")).toContainText("浙江大学学生会");
-    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
+        await filterBar.getByTestId("organization-partner-button-901").click();
+        await expect
+            .poll(() => eventRequests.some((item) => item.organizerAny?.includes("浙江大学学生会")))
+            .toBe(true);
+        await expect(page).toHaveURL(/\/events/);
+        await expect(page.getByTestId("organization-partner-active-filter")).toContainText(
+            "浙江大学学生会"
+        );
+        await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
 
-    const requestCountBeforeClear = eventRequests.length;
-    await filterBar.getByRole("button", { name: "全部" }).click();
-    await expect
-      .poll(() =>
-        eventRequests
-          .slice(requestCountBeforeClear)
-          .some((item) => item.organizerAny === null),
-      )
-      .toBe(true);
-  });
+        const requestCountBeforeClear = eventRequests.length;
+        await filterBar.getByRole("button", { name: "全部" }).click();
+        await expect
+            .poll(() =>
+                eventRequests
+                    .slice(requestCountBeforeClear)
+                    .some((item) => item.organizerAny === null)
+            )
+            .toBe(true);
+    });
 
-  test("mobile renders the same direct partner buttons", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    const eventRequests = [];
-    await installEventsMocks(page, [partner], eventRequests);
+    test("mobile renders the same direct partner buttons", async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        const eventRequests = [];
+        await installEventsMocks(page, [partner], eventRequests);
 
-    await page.goto("/events");
+        await page.goto("/events");
 
-    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
-    await expect(filterBar).toBeVisible();
-    await expect(filterBar.getByRole("button").first()).toContainText("全部");
-    await expect(filterBar.getByTestId("organization-partner-button-901")).toBeVisible();
+        const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+        await expect(filterBar).toBeVisible();
+        await expect(filterBar.getByRole("button").first()).toContainText("全部");
+        await expect(filterBar.getByTestId("organization-partner-button-901")).toBeVisible();
 
-    const box = await filterBar.boundingBox();
-    expect(box?.height ?? 999).toBeLessThan(80);
+        const box = await filterBar.boundingBox();
+        expect(box?.height ?? 999).toBeLessThan(80);
 
-    await filterBar.getByTestId("organization-partner-button-901").click();
-    await expect
-      .poll(() =>
-        eventRequests.some((item) =>
-          item.organizerAny?.includes("浙江大学学生会"),
-        ),
-      )
-      .toBe(true);
-    await expect(page).toHaveURL(/\/events/);
-    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
-  });
+        await filterBar.getByTestId("organization-partner-button-901").click();
+        await expect
+            .poll(() => eventRequests.some((item) => item.organizerAny?.includes("浙江大学学生会")))
+            .toBe(true);
+        await expect(page).toHaveURL(/\/events/);
+        await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
+    });
 
-  test("large partner sets render directly and sort by event count", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1366, height: 960 });
-    await installEventsMocks(page, manyPartners);
+    test("large partner sets render directly and sort by event count", async ({ page }) => {
+        await page.setViewportSize({ width: 1366, height: 960 });
+        await installEventsMocks(page, manyPartners);
 
-    await page.goto("/events");
+        await page.goto("/events");
 
-    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
-    await expect(filterBar).toBeVisible();
-    await expect(filterBar.getByRole("button").first()).toContainText("全部");
-    await expect(
-      filterBar.locator('[data-testid^="organization-partner-button-"]'),
-    ).toHaveCount(14);
-    await expect(
-      filterBar.locator('[data-testid^="organization-partner-button-"]').first(),
-    ).toContainText("浙江大学学生会 1");
-    await expect(filterBar.getByTestId("organization-partner-button-914")).toBeVisible();
-    await expect(page.getByRole("button", { name: "查看全部" })).toHaveCount(0);
-  });
+        const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+        await expect(filterBar).toBeVisible();
+        await expect(filterBar.getByRole("button").first()).toContainText("全部");
+        await expect(
+            filterBar.locator('[data-testid^="organization-partner-button-"]')
+        ).toHaveCount(14);
+        await expect(
+            filterBar.locator('[data-testid^="organization-partner-button-"]').first()
+        ).toContainText("浙江大学学生会 1");
+        await expect(filterBar.getByTestId("organization-partner-button-914")).toBeVisible();
+        await expect(page.getByRole("button", { name: "查看全部" })).toHaveCount(0);
+    });
 });

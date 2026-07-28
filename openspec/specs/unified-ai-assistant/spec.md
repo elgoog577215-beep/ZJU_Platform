@@ -1,8 +1,11 @@
 # unified-ai-assistant Specification
 
 ## Purpose
+
 TBD - created by archiving change unified-ai-assistant-platform. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Unified Assistant Overview
 
 The system SHALL expose an admin-only overview for the unified AI assistant platform.
@@ -73,4 +76,3 @@ The existing user-facing event recommendation assistant SHALL keep its current A
 - **WHEN** the user asks for recommendations
 - **THEN** the existing recommendation endpoint continues to return recommendations
 - **AND** this change does not require frontend callers to change request shape
-

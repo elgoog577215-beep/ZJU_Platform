@@ -1,3285 +1,4861 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List, Code2, ChevronDown, Search } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
-import api, { uploadFile } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
-import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
-import useMediaCategories from '../hooks/useMediaCategories';
-import { isMiniProgramWebView } from '../utils/miniProgramEnv';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  buildWechatNativeUploadBridgeUrl,
-  navigateToMiniProgramPage,
-} from '../utils/wechatMiniProgramBridge';
+    X,
+    Upload,
+    Image,
+    Film,
+    Music,
+    FileText,
+    Plus,
+    Calendar,
+    Tag,
+    Link,
+    Check,
+    Sparkles,
+    RotateCcw,
+    GripVertical,
+    ArrowUp,
+    ArrowDown,
+    Trash2,
+    Paperclip,
+    PenSquare,
+    Eye,
+    Clock3,
+    List,
+    Code2,
+    ChevronDown,
+    Search,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
+import api, { uploadFile } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
+import useMediaCategories from "../hooks/useMediaCategories";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
-  COLLEGE_NOTICE_TAG,
-  COLLEGE_NOTICE_TYPES,
-  EVENT_CATEGORIES,
-  EVENT_AUDIENCE_GROUPS,
-  EVENT_AUDIENCE_OPTIONS,
-  EVENT_SOURCE_COLLEGE_OPTIONS,
-  getCollegeNoticeTypeLabel,
-  getEventCategoryLabel,
-  inferEventSourceCollege,
-  normalizeCollegeNoticeType,
-  normalizeEventCategoryValue,
-} from '../data/eventTaxonomy';
+    buildWechatNativeUploadBridgeUrl,
+    navigateToMiniProgramPage,
+} from "../utils/wechatMiniProgramBridge";
+import {
+    COLLEGE_NOTICE_TAG,
+    COLLEGE_NOTICE_TYPES,
+    EVENT_CATEGORIES,
+    EVENT_AUDIENCE_GROUPS,
+    EVENT_AUDIENCE_OPTIONS,
+    EVENT_SOURCE_COLLEGE_OPTIONS,
+    getCollegeNoticeTypeLabel,
+    getEventCategoryLabel,
+    inferEventSourceCollege,
+    normalizeCollegeNoticeType,
+    normalizeEventCategoryValue,
+} from "../data/eventTaxonomy";
 
-const getTagList = (value = '') =>
-  String(value || '')
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+const getTagList = (value = "") =>
+    String(value || "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
 
-const serializeTagList = (items = []) => [...new Set(items)].join(',');
+const serializeTagList = (items = []) => [...new Set(items)].join(",");
 
 const NATIVE_UPLOAD_POLL_INTERVAL_MS = 1500;
 const NATIVE_UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 const PROFILE_TYPE_LABELS = {
-  person: '个人',
-  club: '社团',
-  school: '学校',
-  enterprise: '企业',
-  organization: '组织',
+    person: "个人",
+    club: "社团",
+    school: "学校",
+    enterprise: "企业",
+    organization: "组织",
 };
 
 const formatProfileOptionLabel = (profile = {}) => {
-  const name = profile.display_name || profile.handle || `Profile ${profile.id}`;
-  const type = PROFILE_TYPE_LABELS[profile.type] || '主体';
-  return `${name} · ${type}`;
+    const name = profile.display_name || profile.handle || `Profile ${profile.id}`;
+    const type = PROFILE_TYPE_LABELS[profile.type] || "主体";
+    return `${name} · ${type}`;
 };
 
-const createArticleBlock = (blockType = 'text') => ({
-  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  type: blockType === 'code' ? 'text' : blockType,
-  style: blockType === 'code' ? 'code' : (blockType === 'text' ? 'paragraph' : 'default'),
-  align: blockType === 'image' ? 'center' : 'default',
-  width: blockType === 'image' ? 'wide' : 'default',
-  text: '',
-  file: null,
-  url: '',
-  caption: '',
-  name: '',
-  size: 0,
-  mime: '',
-  language: ''
+const createArticleBlock = (blockType = "text") => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type: blockType === "code" ? "text" : blockType,
+    style: blockType === "code" ? "code" : blockType === "text" ? "paragraph" : "default",
+    align: blockType === "image" ? "center" : "default",
+    width: blockType === "image" ? "wide" : "default",
+    text: "",
+    file: null,
+    url: "",
+    caption: "",
+    name: "",
+    size: 0,
+    mime: "",
+    language: "",
 });
 
-const toParagraphHtml = (text = '') => {
-  const escaped = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-  return escaped
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map(line => `<p>${line}</p>`)
-    .join('');
+const toParagraphHtml = (text = "") => {
+    const escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    return escaped
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => `<p>${line}</p>`)
+        .join("");
 };
 
-const extractPlainText = (html = '') => html
-  .replace(/<[^>]*>/g, ' ')
-  .replace(/\s+/g, ' ')
-  .trim();
+const extractPlainText = (html = "") =>
+    html
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
-const escapeHtml = (text = '') => text
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;');
+const escapeHtml = (text = "") =>
+    text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 
-const buildArticleHtmlFromBlocks = (blocks = []) => blocks
-  .map((block) => {
-    if (block.type === 'text') {
-      const paragraphs = toParagraphHtml(block.text || '');
-      if (!paragraphs) return '';
-      if (block.style === 'heading') return `<h2>${extractPlainText(paragraphs)}</h2>`;
-      if (block.style === 'quote') return `<blockquote>${extractPlainText(paragraphs)}</blockquote>`;
-      if (block.style === 'list') {
-        const items = (block.text || '')
-          .split('\n')
-          .map((line) => line.trim())
-          .filter(Boolean)
-          .map((line) => `<li>${escapeHtml(line.replace(/^[-*]\s*/, ''))}</li>`)
-          .join('');
-        return items ? `<ul>${items}</ul>` : '';
-      }
-      if (block.style === 'code') return `<pre><code>${escapeHtml(block.text || '')}</code></pre>`;
-      return paragraphs;
-    }
-    if (block.type === 'image' && block.url) {
-      const safeCaption = block.caption ? `<figcaption>${toParagraphHtml(block.caption)}</figcaption>` : '';
-      const alignMap = { left: 'left', center: 'center', right: 'right' };
-      const widthMap = { small: '420px', medium: '680px', wide: '980px', full: '100%' };
-      const imageAlign = alignMap[block.align] || 'center';
-      const imageWidth = widthMap[block.width] || '980px';
-      return `<figure style="text-align:${imageAlign};"><img style="width:${imageWidth};max-width:100%;display:inline-block;" src="${block.url}" alt="${(block.caption || '').replace(/"/g, '&quot;')}" />${safeCaption}</figure>`;
-    }
-    if (block.type === 'video' && block.url) {
-      const safeCaption = block.caption ? `<p>${toParagraphHtml(block.caption)}</p>` : '';
-      return `<figure><video controls src="${block.url}"></video>${safeCaption}</figure>`;
-    }
-    if (block.type === 'file' && block.url) {
-      const label = (block.name || '下载附件').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return `<p><a href="${block.url}" target="_blank" rel="noopener noreferrer" download>${label}</a></p>`;
-    }
-    return '';
-  })
-  .join('');
+const buildArticleHtmlFromBlocks = (blocks = []) =>
+    blocks
+        .map((block) => {
+            if (block.type === "text") {
+                const paragraphs = toParagraphHtml(block.text || "");
+                if (!paragraphs) return "";
+                if (block.style === "heading") return `<h2>${extractPlainText(paragraphs)}</h2>`;
+                if (block.style === "quote")
+                    return `<blockquote>${extractPlainText(paragraphs)}</blockquote>`;
+                if (block.style === "list") {
+                    const items = (block.text || "")
+                        .split("\n")
+                        .map((line) => line.trim())
+                        .filter(Boolean)
+                        .map((line) => `<li>${escapeHtml(line.replace(/^[-*]\s*/, ""))}</li>`)
+                        .join("");
+                    return items ? `<ul>${items}</ul>` : "";
+                }
+                if (block.style === "code")
+                    return `<pre><code>${escapeHtml(block.text || "")}</code></pre>`;
+                return paragraphs;
+            }
+            if (block.type === "image" && block.url) {
+                const safeCaption = block.caption
+                    ? `<figcaption>${toParagraphHtml(block.caption)}</figcaption>`
+                    : "";
+                const alignMap = { left: "left", center: "center", right: "right" };
+                const widthMap = { small: "420px", medium: "680px", wide: "980px", full: "100%" };
+                const imageAlign = alignMap[block.align] || "center";
+                const imageWidth = widthMap[block.width] || "980px";
+                return `<figure style="text-align:${imageAlign};"><img style="width:${imageWidth};max-width:100%;display:inline-block;" src="${block.url}" alt="${(block.caption || "").replace(/"/g, "&quot;")}" />${safeCaption}</figure>`;
+            }
+            if (block.type === "video" && block.url) {
+                const safeCaption = block.caption ? `<p>${toParagraphHtml(block.caption)}</p>` : "";
+                return `<figure><video controls src="${block.url}"></video>${safeCaption}</figure>`;
+            }
+            if (block.type === "file" && block.url) {
+                const label = (block.name || "下载附件")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+                return `<p><a href="${block.url}" target="_blank" rel="noopener noreferrer" download>${label}</a></p>`;
+            }
+            return "";
+        })
+        .join("");
 
-const buildBlocksFromPlainText = (rawText = '') => {
-  const normalized = (rawText || '').replace(/\r\n/g, '\n').trim();
-  if (!normalized) return [createArticleBlock('text')];
-  const paragraphs = normalized
-    .split(/\n{2,}/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const blocks = paragraphs.map((paragraph) => {
-    const block = createArticleBlock('text');
-    const listLines = paragraph
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean);
-    const isList = listLines.length > 1 && listLines.every((line) => /^[-*•]\s+/.test(line));
-    if (isList) {
-      block.style = 'list';
-      block.text = listLines.map((line) => line.replace(/^[-*•]\s+/, '')).join('\n');
-      return block;
-    }
-    block.text = paragraph;
-    return block;
-  });
-  return blocks.length ? blocks : [createArticleBlock('text')];
+const buildBlocksFromPlainText = (rawText = "") => {
+    const normalized = (rawText || "").replace(/\r\n/g, "\n").trim();
+    if (!normalized) return [createArticleBlock("text")];
+    const paragraphs = normalized
+        .split(/\n{2,}/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    const blocks = paragraphs.map((paragraph) => {
+        const block = createArticleBlock("text");
+        const listLines = paragraph
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+        const isList = listLines.length > 1 && listLines.every((line) => /^[-*•]\s+/.test(line));
+        if (isList) {
+            block.style = "list";
+            block.text = listLines.map((line) => line.replace(/^[-*•]\s+/, "")).join("\n");
+            return block;
+        }
+        block.text = paragraph;
+        return block;
+    });
+    return blocks.length ? blocks : [createArticleBlock("text")];
 };
 
-const buildBlocksFromMarkdown = (rawMarkdown = '') => {
-  const lines = (rawMarkdown || '').replace(/\r\n/g, '\n').split('\n');
-  const blocks = [];
-  let currentParagraph = [];
-  let currentList = [];
-  const pushParagraph = () => {
-    const text = currentParagraph.join('\n').trim();
-    if (!text) return;
-    const block = createArticleBlock('text');
-    block.text = text;
-    blocks.push(block);
-    currentParagraph = [];
-  };
-  const pushList = () => {
-    if (!currentList.length) return;
-    const block = createArticleBlock('text');
-    block.style = 'list';
-    block.text = currentList.join('\n');
-    blocks.push(block);
-    currentList = [];
-  };
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      pushParagraph();
-      pushList();
-      return;
-    }
-    const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/);
-    if (headingMatch) {
-      pushParagraph();
-      pushList();
-      const block = createArticleBlock('text');
-      block.style = 'heading';
-      block.text = headingMatch[1].trim();
-      blocks.push(block);
-      return;
-    }
-    const quoteMatch = trimmed.match(/^>\s?(.+)$/);
-    if (quoteMatch) {
-      pushParagraph();
-      pushList();
-      const block = createArticleBlock('text');
-      block.style = 'quote';
-      block.text = quoteMatch[1].trim();
-      blocks.push(block);
-      return;
-    }
-    const listMatch = trimmed.match(/^[-*+]\s+(.+)$/);
-    if (listMatch) {
-      pushParagraph();
-      currentList.push(listMatch[1].trim());
-      return;
-    }
+const buildBlocksFromMarkdown = (rawMarkdown = "") => {
+    const lines = (rawMarkdown || "").replace(/\r\n/g, "\n").split("\n");
+    const blocks = [];
+    let currentParagraph = [];
+    let currentList = [];
+    const pushParagraph = () => {
+        const text = currentParagraph.join("\n").trim();
+        if (!text) return;
+        const block = createArticleBlock("text");
+        block.text = text;
+        blocks.push(block);
+        currentParagraph = [];
+    };
+    const pushList = () => {
+        if (!currentList.length) return;
+        const block = createArticleBlock("text");
+        block.style = "list";
+        block.text = currentList.join("\n");
+        blocks.push(block);
+        currentList = [];
+    };
+    lines.forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+            pushParagraph();
+            pushList();
+            return;
+        }
+        const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/);
+        if (headingMatch) {
+            pushParagraph();
+            pushList();
+            const block = createArticleBlock("text");
+            block.style = "heading";
+            block.text = headingMatch[1].trim();
+            blocks.push(block);
+            return;
+        }
+        const quoteMatch = trimmed.match(/^>\s?(.+)$/);
+        if (quoteMatch) {
+            pushParagraph();
+            pushList();
+            const block = createArticleBlock("text");
+            block.style = "quote";
+            block.text = quoteMatch[1].trim();
+            blocks.push(block);
+            return;
+        }
+        const listMatch = trimmed.match(/^[-*+]\s+(.+)$/);
+        if (listMatch) {
+            pushParagraph();
+            currentList.push(listMatch[1].trim());
+            return;
+        }
+        pushList();
+        currentParagraph.push(trimmed);
+    });
+    pushParagraph();
     pushList();
-    currentParagraph.push(trimmed);
-  });
-  pushParagraph();
-  pushList();
-  return blocks.length ? blocks : [createArticleBlock('text')];
+    return blocks.length ? blocks : [createArticleBlock("text")];
 };
 
-const splitEventAudience = (value = '') => String(value || '')
-  .split(/[,，、]/)
-  .map((item) => item.trim())
-  .filter(Boolean);
+const splitEventAudience = (value = "") =>
+    String(value || "")
+        .split(/[,，、]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
 
-const normalizeEventCategory = (value = '') => {
-  return normalizeEventCategoryValue(value);
+const normalizeEventCategory = (value = "") => {
+    return normalizeEventCategoryValue(value);
 };
 
-const normalizeEventAudience = (value = '') => {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  if (/全校|所有学生|全体学生|师生/.test(raw)) return '全校';
-  const selected = EVENT_AUDIENCE_OPTIONS.filter((item) => raw.includes(item));
-  if (selected.length > 0) return selected.join(',');
-  return splitEventAudience(raw)
-    .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item))
-    .join(',');
+const normalizeEventAudience = (value = "") => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/全校|所有学生|全体学生|师生/.test(raw)) return "全校";
+    const selected = EVENT_AUDIENCE_OPTIONS.filter((item) => raw.includes(item));
+    if (selected.length > 0) return selected.join(",");
+    return splitEventAudience(raw)
+        .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item))
+        .join(",");
 };
 
 const isTruthyFlag = (value) =>
-  value === true ||
-  value === 1 ||
-  value === '1' ||
-  String(value || '').toLowerCase() === 'true';
+    value === true || value === 1 || value === "1" || String(value || "").toLowerCase() === "true";
 
 const resolveParsedCollegeNoticeFields = (data = {}) => {
-  const sourceCollege = data.source_college || inferEventSourceCollege(data);
-  const noticeType = normalizeCollegeNoticeType(data.notice_type) || 'other';
-  const hasNoticeTag = getTagList(data.tags).includes(COLLEGE_NOTICE_TAG);
-  const isCollegeNotice =
-    isTruthyFlag(data.is_college_notice) ||
-    hasNoticeTag ||
-    Boolean(data.source_college || data.notice_type);
+    const sourceCollege = data.source_college || inferEventSourceCollege(data);
+    const noticeType = normalizeCollegeNoticeType(data.notice_type) || "other";
+    const hasNoticeTag = getTagList(data.tags).includes(COLLEGE_NOTICE_TAG);
+    const isCollegeNotice =
+        isTruthyFlag(data.is_college_notice) ||
+        hasNoticeTag ||
+        Boolean(data.source_college || data.notice_type);
 
-  return {
-    isCollegeNotice,
-    noticeType,
-    sourceCollege,
-  };
+    return {
+        isCollegeNotice,
+        noticeType,
+        sourceCollege,
+    };
 };
 
 const ARTICLE_BLOCK_META = {
-  text: {
-    label: '文字',
-    icon: FileText,
-    chipClass: 'text-blue-200 bg-blue-500/15 border-blue-400/25'
-  },
-  code: {
-    label: '代码',
-    icon: Code2,
-    chipClass: 'text-indigo-200 bg-indigo-500/15 border-indigo-400/25'
-  },
-  image: {
-    label: '图片',
-    icon: Image,
-    chipClass: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/25'
-  },
-  video: {
-    label: '视频',
-    icon: Film,
-    chipClass: 'text-purple-200 bg-purple-500/15 border-purple-400/25'
-  },
-  file: {
-    label: '附件',
-    icon: Paperclip,
-    chipClass: 'text-amber-200 bg-amber-500/15 border-amber-400/25'
-  }
+    text: {
+        label: "文字",
+        icon: FileText,
+        chipClass: "text-blue-200 bg-blue-500/15 border-blue-400/25",
+    },
+    code: {
+        label: "代码",
+        icon: Code2,
+        chipClass: "text-indigo-200 bg-indigo-500/15 border-indigo-400/25",
+    },
+    image: {
+        label: "图片",
+        icon: Image,
+        chipClass: "text-emerald-200 bg-emerald-500/15 border-emerald-400/25",
+    },
+    video: {
+        label: "视频",
+        icon: Film,
+        chipClass: "text-purple-200 bg-purple-500/15 border-purple-400/25",
+    },
+    file: {
+        label: "附件",
+        icon: Paperclip,
+        chipClass: "text-amber-200 bg-amber-500/15 border-amber-400/25",
+    },
 };
 
-const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, allowBatch = false }) => {
-  const { t, i18n } = useTranslation();
-  const onCloseRef = useRef(onClose);
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-  const handleClose = useCallback(() => {
-    onCloseRef.current?.();
-  }, []);
-  useBackClose(isOpen, handleClose);
-  useBodyScrollLock(isOpen);
-  const { user, isAdmin } = useAuth();
-  const { uiMode } = useSettings();
-  const isDayMode = uiMode === 'day';
-  const isEditing = !!initialData;
-  const isImageBatchEnabled = allowBatch && type === 'image' && !isEditing;
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
-  const [batchImages, setBatchImages] = useState([]);
-  
-  // Secondary file (Cover image for Music/Video/Event)
-  const [coverFile, setCoverFile] = useState(null);
-  const [coverPreview, setCoverPreview] = useState(initialData?.cover || initialData?.thumbnail || initialData?.image || null);
-  const [nativeFileName, setNativeFileName] = useState('');
-  const [nativeCoverFileName, setNativeCoverFileName] = useState('');
-  const [nativeUploadState, setNativeUploadState] = useState({
-    active: false,
-    sessionId: '',
-    target: null,
-  });
-  const nativeUploadPollerRef = useRef(null);
+const UploadModal = ({
+    isOpen,
+    onClose,
+    onUpload,
+    type = "image",
+    initialData = null,
+    allowBatch = false,
+}) => {
+    const { t, i18n } = useTranslation();
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+    const handleClose = useCallback(() => {
+        onCloseRef.current?.();
+    }, []);
+    useBackClose(isOpen, handleClose);
+    useBodyScrollLock(isOpen);
+    const { user, isAdmin } = useAuth();
+    const { uiMode } = useSettings();
+    const isDayMode = uiMode === "day";
+    const isEditing = !!initialData;
+    const isImageBatchEnabled = allowBatch && type === "image" && !isEditing;
+    const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(
+        initialData?.url || initialData?.audio || initialData?.video || null
+    );
+    const [batchImages, setBatchImages] = useState([]);
 
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [tags, setTags] = useState(initialData?.tags || ''); // Tags state
-  const [mediaCategoryId, setMediaCategoryId] = useState(initialData?.category_id || '');
-  const [description, setDescription] = useState(initialData?.excerpt || initialData?.description || '');
-  const [content, setContent] = useState(initialData?.content || ''); // Full content
-  const [articleBlocks, setArticleBlocks] = useState(() => {
-    const raw = initialData?.content_blocks;
-    if (raw) {
-      try {
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((block) => ({
-            id: block.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            type: block.type || 'text',
-            style: block.style || 'paragraph',
-            align: block.align || 'default',
-            width: block.width || 'default',
-            text: block.text || '',
-            file: null,
-            url: block.url || '',
-            caption: block.caption || '',
-            name: block.name || '',
-            size: block.size || 0,
-            mime: block.mime || '',
-            language: block.language || ''
-          }));
+    // Secondary file (Cover image for Music/Video/Event)
+    const [coverFile, setCoverFile] = useState(null);
+    const [coverPreview, setCoverPreview] = useState(
+        initialData?.cover || initialData?.thumbnail || initialData?.image || null
+    );
+    const [nativeFileName, setNativeFileName] = useState("");
+    const [nativeCoverFileName, setNativeCoverFileName] = useState("");
+    const [nativeUploadState, setNativeUploadState] = useState({
+        active: false,
+        sessionId: "",
+        target: null,
+    });
+    const nativeUploadPollerRef = useRef(null);
+
+    const [title, setTitle] = useState(initialData?.title || "");
+    const [tags, setTags] = useState(initialData?.tags || ""); // Tags state
+    const [mediaCategoryId, setMediaCategoryId] = useState(initialData?.category_id || "");
+    const [description, setDescription] = useState(
+        initialData?.excerpt || initialData?.description || ""
+    );
+    const [content, setContent] = useState(initialData?.content || ""); // Full content
+    const [articleBlocks, setArticleBlocks] = useState(() => {
+        const raw = initialData?.content_blocks;
+        if (raw) {
+            try {
+                const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map((block) => ({
+                        id: block.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        type: block.type || "text",
+                        style: block.style || "paragraph",
+                        align: block.align || "default",
+                        width: block.width || "default",
+                        text: block.text || "",
+                        file: null,
+                        url: block.url || "",
+                        caption: block.caption || "",
+                        name: block.name || "",
+                        size: block.size || 0,
+                        mime: block.mime || "",
+                        language: block.language || "",
+                    }));
+                }
+            } catch (error) {
+                console.error("Failed to parse content_blocks:", error);
+            }
         }
-      } catch (error) {
-        console.error('Failed to parse content_blocks:', error);
-      }
-    }
-    if (initialData?.content) {
-      return [{ ...createArticleBlock('text'), text: extractPlainText(initialData.content) }];
-    }
-    return [createArticleBlock('text')];
-  });
-  const [draggingBlockId, setDraggingBlockId] = useState(null);
-  const [dragOverBlockId, setDragOverBlockId] = useState(null);
-  const [dragOverPosition, setDragOverPosition] = useState('before');
-  const [artist, setArtist] = useState(initialData?.artist || '');
-  const [featured, setFeatured] = useState(initialData?.featured || false);
-  const [size, setSize] = useState(initialData?.size || '');
-  const [dragTarget, setDragTarget] = useState(null);
-  const usesMediaCategory = type === 'image' || type === 'video';
-  const {
-    categories: mediaCategories,
-    loading: mediaCategoriesLoading,
-    error: mediaCategoriesError,
-    refresh: refreshMediaCategories,
-  } = useMediaCategories({
-    enabled: usesMediaCategory && isOpen,
-  });
-
-  // Photo specific
-  
-  // Event specific
-  const [eventDate, setEventDate] = useState(initialData?.date || '');
-  const [eventEndDate, setEventEndDate] = useState(initialData?.end_date || '');
-  const [eventLocation, setEventLocation] = useState(initialData?.location || '');
-  const [eventLink, setEventLink] = useState(initialData?.link || '');
-  
-  // Phase 1 New Fields
-  const [eventScore, setEventScore] = useState(initialData?.score || '');
-  const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
-  const [eventCategory, setEventCategory] = useState(() => normalizeEventCategory(initialData?.category));
-  const [isCollegeNotice, setIsCollegeNotice] = useState(() =>
-    Boolean(Number(initialData?.is_college_notice)) ||
-    getTagList(initialData?.tags).includes(COLLEGE_NOTICE_TAG)
-  );
-  const [noticeType, setNoticeType] = useState(() => normalizeCollegeNoticeType(initialData?.notice_type) || 'other');
-  const [sourceCollege, setSourceCollege] = useState(() => initialData?.source_college || inferEventSourceCollege(initialData || {}));
-  const [eventTarget, setEventTarget] = useState(() => normalizeEventAudience(initialData?.target_audience) || initialData?.target_audience || '');
-  const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
-  const [manageableProfiles, setManageableProfiles] = useState([]);
-  const [profilesLoading, setProfilesLoading] = useState(false);
-  const [selectedPublisherProfileId, setSelectedPublisherProfileId] = useState(
-    initialData?.publisher_profile_id ? String(initialData.publisher_profile_id) : '',
-  );
-  const [selectedOrganizerProfileId, setSelectedOrganizerProfileId] = useState(
-    initialData?.organizer_profile_id ? String(initialData.organizer_profile_id) : '',
-  );
-  const [audienceSearch, setAudienceSearch] = useState('');
-  const [showAllAudiences, setShowAllAudiences] = useState(false);
-  const [dateReasoning, setDateReasoning] = useState('');
-  const [mobileEventStep, setMobileEventStep] = useState(1);
-  const [relatedArticleIds, setRelatedArticleIds] = useState(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
-  const [relatedPostIds, setRelatedPostIds] = useState(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
-  const [relatedNewsIds, setRelatedNewsIds] = useState(Array.isArray(initialData?.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData?.related_news_ids || ''));
-  const [relatedGroupIds, setRelatedGroupIds] = useState(Array.isArray(initialData?.related_group_ids) ? initialData.related_group_ids.join(',') : (initialData?.related_group_ids || ''));
-
-  // WeChat Parsing
-  const [wechatUrl, setWechatUrl] = useState('');
-  const [isParsing, setIsParsing] = useState(false);
-  const [articleEditorMode, setArticleEditorMode] = useState('edit');
-  const [hasLocalDraft, setHasLocalDraft] = useState(false);
-  const [activeTextBlockId, setActiveTextBlockId] = useState(null);
-  const [slashMenuBlockId, setSlashMenuBlockId] = useState(null);
-  const [isImportingDocument, setIsImportingDocument] = useState(false);
-  const articleImportInputRef = React.useRef(null);
-  const wasOpenRef = React.useRef(false);
-
-  useEffect(() => {
-    if (isOpen && !wasOpenRef.current && type === 'event') {
-      setMobileEventStep(1);
-    }
-    wasOpenRef.current = isOpen;
-  }, [isOpen, type]);
-
-  const articleDraftStorageKey = React.useMemo(
-    () => `zju-article-draft-${user?.id || 'guest'}`,
-    [user?.id]
-  );
-  const articleWordCount = React.useMemo(() => articleBlocks
-    .filter((block) => block.type === 'text')
-    .reduce((total, block) => total + (block.text?.trim() ? block.text.trim().split(/\s+/).length : 0), 0), [articleBlocks]);
-  const articleReadingMinutes = Math.max(1, Math.ceil(articleWordCount / 240));
-  const selectedAudience = React.useMemo(() => splitEventAudience(eventTarget), [eventTarget]);
-  const audienceQuery = audienceSearch.trim().toLowerCase();
-  const totalAudienceCount = React.useMemo(
-    () => EVENT_AUDIENCE_GROUPS.reduce((total, group) => total + group.items.length, 0),
-    []
-  );
-  const visibleAudienceGroups = React.useMemo(() => {
-    const query = audienceSearch.trim().toLowerCase();
-    const sourceGroups = query || showAllAudiences
-      ? EVENT_AUDIENCE_GROUPS
-      : EVENT_AUDIENCE_GROUPS.slice(0, 1);
-    if (!query) return sourceGroups;
-    return sourceGroups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => item.toLowerCase().includes(query)),
-      }))
-      .filter((group) => group.items.length > 0);
-  }, [audienceSearch, showAllAudiences]);
-  const activeTextStyle = React.useMemo(() => {
-    if (!activeTextBlockId) return 'paragraph';
-    const activeBlock = articleBlocks.find((block) => block.id === activeTextBlockId);
-    return activeBlock?.style || 'paragraph';
-  }, [activeTextBlockId, articleBlocks]);
-  const articleCompletion = React.useMemo(() => {
-    const total = articleBlocks.length || 1;
-    const completed = articleBlocks.filter((block) => {
-      if (block.type === 'text') return !!block.text?.trim();
-      if (block.type === 'file') return !!block.file || !!block.url;
-      return !!block.url || !!block.file;
-    }).length;
-    return {
-      completed,
-      total,
-      percent: Math.round((completed / total) * 100)
-    };
-  }, [articleBlocks]);
-
-  const toggleEventAudience = React.useCallback((audience) => {
-    setEventTarget((prev) => {
-      const current = splitEventAudience(prev);
-      const next = current.includes(audience)
-        ? current.filter((item) => item !== audience)
-        : [...current, audience];
-      return next.join(',');
-    });
-  }, []);
-
-  const organizationProfiles = React.useMemo(
-    () => manageableProfiles.filter((profile) => profile.type && profile.type !== 'person'),
-    [manageableProfiles],
-  );
-
-  const handlePublisherProfileChange = React.useCallback((profileId) => {
-    setSelectedPublisherProfileId(profileId);
-    if (type !== 'event' || selectedOrganizerProfileId) return;
-    const selectedProfile = manageableProfiles.find((profile) => String(profile.id) === String(profileId));
-    if (selectedProfile && selectedProfile.type !== 'person') {
-      setSelectedOrganizerProfileId(String(selectedProfile.id));
-    }
-  }, [manageableProfiles, selectedOrganizerProfileId, type]);
-
-  const toggleCollegeNotice = React.useCallback(() => {
-    setIsCollegeNotice((current) => {
-      const next = !current;
-      setTags((previousTags) => {
-        const currentTags = getTagList(previousTags).filter(
-          (tag) => tag !== COLLEGE_NOTICE_TAG,
-        );
-        return serializeTagList(next ? [...currentTags, COLLEGE_NOTICE_TAG] : currentTags);
-      });
-      return next;
-    });
-  }, []);
-
-  React.useEffect(() => {
-    if (!isCollegeNotice || sourceCollege) return;
-    const inferred = inferEventSourceCollege({
-      organizer: eventOrganizer,
-      target_audience: eventTarget,
-      title,
-      description,
-    });
-    if (inferred) setSourceCollege(inferred);
-  }, [description, eventOrganizer, eventTarget, isCollegeNotice, sourceCollege, title]);
-
-  const restoreArticleDraft = React.useCallback(() => {
-    if (type !== 'article' || isEditing) return;
-    try {
-      const rawDraft = localStorage.getItem(articleDraftStorageKey);
-      if (!rawDraft) {
-        toast('没有可恢复的草稿');
-        return;
-      }
-      const draft = JSON.parse(rawDraft);
-      if (draft.title) setTitle(draft.title);
-      if (draft.tags) setTags(draft.tags);
-      if (draft.description) setDescription(draft.description);
-      if (draft.eventDate) setEventDate(draft.eventDate);
-      if (draft.coverPreview) setCoverPreview(draft.coverPreview);
-      if (Array.isArray(draft.articleBlocks) && draft.articleBlocks.length > 0) {
-        setArticleBlocks(draft.articleBlocks.map((block) => ({
-          ...createArticleBlock(block.type || 'text'),
-          ...block,
-          file: null
-        })));
-      }
-      setHasLocalDraft(true);
-      toast.success('已恢复本地草稿');
-    } catch {
-      toast.error('草稿恢复失败');
-    }
-  }, [articleDraftStorageKey, isEditing, type]);
-
-  const clearArticleDraft = React.useCallback(() => {
-    localStorage.removeItem(articleDraftStorageKey);
-    setHasLocalDraft(false);
-    toast.success('草稿已清除');
-  }, [articleDraftStorageKey]);
-
-  const handleParseWeChat = async () => {
-    if (!wechatUrl) {
-        toast.error('请输入微信公众号文章链接');
-        return;
-    }
-    
-    // Validate URL format
-    const wechatUrlRegex = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
-    if (!wechatUrlRegex.test(wechatUrl)) {
-        toast.error('请输入有效的微信公众号文章链接 (mp.weixin.qq.com)');
-        return;
-    }
-    
-    setIsParsing(true);
-    try {
-        const { data } = await api.post('/resources/parse-wechat', { url: wechatUrl });
-        
-        if (data) {
-            if (data.title) setTitle(data.title);
-            
-            // date and end_date are now YYYY-MM-DDTHH:MM format from AI parsing
-            if (data.date) setEventDate(data.date);
-            if (data.end_date) setEventEndDate(data.end_date);
-            if (data.location) setEventLocation(data.location);
-            if (data.content) setContent(data.content); // Store full content for parsing/editing
-            if (data.description) setDescription(data.description); // Summary for description
-            if (data.category) {
-                const normalizedCategory = normalizeEventCategory(data.category);
-                if (normalizedCategory) setEventCategory(normalizedCategory);
-            }
-            
-            // New fields mapping
-            if (data.organizer) setEventOrganizer(data.organizer);
-            if (data.target_audience) {
-                const normalizedAudience = normalizeEventAudience(data.target_audience);
-                if (normalizedAudience) setEventTarget(normalizedAudience);
-            }
-            if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
-            if (data.score) setEventScore(data.score);
-            if (data.date_reasoning) setDateReasoning(data.date_reasoning);
-            const parsedNotice = resolveParsedCollegeNoticeFields(data);
-            if (parsedNotice.isCollegeNotice) {
-                setIsCollegeNotice(true);
-                setNoticeType(parsedNotice.noticeType);
-                if (parsedNotice.sourceCollege) setSourceCollege(parsedNotice.sourceCollege);
-                setTags((previousTags) => serializeTagList([
-                    ...getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
-                    COLLEGE_NOTICE_TAG,
-                ]));
-            } else {
-                setIsCollegeNotice(false);
-                setNoticeType('other');
-                setSourceCollege('');
-                setTags((previousTags) => serializeTagList(
-                    getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
-                ));
-            }
-
-            // Set cover image if available
-            if (data.coverImage) {
-                setCoverPreview(data.coverImage);
-            }
-
-            // Auto-fill event link with source WeChat URL if not already set
-            if (!eventLink) setEventLink(wechatUrl);
-
-            toast.success(t('upload.parse_success'));
+        if (initialData?.content) {
+            return [{ ...createArticleBlock("text"), text: extractPlainText(initialData.content) }];
         }
-    } catch (error) {
-        console.error('WeChat Parse Error:', error);
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || t('upload.parse_failed');
-        toast.error(errorMessage);
-    } finally {
-        setIsParsing(false);
-    }
-  };
+        return [createArticleBlock("text")];
+    });
+    const [draggingBlockId, setDraggingBlockId] = useState(null);
+    const [dragOverBlockId, setDragOverBlockId] = useState(null);
+    const [dragOverPosition, setDragOverPosition] = useState("before");
+    const [artist, setArtist] = useState(initialData?.artist || "");
+    const [featured, setFeatured] = useState(initialData?.featured || false);
+    const [size, setSize] = useState(initialData?.size || "");
+    const [dragTarget, setDragTarget] = useState(null);
+    const usesMediaCategory = type === "image" || type === "video";
+    const {
+        categories: mediaCategories,
+        loading: mediaCategoriesLoading,
+        error: mediaCategoriesError,
+        refresh: refreshMediaCategories,
+    } = useMediaCategories({
+        enabled: usesMediaCategory && isOpen,
+    });
 
-  const handleClearParsedData = () => {
-      setWechatUrl('');
-      setTitle('');
-      setDescription('');
-      setContent('');
-      setEventDate('');
-      setEventEndDate('');
-      setEventLocation('');
-      setEventCategory('');
-      setEventOrganizer('');
-      setEventTarget('');
-      setEventVolunteerTime('');
-      setEventScore('');
-      setDateReasoning('');
-      setEventLink('');
-      setTags('');
-      toast.success(t('upload.cleared'));
-  };
+    // Photo specific
 
-  React.useEffect(() => {
-    if (!isOpen || !user) {
-      setManageableProfiles([]);
-      setProfilesLoading(false);
-      return undefined;
-    }
+    // Event specific
+    const [eventDate, setEventDate] = useState(initialData?.date || "");
+    const [eventEndDate, setEventEndDate] = useState(initialData?.end_date || "");
+    const [eventLocation, setEventLocation] = useState(initialData?.location || "");
+    const [eventLink, setEventLink] = useState(initialData?.link || "");
 
-    let active = true;
-    setProfilesLoading(true);
+    // Phase 1 New Fields
+    const [eventScore, setEventScore] = useState(initialData?.score || "");
+    const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || "");
+    const [eventCategory, setEventCategory] = useState(() =>
+        normalizeEventCategory(initialData?.category)
+    );
+    const [isCollegeNotice, setIsCollegeNotice] = useState(
+        () =>
+            Boolean(Number(initialData?.is_college_notice)) ||
+            getTagList(initialData?.tags).includes(COLLEGE_NOTICE_TAG)
+    );
+    const [noticeType, setNoticeType] = useState(
+        () => normalizeCollegeNoticeType(initialData?.notice_type) || "other"
+    );
+    const [sourceCollege, setSourceCollege] = useState(
+        () => initialData?.source_college || inferEventSourceCollege(initialData || {})
+    );
+    const [eventTarget, setEventTarget] = useState(
+        () =>
+            normalizeEventAudience(initialData?.target_audience) ||
+            initialData?.target_audience ||
+            ""
+    );
+    const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || "");
+    const [manageableProfiles, setManageableProfiles] = useState([]);
+    const [profilesLoading, setProfilesLoading] = useState(false);
+    const [selectedPublisherProfileId, setSelectedPublisherProfileId] = useState(
+        initialData?.publisher_profile_id ? String(initialData.publisher_profile_id) : ""
+    );
+    const [selectedOrganizerProfileId, setSelectedOrganizerProfileId] = useState(
+        initialData?.organizer_profile_id ? String(initialData.organizer_profile_id) : ""
+    );
+    const [audienceSearch, setAudienceSearch] = useState("");
+    const [showAllAudiences, setShowAllAudiences] = useState(false);
+    const [dateReasoning, setDateReasoning] = useState("");
+    const [mobileEventStep, setMobileEventStep] = useState(1);
+    const [relatedArticleIds, setRelatedArticleIds] = useState(
+        Array.isArray(initialData?.related_article_ids)
+            ? initialData.related_article_ids.join(",")
+            : initialData?.related_article_ids || ""
+    );
+    const [relatedPostIds, setRelatedPostIds] = useState(
+        Array.isArray(initialData?.related_post_ids)
+            ? initialData.related_post_ids.join(",")
+            : initialData?.related_post_ids || ""
+    );
+    const [relatedNewsIds, setRelatedNewsIds] = useState(
+        Array.isArray(initialData?.related_news_ids)
+            ? initialData.related_news_ids.join(",")
+            : initialData?.related_news_ids || ""
+    );
+    const [relatedGroupIds, setRelatedGroupIds] = useState(
+        Array.isArray(initialData?.related_group_ids)
+            ? initialData.related_group_ids.join(",")
+            : initialData?.related_group_ids || ""
+    );
 
-    api.get('/users/me/profiles', { silent: true })
-      .then((response) => {
-        if (!active) return;
-        const profiles = Array.isArray(response.data)
-          ? response.data
-          : (Array.isArray(response.data?.data) ? response.data.data : []);
-        setManageableProfiles(profiles);
-        setSelectedPublisherProfileId((current) => {
-          if (current && profiles.some((profile) => String(profile.id) === String(current))) {
-            return String(current);
-          }
-          const initialProfileId = initialData?.publisher_profile_id ? String(initialData.publisher_profile_id) : '';
-          if (initialProfileId && profiles.some((profile) => String(profile.id) === initialProfileId)) {
-            return initialProfileId;
-          }
-          const personalProfile = profiles.find((profile) => profile.type === 'person');
-          return personalProfile ? String(personalProfile.id) : '';
+    // WeChat Parsing
+    const [wechatUrl, setWechatUrl] = useState("");
+    const [isParsing, setIsParsing] = useState(false);
+    const [articleEditorMode, setArticleEditorMode] = useState("edit");
+    const [hasLocalDraft, setHasLocalDraft] = useState(false);
+    const [activeTextBlockId, setActiveTextBlockId] = useState(null);
+    const [slashMenuBlockId, setSlashMenuBlockId] = useState(null);
+    const [isImportingDocument, setIsImportingDocument] = useState(false);
+    const articleImportInputRef = React.useRef(null);
+    const wasOpenRef = React.useRef(false);
+
+    useEffect(() => {
+        if (isOpen && !wasOpenRef.current && type === "event") {
+            setMobileEventStep(1);
+        }
+        wasOpenRef.current = isOpen;
+    }, [isOpen, type]);
+
+    const articleDraftStorageKey = React.useMemo(
+        () => `zju-article-draft-${user?.id || "guest"}`,
+        [user?.id]
+    );
+    const articleWordCount = React.useMemo(
+        () =>
+            articleBlocks
+                .filter((block) => block.type === "text")
+                .reduce(
+                    (total, block) =>
+                        total + (block.text?.trim() ? block.text.trim().split(/\s+/).length : 0),
+                    0
+                ),
+        [articleBlocks]
+    );
+    const articleReadingMinutes = Math.max(1, Math.ceil(articleWordCount / 240));
+    const selectedAudience = React.useMemo(() => splitEventAudience(eventTarget), [eventTarget]);
+    const audienceQuery = audienceSearch.trim().toLowerCase();
+    const totalAudienceCount = React.useMemo(
+        () => EVENT_AUDIENCE_GROUPS.reduce((total, group) => total + group.items.length, 0),
+        []
+    );
+    const visibleAudienceGroups = React.useMemo(() => {
+        const query = audienceSearch.trim().toLowerCase();
+        const sourceGroups =
+            query || showAllAudiences ? EVENT_AUDIENCE_GROUPS : EVENT_AUDIENCE_GROUPS.slice(0, 1);
+        if (!query) return sourceGroups;
+        return sourceGroups
+            .map((group) => ({
+                ...group,
+                items: group.items.filter((item) => item.toLowerCase().includes(query)),
+            }))
+            .filter((group) => group.items.length > 0);
+    }, [audienceSearch, showAllAudiences]);
+    const activeTextStyle = React.useMemo(() => {
+        if (!activeTextBlockId) return "paragraph";
+        const activeBlock = articleBlocks.find((block) => block.id === activeTextBlockId);
+        return activeBlock?.style || "paragraph";
+    }, [activeTextBlockId, articleBlocks]);
+    const articleCompletion = React.useMemo(() => {
+        const total = articleBlocks.length || 1;
+        const completed = articleBlocks.filter((block) => {
+            if (block.type === "text") return !!block.text?.trim();
+            if (block.type === "file") return !!block.file || !!block.url;
+            return !!block.url || !!block.file;
+        }).length;
+        return {
+            completed,
+            total,
+            percent: Math.round((completed / total) * 100),
+        };
+    }, [articleBlocks]);
+
+    const toggleEventAudience = React.useCallback((audience) => {
+        setEventTarget((prev) => {
+            const current = splitEventAudience(prev);
+            const next = current.includes(audience)
+                ? current.filter((item) => item !== audience)
+                : [...current, audience];
+            return next.join(",");
         });
-        setSelectedOrganizerProfileId((current) => {
-          if (type !== 'event') return '';
-          const orgProfiles = profiles.filter((profile) => profile.type && profile.type !== 'person');
-          if (current && orgProfiles.some((profile) => String(profile.id) === String(current))) {
-            return String(current);
-          }
-          const initialProfileId = initialData?.organizer_profile_id ? String(initialData.organizer_profile_id) : '';
-          if (initialProfileId && orgProfiles.some((profile) => String(profile.id) === initialProfileId)) {
-            return initialProfileId;
-          }
-          return '';
+    }, []);
+
+    const organizationProfiles = React.useMemo(
+        () => manageableProfiles.filter((profile) => profile.type && profile.type !== "person"),
+        [manageableProfiles]
+    );
+
+    const handlePublisherProfileChange = React.useCallback(
+        (profileId) => {
+            setSelectedPublisherProfileId(profileId);
+            if (type !== "event" || selectedOrganizerProfileId) return;
+            const selectedProfile = manageableProfiles.find(
+                (profile) => String(profile.id) === String(profileId)
+            );
+            if (selectedProfile && selectedProfile.type !== "person") {
+                setSelectedOrganizerProfileId(String(selectedProfile.id));
+            }
+        },
+        [manageableProfiles, selectedOrganizerProfileId, type]
+    );
+
+    const toggleCollegeNotice = React.useCallback(() => {
+        setIsCollegeNotice((current) => {
+            const next = !current;
+            setTags((previousTags) => {
+                const currentTags = getTagList(previousTags).filter(
+                    (tag) => tag !== COLLEGE_NOTICE_TAG
+                );
+                return serializeTagList(next ? [...currentTags, COLLEGE_NOTICE_TAG] : currentTags);
+            });
+            return next;
         });
-      })
-      .catch((error) => {
-        if (!active) return;
-        console.warn('Failed to load manageable profiles:', error);
-        setManageableProfiles([]);
-      })
-      .finally(() => {
-        if (active) setProfilesLoading(false);
-      });
+    }, []);
 
-    return () => {
-      active = false;
-    };
-  }, [initialData?.organizer_profile_id, initialData?.publisher_profile_id, isOpen, type, user]);
+    React.useEffect(() => {
+        if (!isCollegeNotice || sourceCollege) return;
+        const inferred = inferEventSourceCollege({
+            organizer: eventOrganizer,
+            target_audience: eventTarget,
+            title,
+            description,
+        });
+        if (inferred) setSourceCollege(inferred);
+    }, [description, eventOrganizer, eventTarget, isCollegeNotice, sourceCollege, title]);
 
-  // Reset form when modal opens with new data or closes
-  React.useEffect(() => {
-    if (isOpen) {
-        setSubmitIntent('publish');
-        if (!user) {
-            toast.error(t('auth.signin_desc'));
-            handleClose();
+    const restoreArticleDraft = React.useCallback(() => {
+        if (type !== "article" || isEditing) return;
+        try {
+            const rawDraft = localStorage.getItem(articleDraftStorageKey);
+            if (!rawDraft) {
+                toast("没有可恢复的草稿");
+                return;
+            }
+            const draft = JSON.parse(rawDraft);
+            if (draft.title) setTitle(draft.title);
+            if (draft.tags) setTags(draft.tags);
+            if (draft.description) setDescription(draft.description);
+            if (draft.eventDate) setEventDate(draft.eventDate);
+            if (draft.coverPreview) setCoverPreview(draft.coverPreview);
+            if (Array.isArray(draft.articleBlocks) && draft.articleBlocks.length > 0) {
+                setArticleBlocks(
+                    draft.articleBlocks.map((block) => ({
+                        ...createArticleBlock(block.type || "text"),
+                        ...block,
+                        file: null,
+                    }))
+                );
+            }
+            setHasLocalDraft(true);
+            toast.success("已恢复本地草稿");
+        } catch {
+            toast.error("草稿恢复失败");
+        }
+    }, [articleDraftStorageKey, isEditing, type]);
+
+    const clearArticleDraft = React.useCallback(() => {
+        localStorage.removeItem(articleDraftStorageKey);
+        setHasLocalDraft(false);
+        toast.success("草稿已清除");
+    }, [articleDraftStorageKey]);
+
+    const handleParseWeChat = async () => {
+        if (!wechatUrl) {
+            toast.error("请输入微信公众号文章链接");
             return;
         }
 
-        if (initialData) {
-            setTitle(initialData.title || '');
-            setTags(initialData.tags || '');
-            setMediaCategoryId(initialData.category_id || '');
-            setDescription(initialData.excerpt || initialData.description || '');
-            setContent(initialData.content || '');
-            if (type === 'article') {
-              if (initialData.content_blocks) {
-                try {
-                  const parsed = typeof initialData.content_blocks === 'string'
-                    ? JSON.parse(initialData.content_blocks)
-                    : initialData.content_blocks;
-                  if (Array.isArray(parsed) && parsed.length > 0) {
-                    setArticleBlocks(parsed.map((block) => ({
-                      id: block.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                      type: block.type || 'text',
-                      style: block.style || 'paragraph',
-                      align: block.align || 'default',
-                      width: block.width || 'default',
-                      text: block.text || '',
-                      file: null,
-                      url: block.url || '',
-                      caption: block.caption || '',
-                      name: block.name || '',
-                      size: block.size || 0,
-                      mime: block.mime || '',
-                      language: block.language || ''
-                    })));
-                  } else {
-                    setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
-                  }
-                } catch (error) {
-                  console.error('Failed to parse content blocks on reset:', error);
-                  setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
+        // Validate URL format
+        const wechatUrlRegex = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
+        if (!wechatUrlRegex.test(wechatUrl)) {
+            toast.error("请输入有效的微信公众号文章链接 (mp.weixin.qq.com)");
+            return;
+        }
+
+        setIsParsing(true);
+        try {
+            const { data } = await api.post("/resources/parse-wechat", { url: wechatUrl });
+
+            if (data) {
+                if (data.title) setTitle(data.title);
+
+                // date and end_date are now YYYY-MM-DDTHH:MM format from AI parsing
+                if (data.date) setEventDate(data.date);
+                if (data.end_date) setEventEndDate(data.end_date);
+                if (data.location) setEventLocation(data.location);
+                if (data.content) setContent(data.content); // Store full content for parsing/editing
+                if (data.description) setDescription(data.description); // Summary for description
+                if (data.category) {
+                    const normalizedCategory = normalizeEventCategory(data.category);
+                    if (normalizedCategory) setEventCategory(normalizedCategory);
                 }
-              } else {
-                setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
-              }
+
+                // New fields mapping
+                if (data.organizer) setEventOrganizer(data.organizer);
+                if (data.target_audience) {
+                    const normalizedAudience = normalizeEventAudience(data.target_audience);
+                    if (normalizedAudience) setEventTarget(normalizedAudience);
+                }
+                if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
+                if (data.score) setEventScore(data.score);
+                if (data.date_reasoning) setDateReasoning(data.date_reasoning);
+                const parsedNotice = resolveParsedCollegeNoticeFields(data);
+                if (parsedNotice.isCollegeNotice) {
+                    setIsCollegeNotice(true);
+                    setNoticeType(parsedNotice.noticeType);
+                    if (parsedNotice.sourceCollege) setSourceCollege(parsedNotice.sourceCollege);
+                    setTags((previousTags) =>
+                        serializeTagList([
+                            ...getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+                            COLLEGE_NOTICE_TAG,
+                        ])
+                    );
+                } else {
+                    setIsCollegeNotice(false);
+                    setNoticeType("other");
+                    setSourceCollege("");
+                    setTags((previousTags) =>
+                        serializeTagList(
+                            getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG)
+                        )
+                    );
+                }
+
+                // Set cover image if available
+                if (data.coverImage) {
+                    setCoverPreview(data.coverImage);
+                }
+
+                // Auto-fill event link with source WeChat URL if not already set
+                if (!eventLink) setEventLink(wechatUrl);
+
+                toast.success(t("upload.parse_success"));
             }
-            setArtist(initialData.artist || '');
-            setEventDate(initialData.date || '');
-            setEventEndDate(initialData.end_date || '');
-            setEventLocation(initialData.location || '');
-            setEventLink(initialData.link || '');
-            setEventScore(initialData.score || '');
-            setEventVolunteerTime(initialData.volunteer_time || '');
-            setEventCategory(normalizeEventCategory(initialData.category));
-            setIsCollegeNotice(Boolean(Number(initialData.is_college_notice)) || getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG));
-            setNoticeType(normalizeCollegeNoticeType(initialData.notice_type) || 'other');
-            setSourceCollege(initialData.source_college || inferEventSourceCollege(initialData));
-            setEventTarget(normalizeEventAudience(initialData.target_audience) || initialData.target_audience || '');
-            setEventOrganizer(initialData.organizer || '');
-            setSelectedPublisherProfileId(initialData.publisher_profile_id ? String(initialData.publisher_profile_id) : '');
-            setSelectedOrganizerProfileId(initialData.organizer_profile_id ? String(initialData.organizer_profile_id) : '');
-            setFeatured(initialData.featured || false);
-            setSize(initialData.size || '');
-            setPreview(initialData.url || initialData.audio || initialData.video || null);
-            setCoverPreview(initialData.cover || initialData.thumbnail || initialData.image || null);
-            setBatchImages([]);
-            setRelatedArticleIds(Array.isArray(initialData.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData.related_article_ids || ''));
-            setRelatedPostIds(Array.isArray(initialData.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData.related_post_ids || ''));
-            setRelatedNewsIds(Array.isArray(initialData.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData.related_news_ids || ''));
-            setRelatedGroupIds(Array.isArray(initialData.related_group_ids) ? initialData.related_group_ids.join(',') : (initialData.related_group_ids || ''));
-        } else {
-            setTitle('');
-            setTags('');
-            setMediaCategoryId('');
-            setDescription('');
-            setContent('');
-            if (type === 'article') {
-              setArticleBlocks([createArticleBlock('text')]);
-            }
-            setArtist('');
-            setEventDate('');
-            setEventEndDate('');
-            setEventLocation('');
-            setEventLink('');
-            setEventScore('');
-            setEventCategory('');
-            setIsCollegeNotice(false);
-            setEventTarget('');
-            setEventOrganizer('');
-            setSelectedPublisherProfileId('');
-            setSelectedOrganizerProfileId('');
-            setFeatured(false);
-            setSize('');
-            setPreview(null);
-            setCoverPreview(null);
-            setBatchImages([]);
-            setRelatedArticleIds('');
-            setRelatedPostIds('');
-            setRelatedNewsIds('');
-            setRelatedGroupIds('');
+        } catch (error) {
+            console.error("WeChat Parse Error:", error);
+            const errorMessage =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                t("upload.parse_failed");
+            toast.error(errorMessage);
+        } finally {
+            setIsParsing(false);
         }
-        setFile(null);
-        setCoverFile(null);
-        setNativeFileName('');
-        setNativeCoverFileName('');
-        setNativeUploadState({ active: false, sessionId: '', target: null });
-        setWechatUrl('');
-        setIsParsing(false);
-        setArticleEditorMode('edit');
-        setActiveTextBlockId(null);
-        setSlashMenuBlockId(null);
-    }
-  }, [isOpen, initialData, user, t, handleClose, type]);
-
-  React.useEffect(() => {
-    if (!isOpen || type !== 'article' || isEditing) return;
-    const existingDraft = localStorage.getItem(articleDraftStorageKey);
-    setHasLocalDraft(!!existingDraft);
-  }, [articleDraftStorageKey, isEditing, isOpen, type]);
-
-  React.useEffect(() => {
-    if (!isOpen || type !== 'article' || isEditing) return;
-    const draftPayload = {
-      title,
-      tags,
-      description,
-      eventDate,
-      coverPreview,
-      articleBlocks: articleBlocks.map((block) => {
-        const serialized = { ...block };
-        delete serialized.file;
-        return serialized;
-      }),
-      updatedAt: Date.now()
     };
-    localStorage.setItem(articleDraftStorageKey, JSON.stringify(draftPayload));
-    setHasLocalDraft(true);
-  }, [articleBlocks, articleDraftStorageKey, coverPreview, description, eventDate, isEditing, isOpen, tags, title, type]);
 
-  const addArticleBlock = (blockType) => {
-    const nextBlock = createArticleBlock(blockType);
-    setArticleBlocks((prev) => [...prev, nextBlock]);
-    if (blockType === 'text') {
-      setActiveTextBlockId(nextBlock.id);
-    }
-  };
+    const handleClearParsedData = () => {
+        setWechatUrl("");
+        setTitle("");
+        setDescription("");
+        setContent("");
+        setEventDate("");
+        setEventEndDate("");
+        setEventLocation("");
+        setEventCategory("");
+        setEventOrganizer("");
+        setEventTarget("");
+        setEventVolunteerTime("");
+        setEventScore("");
+        setDateReasoning("");
+        setEventLink("");
+        setTags("");
+        toast.success(t("upload.cleared"));
+    };
 
-  const updateArticleBlock = (blockId, patch) => {
-    setArticleBlocks((prev) => prev.map((block) => (block.id === blockId ? { ...block, ...patch } : block)));
-  };
+    React.useEffect(() => {
+        if (!isOpen || !user) {
+            setManageableProfiles([]);
+            setProfilesLoading(false);
+            return undefined;
+        }
 
-  const updateActiveTextStyle = (style) => {
-    const isCurrentActiveText = articleBlocks.some((block) => block.id === activeTextBlockId && block.type === 'text');
-    const targetTextBlockId = isCurrentActiveText
-      ? activeTextBlockId
-      : articleBlocks.find((block) => block.type === 'text')?.id;
-    if (!targetTextBlockId) return;
-    setActiveTextBlockId(targetTextBlockId);
-    updateArticleBlock(targetTextBlockId, { style });
-  };
+        let active = true;
+        setProfilesLoading(true);
 
-  React.useEffect(() => {
-    if (type !== 'article') return;
-    if (!articleBlocks.length) {
-      setActiveTextBlockId(null);
-      return;
-    }
-    const hasActiveText = articleBlocks.some((block) => block.id === activeTextBlockId && block.type === 'text');
-    if (hasActiveText) return;
-    const firstTextBlockId = articleBlocks.find((block) => block.type === 'text')?.id || null;
-    setActiveTextBlockId(firstTextBlockId);
-  }, [activeTextBlockId, articleBlocks, type]);
+        api.get("/users/me/profiles", { silent: true })
+            .then((response) => {
+                if (!active) return;
+                const profiles = Array.isArray(response.data)
+                    ? response.data
+                    : Array.isArray(response.data?.data)
+                      ? response.data.data
+                      : [];
+                setManageableProfiles(profiles);
+                setSelectedPublisherProfileId((current) => {
+                    if (
+                        current &&
+                        profiles.some((profile) => String(profile.id) === String(current))
+                    ) {
+                        return String(current);
+                    }
+                    const initialProfileId = initialData?.publisher_profile_id
+                        ? String(initialData.publisher_profile_id)
+                        : "";
+                    if (
+                        initialProfileId &&
+                        profiles.some((profile) => String(profile.id) === initialProfileId)
+                    ) {
+                        return initialProfileId;
+                    }
+                    const personalProfile = profiles.find((profile) => profile.type === "person");
+                    return personalProfile ? String(personalProfile.id) : "";
+                });
+                setSelectedOrganizerProfileId((current) => {
+                    if (type !== "event") return "";
+                    const orgProfiles = profiles.filter(
+                        (profile) => profile.type && profile.type !== "person"
+                    );
+                    if (
+                        current &&
+                        orgProfiles.some((profile) => String(profile.id) === String(current))
+                    ) {
+                        return String(current);
+                    }
+                    const initialProfileId = initialData?.organizer_profile_id
+                        ? String(initialData.organizer_profile_id)
+                        : "";
+                    if (
+                        initialProfileId &&
+                        orgProfiles.some((profile) => String(profile.id) === initialProfileId)
+                    ) {
+                        return initialProfileId;
+                    }
+                    return "";
+                });
+            })
+            .catch((error) => {
+                if (!active) return;
+                console.warn("Failed to load manageable profiles:", error);
+                setManageableProfiles([]);
+            })
+            .finally(() => {
+                if (active) setProfilesLoading(false);
+            });
 
-  const deriveTitleFromFileName = (fileName = '') => fileName
-    .replace(/\.[^.]+$/, '')
-    .replace(/[_-]+/g, ' ')
-    .trim();
-
-  const batchUploadCount = isImageBatchEnabled ? batchImages.length : 0;
-  const hasBatchImages = batchUploadCount > 0;
-
-  const createImageBatchEntry = async (sourceFile) => ({
-    id: `${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
-    file: sourceFile,
-    preview: await readFileAsDataUrl(sourceFile),
-  });
-
-  const normalizeImageSelection = async (fileList) => {
-    const selectedFiles = Array.from(fileList || []).filter(Boolean);
-    if (!selectedFiles.length) return [];
-    const imageFiles = selectedFiles.filter((item) => item.type?.startsWith('image/'));
-    if (imageFiles.length !== selectedFiles.length) {
-      toast.error('仅支持上传图片文件');
-    }
-    return Promise.all(imageFiles.map(createImageBatchEntry));
-  };
-
-  const buildBatchImageTitle = (sourceFile, index, total) => {
-    const baseTitle = title.trim();
-    if (baseTitle) return total > 1 ? `${baseTitle} ${index + 1}` : baseTitle;
-    return deriveTitleFromFileName(sourceFile?.name) || `现场照片 ${index + 1}`;
-  };
-
-  const applyImportedDocumentBlocks = (rawContent, sourceType, fileName) => {
-    const parsedBlocks = sourceType === 'markdown'
-      ? buildBlocksFromMarkdown(rawContent)
-      : buildBlocksFromPlainText(rawContent);
-    if (!parsedBlocks.length || parsedBlocks.every((block) => !(block.text || '').trim())) {
-      toast.error('文档没有可导入的内容');
-      return;
-    }
-    setArticleBlocks(parsedBlocks);
-    const firstTextBlockId = parsedBlocks.find((block) => block.type === 'text')?.id || null;
-    setActiveTextBlockId(firstTextBlockId);
-    setArticleEditorMode('edit');
-    setContent(buildArticleHtmlFromBlocks(parsedBlocks));
-    setTitle((prev) => (prev?.trim() ? prev : deriveTitleFromFileName(fileName)));
-    setDescription((prev) => {
-      if (prev?.trim()) return prev;
-      const firstText = parsedBlocks.find((block) => block.type === 'text' && block.text?.trim())?.text || '';
-      return firstText.slice(0, 120);
-    });
-  };
-
-  const parsePdfFileToText = async (file) => {
-    const [pdfjsLib, workerModule] = await Promise.all([
-      import('pdfjs-dist'),
-      import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-    ]);
-    pdfjsLib.GlobalWorkerOptions.workerSrc = workerModule.default;
-    const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
-    const pdf = await loadingTask.promise;
-    const pageTexts = [];
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
-      const page = await pdf.getPage(pageNum);
-      const contentData = await page.getTextContent();
-      const text = contentData.items.map((item) => item.str || '').join(' ').replace(/\s+/g, ' ').trim();
-      if (text) pageTexts.push(text);
-    }
-    return pageTexts.join('\n\n');
-  };
-
-  const handleImportArticleDocument = async (event) => {
-    const fileToImport = event.target.files?.[0];
-    if (!fileToImport) return;
-    try {
-      setIsImportingDocument(true);
-      const fileNameLower = fileToImport.name.toLowerCase();
-      if (fileNameLower.endsWith('.md') || fileNameLower.endsWith('.markdown')) {
-        const markdownText = await fileToImport.text();
-        applyImportedDocumentBlocks(markdownText, 'markdown', fileToImport.name);
-        toast.success('Markdown 导入成功');
-        return;
-      }
-      if (fileNameLower.endsWith('.docx')) {
-        const mammothModule = await import('mammoth/mammoth.browser');
-        const result = await mammothModule.extractRawText({ arrayBuffer: await fileToImport.arrayBuffer() });
-        applyImportedDocumentBlocks(result.value || '', 'plain', fileToImport.name);
-        toast.success('DOCX 导入成功');
-        return;
-      }
-      if (fileNameLower.endsWith('.pdf')) {
-        const pdfText = await parsePdfFileToText(fileToImport);
-        applyImportedDocumentBlocks(pdfText, 'plain', fileToImport.name);
-        toast.success('PDF 导入成功');
-        return;
-      }
-      toast.error('仅支持 docx、pdf、md 文档');
-    } catch (error) {
-      console.error('Document import failed:', error);
-      toast.error('文档导入失败，请检查文件格式');
-    } finally {
-      setIsImportingDocument(false);
-      if (event.target) event.target.value = '';
-    }
-  };
-
-  const insertArticleBlockAfter = (blockId, blockType) => {
-    setArticleBlocks((prev) => {
-      const index = prev.findIndex((block) => block.id === blockId);
-      if (index < 0) return [...prev, createArticleBlock(blockType)];
-      const next = [...prev];
-      next.splice(index + 1, 0, createArticleBlock(blockType));
-      return next;
-    });
-  };
-
-  const removeArticleBlock = (blockId) => {
-    setArticleBlocks((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((block) => block.id !== blockId);
-    });
-  };
-
-  const moveArticleBlock = (blockId, direction) => {
-    setArticleBlocks((prev) => {
-      const index = prev.findIndex((block) => block.id === blockId);
-      if (index < 0) return prev;
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      return next;
-    });
-  };
-
-  const moveArticleBlockTo = (sourceId, targetId, position = 'before') => {
-    setArticleBlocks((prev) => {
-      const sourceIndex = prev.findIndex((block) => block.id === sourceId);
-      const targetIndex = prev.findIndex((block) => block.id === targetId);
-      if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(sourceIndex, 1);
-      let insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
-      if (position === 'after') insertIndex += 1;
-      next.splice(insertIndex, 0, moved);
-      return next;
-    });
-  };
-
-  const handleArticleBlockDragStart = (blockId) => {
-    setDraggingBlockId(blockId);
-  };
-
-  const handleArticleBlockDrop = (targetId) => {
-    if (!draggingBlockId || draggingBlockId === targetId) {
-      setDraggingBlockId(null);
-      setDragOverBlockId(null);
-      setDragOverPosition('before');
-      return;
-    }
-    moveArticleBlockTo(draggingBlockId, targetId, dragOverPosition);
-    setDraggingBlockId(null);
-    setDragOverBlockId(null);
-    setDragOverPosition('before');
-  };
-
-  const readFileAsDataUrl = (sourceFile) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(sourceFile);
-  });
-
-  const resolveDragOverPosition = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const midpoint = rect.top + rect.height / 2;
-    return event.clientY <= midpoint ? 'before' : 'after';
-  };
-
-  const handleArticleEditorPaste = (event) => {
-    const clipboardItems = Array.from(event.clipboardData?.items || []);
-    const imageItems = clipboardItems.filter((item) => item.type?.startsWith('image/'));
-    if (imageItems.length === 0) return;
-    event.preventDefault();
-    Promise.all(
-      imageItems.map(async (item, index) => {
-        const pastedFile = item.getAsFile();
-        if (!pastedFile) return null;
-        const dataUrl = await readFileAsDataUrl(pastedFile);
-        return {
-          ...createArticleBlock('image'),
-          file: pastedFile,
-          url: dataUrl,
-          name: pastedFile.name || `粘贴图片-${Date.now()}-${index + 1}.png`,
-          size: pastedFile.size || 0,
-          mime: pastedFile.type || ''
+        return () => {
+            active = false;
         };
-      })
-    ).then((newBlocks) => {
-      const validBlocks = newBlocks.filter(Boolean);
-      if (validBlocks.length === 0) return;
-      setArticleBlocks((prev) => [...prev, ...validBlocks]);
-      toast.success(`已插入 ${validBlocks.length} 张粘贴图片`);
-    }).catch(() => {
-      toast.error('粘贴图片失败，请重试');
-    });
-  };
+    }, [initialData?.organizer_profile_id, initialData?.publisher_profile_id, isOpen, type, user]);
 
-  const handleArticleTextKeyDown = (event, block) => {
-    if (event.key === 'Escape') {
-      setSlashMenuBlockId(null);
-      return;
-    }
-    if (event.key !== 'Enter') return;
-    const lines = (block.text || '').split('\n');
-    const commandText = lines[lines.length - 1].trim().toLowerCase();
-    const commandMap = {
-      '/image': 'image',
-      '/img': 'image',
-      '/video': 'video',
-      '/file': 'file',
-      '/text': 'text',
-      '/code': 'code'
-    };
-    const commandType = commandMap[commandText];
-    if (!commandType) return;
-    event.preventDefault();
-    const cleanedText = lines.slice(0, -1).join('\n');
-    updateArticleBlock(block.id, { text: cleanedText });
-    insertArticleBlockAfter(block.id, commandType);
-    setSlashMenuBlockId(null);
-    toast.success(`已插入${ARTICLE_BLOCK_META[commandType]?.label || commandType}块`);
-  };
+    // Reset form when modal opens with new data or closes
+    React.useEffect(() => {
+        if (isOpen) {
+            setSubmitIntent("publish");
+            if (!user) {
+                toast.error(t("auth.signin_desc"));
+                handleClose();
+                return;
+            }
 
-  const handleSlashCommandInsert = (block, commandType) => {
-    const lines = (block.text || '').split('\n');
-    const lastLine = lines[lines.length - 1];
-    const cleanedLastLine = lastLine.trim() === '/' ? '' : lastLine.replace(/\/$/, '');
-    const cleanedText = [...lines.slice(0, -1), cleanedLastLine].join('\n').trimEnd();
-    updateArticleBlock(block.id, { text: cleanedText });
-    insertArticleBlockAfter(block.id, commandType);
-    setSlashMenuBlockId(null);
-  };
-
-  const getArticleBlockAccept = (blockType) => {
-    if (blockType === 'image') return 'image/*';
-    if (blockType === 'video') return 'video/*';
-    return '*/*';
-  };
-
-  const handleArticleBlockFileChange = (blockId, blockType, selectedFile) => {
-    if (!selectedFile) return;
-    const accept = getArticleBlockAccept(blockType);
-    if (accept !== '*/*') {
-      const pattern = new RegExp(accept.replace('*', '.*'));
-      if (!selectedFile.type.match(pattern)) {
-        toast.error(t('upload.invalid_file_type', { type: accept }));
-        return;
-      }
-    }
-    if (blockType === 'image' || blockType === 'video') {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateArticleBlock(blockId, {
-          file: selectedFile,
-          url: reader.result,
-          name: selectedFile.name,
-          size: selectedFile.size || 0,
-          mime: selectedFile.type || ''
-        });
-      };
-      reader.readAsDataURL(selectedFile);
-      return;
-    }
-    updateArticleBlock(blockId, {
-      file: selectedFile,
-      url: '',
-      name: selectedFile.name,
-      size: selectedFile.size || 0,
-      mime: selectedFile.type || ''
-    });
-  };
-
-  const stopNativeUploadPolling = useCallback(() => {
-    if (nativeUploadPollerRef.current) {
-      clearInterval(nativeUploadPollerRef.current);
-      nativeUploadPollerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => {
-    stopNativeUploadPolling();
-  }, [stopNativeUploadPolling]);
-
-  useEffect(() => {
-    if (!isOpen) stopNativeUploadPolling();
-  }, [isOpen, stopNativeUploadPolling]);
-
-  useEffect(() => {
-    if (!isOpen || type !== 'event' || !isMiniProgramWebView()) return;
-    requestAnimationFrame(() => {
-      const scrollTargets = [
-        document.querySelector('.upload-modal-miniapp-event-overlay'),
-        formRef.current,
-        formRef.current?.querySelector?.('.upload-modal-body'),
-      ].filter(Boolean);
-      scrollTargets.forEach((target) => {
-        if ('scrollTo' in target) {
-          target.scrollTo({ top: 0, behavior: 'auto' });
-        } else {
-          target.scrollTop = 0;
+            if (initialData) {
+                setTitle(initialData.title || "");
+                setTags(initialData.tags || "");
+                setMediaCategoryId(initialData.category_id || "");
+                setDescription(initialData.excerpt || initialData.description || "");
+                setContent(initialData.content || "");
+                if (type === "article") {
+                    if (initialData.content_blocks) {
+                        try {
+                            const parsed =
+                                typeof initialData.content_blocks === "string"
+                                    ? JSON.parse(initialData.content_blocks)
+                                    : initialData.content_blocks;
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                setArticleBlocks(
+                                    parsed.map((block) => ({
+                                        id:
+                                            block.id ||
+                                            `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                                        type: block.type || "text",
+                                        style: block.style || "paragraph",
+                                        align: block.align || "default",
+                                        width: block.width || "default",
+                                        text: block.text || "",
+                                        file: null,
+                                        url: block.url || "",
+                                        caption: block.caption || "",
+                                        name: block.name || "",
+                                        size: block.size || 0,
+                                        mime: block.mime || "",
+                                        language: block.language || "",
+                                    }))
+                                );
+                            } else {
+                                setArticleBlocks([
+                                    {
+                                        ...createArticleBlock("text"),
+                                        text: extractPlainText(initialData.content || ""),
+                                    },
+                                ]);
+                            }
+                        } catch (error) {
+                            console.error("Failed to parse content blocks on reset:", error);
+                            setArticleBlocks([
+                                {
+                                    ...createArticleBlock("text"),
+                                    text: extractPlainText(initialData.content || ""),
+                                },
+                            ]);
+                        }
+                    } else {
+                        setArticleBlocks([
+                            {
+                                ...createArticleBlock("text"),
+                                text: extractPlainText(initialData.content || ""),
+                            },
+                        ]);
+                    }
+                }
+                setArtist(initialData.artist || "");
+                setEventDate(initialData.date || "");
+                setEventEndDate(initialData.end_date || "");
+                setEventLocation(initialData.location || "");
+                setEventLink(initialData.link || "");
+                setEventScore(initialData.score || "");
+                setEventVolunteerTime(initialData.volunteer_time || "");
+                setEventCategory(normalizeEventCategory(initialData.category));
+                setIsCollegeNotice(
+                    Boolean(Number(initialData.is_college_notice)) ||
+                        getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG)
+                );
+                setNoticeType(normalizeCollegeNoticeType(initialData.notice_type) || "other");
+                setSourceCollege(
+                    initialData.source_college || inferEventSourceCollege(initialData)
+                );
+                setEventTarget(
+                    normalizeEventAudience(initialData.target_audience) ||
+                        initialData.target_audience ||
+                        ""
+                );
+                setEventOrganizer(initialData.organizer || "");
+                setSelectedPublisherProfileId(
+                    initialData.publisher_profile_id ? String(initialData.publisher_profile_id) : ""
+                );
+                setSelectedOrganizerProfileId(
+                    initialData.organizer_profile_id ? String(initialData.organizer_profile_id) : ""
+                );
+                setFeatured(initialData.featured || false);
+                setSize(initialData.size || "");
+                setPreview(initialData.url || initialData.audio || initialData.video || null);
+                setCoverPreview(
+                    initialData.cover || initialData.thumbnail || initialData.image || null
+                );
+                setBatchImages([]);
+                setRelatedArticleIds(
+                    Array.isArray(initialData.related_article_ids)
+                        ? initialData.related_article_ids.join(",")
+                        : initialData.related_article_ids || ""
+                );
+                setRelatedPostIds(
+                    Array.isArray(initialData.related_post_ids)
+                        ? initialData.related_post_ids.join(",")
+                        : initialData.related_post_ids || ""
+                );
+                setRelatedNewsIds(
+                    Array.isArray(initialData.related_news_ids)
+                        ? initialData.related_news_ids.join(",")
+                        : initialData.related_news_ids || ""
+                );
+                setRelatedGroupIds(
+                    Array.isArray(initialData.related_group_ids)
+                        ? initialData.related_group_ids.join(",")
+                        : initialData.related_group_ids || ""
+                );
+            } else {
+                setTitle("");
+                setTags("");
+                setMediaCategoryId("");
+                setDescription("");
+                setContent("");
+                if (type === "article") {
+                    setArticleBlocks([createArticleBlock("text")]);
+                }
+                setArtist("");
+                setEventDate("");
+                setEventEndDate("");
+                setEventLocation("");
+                setEventLink("");
+                setEventScore("");
+                setEventCategory("");
+                setIsCollegeNotice(false);
+                setEventTarget("");
+                setEventOrganizer("");
+                setSelectedPublisherProfileId("");
+                setSelectedOrganizerProfileId("");
+                setFeatured(false);
+                setSize("");
+                setPreview(null);
+                setCoverPreview(null);
+                setBatchImages([]);
+                setRelatedArticleIds("");
+                setRelatedPostIds("");
+                setRelatedNewsIds("");
+                setRelatedGroupIds("");
+            }
+            setFile(null);
+            setCoverFile(null);
+            setNativeFileName("");
+            setNativeCoverFileName("");
+            setNativeUploadState({ active: false, sessionId: "", target: null });
+            setWechatUrl("");
+            setIsParsing(false);
+            setArticleEditorMode("edit");
+            setActiveTextBlockId(null);
+            setSlashMenuBlockId(null);
         }
-      });
-    });
-  }, [isOpen, type]);
+    }, [isOpen, initialData, user, t, handleClose, type]);
 
-  const getCurrentReturnPath = () => {
-    if (typeof window === 'undefined') return '/events';
-    return `${window.location.pathname || '/events'}${window.location.search || ''}${window.location.hash || ''}`;
-  };
+    React.useEffect(() => {
+        if (!isOpen || type !== "article" || isEditing) return;
+        const existingDraft = localStorage.getItem(articleDraftStorageKey);
+        setHasLocalDraft(!!existingDraft);
+    }, [articleDraftStorageKey, isEditing, isOpen, type]);
 
-  const getNativeUploadAccept = (target = {}) => {
-    if (target.kind === 'article-block') return getArticleBlockAccept(target.blockType);
-    if (target.kind === 'cover') return 'image/*';
-    switch (type) {
-      case 'video':
-        return 'video/*';
-      case 'audio':
-        return 'audio/*';
-      case 'article':
-      case 'event':
-        return 'image/*';
-      default:
-        return 'image/*';
-    }
-  };
-
-  const applyNativeUploadResult = (target = {}, result = {}) => {
-    const uploadedUrl = result.fileUrl || result.coverUrl;
-    if (!uploadedUrl) {
-      throw new Error('Native upload completed without a file URL');
-    }
-
-    const uploadedName = result.name || uploadedUrl.split('/').pop() || '';
-
-    if (target.kind === 'cover') {
-      setCoverFile(null);
-      setCoverPreview(uploadedUrl);
-      setNativeCoverFileName(uploadedName);
-      toast.success(t('upload.native_upload_success'));
-      return;
-    }
-
-    if (target.kind === 'article-block' && target.blockId) {
-      updateArticleBlock(target.blockId, {
-        file: null,
-        url: uploadedUrl,
-        name: uploadedName,
-        size: Number(result.size || 0),
-        mime: result.mime || '',
-      });
-      toast.success(t('upload.native_upload_success'));
-      return;
-    }
-
-    setFile(null);
-    setPreview(uploadedUrl);
-    setBatchImages([]);
-    setNativeFileName(uploadedName);
-    toast.success(t('upload.native_upload_success'));
-  };
-
-  const pollNativeUploadSession = (sessionId, target) => {
-    stopNativeUploadPolling();
-
-    const startedAt = Date.now();
-    const tick = async () => {
-      if (Date.now() - startedAt > NATIVE_UPLOAD_TIMEOUT_MS) {
-        stopNativeUploadPolling();
-        setNativeUploadState({ active: false, sessionId: '', target: null });
-        toast.error(t('upload.native_upload_timeout'));
-        return;
-      }
-
-      try {
-        const response = await api.get(`/native-upload-sessions/${sessionId}`, {
-          silent: true,
-          noRetry: true,
-        });
-        const session = response.data || {};
-        if (session.status === 'uploaded') {
-          stopNativeUploadPolling();
-          applyNativeUploadResult(target, session.result);
-          setNativeUploadState({ active: false, sessionId: '', target: null });
-        } else if (session.status === 'failed') {
-          stopNativeUploadPolling();
-          setNativeUploadState({ active: false, sessionId: '', target: null });
-          if (session.error !== 'NATIVE_UPLOAD_CANCELED') {
-            toast.error(session.error || t('upload.native_upload_failed'));
-          }
-        }
-      } catch (error) {
-        if (Date.now() - startedAt > 30 * 1000) {
-          console.warn('Native upload polling failed:', error);
-        }
-      }
-    };
-
-    nativeUploadPollerRef.current = setInterval(tick, NATIVE_UPLOAD_POLL_INTERVAL_MS);
-    tick();
-  };
-
-  const startNativeUpload = async (target) => {
-    if (nativeUploadState.active) return;
-    if (!user) {
-      toast.error(t('auth.signin_required'));
-      return;
-    }
-
-    const field = target.kind === 'cover' ? 'cover' : 'file';
-    const accept = getNativeUploadAccept(target);
-
-    try {
-      setNativeUploadState({ active: true, sessionId: '', target });
-      const response = await api.post('/native-upload-sessions', { field, accept });
-      const { sessionId, uploadToken } = response.data || {};
-      if (!sessionId || !uploadToken) {
-        throw new Error('Native upload session was not created');
-      }
-
-      pollNativeUploadSession(sessionId, target);
-      setNativeUploadState({ active: true, sessionId, target });
-
-      await navigateToMiniProgramPage(buildWechatNativeUploadBridgeUrl({
-        sessionId,
-        uploadToken,
-        field,
-        accept,
-        redirectPath: getCurrentReturnPath(),
-        auto: true,
-      }));
-    } catch (error) {
-      stopNativeUploadPolling();
-      setNativeUploadState({ active: false, sessionId: '', target: null });
-      console.error('Failed to start native upload:', error);
-      const status = error?.response?.status;
-      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
-      const bridgeMessage = error?.errMsg || error?.message;
-      const detailMessage = serverMessage || bridgeMessage;
-      toast.error(
-        detailMessage
-          ? `${t('upload.native_upload_failed')}: ${detailMessage}${status ? ` (${status})` : ''}`
-          : t('upload.native_upload_failed'),
-      );
-    }
-  };
-
-  const handleFileChange = async (e, isCover = false) => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
-
-    if (!isCover && isImageBatchEnabled) {
-      const selectedImages = await normalizeImageSelection(e.target.files);
-      if (!selectedImages.length) return;
-      if (selectedImages.length === 1) {
-        setBatchImages([]);
-        setFile(selectedImages[0].file);
-        setPreview(selectedImages[0].preview);
-        setNativeFileName('');
-        return;
-      }
-      setBatchImages(selectedImages);
-      setFile(selectedImages[0].file);
-      setPreview(selectedImages[0].preview);
-      setNativeFileName('');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (isCover) {
-          setCoverFile(selectedFile);
-          setCoverPreview(reader.result);
-          setNativeCoverFileName('');
-      } else {
-          setFile(selectedFile);
-          setPreview(reader.result);
-          setBatchImages([]);
-          setNativeFileName('');
-      }
-    };
-    reader.readAsDataURL(selectedFile);
-  };
-
-  const [isUploading, setIsUploading] = useState(false);
-  const [submitIntent, setSubmitIntent] = useState('publish');
-  const formRef = React.useRef(null);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title && !hasBatchImages) {
-        if (type === 'event') setMobileEventStep(1);
-        toast.error(t('upload.title_required'));
-        return;
-    }
-    if (!isEditing && type !== 'event' && type !== 'article' && !file && !hasBatchImages && !preview) {
-        toast.error(t('upload.file_required'));
-        return;
-    }
-
-    if (type === 'event' && !eventDate) {
-        setMobileEventStep(2);
-        toast.error(t('upload.required_start_date', '请填写开始时间'));
-        return;
-    }
-    if (hasBatchImages) {
-      setIsUploading(true);
-      try {
-        const batchItems = [];
-
-        for (const [index, image] of batchImages.entries()) {
-          const formData = new FormData();
-          formData.append('file', image.file);
-          const uploadRes = await uploadFile('/upload', formData);
-          const fileUrl = uploadRes.data.fileUrl;
-          batchItems.push({
-            ...initialData,
-            title: buildBatchImageTitle(image.file, index, batchImages.length),
+    React.useEffect(() => {
+        if (!isOpen || type !== "article" || isEditing) return;
+        const draftPayload = {
+            title,
             tags,
-            tag: tags,
-            publisher_profile_id: selectedPublisherProfileId ? Number(selectedPublisherProfileId) : null,
-            category_id: mediaCategoryId ? Number(mediaCategoryId) : null,
-            url: fileUrl,
-            audio: null,
-            artist: null,
-            video: null,
-            image: null,
-            date: new Date().toLocaleDateString(),
-            end_date: null,
-            time: null,
-            location: null,
-            link: null,
-            score: null,
-            target_audience: null,
-            organizer: null,
-            category: null,
-            status: isAdmin ? 'approved' : 'pending',
-            volunteer_time: null,
-            related_article_ids: '',
-            related_post_ids: '',
-            related_news_ids: '',
-            related_group_ids: '',
-            cover: fileUrl,
-            thumbnail: fileUrl,
-            excerpt: description,
-            content: content || `<p>${description}</p>`,
-            content_blocks: null,
             description,
-            featured: featured ? 1 : 0,
-            size: size || null,
-            duration: 0,
-          });
+            eventDate,
+            coverPreview,
+            articleBlocks: articleBlocks.map((block) => {
+                const serialized = { ...block };
+                delete serialized.file;
+                return serialized;
+            }),
+            updatedAt: Date.now(),
+        };
+        localStorage.setItem(articleDraftStorageKey, JSON.stringify(draftPayload));
+        setHasLocalDraft(true);
+    }, [
+        articleBlocks,
+        articleDraftStorageKey,
+        coverPreview,
+        description,
+        eventDate,
+        isEditing,
+        isOpen,
+        tags,
+        title,
+        type,
+    ]);
+
+    const addArticleBlock = (blockType) => {
+        const nextBlock = createArticleBlock(blockType);
+        setArticleBlocks((prev) => [...prev, nextBlock]);
+        if (blockType === "text") {
+            setActiveTextBlockId(nextBlock.id);
+        }
+    };
+
+    const updateArticleBlock = (blockId, patch) => {
+        setArticleBlocks((prev) =>
+            prev.map((block) => (block.id === blockId ? { ...block, ...patch } : block))
+        );
+    };
+
+    const updateActiveTextStyle = (style) => {
+        const isCurrentActiveText = articleBlocks.some(
+            (block) => block.id === activeTextBlockId && block.type === "text"
+        );
+        const targetTextBlockId = isCurrentActiveText
+            ? activeTextBlockId
+            : articleBlocks.find((block) => block.type === "text")?.id;
+        if (!targetTextBlockId) return;
+        setActiveTextBlockId(targetTextBlockId);
+        updateArticleBlock(targetTextBlockId, { style });
+    };
+
+    React.useEffect(() => {
+        if (type !== "article") return;
+        if (!articleBlocks.length) {
+            setActiveTextBlockId(null);
+            return;
+        }
+        const hasActiveText = articleBlocks.some(
+            (block) => block.id === activeTextBlockId && block.type === "text"
+        );
+        if (hasActiveText) return;
+        const firstTextBlockId = articleBlocks.find((block) => block.type === "text")?.id || null;
+        setActiveTextBlockId(firstTextBlockId);
+    }, [activeTextBlockId, articleBlocks, type]);
+
+    const deriveTitleFromFileName = (fileName = "") =>
+        fileName
+            .replace(/\.[^.]+$/, "")
+            .replace(/[_-]+/g, " ")
+            .trim();
+
+    const batchUploadCount = isImageBatchEnabled ? batchImages.length : 0;
+    const hasBatchImages = batchUploadCount > 0;
+
+    const createImageBatchEntry = async (sourceFile) => ({
+        id: `${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
+        file: sourceFile,
+        preview: await readFileAsDataUrl(sourceFile),
+    });
+
+    const normalizeImageSelection = async (fileList) => {
+        const selectedFiles = Array.from(fileList || []).filter(Boolean);
+        if (!selectedFiles.length) return [];
+        const imageFiles = selectedFiles.filter((item) => item.type?.startsWith("image/"));
+        if (imageFiles.length !== selectedFiles.length) {
+            toast.error("仅支持上传图片文件");
+        }
+        return Promise.all(imageFiles.map(createImageBatchEntry));
+    };
+
+    const buildBatchImageTitle = (sourceFile, index, total) => {
+        const baseTitle = title.trim();
+        if (baseTitle) return total > 1 ? `${baseTitle} ${index + 1}` : baseTitle;
+        return deriveTitleFromFileName(sourceFile?.name) || `现场照片 ${index + 1}`;
+    };
+
+    const applyImportedDocumentBlocks = (rawContent, sourceType, fileName) => {
+        const parsedBlocks =
+            sourceType === "markdown"
+                ? buildBlocksFromMarkdown(rawContent)
+                : buildBlocksFromPlainText(rawContent);
+        if (!parsedBlocks.length || parsedBlocks.every((block) => !(block.text || "").trim())) {
+            toast.error("文档没有可导入的内容");
+            return;
+        }
+        setArticleBlocks(parsedBlocks);
+        const firstTextBlockId = parsedBlocks.find((block) => block.type === "text")?.id || null;
+        setActiveTextBlockId(firstTextBlockId);
+        setArticleEditorMode("edit");
+        setContent(buildArticleHtmlFromBlocks(parsedBlocks));
+        setTitle((prev) => (prev?.trim() ? prev : deriveTitleFromFileName(fileName)));
+        setDescription((prev) => {
+            if (prev?.trim()) return prev;
+            const firstText =
+                parsedBlocks.find((block) => block.type === "text" && block.text?.trim())?.text ||
+                "";
+            return firstText.slice(0, 120);
+        });
+    };
+
+    const parsePdfFileToText = async (file) => {
+        const [pdfjsLib, workerModule] = await Promise.all([
+            import("pdfjs-dist"),
+            import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+        ]);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerModule.default;
+        const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
+        const pdf = await loadingTask.promise;
+        const pageTexts = [];
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
+            const page = await pdf.getPage(pageNum);
+            const contentData = await page.getTextContent();
+            const text = contentData.items
+                .map((item) => item.str || "")
+                .join(" ")
+                .replace(/\s+/g, " ")
+                .trim();
+            if (text) pageTexts.push(text);
+        }
+        return pageTexts.join("\n\n");
+    };
+
+    const handleImportArticleDocument = async (event) => {
+        const fileToImport = event.target.files?.[0];
+        if (!fileToImport) return;
+        try {
+            setIsImportingDocument(true);
+            const fileNameLower = fileToImport.name.toLowerCase();
+            if (fileNameLower.endsWith(".md") || fileNameLower.endsWith(".markdown")) {
+                const markdownText = await fileToImport.text();
+                applyImportedDocumentBlocks(markdownText, "markdown", fileToImport.name);
+                toast.success("Markdown 导入成功");
+                return;
+            }
+            if (fileNameLower.endsWith(".docx")) {
+                const mammothModule = await import("mammoth/mammoth.browser");
+                const result = await mammothModule.extractRawText({
+                    arrayBuffer: await fileToImport.arrayBuffer(),
+                });
+                applyImportedDocumentBlocks(result.value || "", "plain", fileToImport.name);
+                toast.success("DOCX 导入成功");
+                return;
+            }
+            if (fileNameLower.endsWith(".pdf")) {
+                const pdfText = await parsePdfFileToText(fileToImport);
+                applyImportedDocumentBlocks(pdfText, "plain", fileToImport.name);
+                toast.success("PDF 导入成功");
+                return;
+            }
+            toast.error("仅支持 docx、pdf、md 文档");
+        } catch (error) {
+            console.error("Document import failed:", error);
+            toast.error("文档导入失败，请检查文件格式");
+        } finally {
+            setIsImportingDocument(false);
+            if (event.target) event.target.value = "";
+        }
+    };
+
+    const insertArticleBlockAfter = (blockId, blockType) => {
+        setArticleBlocks((prev) => {
+            const index = prev.findIndex((block) => block.id === blockId);
+            if (index < 0) return [...prev, createArticleBlock(blockType)];
+            const next = [...prev];
+            next.splice(index + 1, 0, createArticleBlock(blockType));
+            return next;
+        });
+    };
+
+    const removeArticleBlock = (blockId) => {
+        setArticleBlocks((prev) => {
+            if (prev.length <= 1) return prev;
+            return prev.filter((block) => block.id !== blockId);
+        });
+    };
+
+    const moveArticleBlock = (blockId, direction) => {
+        setArticleBlocks((prev) => {
+            const index = prev.findIndex((block) => block.id === blockId);
+            if (index < 0) return prev;
+            const targetIndex = direction === "up" ? index - 1 : index + 1;
+            if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+            const next = [...prev];
+            [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+            return next;
+        });
+    };
+
+    const moveArticleBlockTo = (sourceId, targetId, position = "before") => {
+        setArticleBlocks((prev) => {
+            const sourceIndex = prev.findIndex((block) => block.id === sourceId);
+            const targetIndex = prev.findIndex((block) => block.id === targetId);
+            if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return prev;
+            const next = [...prev];
+            const [moved] = next.splice(sourceIndex, 1);
+            let insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+            if (position === "after") insertIndex += 1;
+            next.splice(insertIndex, 0, moved);
+            return next;
+        });
+    };
+
+    const handleArticleBlockDragStart = (blockId) => {
+        setDraggingBlockId(blockId);
+    };
+
+    const handleArticleBlockDrop = (targetId) => {
+        if (!draggingBlockId || draggingBlockId === targetId) {
+            setDraggingBlockId(null);
+            setDragOverBlockId(null);
+            setDragOverPosition("before");
+            return;
+        }
+        moveArticleBlockTo(draggingBlockId, targetId, dragOverPosition);
+        setDraggingBlockId(null);
+        setDragOverBlockId(null);
+        setDragOverPosition("before");
+    };
+
+    const readFileAsDataUrl = (sourceFile) =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(sourceFile);
+        });
+
+    const resolveDragOverPosition = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        return event.clientY <= midpoint ? "before" : "after";
+    };
+
+    const handleArticleEditorPaste = (event) => {
+        const clipboardItems = Array.from(event.clipboardData?.items || []);
+        const imageItems = clipboardItems.filter((item) => item.type?.startsWith("image/"));
+        if (imageItems.length === 0) return;
+        event.preventDefault();
+        Promise.all(
+            imageItems.map(async (item, index) => {
+                const pastedFile = item.getAsFile();
+                if (!pastedFile) return null;
+                const dataUrl = await readFileAsDataUrl(pastedFile);
+                return {
+                    ...createArticleBlock("image"),
+                    file: pastedFile,
+                    url: dataUrl,
+                    name: pastedFile.name || `粘贴图片-${Date.now()}-${index + 1}.png`,
+                    size: pastedFile.size || 0,
+                    mime: pastedFile.type || "",
+                };
+            })
+        )
+            .then((newBlocks) => {
+                const validBlocks = newBlocks.filter(Boolean);
+                if (validBlocks.length === 0) return;
+                setArticleBlocks((prev) => [...prev, ...validBlocks]);
+                toast.success(`已插入 ${validBlocks.length} 张粘贴图片`);
+            })
+            .catch(() => {
+                toast.error("粘贴图片失败，请重试");
+            });
+    };
+
+    const handleArticleTextKeyDown = (event, block) => {
+        if (event.key === "Escape") {
+            setSlashMenuBlockId(null);
+            return;
+        }
+        if (event.key !== "Enter") return;
+        const lines = (block.text || "").split("\n");
+        const commandText = lines[lines.length - 1].trim().toLowerCase();
+        const commandMap = {
+            "/image": "image",
+            "/img": "image",
+            "/video": "video",
+            "/file": "file",
+            "/text": "text",
+            "/code": "code",
+        };
+        const commandType = commandMap[commandText];
+        if (!commandType) return;
+        event.preventDefault();
+        const cleanedText = lines.slice(0, -1).join("\n");
+        updateArticleBlock(block.id, { text: cleanedText });
+        insertArticleBlockAfter(block.id, commandType);
+        setSlashMenuBlockId(null);
+        toast.success(`已插入${ARTICLE_BLOCK_META[commandType]?.label || commandType}块`);
+    };
+
+    const handleSlashCommandInsert = (block, commandType) => {
+        const lines = (block.text || "").split("\n");
+        const lastLine = lines[lines.length - 1];
+        const cleanedLastLine = lastLine.trim() === "/" ? "" : lastLine.replace(/\/$/, "");
+        const cleanedText = [...lines.slice(0, -1), cleanedLastLine].join("\n").trimEnd();
+        updateArticleBlock(block.id, { text: cleanedText });
+        insertArticleBlockAfter(block.id, commandType);
+        setSlashMenuBlockId(null);
+    };
+
+    const getArticleBlockAccept = (blockType) => {
+        if (blockType === "image") return "image/*";
+        if (blockType === "video") return "video/*";
+        return "*/*";
+    };
+
+    const handleArticleBlockFileChange = (blockId, blockType, selectedFile) => {
+        if (!selectedFile) return;
+        const accept = getArticleBlockAccept(blockType);
+        if (accept !== "*/*") {
+            const pattern = new RegExp(accept.replace("*", ".*"));
+            if (!selectedFile.type.match(pattern)) {
+                toast.error(t("upload.invalid_file_type", { type: accept }));
+                return;
+            }
+        }
+        if (blockType === "image" || blockType === "video") {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                updateArticleBlock(blockId, {
+                    file: selectedFile,
+                    url: reader.result,
+                    name: selectedFile.name,
+                    size: selectedFile.size || 0,
+                    mime: selectedFile.type || "",
+                });
+            };
+            reader.readAsDataURL(selectedFile);
+            return;
+        }
+        updateArticleBlock(blockId, {
+            file: selectedFile,
+            url: "",
+            name: selectedFile.name,
+            size: selectedFile.size || 0,
+            mime: selectedFile.type || "",
+        });
+    };
+
+    const stopNativeUploadPolling = useCallback(() => {
+        if (nativeUploadPollerRef.current) {
+            clearInterval(nativeUploadPollerRef.current);
+            nativeUploadPollerRef.current = null;
+        }
+    }, []);
+
+    useEffect(
+        () => () => {
+            stopNativeUploadPolling();
+        },
+        [stopNativeUploadPolling]
+    );
+
+    useEffect(() => {
+        if (!isOpen) stopNativeUploadPolling();
+    }, [isOpen, stopNativeUploadPolling]);
+
+    useEffect(() => {
+        if (!isOpen || type !== "event" || !isMiniProgramWebView()) return;
+        requestAnimationFrame(() => {
+            const scrollTargets = [
+                document.querySelector(".upload-modal-miniapp-event-overlay"),
+                formRef.current,
+                formRef.current?.querySelector?.(".upload-modal-body"),
+            ].filter(Boolean);
+            scrollTargets.forEach((target) => {
+                if ("scrollTo" in target) {
+                    target.scrollTo({ top: 0, behavior: "auto" });
+                } else {
+                    target.scrollTop = 0;
+                }
+            });
+        });
+    }, [isOpen, type]);
+
+    const getCurrentReturnPath = () => {
+        if (typeof window === "undefined") return "/events";
+        return `${window.location.pathname || "/events"}${window.location.search || ""}${window.location.hash || ""}`;
+    };
+
+    const getNativeUploadAccept = (target = {}) => {
+        if (target.kind === "article-block") return getArticleBlockAccept(target.blockType);
+        if (target.kind === "cover") return "image/*";
+        switch (type) {
+            case "video":
+                return "video/*";
+            case "audio":
+                return "audio/*";
+            case "article":
+            case "event":
+                return "image/*";
+            default:
+                return "image/*";
+        }
+    };
+
+    const applyNativeUploadResult = (target = {}, result = {}) => {
+        const uploadedUrl = result.fileUrl || result.coverUrl;
+        if (!uploadedUrl) {
+            throw new Error("Native upload completed without a file URL");
         }
 
-        await onUpload(batchItems, { intent: submitIntent, batch: true });
-        toast.success(isAdmin ? `已上传 ${batchItems.length} 张图片` : `已提交 ${batchItems.length} 张图片，等待审核`);
-        handleClose();
-      } catch (err) {
-        console.error("Batch upload failed:", err);
-        toast.error(t('upload.upload_failed'));
-      } finally {
-        setIsUploading(false);
-      }
-      return;
-    }
+        const uploadedName = result.name || uploadedUrl.split("/").pop() || "";
 
-    if (type === 'event' && !eventEndDate) {
-        setMobileEventStep(2);
-        toast.error(t('upload.required_end_date'));
-        return;
-    }
-    if (type === 'event' && !eventLocation.trim()) {
-        setMobileEventStep(2);
-        toast.error(t('upload.required_location', '请填写活动地点'));
-        return;
-    }
-    if (type === 'event' && !eventCategory) {
-        setMobileEventStep(1);
-        toast.error(t('upload.required_event_category'));
-        return;
-    }
-    if (type === 'event' && isCollegeNotice && !eventOrganizer.trim()) {
-        setMobileEventStep(2);
-        toast.error(t('upload.required_college_notice_source'));
-        return;
-    }
-    if (type === 'event' && isCollegeNotice && !sourceCollege.trim()) {
-        setMobileEventStep(3);
-        toast.error(t('upload.required_source_college'));
-        return;
-    }
-    if (type === 'article') {
-      const hasEffectiveContent = articleBlocks.some((block) => {
-        if (block.type === 'text') return !!block.text?.trim();
-        return !!block.file || !!block.url;
-      });
-      if (!hasEffectiveContent && !description.trim()) {
-        toast.error('请至少添加一段正文或一个媒体块');
-        return;
-      }
-    }
+        if (target.kind === "cover") {
+            setCoverFile(null);
+            setCoverPreview(uploadedUrl);
+            setNativeCoverFileName(uploadedName);
+            toast.success(t("upload.native_upload_success"));
+            return;
+        }
 
-    setIsUploading(true);
+        if (target.kind === "article-block" && target.blockId) {
+            updateArticleBlock(target.blockId, {
+                file: null,
+                url: uploadedUrl,
+                name: uploadedName,
+                size: Number(result.size || 0),
+                mime: result.mime || "",
+            });
+            toast.success(t("upload.native_upload_success"));
+            return;
+        }
 
-    try {
-      // 1. Upload files to server
-      const formData = new FormData();
-      if (file) formData.append('file', file);
-      if (coverFile) formData.append('cover', coverFile);
-
-      let fileUrl = preview;
-      let coverUrl = coverPreview;
-
-      if (file || coverFile) {
-          const uploadRes = await uploadFile('/upload', formData);
-          const uploadData = uploadRes.data;
-          if (file) fileUrl = uploadData.fileUrl;
-          if (coverFile) coverUrl = uploadData.coverUrl;
-      }
-
-      let normalizedBlocks = articleBlocks;
-      if (type === 'article') {
-        normalizedBlocks = await Promise.all(articleBlocks.map(async (block) => {
-          if (!block.file) return block;
-          const blockData = new FormData();
-          blockData.append('file', block.file);
-          const blockUploadRes = await uploadFile('/upload', blockData);
-          return {
-            ...block,
-            url: blockUploadRes.data.fileUrl,
-            name: block.name || block.file.name,
-            file: null
-          };
-        }));
-      }
-
-      const articleHtml = type === 'article'
-        ? buildArticleHtmlFromBlocks(normalizedBlocks)
-        : content;
-      const firstTextBlock = normalizedBlocks.find((block) => block.type === 'text' && block.text?.trim());
-      const firstImageBlock = normalizedBlocks.find((block) => block.type === 'image' && block.url);
-      const fallbackExcerpt = firstTextBlock?.text?.trim()?.slice(0, 160) || description;
-
-      // 2. Construct new item
-      const resolvedStatus = submitIntent === 'draft'
-        ? 'draft'
-        : (isAdmin ? 'approved' : 'pending');
-      const eventTags = serializeTagList(
-        isCollegeNotice
-          ? [
-              ...getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
-              COLLEGE_NOTICE_TAG,
-            ]
-          : getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
-      );
-
-      const newItem = {
-        ...initialData, // Keep existing ID and other fields if editing
-        title,
-        tags: type === 'event' ? eventTags : tags,
-        tag: type === 'event' ? eventTags : tags, // For backward compatibility with article 'tag'
-        publisher_profile_id: selectedPublisherProfileId ? Number(selectedPublisherProfileId) : null,
-        organizer_profile_id: type === 'event' && selectedOrganizerProfileId ? Number(selectedOrganizerProfileId) : null,
-        category_id: usesMediaCategory && mediaCategoryId ? Number(mediaCategoryId) : null,
-        url: fileUrl, 
-        
-        // Music specific
-        audio: type === 'audio' ? fileUrl : null,
-        artist: type === 'audio' ? (artist || t('common.unknown_artist')) : null,
-        
-        // Video specific
-        video: type === 'video' ? fileUrl : null,
-        
-        // Event specific
-        image: type === 'event' ? (coverUrl || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop') : null,
-        date: (type === 'event' || type === 'article') ? eventDate : new Date().toLocaleDateString(),
-        end_date: type === 'event' ? eventEndDate : null,
-        time: null,
-        location: type === 'event' ? eventLocation : null,
-        link: type === 'event' ? eventLink : null,
-        score: type === 'event' ? eventScore : null,
-        target_audience: type === 'event' ? eventTarget : null,
-        organizer: type === 'event' ? eventOrganizer : null,
-        category: type === 'event' ? eventCategory : null,
-        is_college_notice: type === 'event' && isCollegeNotice ? 1 : 0,
-        notice_type: type === 'event' && isCollegeNotice ? noticeType : null,
-        source_college: type === 'event' && isCollegeNotice ? sourceCollege : null,
-        status: resolvedStatus,
-        volunteer_time: type === 'event' ? eventVolunteerTime : null,
-        related_article_ids: relatedArticleIds,
-        related_post_ids: relatedPostIds,
-        related_news_ids: relatedNewsIds,
-        related_group_ids: relatedGroupIds,
-
-        // Cover/Thumbnail logic
-        cover: coverUrl || (type === 'image' ? fileUrl : null) || (type === 'article' ? (fileUrl || firstImageBlock?.url || null) : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
-        thumbnail: coverUrl || (type === 'image' ? fileUrl : null) || (type === 'article' ? (fileUrl || firstImageBlock?.url || null) : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
-
-        excerpt: type === 'article' ? fallbackExcerpt : description,
-        content: type === 'article' ? (articleHtml || `<p>${description}</p>`) : (content || `<p>${description}</p>`),
-        content_blocks: type === 'article' ? JSON.stringify(normalizedBlocks.map((block) => {
-          const serialized = { ...block };
-          delete serialized.file;
-          return serialized;
-        })) : null,
-        description: description, // for events/photos consistency
-        featured: featured ? 1 : 0,
-        size: type === 'image' ? size : null,
-        
-        // Defaults if new
-        ...(!isEditing ? {
-            duration: 0,
-        } : {
-            // If editing, update these too if type matches
-        })
-      };
-
-      await onUpload(newItem, { intent: submitIntent });
-      if (type === 'article') {
-        localStorage.removeItem(articleDraftStorageKey);
-        setHasLocalDraft(false);
-      }
-      
-      const successMessage = submitIntent === 'draft'
-        ? '草稿已保存'
-        : (isEditing
-          ? t('upload.update_success')
-          : (isAdmin ? t('upload.upload_success') : t('upload.upload_pending_review')));
-      
-      toast.success(successMessage);
-      handleClose();
-
-    } catch (err) {
-      console.error("Upload failed:", err);
-      toast.error(t('upload.upload_failed'));
-    } finally {
-        setIsUploading(false);
-    }
-  };
-
-  const getIcon = () => {
-    switch(type) {
-      case 'video': return <Film size={48} className="text-gray-400" />;
-      case 'audio': return <Music size={48} className="text-gray-400" />;
-      case 'article': return <FileText size={48} className="text-gray-400" />;
-      case 'event': return <Calendar size={48} className="text-gray-400" />;
-      default: return <Image size={48} className="text-gray-400" />;
-    }
-  };
-
-  const getAcceptType = (isCover = false) => {
-    if (isCover) return "image/*";
-    switch(type) {
-        case 'video': return "video/*";
-        case 'audio': return "audio/*";
-        case 'article': return "image/*"; 
-        case 'event': return "image/*";
-        default: return "image/*";
-      }
-  };
-
-  const handleDragEnter = (e, target) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragTarget(target);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragTarget(null);
-  };
-
-  const handleDragOver = (e, target) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragTarget(target);
-  };
-
-  const handleDrop = async (e, isCover = false) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragTarget(null);
-
-    if (!isCover && isImageBatchEnabled) {
-      const selectedImages = await normalizeImageSelection(e.dataTransfer.files);
-      if (!selectedImages.length) return;
-      if (selectedImages.length === 1) {
+        setFile(null);
+        setPreview(uploadedUrl);
         setBatchImages([]);
-        setFile(selectedImages[0].file);
-        setPreview(selectedImages[0].preview);
-        setNativeFileName('');
-        return;
-      }
-      setBatchImages(selectedImages);
-      setFile(selectedImages[0].file);
-      setPreview(selectedImages[0].preview);
-      setNativeFileName('');
-      return;
-    }
-    
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-        const accept = getAcceptType(isCover);
-        const typeRegex = new RegExp(accept.replace('*', '.*'));
-        if (!droppedFile.type.match(typeRegex)) {
-             toast.error(t('upload.invalid_file_type', { type: accept }));
-             return;
+        setNativeFileName(uploadedName);
+        toast.success(t("upload.native_upload_success"));
+    };
+
+    const pollNativeUploadSession = (sessionId, target) => {
+        stopNativeUploadPolling();
+
+        const startedAt = Date.now();
+        const tick = async () => {
+            if (Date.now() - startedAt > NATIVE_UPLOAD_TIMEOUT_MS) {
+                stopNativeUploadPolling();
+                setNativeUploadState({ active: false, sessionId: "", target: null });
+                toast.error(t("upload.native_upload_timeout"));
+                return;
+            }
+
+            try {
+                const response = await api.get(`/native-upload-sessions/${sessionId}`, {
+                    silent: true,
+                    noRetry: true,
+                });
+                const session = response.data || {};
+                if (session.status === "uploaded") {
+                    stopNativeUploadPolling();
+                    applyNativeUploadResult(target, session.result);
+                    setNativeUploadState({ active: false, sessionId: "", target: null });
+                } else if (session.status === "failed") {
+                    stopNativeUploadPolling();
+                    setNativeUploadState({ active: false, sessionId: "", target: null });
+                    if (session.error !== "NATIVE_UPLOAD_CANCELED") {
+                        toast.error(session.error || t("upload.native_upload_failed"));
+                    }
+                }
+            } catch (error) {
+                if (Date.now() - startedAt > 30 * 1000) {
+                    console.warn("Native upload polling failed:", error);
+                }
+            }
+        };
+
+        nativeUploadPollerRef.current = setInterval(tick, NATIVE_UPLOAD_POLL_INTERVAL_MS);
+        tick();
+    };
+
+    const startNativeUpload = async (target) => {
+        if (nativeUploadState.active) return;
+        if (!user) {
+            toast.error(t("auth.signin_required"));
+            return;
+        }
+
+        const field = target.kind === "cover" ? "cover" : "file";
+        const accept = getNativeUploadAccept(target);
+
+        try {
+            setNativeUploadState({ active: true, sessionId: "", target });
+            const response = await api.post("/native-upload-sessions", { field, accept });
+            const { sessionId, uploadToken } = response.data || {};
+            if (!sessionId || !uploadToken) {
+                throw new Error("Native upload session was not created");
+            }
+
+            pollNativeUploadSession(sessionId, target);
+            setNativeUploadState({ active: true, sessionId, target });
+
+            await navigateToMiniProgramPage(
+                buildWechatNativeUploadBridgeUrl({
+                    sessionId,
+                    uploadToken,
+                    field,
+                    accept,
+                    redirectPath: getCurrentReturnPath(),
+                    auto: true,
+                })
+            );
+        } catch (error) {
+            stopNativeUploadPolling();
+            setNativeUploadState({ active: false, sessionId: "", target: null });
+            console.error("Failed to start native upload:", error);
+            const status = error?.response?.status;
+            const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+            const bridgeMessage = error?.errMsg || error?.message;
+            const detailMessage = serverMessage || bridgeMessage;
+            toast.error(
+                detailMessage
+                    ? `${t("upload.native_upload_failed")}: ${detailMessage}${status ? ` (${status})` : ""}`
+                    : t("upload.native_upload_failed")
+            );
+        }
+    };
+
+    const handleFileChange = async (e, isCover = false) => {
+        const selectedFile = e.target.files[0];
+        if (!selectedFile) return;
+
+        if (!isCover && isImageBatchEnabled) {
+            const selectedImages = await normalizeImageSelection(e.target.files);
+            if (!selectedImages.length) return;
+            if (selectedImages.length === 1) {
+                setBatchImages([]);
+                setFile(selectedImages[0].file);
+                setPreview(selectedImages[0].preview);
+                setNativeFileName("");
+                return;
+            }
+            setBatchImages(selectedImages);
+            setFile(selectedImages[0].file);
+            setPreview(selectedImages[0].preview);
+            setNativeFileName("");
+            return;
         }
 
         const reader = new FileReader();
         reader.onloadend = () => {
             if (isCover) {
-                setCoverFile(droppedFile);
+                setCoverFile(selectedFile);
                 setCoverPreview(reader.result);
-                setNativeCoverFileName('');
+                setNativeCoverFileName("");
             } else {
-                setFile(droppedFile);
+                setFile(selectedFile);
                 setPreview(reader.result);
-                setNativeFileName('');
+                setBatchImages([]);
+                setNativeFileName("");
             }
         };
-        reader.readAsDataURL(droppedFile);
-    }
-  };
+        reader.readAsDataURL(selectedFile);
+    };
 
-  const canUseNativeUpload = isMiniProgramWebView();
-  const isMiniProgramEventModal = canUseNativeUpload && type === 'event';
-  const nativeUploadButtonClasses = isDayMode
-    ? 'border-indigo-200 bg-white/95 text-indigo-700 shadow-[0_8px_18px_rgba(99,102,241,0.14)] hover:bg-indigo-50'
-    : 'border-indigo-400/35 bg-indigo-500/16 text-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.22)] hover:bg-indigo-500/24';
+    const [isUploading, setIsUploading] = useState(false);
+    const [submitIntent, setSubmitIntent] = useState("publish");
+    const formRef = React.useRef(null);
 
-  const renderNativeUploadButton = (target, label, options = {}) => {
-    if (!canUseNativeUpload) return null;
-    const variant = options.variant || 'compact';
-    const isCurrentTarget = nativeUploadState.active && nativeUploadState.target?.kind === target.kind && nativeUploadState.target?.blockId === target.blockId;
-    const buttonLabel = isCurrentTarget ? t('upload.native_upload_waiting') : label;
-    const hintLabel = options.hint || t('upload.native_upload_hint');
-    if (variant === 'full') {
-      return (
-        <button
-          type="button"
-          disabled={nativeUploadState.active}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            startNativeUpload(target);
-          }}
-          className={`upload-modal-native-full-button absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
-            isDayMode
-              ? 'border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100'
-              : 'border-indigo-400/30 bg-[#080a14] text-indigo-100 hover:bg-[#0d1020]'
-          }`}
-        >
-          <span className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
-            isDayMode
-              ? 'border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]'
-              : 'border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]'
-          }`}>
-            <Upload size={20} />
-            <span>{buttonLabel}</span>
-          </span>
-          <span className={`px-4 text-center text-xs font-medium ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/78'}`}>
-            {hintLabel}
-          </span>
-        </button>
-      );
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!title && !hasBatchImages) {
+            if (type === "event") setMobileEventStep(1);
+            toast.error(t("upload.title_required"));
+            return;
+        }
+        if (
+            !isEditing &&
+            type !== "event" &&
+            type !== "article" &&
+            !file &&
+            !hasBatchImages &&
+            !preview
+        ) {
+            toast.error(t("upload.file_required"));
+            return;
+        }
 
-    return (
-      <button
-        type="button"
-        disabled={nativeUploadState.active}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          startNativeUpload(target);
-        }}
-        className={`absolute bottom-3 left-1/2 z-30 inline-flex min-h-[36px] -translate-x-1/2 items-center justify-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${nativeUploadButtonClasses}`}
-      >
-        <Upload size={14} />
-        <span>{buttonLabel}</span>
-      </button>
-    );
-  };
+        if (type === "event" && !eventDate) {
+            setMobileEventStep(2);
+            toast.error(t("upload.required_start_date", "请填写开始时间"));
+            return;
+        }
+        if (hasBatchImages) {
+            setIsUploading(true);
+            try {
+                const batchItems = [];
 
-  const renderUnifiedUploadPrompt = (label, hint) => (
-    <div className="upload-modal-unified-upload-prompt pointer-events-none flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
-      <span className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
-        isDayMode
-          ? 'border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]'
-          : 'border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]'
-      }`}>
-        <Upload size={20} />
-        <span>{label}</span>
-      </span>
-      <span className={`px-4 text-center text-xs font-medium ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/78'}`}>
-        {hint}
-      </span>
-    </div>
-  );
+                for (const [index, image] of batchImages.entries()) {
+                    const formData = new FormData();
+                    formData.append("file", image.file);
+                    const uploadRes = await uploadFile("/upload", formData);
+                    const fileUrl = uploadRes.data.fileUrl;
+                    batchItems.push({
+                        ...initialData,
+                        title: buildBatchImageTitle(image.file, index, batchImages.length),
+                        tags,
+                        tag: tags,
+                        publisher_profile_id: selectedPublisherProfileId
+                            ? Number(selectedPublisherProfileId)
+                            : null,
+                        category_id: mediaCategoryId ? Number(mediaCategoryId) : null,
+                        url: fileUrl,
+                        audio: null,
+                        artist: null,
+                        video: null,
+                        image: null,
+                        date: new Date().toLocaleDateString(),
+                        end_date: null,
+                        time: null,
+                        location: null,
+                        link: null,
+                        score: null,
+                        target_audience: null,
+                        organizer: null,
+                        category: null,
+                        status: isAdmin ? "approved" : "pending",
+                        volunteer_time: null,
+                        related_article_ids: "",
+                        related_post_ids: "",
+                        related_news_ids: "",
+                        related_group_ids: "",
+                        cover: fileUrl,
+                        thumbnail: fileUrl,
+                        excerpt: description,
+                        content: content || `<p>${description}</p>`,
+                        content_blocks: null,
+                        description,
+                        featured: featured ? 1 : 0,
+                        size: size || null,
+                        duration: 0,
+                    });
+                }
 
-  // UI Constants
-  const inputClasses = isDayMode
-    ? "upload-modal-field rect-field w-full px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] bg-white/95 focus:bg-white"
-    : "upload-modal-field rect-field w-full bg-black/35 px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
-  const labelClasses = isDayMode
-    ? "upload-modal-label block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
-    : "upload-modal-label block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
-  const cardClasses = isDayMode
-    ? "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
-    : "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
-  const uploadBoxClasses = (isActive) =>
-    `upload-modal-dropzone upload-modal-upload-box relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
-      isDayMode
-        ? `${isActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200/80 bg-white/82 hover:border-indigo-300 hover:bg-white'}`
-        : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
-    }`;
-  const overlayShellClass = type === 'article'
-    ? (isDayMode ? 'p-0 bg-white/78' : 'p-0 bg-black/90')
-    : (isDayMode ? 'p-0 sm:p-4 bg-white/68' : 'p-0 sm:p-4 bg-black/80');
-  const modalPanelClass = isDayMode
-    ? `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event' : ''} relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
-    : `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event' : ''} relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
-  const headerClass = isDayMode
-    ? `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/80'} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
-    : `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/10'} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
-  const stickyFooterClass = isDayMode
-    ? "upload-modal-footer sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
-    : "upload-modal-footer sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
-  const overlayClass = `upload-modal-overlay fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-overlay' : ''}`;
-  const formClass = `upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-form' : ''}`;
-  const bodyClass = `upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-body' : ''}`;
-  const footerClass = `${stickyFooterClass} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-footer' : ''}`;
-  const dialogTitleId = `upload-modal-title-${type}`;
+                await onUpload(batchItems, { intent: submitIntent, batch: true });
+                toast.success(
+                    isAdmin
+                        ? `已上传 ${batchItems.length} 张图片`
+                        : `已提交 ${batchItems.length} 张图片，等待审核`
+                );
+                handleClose();
+            } catch (err) {
+                console.error("Batch upload failed:", err);
+                toast.error(t("upload.upload_failed"));
+            } finally {
+                setIsUploading(false);
+            }
+            return;
+        }
 
-  return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className={overlayClass}
-          onClick={handleClose}
-        >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 30 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 30 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={dialogTitleId}
-          className={modalPanelClass}
-          onClick={e => e.stopPropagation()}
-        >
-             {/* Rectilinear ambience */}
-            {type !== 'article' && <div className={`absolute left-0 top-0 h-px w-full ${isDayMode ? 'bg-indigo-200/70' : 'bg-indigo-400/25'} pointer-events-none`} />}
+        if (type === "event" && !eventEndDate) {
+            setMobileEventStep(2);
+            toast.error(t("upload.required_end_date"));
+            return;
+        }
+        if (type === "event" && !eventLocation.trim()) {
+            setMobileEventStep(2);
+            toast.error(t("upload.required_location", "请填写活动地点"));
+            return;
+        }
+        if (type === "event" && !eventCategory) {
+            setMobileEventStep(1);
+            toast.error(t("upload.required_event_category"));
+            return;
+        }
+        if (type === "event" && isCollegeNotice && !eventOrganizer.trim()) {
+            setMobileEventStep(2);
+            toast.error(t("upload.required_college_notice_source"));
+            return;
+        }
+        if (type === "event" && isCollegeNotice && !sourceCollege.trim()) {
+            setMobileEventStep(3);
+            toast.error(t("upload.required_source_college"));
+            return;
+        }
+        if (type === "article") {
+            const hasEffectiveContent = articleBlocks.some((block) => {
+                if (block.type === "text") return !!block.text?.trim();
+                return !!block.file || !!block.url;
+            });
+            if (!hasEffectiveContent && !description.trim()) {
+                toast.error("请至少添加一段正文或一个媒体块");
+                return;
+            }
+        }
 
-            {/* Header - Fixed at top */}
-            <div className={headerClass}>
-              <h3 id={dialogTitleId} className={`upload-modal-title text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-                <span className={`upload-modal-title-icon p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
-                    {React.cloneElement(getIcon(), { size: 24 })}
-                </span>
-                {type === 'event' && (
-                  <span className="truncate">
-                    {isEditing ? t('common.edit_event', '编辑活动') : t('common.create_event', '创建活动')}
-                  </span>
-                )}
-                <span className={`truncate ${type === 'event' ? 'hidden' : ''}`}>
-                    {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
-                    {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
-                </span>
-              </h3>
-              <div className="flex items-center gap-2">
-                {type === 'article' && hasLocalDraft && !isEditing && (
-                  <button type="button" onClick={restoreArticleDraft} className={`rect-button-secondary hidden sm:inline-flex px-3 py-2 text-xs ${isDayMode ? 'bg-white/90 text-slate-600 hover:text-slate-900' : ''}`}>
-                    恢复草稿
-                  </button>
-                )}
-                {type === 'article' && hasLocalDraft && !isEditing && (
-                  <button type="button" onClick={clearArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-[5px] border border-red-500/35 bg-red-500/10 text-xs text-red-300 hover:bg-red-500/20 transition-colors">
-                    清除草稿
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  aria-label={t('common.close', '关闭')}
-                  className={`rect-icon-button ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
+        setIsUploading(true);
 
-            {type === 'event' && (
-              <div className={`upload-modal-mobile-stepper flex items-center gap-3 border-b px-5 py-3 sm:hidden ${isDayMode ? 'border-slate-200/80 bg-white/95' : 'border-white/10 bg-[#0f0f0f]'}`}>
-                {[1, 2, 3].map((step) => {
-                  const active = mobileEventStep === step;
-                  return (
-                    <button
-                      key={step}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setMobileEventStep(step)}
-                      className="flex min-w-0 flex-1 items-center gap-2"
-                    >
-                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
-                        active
-                          ? (isDayMode ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white')
-                          : (isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/8 text-gray-400')
-                      }`}>
-                        {step}
-                      </span>
-                      <span className={`truncate text-[11px] font-bold ${
-                        active
-                          ? (isDayMode ? 'text-slate-900' : 'text-white')
-                          : (isDayMode ? 'text-slate-500' : 'text-gray-500')
-                      }`}>
-                        {step === 1 ? '基本信息' : step === 2 ? '活动详情' : '发布设置'}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+        try {
+            // 1. Upload files to server
+            const formData = new FormData();
+            if (file) formData.append("file", file);
+            if (coverFile) formData.append("cover", coverFile);
 
-            {/* Form Content - Scrollable */}
-            <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className={formClass}>
-              <div className={bodyClass}>
-              {isMiniProgramEventModal && (
-                <div className={`upload-modal-miniapp-toolbar relative z-10 mb-4 rounded-[7px] border p-3 shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${isDayMode ? 'border-slate-200 bg-white/96' : 'border-white/10 bg-[#111214]'}`}>
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className={`text-lg font-black leading-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-                        {isEditing ? t('common.edit_event', '编辑活动') : t('common.create_event', '创建活动')}
-                      </div>
-                      <div className={`mt-1 text-[11px] font-semibold ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                        {mobileEventStep === 1 ? '基本信息' : mobileEventStep === 2 ? '活动详情' : '发布设置'}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClose}
-                      aria-label={t('common.close', '关闭')}
-                      className={`rect-icon-button shrink-0 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/90' : 'text-gray-300 hover:text-white'}`}
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map((step) => {
-                      const active = mobileEventStep === step;
-                      return (
-                        <button
-                          key={step}
-                          type="button"
-                          aria-pressed={active}
-                          onClick={() => setMobileEventStep(step)}
-                          className={`min-h-[38px] rounded-[6px] border px-2 text-xs font-black transition-colors ${
-                            active
-                              ? (isDayMode ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-indigo-400/45 bg-indigo-500 text-white')
-                              : (isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.04] text-gray-400')
-                          }`}
-                        >
-                          {step === 1 ? '基本' : step === 2 ? '详情' : '发布'}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              {(profilesLoading || manageableProfiles.length > 0) && (
-                <section className={`${cardClasses} !space-y-4 ${type === 'event' ? 'hidden sm:block' : ''}`}>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClasses}>{t('profiles.publisher_identity', '发布身份')}</label>
-                      <select
-                        value={selectedPublisherProfileId}
-                        onChange={(event) => handlePublisherProfileChange(event.target.value)}
-                        disabled={profilesLoading || manageableProfiles.length === 0}
-                        className={inputClasses}
-                      >
-                        <option value="">{profilesLoading ? t('common.loading') : t('profiles.default_personal', '默认个人身份')}</option>
-                        {manageableProfiles.map((profile) => (
-                          <option key={profile.id} value={profile.id}>
-                            {formatProfileOptionLabel(profile)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {type === 'event' && organizationProfiles.length > 0 && (
-                      <div>
-                        <label className={labelClasses}>{t('profiles.organizer_profile', '主办主体')}</label>
-                        <select
-                          value={selectedOrganizerProfileId}
-                          onChange={(event) => setSelectedOrganizerProfileId(event.target.value)}
-                          className={inputClasses}
-                        >
-                          <option value="">{t('profiles.organizer_auto_match', '按主办方文本自动匹配')}</option>
-                          {organizationProfiles.map((profile) => (
-                            <option key={profile.id} value={profile.id}>
-                              {formatProfileOptionLabel(profile)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-              {type === 'event' ? (
-                <>
-                {/* Event Specific Fields */}
-                <div className={`upload-modal-smart-parse p-5 sm:p-6 border relative overflow-hidden group ${mobileEventStep !== 1 ? 'hidden sm:block' : ''} ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
-                    <div className="upload-modal-smart-watermark absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
-                        <Link size={100} className="text-green-500 transform rotate-12" />
-                    </div>
-                    <div className="relative z-10">
-                        <h4 className="upload-modal-section-title text-sm font-bold text-green-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <Sparkles size={18} />
-                            {t('upload.smart_parse_title', '智能识别')}
-                        </h4>
-                        <p className="upload-modal-smart-desc text-sm text-green-100/60 mb-5 max-w-xl leading-relaxed">
-                            {t('upload.smart_parse_desc', '粘贴微信公众号文章链接，一键自动提取活动详情。')}
-                        </p>
-                        <div className="upload-modal-inline-action flex flex-col sm:flex-row gap-3">
-                            <div className="relative flex-1">
-                                <Link size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500/50" />
-                                <input
-                                    type="text"
-                                    value={wechatUrl}
-                                    onChange={(e) => setWechatUrl(e.target.value)}
-                                    placeholder="https://mp.weixin.qq.com/s/..."
-                                    className={`upload-modal-field rect-field w-full pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm ${isDayMode ? 'bg-white/95 border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleParseWeChat}
-                                disabled={!wechatUrl || isParsing}
-                                className="upload-modal-action-button rect-button-primary w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
-                            >
-                                {isParsing ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent" />
-                                        {t('common.loading')}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Check size={18} />
-                                        {t('upload.smart_parse')}
-                                    </>
-                                )}
-                            </button>
-                            
-                            {(wechatUrl || title) && (
-                                <button 
-                                    type="button"
-                                    onClick={handleClearParsedData}
-                                    className={`upload-modal-action-button rect-button-secondary w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
-                                    title={t('common.clear')}
-                                >
-                                    <RotateCcw size={18} />
-                                    <span className="sm:hidden font-medium">{t('common.clear')}</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
+            let fileUrl = preview;
+            let coverUrl = coverPreview;
 
-                <div className="upload-modal-event-grid grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                  {/* Left Column: Media & Core Info */}
-                  <div className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 1 ? 'hidden sm:block' : ''}`}>
-                     {/* Cover Image (Event Image) */}
-                     <div className="upload-modal-field-group space-y-3">
-                        <label className={labelClasses}>{t('common.image')}</label>
-                        <div 
-                            className={`${uploadBoxClasses(dragTarget === 'cover')} upload-modal-cover-dropzone h-48 sm:h-64`}
-                            onDragEnter={(e) => handleDragEnter(e, 'cover')}
-                            onDragLeave={handleDragLeave}
-                            onDragOver={(e) => handleDragOver(e, 'cover')}
-                            onDrop={(e) => handleDrop(e, true)}
-                        >
-                            <input
-                                type="file"
-                                accept="image/*"
-                                disabled={canUseNativeUpload}
-                                onChange={(e) => handleFileChange(e, true)}
-                                className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
-                            />
-                            {coverPreview ? (
-                                <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
-                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-[5px] object-contain" />
-                                    <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white/76' : 'bg-black/62'} ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
-                                        <p className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-[5px] border ${isDayMode ? 'text-slate-900 bg-white/95 border-slate-200/80' : 'text-white bg-white/10 border-white/20'}`}><Upload size={16} /> {t('upload.replace')}</p>
-                                    </div>
-                                </div>
-                            ) : canUseNativeUpload ? null : (
-                                renderUnifiedUploadPrompt(t('upload.native_upload_cover'), t('upload.choose_image_hint'))
-                            )}
-                            {renderNativeUploadButton(
-                              { kind: 'cover' },
-                              t('upload.native_upload_cover'),
-                              { variant: coverPreview ? 'compact' : 'full', hint: t('upload.choose_image_hint') },
-                            )}
-                        </div>
-                     </div>
+            if (file || coverFile) {
+                const uploadRes = await uploadFile("/upload", formData);
+                const uploadData = uploadRes.data;
+                if (file) fileUrl = uploadData.fileUrl;
+                if (coverFile) coverUrl = uploadData.coverUrl;
+            }
 
-                     {/* Title & Description */}
-                     <div className={cardClasses}>
-                        <div>
-                            <label className={labelClasses}>{t('common.title')}</label>
-                            <input
-                              type="text"
-                              required
-                              value={title}
-                              onChange={e => setTitle(e.target.value)}
-                              className={`${inputClasses} text-lg font-bold`}
-                              placeholder={t('upload.title_placeholder')}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClasses}>{t('admin.fields.description')}</label>
-                            <textarea
-                              value={description}
-                              onChange={e => setDescription(e.target.value)}
-                              className={`${inputClasses} upload-modal-description h-36 resize-none leading-relaxed py-4`}
-                              placeholder={t('upload.description_placeholder')}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClasses}>{t('event_fields.category')}</label>
-                            <div className="upload-modal-chip-grid grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                              {EVENT_CATEGORIES.map((category) => {
-                                const selected = eventCategory === category.value;
-                                return (
-                                  <button
-                                    key={category.value}
-                                    type="button"
-                                    aria-pressed={selected}
-                                    onClick={() => setEventCategory(category.value)}
-                                    className={`upload-modal-choice-button min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                      selected
-                                        ? (isDayMode ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
-                                        : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
-                                    }`}
-                                  >
-                                    {getEventCategoryLabel(category.value, i18n.resolvedLanguage || i18n.language)}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                        </div>
-                        <div>
-                            <label className={labelClasses}>{t('event_fields.special_marks')}</label>
-                            <button
-                              type="button"
-                              aria-pressed={isCollegeNotice}
-                              onClick={toggleCollegeNotice}
-                              className={`upload-modal-notice-toggle flex min-h-[52px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                isCollegeNotice
-                                  ? (isDayMode ? 'border-violet-500 bg-violet-600 text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
-                                  : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-violet-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
-                              }`}
-                            >
-                              <span className="min-w-0">
-                                <span className="block text-sm font-black">
-                                  {t('event_fields.college_notice')}
-                                </span>
-                                <span className={`mt-1 block text-xs leading-5 ${isCollegeNotice ? 'text-white/78' : (isDayMode ? 'text-slate-500' : 'text-gray-400')}`}>
-                                  {t('event_fields.college_notice_hint')}
-                                </span>
-                              </span>
-                              <Check
-                                size={18}
-                                className={isCollegeNotice ? 'opacity-100' : 'opacity-30'}
-                              />
-                            </button>
-                            {isCollegeNotice && (
-                              <div className={`upload-modal-notice-panel mt-3 space-y-3 rounded-2xl border p-3 ${isDayMode ? 'border-violet-100 bg-violet-50/60' : 'border-indigo-400/20 bg-indigo-500/10'}`}>
-                                <div>
-                                  <label className={labelClasses}>{t('event_fields.notice_type')}</label>
-                                  <div className="upload-modal-chip-grid grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                    {COLLEGE_NOTICE_TYPES.map((noticeOption) => {
-                                      const selected = noticeType === noticeOption.value;
-                                      return (
-                                        <button
-                                          key={noticeOption.value}
-                                          type="button"
-                                          aria-pressed={selected}
-                                          onClick={() => setNoticeType(noticeOption.value)}
-                                          className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                            selected
-                                              ? (isDayMode ? 'border-violet-500 bg-white text-violet-700' : 'border-indigo-300/50 bg-indigo-400/18 text-indigo-50')
-                                              : (isDayMode ? 'border-violet-100 bg-white/70 text-slate-600 hover:border-violet-200' : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10')
-                                          }`}
-                                        >
-                                          {getCollegeNoticeTypeLabel(noticeOption.value, i18n.resolvedLanguage || i18n.language)}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className={labelClasses}>{t('event_fields.source_college')}</label>
-                                  <select
-                                    value={sourceCollege}
-                                    onChange={(event) => setSourceCollege(event.target.value)}
-                                    className={inputClasses}
-                                  >
-                                    <option value="">{t('event_fields.source_college_placeholder')}</option>
-                                    {EVENT_SOURCE_COLLEGE_OPTIONS.map((college) => (
-                                      <option key={college} value={college}>
-                                        {college}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                     </div>
-                  </div>
+            let normalizedBlocks = articleBlocks;
+            if (type === "article") {
+                normalizedBlocks = await Promise.all(
+                    articleBlocks.map(async (block) => {
+                        if (!block.file) return block;
+                        const blockData = new FormData();
+                        blockData.append("file", block.file);
+                        const blockUploadRes = await uploadFile("/upload", blockData);
+                        return {
+                            ...block,
+                            url: blockUploadRes.data.fileUrl,
+                            name: block.name || block.file.name,
+                            file: null,
+                        };
+                    })
+                );
+            }
 
-                  {/* Right Column: Event Details */}
-                  <div className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 2 ? 'hidden sm:block' : ''}`}>
-                      {/* Basic Info Card */}
-                      <div className={cardClasses}>
-                           <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
-                               <Calendar size={16} className="text-indigo-400" /> {t('event_fields.basic_info')}
-                           </h4>
-                           <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
-                               <div className="col-span-1">
-                                    <label className={labelClasses}>{t('event_fields.start_date')}</label>
-                                    <input
-                                        type="datetime-local"
-                                        step="1800"
-                                        required
-                                        value={eventDate ? (eventDate.length === 10 ? eventDate + 'T00:00' : eventDate.substring(0, 16)) : ''}
-                                        onChange={e => setEventDate(e.target.value)}
-                                        className={inputClasses}
-                                    />
-                               </div>
-                               <div className="col-span-1">
-                                    <label className={labelClasses}>{t('event_fields.end_date')}</label>
-                                    <input
-                                        type="datetime-local"
-                                        step="1800"
-                                        required
-                                        value={eventEndDate ? (eventEndDate.length === 10 ? eventEndDate + 'T00:00' : eventEndDate.substring(0, 16)) : ''}
-                                        onChange={e => setEventEndDate(e.target.value)}
-                                        className={inputClasses}
-                                    />
-                               </div>
-                               
-                               {/* Date Reasoning Display */}
-                               {dateReasoning && (
-                                   <div className="upload-modal-ai-reasoning col-span-1 sm:col-span-2 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
-                                       <div className="absolute top-0 right-0 p-3 opacity-10">
-                                            <Sparkles size={40} className="text-indigo-400" />
-                                       </div>
-                                       <div className="flex items-start gap-3 sm:gap-4 relative z-10">
-                                           <div className="p-2 bg-indigo-500/20 rounded-lg mt-0.5">
-                                                <Sparkles size={16} className="text-indigo-400" />
-                                           </div>
-                                           <div>
-                                               <h5 className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1.5">
-                                                   {t('upload.ai_reasoning', 'AI 日期推断逻辑')}
-                                               </h5>
-                                               <p className="text-sm text-indigo-100/80 leading-relaxed font-medium">
-                                                   {dateReasoning}
-                                               </p>
-                                           </div>
-                                       </div>
-                                   </div>
-                               )}
+            const articleHtml =
+                type === "article" ? buildArticleHtmlFromBlocks(normalizedBlocks) : content;
+            const firstTextBlock = normalizedBlocks.find(
+                (block) => block.type === "text" && block.text?.trim()
+            );
+            const firstImageBlock = normalizedBlocks.find(
+                (block) => block.type === "image" && block.url
+            );
+            const fallbackExcerpt = firstTextBlock?.text?.trim()?.slice(0, 160) || description;
 
-                               <div className="col-span-1 md:col-span-2">
-                                    <label className={labelClasses}>{t('common.location')}</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={eventLocation}
-                                        onChange={e => setEventLocation(e.target.value)}
-                                        className={inputClasses}
-                                        placeholder={t('upload.location_placeholder')}
-                                    />
-                               </div>
-                           </div>
-                      </div>
+            // 2. Construct new item
+            const resolvedStatus =
+                submitIntent === "draft" ? "draft" : isAdmin ? "approved" : "pending";
+            const eventTags = serializeTagList(
+                isCollegeNotice
+                    ? [
+                          ...getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+                          COLLEGE_NOTICE_TAG,
+                      ]
+                    : getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG)
+            );
 
-                      {/* Attributes Card */}
-                      <div className={cardClasses}>
-                           <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
-                               <Tag size={16} className="text-indigo-400" /> {t('event_fields.attributes')}
-                           </h4>
-                           <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
-                               <div className="col-span-1">
-                                   <label className={labelClasses}>{t('event_fields.volunteer_duration')}</label>
-                                   <input
-                                       type="text"
-                                       value={eventVolunteerTime}
-                                       onChange={e => setEventVolunteerTime(e.target.value)}
-                                       className={inputClasses}
-                                       placeholder={t('event_fields.volunteer_time_placeholder')}
-                                   />
-                               </div>
-                               <div className="col-span-1">
-                                   <label className={labelClasses}>{t('event_fields.organizer')}</label>
-                                   <input
-                                       type="text"
-                                       value={eventOrganizer}
-                                       onChange={e => setEventOrganizer(e.target.value)}
-                                       className={inputClasses}
-                                       placeholder={t('event_fields.organizer_placeholder')}
-                                   />
-                                   {isCollegeNotice && (
-                                     <p className={`mt-2 text-xs font-medium leading-relaxed ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/80'}`}>
-                                       {t('event_fields.college_notice_source_hint')}
-                                     </p>
-                                   )}
-                               </div>
-                               <div className="col-span-1">
-                                   <label className={labelClasses}>{t('event_fields.score_label')}</label>
-                                   <input
-                                       type="text"
-                                       value={eventScore}
-                                       onChange={e => setEventScore(e.target.value)}
-                                       className={inputClasses}
-                                       placeholder={t('event_fields.score_placeholder')}
-                                   />
-                               </div>
-                               <div className="col-span-1 sm:col-span-2">
-                                   <div className="flex items-center justify-between gap-3">
-                                     <label className={labelClasses}>{t('event_fields.target_audience_group')}</label>
-                                     {selectedAudience.length > 0 && (
-                                       <button
-                                         type="button"
-                                         onClick={() => setEventTarget('')}
-                                         className={`text-xs font-semibold transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
-                                       >
-                                         {t('event_fields.clear_audience')}
-                                       </button>
-                                     )}
-                                   </div>
-                                   {selectedAudience.length > 0 && (
-                                     <div className="upload-modal-selected-audiences mb-3 flex flex-wrap gap-2">
-                                       {selectedAudience.map((audience) => (
-                                         <button
-                                           key={audience}
-                                           type="button"
-                                           onClick={() => toggleEventAudience(audience)}
-                                           className={`upload-modal-audience-chip min-h-[32px] rounded-full border px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/15 text-indigo-100 border-indigo-400/25'}`}
-                                         >
-                                           {audience}
-                                           <X size={12} />
-                                         </button>
-                                       ))}
-                                     </div>
-                                   )}
-                                   <div className="relative mb-3">
-                                     <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`} />
-                                     <input
-                                       type="search"
-                                       value={audienceSearch}
-                                       onChange={(e) => setAudienceSearch(e.target.value)}
-                                       className={`${inputClasses} pl-9`}
-                                       placeholder={t('event_fields.search_audience_placeholder')}
-                                     />
-                                   </div>
-                                   <div className={`upload-modal-audience-panel rounded-2xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
-                                     <div className={`${showAllAudiences || audienceQuery ? 'upload-modal-audience-scroll max-h-60 overflow-y-auto pr-1 custom-scrollbar' : ''}`}>
-                                       <div className="upload-modal-audience-groups space-y-4">
-                                       {visibleAudienceGroups.map((group) => (
-                                         <div key={group.group}>
-                                           <div className={`mb-2 text-[11px] font-black uppercase tracking-[0.16em] ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                                             {group.group}
-                                           </div>
-                                           <div className="upload-modal-audience-options flex flex-wrap gap-2">
-                                             {group.items.map((audience) => {
-                                               const selected = selectedAudience.includes(audience);
-                                               return (
-                                                 <button
-                                                   key={audience}
-                                                   type="button"
-                                                   aria-pressed={selected}
-                                                   onClick={() => toggleEventAudience(audience)}
-                                                   className={`upload-modal-audience-option min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                                     selected
-                                                       ? (isDayMode ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.14)]' : 'border-indigo-400/50 bg-indigo-500/20 text-indigo-100')
-                                                       : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:border-indigo-200 hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10')
-                                                   }`}
-                                                 >
-                                                   {audience}
-                                                 </button>
-                                               );
-                                             })}
-                                           </div>
-                                         </div>
-                                       ))}
-                                       {visibleAudienceGroups.length === 0 && (
-                                         <div className={`rounded-xl border px-4 py-5 text-center text-sm ${isDayMode ? 'border-slate-200/80 bg-white text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
-                                           {t('event_fields.no_audience_matches')}
-                                         </div>
-                                       )}
-                                       </div>
-                                     </div>
-                                     {!audienceQuery && (
-                                       <button
-                                         type="button"
-                                         onClick={() => setShowAllAudiences((value) => !value)}
-                                         className={`upload-modal-expand-button mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'}`}
-                                       >
-                                         <ChevronDown size={14} className={showAllAudiences ? 'rotate-180 transition-transform' : 'transition-transform'} />
-                                         {showAllAudiences
-                                           ? t('event_fields.collapse_common_audiences')
-                                           : t('event_fields.expand_all_audiences', { count: totalAudienceCount })}
-                                       </button>
-                                     )}
-                                   </div>
-                               </div>
-                               <div className="col-span-1 sm:col-span-2">
-                                   <label className={labelClasses}>{t('upload.event_link')}</label>
-                                   <div className="relative group">
-                                       <Link size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors" />
-                                       <input
-                                           type="text"
-                                           value={eventLink}
-                                           onChange={e => setEventLink(e.target.value)}
-                                           className={`${inputClasses} pl-11`}
-                                           placeholder="https://..."
-                                       />
-                                   </div>
-                               </div>
-                           </div>
-                      </div>
-                  </div>
-                </div>
-                <div className={`upload-modal-mobile-final-step space-y-4 sm:hidden ${mobileEventStep === 3 ? '' : 'hidden'}`}>
-                  <div className={cardClasses}>
-                    <label className="flex cursor-pointer items-center justify-between gap-4">
-                      <span className="min-w-0">
-                        <span className={`block text-sm font-black ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                          {t('event_fields.college_notice')}
-                        </span>
-                        <span className={`mt-1 block text-xs leading-5 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                          {t('event_fields.college_notice_hint')}
-                        </span>
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={isCollegeNotice}
-                        onChange={toggleCollegeNotice}
-                        className="peer sr-only"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                          isCollegeNotice
-                            ? (isDayMode ? 'bg-indigo-600' : 'bg-indigo-500')
-                            : (isDayMode ? 'bg-slate-200' : 'bg-white/12')
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
-                            isCollegeNotice ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </span>
-                    </label>
+            const newItem = {
+                ...initialData, // Keep existing ID and other fields if editing
+                title,
+                tags: type === "event" ? eventTags : tags,
+                tag: type === "event" ? eventTags : tags, // For backward compatibility with article 'tag'
+                publisher_profile_id: selectedPublisherProfileId
+                    ? Number(selectedPublisherProfileId)
+                    : null,
+                organizer_profile_id:
+                    type === "event" && selectedOrganizerProfileId
+                        ? Number(selectedOrganizerProfileId)
+                        : null,
+                category_id: usesMediaCategory && mediaCategoryId ? Number(mediaCategoryId) : null,
+                url: fileUrl,
 
-                    {isCollegeNotice && (
-                      <div className="space-y-4 pt-2">
-                        <div>
-                          <label className={labelClasses}>{t('event_fields.notice_type')}</label>
-                          <div className="upload-modal-chip-grid grid grid-cols-2 gap-2">
-                            {COLLEGE_NOTICE_TYPES.map((noticeOption) => {
-                              const selected = noticeType === noticeOption.value;
-                              return (
-                                <button
-                                  key={noticeOption.value}
-                                  type="button"
-                                  aria-pressed={selected}
-                                  onClick={() => setNoticeType(noticeOption.value)}
-                                  className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                    selected
-                                      ? (isDayMode ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-indigo-300/50 bg-indigo-400/18 text-indigo-50')
-                                      : (isDayMode ? 'border-slate-200 bg-white text-slate-600' : 'border-white/10 bg-white/5 text-gray-300')
-                                  }`}
-                                >
-                                  {getCollegeNoticeTypeLabel(noticeOption.value, i18n.resolvedLanguage || i18n.language)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <div>
-                          <label className={labelClasses}>{t('event_fields.source_college')}</label>
-                          <select
-                            value={sourceCollege}
-                            onChange={(event) => setSourceCollege(event.target.value)}
-                            className={inputClasses}
-                          >
-                            <option value="">{t('event_fields.source_college_placeholder')}</option>
-                            {EVENT_SOURCE_COLLEGE_OPTIONS.map((college) => (
-                              <option key={college} value={college}>
-                                {college}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                // Music specific
+                audio: type === "audio" ? fileUrl : null,
+                artist: type === "audio" ? artist || t("common.unknown_artist") : null,
 
-                  <div className={cardClasses}>
-                    <label className={labelClasses}>{t('upload.event_link')}</label>
-                    <div className="relative group">
-                      <Link size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDayMode ? 'text-slate-400 group-focus-within:text-indigo-500' : 'text-gray-500 group-focus-within:text-indigo-400'}`} />
-                      <input
-                        type="text"
-                        value={eventLink}
-                        onChange={(event) => setEventLink(event.target.value)}
-                        className={`${inputClasses} pl-11`}
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
+                // Video specific
+                video: type === "video" ? fileUrl : null,
 
-                  <div className={cardClasses}>
-                    <div className="space-y-4">
-                      <div>
-                        <label className={labelClasses}>{t('profiles.publisher_identity', '发布身份')}</label>
-                        <select
-                          value={selectedPublisherProfileId}
-                          onChange={(event) => handlePublisherProfileChange(event.target.value)}
-                          disabled={profilesLoading || manageableProfiles.length === 0}
-                          className={inputClasses}
-                        >
-                          <option value="">{profilesLoading ? t('common.loading') : t('profiles.default_personal', '默认个人身份')}</option>
-                          {manageableProfiles.map((profile) => (
-                            <option key={profile.id} value={profile.id}>
-                              {formatProfileOptionLabel(profile)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      {organizationProfiles.length > 0 && (
-                        <div>
-                          <label className={labelClasses}>{t('profiles.organizer_profile', '主办主体')}</label>
-                          <select
-                            value={selectedOrganizerProfileId}
-                            onChange={(event) => setSelectedOrganizerProfileId(event.target.value)}
-                            disabled={profilesLoading}
-                            className={inputClasses}
-                          >
-                            <option value="">{t('profiles.organizer_auto_match', '按主办方文本自动匹配')}</option>
-                            {organizationProfiles.map((profile) => (
-                              <option key={profile.id} value={profile.id}>
-                                {formatProfileOptionLabel(profile)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                // Event specific
+                image:
+                    type === "event"
+                        ? coverUrl ||
+                          "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop"
+                        : null,
+                date:
+                    type === "event" || type === "article"
+                        ? eventDate
+                        : new Date().toLocaleDateString(),
+                end_date: type === "event" ? eventEndDate : null,
+                time: null,
+                location: type === "event" ? eventLocation : null,
+                link: type === "event" ? eventLink : null,
+                score: type === "event" ? eventScore : null,
+                target_audience: type === "event" ? eventTarget : null,
+                organizer: type === "event" ? eventOrganizer : null,
+                category: type === "event" ? eventCategory : null,
+                is_college_notice: type === "event" && isCollegeNotice ? 1 : 0,
+                notice_type: type === "event" && isCollegeNotice ? noticeType : null,
+                source_college: type === "event" && isCollegeNotice ? sourceCollege : null,
+                status: resolvedStatus,
+                volunteer_time: type === "event" ? eventVolunteerTime : null,
+                related_article_ids: relatedArticleIds,
+                related_post_ids: relatedPostIds,
+                related_news_ids: relatedNewsIds,
+                related_group_ids: relatedGroupIds,
 
-                  <div className={cardClasses}>
-                    <label className="flex cursor-pointer select-none items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={featured}
-                        onChange={(event) => setFeatured(event.target.checked)}
-                        className="peer sr-only"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${
-                          featured
-                            ? 'border-indigo-500 bg-indigo-500'
-                            : (isDayMode ? 'border-slate-300 bg-white' : 'border-white/20 bg-white/5')
-                        }`}
-                      >
-                        {featured && <Check size={14} className="text-white" />}
-                      </span>
-                      <span className={`text-sm font-bold ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
-                        {t('common.featured')}
-                      </span>
-                    </label>
-                  </div>
-                </div>
-                </>
-              ) : (
-                <div className="upload-modal-generic-body space-y-4 sm:space-y-6">
-                  {type === 'article' && (
-                    <div className="upload-modal-article-grid grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 sm:gap-5">
-                      <div className="upload-modal-article-main space-y-4">
-                        <input
-                          type="text"
-                          required
-                          value={title}
-                          onChange={e => setTitle(e.target.value)}
-                          className={`upload-modal-article-title-input w-full bg-transparent border-0 border-b px-1 py-3 focus:outline-none text-2xl sm:text-3xl font-black tracking-tight ${isDayMode ? 'border-slate-200/90 focus:border-indigo-300 text-slate-950 placeholder:text-slate-400' : 'border-white/10 focus:border-white/25 text-white placeholder:text-gray-500'}`}
-                          placeholder="输入标题，开始写作"
-                        />
+                // Cover/Thumbnail logic
+                cover:
+                    coverUrl ||
+                    (type === "image" ? fileUrl : null) ||
+                    (type === "article" ? fileUrl || firstImageBlock?.url || null : null) ||
+                    "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop",
+                thumbnail:
+                    coverUrl ||
+                    (type === "image" ? fileUrl : null) ||
+                    (type === "article" ? fileUrl || firstImageBlock?.url || null : null) ||
+                    "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop",
 
-                        <div className="upload-modal-article-toolbar py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-                          <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
-                              <PenSquare size={14} />
-                              撰写
-                            </button>
-                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
-                              <Eye size={14} />
-                              预览
-                            </button>
-                            <button type="button" onClick={() => articleImportInputRef.current?.click()} disabled={isImportingDocument} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors inline-flex items-center gap-1.5 disabled:opacity-60 ${isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
-                              <Upload size={14} />
-                              {isImportingDocument ? '导入中...' : '导入文档'}
-                            </button>
-                            <input
-                              ref={articleImportInputRef}
-                              type="file"
-                              accept=".docx,.pdf,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown"
-                              className="hidden"
-                              onChange={handleImportArticleDocument}
-                            />
-                            {hasLocalDraft && !isEditing && (
-                              <button type="button" onClick={restoreArticleDraft} className={`sm:hidden px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
-                                恢复草稿
-                              </button>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500 inline-flex items-center gap-1.5">
-                            <span>{articleBlocks.length} 块</span>
-                            <span>·</span>
-                            <span>{articleWordCount} 词</span>
-                            <span>·</span>
-                            <span className="inline-flex items-center gap-1"><Clock3 size={11} />{articleReadingMinutes} 分钟</span>
-                          </div>
-                        </div>
-
-                        {articleEditorMode === 'edit' ? (
-                          <div onPaste={handleArticleEditorPaste} className="upload-modal-article-editor space-y-3">
-                            <div className={`upload-modal-article-format-bar sticky top-0 z-20 py-2 border-b ${isDayMode ? 'bg-white/92 border-slate-200/80' : 'bg-[#0f0f0f]/95 border-white/10'}`}>
-                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>正文</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>标题</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>引用</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><List size={12} />列表</button>
-                                </div>
-                                <div className="flex flex-wrap gap-2 sm:justify-end sm:ml-3">
-                                {Object.entries(ARTICLE_BLOCK_META).map(([blockType, meta]) => {
-                                  const BlockIcon = meta.icon;
-                                  return (
-                                    <button
-                                      key={blockType}
-                                      type="button"
-                                      onClick={() => addArticleBlock(blockType)}
-                                      className={`px-2 py-1.5 rounded-md border text-[11px] font-medium transition-all inline-flex items-center gap-1.5 ${isDayMode ? 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-indigo-200 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'bg-white/[0.03] border-white/10 text-gray-200 hover:bg-white/10'}`}
-                                    >
-                                      <BlockIcon size={12} />
-                                      <span>+{meta.label}</span>
-                                    </button>
-                                  );
-                                })}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="upload-modal-article-blocks space-y-2">
-                              {articleBlocks.map((block, index) => (
-                                <div
-                                  key={block.id}
-                                  draggable
-                                  onDragStart={() => handleArticleBlockDragStart(block.id)}
-                                  onDragEnd={() => {
-                                    setDraggingBlockId(null);
-                                    setDragOverBlockId(null);
-                                    setDragOverPosition('before');
-                                  }}
-                                  onDragOver={(e) => {
-                                    e.preventDefault();
-                                    if (draggingBlockId && draggingBlockId !== block.id) {
-                                      setDragOverBlockId(block.id);
-                                      setDragOverPosition(resolveDragOverPosition(e));
-                                    }
-                                  }}
-                                  onDragLeave={() => {
-                                    if (dragOverBlockId === block.id) {
-                                      setDragOverBlockId(null);
-                                      setDragOverPosition('before');
-                                    }
-                                  }}
-                                  onDrop={() => handleArticleBlockDrop(block.id)}
-                                  className={`upload-modal-article-block relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : (isDayMode ? 'border-slate-200/80 bg-white/90 hover:border-indigo-200 shadow-[0_10px_20px_rgba(148,163,184,0.12)]' : 'border-white/10 bg-transparent hover:border-white/20')} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
-                                >
-                                  <div className="flex items-center justify-between gap-2 mb-3">
-                                    <div className={`flex items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                                      <GripVertical size={14} />
-                                      <span>
-                                        {(ARTICLE_BLOCK_META[block.type]?.label || block.type) + (block.type === 'text' ? ` · ${block.style === 'heading' ? '标题' : block.style === 'quote' ? '引用' : block.style === 'list' ? '列表' : '正文'}` : '')}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <button type="button" aria-label="上移内容块" onClick={() => moveArticleBlock(block.id, 'up')} disabled={index === 0} className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? 'bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
-                                        <ArrowUp size={14} />
-                                      </button>
-                                      <button type="button" aria-label="下移内容块" onClick={() => moveArticleBlock(block.id, 'down')} disabled={index === articleBlocks.length - 1} className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? 'bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
-                                        <ArrowDown size={14} />
-                                      </button>
-                                      <button type="button" aria-label="删除内容块" onClick={() => removeArticleBlock(block.id)} disabled={articleBlocks.length <= 1} className="p-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-300 disabled:opacity-40 hover:bg-red-500/20">
-                                        <Trash2 size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                  {block.type === 'text' && (
-                                    <>
-                                      <textarea
-                                        value={block.text}
-                                        onChange={(e) => {
-                                          const nextText = e.target.value;
-                                          updateArticleBlock(block.id, { text: nextText });
-                                          const lastLine = nextText.split('\n').at(-1)?.trim();
-                                          setSlashMenuBlockId(lastLine === '/' ? block.id : null);
-                                        }}
-                                        onFocus={() => setActiveTextBlockId(block.id)}
-                                        onKeyDown={(e) => handleArticleTextKeyDown(e, block)}
-                                        className={`${inputClasses} upload-modal-article-textarea h-32 text-[15px] leading-7`}
-                                        placeholder="输入正文内容，输入 / 后回车可快速插入块"
-                                      />
-                                      {block.style === 'code' && (
-                                        <input
-                                          type="text"
-                                          value={block.language || ''}
-                                          onChange={(e) => updateArticleBlock(block.id, { language: e.target.value })}
-                                          className={`${inputClasses} mt-2`}
-                                          placeholder="可选：语言标记，例如 python / js / bash"
-                                        />
-                                      )}
-                                      {slashMenuBlockId === block.id && (
-                                        <div className={`mt-2 rounded-lg border p-2 flex flex-wrap gap-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/15 bg-white/[0.04]'}`}>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'image')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>图片块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'video')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>视频块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'file')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>附件块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'text')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>文字块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'code')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>代码块</button>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                  {(block.type === 'image' || block.type === 'video' || block.type === 'file') && (
-                                    <div className="space-y-3">
-                                      <div className="relative">
-                                        <input
-                                          type="file"
-                                          accept={getArticleBlockAccept(block.type)}
-                                          disabled={canUseNativeUpload}
-                                          onChange={(e) => handleArticleBlockFileChange(block.id, block.type, e.target.files?.[0])}
-                                          className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
-                                        />
-                                        <div className={`upload-modal-article-file-drop h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? 'border-slate-200/90 bg-slate-50/80 text-slate-500' : 'border-white/20 bg-white/[0.03] text-gray-300'}`}>
-                                          {block.name || (block.type === 'file' ? '选择附件文件' : `选择${block.type === 'image' ? '图片' : '视频'}文件`)}
-                                        </div>
-                                        {renderNativeUploadButton({
-                                          kind: 'article-block',
-                                          blockId: block.id,
-                                          blockType: block.type,
-                                        }, t('upload.native_upload_file'))}
-                                      </div>
-                                      {(block.type === 'image' || block.type === 'video') && block.url && (
-                                        <div className={`rounded-xl border p-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-black/40'}`}>
-                                          {block.type === 'image' ? (
-                                            <img src={block.url} alt={block.caption || 'preview'} className="max-h-56 w-full rounded-lg object-contain" />
-                                          ) : (
-                                            <video src={block.url} controls className="max-h-56 rounded-lg w-full" />
-                                          )}
-                                        </div>
-                                      )}
-                                      {block.type === 'file' && (block.name || block.url) && (
-                                        <div className={`rounded-xl border p-3 text-xs flex items-center gap-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-300'}`}>
-                                          <Paperclip size={14} />
-                                          <span className="truncate">{block.name || '附件'}</span>
-                                        </div>
-                                      )}
-                                      {block.type !== 'file' && (
-                                        <input
-                                          type="text"
-                                          value={block.caption || ''}
-                                          onChange={(e) => updateArticleBlock(block.id, { caption: e.target.value })}
-                                          className={inputClasses}
-                                          placeholder="可选：说明文字"
-                                        />
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className={`upload-modal-article-preview-card rounded-2xl border p-5 space-y-4 ${isDayMode ? 'border-slate-200/80 bg-white/95 shadow-[0_18px_40px_rgba(148,163,184,0.14)]' : 'border-white/10 bg-[#121212]'}`}>
-                            <div className={`text-sm font-semibold ${isDayMode ? 'text-slate-700' : 'text-white/90'}`}>{title || '未命名文章'}</div>
-                            {articleBlocks.map((block) => (
-                              <div key={`preview-${block.id}`} className="space-y-2">
-                                {block.type === 'text' && (
-                                  block.style === 'heading' ? (
-                                    <h3 className={`text-2xl font-black leading-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>{block.text || '（空标题）'}</h3>
-                                  ) : block.style === 'quote' ? (
-                                    <blockquote className={`leading-8 whitespace-pre-wrap border-l-4 border-indigo-400/60 pl-4 italic ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>{block.text || '（空引用）'}</blockquote>
-                                  ) : block.style === 'code' ? (
-                                    <div className={`rounded-xl border overflow-hidden ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-                                      <div className={`px-3 py-2 text-[11px] uppercase tracking-[0.18em] ${isDayMode ? 'text-slate-400 bg-slate-50/90' : 'text-gray-400 bg-white/5'}`}>
-                                        {block.language || 'code'}
-                                      </div>
-                                      <pre className={`px-4 py-4 text-sm overflow-x-auto whitespace-pre-wrap ${isDayMode ? 'text-slate-700 bg-slate-50/70' : 'text-gray-100'}`}>
-                                        <code>{block.text || '（空代码块）'}</code>
-                                      </pre>
-                                    </div>
-                                  ) : block.style === 'list' ? (
-                                    <ul className={`list-disc pl-6 space-y-2 leading-8 ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
-                                      {(block.text || '').split('\n').map((line) => line.trim()).filter(Boolean).map((line, idx) => (
-                                        <li key={`${block.id}-list-${idx}`}>{line.replace(/^[-*]\s*/, '')}</li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    <p className={`leading-8 whitespace-pre-wrap ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>{block.text || '（空段落）'}</p>
-                                  )
-                                )}
-                                {block.type === 'image' && block.url && (
-                                  <figure className="space-y-2">
-                                    <img src={block.url} alt={block.caption || 'preview'} className={`w-full rounded-xl border ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`} />
-                                    {block.caption && <figcaption className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-400'}`}>{block.caption}</figcaption>}
-                                  </figure>
-                                )}
-                                {block.type === 'video' && block.url && (
-                                  <figure className="space-y-2">
-                                    <video src={block.url} controls className={`w-full rounded-xl border ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`} />
-                                    {block.caption && <figcaption className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-400'}`}>{block.caption}</figcaption>}
-                                  </figure>
-                                )}
-                                {block.type === 'file' && (block.url || block.name) && (
-                                  <a href={block.url || '#'} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-700' : 'border-white/10 bg-white/5 text-gray-200'}`}>
-                                    <Paperclip size={14} />
-                                    <span>{block.name || '附件'}</span>
-                                  </a>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <aside className="upload-modal-article-side space-y-4 xl:sticky xl:top-4 self-start">
-                        <div className={`upload-modal-article-settings rounded-xl border p-4 space-y-3.5 ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#121212]'}`}>
-                          <div className={`text-xs font-semibold tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>发布设置</div>
-                          <div>
-                            <label className={labelClasses}>发布时间</label>
-                            <input
-                              type="date"
-                              value={eventDate ? eventDate.split('T')[0] : ''}
-                              onChange={e => setEventDate(e.target.value)}
-                              className={inputClasses}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClasses}>文章封面</label>
-                            <div className={`upload-modal-article-cover h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
-                              <input type="file" accept="image/*" disabled={canUseNativeUpload} onChange={e => handleFileChange(e, true)} className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`} />
-                              <span className="truncate">{coverFile?.name || nativeCoverFileName || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
-                              {canUseNativeUpload ? (
-                                <button
-                                  type="button"
-                                  disabled={nativeUploadState.active}
-                                  onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    startNativeUpload({ kind: 'cover' });
-                                  }}
-                                  className={`relative z-30 shrink-0 rounded-lg border px-2 py-1 text-[10px] font-bold ${nativeUploadButtonClasses}`}
-                                >
-                                  {t('upload.native_upload_short')}
-                                </button>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
-                              )}
-                            </div>
-                          </div>
-                          <div>
-                            <label className={labelClasses}>文章摘要</label>
-                            <textarea
-                              value={description}
-                              onChange={e => setDescription(e.target.value)}
-                              className={`${inputClasses} upload-modal-article-summary h-28 resize-none`}
-                              placeholder="用于列表展示与搜索摘要，建议 40-120 字"
-                            />
-                          </div>
-                          <label className="flex cursor-pointer items-center gap-3 pt-1">
-                            <input
-                              type="checkbox"
-                              checked={featured}
-                              onChange={(event) => setFeatured(event.target.checked)}
-                              className="peer sr-only"
-                            />
-                            <span
-                              aria-hidden="true"
-                              className={`flex h-5 w-5 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white' : 'bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]')}`}
-                            >
-                              {featured && <Check size={12} className="text-white" />}
-                            </span>
-                            <span className={`text-sm ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>{t('common.featured')}</span>
-                          </label>
-                          <div className={`rounded-lg border px-3 py-2.5 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
-                            <div className={`flex items-center justify-between text-[11px] mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                              <span>发布完整度</span>
-                              <span>{articleCompletion.percent}%</span>
-                            </div>
-                            <div className={`h-1.5 rounded-full overflow-hidden ${isDayMode ? 'bg-slate-200/80' : 'bg-white/10'}`}>
-                              <div className={`h-full rounded-full ${isDayMode ? 'bg-indigo-500' : 'bg-white/70'}`} style={{ width: `${articleCompletion.percent}%` }} />
-                            </div>
-                            <div className={`mt-2 text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                              已完成 {articleCompletion.completed}/{articleCompletion.total} 个内容块
-                            </div>
-                          </div>
-                          {isAdmin && (
-                            <div className={`rounded-lg border p-3 space-y-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
-                              <div className={`text-[11px] font-semibold ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>关联内容（ID）</div>
-                              <input value={relatedArticleIds} onChange={(e) => setRelatedArticleIds(e.target.value)} className={inputClasses} placeholder="related_article_ids: 1,2,3" />
-                              <input value={relatedPostIds} onChange={(e) => setRelatedPostIds(e.target.value)} className={inputClasses} placeholder="related_post_ids: 11,12" />
-                              <input value={relatedNewsIds} onChange={(e) => setRelatedNewsIds(e.target.value)} className={inputClasses} placeholder="related_news_ids: 21,22" />
-                              <input value={relatedGroupIds} onChange={(e) => setRelatedGroupIds(e.target.value)} className={inputClasses} placeholder="related_group_ids: 31,32" />
-                            </div>
-                          )}
-                        </div>
-                      </aside>
-                    </div>
-                  )}
-                  <div className={type === 'article' ? 'hidden' : ''}>
-                  {/* Main File Upload */}
-                  {type !== 'event' && type !== 'article' && (
-                  <div className="space-y-2">
-                    <label className={labelClasses}>
-                        {type === 'article' ? t('common.cover', '封面') : t(`common.${type}`)}
-                    </label>
-                     <div 
-                        className={`${uploadBoxClasses(dragTarget === 'main')} upload-modal-main-dropzone min-h-[160px] sm:min-h-[200px]`}
-                        onDragEnter={(e) => handleDragEnter(e, 'main')}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={(e) => handleDragOver(e, 'main')}
-                        onDrop={(e) => handleDrop(e, false)}
-                    >
-                        <input
-                        type="file"
-                        accept={getAcceptType()}
-                        multiple={isImageBatchEnabled}
-                        disabled={canUseNativeUpload}
-                        onChange={(e) => handleFileChange(e, false)}
-                        className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
-                        />
-                        
-                        {hasBatchImages ? (
-                            <div className="relative z-20 pointer-events-none w-full px-1 sm:px-2">
-                                <div className="flex items-center justify-between gap-3 mb-3">
-                                    <div className={`text-left ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                                        <p className="text-sm sm:text-base font-bold">{batchUploadCount} 张图片待上传</p>
-                                        <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>点击或拖拽可重新选择</p>
-                                    </div>
-                                    <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${isDayMode ? 'border-indigo-200 bg-indigo-50 text-indigo-600' : 'border-indigo-400/30 bg-indigo-500/15 text-indigo-200'}`}>
-                                        批量
-                                    </span>
-                                </div>
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-hidden">
-                                    {batchImages.slice(0, 8).map((item, index) => (
-                                        <div key={item.id} className={`relative aspect-square overflow-hidden rounded-xl border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/5'}`}>
-                                            <img src={item.preview} alt={item.file.name} className="h-full w-full object-cover" />
-                                            <span className="absolute left-1.5 top-1.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{index + 1}</span>
-                                        </div>
-                                    ))}
-                                    {batchImages.length > 8 && (
-                                        <div className={`aspect-square rounded-xl border flex items-center justify-center text-sm font-bold ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}>
-                                            +{batchImages.length - 8}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : preview ? (
-                            type === 'audio' ? (
-                                <div className="text-center relative z-20 pointer-events-none px-4">
-                                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                                        <Music size={24} className="text-green-400 sm:w-8 sm:h-8" />
-                                    </div>
-                                    <p className={`font-medium text-sm break-all ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{file?.name || nativeFileName}</p>
-                                    <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('upload.click_drag_replace')}</p>
-                                </div>
-                            ) : type === 'video' ? (
-                                <div className="relative z-20 pointer-events-none w-full flex justify-center px-4">
-                                    <video src={preview} className="max-h-48 sm:max-h-64 rounded-xl shadow-lg" controls />
-                                </div>
-                            ) : (
-                                <div className="relative z-20 pointer-events-none px-4">
-                                    <img src={preview} alt="Preview" className="max-h-48 sm:max-h-64 rounded-xl object-contain shadow-2xl" />
-                                </div>
-                            )
-                        ) : canUseNativeUpload ? null : (
-                          renderUnifiedUploadPrompt(
-                            type === 'image' ? t('upload.native_upload_cover') : t('upload.native_upload_file'),
-                            type === 'image' ? t('upload.choose_image_hint') : t('upload.native_upload_hint'),
+                excerpt: type === "article" ? fallbackExcerpt : description,
+                content:
+                    type === "article"
+                        ? articleHtml || `<p>${description}</p>`
+                        : content || `<p>${description}</p>`,
+                content_blocks:
+                    type === "article"
+                        ? JSON.stringify(
+                              normalizedBlocks.map((block) => {
+                                  const serialized = { ...block };
+                                  delete serialized.file;
+                                  return serialized;
+                              })
                           )
-                        )}
-                        {renderNativeUploadButton(
-                          { kind: 'main' },
-                          type === 'image' ? t('upload.native_upload_cover') : t('upload.native_upload_file'),
-                          {
-                            variant: (hasBatchImages || preview) ? 'compact' : 'full',
-                            hint: type === 'image' ? t('upload.choose_image_hint') : t('upload.native_upload_hint'),
-                          },
-                        )}
-                    </div>
-                  </div>
-                  )}
-                  
+                        : null,
+                description: description, // for events/photos consistency
+                featured: featured ? 1 : 0,
+                size: type === "image" ? size : null,
 
-                  {/* Cover Image Upload (For Audio/Video) */}
-                  {(type === 'audio' || type === 'video') && (
-                     <div className="space-y-2">
-                        <label className={labelClasses}>{t('common.cover')}</label>
-                        <div 
-                            className={`${uploadBoxClasses(dragTarget === 'cover')} upload-modal-secondary-cover-dropzone h-32 sm:h-40`}
-                            onDragEnter={(e) => handleDragEnter(e, 'cover')}
-                            onDragLeave={handleDragLeave}
-                            onDragOver={(e) => handleDragOver(e, 'cover')}
-                            onDrop={(e) => handleDrop(e, true)}
-                        >
-                            <input
-                                type="file"
-                                accept="image/*"
-                                disabled={canUseNativeUpload}
-                                onChange={(e) => handleFileChange(e, true)}
-                                className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
-                            />
-                            {coverPreview ? (
-                                <div className="relative h-full w-full flex justify-center items-center pointer-events-none px-4">
-                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
-                                    <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''} ${isDayMode ? 'bg-white/68' : 'bg-black/50'}`}>
-                                        <p className={`text-xs flex items-center gap-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}><Upload size={14}/> {t('upload.replace')}</p>
-                                    </div>
-                                </div>
-                            ) : canUseNativeUpload ? null : (
-                                renderUnifiedUploadPrompt(t('upload.native_upload_cover'), t('upload.choose_image_hint'))
-                            )}
-                            {renderNativeUploadButton(
-                              { kind: 'cover' },
-                              t('upload.native_upload_cover'),
-                              { variant: coverPreview ? 'compact' : 'full', hint: t('upload.choose_image_hint') },
-                            )}
-                        </div>
-                     </div>
-                  
-                  )}
+                // Defaults if new
+                ...(!isEditing
+                    ? {
+                          duration: 0,
+                      }
+                    : {
+                          // If editing, update these too if type matches
+                      }),
+            };
 
-                  {/* Inputs Card */}
-                  <div className={cardClasses}>
-                    <div>
-                      <label className={labelClasses}>{t('common.title')}</label>
-                      <input
-                        type="text"
-                        required={!hasBatchImages}
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        className={`${inputClasses} text-lg font-medium`}
-                        placeholder={hasBatchImages ? '可选：填写后会自动生成 标题 1、标题 2...' : t('upload.title_placeholder')}
-                      />
-                    </div>
+            await onUpload(newItem, { intent: submitIntent });
+            if (type === "article") {
+                localStorage.removeItem(articleDraftStorageKey);
+                setHasLocalDraft(false);
+            }
 
-                    {/* Image Specific Fields: Size */}
-                    {type === 'image' && (
-                        <div>
-                            <label className={labelClasses}>{t('common.size')}</label>
-                            <input
-                                type="text"
-                                value={size}
-                                onChange={e => setSize(e.target.value)}
-                                className={inputClasses}
-                                placeholder={t('upload.size_placeholder')}
-                            />
-                        </div>
-                    )}
+            const successMessage =
+                submitIntent === "draft"
+                    ? "草稿已保存"
+                    : isEditing
+                      ? t("upload.update_success")
+                      : isAdmin
+                        ? t("upload.upload_success")
+                        : t("upload.upload_pending_review");
 
-                    {usesMediaCategory && (
-                        <div>
-                            <label className={labelClasses}>影像分类</label>
-                            <select
-                                value={mediaCategoryId}
-                                onChange={e => setMediaCategoryId(e.target.value)}
-                                className={inputClasses}
-                            >
-                                <option value="">未分类</option>
-                                {mediaCategories.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {mediaCategoriesError ? (
-                                <div className={`mt-2 flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-400/25 bg-red-500/10 text-red-200'}`}>
-                                    <span>分类加载失败，当前只能上传为未分类。</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => refreshMediaCategories({ clearCache: true })}
-                                        className={`shrink-0 font-bold ${isDayMode ? 'text-red-700 hover:text-red-900' : 'text-red-100 hover:text-white'}`}
-                                    >
-                                        重试
-                                    </button>
-                                </div>
-                            ) : (
-                                <p className={`mt-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                                    {mediaCategoriesLoading
-                                        ? '正在加载影像分类...'
-                                        : mediaCategories.length === 0
-                                          ? '暂无可用分类，内容会先归入未分类。'
-                                          : '选择后会在影像库对应分类中展示。'}
-                                </p>
-                            )}
-                        </div>
-                    )}
+            toast.success(successMessage);
+            handleClose();
+        } catch (err) {
+            console.error("Upload failed:", err);
+            toast.error(t("upload.upload_failed"));
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
+    const getIcon = () => {
+        switch (type) {
+            case "video":
+                return <Film size={48} className="text-gray-400" />;
+            case "audio":
+                return <Music size={48} className="text-gray-400" />;
+            case "article":
+                return <FileText size={48} className="text-gray-400" />;
+            case "event":
+                return <Calendar size={48} className="text-gray-400" />;
+            default:
+                return <Image size={48} className="text-gray-400" />;
+        }
+    };
 
-                    {/* Audio Specific Fields */}
-                    {type === 'audio' && (
-                        <div>
-                            <label className={labelClasses}>{t('common.artist')}</label>
-                            <input
-                                type="text"
-                                value={artist}
-                                onChange={e => setArtist(e.target.value)}
-                                className={inputClasses}
-                                placeholder={t('upload.artist_placeholder')}
-                            />
-                        </div>
-                    )}
+    const getAcceptType = (isCover = false) => {
+        if (isCover) return "image/*";
+        switch (type) {
+            case "video":
+                return "video/*";
+            case "audio":
+                return "audio/*";
+            case "article":
+                return "image/*";
+            case "event":
+                return "image/*";
+            default:
+                return "image/*";
+        }
+    };
 
-                    <div>
-                      <label className={labelClasses}>{type === 'article' ? '文章摘要' : t('admin.fields.description')}</label>
-                      <textarea
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        className={`${inputClasses} ${type === 'article' ? 'h-28 sm:h-32' : 'h-20 sm:h-24'} resize-none`}
-                        placeholder={type === 'article' ? '用于列表展示与搜索摘要，建议 40-120 字' : t('upload.description_placeholder')}
-                      />
-                    </div>
-                    
-                    {/* Featured Checkbox */}
-                    <label className="flex cursor-pointer select-none items-center gap-3 pt-2">
-                        <input
-                            type="checkbox"
-                            checked={featured}
-                            onChange={(event) => setFeatured(event.target.checked)}
-                            className="peer sr-only"
-                        />
-                        <span
-                            aria-hidden="true"
-                            className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 sm:h-5 sm:w-5 ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white' : 'bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]')}`}
-                        >
-                            {featured && <Check size={14} className="text-white sm:w-3 sm:h-3" />}
-                        </span>
-                        <span className={`text-sm font-medium transition-colors ${isDayMode ? 'text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}>
-                            {t('common.featured')}
-                        </span>
-                    </label>
-                  </div>
-                  </div>
-              </div>
-              )}
-              </div>
+    const handleDragEnter = (e, target) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragTarget(target);
+    };
 
-              {/* Submit Buttons - Sticky at bottom */}
-              <div className={footerClass}>
-                {type === 'event' && (
-                  <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-3 sm:hidden">
-                    <button
-                      type="button"
-                      onClick={(event) => {
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragTarget(null);
+    };
+
+    const handleDragOver = (e, target) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragTarget(target);
+    };
+
+    const handleDrop = async (e, isCover = false) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragTarget(null);
+
+        if (!isCover && isImageBatchEnabled) {
+            const selectedImages = await normalizeImageSelection(e.dataTransfer.files);
+            if (!selectedImages.length) return;
+            if (selectedImages.length === 1) {
+                setBatchImages([]);
+                setFile(selectedImages[0].file);
+                setPreview(selectedImages[0].preview);
+                setNativeFileName("");
+                return;
+            }
+            setBatchImages(selectedImages);
+            setFile(selectedImages[0].file);
+            setPreview(selectedImages[0].preview);
+            setNativeFileName("");
+            return;
+        }
+
+        const droppedFile = e.dataTransfer.files[0];
+        if (droppedFile) {
+            const accept = getAcceptType(isCover);
+            const typeRegex = new RegExp(accept.replace("*", ".*"));
+            if (!droppedFile.type.match(typeRegex)) {
+                toast.error(t("upload.invalid_file_type", { type: accept }));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (isCover) {
+                    setCoverFile(droppedFile);
+                    setCoverPreview(reader.result);
+                    setNativeCoverFileName("");
+                } else {
+                    setFile(droppedFile);
+                    setPreview(reader.result);
+                    setNativeFileName("");
+                }
+            };
+            reader.readAsDataURL(droppedFile);
+        }
+    };
+
+    const canUseNativeUpload = isMiniProgramWebView();
+    const isMiniProgramEventModal = canUseNativeUpload && type === "event";
+    const nativeUploadButtonClasses = isDayMode
+        ? "border-indigo-200 bg-white/95 text-indigo-700 shadow-[0_8px_18px_rgba(99,102,241,0.14)] hover:bg-indigo-50"
+        : "border-indigo-400/35 bg-indigo-500/16 text-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.22)] hover:bg-indigo-500/24";
+
+    const renderNativeUploadButton = (target, label, options = {}) => {
+        if (!canUseNativeUpload) return null;
+        const variant = options.variant || "compact";
+        const isCurrentTarget =
+            nativeUploadState.active &&
+            nativeUploadState.target?.kind === target.kind &&
+            nativeUploadState.target?.blockId === target.blockId;
+        const buttonLabel = isCurrentTarget ? t("upload.native_upload_waiting") : label;
+        const hintLabel = options.hint || t("upload.native_upload_hint");
+        if (variant === "full") {
+            return (
+                <button
+                    type="button"
+                    disabled={nativeUploadState.active}
+                    onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        if (mobileEventStep === 1) {
-                          handleClose();
-                          return;
-                        }
-                        setMobileEventStep((step) => Math.max(1, step - 1));
-                      }}
-                      className={`rect-button-secondary min-h-[50px] w-full px-4 text-sm font-bold ${isDayMode ? 'bg-white/90 text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
-                    >
-                      {mobileEventStep === 1 ? t('common.cancel') : '上一步'}
-                    </button>
-                    {mobileEventStep < 3 ? (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          setMobileEventStep((step) => Math.min(3, step + 1));
-                        }}
-                        className={`rect-button-primary min-h-[50px] w-full px-4 text-sm font-black ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
-                      >
-                        下一步
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={isUploading}
-                        className={`rect-button-primary flex min-h-[50px] w-full items-center justify-center gap-2 px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
-                      >
-                        {isUploading ? (
-                          <>
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            <span>{t('upload.uploading')}...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload size={18} />
-                            <span>{isEditing ? t('common.save') : '上传 / 保存'}</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${type === 'event' ? 'max-sm:!hidden sm:inline-flex' : ''} ${isDayMode ? 'text-slate-600 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type={type === 'article' ? 'button' : 'submit'}
-                  onClick={() => {
-                    if (type === 'article') {
-                      setSubmitIntent('publish');
-                      formRef.current?.requestSubmit();
-                    }
-                  }}
-                  disabled={isUploading}
-                  className={`rect-button-primary w-full sm:w-auto px-8 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center gap-2.5 font-black text-sm ${type === 'event' ? 'max-sm:!hidden sm:inline-flex' : 'flex'} ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
-                >
-                  {isUploading ? (
-                    <>
-                      <div className={`animate-spin rounded-full h-5 w-5 border-2 ${isDayMode ? 'border-white border-t-transparent' : 'border-black border-t-transparent'}`} />
-                      <span>{t('upload.uploading')}...</span>
-                    </>
-                  ) : (
-                    <>
-                      {type === 'article' ? <PenSquare size={20} /> : <Upload size={20} />}
-                      <span>{isEditing ? t('common.save') : type === 'article' ? '提交发布' : t('common.upload_now')}</span>
-                    </>
-                  )}
-                </button>
-                {type === 'article' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitIntent('draft');
-                      formRef.current?.requestSubmit();
+                        startNativeUpload(target);
                     }}
-                    disabled={isUploading}
-                    className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm ${isDayMode ? 'bg-white/90 text-slate-700 hover:border-indigo-200' : 'text-gray-200 hover:bg-white/10'}`}
-                  >
-                    <PenSquare size={18} />
-                    <span>保存草稿</span>
-                  </button>
-                )}
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body
-  );
+                    className={`upload-modal-native-full-button absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                        isDayMode
+                            ? "border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
+                            : "border-indigo-400/30 bg-[#080a14] text-indigo-100 hover:bg-[#0d1020]"
+                    }`}
+                >
+                    <span
+                        className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
+                            isDayMode
+                                ? "border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]"
+                                : "border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]"
+                        }`}
+                    >
+                        <Upload size={20} />
+                        <span>{buttonLabel}</span>
+                    </span>
+                    <span
+                        className={`px-4 text-center text-xs font-medium ${isDayMode ? "text-indigo-600" : "text-indigo-200/78"}`}
+                    >
+                        {hintLabel}
+                    </span>
+                </button>
+            );
+        }
+
+        return (
+            <button
+                type="button"
+                disabled={nativeUploadState.active}
+                onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    startNativeUpload(target);
+                }}
+                className={`absolute bottom-3 left-1/2 z-30 inline-flex min-h-[36px] -translate-x-1/2 items-center justify-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${nativeUploadButtonClasses}`}
+            >
+                <Upload size={14} />
+                <span>{buttonLabel}</span>
+            </button>
+        );
+    };
+
+    const renderUnifiedUploadPrompt = (label, hint) => (
+        <div className="upload-modal-unified-upload-prompt pointer-events-none flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
+            <span
+                className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
+                    isDayMode
+                        ? "border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]"
+                        : "border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]"
+                }`}
+            >
+                <Upload size={20} />
+                <span>{label}</span>
+            </span>
+            <span
+                className={`px-4 text-center text-xs font-medium ${isDayMode ? "text-indigo-600" : "text-indigo-200/78"}`}
+            >
+                {hint}
+            </span>
+        </div>
+    );
+
+    // UI Constants
+    const inputClasses = isDayMode
+        ? "upload-modal-field rect-field w-full px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] bg-white/95 focus:bg-white"
+        : "upload-modal-field rect-field w-full bg-black/35 px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
+    const labelClasses = isDayMode
+        ? "upload-modal-label block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
+        : "upload-modal-label block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
+    const cardClasses = isDayMode
+        ? "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
+        : "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
+    const uploadBoxClasses = (isActive) =>
+        `upload-modal-dropzone upload-modal-upload-box relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
+            isDayMode
+                ? `${isActive ? "border-indigo-500 bg-indigo-50" : "border-slate-200/80 bg-white/82 hover:border-indigo-300 hover:bg-white"}`
+                : `bg-black/20 ${isActive ? "border-indigo-500 bg-indigo-500/10" : "border-white/10 hover:border-white/30 hover:bg-white/5"}`
+        }`;
+    const overlayShellClass =
+        type === "article"
+            ? isDayMode
+                ? "p-0 bg-white/78"
+                : "p-0 bg-black/90"
+            : isDayMode
+              ? "p-0 sm:p-4 bg-white/68"
+              : "p-0 sm:p-4 bg-black/80";
+    const modalPanelClass = isDayMode
+        ? `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? "upload-modal-miniapp-event" : ""} relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === "article" ? "max-w-none border-0 rounded-none shadow-none" : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === "event" ? "sm:max-w-5xl" : "sm:max-w-2xl"} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
+        : `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? "upload-modal-miniapp-event" : ""} relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === "article" ? "max-w-none border-0 rounded-none shadow-none" : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === "event" ? "sm:max-w-5xl" : "sm:max-w-2xl"} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
+    const headerClass = isDayMode
+        ? `upload-modal-header px-5 ${type === "article" ? "sm:px-6 py-3 sm:py-4 border-slate-200/80" : "sm:px-8 py-4 sm:py-6 border-slate-200/80"} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
+        : `upload-modal-header px-5 ${type === "article" ? "sm:px-6 py-3 sm:py-4 border-white/10" : "sm:px-8 py-4 sm:py-6 border-white/10"} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
+    const stickyFooterClass = isDayMode
+        ? "upload-modal-footer sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
+        : "upload-modal-footer sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
+    const overlayClass = `upload-modal-overlay fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass} ${isMiniProgramEventModal ? "upload-modal-miniapp-event-overlay" : ""}`;
+    const formClass = `upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col ${isMiniProgramEventModal ? "upload-modal-miniapp-event-form" : ""}`;
+    const bodyClass = `upload-modal-body ${type === "article" ? "p-4 sm:p-6" : "p-5 sm:p-8"} flex-1 ${type === "article" ? "space-y-4 sm:space-y-5" : "space-y-6 sm:space-y-8"} ${isMiniProgramEventModal ? "upload-modal-miniapp-event-body" : ""}`;
+    const footerClass = `${stickyFooterClass} ${isMiniProgramEventModal ? "upload-modal-miniapp-event-footer" : ""}`;
+    const dialogTitleId = `upload-modal-title-${type}`;
+
+    return createPortal(
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className={overlayClass}
+                    onClick={handleClose}
+                >
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0, y: 30 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.95, opacity: 0, y: 30 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby={dialogTitleId}
+                        className={modalPanelClass}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Rectilinear ambience */}
+                        {type !== "article" && (
+                            <div
+                                className={`absolute left-0 top-0 h-px w-full ${isDayMode ? "bg-indigo-200/70" : "bg-indigo-400/25"} pointer-events-none`}
+                            />
+                        )}
+
+                        {/* Header - Fixed at top */}
+                        <div className={headerClass}>
+                            <h3
+                                id={dialogTitleId}
+                                className={`upload-modal-title text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            >
+                                <span
+                                    className={`upload-modal-title-icon p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? "bg-white border-slate-200/80 text-indigo-600" : "bg-white/5 border-white/10"}`}
+                                >
+                                    {React.cloneElement(getIcon(), { size: 24 })}
+                                </span>
+                                {type === "event" && (
+                                    <span className="truncate">
+                                        {isEditing
+                                            ? t("common.edit_event", "编辑活动")
+                                            : t("common.create_event", "创建活动")}
+                                    </span>
+                                )}
+                                <span className={`truncate ${type === "event" ? "hidden" : ""}`}>
+                                    {type === "article"
+                                        ? "文章撰写"
+                                        : `${isEditing ? t("admin.edit_item") : t("common.upload")} `}
+                                    {type !== "article" && (
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                                            {t(`common.${type}`)}
+                                        </span>
+                                    )}
+                                </span>
+                            </h3>
+                            <div className="flex items-center gap-2">
+                                {type === "article" && hasLocalDraft && !isEditing && (
+                                    <button
+                                        type="button"
+                                        onClick={restoreArticleDraft}
+                                        className={`rect-button-secondary hidden sm:inline-flex px-3 py-2 text-xs ${isDayMode ? "bg-white/90 text-slate-600 hover:text-slate-900" : ""}`}
+                                    >
+                                        恢复草稿
+                                    </button>
+                                )}
+                                {type === "article" && hasLocalDraft && !isEditing && (
+                                    <button
+                                        type="button"
+                                        onClick={clearArticleDraft}
+                                        className="hidden sm:inline-flex px-3 py-2 rounded-[5px] border border-red-500/35 bg-red-500/10 text-xs text-red-300 hover:bg-red-500/20 transition-colors"
+                                    >
+                                        清除草稿
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    aria-label={t("common.close", "关闭")}
+                                    className={`rect-icon-button ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/90" : "text-gray-400 hover:text-white"}`}
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {type === "event" && (
+                            <div
+                                className={`upload-modal-mobile-stepper flex items-center gap-3 border-b px-5 py-3 sm:hidden ${isDayMode ? "border-slate-200/80 bg-white/95" : "border-white/10 bg-[#0f0f0f]"}`}
+                            >
+                                {[1, 2, 3].map((step) => {
+                                    const active = mobileEventStep === step;
+                                    return (
+                                        <button
+                                            key={step}
+                                            type="button"
+                                            aria-pressed={active}
+                                            onClick={() => setMobileEventStep(step)}
+                                            className="flex min-w-0 flex-1 items-center gap-2"
+                                        >
+                                            <span
+                                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
+                                                    active
+                                                        ? isDayMode
+                                                            ? "bg-indigo-600 text-white"
+                                                            : "bg-indigo-500 text-white"
+                                                        : isDayMode
+                                                          ? "bg-slate-100 text-slate-500"
+                                                          : "bg-white/8 text-gray-400"
+                                                }`}
+                                            >
+                                                {step}
+                                            </span>
+                                            <span
+                                                className={`truncate text-[11px] font-bold ${
+                                                    active
+                                                        ? isDayMode
+                                                            ? "text-slate-900"
+                                                            : "text-white"
+                                                        : isDayMode
+                                                          ? "text-slate-500"
+                                                          : "text-gray-500"
+                                                }`}
+                                            >
+                                                {step === 1
+                                                    ? "基本信息"
+                                                    : step === 2
+                                                      ? "活动详情"
+                                                      : "发布设置"}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Form Content - Scrollable */}
+                        <form
+                            ref={formRef}
+                            onSubmit={handleSubmit}
+                            noValidate={type === "event"}
+                            className={formClass}
+                        >
+                            <div className={bodyClass}>
+                                {isMiniProgramEventModal && (
+                                    <div
+                                        className={`upload-modal-miniapp-toolbar relative z-10 mb-4 rounded-[7px] border p-3 shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${isDayMode ? "border-slate-200 bg-white/96" : "border-white/10 bg-[#111214]"}`}
+                                    >
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <div
+                                                    className={`text-lg font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                                >
+                                                    {isEditing
+                                                        ? t("common.edit_event", "编辑活动")
+                                                        : t("common.create_event", "创建活动")}
+                                                </div>
+                                                <div
+                                                    className={`mt-1 text-[11px] font-semibold ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                >
+                                                    {mobileEventStep === 1
+                                                        ? "基本信息"
+                                                        : mobileEventStep === 2
+                                                          ? "活动详情"
+                                                          : "发布设置"}
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleClose}
+                                                aria-label={t("common.close", "关闭")}
+                                                className={`rect-icon-button shrink-0 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/90" : "text-gray-300 hover:text-white"}`}
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[1, 2, 3].map((step) => {
+                                                const active = mobileEventStep === step;
+                                                return (
+                                                    <button
+                                                        key={step}
+                                                        type="button"
+                                                        aria-pressed={active}
+                                                        onClick={() => setMobileEventStep(step)}
+                                                        className={`min-h-[38px] rounded-[6px] border px-2 text-xs font-black transition-colors ${
+                                                            active
+                                                                ? isDayMode
+                                                                    ? "border-indigo-600 bg-indigo-600 text-white"
+                                                                    : "border-indigo-400/45 bg-indigo-500 text-white"
+                                                                : isDayMode
+                                                                  ? "border-slate-200 bg-slate-50 text-slate-500"
+                                                                  : "border-white/10 bg-white/[0.04] text-gray-400"
+                                                        }`}
+                                                    >
+                                                        {step === 1
+                                                            ? "基本"
+                                                            : step === 2
+                                                              ? "详情"
+                                                              : "发布"}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                {(profilesLoading || manageableProfiles.length > 0) && (
+                                    <section
+                                        className={`${cardClasses} !space-y-4 ${type === "event" ? "hidden sm:block" : ""}`}
+                                    >
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <div>
+                                                <label className={labelClasses}>
+                                                    {t("profiles.publisher_identity", "发布身份")}
+                                                </label>
+                                                <select
+                                                    value={selectedPublisherProfileId}
+                                                    onChange={(event) =>
+                                                        handlePublisherProfileChange(
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        profilesLoading ||
+                                                        manageableProfiles.length === 0
+                                                    }
+                                                    className={inputClasses}
+                                                >
+                                                    <option value="">
+                                                        {profilesLoading
+                                                            ? t("common.loading")
+                                                            : t(
+                                                                  "profiles.default_personal",
+                                                                  "默认个人身份"
+                                                              )}
+                                                    </option>
+                                                    {manageableProfiles.map((profile) => (
+                                                        <option key={profile.id} value={profile.id}>
+                                                            {formatProfileOptionLabel(profile)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {type === "event" &&
+                                                organizationProfiles.length > 0 && (
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t(
+                                                                "profiles.organizer_profile",
+                                                                "主办主体"
+                                                            )}
+                                                        </label>
+                                                        <select
+                                                            value={selectedOrganizerProfileId}
+                                                            onChange={(event) =>
+                                                                setSelectedOrganizerProfileId(
+                                                                    event.target.value
+                                                                )
+                                                            }
+                                                            className={inputClasses}
+                                                        >
+                                                            <option value="">
+                                                                {t(
+                                                                    "profiles.organizer_auto_match",
+                                                                    "按主办方文本自动匹配"
+                                                                )}
+                                                            </option>
+                                                            {organizationProfiles.map((profile) => (
+                                                                <option
+                                                                    key={profile.id}
+                                                                    value={profile.id}
+                                                                >
+                                                                    {formatProfileOptionLabel(
+                                                                        profile
+                                                                    )}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </section>
+                                )}
+                                {type === "event" ? (
+                                    <>
+                                        {/* Event Specific Fields */}
+                                        <div
+                                            className={`upload-modal-smart-parse p-5 sm:p-6 border relative overflow-hidden group ${mobileEventStep !== 1 ? "hidden sm:block" : ""} ${isDayMode ? "bg-emerald-50/70 border-emerald-200/70" : "bg-green-500/10 border-green-500/20"}`}
+                                        >
+                                            <div className="upload-modal-smart-watermark absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
+                                                <Link
+                                                    size={100}
+                                                    className="text-green-500 transform rotate-12"
+                                                />
+                                            </div>
+                                            <div className="relative z-10">
+                                                <h4 className="upload-modal-section-title text-sm font-bold text-green-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                                    <Sparkles size={18} />
+                                                    {t("upload.smart_parse_title", "智能识别")}
+                                                </h4>
+                                                <p className="upload-modal-smart-desc text-sm text-green-100/60 mb-5 max-w-xl leading-relaxed">
+                                                    {t(
+                                                        "upload.smart_parse_desc",
+                                                        "粘贴微信公众号文章链接，一键自动提取活动详情。"
+                                                    )}
+                                                </p>
+                                                <div className="upload-modal-inline-action flex flex-col sm:flex-row gap-3">
+                                                    <div className="relative flex-1">
+                                                        <Link
+                                                            size={18}
+                                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500/50"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={wechatUrl}
+                                                            onChange={(e) =>
+                                                                setWechatUrl(e.target.value)
+                                                            }
+                                                            placeholder="https://mp.weixin.qq.com/s/..."
+                                                            className={`upload-modal-field rect-field w-full pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm ${isDayMode ? "bg-white/95 border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white" : "bg-black/40 border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60"}`}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleParseWeChat}
+                                                        disabled={!wechatUrl || isParsing}
+                                                        className="upload-modal-action-button rect-button-primary w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                                                    >
+                                                        {isParsing ? (
+                                                            <>
+                                                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent" />
+                                                                {t("common.loading")}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Check size={18} />
+                                                                {t("upload.smart_parse")}
+                                                            </>
+                                                        )}
+                                                    </button>
+
+                                                    {(wechatUrl || title) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleClearParsedData}
+                                                            className={`upload-modal-action-button rect-button-secondary w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 flex items-center justify-center gap-2 ${isDayMode ? "bg-white/90 text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                                                            title={t("common.clear")}
+                                                        >
+                                                            <RotateCcw size={18} />
+                                                            <span className="sm:hidden font-medium">
+                                                                {t("common.clear")}
+                                                            </span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="upload-modal-event-grid grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                                            {/* Left Column: Media & Core Info */}
+                                            <div
+                                                className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 1 ? "hidden sm:block" : ""}`}
+                                            >
+                                                {/* Cover Image (Event Image) */}
+                                                <div className="upload-modal-field-group space-y-3">
+                                                    <label className={labelClasses}>
+                                                        {t("common.image")}
+                                                    </label>
+                                                    <div
+                                                        className={`${uploadBoxClasses(dragTarget === "cover")} upload-modal-cover-dropzone h-48 sm:h-64`}
+                                                        onDragEnter={(e) =>
+                                                            handleDragEnter(e, "cover")
+                                                        }
+                                                        onDragLeave={handleDragLeave}
+                                                        onDragOver={(e) =>
+                                                            handleDragOver(e, "cover")
+                                                        }
+                                                        onDrop={(e) => handleDrop(e, true)}
+                                                    >
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            disabled={canUseNativeUpload}
+                                                            onChange={(e) =>
+                                                                handleFileChange(e, true)
+                                                            }
+                                                            className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? "pointer-events-none" : ""}`}
+                                                        />
+                                                        {coverPreview ? (
+                                                            <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
+                                                                <img
+                                                                    src={coverPreview}
+                                                                    alt="Cover Preview"
+                                                                    className="h-full rounded-[5px] object-contain"
+                                                                />
+                                                                <div
+                                                                    className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? "bg-white/76" : "bg-black/62"} ${dragTarget === "cover" ? "opacity-100" : ""}`}
+                                                                >
+                                                                    <p
+                                                                        className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-[5px] border ${isDayMode ? "text-slate-900 bg-white/95 border-slate-200/80" : "text-white bg-white/10 border-white/20"}`}
+                                                                    >
+                                                                        <Upload size={16} />{" "}
+                                                                        {t("upload.replace")}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ) : canUseNativeUpload ? null : (
+                                                            renderUnifiedUploadPrompt(
+                                                                t("upload.native_upload_cover"),
+                                                                t("upload.choose_image_hint")
+                                                            )
+                                                        )}
+                                                        {renderNativeUploadButton(
+                                                            { kind: "cover" },
+                                                            t("upload.native_upload_cover"),
+                                                            {
+                                                                variant: coverPreview
+                                                                    ? "compact"
+                                                                    : "full",
+                                                                hint: t("upload.choose_image_hint"),
+                                                            }
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Title & Description */}
+                                                <div className={cardClasses}>
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("common.title")}
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={title}
+                                                            onChange={(e) =>
+                                                                setTitle(e.target.value)
+                                                            }
+                                                            className={`${inputClasses} text-lg font-bold`}
+                                                            placeholder={t(
+                                                                "upload.title_placeholder"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("admin.fields.description")}
+                                                        </label>
+                                                        <textarea
+                                                            value={description}
+                                                            onChange={(e) =>
+                                                                setDescription(e.target.value)
+                                                            }
+                                                            className={`${inputClasses} upload-modal-description h-36 resize-none leading-relaxed py-4`}
+                                                            placeholder={t(
+                                                                "upload.description_placeholder"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("event_fields.category")}
+                                                        </label>
+                                                        <div className="upload-modal-chip-grid grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                                            {EVENT_CATEGORIES.map((category) => {
+                                                                const selected =
+                                                                    eventCategory ===
+                                                                    category.value;
+                                                                return (
+                                                                    <button
+                                                                        key={category.value}
+                                                                        type="button"
+                                                                        aria-pressed={selected}
+                                                                        onClick={() =>
+                                                                            setEventCategory(
+                                                                                category.value
+                                                                            )
+                                                                        }
+                                                                        className={`upload-modal-choice-button min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                            selected
+                                                                                ? isDayMode
+                                                                                    ? "border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]"
+                                                                                    : "border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none"
+                                                                                : isDayMode
+                                                                                  ? "border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900"
+                                                                                  : "border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white"
+                                                                        }`}
+                                                                    >
+                                                                        {getEventCategoryLabel(
+                                                                            category.value,
+                                                                            i18n.resolvedLanguage ||
+                                                                                i18n.language
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("event_fields.special_marks")}
+                                                        </label>
+                                                        <button
+                                                            type="button"
+                                                            aria-pressed={isCollegeNotice}
+                                                            onClick={toggleCollegeNotice}
+                                                            className={`upload-modal-notice-toggle flex min-h-[52px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                isCollegeNotice
+                                                                    ? isDayMode
+                                                                        ? "border-violet-500 bg-violet-600 text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)]"
+                                                                        : "border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none"
+                                                                    : isDayMode
+                                                                      ? "border-slate-200/80 bg-white/86 text-slate-600 hover:border-violet-200 hover:bg-white hover:text-slate-900"
+                                                                      : "border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white"
+                                                            }`}
+                                                        >
+                                                            <span className="min-w-0">
+                                                                <span className="block text-sm font-black">
+                                                                    {t(
+                                                                        "event_fields.college_notice"
+                                                                    )}
+                                                                </span>
+                                                                <span
+                                                                    className={`mt-1 block text-xs leading-5 ${isCollegeNotice ? "text-white/78" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                                >
+                                                                    {t(
+                                                                        "event_fields.college_notice_hint"
+                                                                    )}
+                                                                </span>
+                                                            </span>
+                                                            <Check
+                                                                size={18}
+                                                                className={
+                                                                    isCollegeNotice
+                                                                        ? "opacity-100"
+                                                                        : "opacity-30"
+                                                                }
+                                                            />
+                                                        </button>
+                                                        {isCollegeNotice && (
+                                                            <div
+                                                                className={`upload-modal-notice-panel mt-3 space-y-3 rounded-2xl border p-3 ${isDayMode ? "border-violet-100 bg-violet-50/60" : "border-indigo-400/20 bg-indigo-500/10"}`}
+                                                            >
+                                                                <div>
+                                                                    <label className={labelClasses}>
+                                                                        {t(
+                                                                            "event_fields.notice_type"
+                                                                        )}
+                                                                    </label>
+                                                                    <div className="upload-modal-chip-grid grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                                                        {COLLEGE_NOTICE_TYPES.map(
+                                                                            (noticeOption) => {
+                                                                                const selected =
+                                                                                    noticeType ===
+                                                                                    noticeOption.value;
+                                                                                return (
+                                                                                    <button
+                                                                                        key={
+                                                                                            noticeOption.value
+                                                                                        }
+                                                                                        type="button"
+                                                                                        aria-pressed={
+                                                                                            selected
+                                                                                        }
+                                                                                        onClick={() =>
+                                                                                            setNoticeType(
+                                                                                                noticeOption.value
+                                                                                            )
+                                                                                        }
+                                                                                        className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                                            selected
+                                                                                                ? isDayMode
+                                                                                                    ? "border-violet-500 bg-white text-violet-700"
+                                                                                                    : "border-indigo-300/50 bg-indigo-400/18 text-indigo-50"
+                                                                                                : isDayMode
+                                                                                                  ? "border-violet-100 bg-white/70 text-slate-600 hover:border-violet-200"
+                                                                                                  : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                                                                                        }`}
+                                                                                    >
+                                                                                        {getCollegeNoticeTypeLabel(
+                                                                                            noticeOption.value,
+                                                                                            i18n.resolvedLanguage ||
+                                                                                                i18n.language
+                                                                                        )}
+                                                                                    </button>
+                                                                                );
+                                                                            }
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className={labelClasses}>
+                                                                        {t(
+                                                                            "event_fields.source_college"
+                                                                        )}
+                                                                    </label>
+                                                                    <select
+                                                                        value={sourceCollege}
+                                                                        onChange={(event) =>
+                                                                            setSourceCollege(
+                                                                                event.target.value
+                                                                            )
+                                                                        }
+                                                                        className={inputClasses}
+                                                                    >
+                                                                        <option value="">
+                                                                            {t(
+                                                                                "event_fields.source_college_placeholder"
+                                                                            )}
+                                                                        </option>
+                                                                        {EVENT_SOURCE_COLLEGE_OPTIONS.map(
+                                                                            (college) => (
+                                                                                <option
+                                                                                    key={college}
+                                                                                    value={college}
+                                                                                >
+                                                                                    {college}
+                                                                                </option>
+                                                                            )
+                                                                        )}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column: Event Details */}
+                                            <div
+                                                className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 2 ? "hidden sm:block" : ""}`}
+                                            >
+                                                {/* Basic Info Card */}
+                                                <div className={cardClasses}>
+                                                    <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
+                                                        <Calendar
+                                                            size={16}
+                                                            className="text-indigo-400"
+                                                        />{" "}
+                                                        {t("event_fields.basic_info")}
+                                                    </h4>
+                                                    <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
+                                                        <div className="col-span-1">
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.start_date")}
+                                                            </label>
+                                                            <input
+                                                                type="datetime-local"
+                                                                step="1800"
+                                                                required
+                                                                value={
+                                                                    eventDate
+                                                                        ? eventDate.length === 10
+                                                                            ? eventDate + "T00:00"
+                                                                            : eventDate.substring(
+                                                                                  0,
+                                                                                  16
+                                                                              )
+                                                                        : ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setEventDate(e.target.value)
+                                                                }
+                                                                className={inputClasses}
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.end_date")}
+                                                            </label>
+                                                            <input
+                                                                type="datetime-local"
+                                                                step="1800"
+                                                                required
+                                                                value={
+                                                                    eventEndDate
+                                                                        ? eventEndDate.length === 10
+                                                                            ? eventEndDate +
+                                                                              "T00:00"
+                                                                            : eventEndDate.substring(
+                                                                                  0,
+                                                                                  16
+                                                                              )
+                                                                        : ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setEventEndDate(e.target.value)
+                                                                }
+                                                                className={inputClasses}
+                                                            />
+                                                        </div>
+
+                                                        {/* Date Reasoning Display */}
+                                                        {dateReasoning && (
+                                                            <div className="upload-modal-ai-reasoning col-span-1 sm:col-span-2 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+                                                                <div className="absolute top-0 right-0 p-3 opacity-10">
+                                                                    <Sparkles
+                                                                        size={40}
+                                                                        className="text-indigo-400"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex items-start gap-3 sm:gap-4 relative z-10">
+                                                                    <div className="p-2 bg-indigo-500/20 rounded-lg mt-0.5">
+                                                                        <Sparkles
+                                                                            size={16}
+                                                                            className="text-indigo-400"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h5 className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1.5">
+                                                                            {t(
+                                                                                "upload.ai_reasoning",
+                                                                                "AI 日期推断逻辑"
+                                                                            )}
+                                                                        </h5>
+                                                                        <p className="text-sm text-indigo-100/80 leading-relaxed font-medium">
+                                                                            {dateReasoning}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="col-span-1 md:col-span-2">
+                                                            <label className={labelClasses}>
+                                                                {t("common.location")}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                required
+                                                                value={eventLocation}
+                                                                onChange={(e) =>
+                                                                    setEventLocation(e.target.value)
+                                                                }
+                                                                className={inputClasses}
+                                                                placeholder={t(
+                                                                    "upload.location_placeholder"
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Attributes Card */}
+                                                <div className={cardClasses}>
+                                                    <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
+                                                        <Tag
+                                                            size={16}
+                                                            className="text-indigo-400"
+                                                        />{" "}
+                                                        {t("event_fields.attributes")}
+                                                    </h4>
+                                                    <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
+                                                        <div className="col-span-1">
+                                                            <label className={labelClasses}>
+                                                                {t(
+                                                                    "event_fields.volunteer_duration"
+                                                                )}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={eventVolunteerTime}
+                                                                onChange={(e) =>
+                                                                    setEventVolunteerTime(
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                className={inputClasses}
+                                                                placeholder={t(
+                                                                    "event_fields.volunteer_time_placeholder"
+                                                                )}
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.organizer")}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={eventOrganizer}
+                                                                onChange={(e) =>
+                                                                    setEventOrganizer(
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                className={inputClasses}
+                                                                placeholder={t(
+                                                                    "event_fields.organizer_placeholder"
+                                                                )}
+                                                            />
+                                                            {isCollegeNotice && (
+                                                                <p
+                                                                    className={`mt-2 text-xs font-medium leading-relaxed ${isDayMode ? "text-indigo-600" : "text-indigo-200/80"}`}
+                                                                >
+                                                                    {t(
+                                                                        "event_fields.college_notice_source_hint"
+                                                                    )}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.score_label")}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={eventScore}
+                                                                onChange={(e) =>
+                                                                    setEventScore(e.target.value)
+                                                                }
+                                                                className={inputClasses}
+                                                                placeholder={t(
+                                                                    "event_fields.score_placeholder"
+                                                                )}
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-1 sm:col-span-2">
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <label className={labelClasses}>
+                                                                    {t(
+                                                                        "event_fields.target_audience_group"
+                                                                    )}
+                                                                </label>
+                                                                {selectedAudience.length > 0 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            setEventTarget("")
+                                                                        }
+                                                                        className={`text-xs font-semibold transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                                                                    >
+                                                                        {t(
+                                                                            "event_fields.clear_audience"
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            {selectedAudience.length > 0 && (
+                                                                <div className="upload-modal-selected-audiences mb-3 flex flex-wrap gap-2">
+                                                                    {selectedAudience.map(
+                                                                        (audience) => (
+                                                                            <button
+                                                                                key={audience}
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    toggleEventAudience(
+                                                                                        audience
+                                                                                    )
+                                                                                }
+                                                                                className={`upload-modal-audience-chip min-h-[32px] rounded-full border px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 ${isDayMode ? "bg-indigo-50 text-indigo-700 border-indigo-200" : "bg-indigo-500/15 text-indigo-100 border-indigo-400/25"}`}
+                                                                            >
+                                                                                {audience}
+                                                                                <X size={12} />
+                                                                            </button>
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            <div className="relative mb-3">
+                                                                <Search
+                                                                    size={15}
+                                                                    className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                                                />
+                                                                <input
+                                                                    type="search"
+                                                                    value={audienceSearch}
+                                                                    onChange={(e) =>
+                                                                        setAudienceSearch(
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className={`${inputClasses} pl-9`}
+                                                                    placeholder={t(
+                                                                        "event_fields.search_audience_placeholder"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div
+                                                                className={`upload-modal-audience-panel rounded-2xl border p-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-black/20"}`}
+                                                            >
+                                                                <div
+                                                                    className={`${showAllAudiences || audienceQuery ? "upload-modal-audience-scroll max-h-60 overflow-y-auto pr-1 custom-scrollbar" : ""}`}
+                                                                >
+                                                                    <div className="upload-modal-audience-groups space-y-4">
+                                                                        {visibleAudienceGroups.map(
+                                                                            (group) => (
+                                                                                <div
+                                                                                    key={
+                                                                                        group.group
+                                                                                    }
+                                                                                >
+                                                                                    <div
+                                                                                        className={`mb-2 text-[11px] font-black uppercase tracking-[0.16em] ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                                                                    >
+                                                                                        {
+                                                                                            group.group
+                                                                                        }
+                                                                                    </div>
+                                                                                    <div className="upload-modal-audience-options flex flex-wrap gap-2">
+                                                                                        {group.items.map(
+                                                                                            (
+                                                                                                audience
+                                                                                            ) => {
+                                                                                                const selected =
+                                                                                                    selectedAudience.includes(
+                                                                                                        audience
+                                                                                                    );
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={
+                                                                                                            audience
+                                                                                                        }
+                                                                                                        type="button"
+                                                                                                        aria-pressed={
+                                                                                                            selected
+                                                                                                        }
+                                                                                                        onClick={() =>
+                                                                                                            toggleEventAudience(
+                                                                                                                audience
+                                                                                                            )
+                                                                                                        }
+                                                                                                        className={`upload-modal-audience-option min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                                                            selected
+                                                                                                                ? isDayMode
+                                                                                                                    ? "border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.14)]"
+                                                                                                                    : "border-indigo-400/50 bg-indigo-500/20 text-indigo-100"
+                                                                                                                : isDayMode
+                                                                                                                  ? "border-slate-200/80 bg-white text-slate-600 hover:border-indigo-200 hover:text-slate-900"
+                                                                                                                  : "border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10"
+                                                                                                        }`}
+                                                                                                    >
+                                                                                                        {
+                                                                                                            audience
+                                                                                                        }
+                                                                                                    </button>
+                                                                                                );
+                                                                                            }
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )
+                                                                        )}
+                                                                        {visibleAudienceGroups.length ===
+                                                                            0 && (
+                                                                            <div
+                                                                                className={`rounded-xl border px-4 py-5 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white text-slate-500" : "border-white/10 bg-white/5 text-gray-400"}`}
+                                                                            >
+                                                                                {t(
+                                                                                    "event_fields.no_audience_matches"
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                {!audienceQuery && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            setShowAllAudiences(
+                                                                                (value) => !value
+                                                                            )
+                                                                        }
+                                                                        className={`upload-modal-expand-button mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200" : "bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white"}`}
+                                                                    >
+                                                                        <ChevronDown
+                                                                            size={14}
+                                                                            className={
+                                                                                showAllAudiences
+                                                                                    ? "rotate-180 transition-transform"
+                                                                                    : "transition-transform"
+                                                                            }
+                                                                        />
+                                                                        {showAllAudiences
+                                                                            ? t(
+                                                                                  "event_fields.collapse_common_audiences"
+                                                                              )
+                                                                            : t(
+                                                                                  "event_fields.expand_all_audiences",
+                                                                                  {
+                                                                                      count: totalAudienceCount,
+                                                                                  }
+                                                                              )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-1 sm:col-span-2">
+                                                            <label className={labelClasses}>
+                                                                {t("upload.event_link")}
+                                                            </label>
+                                                            <div className="relative group">
+                                                                <Link
+                                                                    size={18}
+                                                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={eventLink}
+                                                                    onChange={(e) =>
+                                                                        setEventLink(e.target.value)
+                                                                    }
+                                                                    className={`${inputClasses} pl-11`}
+                                                                    placeholder="https://..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={`upload-modal-mobile-final-step space-y-4 sm:hidden ${mobileEventStep === 3 ? "" : "hidden"}`}
+                                        >
+                                            <div className={cardClasses}>
+                                                <label className="flex cursor-pointer items-center justify-between gap-4">
+                                                    <span className="min-w-0">
+                                                        <span
+                                                            className={`block text-sm font-black ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                        >
+                                                            {t("event_fields.college_notice")}
+                                                        </span>
+                                                        <span
+                                                            className={`mt-1 block text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                        >
+                                                            {t("event_fields.college_notice_hint")}
+                                                        </span>
+                                                    </span>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isCollegeNotice}
+                                                        onChange={toggleCollegeNotice}
+                                                        className="peer sr-only"
+                                                    />
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                                                            isCollegeNotice
+                                                                ? isDayMode
+                                                                    ? "bg-indigo-600"
+                                                                    : "bg-indigo-500"
+                                                                : isDayMode
+                                                                  ? "bg-slate-200"
+                                                                  : "bg-white/12"
+                                                        }`}
+                                                    >
+                                                        <span
+                                                            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
+                                                                isCollegeNotice
+                                                                    ? "translate-x-6"
+                                                                    : "translate-x-1"
+                                                            }`}
+                                                        />
+                                                    </span>
+                                                </label>
+
+                                                {isCollegeNotice && (
+                                                    <div className="space-y-4 pt-2">
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.notice_type")}
+                                                            </label>
+                                                            <div className="upload-modal-chip-grid grid grid-cols-2 gap-2">
+                                                                {COLLEGE_NOTICE_TYPES.map(
+                                                                    (noticeOption) => {
+                                                                        const selected =
+                                                                            noticeType ===
+                                                                            noticeOption.value;
+                                                                        return (
+                                                                            <button
+                                                                                key={
+                                                                                    noticeOption.value
+                                                                                }
+                                                                                type="button"
+                                                                                aria-pressed={
+                                                                                    selected
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    setNoticeType(
+                                                                                        noticeOption.value
+                                                                                    )
+                                                                                }
+                                                                                className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                                    selected
+                                                                                        ? isDayMode
+                                                                                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                                                            : "border-indigo-300/50 bg-indigo-400/18 text-indigo-50"
+                                                                                        : isDayMode
+                                                                                          ? "border-slate-200 bg-white text-slate-600"
+                                                                                          : "border-white/10 bg-white/5 text-gray-300"
+                                                                                }`}
+                                                                            >
+                                                                                {getCollegeNoticeTypeLabel(
+                                                                                    noticeOption.value,
+                                                                                    i18n.resolvedLanguage ||
+                                                                                        i18n.language
+                                                                                )}
+                                                                            </button>
+                                                                        );
+                                                                    }
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                {t("event_fields.source_college")}
+                                                            </label>
+                                                            <select
+                                                                value={sourceCollege}
+                                                                onChange={(event) =>
+                                                                    setSourceCollege(
+                                                                        event.target.value
+                                                                    )
+                                                                }
+                                                                className={inputClasses}
+                                                            >
+                                                                <option value="">
+                                                                    {t(
+                                                                        "event_fields.source_college_placeholder"
+                                                                    )}
+                                                                </option>
+                                                                {EVENT_SOURCE_COLLEGE_OPTIONS.map(
+                                                                    (college) => (
+                                                                        <option
+                                                                            key={college}
+                                                                            value={college}
+                                                                        >
+                                                                            {college}
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className={cardClasses}>
+                                                <label className={labelClasses}>
+                                                    {t("upload.event_link")}
+                                                </label>
+                                                <div className="relative group">
+                                                    <Link
+                                                        size={18}
+                                                        className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDayMode ? "text-slate-400 group-focus-within:text-indigo-500" : "text-gray-500 group-focus-within:text-indigo-400"}`}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={eventLink}
+                                                        onChange={(event) =>
+                                                            setEventLink(event.target.value)
+                                                        }
+                                                        className={`${inputClasses} pl-11`}
+                                                        placeholder="https://..."
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={cardClasses}>
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t(
+                                                                "profiles.publisher_identity",
+                                                                "发布身份"
+                                                            )}
+                                                        </label>
+                                                        <select
+                                                            value={selectedPublisherProfileId}
+                                                            onChange={(event) =>
+                                                                handlePublisherProfileChange(
+                                                                    event.target.value
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                profilesLoading ||
+                                                                manageableProfiles.length === 0
+                                                            }
+                                                            className={inputClasses}
+                                                        >
+                                                            <option value="">
+                                                                {profilesLoading
+                                                                    ? t("common.loading")
+                                                                    : t(
+                                                                          "profiles.default_personal",
+                                                                          "默认个人身份"
+                                                                      )}
+                                                            </option>
+                                                            {manageableProfiles.map((profile) => (
+                                                                <option
+                                                                    key={profile.id}
+                                                                    value={profile.id}
+                                                                >
+                                                                    {formatProfileOptionLabel(
+                                                                        profile
+                                                                    )}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    {organizationProfiles.length > 0 && (
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                {t(
+                                                                    "profiles.organizer_profile",
+                                                                    "主办主体"
+                                                                )}
+                                                            </label>
+                                                            <select
+                                                                value={selectedOrganizerProfileId}
+                                                                onChange={(event) =>
+                                                                    setSelectedOrganizerProfileId(
+                                                                        event.target.value
+                                                                    )
+                                                                }
+                                                                disabled={profilesLoading}
+                                                                className={inputClasses}
+                                                            >
+                                                                <option value="">
+                                                                    {t(
+                                                                        "profiles.organizer_auto_match",
+                                                                        "按主办方文本自动匹配"
+                                                                    )}
+                                                                </option>
+                                                                {organizationProfiles.map(
+                                                                    (profile) => (
+                                                                        <option
+                                                                            key={profile.id}
+                                                                            value={profile.id}
+                                                                        >
+                                                                            {formatProfileOptionLabel(
+                                                                                profile
+                                                                            )}
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className={cardClasses}>
+                                                <label className="flex cursor-pointer select-none items-center gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={featured}
+                                                        onChange={(event) =>
+                                                            setFeatured(event.target.checked)
+                                                        }
+                                                        className="peer sr-only"
+                                                    />
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${
+                                                            featured
+                                                                ? "border-indigo-500 bg-indigo-500"
+                                                                : isDayMode
+                                                                  ? "border-slate-300 bg-white"
+                                                                  : "border-white/20 bg-white/5"
+                                                        }`}
+                                                    >
+                                                        {featured && (
+                                                            <Check
+                                                                size={14}
+                                                                className="text-white"
+                                                            />
+                                                        )}
+                                                    </span>
+                                                    <span
+                                                        className={`text-sm font-bold ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                                    >
+                                                        {t("common.featured")}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="upload-modal-generic-body space-y-4 sm:space-y-6">
+                                        {type === "article" && (
+                                            <div className="upload-modal-article-grid grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 sm:gap-5">
+                                                <div className="upload-modal-article-main space-y-4">
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={title}
+                                                        onChange={(e) => setTitle(e.target.value)}
+                                                        className={`upload-modal-article-title-input w-full bg-transparent border-0 border-b px-1 py-3 focus:outline-none text-2xl sm:text-3xl font-black tracking-tight ${isDayMode ? "border-slate-200/90 focus:border-indigo-300 text-slate-950 placeholder:text-slate-400" : "border-white/10 focus:border-white/25 text-white placeholder:text-gray-500"}`}
+                                                        placeholder="输入标题，开始写作"
+                                                    />
+
+                                                    <div className="upload-modal-article-toolbar py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setArticleEditorMode("edit")
+                                                                }
+                                                                className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === "edit" ? (isDayMode ? "bg-blue-50 text-blue-700 border-blue-200 shadow-none" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none") : isDayMode ? "bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                            >
+                                                                <PenSquare size={14} />
+                                                                撰写
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setArticleEditorMode("preview")
+                                                                }
+                                                                className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === "preview" ? (isDayMode ? "bg-blue-50 text-blue-700 border-blue-200 shadow-none" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none") : isDayMode ? "bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                            >
+                                                                <Eye size={14} />
+                                                                预览
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    articleImportInputRef.current?.click()
+                                                                }
+                                                                disabled={isImportingDocument}
+                                                                className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors inline-flex items-center gap-1.5 disabled:opacity-60 ${isDayMode ? "bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                            >
+                                                                <Upload size={14} />
+                                                                {isImportingDocument
+                                                                    ? "导入中..."
+                                                                    : "导入文档"}
+                                                            </button>
+                                                            <input
+                                                                ref={articleImportInputRef}
+                                                                type="file"
+                                                                accept=".docx,.pdf,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown"
+                                                                className="hidden"
+                                                                onChange={
+                                                                    handleImportArticleDocument
+                                                                }
+                                                            />
+                                                            {hasLocalDraft && !isEditing && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={restoreArticleDraft}
+                                                                    className={`sm:hidden px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${isDayMode ? "bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                                >
+                                                                    恢复草稿
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 inline-flex items-center gap-1.5">
+                                                            <span>{articleBlocks.length} 块</span>
+                                                            <span>·</span>
+                                                            <span>{articleWordCount} 词</span>
+                                                            <span>·</span>
+                                                            <span className="inline-flex items-center gap-1">
+                                                                <Clock3 size={11} />
+                                                                {articleReadingMinutes} 分钟
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {articleEditorMode === "edit" ? (
+                                                        <div
+                                                            onPaste={handleArticleEditorPaste}
+                                                            className="upload-modal-article-editor space-y-3"
+                                                        >
+                                                            <div
+                                                                className={`upload-modal-article-format-bar sticky top-0 z-20 py-2 border-b ${isDayMode ? "bg-white/92 border-slate-200/80" : "bg-[#0f0f0f]/95 border-white/10"}`}
+                                                            >
+                                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateActiveTextStyle(
+                                                                                    "paragraph"
+                                                                                )
+                                                                            }
+                                                                            className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === "paragraph" ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35") : isDayMode ? "border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200" : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10"}`}
+                                                                        >
+                                                                            正文
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateActiveTextStyle(
+                                                                                    "heading"
+                                                                                )
+                                                                            }
+                                                                            className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === "heading" ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35") : isDayMode ? "border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200" : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10"}`}
+                                                                        >
+                                                                            标题
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateActiveTextStyle(
+                                                                                    "quote"
+                                                                                )
+                                                                            }
+                                                                            className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === "quote" ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35") : isDayMode ? "border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200" : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10"}`}
+                                                                        >
+                                                                            引用
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateActiveTextStyle(
+                                                                                    "list"
+                                                                                )
+                                                                            }
+                                                                            className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === "list" ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35") : isDayMode ? "border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200" : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10"}`}
+                                                                        >
+                                                                            <List size={12} />
+                                                                            列表
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="flex flex-wrap gap-2 sm:justify-end sm:ml-3">
+                                                                        {Object.entries(
+                                                                            ARTICLE_BLOCK_META
+                                                                        ).map(
+                                                                            ([blockType, meta]) => {
+                                                                                const BlockIcon =
+                                                                                    meta.icon;
+                                                                                return (
+                                                                                    <button
+                                                                                        key={
+                                                                                            blockType
+                                                                                        }
+                                                                                        type="button"
+                                                                                        onClick={() =>
+                                                                                            addArticleBlock(
+                                                                                                blockType
+                                                                                            )
+                                                                                        }
+                                                                                        className={`px-2 py-1.5 rounded-md border text-[11px] font-medium transition-all inline-flex items-center gap-1.5 ${isDayMode ? "bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-indigo-200 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "bg-white/[0.03] border-white/10 text-gray-200 hover:bg-white/10"}`}
+                                                                                    >
+                                                                                        <BlockIcon
+                                                                                            size={
+                                                                                                12
+                                                                                            }
+                                                                                        />
+                                                                                        <span>
+                                                                                            +
+                                                                                            {
+                                                                                                meta.label
+                                                                                            }
+                                                                                        </span>
+                                                                                    </button>
+                                                                                );
+                                                                            }
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="upload-modal-article-blocks space-y-2">
+                                                                {articleBlocks.map(
+                                                                    (block, index) => (
+                                                                        <div
+                                                                            key={block.id}
+                                                                            draggable
+                                                                            onDragStart={() =>
+                                                                                handleArticleBlockDragStart(
+                                                                                    block.id
+                                                                                )
+                                                                            }
+                                                                            onDragEnd={() => {
+                                                                                setDraggingBlockId(
+                                                                                    null
+                                                                                );
+                                                                                setDragOverBlockId(
+                                                                                    null
+                                                                                );
+                                                                                setDragOverPosition(
+                                                                                    "before"
+                                                                                );
+                                                                            }}
+                                                                            onDragOver={(e) => {
+                                                                                e.preventDefault();
+                                                                                if (
+                                                                                    draggingBlockId &&
+                                                                                    draggingBlockId !==
+                                                                                        block.id
+                                                                                ) {
+                                                                                    setDragOverBlockId(
+                                                                                        block.id
+                                                                                    );
+                                                                                    setDragOverPosition(
+                                                                                        resolveDragOverPosition(
+                                                                                            e
+                                                                                        )
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                            onDragLeave={() => {
+                                                                                if (
+                                                                                    dragOverBlockId ===
+                                                                                    block.id
+                                                                                ) {
+                                                                                    setDragOverBlockId(
+                                                                                        null
+                                                                                    );
+                                                                                    setDragOverPosition(
+                                                                                        "before"
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                            onDrop={() =>
+                                                                                handleArticleBlockDrop(
+                                                                                    block.id
+                                                                                )
+                                                                            }
+                                                                            className={`upload-modal-article-block relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? "opacity-60 border-indigo-400/50 bg-indigo-500/10" : isDayMode ? "border-slate-200/80 bg-white/90 hover:border-indigo-200 shadow-[0_10px_20px_rgba(148,163,184,0.12)]" : "border-white/10 bg-transparent hover:border-white/20"} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? "ring-2 ring-indigo-400/40 border-indigo-300/50" : ""}`}
+                                                                        >
+                                                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                                                <div
+                                                                                    className={`flex items-center gap-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                                                >
+                                                                                    <GripVertical
+                                                                                        size={14}
+                                                                                    />
+                                                                                    <span>
+                                                                                        {(ARTICLE_BLOCK_META[
+                                                                                            block
+                                                                                                .type
+                                                                                        ]?.label ||
+                                                                                            block.type) +
+                                                                                            (block.type ===
+                                                                                            "text"
+                                                                                                ? ` · ${block.style === "heading" ? "标题" : block.style === "quote" ? "引用" : block.style === "list" ? "列表" : "正文"}`
+                                                                                                : "")}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        aria-label="上移内容块"
+                                                                                        onClick={() =>
+                                                                                            moveArticleBlock(
+                                                                                                block.id,
+                                                                                                "up"
+                                                                                            )
+                                                                                        }
+                                                                                        disabled={
+                                                                                            index ===
+                                                                                            0
+                                                                                        }
+                                                                                        className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? "bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                                                    >
+                                                                                        <ArrowUp
+                                                                                            size={
+                                                                                                14
+                                                                                            }
+                                                                                        />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        aria-label="下移内容块"
+                                                                                        onClick={() =>
+                                                                                            moveArticleBlock(
+                                                                                                block.id,
+                                                                                                "down"
+                                                                                            )
+                                                                                        }
+                                                                                        disabled={
+                                                                                            index ===
+                                                                                            articleBlocks.length -
+                                                                                                1
+                                                                                        }
+                                                                                        className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? "bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
+                                                                                    >
+                                                                                        <ArrowDown
+                                                                                            size={
+                                                                                                14
+                                                                                            }
+                                                                                        />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        aria-label="删除内容块"
+                                                                                        onClick={() =>
+                                                                                            removeArticleBlock(
+                                                                                                block.id
+                                                                                            )
+                                                                                        }
+                                                                                        disabled={
+                                                                                            articleBlocks.length <=
+                                                                                            1
+                                                                                        }
+                                                                                        className="p-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-300 disabled:opacity-40 hover:bg-red-500/20"
+                                                                                    >
+                                                                                        <Trash2
+                                                                                            size={
+                                                                                                14
+                                                                                            }
+                                                                                        />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                            {block.type ===
+                                                                                "text" && (
+                                                                                <>
+                                                                                    <textarea
+                                                                                        value={
+                                                                                            block.text
+                                                                                        }
+                                                                                        onChange={(
+                                                                                            e
+                                                                                        ) => {
+                                                                                            const nextText =
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value;
+                                                                                            updateArticleBlock(
+                                                                                                block.id,
+                                                                                                {
+                                                                                                    text: nextText,
+                                                                                                }
+                                                                                            );
+                                                                                            const lastLine =
+                                                                                                nextText
+                                                                                                    .split(
+                                                                                                        "\n"
+                                                                                                    )
+                                                                                                    .at(
+                                                                                                        -1
+                                                                                                    )
+                                                                                                    ?.trim();
+                                                                                            setSlashMenuBlockId(
+                                                                                                lastLine ===
+                                                                                                    "/"
+                                                                                                    ? block.id
+                                                                                                    : null
+                                                                                            );
+                                                                                        }}
+                                                                                        onFocus={() =>
+                                                                                            setActiveTextBlockId(
+                                                                                                block.id
+                                                                                            )
+                                                                                        }
+                                                                                        onKeyDown={(
+                                                                                            e
+                                                                                        ) =>
+                                                                                            handleArticleTextKeyDown(
+                                                                                                e,
+                                                                                                block
+                                                                                            )
+                                                                                        }
+                                                                                        className={`${inputClasses} upload-modal-article-textarea h-32 text-[15px] leading-7`}
+                                                                                        placeholder="输入正文内容，输入 / 后回车可快速插入块"
+                                                                                    />
+                                                                                    {block.style ===
+                                                                                        "code" && (
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={
+                                                                                                block.language ||
+                                                                                                ""
+                                                                                            }
+                                                                                            onChange={(
+                                                                                                e
+                                                                                            ) =>
+                                                                                                updateArticleBlock(
+                                                                                                    block.id,
+                                                                                                    {
+                                                                                                        language:
+                                                                                                            e
+                                                                                                                .target
+                                                                                                                .value,
+                                                                                                    }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`${inputClasses} mt-2`}
+                                                                                            placeholder="可选：语言标记，例如 python / js / bash"
+                                                                                        />
+                                                                                    )}
+                                                                                    {slashMenuBlockId ===
+                                                                                        block.id && (
+                                                                                        <div
+                                                                                            className={`mt-2 rounded-lg border p-2 flex flex-wrap gap-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/15 bg-white/[0.04]"}`}
+                                                                                        >
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() =>
+                                                                                                    handleSlashCommandInsert(
+                                                                                                        block,
+                                                                                                        "image"
+                                                                                                    )
+                                                                                                }
+                                                                                                className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                                                                                            >
+                                                                                                图片块
+                                                                                            </button>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() =>
+                                                                                                    handleSlashCommandInsert(
+                                                                                                        block,
+                                                                                                        "video"
+                                                                                                    )
+                                                                                                }
+                                                                                                className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                                                                                            >
+                                                                                                视频块
+                                                                                            </button>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() =>
+                                                                                                    handleSlashCommandInsert(
+                                                                                                        block,
+                                                                                                        "file"
+                                                                                                    )
+                                                                                                }
+                                                                                                className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                                                                                            >
+                                                                                                附件块
+                                                                                            </button>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() =>
+                                                                                                    handleSlashCommandInsert(
+                                                                                                        block,
+                                                                                                        "text"
+                                                                                                    )
+                                                                                                }
+                                                                                                className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                                                                                            >
+                                                                                                文字块
+                                                                                            </button>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() =>
+                                                                                                    handleSlashCommandInsert(
+                                                                                                        block,
+                                                                                                        "code"
+                                                                                                    )
+                                                                                                }
+                                                                                                className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                                                                                            >
+                                                                                                代码块
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </>
+                                                                            )}
+                                                                            {(block.type ===
+                                                                                "image" ||
+                                                                                block.type ===
+                                                                                    "video" ||
+                                                                                block.type ===
+                                                                                    "file") && (
+                                                                                <div className="space-y-3">
+                                                                                    <div className="relative">
+                                                                                        <input
+                                                                                            type="file"
+                                                                                            accept={getArticleBlockAccept(
+                                                                                                block.type
+                                                                                            )}
+                                                                                            disabled={
+                                                                                                canUseNativeUpload
+                                                                                            }
+                                                                                            onChange={(
+                                                                                                e
+                                                                                            ) =>
+                                                                                                handleArticleBlockFileChange(
+                                                                                                    block.id,
+                                                                                                    block.type,
+                                                                                                    e
+                                                                                                        .target
+                                                                                                        .files?.[0]
+                                                                                                )
+                                                                                            }
+                                                                                            className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? "pointer-events-none" : ""}`}
+                                                                                        />
+                                                                                        <div
+                                                                                            className={`upload-modal-article-file-drop h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? "border-slate-200/90 bg-slate-50/80 text-slate-500" : "border-white/20 bg-white/[0.03] text-gray-300"}`}
+                                                                                        >
+                                                                                            {block.name ||
+                                                                                                (block.type ===
+                                                                                                "file"
+                                                                                                    ? "选择附件文件"
+                                                                                                    : `选择${block.type === "image" ? "图片" : "视频"}文件`)}
+                                                                                        </div>
+                                                                                        {renderNativeUploadButton(
+                                                                                            {
+                                                                                                kind: "article-block",
+                                                                                                blockId:
+                                                                                                    block.id,
+                                                                                                blockType:
+                                                                                                    block.type,
+                                                                                            },
+                                                                                            t(
+                                                                                                "upload.native_upload_file"
+                                                                                            )
+                                                                                        )}
+                                                                                    </div>
+                                                                                    {(block.type ===
+                                                                                        "image" ||
+                                                                                        block.type ===
+                                                                                            "video") &&
+                                                                                        block.url && (
+                                                                                            <div
+                                                                                                className={`rounded-xl border p-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-black/40"}`}
+                                                                                            >
+                                                                                                {block.type ===
+                                                                                                "image" ? (
+                                                                                                    <img
+                                                                                                        src={
+                                                                                                            block.url
+                                                                                                        }
+                                                                                                        alt={
+                                                                                                            block.caption ||
+                                                                                                            "preview"
+                                                                                                        }
+                                                                                                        className="max-h-56 w-full rounded-lg object-contain"
+                                                                                                    />
+                                                                                                ) : (
+                                                                                                    <video
+                                                                                                        src={
+                                                                                                            block.url
+                                                                                                        }
+                                                                                                        controls
+                                                                                                        className="max-h-56 rounded-lg w-full"
+                                                                                                    />
+                                                                                                )}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    {block.type ===
+                                                                                        "file" &&
+                                                                                        (block.name ||
+                                                                                            block.url) && (
+                                                                                            <div
+                                                                                                className={`rounded-xl border p-3 text-xs flex items-center gap-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-600" : "border-white/10 bg-white/5 text-gray-300"}`}
+                                                                                            >
+                                                                                                <Paperclip
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                />
+                                                                                                <span className="truncate">
+                                                                                                    {block.name ||
+                                                                                                        "附件"}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    {block.type !==
+                                                                                        "file" && (
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={
+                                                                                                block.caption ||
+                                                                                                ""
+                                                                                            }
+                                                                                            onChange={(
+                                                                                                e
+                                                                                            ) =>
+                                                                                                updateArticleBlock(
+                                                                                                    block.id,
+                                                                                                    {
+                                                                                                        caption:
+                                                                                                            e
+                                                                                                                .target
+                                                                                                                .value,
+                                                                                                    }
+                                                                                                )
+                                                                                            }
+                                                                                            className={
+                                                                                                inputClasses
+                                                                                            }
+                                                                                            placeholder="可选：说明文字"
+                                                                                        />
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div
+                                                            className={`upload-modal-article-preview-card rounded-2xl border p-5 space-y-4 ${isDayMode ? "border-slate-200/80 bg-white/95 shadow-[0_18px_40px_rgba(148,163,184,0.14)]" : "border-white/10 bg-[#121212]"}`}
+                                                        >
+                                                            <div
+                                                                className={`text-sm font-semibold ${isDayMode ? "text-slate-700" : "text-white/90"}`}
+                                                            >
+                                                                {title || "未命名文章"}
+                                                            </div>
+                                                            {articleBlocks.map((block) => (
+                                                                <div
+                                                                    key={`preview-${block.id}`}
+                                                                    className="space-y-2"
+                                                                >
+                                                                    {block.type === "text" &&
+                                                                        (block.style ===
+                                                                        "heading" ? (
+                                                                            <h3
+                                                                                className={`text-2xl font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                                                            >
+                                                                                {block.text ||
+                                                                                    "（空标题）"}
+                                                                            </h3>
+                                                                        ) : block.style ===
+                                                                          "quote" ? (
+                                                                            <blockquote
+                                                                                className={`leading-8 whitespace-pre-wrap border-l-4 border-indigo-400/60 pl-4 italic ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                                                            >
+                                                                                {block.text ||
+                                                                                    "（空引用）"}
+                                                                            </blockquote>
+                                                                        ) : block.style ===
+                                                                          "code" ? (
+                                                                            <div
+                                                                                className={`rounded-xl border overflow-hidden ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                                                            >
+                                                                                <div
+                                                                                    className={`px-3 py-2 text-[11px] uppercase tracking-[0.18em] ${isDayMode ? "text-slate-400 bg-slate-50/90" : "text-gray-400 bg-white/5"}`}
+                                                                                >
+                                                                                    {block.language ||
+                                                                                        "code"}
+                                                                                </div>
+                                                                                <pre
+                                                                                    className={`px-4 py-4 text-sm overflow-x-auto whitespace-pre-wrap ${isDayMode ? "text-slate-700 bg-slate-50/70" : "text-gray-100"}`}
+                                                                                >
+                                                                                    <code>
+                                                                                        {block.text ||
+                                                                                            "（空代码块）"}
+                                                                                    </code>
+                                                                                </pre>
+                                                                            </div>
+                                                                        ) : block.style ===
+                                                                          "list" ? (
+                                                                            <ul
+                                                                                className={`list-disc pl-6 space-y-2 leading-8 ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                                                            >
+                                                                                {(block.text || "")
+                                                                                    .split("\n")
+                                                                                    .map((line) =>
+                                                                                        line.trim()
+                                                                                    )
+                                                                                    .filter(Boolean)
+                                                                                    .map(
+                                                                                        (
+                                                                                            line,
+                                                                                            idx
+                                                                                        ) => (
+                                                                                            <li
+                                                                                                key={`${block.id}-list-${idx}`}
+                                                                                            >
+                                                                                                {line.replace(
+                                                                                                    /^[-*]\s*/,
+                                                                                                    ""
+                                                                                                )}
+                                                                                            </li>
+                                                                                        )
+                                                                                    )}
+                                                                            </ul>
+                                                                        ) : (
+                                                                            <p
+                                                                                className={`leading-8 whitespace-pre-wrap ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                                                            >
+                                                                                {block.text ||
+                                                                                    "（空段落）"}
+                                                                            </p>
+                                                                        ))}
+                                                                    {block.type === "image" &&
+                                                                        block.url && (
+                                                                            <figure className="space-y-2">
+                                                                                <img
+                                                                                    src={block.url}
+                                                                                    alt={
+                                                                                        block.caption ||
+                                                                                        "preview"
+                                                                                    }
+                                                                                    className={`w-full rounded-xl border ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                                                                />
+                                                                                {block.caption && (
+                                                                                    <figcaption
+                                                                                        className={`text-xs ${isDayMode ? "text-slate-400" : "text-gray-400"}`}
+                                                                                    >
+                                                                                        {
+                                                                                            block.caption
+                                                                                        }
+                                                                                    </figcaption>
+                                                                                )}
+                                                                            </figure>
+                                                                        )}
+                                                                    {block.type === "video" &&
+                                                                        block.url && (
+                                                                            <figure className="space-y-2">
+                                                                                <video
+                                                                                    src={block.url}
+                                                                                    controls
+                                                                                    className={`w-full rounded-xl border ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                                                                />
+                                                                                {block.caption && (
+                                                                                    <figcaption
+                                                                                        className={`text-xs ${isDayMode ? "text-slate-400" : "text-gray-400"}`}
+                                                                                    >
+                                                                                        {
+                                                                                            block.caption
+                                                                                        }
+                                                                                    </figcaption>
+                                                                                )}
+                                                                            </figure>
+                                                                        )}
+                                                                    {block.type === "file" &&
+                                                                        (block.url ||
+                                                                            block.name) && (
+                                                                            <a
+                                                                                href={
+                                                                                    block.url || "#"
+                                                                                }
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700" : "border-white/10 bg-white/5 text-gray-200"}`}
+                                                                            >
+                                                                                <Paperclip
+                                                                                    size={14}
+                                                                                />
+                                                                                <span>
+                                                                                    {block.name ||
+                                                                                        "附件"}
+                                                                                </span>
+                                                                            </a>
+                                                                        )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <aside className="upload-modal-article-side space-y-4 xl:sticky xl:top-4 self-start">
+                                                    <div
+                                                        className={`upload-modal-article-settings rounded-xl border p-4 space-y-3.5 ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#121212]"}`}
+                                                    >
+                                                        <div
+                                                            className={`text-xs font-semibold tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                        >
+                                                            发布设置
+                                                        </div>
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                发布时间
+                                                            </label>
+                                                            <input
+                                                                type="date"
+                                                                value={
+                                                                    eventDate
+                                                                        ? eventDate.split("T")[0]
+                                                                        : ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setEventDate(e.target.value)
+                                                                }
+                                                                className={inputClasses}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                文章封面
+                                                            </label>
+                                                            <div
+                                                                className={`upload-modal-article-cover h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-500" : "border-white/10 bg-white/5 text-gray-400"}`}
+                                                            >
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    disabled={canUseNativeUpload}
+                                                                    onChange={(e) =>
+                                                                        handleFileChange(e, true)
+                                                                    }
+                                                                    className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? "pointer-events-none" : ""}`}
+                                                                />
+                                                                <span className="truncate">
+                                                                    {coverFile?.name ||
+                                                                        nativeCoverFileName ||
+                                                                        (coverPreview
+                                                                            ? "已设置封面，点击可替换"
+                                                                            : "点击上传封面图")}
+                                                                </span>
+                                                                {canUseNativeUpload ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        disabled={
+                                                                            nativeUploadState.active
+                                                                        }
+                                                                        onClick={(event) => {
+                                                                            event.preventDefault();
+                                                                            event.stopPropagation();
+                                                                            startNativeUpload({
+                                                                                kind: "cover",
+                                                                            });
+                                                                        }}
+                                                                        className={`relative z-30 shrink-0 rounded-lg border px-2 py-1 text-[10px] font-bold ${nativeUploadButtonClasses}`}
+                                                                    >
+                                                                        {t(
+                                                                            "upload.native_upload_short"
+                                                                        )}
+                                                                    </button>
+                                                                ) : (
+                                                                    <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">
+                                                                        JPG/PNG
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className={labelClasses}>
+                                                                文章摘要
+                                                            </label>
+                                                            <textarea
+                                                                value={description}
+                                                                onChange={(e) =>
+                                                                    setDescription(e.target.value)
+                                                                }
+                                                                className={`${inputClasses} upload-modal-article-summary h-28 resize-none`}
+                                                                placeholder="用于列表展示与搜索摘要，建议 40-120 字"
+                                                            />
+                                                        </div>
+                                                        <label className="flex cursor-pointer items-center gap-3 pt-1">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={featured}
+                                                                onChange={(event) =>
+                                                                    setFeatured(
+                                                                        event.target.checked
+                                                                    )
+                                                                }
+                                                                className="peer sr-only"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className={`flex h-5 w-5 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${featured ? "bg-indigo-500 border-indigo-500" : isDayMode ? "bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white" : "bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]"}`}
+                                                            >
+                                                                {featured && (
+                                                                    <Check
+                                                                        size={12}
+                                                                        className="text-white"
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                className={`text-sm ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                                            >
+                                                                {t("common.featured")}
+                                                            </span>
+                                                        </label>
+                                                        <div
+                                                            className={`rounded-lg border px-3 py-2.5 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
+                                                        >
+                                                            <div
+                                                                className={`flex items-center justify-between text-[11px] mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                            >
+                                                                <span>发布完整度</span>
+                                                                <span>
+                                                                    {articleCompletion.percent}%
+                                                                </span>
+                                                            </div>
+                                                            <div
+                                                                className={`h-1.5 rounded-full overflow-hidden ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`}
+                                                            >
+                                                                <div
+                                                                    className={`h-full rounded-full ${isDayMode ? "bg-indigo-500" : "bg-white/70"}`}
+                                                                    style={{
+                                                                        width: `${articleCompletion.percent}%`,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div
+                                                                className={`mt-2 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                            >
+                                                                已完成 {articleCompletion.completed}
+                                                                /{articleCompletion.total} 个内容块
+                                                            </div>
+                                                        </div>
+                                                        {isAdmin && (
+                                                            <div
+                                                                className={`rounded-lg border p-3 space-y-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
+                                                            >
+                                                                <div
+                                                                    className={`text-[11px] font-semibold ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                                >
+                                                                    关联内容（ID）
+                                                                </div>
+                                                                <input
+                                                                    value={relatedArticleIds}
+                                                                    onChange={(e) =>
+                                                                        setRelatedArticleIds(
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className={inputClasses}
+                                                                    placeholder="related_article_ids: 1,2,3"
+                                                                />
+                                                                <input
+                                                                    value={relatedPostIds}
+                                                                    onChange={(e) =>
+                                                                        setRelatedPostIds(
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className={inputClasses}
+                                                                    placeholder="related_post_ids: 11,12"
+                                                                />
+                                                                <input
+                                                                    value={relatedNewsIds}
+                                                                    onChange={(e) =>
+                                                                        setRelatedNewsIds(
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className={inputClasses}
+                                                                    placeholder="related_news_ids: 21,22"
+                                                                />
+                                                                <input
+                                                                    value={relatedGroupIds}
+                                                                    onChange={(e) =>
+                                                                        setRelatedGroupIds(
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className={inputClasses}
+                                                                    placeholder="related_group_ids: 31,32"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </aside>
+                                            </div>
+                                        )}
+                                        <div className={type === "article" ? "hidden" : ""}>
+                                            {/* Main File Upload */}
+                                            {type !== "event" && type !== "article" && (
+                                                <div className="space-y-2">
+                                                    <label className={labelClasses}>
+                                                        {type === "article"
+                                                            ? t("common.cover", "封面")
+                                                            : t(`common.${type}`)}
+                                                    </label>
+                                                    <div
+                                                        className={`${uploadBoxClasses(dragTarget === "main")} upload-modal-main-dropzone min-h-[160px] sm:min-h-[200px]`}
+                                                        onDragEnter={(e) =>
+                                                            handleDragEnter(e, "main")
+                                                        }
+                                                        onDragLeave={handleDragLeave}
+                                                        onDragOver={(e) =>
+                                                            handleDragOver(e, "main")
+                                                        }
+                                                        onDrop={(e) => handleDrop(e, false)}
+                                                    >
+                                                        <input
+                                                            type="file"
+                                                            accept={getAcceptType()}
+                                                            multiple={isImageBatchEnabled}
+                                                            disabled={canUseNativeUpload}
+                                                            onChange={(e) =>
+                                                                handleFileChange(e, false)
+                                                            }
+                                                            className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? "pointer-events-none" : ""}`}
+                                                        />
+
+                                                        {hasBatchImages ? (
+                                                            <div className="relative z-20 pointer-events-none w-full px-1 sm:px-2">
+                                                                <div className="flex items-center justify-between gap-3 mb-3">
+                                                                    <div
+                                                                        className={`text-left ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                                    >
+                                                                        <p className="text-sm sm:text-base font-bold">
+                                                                            {batchUploadCount}{" "}
+                                                                            张图片待上传
+                                                                        </p>
+                                                                        <p
+                                                                            className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                                        >
+                                                                            点击或拖拽可重新选择
+                                                                        </p>
+                                                                    </div>
+                                                                    <span
+                                                                        className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"}`}
+                                                                    >
+                                                                        批量
+                                                                    </span>
+                                                                </div>
+                                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-hidden">
+                                                                    {batchImages
+                                                                        .slice(0, 8)
+                                                                        .map((item, index) => (
+                                                                            <div
+                                                                                key={item.id}
+                                                                                className={`relative aspect-square overflow-hidden rounded-xl border ${isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/5"}`}
+                                                                            >
+                                                                                <img
+                                                                                    src={
+                                                                                        item.preview
+                                                                                    }
+                                                                                    alt={
+                                                                                        item.file
+                                                                                            .name
+                                                                                    }
+                                                                                    className="h-full w-full object-cover"
+                                                                                />
+                                                                                <span className="absolute left-1.5 top-1.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                                                                    {index + 1}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    {batchImages.length > 8 && (
+                                                                        <div
+                                                                            className={`aspect-square rounded-xl border flex items-center justify-center text-sm font-bold ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/5 text-gray-200"}`}
+                                                                        >
+                                                                            +
+                                                                            {batchImages.length - 8}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ) : preview ? (
+                                                            type === "audio" ? (
+                                                                <div className="text-center relative z-20 pointer-events-none px-4">
+                                                                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                                                                        <Music
+                                                                            size={24}
+                                                                            className="text-green-400 sm:w-8 sm:h-8"
+                                                                        />
+                                                                    </div>
+                                                                    <p
+                                                                        className={`font-medium text-sm break-all ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                                    >
+                                                                        {file?.name ||
+                                                                            nativeFileName}
+                                                                    </p>
+                                                                    <p
+                                                                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                                    >
+                                                                        {t(
+                                                                            "upload.click_drag_replace"
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                            ) : type === "video" ? (
+                                                                <div className="relative z-20 pointer-events-none w-full flex justify-center px-4">
+                                                                    <video
+                                                                        src={preview}
+                                                                        className="max-h-48 sm:max-h-64 rounded-xl shadow-lg"
+                                                                        controls
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                <div className="relative z-20 pointer-events-none px-4">
+                                                                    <img
+                                                                        src={preview}
+                                                                        alt="Preview"
+                                                                        className="max-h-48 sm:max-h-64 rounded-xl object-contain shadow-2xl"
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        ) : canUseNativeUpload ? null : (
+                                                            renderUnifiedUploadPrompt(
+                                                                type === "image"
+                                                                    ? t(
+                                                                          "upload.native_upload_cover"
+                                                                      )
+                                                                    : t(
+                                                                          "upload.native_upload_file"
+                                                                      ),
+                                                                type === "image"
+                                                                    ? t("upload.choose_image_hint")
+                                                                    : t("upload.native_upload_hint")
+                                                            )
+                                                        )}
+                                                        {renderNativeUploadButton(
+                                                            { kind: "main" },
+                                                            type === "image"
+                                                                ? t("upload.native_upload_cover")
+                                                                : t("upload.native_upload_file"),
+                                                            {
+                                                                variant:
+                                                                    hasBatchImages || preview
+                                                                        ? "compact"
+                                                                        : "full",
+                                                                hint:
+                                                                    type === "image"
+                                                                        ? t(
+                                                                              "upload.choose_image_hint"
+                                                                          )
+                                                                        : t(
+                                                                              "upload.native_upload_hint"
+                                                                          ),
+                                                            }
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Cover Image Upload (For Audio/Video) */}
+                                            {(type === "audio" || type === "video") && (
+                                                <div className="space-y-2">
+                                                    <label className={labelClasses}>
+                                                        {t("common.cover")}
+                                                    </label>
+                                                    <div
+                                                        className={`${uploadBoxClasses(dragTarget === "cover")} upload-modal-secondary-cover-dropzone h-32 sm:h-40`}
+                                                        onDragEnter={(e) =>
+                                                            handleDragEnter(e, "cover")
+                                                        }
+                                                        onDragLeave={handleDragLeave}
+                                                        onDragOver={(e) =>
+                                                            handleDragOver(e, "cover")
+                                                        }
+                                                        onDrop={(e) => handleDrop(e, true)}
+                                                    >
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            disabled={canUseNativeUpload}
+                                                            onChange={(e) =>
+                                                                handleFileChange(e, true)
+                                                            }
+                                                            className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? "pointer-events-none" : ""}`}
+                                                        />
+                                                        {coverPreview ? (
+                                                            <div className="relative h-full w-full flex justify-center items-center pointer-events-none px-4">
+                                                                <img
+                                                                    src={coverPreview}
+                                                                    alt="Cover Preview"
+                                                                    className="h-full rounded-lg object-contain"
+                                                                />
+                                                                <div
+                                                                    className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === "cover" ? "opacity-100" : ""} ${isDayMode ? "bg-white/68" : "bg-black/50"}`}
+                                                                >
+                                                                    <p
+                                                                        className={`text-xs flex items-center gap-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                                    >
+                                                                        <Upload size={14} />{" "}
+                                                                        {t("upload.replace")}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ) : canUseNativeUpload ? null : (
+                                                            renderUnifiedUploadPrompt(
+                                                                t("upload.native_upload_cover"),
+                                                                t("upload.choose_image_hint")
+                                                            )
+                                                        )}
+                                                        {renderNativeUploadButton(
+                                                            { kind: "cover" },
+                                                            t("upload.native_upload_cover"),
+                                                            {
+                                                                variant: coverPreview
+                                                                    ? "compact"
+                                                                    : "full",
+                                                                hint: t("upload.choose_image_hint"),
+                                                            }
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Inputs Card */}
+                                            <div className={cardClasses}>
+                                                <div>
+                                                    <label className={labelClasses}>
+                                                        {t("common.title")}
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        required={!hasBatchImages}
+                                                        value={title}
+                                                        onChange={(e) => setTitle(e.target.value)}
+                                                        className={`${inputClasses} text-lg font-medium`}
+                                                        placeholder={
+                                                            hasBatchImages
+                                                                ? "可选：填写后会自动生成 标题 1、标题 2..."
+                                                                : t("upload.title_placeholder")
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* Image Specific Fields: Size */}
+                                                {type === "image" && (
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("common.size")}
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={size}
+                                                            onChange={(e) =>
+                                                                setSize(e.target.value)
+                                                            }
+                                                            className={inputClasses}
+                                                            placeholder={t(
+                                                                "upload.size_placeholder"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {usesMediaCategory && (
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            影像分类
+                                                        </label>
+                                                        <select
+                                                            value={mediaCategoryId}
+                                                            onChange={(e) =>
+                                                                setMediaCategoryId(e.target.value)
+                                                            }
+                                                            className={inputClasses}
+                                                        >
+                                                            <option value="">未分类</option>
+                                                            {mediaCategories.map((category) => (
+                                                                <option
+                                                                    key={category.id}
+                                                                    value={category.id}
+                                                                >
+                                                                    {category.name}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        {mediaCategoriesError ? (
+                                                            <div
+                                                                className={`mt-2 flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? "border-red-200 bg-red-50 text-red-700" : "border-red-400/25 bg-red-500/10 text-red-200"}`}
+                                                            >
+                                                                <span>
+                                                                    分类加载失败，当前只能上传为未分类。
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        refreshMediaCategories({
+                                                                            clearCache: true,
+                                                                        })
+                                                                    }
+                                                                    className={`shrink-0 font-bold ${isDayMode ? "text-red-700 hover:text-red-900" : "text-red-100 hover:text-white"}`}
+                                                                >
+                                                                    重试
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <p
+                                                                className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                            >
+                                                                {mediaCategoriesLoading
+                                                                    ? "正在加载影像分类..."
+                                                                    : mediaCategories.length === 0
+                                                                      ? "暂无可用分类，内容会先归入未分类。"
+                                                                      : "选择后会在影像库对应分类中展示。"}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Audio Specific Fields */}
+                                                {type === "audio" && (
+                                                    <div>
+                                                        <label className={labelClasses}>
+                                                            {t("common.artist")}
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={artist}
+                                                            onChange={(e) =>
+                                                                setArtist(e.target.value)
+                                                            }
+                                                            className={inputClasses}
+                                                            placeholder={t(
+                                                                "upload.artist_placeholder"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                <div>
+                                                    <label className={labelClasses}>
+                                                        {type === "article"
+                                                            ? "文章摘要"
+                                                            : t("admin.fields.description")}
+                                                    </label>
+                                                    <textarea
+                                                        value={description}
+                                                        onChange={(e) =>
+                                                            setDescription(e.target.value)
+                                                        }
+                                                        className={`${inputClasses} ${type === "article" ? "h-28 sm:h-32" : "h-20 sm:h-24"} resize-none`}
+                                                        placeholder={
+                                                            type === "article"
+                                                                ? "用于列表展示与搜索摘要，建议 40-120 字"
+                                                                : t(
+                                                                      "upload.description_placeholder"
+                                                                  )
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* Featured Checkbox */}
+                                                <label className="flex cursor-pointer select-none items-center gap-3 pt-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={featured}
+                                                        onChange={(event) =>
+                                                            setFeatured(event.target.checked)
+                                                        }
+                                                        className="peer sr-only"
+                                                    />
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 sm:h-5 sm:w-5 ${featured ? "bg-indigo-500 border-indigo-500" : isDayMode ? "bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white" : "bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]"}`}
+                                                    >
+                                                        {featured && (
+                                                            <Check
+                                                                size={14}
+                                                                className="text-white sm:w-3 sm:h-3"
+                                                            />
+                                                        )}
+                                                    </span>
+                                                    <span
+                                                        className={`text-sm font-medium transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-900" : "text-gray-300 hover:text-white"}`}
+                                                    >
+                                                        {t("common.featured")}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Submit Buttons - Sticky at bottom */}
+                            <div className={footerClass}>
+                                {type === "event" && (
+                                    <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-3 sm:hidden">
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                if (mobileEventStep === 1) {
+                                                    handleClose();
+                                                    return;
+                                                }
+                                                setMobileEventStep((step) => Math.max(1, step - 1));
+                                            }}
+                                            className={`rect-button-secondary min-h-[50px] w-full px-4 text-sm font-bold ${isDayMode ? "bg-white/90 text-slate-600 hover:text-slate-900" : "text-gray-300 hover:text-white"}`}
+                                        >
+                                            {mobileEventStep === 1 ? t("common.cancel") : "上一步"}
+                                        </button>
+                                        {mobileEventStep < 3 ? (
+                                            <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                    setMobileEventStep((step) =>
+                                                        Math.min(3, step + 1)
+                                                    );
+                                                }}
+                                                className={`rect-button-primary min-h-[50px] w-full px-4 text-sm font-black ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500" : "bg-indigo-500 text-white hover:bg-indigo-400"}`}
+                                            >
+                                                下一步
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="submit"
+                                                disabled={isUploading}
+                                                className={`rect-button-primary flex min-h-[50px] w-full items-center justify-center gap-2 px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500" : "bg-indigo-500 text-white hover:bg-indigo-400"}`}
+                                            >
+                                                {isUploading ? (
+                                                    <>
+                                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                        <span>{t("upload.uploading")}...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Upload size={18} />
+                                                        <span>
+                                                            {isEditing
+                                                                ? t("common.save")
+                                                                : "上传 / 保存"}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${type === "event" ? "max-sm:!hidden sm:inline-flex" : ""} ${isDayMode ? "text-slate-600 hover:text-slate-900 bg-white/90" : "text-gray-400 hover:text-white"}`}
+                                >
+                                    {t("common.cancel")}
+                                </button>
+                                <button
+                                    type={type === "article" ? "button" : "submit"}
+                                    onClick={() => {
+                                        if (type === "article") {
+                                            setSubmitIntent("publish");
+                                            formRef.current?.requestSubmit();
+                                        }
+                                    }}
+                                    disabled={isUploading}
+                                    className={`rect-button-primary w-full sm:w-auto px-8 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center gap-2.5 font-black text-sm ${type === "event" ? "max-sm:!hidden sm:inline-flex" : "flex"} ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500" : "bg-indigo-500 text-white hover:bg-indigo-400"}`}
+                                >
+                                    {isUploading ? (
+                                        <>
+                                            <div
+                                                className={`animate-spin rounded-full h-5 w-5 border-2 ${isDayMode ? "border-white border-t-transparent" : "border-black border-t-transparent"}`}
+                                            />
+                                            <span>{t("upload.uploading")}...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {type === "article" ? (
+                                                <PenSquare size={20} />
+                                            ) : (
+                                                <Upload size={20} />
+                                            )}
+                                            <span>
+                                                {isEditing
+                                                    ? t("common.save")
+                                                    : type === "article"
+                                                      ? "提交发布"
+                                                      : t("common.upload_now")}
+                                            </span>
+                                        </>
+                                    )}
+                                </button>
+                                {type === "article" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSubmitIntent("draft");
+                                            formRef.current?.requestSubmit();
+                                        }}
+                                        disabled={isUploading}
+                                        className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm ${isDayMode ? "bg-white/90 text-slate-700 hover:border-indigo-200" : "text-gray-200 hover:bg-white/10"}`}
+                                    >
+                                        <PenSquare size={18} />
+                                        <span>保存草稿</span>
+                                    </button>
+                                )}
+                            </div>
+                        </form>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>,
+        document.body
+    );
 };
 
 export default UploadModal;

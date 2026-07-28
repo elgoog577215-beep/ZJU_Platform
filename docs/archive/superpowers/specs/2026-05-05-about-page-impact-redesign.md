@@ -43,11 +43,11 @@ Content:
 - Primary CTA: `查看生态抓手`
 - Secondary CTA: `联系支持合作`
 - Right-side brief panel:
-  - `3`
-  - `抓手联动 / 一套机制`
-  - `01 / ENTRY 活动聚合`
-  - `02 / LINK AI 社区`
-  - `03 / BUILD 极速黑客松`
+    - `3`
+    - `抓手联动 / 一套机制`
+    - `01 / ENTRY 活动聚合`
+    - `02 / LINK AI 社区`
+    - `03 / BUILD 极速黑客松`
 
 ### 2. Flagship Matrix
 

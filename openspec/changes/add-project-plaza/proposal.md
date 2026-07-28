@@ -41,16 +41,16 @@
 ## Impact
 
 - 后端：
-  - `server/src/config/runMigrations.js`：新增 `project_cards` 表 + 索引；`favorites` 沿用，无需改表。
-  - `server/src/controllers/projectCardController.js`（新增）：CRUD + 列表/详情/搜索 + 举报。
-  - `server/src/routes/api.js`：项目名片路由（含鉴权、限流）。
-  - `server/src/controllers/favoriteController.js`：`FAVORITE_RESOURCE_META` / `resolveFavoriteTarget` 增加 `project`。
-  - `server/src/controllers/notificationController.js`：`RESOURCE_TYPE_LABEL` 增加 `project`。
-  - `server/src/controllers/userController.js`：`getUserResources` 聚合 `project_cards`。
+    - `server/src/config/runMigrations.js`：新增 `project_cards` 表 + 索引；`favorites` 沿用，无需改表。
+    - `server/src/controllers/projectCardController.js`（新增）：CRUD + 列表/详情/搜索 + 举报。
+    - `server/src/routes/api.js`：项目名片路由（含鉴权、限流）。
+    - `server/src/controllers/favoriteController.js`：`FAVORITE_RESOURCE_META` / `resolveFavoriteTarget` 增加 `project`。
+    - `server/src/controllers/notificationController.js`：`RESOURCE_TYPE_LABEL` 增加 `project`。
+    - `server/src/controllers/userController.js`：`getUserResources` 聚合 `project_cards`。
 - 前端：
-  - `src/components/ProjectPlaza.jsx`、`ProjectDetailModal.jsx`、`ProjectCreateEdit.jsx`（新增，由 `/lab/projects` 预览原型产品化而来）。
-  - `src/App.jsx`：新增 `/projects` 路由（移除临时 `/lab/projects` 预览）。
-  - `src/components/Navbar.jsx` / `MobileNavbar.jsx`：新增「项目广场」入口。
-  - `src/components/PublicProfile.jsx`：内容类型与收藏筛选增加"项目"；`buildFavoriteTargetPath` 增加 `project`。
-  - `src/services/api.js`：项目名片相关调用。
-  - `src/i18n.js`：文案。
+    - `src/components/ProjectPlaza.jsx`、`ProjectDetailModal.jsx`、`ProjectCreateEdit.jsx`（新增，由 `/lab/projects` 预览原型产品化而来）。
+    - `src/App.jsx`：新增 `/projects` 路由（移除临时 `/lab/projects` 预览）。
+    - `src/components/Navbar.jsx` / `MobileNavbar.jsx`：新增「项目广场」入口。
+    - `src/components/PublicProfile.jsx`：内容类型与收藏筛选增加"项目"；`buildFavoriteTargetPath` 增加 `project`。
+    - `src/services/api.js`：项目名片相关调用。
+    - `src/i18n.js`：文案。

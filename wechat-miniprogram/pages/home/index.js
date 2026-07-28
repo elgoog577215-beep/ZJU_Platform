@@ -1,23 +1,23 @@
 Page({
-  data: {
-    webOrigin: "https://tuotuzju.com",
-  },
+    data: {
+        webOrigin: "https://tuotuzju.com",
+    },
 
-  openEvents() {
-    wx.navigateTo({
-      url: "/pages/webview/index?path=%2Fevents",
-    });
-  },
+    openEvents() {
+        wx.navigateTo({
+            url: "/pages/webview/index?path=%2Fevents",
+        });
+    },
 
-  openProjects() {
-    wx.navigateTo({
-      url: "/pages/webview/index?path=%2Fprojects",
-    });
-  },
+    openProjects() {
+        wx.navigateTo({
+            url: "/pages/webview/index?path=%2Fprojects",
+        });
+    },
 
-  openFallback() {
-    wx.navigateTo({
-      url: "/pages/fallback/index?reason=diagnostic",
-    });
-  },
+    openFallback() {
+        wx.navigateTo({
+            url: "/pages/fallback/index?reason=diagnostic",
+        });
+    },
 });

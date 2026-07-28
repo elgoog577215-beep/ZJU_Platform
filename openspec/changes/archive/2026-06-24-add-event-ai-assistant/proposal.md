@@ -16,9 +16,11 @@
 ## Capabilities
 
 ### New Capabilities
+
 - `event-ai-assistant`: Provide a lightweight natural-language recommendation assistant for the events page using a restricted candidate pool, one-turn clarification, and short recommendation reasons.
 
 ### Modified Capabilities
+
 - None.
 
 ## Impact

@@ -2,43 +2,43 @@ import React, { Suspense, lazy, useState, useEffect, useMemo, useCallback } from
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SmartImage from "./SmartImage";
 import {
-  User,
-  Users,
-  Calendar,
-  Grid,
-  Briefcase,
-  Settings,
-  Heart,
-  Bell,
-  CloudSun,
-  Lock,
-  Loader2,
-  Image,
-  Film,
-  FileText,
-  Download,
-  Globe,
-  LogOut,
-  Moon,
-  Sun,
-  Pencil,
-  UserPlus,
-  UserCheck,
-  Upload,
-  Sparkles,
-  MapPin,
-  Clock3,
-  MessageCircle,
-  ShieldCheck,
+    User,
+    Users,
+    Calendar,
+    Grid,
+    Briefcase,
+    Settings,
+    Heart,
+    Bell,
+    CloudSun,
+    Lock,
+    Loader2,
+    Image,
+    Film,
+    FileText,
+    Download,
+    Globe,
+    LogOut,
+    Moon,
+    Sun,
+    Pencil,
+    UserPlus,
+    UserCheck,
+    Upload,
+    Sparkles,
+    MapPin,
+    Clock3,
+    MessageCircle,
+    ShieldCheck,
 } from "lucide-react";
 import api, {
-  createIdentityClaim,
-  getUserSystemOverview,
-  getProfileCard,
-  listIdentityClaims,
-  listOutcomeLinks,
-  updateOutcomeLink,
-  uploadAvatar,
+    createIdentityClaim,
+    getUserSystemOverview,
+    getProfileCard,
+    listIdentityClaims,
+    listOutcomeLinks,
+    updateOutcomeLink,
+    uploadAvatar,
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
@@ -55,76 +55,77 @@ import UserSystemOverview from "./profile/UserSystemOverview";
 import { useReducedMotion } from "../utils/animations";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
-  buildWechatBindBridgeUrl,
-  navigateToMiniProgramPage,
+    buildWechatBindBridgeUrl,
+    navigateToMiniProgramPage,
 } from "../utils/wechatMiniProgramBridge";
 
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
 // Content type tabs shown in the "published" area.
 const CONTENT_TYPES = [
-  { key: "all", labelKey: "user_profile.center.content_types.all" },
-  { key: "photo", labelKey: "user_profile.center.content_types.photo" },
-  { key: "video", labelKey: "user_profile.center.content_types.video" },
-  { key: "article", labelKey: "user_profile.center.content_types.article" },
-  { key: "event", labelKey: "user_profile.center.content_types.event" },
-  { key: "news", labelKey: "user_profile.center.content_types.news" },
-  { key: "help", labelKey: "user_profile.center.content_types.help" },
-  { key: "team", labelKey: "user_profile.center.content_types.team" },
-  { key: "project", labelKey: "user_profile.center.content_types.project" },
-  { key: "competition_work", labelKey: "user_profile.center.content_types.competition_work" },
+    { key: "all", labelKey: "user_profile.center.content_types.all" },
+    { key: "photo", labelKey: "user_profile.center.content_types.photo" },
+    { key: "video", labelKey: "user_profile.center.content_types.video" },
+    { key: "article", labelKey: "user_profile.center.content_types.article" },
+    { key: "event", labelKey: "user_profile.center.content_types.event" },
+    { key: "news", labelKey: "user_profile.center.content_types.news" },
+    { key: "help", labelKey: "user_profile.center.content_types.help" },
+    { key: "team", labelKey: "user_profile.center.content_types.team" },
+    { key: "project", labelKey: "user_profile.center.content_types.project" },
+    { key: "competition_work", labelKey: "user_profile.center.content_types.competition_work" },
 ];
 
 const EVENT_CATEGORY_OPTIONS = [
-  { value: "lecture", labelKey: "user_profile.center.event_categories.lecture" },
-  { value: "competition", labelKey: "user_profile.center.event_categories.competition" },
-  { value: "volunteer", labelKey: "user_profile.center.event_categories.volunteer" },
-  { value: "recruitment", labelKey: "user_profile.center.event_categories.recruitment" },
-  { value: "culture_sports", labelKey: "user_profile.center.event_categories.culture_sports" },
-  { value: "exchange", labelKey: "user_profile.center.event_categories.exchange" },
+    { value: "lecture", labelKey: "user_profile.center.event_categories.lecture" },
+    { value: "competition", labelKey: "user_profile.center.event_categories.competition" },
+    { value: "volunteer", labelKey: "user_profile.center.event_categories.volunteer" },
+    { value: "recruitment", labelKey: "user_profile.center.event_categories.recruitment" },
+    { value: "culture_sports", labelKey: "user_profile.center.event_categories.culture_sports" },
+    { value: "exchange", labelKey: "user_profile.center.event_categories.exchange" },
 ];
 
 const EVENT_BENEFIT_OPTIONS = [
-  { value: "score", labelKey: "user_profile.center.event_benefits.score" },
-  { value: "volunteer_time", labelKey: "user_profile.center.event_benefits.volunteer_time" },
-  { value: "skill", labelKey: "user_profile.center.event_benefits.skill" },
-  { value: "social", labelKey: "user_profile.center.event_benefits.social" },
+    { value: "score", labelKey: "user_profile.center.event_benefits.score" },
+    { value: "volunteer_time", labelKey: "user_profile.center.event_benefits.volunteer_time" },
+    { value: "skill", labelKey: "user_profile.center.event_benefits.skill" },
+    { value: "social", labelKey: "user_profile.center.event_benefits.social" },
 ];
 
 const EVENT_FORMAT_OPTIONS = [
-  { value: "", labelKey: "user_profile.center.event_formats.any" },
-  { value: "offline", labelKey: "user_profile.center.event_formats.offline" },
-  { value: "online", labelKey: "user_profile.center.event_formats.online" },
-  { value: "hybrid", labelKey: "user_profile.center.event_formats.hybrid" },
+    { value: "", labelKey: "user_profile.center.event_formats.any" },
+    { value: "offline", labelKey: "user_profile.center.event_formats.offline" },
+    { value: "online", labelKey: "user_profile.center.event_formats.online" },
+    { value: "hybrid", labelKey: "user_profile.center.event_formats.hybrid" },
 ];
 
 const PROFILE_TAB_KEYS = new Set(["published", "submissions", "favorites", "messages", "settings"]);
 const SETTINGS_TAB_KEYS = new Set(["profile-card", "activity-profile", "security", "identity"]);
 
-const splitPreferenceText = (value) => String(value || "")
-  .split(/[,，、;；\s]+/)
-  .map((item) => item.trim())
-  .filter(Boolean);
+const splitPreferenceText = (value) =>
+    String(value || "")
+        .split(/[,，、;；\s]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
 
 const EMPTY_EVENT_PREFERENCE_FORM = {
-  college: "",
-  division: "",
-  grade: "",
-  campus: "",
-  availability: "",
-  interestTagsText: "",
-  preferredCategories: [],
-  preferredBenefits: [],
-  preferredFormat: "",
+    college: "",
+    division: "",
+    grade: "",
+    campus: "",
+    availability: "",
+    interestTagsText: "",
+    preferredCategories: [],
+    preferredBenefits: [],
+    preferredFormat: "",
 };
 
 const createEmptyProfileCard = (userId) => ({
-  user_id: userId,
-  slogan: "",
-  status: "",
-  tags: [],
-  social_links: [],
-  cards: [],
+    user_id: userId,
+    slogan: "",
+    status: "",
+    tags: [],
+    social_links: [],
+    cards: [],
 });
 
 // Visual metadata per content type. The badge lives inside the caption
@@ -133,66 +134,96 @@ const createEmptyProfileCard = (userId) => ({
 // TitleArtPlaceholder when the item has no cover image — 小红书-style
 // text-as-image cards.
 const TYPE_META = {
-  photo: {
-    label: "图片", labelKey: "user_profile.center.content_types.photo", textDay: "text-pink-600", textNight: "text-pink-300",
-    smartImageType: "image",
-    placeholderDay:   "from-pink-50 via-rose-50 to-amber-50",
-    placeholderNight: "from-pink-500/20 via-rose-500/15 to-amber-500/20",
-  },
-  video: {
-    label: "视频", labelKey: "user_profile.center.content_types.video", textDay: "text-emerald-600", textNight: "text-emerald-300",
-    smartImageType: "video",
-    placeholderDay:   "from-emerald-50 via-teal-50 to-cyan-50",
-    placeholderNight: "from-emerald-500/20 via-teal-500/15 to-cyan-500/20",
-  },
-  music: {
-    label: "音乐", labelKey: "user_profile.center.content_types.music", textDay: "text-purple-600", textNight: "text-purple-300",
-    smartImageType: "music",
-    placeholderDay:   "from-purple-50 via-fuchsia-50 to-pink-50",
-    placeholderNight: "from-purple-500/20 via-fuchsia-500/15 to-pink-500/20",
-  },
-  article: {
-    label: "文章", labelKey: "user_profile.center.content_types.article", textDay: "text-orange-600", textNight: "text-orange-300",
-    smartImageType: "article",
-    placeholderDay:   "from-orange-50 via-amber-50 to-yellow-50",
-    placeholderNight: "from-orange-500/20 via-amber-500/15 to-yellow-500/20",
-  },
-  event: {
-    label: "活动", labelKey: "user_profile.center.content_types.event", textDay: "text-blue-600", textNight: "text-blue-300",
-    smartImageType: "event",
-    placeholderDay:   "from-blue-50 via-sky-50 to-cyan-50",
-    placeholderNight: "from-blue-500/20 via-sky-500/15 to-cyan-500/20",
-  },
-  news: {
-    label: "新闻", labelKey: "user_profile.center.content_types.news", textDay: "text-slate-600", textNight: "text-slate-300",
-    smartImageType: "article",
-    placeholderDay:   "from-slate-50 via-gray-50 to-zinc-100",
-    placeholderNight: "from-slate-500/20 via-gray-500/15 to-zinc-500/20",
-  },
-  help: {
-    label: "求助", labelKey: "user_profile.center.content_types.help", textDay: "text-amber-600", textNight: "text-amber-300",
-    smartImageType: "article",
-    placeholderDay:   "from-amber-50 via-yellow-50 to-orange-50",
-    placeholderNight: "from-amber-500/20 via-yellow-500/15 to-orange-500/20",
-  },
-  team: {
-    label: "组队", labelKey: "user_profile.center.content_types.team", textDay: "text-indigo-600", textNight: "text-indigo-300",
-    smartImageType: "article",
-    placeholderDay:   "from-indigo-50 via-violet-50 to-purple-50",
-    placeholderNight: "from-indigo-500/20 via-violet-500/15 to-purple-500/20",
-  },
-  competition_work: {
-    label: "成果", labelKey: "user_profile.center.content_types.competition_work", textDay: "text-amber-700", textNight: "text-amber-200",
-    smartImageType: "article",
-    placeholderDay:   "from-amber-50 via-sky-50 to-indigo-50",
-    placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
-  },
-  project: {
-    label: "项目", labelKey: "user_profile.center.content_types.project", textDay: "text-cyan-700", textNight: "text-cyan-300",
-    smartImageType: "article",
-    placeholderDay:   "from-cyan-50 via-sky-50 to-blue-50",
-    placeholderNight: "from-cyan-500/20 via-sky-500/15 to-blue-500/20",
-  },
+    photo: {
+        label: "图片",
+        labelKey: "user_profile.center.content_types.photo",
+        textDay: "text-pink-600",
+        textNight: "text-pink-300",
+        smartImageType: "image",
+        placeholderDay: "from-pink-50 via-rose-50 to-amber-50",
+        placeholderNight: "from-pink-500/20 via-rose-500/15 to-amber-500/20",
+    },
+    video: {
+        label: "视频",
+        labelKey: "user_profile.center.content_types.video",
+        textDay: "text-emerald-600",
+        textNight: "text-emerald-300",
+        smartImageType: "video",
+        placeholderDay: "from-emerald-50 via-teal-50 to-cyan-50",
+        placeholderNight: "from-emerald-500/20 via-teal-500/15 to-cyan-500/20",
+    },
+    music: {
+        label: "音乐",
+        labelKey: "user_profile.center.content_types.music",
+        textDay: "text-purple-600",
+        textNight: "text-purple-300",
+        smartImageType: "music",
+        placeholderDay: "from-purple-50 via-fuchsia-50 to-pink-50",
+        placeholderNight: "from-purple-500/20 via-fuchsia-500/15 to-pink-500/20",
+    },
+    article: {
+        label: "文章",
+        labelKey: "user_profile.center.content_types.article",
+        textDay: "text-orange-600",
+        textNight: "text-orange-300",
+        smartImageType: "article",
+        placeholderDay: "from-orange-50 via-amber-50 to-yellow-50",
+        placeholderNight: "from-orange-500/20 via-amber-500/15 to-yellow-500/20",
+    },
+    event: {
+        label: "活动",
+        labelKey: "user_profile.center.content_types.event",
+        textDay: "text-blue-600",
+        textNight: "text-blue-300",
+        smartImageType: "event",
+        placeholderDay: "from-blue-50 via-sky-50 to-cyan-50",
+        placeholderNight: "from-blue-500/20 via-sky-500/15 to-cyan-500/20",
+    },
+    news: {
+        label: "新闻",
+        labelKey: "user_profile.center.content_types.news",
+        textDay: "text-slate-600",
+        textNight: "text-slate-300",
+        smartImageType: "article",
+        placeholderDay: "from-slate-50 via-gray-50 to-zinc-100",
+        placeholderNight: "from-slate-500/20 via-gray-500/15 to-zinc-500/20",
+    },
+    help: {
+        label: "求助",
+        labelKey: "user_profile.center.content_types.help",
+        textDay: "text-amber-600",
+        textNight: "text-amber-300",
+        smartImageType: "article",
+        placeholderDay: "from-amber-50 via-yellow-50 to-orange-50",
+        placeholderNight: "from-amber-500/20 via-yellow-500/15 to-orange-500/20",
+    },
+    team: {
+        label: "组队",
+        labelKey: "user_profile.center.content_types.team",
+        textDay: "text-indigo-600",
+        textNight: "text-indigo-300",
+        smartImageType: "article",
+        placeholderDay: "from-indigo-50 via-violet-50 to-purple-50",
+        placeholderNight: "from-indigo-500/20 via-violet-500/15 to-purple-500/20",
+    },
+    competition_work: {
+        label: "成果",
+        labelKey: "user_profile.center.content_types.competition_work",
+        textDay: "text-amber-700",
+        textNight: "text-amber-200",
+        smartImageType: "article",
+        placeholderDay: "from-amber-50 via-sky-50 to-indigo-50",
+        placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
+    },
+    project: {
+        label: "项目",
+        labelKey: "user_profile.center.content_types.project",
+        textDay: "text-cyan-700",
+        textNight: "text-cyan-300",
+        smartImageType: "article",
+        placeholderDay: "from-cyan-50 via-sky-50 to-blue-50",
+        placeholderNight: "from-cyan-500/20 via-sky-500/15 to-blue-500/20",
+    },
 };
 
 /**
@@ -205,2678 +236,3158 @@ const TYPE_META = {
  * shifts — cover = image vs cover = TitleArtPlaceholder is a clean swap.
  */
 function TitleArtPlaceholder({ title, meta, isDayMode }) {
-  const gradient = isDayMode ? meta.placeholderDay : meta.placeholderNight;
-  const accent = isDayMode ? meta.textDay : meta.textNight;
-  const titleColor = isDayMode ? "text-slate-900" : "text-white";
-  // Shorter titles get bigger type, longer titles scale down so the string
-  // still fits in the aspect-[4/3] slot without being cut mid-word.
-  // line-clamp also scales with size so each tier has matching breathing room.
-  const safeTitle = title || "(无标题)";
-  const len = safeTitle.length;
-  const { sizeClass, clamp } = len <= 8
-    ? { sizeClass: "text-2xl md:text-4xl", clamp: "line-clamp-3" }
-    : len <= 20
-      ? { sizeClass: "text-xl md:text-3xl", clamp: "line-clamp-4" }
-      : len <= 40
-        ? { sizeClass: "text-lg md:text-2xl", clamp: "line-clamp-5" }
-        : { sizeClass: "text-base md:text-xl", clamp: "line-clamp-6" };
-  return (
-    // overflow-hidden on the outer container guarantees that a runaway
-    // title or a single long CJK word cannot paint past the card edges.
-    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex flex-col justify-between p-5 overflow-hidden`}>
-      {/* Small accent row at top — a subtle "this is a card" cue. */}
-      <div className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider ${accent} opacity-70 shrink-0`}>
-        <span className="w-6 h-[2px] rounded-full bg-current" aria-hidden="true" />
-        <span>{meta.label.toUpperCase()}</span>
-      </div>
-      {/* Title fills the middle. flex-1 + min-h-0 lets the clamp compute
+    const gradient = isDayMode ? meta.placeholderDay : meta.placeholderNight;
+    const accent = isDayMode ? meta.textDay : meta.textNight;
+    const titleColor = isDayMode ? "text-slate-900" : "text-white";
+    // Shorter titles get bigger type, longer titles scale down so the string
+    // still fits in the aspect-[4/3] slot without being cut mid-word.
+    // line-clamp also scales with size so each tier has matching breathing room.
+    const safeTitle = title || "(无标题)";
+    const len = safeTitle.length;
+    const { sizeClass, clamp } =
+        len <= 8
+            ? { sizeClass: "text-2xl md:text-4xl", clamp: "line-clamp-3" }
+            : len <= 20
+              ? { sizeClass: "text-xl md:text-3xl", clamp: "line-clamp-4" }
+              : len <= 40
+                ? { sizeClass: "text-lg md:text-2xl", clamp: "line-clamp-5" }
+                : { sizeClass: "text-base md:text-xl", clamp: "line-clamp-6" };
+    return (
+        // overflow-hidden on the outer container guarantees that a runaway
+        // title or a single long CJK word cannot paint past the card edges.
+        <div
+            className={`absolute inset-0 bg-gradient-to-br ${gradient} flex flex-col justify-between p-5 overflow-hidden`}
+        >
+            {/* Small accent row at top — a subtle "this is a card" cue. */}
+            <div
+                className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider ${accent} opacity-70 shrink-0`}
+            >
+                <span className="w-6 h-[2px] rounded-full bg-current" aria-hidden="true" />
+                <span>{meta.label.toUpperCase()}</span>
+            </div>
+            {/* Title fills the middle. flex-1 + min-h-0 lets the clamp compute
           against the real remaining height rather than intrinsic content
           size. break-words handles long CJK-less tokens (URLs, English). */}
-      <div className="flex-1 min-h-0 flex items-center py-2">
-        <div
-          className={`${sizeClass} ${clamp} font-bold leading-tight break-words ${titleColor} w-full`}
-        >
-          {safeTitle}
+            <div className="flex-1 min-h-0 flex items-center py-2">
+                <div
+                    className={`${sizeClass} ${clamp} font-bold leading-tight break-words ${titleColor} w-full`}
+                >
+                    {safeTitle}
+                </div>
+            </div>
+            {/* Footer dots — pure decoration so the card doesn't feel empty. */}
+            <div
+                className={`flex items-center gap-1 ${accent} opacity-60 shrink-0`}
+                aria-hidden="true"
+            >
+                <span className="w-1 h-1 rounded-full bg-current" />
+                <span className="w-1 h-1 rounded-full bg-current" />
+                <span className="w-1 h-1 rounded-full bg-current" />
+            </div>
         </div>
-      </div>
-      {/* Footer dots — pure decoration so the card doesn't feel empty. */}
-      <div className={`flex items-center gap-1 ${accent} opacity-60 shrink-0`} aria-hidden="true">
-        <span className="w-1 h-1 rounded-full bg-current" />
-        <span className="w-1 h-1 rounded-full bg-current" />
-        <span className="w-1 h-1 rounded-full bg-current" />
-      </div>
-    </div>
-  );
+    );
 }
 
 // Backend returns `type` as the singular resource kind (photo/video/music/
 // article/event/news) for resource tables and `section` (help/team) for
 // community posts. This helper normalises to the tab keys above.
 const normalizeContentType = (item) => {
-  if (!item) return null;
-  const raw = item.type;
-  if (!raw) return null;
-  if (raw === "help" || raw === "team" || raw === "materials") return raw;
-  if (raw === "photos") return "photo";
-  if (raw === "videos") return "video";
-  if (raw === "music") return "music";
-  if (raw === "articles") return "article";
-  if (raw === "events") return "event";
-  if (raw === "news") return "news";
-  if (raw === "competition_works") return "competition_work";
-  return raw;
+    if (!item) return null;
+    const raw = item.type;
+    if (!raw) return null;
+    if (raw === "help" || raw === "team" || raw === "materials") return raw;
+    if (raw === "photos") return "photo";
+    if (raw === "videos") return "video";
+    if (raw === "music") return "music";
+    if (raw === "articles") return "article";
+    if (raw === "events") return "event";
+    if (raw === "news") return "news";
+    if (raw === "competition_works") return "competition_work";
+    return raw;
 };
 
 const identityTypeLabel = (type, t) =>
-  t(`user_profile.center.identity_types.${type}`, t("user_profile.center.identity_types.identity"));
+    t(
+        `user_profile.center.identity_types.${type}`,
+        t("user_profile.center.identity_types.identity")
+    );
 
 const identityStatusLabel = (status, t) =>
-  t(`user_profile.center.identity_status.${status}`, t("user_profile.center.identity_status.unknown"));
+    t(
+        `user_profile.center.identity_status.${status}`,
+        t("user_profile.center.identity_status.unknown")
+    );
 
 const outcomeStatusLabel = (status, t) =>
-  t(`user_profile.center.outcome_status.${status}`, t("user_profile.center.outcome_status.unknown"));
+    t(
+        `user_profile.center.outcome_status.${status}`,
+        t("user_profile.center.outcome_status.unknown")
+    );
 
-const profileStatusLabel = (status, t) =>
-  t(`user_profile.center.profile_status.${status}`, "");
+const profileStatusLabel = (status, t) => t(`user_profile.center.profile_status.${status}`, "");
 
 function ProfileContentCard({ item, onClick, isDayMode, t }) {
-  const typeKey = normalizeContentType(item) || "article";
-  const meta = TYPE_META[typeKey] || TYPE_META.article;
-  const metaLabel = t(meta.labelKey, meta.label);
+    const typeKey = normalizeContentType(item) || "article";
+    const meta = TYPE_META[typeKey] || TYPE_META.article;
+    const metaLabel = t(meta.labelKey, meta.label);
 
-  // Cover source by resource type:
-  //  - events.image / photos.url / videos.thumbnail / articles.cover
-  //  - help/team posts: no cover column; SmartImage renders FileText icon
-  //    over a hash gradient (same look as article card with no cover).
-  const cover =
-    item.cover || item.image || item.thumbnail || item.url || null;
-  const dateSource = item.created_at || item.createdAt || item.published_at;
-  const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
-  const title = item.title || t("user_profile.center.untitled");
-  const likes = Number(item.likes) || Number(item.likes_count) || 0;
-  const isCompetitionWork = typeKey === "competition_work";
-  const competitionMeta = [
-    item.competition_title,
-    item.award ? t("user_profile.center.work_meta.award", { value: item.award }) : null,
-    item.rank ? t("user_profile.center.work_meta.rank", { value: item.rank }) : null,
-  ].filter(Boolean).join(" · ");
-  const boundIdentityMeta = item.bound_identity_name
-    ? t("user_profile.center.work_meta.bound_identity", { value: item.bound_identity_name })
-    : item.author
-      ? t("user_profile.center.work_meta.author", { value: item.author })
-      : "";
+    // Cover source by resource type:
+    //  - events.image / photos.url / videos.thumbnail / articles.cover
+    //  - help/team posts: no cover column; SmartImage renders FileText icon
+    //    over a hash gradient (same look as article card with no cover).
+    const cover = item.cover || item.image || item.thumbnail || item.url || null;
+    const dateSource = item.created_at || item.createdAt || item.published_at;
+    const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
+    const title = item.title || t("user_profile.center.untitled");
+    const likes = Number(item.likes) || Number(item.likes_count) || 0;
+    const isCompetitionWork = typeKey === "competition_work";
+    const competitionMeta = [
+        item.competition_title,
+        item.award ? t("user_profile.center.work_meta.award", { value: item.award }) : null,
+        item.rank ? t("user_profile.center.work_meta.rank", { value: item.rank }) : null,
+    ]
+        .filter(Boolean)
+        .join(" · ");
+    const boundIdentityMeta = item.bound_identity_name
+        ? t("user_profile.center.work_meta.bound_identity", { value: item.bound_identity_name })
+        : item.author
+          ? t("user_profile.center.work_meta.author", { value: item.author })
+          : "";
 
-  // Project-standard glass shell (matches ArticleCard in Articles.jsx).
-  const cardShell = isDayMode
-    ? "bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:bg-white hover:border-indigo-300 hover:shadow-[0_24px_50px_rgba(99,102,241,0.18)]"
-    : "bg-[#1a1a1a]/60 border-white/10 hover:bg-[#1a1a1a]/80 hover:border-orange-400/40";
-  const titleColor = isDayMode ? "text-slate-900" : "text-white";
-  const metaColor = isDayMode ? "text-slate-500" : "text-gray-400";
-  // Glass badge inside the caption — shared neutral surface, type-coloured text.
-  const badgeGlass = isDayMode
-    ? "bg-white/70 border-white/60 backdrop-blur-md shadow-[0_4px_12px_rgba(148,163,184,0.12)]"
-    : "bg-white/10 border-white/15 backdrop-blur-md";
-  const badgeText = isDayMode ? meta.textDay : meta.textNight;
-  const heartTint = isDayMode ? "text-rose-500" : "text-rose-300";
+    // Project-standard glass shell (matches ArticleCard in Articles.jsx).
+    const cardShell = isDayMode
+        ? "bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:bg-white hover:border-indigo-300 hover:shadow-[0_24px_50px_rgba(99,102,241,0.18)]"
+        : "bg-[#1a1a1a]/60 border-white/10 hover:bg-[#1a1a1a]/80 hover:border-orange-400/40";
+    const titleColor = isDayMode ? "text-slate-900" : "text-white";
+    const metaColor = isDayMode ? "text-slate-500" : "text-gray-400";
+    // Glass badge inside the caption — shared neutral surface, type-coloured text.
+    const badgeGlass = isDayMode
+        ? "bg-white/70 border-white/60 backdrop-blur-md shadow-[0_4px_12px_rgba(148,163,184,0.12)]"
+        : "bg-white/10 border-white/15 backdrop-blur-md";
+    const badgeText = isDayMode ? meta.textDay : meta.textNight;
+    const heartTint = isDayMode ? "text-rose-500" : "text-rose-300";
 
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick?.();
-        }
-      }}
-      className={`group cursor-pointer rounded-3xl overflow-hidden backdrop-blur-xl border transition-all duration-300 ${cardShell}`}
-    >
-      {/* Cover (aspect 4/3). When the item has a real cover asset we render
+    return (
+        <div
+            role="button"
+            tabIndex={0}
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClick?.();
+                }
+            }}
+            className={`group cursor-pointer rounded-3xl overflow-hidden backdrop-blur-xl border transition-all duration-300 ${cardShell}`}
+        >
+            {/* Cover (aspect 4/3). When the item has a real cover asset we render
           it with SmartImage. When it doesn't (help/team posts, articles
           without a cover uploaded, etc.) we swap in TitleArtPlaceholder so
           the title itself becomes 小红书-style text-as-image — reads better
           than a lone FileText icon over a hash-gradient block. */}
-      <div className="aspect-[4/3] relative overflow-hidden">
-        {cover ? (
-          <SmartImage
-            src={cover}
-            alt={title}
-            type={meta.smartImageType}
-            className="absolute inset-0 w-full h-full"
-            imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            iconSize={56}
-          />
-        ) : (
-          <TitleArtPlaceholder title={title} meta={meta} isDayMode={isDayMode} />
-        )}
-      </div>
-      {/* Caption — the emphasised half of the card.
+            <div className="aspect-[4/3] relative overflow-hidden">
+                {cover ? (
+                    <SmartImage
+                        src={cover}
+                        alt={title}
+                        type={meta.smartImageType}
+                        className="absolute inset-0 w-full h-full"
+                        imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        iconSize={56}
+                    />
+                ) : (
+                    <TitleArtPlaceholder title={title} meta={meta} isDayMode={isDayMode} />
+                )}
+            </div>
+            {/* Caption — the emphasised half of the card.
           Row 1: type badge (glass chip) + like count with lucide Heart.
           Row 2: bold title.
           Row 3: date meta. */}
-      <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeGlass} ${badgeText}`}
-          >
-            {metaLabel}
-          </span>
-          {likes > 0 && (
-            <span className={`ml-auto inline-flex items-center gap-1.5 text-sm font-bold ${heartTint}`}>
-              <Heart className="w-4 h-4 fill-current" strokeWidth={0} />
-              <span>{likes}</span>
-            </span>
-          )}
+            <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeGlass} ${badgeText}`}
+                    >
+                        {metaLabel}
+                    </span>
+                    {likes > 0 && (
+                        <span
+                            className={`ml-auto inline-flex items-center gap-1.5 text-sm font-bold ${heartTint}`}
+                        >
+                            <Heart className="w-4 h-4 fill-current" strokeWidth={0} />
+                            <span>{likes}</span>
+                        </span>
+                    )}
+                </div>
+                <div
+                    className={`text-base font-bold leading-snug line-clamp-2 ${titleColor}`}
+                    title={title}
+                >
+                    {title}
+                </div>
+                {dateStr && <div className={`text-xs font-mono ${metaColor}`}>{dateStr}</div>}
+                {isCompetitionWork && (competitionMeta || boundIdentityMeta) && (
+                    <div className={`space-y-1 text-xs leading-relaxed ${metaColor}`}>
+                        {competitionMeta && <div className="line-clamp-1">{competitionMeta}</div>}
+                        {boundIdentityMeta && (
+                            <div className="line-clamp-1">{boundIdentityMeta}</div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
-        <div
-          className={`text-base font-bold leading-snug line-clamp-2 ${titleColor}`}
-          title={title}
-        >
-          {title}
-        </div>
-        {dateStr && (
-          <div className={`text-xs font-mono ${metaColor}`}>{dateStr}</div>
-        )}
-        {isCompetitionWork && (competitionMeta || boundIdentityMeta) && (
-          <div className={`space-y-1 text-xs leading-relaxed ${metaColor}`}>
-            {competitionMeta && <div className="line-clamp-1">{competitionMeta}</div>}
-            {boundIdentityMeta && <div className="line-clamp-1">{boundIdentityMeta}</div>}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    );
 }
 
 const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
-  const { id: routeId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { t, i18n } = useTranslation();
-  const { user: currentUser, logout, refreshUser } = useAuth();
-  const {
-    settings,
-    uiMode,
-    changeUiMode,
-    showWeatherWidget,
-    toggleWeatherWidget,
-  } = useSettings();
-  const id = profileId ?? routeId;
+    const { id: routeId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { t, i18n } = useTranslation();
+    const { user: currentUser, logout, refreshUser } = useAuth();
+    const { settings, uiMode, changeUiMode, showWeatherWidget, toggleWeatherWidget } =
+        useSettings();
+    const id = profileId ?? routeId;
 
-  const [user, setUser] = useState(null);
-  const [resources, setResources] = useState([]);
-  const [profileCard, setProfileCard] = useState(null);
-  const [userSystemOverview, setUserSystemOverview] = useState(null);
-  const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    const [user, setUser] = useState(null);
+    const [resources, setResources] = useState([]);
+    const [profileCard, setProfileCard] = useState(null);
+    const [userSystemOverview, setUserSystemOverview] = useState(null);
+    const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  const [activeTab, setActiveTab] = useState("published");
-  const [activeContentType, setActiveContentType] = useState("all");
-  const isOwner =
-    currentUser && user && String(currentUser.id) === String(user.id);
+    const [activeTab, setActiveTab] = useState("published");
+    const [activeContentType, setActiveContentType] = useState("all");
+    const isOwner = currentUser && user && String(currentUser.id) === String(user.id);
 
-  // Unread-notification count for the "消息" tab dot. NotificationCenter
-  // only mounts when that tab is active, so we poll directly from this
-  // component (mirrors MobileNavbar's approach) and also listen for the
-  // `notifications:updated` event emitted by NotificationCenter / the
-  // mobile navbar fetch so counts stay in sync across UIs.
-  const [unreadCount, setUnreadCount] = useState(0);
-  useEffect(() => {
-    if (!isOwner) {
-      setUnreadCount(0);
-      return undefined;
-    }
-    let cancelled = false;
-    const fetchUnread = async () => {
-      try {
-        const res = await api.get("/notifications?limit=1");
-        if (cancelled) return;
-        setUnreadCount(Number(res.data?.unreadCount) || 0);
-      } catch {
-        /* transient errors — keep last known value */
-      }
+    // Unread-notification count for the "消息" tab dot. NotificationCenter
+    // only mounts when that tab is active, so we poll directly from this
+    // component (mirrors MobileNavbar's approach) and also listen for the
+    // `notifications:updated` event emitted by NotificationCenter / the
+    // mobile navbar fetch so counts stay in sync across UIs.
+    const [unreadCount, setUnreadCount] = useState(0);
+    useEffect(() => {
+        if (!isOwner) {
+            setUnreadCount(0);
+            return undefined;
+        }
+        let cancelled = false;
+        const fetchUnread = async () => {
+            try {
+                const res = await api.get("/notifications?limit=1");
+                if (cancelled) return;
+                setUnreadCount(Number(res.data?.unreadCount) || 0);
+            } catch {
+                /* transient errors — keep last known value */
+            }
+        };
+        fetchUnread();
+        const pollId = setInterval(fetchUnread, 60_000);
+        const onUpdate = (event) => {
+            const n = Number(event?.detail?.unreadCount);
+            if (Number.isFinite(n)) setUnreadCount(n);
+        };
+        window.addEventListener("notifications:updated", onUpdate);
+        return () => {
+            cancelled = true;
+            clearInterval(pollId);
+            window.removeEventListener("notifications:updated", onUpdate);
+        };
+    }, [isOwner]);
+    const prefersReducedMotion = useReducedMotion();
+    const isDayMode = uiMode === "day";
+    const profileContentRef = React.useRef(null);
+    const settingsContentRef = React.useRef(null);
+    const profileBasicsRef = React.useRef(null);
+    const profileCardEditorRef = React.useRef(null);
+    const activityProfileRef = React.useRef(null);
+    const managedProfilesRef = React.useRef(null);
+    const identityClaimsRef = React.useRef(null);
+    const outcomeClaimsRef = React.useRef(null);
+    const settingsPanelClass = isDayMode
+        ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
+        : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
+    const dayActiveSegmentClass = "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
+    const nightActiveSegmentClass =
+        "border border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none";
+    const settingsActionClass = isDayMode
+        ? "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-slate-50/90 border-slate-200/80 text-slate-800 hover:bg-white"
+        : "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-white/5 border-white/10 text-white hover:bg-white/10";
+    const settingsIconClass = isDayMode
+        ? "h-10 w-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-700"
+        : "h-10 w-10 rounded-xl flex items-center justify-center bg-white/10 text-white";
+    const settingsSwitchTrackClass = showWeatherWidget
+        ? "bg-indigo-600"
+        : isDayMode
+          ? "bg-slate-200"
+          : "bg-white/15";
+    const settingsSwitchThumbClass = showWeatherWidget
+        ? "translate-x-5 bg-white"
+        : "translate-x-0 bg-white";
+
+    // Favorites State
+    const [favorites, setFavorites] = useState([]);
+    const [loadingFavorites, setLoadingFavorites] = useState(false);
+    const [favoriteType, setFavoriteType] = useState("all");
+    const [followLoading, setFollowLoading] = useState(false);
+    const [relationTab, setRelationTab] = useState("followers");
+    const [relationLoading, setRelationLoading] = useState(false);
+    const [relations, setRelations] = useState([]);
+    const [relationFollowLoadingIds, setRelationFollowLoadingIds] = useState({});
+
+    // Settings State
+    const [profileData, setProfileData] = useState({
+        organization: "",
+        nickname: "",
+        inviteCode: "",
+    });
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState("");
+    const [avatarLoading, setAvatarLoading] = useState(false);
+    const [avatarSaveState, setAvatarSaveState] = useState("saved");
+    const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, size: 1 });
+    const avatarCropDragRef = React.useRef(null);
+    const [identityClaims, setIdentityClaims] = useState([]);
+    const [identityType, setIdentityType] = useState("person");
+    const [identityName, setIdentityName] = useState("");
+    const [identityInviteCode, setIdentityInviteCode] = useState("");
+    const [identityLoading, setIdentityLoading] = useState(false);
+    const [outcomeLinks, setOutcomeLinks] = useState([]);
+    const [outcomeLinksLoading, setOutcomeLinksLoading] = useState(false);
+    const [outcomeActionId, setOutcomeActionId] = useState(null);
+    const [activeSettingsTab, setActiveSettingsTab] = useState("profile-card");
+    const [eventPreferenceForm, setEventPreferenceForm] = useState(EMPTY_EVENT_PREFERENCE_FORM);
+    const [eventPreferenceLoading, setEventPreferenceLoading] = useState(false);
+    const [eventPreferenceSaving, setEventPreferenceSaving] = useState(false);
+    const [eventPreferenceLoaded, setEventPreferenceLoaded] = useState(false);
+
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [wechatBindingStatus, setWechatBindingStatus] = useState({ bound: false });
+    const [wechatBindingLoading, setWechatBindingLoading] = useState(false);
+    const [wechatBindingActionLoading, setWechatBindingActionLoading] = useState(false);
+
+    const profileTabPath = (tabKey, settingsKey = activeSettingsTab) => {
+        if (tabKey === "settings") {
+            return `${location.pathname}?tab=settings&settings=${settingsKey}`;
+        }
+        return tabKey === "published" || tabKey === "relations"
+            ? location.pathname
+            : `${location.pathname}?tab=${tabKey}`;
     };
-    fetchUnread();
-    const pollId = setInterval(fetchUnread, 60_000);
-    const onUpdate = (event) => {
-      const n = Number(event?.detail?.unreadCount);
-      if (Number.isFinite(n)) setUnreadCount(n);
+
+    const navigateProfileTab = (tabKey, settingsKey) => {
+        if (tabKey === "settings" && settingsKey && SETTINGS_TAB_KEYS.has(settingsKey)) {
+            setActiveSettingsTab(settingsKey);
+        }
+        setActiveTab(tabKey);
+        navigate(profileTabPath(tabKey, settingsKey), { replace: true });
     };
-    window.addEventListener("notifications:updated", onUpdate);
-    return () => {
-      cancelled = true;
-      clearInterval(pollId);
-      window.removeEventListener("notifications:updated", onUpdate);
-    };
-  }, [isOwner]);
-  const prefersReducedMotion = useReducedMotion();
-  const isDayMode = uiMode === "day";
-  const profileContentRef = React.useRef(null);
-  const settingsContentRef = React.useRef(null);
-  const profileBasicsRef = React.useRef(null);
-  const profileCardEditorRef = React.useRef(null);
-  const activityProfileRef = React.useRef(null);
-  const managedProfilesRef = React.useRef(null);
-  const identityClaimsRef = React.useRef(null);
-  const outcomeClaimsRef = React.useRef(null);
-  const settingsPanelClass = isDayMode
-    ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
-    : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
-  const dayActiveSegmentClass = "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
-  const nightActiveSegmentClass = "border border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none";
-  const settingsActionClass = isDayMode
-    ? "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-slate-50/90 border-slate-200/80 text-slate-800 hover:bg-white"
-    : "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-white/5 border-white/10 text-white hover:bg-white/10";
-  const settingsIconClass = isDayMode
-    ? "h-10 w-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-700"
-    : "h-10 w-10 rounded-xl flex items-center justify-center bg-white/10 text-white";
-  const settingsSwitchTrackClass = showWeatherWidget
-    ? "bg-indigo-600"
-    : isDayMode
-      ? "bg-slate-200"
-      : "bg-white/15";
-  const settingsSwitchThumbClass = showWeatherWidget
-    ? "translate-x-5 bg-white"
-    : "translate-x-0 bg-white";
 
-  // Favorites State
-  const [favorites, setFavorites] = useState([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [favoriteType, setFavoriteType] = useState("all");
-  const [followLoading, setFollowLoading] = useState(false);
-  const [relationTab, setRelationTab] = useState("followers");
-  const [relationLoading, setRelationLoading] = useState(false);
-  const [relations, setRelations] = useState([]);
-  const [relationFollowLoadingIds, setRelationFollowLoadingIds] = useState({});
-
-  // Settings State
-  const [profileData, setProfileData] = useState({
-    organization: "",
-    nickname: "",
-    inviteCode: "",
-  });
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
-  const [avatarLoading, setAvatarLoading] = useState(false);
-  const [avatarSaveState, setAvatarSaveState] = useState("saved");
-  const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, size: 1 });
-  const avatarCropDragRef = React.useRef(null);
-  const [identityClaims, setIdentityClaims] = useState([]);
-  const [identityType, setIdentityType] = useState("person");
-  const [identityName, setIdentityName] = useState("");
-  const [identityInviteCode, setIdentityInviteCode] = useState("");
-  const [identityLoading, setIdentityLoading] = useState(false);
-  const [outcomeLinks, setOutcomeLinks] = useState([]);
-  const [outcomeLinksLoading, setOutcomeLinksLoading] = useState(false);
-  const [outcomeActionId, setOutcomeActionId] = useState(null);
-  const [activeSettingsTab, setActiveSettingsTab] = useState("profile-card");
-  const [eventPreferenceForm, setEventPreferenceForm] = useState(EMPTY_EVENT_PREFERENCE_FORM);
-  const [eventPreferenceLoading, setEventPreferenceLoading] = useState(false);
-  const [eventPreferenceSaving, setEventPreferenceSaving] = useState(false);
-  const [eventPreferenceLoaded, setEventPreferenceLoaded] = useState(false);
-
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [wechatBindingStatus, setWechatBindingStatus] = useState({ bound: false });
-  const [wechatBindingLoading, setWechatBindingLoading] = useState(false);
-  const [wechatBindingActionLoading, setWechatBindingActionLoading] = useState(false);
-
-  const profileTabPath = (tabKey, settingsKey = activeSettingsTab) => {
-    if (tabKey === "settings") {
-      return `${location.pathname}?tab=settings&settings=${settingsKey}`;
-    }
-    return tabKey === "published" || tabKey === "relations"
-      ? location.pathname
-      : `${location.pathname}?tab=${tabKey}`;
-  };
-
-  const navigateProfileTab = (tabKey, settingsKey) => {
-    if (tabKey === "settings" && settingsKey && SETTINGS_TAB_KEYS.has(settingsKey)) {
-      setActiveSettingsTab(settingsKey);
-    }
-    setActiveTab(tabKey);
-    navigate(profileTabPath(tabKey, settingsKey), { replace: true });
-  };
-
-  const scrollToProfileSection = (ref) => {
-    let attempts = 0;
-    const scrollWhenReady = () => {
-      attempts += 1;
-      if (ref.current) {
-        ref.current.scrollIntoView({
-          block: "start",
-          behavior: prefersReducedMotion ? "auto" : "smooth",
-        });
-        return;
-      }
-      if (attempts < 8) {
+    const scrollToProfileSection = (ref) => {
+        let attempts = 0;
+        const scrollWhenReady = () => {
+            attempts += 1;
+            if (ref.current) {
+                ref.current.scrollIntoView({
+                    block: "start",
+                    behavior: prefersReducedMotion ? "auto" : "smooth",
+                });
+                return;
+            }
+            if (attempts < 8) {
+                window.requestAnimationFrame(scrollWhenReady);
+            }
+        };
         window.requestAnimationFrame(scrollWhenReady);
-      }
     };
-    window.requestAnimationFrame(scrollWhenReady);
-  };
 
-  const refreshUserSystemOverview = useCallback(async () => {
-    if (!isOwner) return;
-    setUserSystemOverviewLoading(true);
-    try {
-      const response = await getUserSystemOverview();
-      setUserSystemOverview(response.data || null);
-    } catch {
-      setUserSystemOverview(null);
-    } finally {
-      setUserSystemOverviewLoading(false);
-    }
-  }, [isOwner]);
-
-  const fetchWechatBindingStatus = useCallback(async () => {
-    if (!isOwner) return;
-    setWechatBindingLoading(true);
-    try {
-      const response = await api.get("/auth/wechat-miniapp/status", {
-        silent: true,
-        noRetry: true,
-      });
-      setWechatBindingStatus(response.data || { bound: false });
-    } catch {
-      setWechatBindingStatus({ bound: false, unavailable: true });
-    } finally {
-      setWechatBindingLoading(false);
-    }
-  }, [isOwner]);
-
-  const openUserSystemTarget = (target) => {
-    if (target === "submissions") {
-      navigateProfileTab("submissions");
-      scrollToProfileSection(profileContentRef);
-      return;
-    }
-    if (target === "published") {
-      navigateProfileTab("published");
-      scrollToProfileSection(profileContentRef);
-      return;
-    }
-    const targetConfig = {
-      "profile-basics": { settings: "profile-card", ref: profileBasicsRef },
-      "profile-card": { settings: "profile-card", ref: profileBasicsRef },
-      "profile-card-editor": { settings: "profile-card", ref: profileCardEditorRef },
-      "activity-profile": { settings: "activity-profile", ref: activityProfileRef },
-      identity: { settings: "identity", ref: identityClaimsRef },
-      "identity-claims": { settings: "identity", ref: identityClaimsRef },
-      "managed-profiles": { settings: "identity", ref: managedProfilesRef },
-      "outcome-claims": { settings: "identity", ref: outcomeClaimsRef },
-      security: { settings: "security", ref: settingsContentRef },
-    }[target] || { settings: "profile-card", ref: profileBasicsRef };
-
-    navigateProfileTab("settings", targetConfig.settings);
-    scrollToProfileSection(targetConfig.ref);
-  };
-
-  // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
-  useEffect(() => {
-    if (!id) return;
-
-    const abortController = new AbortController();
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const profileCardPromise = getProfileCard(id, {
-          signal: abortController.signal,
-          silent: true,
-          noRetry: true,
-        })
-          .then((res) => res.data)
-          .catch((profileCardError) => {
-            if (abortController.signal.aborted) throw profileCardError;
-            if (process.env.NODE_ENV === "development") {
-              console.warn("Failed to fetch profile card", profileCardError);
-            }
-            return null;
-          });
-        const [userRes, resourcesRes, profileCardData] = await Promise.all([
-          api.get(`/users/${id}/profile`, { signal: abortController.signal }),
-          api.get(`/users/${id}/resources`, { signal: abortController.signal }),
-          profileCardPromise,
-        ]);
-        if (abortController.signal.aborted) return;
-        setUser(userRes.data);
-        setResources(resourcesRes.data);
-        setProfileCard(profileCardData || createEmptyProfileCard(userRes.data.id));
-
-        // Init profile data if owner
-        if (currentUser && String(currentUser.id) === String(userRes.data.id)) {
-          setProfileData({
-            organization:
-              userRes.data.organization_cr || currentUser.organization || "",
-            nickname: userRes.data.nickname || currentUser.nickname || "",
-            inviteCode: "",
-          });
+    const refreshUserSystemOverview = useCallback(async () => {
+        if (!isOwner) return;
+        setUserSystemOverviewLoading(true);
+        try {
+            const response = await getUserSystemOverview();
+            setUserSystemOverview(response.data || null);
+        } catch {
+            setUserSystemOverview(null);
+        } finally {
+            setUserSystemOverviewLoading(false);
         }
-      } catch (err) {
-        if (abortController.signal.aborted) return;
-        if (process.env.NODE_ENV === "development") {
-          console.error("Failed to fetch profile", err);
+    }, [isOwner]);
+
+    const fetchWechatBindingStatus = useCallback(async () => {
+        if (!isOwner) return;
+        setWechatBindingLoading(true);
+        try {
+            const response = await api.get("/auth/wechat-miniapp/status", {
+                silent: true,
+                noRetry: true,
+            });
+            setWechatBindingStatus(response.data || { bound: false });
+        } catch {
+            setWechatBindingStatus({ bound: false, unavailable: true });
+        } finally {
+            setWechatBindingLoading(false);
         }
-        setError(err?.response?.status === 404 ? "not_found" : "load_failed");
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
+    }, [isOwner]);
+
+    const openUserSystemTarget = (target) => {
+        if (target === "submissions") {
+            navigateProfileTab("submissions");
+            scrollToProfileSection(profileContentRef);
+            return;
         }
-      }
-    };
-
-    if (id) {
-      fetchData();
-      setActiveTab(initialTab); // Reset tab on profile source change
-    }
-
-    return () => abortController.abort();
-  }, [id, currentUser?.id, initialTab]);
-
-  useEffect(() => {
-    if (!isOwner) return;
-
-    if (activeTab === "favorites") {
-      fetchFavorites();
-    }
-  }, [activeTab, favoriteType, isOwner]);
-
-  useEffect(() => {
-    if (!isOwner) {
-      setUserSystemOverview(null);
-      return;
-    }
-    refreshUserSystemOverview();
-  }, [isOwner, user?.id, refreshUserSystemOverview]);
-
-  useEffect(() => {
-    if (!isOwner || activeTab !== "settings") return;
-    fetchIdentityClaims();
-    fetchOutcomeLinks();
-  }, [isOwner, activeTab]);
-
-  useEffect(() => {
-    if (!isOwner || activeTab !== "settings" || activeSettingsTab !== "security") return;
-    fetchWechatBindingStatus();
-  }, [isOwner, activeTab, activeSettingsTab, fetchWechatBindingStatus]);
-
-  useEffect(() => {
-    const handleWechatBindReturn = () => {
-      fetchWechatBindingStatus();
-    };
-    window.addEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
-    return () => {
-      window.removeEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
-    };
-  }, [fetchWechatBindingStatus]);
-
-  useEffect(() => {
-    if (!isOwner) return;
-    const params = new URLSearchParams(location.search);
-    const requestedTab = params.get("tab");
-    const requestedSettingsTab = params.get("settings");
-    if (requestedTab && PROFILE_TAB_KEYS.has(requestedTab)) {
-      setActiveTab(requestedTab);
-    }
-    if (requestedSettingsTab && SETTINGS_TAB_KEYS.has(requestedSettingsTab)) {
-      setActiveSettingsTab(requestedSettingsTab);
-    }
-  }, [isOwner, location.search]);
-
-  useEffect(() => {
-    if (!isOwner || activeTab !== "settings" || activeSettingsTab !== "activity-profile" || eventPreferenceLoaded || eventPreferenceLoading) {
-      return;
-    }
-
-    let cancelled = false;
-    const loadEventPreference = async () => {
-      setEventPreferenceLoading(true);
-      try {
-        const response = await api.get("/events/assistant/preferences");
-        if (cancelled) return;
-        const data = response.data || {};
-        setEventPreferenceForm({
-          college: data.college || "",
-          division: data.division || "",
-          grade: data.grade || "",
-          campus: data.campus || "",
-          availability: data.availability || "",
-          interestTagsText: (data.interestTags || []).join("、"),
-          preferredCategories: data.preferredCategories || [],
-          preferredBenefits: data.preferredBenefits || [],
-          preferredFormat: data.preferredFormat || "",
-        });
-        setEventPreferenceLoaded(true);
-      } catch (error) {
-        if (!cancelled) {
-          toast.error(error?.response?.status === 401
-            ? t("user_profile.center.toast.login_to_edit_activity")
-            : t("user_profile.center.toast.activity_load_failed"));
+        if (target === "published") {
+            navigateProfileTab("published");
+            scrollToProfileSection(profileContentRef);
+            return;
         }
-      } finally {
-        if (!cancelled) setEventPreferenceLoading(false);
-      }
-    };
-    loadEventPreference();
+        const targetConfig = {
+            "profile-basics": { settings: "profile-card", ref: profileBasicsRef },
+            "profile-card": { settings: "profile-card", ref: profileBasicsRef },
+            "profile-card-editor": { settings: "profile-card", ref: profileCardEditorRef },
+            "activity-profile": { settings: "activity-profile", ref: activityProfileRef },
+            identity: { settings: "identity", ref: identityClaimsRef },
+            "identity-claims": { settings: "identity", ref: identityClaimsRef },
+            "managed-profiles": { settings: "identity", ref: managedProfilesRef },
+            "outcome-claims": { settings: "identity", ref: outcomeClaimsRef },
+            security: { settings: "security", ref: settingsContentRef },
+        }[target] || { settings: "profile-card", ref: profileBasicsRef };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner, activeTab, activeSettingsTab, eventPreferenceLoaded, eventPreferenceLoading]);
-
-  // Group resources by normalized content type. Tabs with zero items
-  // (other than "all") are hidden so visitors of a user with no photos
-  // don't see a dead "图片" button. Backend already filters anonymous
-  // help posts for non-owner non-admin viewers, so the count here is
-  // authoritative for visibility.
-  const visibleResources = useMemo(
-    () => (resources || []).filter(
-      (item) => normalizeContentType(item) !== "music",
-    ),
-    [resources],
-  );
-
-  const contentByType = useMemo(() => {
-    const map = { all: visibleResources };
-    for (const ct of CONTENT_TYPES) {
-      if (ct.key === "all") continue;
-      map[ct.key] = visibleResources.filter(
-        (item) => normalizeContentType(item) === ct.key,
-      );
-    }
-    return map;
-  }, [visibleResources]);
-
-  const tabsWithCount = useMemo(
-    () =>
-      CONTENT_TYPES.map((ct) => ({
-        ...ct,
-        count: (contentByType[ct.key] || []).length,
-      })).filter((ct) => ct.key === "all" || ct.count > 0),
-    [contentByType],
-  );
-
-  const visibleContent = contentByType[activeContentType] || [];
-  useEffect(() => {
-    if (tabsWithCount.some((ct) => ct.key === activeContentType)) return;
-    setActiveContentType("all");
-  }, [activeContentType, tabsWithCount]);
-
-  const totalLikes = useMemo(
-    () => visibleResources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
-    [visibleResources],
-  );
-
-  // Restore tab + scroll position when returning from a resource detail.
-  // We only restore when the state belongs to this same user's profile —
-  // otherwise a shared state object from another profile shouldn't leak.
-  useEffect(() => {
-    const state = location.state?.fromUserProfile;
-    if (!state || !user?.id) return;
-    if (String(state.userId) !== String(user.id)) return;
-    if (state.contentTab) {
-      setActiveContentType(state.contentTab);
-    }
-    if (typeof state.scrollY === "number") {
-      const y = state.scrollY;
-      // Delay to next tick so the grid has rendered before we scroll.
-      setTimeout(() => window.scrollTo(0, y), 0);
-    }
-    // Intentionally not clearing location.state here — react-router will
-    // discard it on the next navigate, and leaving it lets a rapid re-render
-    // during tab restoration still see the same snapshot.
-  }, [location.state, user?.id]);
-
-  useEffect(() => {
-    if (activeTab !== "relations" || !id) return;
-    let cancelled = false;
-    const fetchRelations = async () => {
-      setRelationLoading(true);
-      try {
-        const endpoint =
-          relationTab === "followers" ? "followers" : "following";
-        const res = await api.get(`/users/${id}/${endpoint}`, {
-          params: { limit: 100 },
-        });
-        if (!cancelled)
-          setRelations(Array.isArray(res.data?.data) ? res.data.data : []);
-      } catch (err) {
-        if (!cancelled) setRelations([]);
-      } finally {
-        if (!cancelled) setRelationLoading(false);
-      }
-    };
-    fetchRelations();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, id, relationTab]);
-
-  const fetchFavorites = async () => {
-    setLoadingFavorites(true);
-    try {
-      const endpoint =
-        favoriteType === "all"
-          ? "/favorites"
-          : `/favorites?type=${favoriteType}`;
-      const res = await api.get(endpoint);
-      setFavorites(res.data || []);
-    } catch (err) {
-      // Silently fail if endpoint not ready
-    } finally {
-      setLoadingFavorites(false);
-    }
-  };
-
-  const handleAvatarSelect = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error(t("user_profile.center.toast.avatar_type"));
-      event.target.value = "";
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("user_profile.center.toast.avatar_size"));
-      event.target.value = "";
-      return;
-    }
-    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-    setAvatarCrop({ x: 0, y: 0, size: 1 });
-    setAvatarSaveState("dirty");
-  };
-
-  useEffect(() => {
-    return () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    };
-  }, [avatarPreview]);
-
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) return;
-    setAvatarLoading(true);
-    setAvatarSaveState("saving");
-    try {
-      const res = await uploadAvatar(avatarFile, {
-        crop_x: avatarCrop.x,
-        crop_y: avatarCrop.y,
-        crop_size: avatarCrop.size,
-      });
-      const nextAvatar = res.data?.avatar || res.data?.user?.avatar;
-      if (!nextAvatar) throw new Error(t("user_profile.center.toast.avatar_missing"));
-      setUser((prev) => (prev ? { ...prev, avatar: nextAvatar } : prev));
-      setAvatarFile(null);
-      setAvatarPreview("");
-      setAvatarSaveState("saved");
-      await refreshUser();
-      await refreshUserSystemOverview();
-      toast.success(t("user_profile.center.toast.avatar_updated"));
-    } catch (err) {
-      setAvatarSaveState("error");
-      toast.error(err.response?.data?.error || err.response?.data?.message || t("user_profile.center.toast.avatar_failed"));
-    } finally {
-      setAvatarLoading(false);
-    }
-  };
-
-  const handleAvatarCropStart = (event) => {
-    event.preventDefault();
-    const box = event.currentTarget.closest("[data-avatar-crop-box]")?.getBoundingClientRect();
-    if (!box) return;
-    avatarCropDragRef.current = {
-      box,
-      startX: event.clientX,
-      startY: event.clientY,
-      crop: { ...avatarCrop },
-    };
-    window.addEventListener("pointermove", handleAvatarCropMove);
-    window.addEventListener("pointerup", handleAvatarCropEnd, { once: true });
-  };
-
-  const handleAvatarCropMove = (event) => {
-    const drag = avatarCropDragRef.current;
-    if (!drag) return;
-    const dx = (event.clientX - drag.startX) / drag.box.width;
-    const dy = (event.clientY - drag.startY) / drag.box.height;
-    const nextX = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.x + dx));
-    const nextY = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.y + dy));
-    setAvatarCrop((prev) => ({ ...prev, x: nextX, y: nextY }));
-    setAvatarSaveState("dirty");
-  };
-
-  const handleAvatarCropEnd = () => {
-    window.removeEventListener("pointermove", handleAvatarCropMove);
-    avatarCropDragRef.current = null;
-  };
-
-  const fetchIdentityClaims = async () => {
-    setIdentityLoading(true);
-    try {
-      const res = await listIdentityClaims();
-      setIdentityClaims(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setIdentityClaims([]);
-    } finally {
-      setIdentityLoading(false);
-    }
-  };
-
-  const fetchOutcomeLinks = async () => {
-    setOutcomeLinksLoading(true);
-    try {
-      const res = await listOutcomeLinks("all");
-      setOutcomeLinks(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setOutcomeLinks([]);
-    } finally {
-      setOutcomeLinksLoading(false);
-    }
-  };
-
-  const handleCreateIdentityClaim = async () => {
-    const displayName = identityName.trim();
-    if (displayName.length < 2) {
-      toast.error(t("user_profile.center.toast.identity_name_short"));
-      return;
-    }
-    if (identityType === "club" && identityInviteCode.trim().length === 0) {
-      toast.error(t("user_profile.center.toast.invite_required"));
-      return;
-    }
-    setIdentityLoading(true);
-    try {
-      await createIdentityClaim({
-        type: identityType,
-        displayName,
-        invitationCode: identityType === "club" ? identityInviteCode.trim() : undefined,
-      });
-      setIdentityName("");
-      setIdentityInviteCode("");
-      await Promise.all([fetchIdentityClaims(), fetchOutcomeLinks()]);
-      await refreshUserSystemOverview();
-      await refreshUser();
-      setUser((prev) =>
-        prev && identityType === "club"
-          ? { ...prev, organization_cr: displayName }
-          : prev,
-      );
-      toast.success(identityType === "club"
-        ? t("user_profile.center.toast.org_verified")
-        : t("user_profile.center.toast.identity_added"));
-    } catch (err) {
-      toast.error(err.response?.data?.error || t("user_profile.center.toast.identity_failed"));
-    } finally {
-      setIdentityLoading(false);
-    }
-  };
-
-  const handleOutcomeAction = async (linkId, action) => {
-    setOutcomeActionId(linkId);
-    try {
-      await updateOutcomeLink(linkId, action);
-      await Promise.all([fetchOutcomeLinks(), api.get(`/users/${id}/resources`).then((res) => setResources(res.data || []))]);
-      await refreshUserSystemOverview();
-      toast.success(t("user_profile.center.toast.outcome_updated"));
-    } catch (err) {
-      toast.error(err.response?.data?.error || t("user_profile.center.toast.outcome_failed"));
-    } finally {
-      setOutcomeActionId(null);
-    }
-  };
-
-  const updateEventPreferenceField = (key, value) => {
-    setEventPreferenceForm((previous) => ({
-      ...previous,
-      [key]: value,
-    }));
-  };
-
-  const toggleEventPreferenceArrayValue = (key, value) => {
-    setEventPreferenceForm((previous) => {
-      const current = previous[key] || [];
-      return {
-        ...previous,
-        [key]: current.includes(value)
-          ? current.filter((item) => item !== value)
-          : [...current, value],
-      };
-    });
-  };
-
-  const handleEventPreferenceSave = async () => {
-    setEventPreferenceSaving(true);
-    try {
-      const interestTags = splitPreferenceText(eventPreferenceForm.interestTagsText).slice(0, 16);
-      const response = await api.put("/events/assistant/preferences", {
-        college: eventPreferenceForm.college,
-        division: eventPreferenceForm.division,
-        grade: eventPreferenceForm.grade,
-        campus: eventPreferenceForm.campus,
-        availability: eventPreferenceForm.availability,
-        interestTags,
-        preferredCategories: eventPreferenceForm.preferredCategories,
-        preferredBenefits: eventPreferenceForm.preferredBenefits,
-        preferredFormat: eventPreferenceForm.preferredFormat,
-      });
-      const data = response.data || {};
-      setEventPreferenceForm({
-        college: data.college || "",
-        division: data.division || "",
-        grade: data.grade || "",
-        campus: data.campus || "",
-        availability: data.availability || "",
-        interestTagsText: (data.interestTags || interestTags).join("、"),
-        preferredCategories: data.preferredCategories || [],
-        preferredBenefits: data.preferredBenefits || [],
-        preferredFormat: data.preferredFormat || "",
-      });
-      setEventPreferenceLoaded(true);
-      await refreshUserSystemOverview();
-      toast.success(t("user_profile.center.toast.activity_saved"));
-    } catch (error) {
-      toast.error(error?.response?.status === 401
-        ? t("user_profile.center.toast.login_to_save_activity")
-        : t("user_profile.center.toast.activity_save_failed"));
-    } finally {
-      setEventPreferenceSaving(false);
-    }
-  };
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setProfileLoading(true);
-    try {
-      // Nickname goes through PUT /auth/profile (self-profile endpoint; the
-      // backend's updateUser handler validates + 409s on collision). Only
-      // send if changed, so untouched profiles don't run through unique-
-      // index checks unnecessarily.
-      const trimmedNickname = (profileData.nickname || "").trim();
-      const currentNickname = user?.nickname || "";
-      if (trimmedNickname !== currentNickname) {
-        await api.put("/auth/profile", { nickname: trimmedNickname });
-      }
-
-      // Only PUT organization when the invite code has been verified in
-      // this session — otherwise a nickname-only save would blank out the
-      // user's existing organization_cr on the server.
-      toast.success(t("user_profile.profile_updated"));
-      await refreshUser();
-      await refreshUserSystemOverview();
-
-      // Update local user state to reflect changes immediately
-      setUser((prev) => ({
-        ...prev,
-        nickname: trimmedNickname,
-      }));
-    } catch (err) {
-      // Backend returns fixed "该昵称已被使用" for 409 nickname collisions
-      // (see community-identity-and-follow-notifications spec). Surface the
-      // server message verbatim when present so collision / format errors
-      // read naturally; fall back to generic text otherwise.
-      toast.error(err.response?.data?.error || t("admin.toast.update_fail"));
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  const buildFavoriteTargetPath = (item) => {
-    const itemType = String(item?.type || favoriteType || "").trim().toLowerCase();
-    const itemId = item?.id;
-    if (!itemId) return null;
-
-    const routeMap = {
-      photo: "/gallery",
-      video: "/videos",
-      // Articles live under the AICommunity "tech" tab — must pin the tab
-      // or AICommunity defaults to the help board and the id is ignored.
-      article: "/articles?postTab=tech",
-      event: "/events",
-      // Carry the favorites marker in the query (router state is wiped by the
-      // detail's history push); ProjectPlaza reads ?fromfav=1 to return here.
-      project: "/projects?fromfav=1",
+        navigateProfileTab("settings", targetConfig.settings);
+        scrollToProfileSection(targetConfig.ref);
     };
 
-    const basePath = routeMap[itemType];
-    if (!basePath) return null;
-    const separator = basePath.includes("?") ? "&" : "?";
-    return `${basePath}${separator}id=${itemId}`;
-  };
+    // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
+    useEffect(() => {
+        if (!id) return;
 
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error(t("user_profile.security.password_mismatch"));
-      return;
-    }
-    setPasswordLoading(true);
-    try {
-      await api.post("/auth/change-password", { currentPassword, newPassword });
-      toast.success(t("user_profile.security.update_success"));
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message || t("user_profile.security.update_fail"),
-      );
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
+        const abortController = new AbortController();
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const profileCardPromise = getProfileCard(id, {
+                    signal: abortController.signal,
+                    silent: true,
+                    noRetry: true,
+                })
+                    .then((res) => res.data)
+                    .catch((profileCardError) => {
+                        if (abortController.signal.aborted) throw profileCardError;
+                        if (process.env.NODE_ENV === "development") {
+                            console.warn("Failed to fetch profile card", profileCardError);
+                        }
+                        return null;
+                    });
+                const [userRes, resourcesRes, profileCardData] = await Promise.all([
+                    api.get(`/users/${id}/profile`, { signal: abortController.signal }),
+                    api.get(`/users/${id}/resources`, { signal: abortController.signal }),
+                    profileCardPromise,
+                ]);
+                if (abortController.signal.aborted) return;
+                setUser(userRes.data);
+                setResources(resourcesRes.data);
+                setProfileCard(profileCardData || createEmptyProfileCard(userRes.data.id));
 
-  const getWechatBindingErrorMessage = (err) => {
-    const errorCode = err?.response?.data?.errorCode;
-    const messageKeyByCode = {
-      WECHAT_NOT_CONFIGURED: "user_profile.security.wechat.not_configured",
-      WECHAT_ALREADY_BOUND: "user_profile.security.wechat.already_bound",
-      WECHAT_USER_ALREADY_BOUND: "user_profile.security.wechat.user_already_bound",
-      WECHAT_BIND_TICKET_INVALID: "user_profile.security.wechat.ticket_invalid",
-      WECHAT_BIND_RATE_LIMITED: "user_profile.security.wechat.rate_limited",
-    };
-    return t(messageKeyByCode[errorCode] || "user_profile.security.wechat.bind_failed");
-  };
-
-  const handleWechatBind = async () => {
-    if (wechatBindingActionLoading || wechatBindingStatus.bound) return;
-
-    if (!isMiniProgramWebView()) {
-      toast.error(t("user_profile.security.wechat.open_in_miniapp"));
-      return;
-    }
-
-    setWechatBindingActionLoading(true);
-    try {
-      const response = await api.post("/auth/wechat-miniapp/bind-ticket");
-      const ticket = response.data?.ticket;
-      if (!ticket) {
-        throw new Error("Missing WeChat bind ticket");
-      }
-
-      const redirectPath = `${location.pathname}${location.search || ""}${location.hash || ""}`;
-      await navigateToMiniProgramPage(buildWechatBindBridgeUrl({
-        redirectPath,
-        ticket,
-      }));
-    } catch (err) {
-      toast.error(getWechatBindingErrorMessage(err));
-    } finally {
-      setWechatBindingActionLoading(false);
-    }
-  };
-
-  const handleFollowToggle = async (targetUserId, currentlyFollowing) => {
-    if (!currentUser) {
-      toast.error(t("auth.signin_required"));
-      return;
-    }
-    if (followLoading) return;
-    setFollowLoading(true);
-    try {
-      const method = currentlyFollowing ? "delete" : "post";
-      const res = await api[method](`/users/${targetUserId}/follow`);
-      const payload = res.data || {};
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              is_following: Boolean(payload.is_following),
-              followers_count:
-                typeof payload.followers_count === "number"
-                  ? payload.followers_count
-                  : prev.followers_count,
-            }
-          : prev,
-      );
-      if (activeTab === "relations" && relationTab === "followers") {
-        setRelations((prev) =>
-          prev.map((item) =>
-            String(item.id) === String(currentUser.id)
-              ? { ...item, is_following: Boolean(payload.is_following) }
-              : item,
-          ),
-        );
-      }
-      toast.success(currentlyFollowing
-        ? t("user_profile.center.follow.unfollowed")
-        : t("user_profile.center.follow.followed"));
-    } catch (err) {
-      toast.error(err.response?.data?.error || t("user_profile.center.toast.operation_failed"));
-    } finally {
-      setFollowLoading(false);
-    }
-  };
-
-  const handleRelationItemFollowToggle = async (
-    targetUserId,
-    currentlyFollowing,
-  ) => {
-    if (!currentUser) {
-      toast.error(t("auth.signin_required"));
-      return;
-    }
-    setRelationFollowLoadingIds((prev) => ({ ...prev, [targetUserId]: true }));
-    try {
-      await api[currentlyFollowing ? "delete" : "post"](
-        `/users/${targetUserId}/follow`,
-      );
-      setRelations((prev) =>
-        prev.map((item) =>
-          String(item.id) === String(targetUserId)
-            ? { ...item, is_following: !currentlyFollowing }
-            : item,
-        ),
-      );
-      if (String(user?.id) === String(targetUserId)) {
-        setUser((prev) =>
-          prev
-            ? {
-                ...prev,
-                is_following: !currentlyFollowing,
-                followers_count: Math.max(
-                  0,
-                  (prev.followers_count || 0) + (currentlyFollowing ? -1 : 1),
-                ),
-              }
-            : prev,
-        );
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || t("user_profile.center.toast.operation_failed"));
-    } finally {
-      setRelationFollowLoadingIds((prev) => ({
-        ...prev,
-        [targetUserId]: false,
-      }));
-    }
-  };
-
-  // Navigate to the matching resource detail route, stamping the current
-  // profile context into history.state so the back-navigation effect above
-  // can restore tab + scroll.
-  const handleContentClick = (item) => {
-    const typeKey = normalizeContentType(item);
-    if (!typeKey || item?.id == null) return;
-    const path = {
-      photo: `/gallery?id=${item.id}`,
-      video: `/videos?id=${item.id}`,
-      article: `/articles?postTab=tech&id=${item.id}`,
-      event: `/events?id=${item.id}`,
-      news: `/articles?postTab=news&news=${item.id}`,
-      help: `/articles?postTab=help&post=${item.id}`,
-      materials: `/articles?postTab=materials&post=${item.id}`,
-      team: `/articles?postTab=team&post=${item.id}`,
-      competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
-      project: `/projects?fromfav=1&id=${item.id}`,
-    }[typeKey];
-    if (!path) return;
-    navigate(path, {
-      state: {
-        fromUserProfile: {
-          userId: user?.id,
-          scrollY: typeof window !== "undefined" ? window.scrollY : 0,
-          contentTab: activeContentType,
-        },
-      },
-    });
-  };
-
-  if (loading) {
-    return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${isDayMode ? "bg-[#f8fafc]" : "bg-[#0a0a0a]"}`}
-      >
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (error || !user) {
-    return (
-      <div
-        className={`min-h-screen flex flex-col items-center justify-center ${isDayMode ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0a0a] text-white"}`}
-      >
-        <h2 className="text-2xl font-bold mb-4">
-          {t(error === "load_failed" ? "user_profile.load_failed" : "user_profile.user_not_found")}
-        </h2>
-        <button
-          onClick={() => navigate("/")}
-          className={`px-6 py-2 rounded-full transition-colors ${isDayMode ? "bg-white border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 hover:bg-white/20"}`}
-        >
-          {t("user_profile.go_home")}
-        </button>
-      </div>
-    );
-  }
-
-  const favoriteTypeOptions = [
-    { value: "all", label: t("common.all", "全部"), icon: Grid },
-    { value: "photo", label: t("nav.gallery"), icon: Image },
-    { value: "video", label: t("nav.videos"), icon: Film },
-    { value: "article", label: t("nav.articles"), icon: FileText },
-    { value: "event", label: t("nav.events"), icon: Calendar },
-    { value: "project", label: t("user_profile.center.content_types.project"), icon: Sparkles },
-  ];
-  const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
-  const avatarInitial = displayName.charAt(0).toUpperCase();
-  const roleLabel = user.role === "admin" ? "Admin" : user.role || "Member";
-  const primaryFollowLabel = !currentUser
-    ? t("user_profile.center.follow.login_to_follow")
-    : followLoading
-      ? t("common.processing", "Processing...")
-      : user.is_following
-        ? t("user_profile.center.follow.following")
-        : t("user_profile.center.follow.follow");
-  const PrimaryFollowIcon = user.is_following ? UserCheck : UserPlus;
-  const profileStats = [
-    {
-      key: "works",
-      label: t("user_profile.stats.works", "作品"),
-      value: visibleResources.length,
-      onClick: () => setActiveTab("published"),
-    },
-    {
-      key: "likes",
-      label: t("user_profile.stats.likes", "获赞"),
-      value: totalLikes,
-    },
-    {
-      key: "followers",
-      label: t("user_profile.center.follow.followers"),
-      value: user.followers_count || 0,
-      onClick: () => {
-        setRelationTab("followers");
-        setActiveTab("relations");
-      },
-    },
-    {
-      key: "following",
-      label: t("user_profile.center.follow.following_count"),
-      value: user.following_count || 0,
-      onClick: () => {
-        setRelationTab("following");
-        setActiveTab("relations");
-      },
-    },
-  ];
-  const profileTabItems = isOwner
-    ? [
-        { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
-        { key: "submissions", label: t("user_profile.tabs.submissions", "投稿"), icon: FileText },
-        { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart },
-        { key: "messages", label: t("user_profile.tabs.messages", "消息"), icon: Bell, badge: unreadCount },
-        { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings },
-      ]
-    : [
-        { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
-        { key: "relations", label: t("user_profile.center.relations"), icon: Users },
-      ];
-  const settingsTabItems = [
-    { key: "profile-card", label: t("user_profile.center.settings_tabs.profile_card"), icon: User },
-    { key: "activity-profile", label: t("user_profile.center.settings_tabs.activity_profile"), icon: Sparkles },
-    { key: "security", label: t("user_profile.center.settings_tabs.security"), icon: Lock },
-    { key: "identity", label: t("user_profile.center.settings_tabs.identity"), icon: Briefcase },
-  ];
-  const canBindWechatInMiniProgram = isMiniProgramWebView();
-
-  const hasProfileCardContent = Boolean(
-    profileCard?.slogan ||
-    profileCard?.status ||
-    profileCard?.tags?.length ||
-    profileCard?.social_links?.length ||
-    profileCard?.cards?.length
-  );
-
-  return (
-    <PersonalCenterShell
-      isDayMode={isDayMode}
-      maxWidthClass="max-w-7xl"
-      showAmbient={!prefersReducedMotion}
-      className="pt-24 md:pt-12"
-    >
-        {/* Mobile account hub */}
-        <div className="mb-5 space-y-4 md:hidden">
-          <div
-            className={`relative overflow-hidden rounded-[28px] border p-4 ${isDayMode ? "border-slate-200/80 bg-white/92 shadow-[0_18px_42px_rgba(148,163,184,0.16)]" : "border-white/10 bg-white/[0.04] shadow-[0_18px_42px_rgba(0,0,0,0.28)]"}`}
-          >
-            <div className={`pointer-events-none absolute inset-x-0 top-0 h-24 ${isDayMode ? "bg-gradient-to-br from-indigo-100/90 via-white to-rose-50/70" : "bg-gradient-to-br from-indigo-500/18 via-transparent to-rose-500/10"}`} />
-            <div className="relative flex items-start gap-3">
-              <div className="relative shrink-0">
-                <div
-                  className={`h-[76px] w-[76px] overflow-hidden rounded-3xl border ${isDayMode ? "border-white bg-slate-100 shadow-[0_12px_24px_rgba(99,102,241,0.16)]" : "border-white/10 bg-white/10"}`}
-                >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                      loading="eager"
-                      decoding="async"
-                      fetchpriority="high"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
-                      {avatarInitial}
-                    </div>
-                  )}
-                </div>
-                <span
-                  className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isDayMode ? "border-white bg-white text-indigo-600 shadow-sm" : "border-white/10 bg-[#111827] text-indigo-200"}`}
-                >
-                  {roleLabel}
-                </span>
-              </div>
-
-              <div className="min-w-0 flex-1 pt-1">
-                <div className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {isOwner ? t("user_profile.center.my_homepage") : t("user_profile.center.user_homepage")}
-                </div>
-                <h1
-                  className={`mt-1 truncate text-2xl font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
-                >
-                  {displayName}
-                </h1>
-                <div className={`mt-1 flex min-h-[22px] items-center gap-1.5 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  <Briefcase size={13} aria-hidden="true" />
-                  <span className="truncate">
-                    {user.organization_cr || user.username || t("user_profile.center.member_fallback")}
-                  </span>
-                </div>
-              </div>
-
-              {isOwner ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigateProfileTab("settings");
-                  }}
-                  aria-label={t("user_profile.edit_profile", "编辑资料")}
-                  className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
-                >
-                  <Pencil size={18} aria-hidden="true" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    currentUser
-                      ? handleFollowToggle(user.id, Boolean(user.is_following))
-                      : window.dispatchEvent(new Event("open-auth-modal"))
-                  }
-                  disabled={followLoading}
-                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-2xl px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 disabled:opacity-60 ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : "bg-indigo-600 text-white"}`}
-                >
-                  <PrimaryFollowIcon size={16} aria-hidden="true" />
-                  {primaryFollowLabel}
-                </button>
-              )}
-            </div>
-
-            <div className={`relative mt-6 grid grid-cols-4 rounded-3xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-black/16"}`}>
-              {profileStats.map((stat) => {
-                const content = (
-                  <>
-                    <div className={`text-lg font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
-                      {stat.value}
-                    </div>
-                    <div className={`mt-1 text-[11px] font-medium ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {stat.label}
-                    </div>
-                  </>
-                );
-
-                if (stat.onClick) {
-                  return (
-                    <button
-                      key={stat.key}
-                      type="button"
-                      onClick={stat.onClick}
-                      className="min-h-[50px] rounded-2xl text-center transition-colors hover:bg-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
-                    >
-                      {content}
-                    </button>
-                  );
+                // Init profile data if owner
+                if (currentUser && String(currentUser.id) === String(userRes.data.id)) {
+                    setProfileData({
+                        organization:
+                            userRes.data.organization_cr || currentUser.organization || "",
+                        nickname: userRes.data.nickname || currentUser.nickname || "",
+                        inviteCode: "",
+                    });
                 }
+            } catch (err) {
+                if (abortController.signal.aborted) return;
+                if (process.env.NODE_ENV === "development") {
+                    console.error("Failed to fetch profile", err);
+                }
+                setError(err?.response?.status === 404 ? "not_found" : "load_failed");
+            } finally {
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        };
 
-                return (
-                  <div key={stat.key} className="min-h-[50px] rounded-2xl text-center">
-                    {content}
-                  </div>
-                );
-              })}
-            </div>
-            {hasProfileCardContent && (
-              <div className="relative mt-5 space-y-3">
-                {profileCard.status && (
-                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
-                    {profileStatusLabel(profileCard.status, t)}
-                  </span>
-                )}
-                {profileCard.slogan && (
-                  <p className={`text-sm leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}>
-                    {profileCard.slogan}
-                  </p>
-                )}
-                {profileCard.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {profileCard.tags.map((tag) => (
-                      <span key={tag.id || tag.label} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}>
-                        {tag.label}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <ProfileSocialLinks links={profileCard.social_links || []} isDayMode={isDayMode} />
-                <ProfileCustomCards cards={profileCard.cards || []} isDayMode={isDayMode} />
-              </div>
-            )}
-          </div>
+        if (id) {
+            fetchData();
+            setActiveTab(initialTab); // Reset tab on profile source change
+        }
 
-        </div>
+        return () => abortController.abort();
+    }, [id, currentUser?.id, initialTab]);
 
-        {/* Profile Header */}
-        <div
-          className={`glass-panel hidden rounded-[2rem] p-5 md:block md:p-12 mb-6 md:mb-8 relative overflow-hidden shadow-2xl border group ${isDayMode ? "border-slate-200/80 bg-white/72 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "border-white/10"}`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-50 blur-3xl -z-10 group-hover:scale-105 transition-transform duration-1000" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 -z-10" />
+    useEffect(() => {
+        if (!isOwner) return;
 
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative z-10">
-            {/* Avatar */}
-            <div className="relative group shrink-0">
-              <div
-                className={`w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-4 shadow-2xl ${isDayMode ? "border-white/80" : "border-white/10"}`}
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.nickname || user.username}
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                    decoding="async"
-                    fetchpriority="high"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl md:text-4xl font-bold text-white">
-                    {(user.nickname || user.username || "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div
-                className={`absolute -bottom-2 -right-2 backdrop-blur-md border px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium text-indigo-400 uppercase tracking-wider ${isDayMode ? "bg-white/90 border-slate-200/80" : "bg-black/80 border-white/10"}`}
-              >
-                {user.role}
-              </div>
-            </div>
+        if (activeTab === "favorites") {
+            fetchFavorites();
+        }
+    }, [activeTab, favoriteType, isOwner]);
 
-            {/* Info */}
-            <div className="flex-1 text-center md:text-left w-full">
-              <div className="flex flex-col md:flex-row items-center md:justify-between gap-4 mb-4">
-                <h1
-                  className={`text-2xl md:text-5xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  {user.nickname || user.username}
-                </h1>
-                {isOwner && (
-                  <button
-                    onClick={() => {
-                      navigateProfileTab("settings");
-                    }}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white"}`}
-                  >
-                    <Settings size={16} />
-                    {t("user_profile.edit_profile")}
-                  </button>
-                )}
-                {!isOwner && (
-                  <button
-                    onClick={() =>
-                      currentUser
-                        ? handleFollowToggle(user.id, Boolean(user.is_following))
-                        : window.dispatchEvent(new Event("open-auth-modal"))
-                    }
-                    disabled={followLoading}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
-                  >
-                    {!currentUser
-                      ? t("user_profile.center.follow.login_to_follow")
-                      : followLoading
-                        ? t("common.processing", "Processing...")
-                        : user.is_following
-                          ? t("user_profile.center.follow.following")
-                          : t("user_profile.center.follow.follow")}
-                  </button>
-                )}
-              </div>
+    useEffect(() => {
+        if (!isOwner) {
+            setUserSystemOverview(null);
+            return;
+        }
+        refreshUserSystemOverview();
+    }, [isOwner, user?.id, refreshUserSystemOverview]);
 
-              {user.organization_cr && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs md:text-sm font-medium mb-6">
-                  <Briefcase size={14} />
-                  {user.organization_cr}
-                </div>
-              )}
+    useEffect(() => {
+        if (!isOwner || activeTab !== "settings") return;
+        fetchIdentityClaims();
+        fetchOutcomeLinks();
+    }, [isOwner, activeTab]);
 
-              {/* Stats */}
-              <div
-                className={`grid grid-cols-2 md:flex md:items-center justify-center md:justify-start gap-4 md:gap-12 border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
-              >
-                <div className="text-center md:text-left">
-                  <div
-                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                  >
-                    {visibleResources.reduce(
-                      (acc, curr) => acc + (curr.likes || 0),
-                      0,
-                    )}
-                  </div>
-                  <div
-                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    {t("user_profile.stats.likes")}
-                  </div>
-                </div>
-                <div className="text-center md:text-left">
-                  <div
-                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                  >
-                    {visibleResources.length}
-                  </div>
-                  <div
-                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    {t("user_profile.stats.works")}
-                  </div>
-                </div>
-                <div className="text-center md:text-left">
-                  <div
-                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                  >
-                    {user.followers_count || 0}
-                  </div>
-                  <div
-                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    {t("user_profile.center.follow.followers")}
-                  </div>
-                </div>
-                <div className="text-center md:text-left">
-                  <div
-                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                  >
-                    {user.following_count || 0}
-                  </div>
-                  <div
-                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    {t("user_profile.center.follow.following_count")}
-                  </div>
-                </div>
-              </div>
-              {hasProfileCardContent && (
-                <div className={`mt-8 space-y-4 border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {profileCard.status && (
-                      <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
-                        {profileStatusLabel(profileCard.status, t)}
-                      </span>
-                    )}
-                    {profileCard.tags?.map((tag) => (
-                      <span key={tag.id || tag.label} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}>
-                        {tag.label}
-                      </span>
-                    ))}
-                  </div>
-                  {profileCard.slogan && (
-                    <p className={`max-w-3xl text-base leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}>
-                      {profileCard.slogan}
-                    </p>
-                  )}
-                  <ProfileSocialLinks links={profileCard.social_links || []} isDayMode={isDayMode} />
-                  <ProfileCustomCards cards={profileCard.cards || []} isDayMode={isDayMode} />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+    useEffect(() => {
+        if (!isOwner || activeTab !== "settings" || activeSettingsTab !== "security") return;
+        fetchWechatBindingStatus();
+    }, [isOwner, activeTab, activeSettingsTab, fetchWechatBindingStatus]);
 
-        {isOwner && (
-          <UserSystemOverview
-            overview={userSystemOverview}
-            loading={userSystemOverviewLoading}
-            isDayMode={isDayMode}
-            t={t}
-            onOpenTarget={openUserSystemTarget}
-          />
-        )}
+    useEffect(() => {
+        const handleWechatBindReturn = () => {
+            fetchWechatBindingStatus();
+        };
+        window.addEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
+        return () => {
+            window.removeEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
+        };
+    }, [fetchWechatBindingStatus]);
 
-        <div ref={profileContentRef} className="scroll-mt-24" />
+    useEffect(() => {
+        if (!isOwner) return;
+        const params = new URLSearchParams(location.search);
+        const requestedTab = params.get("tab");
+        const requestedSettingsTab = params.get("settings");
+        if (requestedTab && PROFILE_TAB_KEYS.has(requestedTab)) {
+            setActiveTab(requestedTab);
+        }
+        if (requestedSettingsTab && SETTINGS_TAB_KEYS.has(requestedSettingsTab)) {
+            setActiveSettingsTab(requestedSettingsTab);
+        }
+    }, [isOwner, location.search]);
 
-        {/* Tabs */}
-        <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 4 ? "grid-cols-5" : profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
-          {profileTabItems.map(({ key, label, icon: Icon, badge }) => {
-            const active = activeTab === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  navigateProfileTab(key);
-                }}
-                className={`relative flex min-h-[46px] items-center justify-center gap-1.5 rounded-[20px] px-1 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${active ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-500 hover:text-slate-950" : "text-gray-400 hover:text-white"}`}
-              >
-                <Icon size={15} aria-hidden="true" />
-                <span className="truncate">{label}</span>
-                {badge > 0 ? (
-                  <span className={`absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ${active ? (isDayMode ? "ring-blue-50" : "ring-white") : isDayMode ? "ring-white" : "ring-[#111827]"}`} />
-                ) : null}
-              </button>
+    useEffect(() => {
+        if (
+            !isOwner ||
+            activeTab !== "settings" ||
+            activeSettingsTab !== "activity-profile" ||
+            eventPreferenceLoaded ||
+            eventPreferenceLoading
+        ) {
+            return;
+        }
+
+        let cancelled = false;
+        const loadEventPreference = async () => {
+            setEventPreferenceLoading(true);
+            try {
+                const response = await api.get("/events/assistant/preferences");
+                if (cancelled) return;
+                const data = response.data || {};
+                setEventPreferenceForm({
+                    college: data.college || "",
+                    division: data.division || "",
+                    grade: data.grade || "",
+                    campus: data.campus || "",
+                    availability: data.availability || "",
+                    interestTagsText: (data.interestTags || []).join("、"),
+                    preferredCategories: data.preferredCategories || [],
+                    preferredBenefits: data.preferredBenefits || [],
+                    preferredFormat: data.preferredFormat || "",
+                });
+                setEventPreferenceLoaded(true);
+            } catch (error) {
+                if (!cancelled) {
+                    toast.error(
+                        error?.response?.status === 401
+                            ? t("user_profile.center.toast.login_to_edit_activity")
+                            : t("user_profile.center.toast.activity_load_failed")
+                    );
+                }
+            } finally {
+                if (!cancelled) setEventPreferenceLoading(false);
+            }
+        };
+        loadEventPreference();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [isOwner, activeTab, activeSettingsTab, eventPreferenceLoaded, eventPreferenceLoading]);
+
+    // Group resources by normalized content type. Tabs with zero items
+    // (other than "all") are hidden so visitors of a user with no photos
+    // don't see a dead "图片" button. Backend already filters anonymous
+    // help posts for non-owner non-admin viewers, so the count here is
+    // authoritative for visibility.
+    const visibleResources = useMemo(
+        () => (resources || []).filter((item) => normalizeContentType(item) !== "music"),
+        [resources]
+    );
+
+    const contentByType = useMemo(() => {
+        const map = { all: visibleResources };
+        for (const ct of CONTENT_TYPES) {
+            if (ct.key === "all") continue;
+            map[ct.key] = visibleResources.filter((item) => normalizeContentType(item) === ct.key);
+        }
+        return map;
+    }, [visibleResources]);
+
+    const tabsWithCount = useMemo(
+        () =>
+            CONTENT_TYPES.map((ct) => ({
+                ...ct,
+                count: (contentByType[ct.key] || []).length,
+            })).filter((ct) => ct.key === "all" || ct.count > 0),
+        [contentByType]
+    );
+
+    const visibleContent = contentByType[activeContentType] || [];
+    useEffect(() => {
+        if (tabsWithCount.some((ct) => ct.key === activeContentType)) return;
+        setActiveContentType("all");
+    }, [activeContentType, tabsWithCount]);
+
+    const totalLikes = useMemo(
+        () => visibleResources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
+        [visibleResources]
+    );
+
+    // Restore tab + scroll position when returning from a resource detail.
+    // We only restore when the state belongs to this same user's profile —
+    // otherwise a shared state object from another profile shouldn't leak.
+    useEffect(() => {
+        const state = location.state?.fromUserProfile;
+        if (!state || !user?.id) return;
+        if (String(state.userId) !== String(user.id)) return;
+        if (state.contentTab) {
+            setActiveContentType(state.contentTab);
+        }
+        if (typeof state.scrollY === "number") {
+            const y = state.scrollY;
+            // Delay to next tick so the grid has rendered before we scroll.
+            setTimeout(() => window.scrollTo(0, y), 0);
+        }
+        // Intentionally not clearing location.state here — react-router will
+        // discard it on the next navigate, and leaving it lets a rapid re-render
+        // during tab restoration still see the same snapshot.
+    }, [location.state, user?.id]);
+
+    useEffect(() => {
+        if (activeTab !== "relations" || !id) return;
+        let cancelled = false;
+        const fetchRelations = async () => {
+            setRelationLoading(true);
+            try {
+                const endpoint = relationTab === "followers" ? "followers" : "following";
+                const res = await api.get(`/users/${id}/${endpoint}`, {
+                    params: { limit: 100 },
+                });
+                if (!cancelled) setRelations(Array.isArray(res.data?.data) ? res.data.data : []);
+            } catch (err) {
+                if (!cancelled) setRelations([]);
+            } finally {
+                if (!cancelled) setRelationLoading(false);
+            }
+        };
+        fetchRelations();
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTab, id, relationTab]);
+
+    const fetchFavorites = async () => {
+        setLoadingFavorites(true);
+        try {
+            const endpoint =
+                favoriteType === "all" ? "/favorites" : `/favorites?type=${favoriteType}`;
+            const res = await api.get(endpoint);
+            setFavorites(res.data || []);
+        } catch (err) {
+            // Silently fail if endpoint not ready
+        } finally {
+            setLoadingFavorites(false);
+        }
+    };
+
+    const handleAvatarSelect = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            toast.error(t("user_profile.center.toast.avatar_type"));
+            event.target.value = "";
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error(t("user_profile.center.toast.avatar_size"));
+            event.target.value = "";
+            return;
+        }
+        if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+        setAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+        setAvatarCrop({ x: 0, y: 0, size: 1 });
+        setAvatarSaveState("dirty");
+    };
+
+    useEffect(() => {
+        return () => {
+            if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+        };
+    }, [avatarPreview]);
+
+    const handleAvatarUpload = async () => {
+        if (!avatarFile) return;
+        setAvatarLoading(true);
+        setAvatarSaveState("saving");
+        try {
+            const res = await uploadAvatar(avatarFile, {
+                crop_x: avatarCrop.x,
+                crop_y: avatarCrop.y,
+                crop_size: avatarCrop.size,
+            });
+            const nextAvatar = res.data?.avatar || res.data?.user?.avatar;
+            if (!nextAvatar) throw new Error(t("user_profile.center.toast.avatar_missing"));
+            setUser((prev) => (prev ? { ...prev, avatar: nextAvatar } : prev));
+            setAvatarFile(null);
+            setAvatarPreview("");
+            setAvatarSaveState("saved");
+            await refreshUser();
+            await refreshUserSystemOverview();
+            toast.success(t("user_profile.center.toast.avatar_updated"));
+        } catch (err) {
+            setAvatarSaveState("error");
+            toast.error(
+                err.response?.data?.error ||
+                    err.response?.data?.message ||
+                    t("user_profile.center.toast.avatar_failed")
             );
-          })}
-        </div>
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
 
-        <div className="mb-6 hidden overflow-x-auto pb-2 custom-scrollbar gap-2 px-1 md:flex">
-          <button
-            onClick={() => {
-              navigateProfileTab("relations");
-            }}
-            className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-              activeTab === "relations"
-                ? isDayMode
-                  ? dayActiveSegmentClass
-                  : nightActiveSegmentClass
-                : isDayMode
-                  ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <User size={18} />
-            {t("user_profile.center.relations")}
-          </button>
+    const handleAvatarCropStart = (event) => {
+        event.preventDefault();
+        const box = event.currentTarget.closest("[data-avatar-crop-box]")?.getBoundingClientRect();
+        if (!box) return;
+        avatarCropDragRef.current = {
+            box,
+            startX: event.clientX,
+            startY: event.clientY,
+            crop: { ...avatarCrop },
+        };
+        window.addEventListener("pointermove", handleAvatarCropMove);
+        window.addEventListener("pointerup", handleAvatarCropEnd, { once: true });
+    };
 
-          <button
-            onClick={() => {
-              navigateProfileTab("published");
-            }}
-            className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-              activeTab === "published"
-                ? isDayMode
-                  ? dayActiveSegmentClass
-                  : nightActiveSegmentClass
-                : isDayMode
-                  ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <Grid size={18} />
-            {t("user_profile.tabs.published", "Published")}
-          </button>
+    const handleAvatarCropMove = (event) => {
+        const drag = avatarCropDragRef.current;
+        if (!drag) return;
+        const dx = (event.clientX - drag.startX) / drag.box.width;
+        const dy = (event.clientY - drag.startY) / drag.box.height;
+        const nextX = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.x + dx));
+        const nextY = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.y + dy));
+        setAvatarCrop((prev) => ({ ...prev, x: nextX, y: nextY }));
+        setAvatarSaveState("dirty");
+    };
 
-          {isOwner && (
-            <>
-              <button
-                onClick={() => {
-                  navigateProfileTab("submissions");
-                }}
-                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === "submissions"
-                    ? isDayMode
-                      ? dayActiveSegmentClass
-                      : nightActiveSegmentClass
-                    : isDayMode
-                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <FileText size={18} />
-                {t("user_profile.tabs.submissions", "投稿")}
-              </button>
-              <button
-                onClick={() => {
-                  navigateProfileTab("favorites");
-                }}
-                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === "favorites"
-                    ? isDayMode
-                      ? dayActiveSegmentClass
-                      : nightActiveSegmentClass
-                    : isDayMode
-                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Heart size={18} />
-                {t("user_profile.tabs.favorites")}
-              </button>
-              <button
-                onClick={() => {
-                  navigateProfileTab("messages");
-                }}
-                className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === "messages"
-                    ? isDayMode
-                      ? dayActiveSegmentClass
-                      : nightActiveSegmentClass
-                    : isDayMode
-                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Bell size={18} />
-                {t("user_profile.tabs.messages", "消息")}
-                {isOwner && unreadCount > 0 && (
-                  <span
-                    aria-label={t(
-                      "nav.unread_count",
-                      "{{count}} 条未读通知",
-                      { count: unreadCount },
-                    )}
-                    className={`absolute top-1.5 right-2 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ${
-                      isDayMode ? "ring-white" : "ring-[#0a0a0a]"
-                    }`}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  navigateProfileTab("settings");
-                }}
-                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === "settings"
-                    ? isDayMode
-                      ? dayActiveSegmentClass
-                      : nightActiveSegmentClass
-                    : isDayMode
-                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Settings size={18} />
-                {t("user_profile.tabs.settings", "Settings")}
-              </button>
-            </>
-          )}
-        </div>
+    const handleAvatarCropEnd = () => {
+        window.removeEventListener("pointermove", handleAvatarCropMove);
+        avatarCropDragRef.current = null;
+    };
 
-        {/* Content */}
-        <div className="min-h-[400px]">
-          {activeTab === "published" && (
-            <div className="space-y-6">
-              {/* Content-type tabs. Always render so users can tell whether
-                  they have any work at all; "all" is never hidden. */}
-              <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
-                {tabsWithCount.map((ct) => {
-                  const active = activeContentType === ct.key;
-                  return (
-                    <button
-                      key={ct.key}
-                      type="button"
-                      onClick={() => setActiveContentType(ct.key)}
-                      className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                        active
-                          ? isDayMode
-                            ? dayActiveSegmentClass
-                            : nightActiveSegmentClass
-                          : isDayMode
-                            ? "bg-white/85 text-slate-600 border border-slate-200/80 hover:bg-white hover:text-slate-900"
-                            : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <span>{t(ct.labelKey)}</span>
-                      <span
-                        className={`ml-1.5 text-xs ${active ? "opacity-90" : "opacity-70"}`}
-                      >
-                        {ct.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+    const fetchIdentityClaims = async () => {
+        setIdentityLoading(true);
+        try {
+            const res = await listIdentityClaims();
+            setIdentityClaims(Array.isArray(res.data) ? res.data : []);
+        } catch {
+            setIdentityClaims([]);
+        } finally {
+            setIdentityLoading(false);
+        }
+    };
 
-              {visibleContent.length === 0 ? (
-                <div
-                  className={`text-center py-20 rounded-3xl border border-dashed ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
-                >
-                  <p className={isDayMode ? "text-slate-500" : "text-gray-500"}>
-                    {t("user_profile.no_published_works")}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                  {visibleContent.map((item) => (
-                    <ProfileContentCard
-                      key={`${item.type || "unknown"}-${item.id}`}
-                      item={item}
-                      onClick={() => handleContentClick(item)}
-                      isDayMode={isDayMode}
-                      t={t}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+    const fetchOutcomeLinks = async () => {
+        setOutcomeLinksLoading(true);
+        try {
+            const res = await listOutcomeLinks("all");
+            setOutcomeLinks(Array.isArray(res.data) ? res.data : []);
+        } catch {
+            setOutcomeLinks([]);
+        } finally {
+            setOutcomeLinksLoading(false);
+        }
+    };
 
-          {activeTab === "relations" && (
-            <div className="space-y-4">
-              <div className={`grid grid-cols-2 gap-1 rounded-3xl border p-1 md:inline-grid ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-white/[0.04]"}`}>
-                <button
-                  type="button"
-                  onClick={() => setRelationTab("followers")}
-                  className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "followers" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
-                >
-                  {t("user_profile.center.follow.followers")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRelationTab("following")}
-                  className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "following" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
-                >
-                  {t("user_profile.center.follow.following_count")}
-                </button>
-              </div>
-              {relationLoading ? (
-                <div className="py-12 flex justify-center">
-                  <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : relations.length === 0 ? (
-                <div
-                  className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? "text-slate-500 bg-white/82 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
-                >
-                  {t("common.no_data", "No data yet")}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {relations.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/10"}`}
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-full overflow-hidden ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}
-                      >
-                        {item.avatar ? (
-                          <img
-                            src={item.avatar}
-                            alt={item.nickname || item.username}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-indigo-400">
-                            {(item.nickname || item.username || "?")
-                              .charAt(0)
-                              .toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/user/${item.id}`)}
-                        className="flex-1 text-left min-w-0"
-                      >
-                        <div
-                          className={`font-semibold truncate ${isDayMode ? "text-slate-900" : "text-white"}`}
-                        >
-                          {item.nickname || item.username}
-                        </div>
-                        <div
-                          className={`text-xs truncate ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                          {item.organization_cr || item.username}
-                        </div>
-                      </button>
-                      {currentUser &&
-                        String(currentUser.id) !== String(item.id) && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRelationItemFollowToggle(
-                                item.id,
-                                Boolean(item.is_following),
-                              )
-                            }
-                            disabled={Boolean(
-                              relationFollowLoadingIds[item.id],
-                            )}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : nightActiveSegmentClass) : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
-                          >
-                            {relationFollowLoadingIds[item.id]
-                              ? t("common.processing", "Processing...")
-                              : item.is_following
-                                ? t("user_profile.center.follow.following")
-                                : t("user_profile.center.follow.follow")}
-                          </button>
-                        )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+    const handleCreateIdentityClaim = async () => {
+        const displayName = identityName.trim();
+        if (displayName.length < 2) {
+            toast.error(t("user_profile.center.toast.identity_name_short"));
+            return;
+        }
+        if (identityType === "club" && identityInviteCode.trim().length === 0) {
+            toast.error(t("user_profile.center.toast.invite_required"));
+            return;
+        }
+        setIdentityLoading(true);
+        try {
+            await createIdentityClaim({
+                type: identityType,
+                displayName,
+                invitationCode: identityType === "club" ? identityInviteCode.trim() : undefined,
+            });
+            setIdentityName("");
+            setIdentityInviteCode("");
+            await Promise.all([fetchIdentityClaims(), fetchOutcomeLinks()]);
+            await refreshUserSystemOverview();
+            await refreshUser();
+            setUser((prev) =>
+                prev && identityType === "club" ? { ...prev, organization_cr: displayName } : prev
+            );
+            toast.success(
+                identityType === "club"
+                    ? t("user_profile.center.toast.org_verified")
+                    : t("user_profile.center.toast.identity_added")
+            );
+        } catch (err) {
+            toast.error(
+                err.response?.data?.error || t("user_profile.center.toast.identity_failed")
+            );
+        } finally {
+            setIdentityLoading(false);
+        }
+    };
 
-          {isOwner && activeTab === "submissions" && (
-            <UserCommunitySubmissions userId={user.id} isDayMode={isDayMode} />
-          )}
+    const handleOutcomeAction = async (linkId, action) => {
+        setOutcomeActionId(linkId);
+        try {
+            await updateOutcomeLink(linkId, action);
+            await Promise.all([
+                fetchOutcomeLinks(),
+                api.get(`/users/${id}/resources`).then((res) => setResources(res.data || [])),
+            ]);
+            await refreshUserSystemOverview();
+            toast.success(t("user_profile.center.toast.outcome_updated"));
+        } catch (err) {
+            toast.error(err.response?.data?.error || t("user_profile.center.toast.outcome_failed"));
+        } finally {
+            setOutcomeActionId(null);
+        }
+    };
 
-          {isOwner && activeTab === "favorites" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3
-                  className={`text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  {t("user_profile.favorites.title")}
-                </h3>
-                <div className="w-40">
-                  <Dropdown
-                    value={favoriteType}
-                    onChange={setFavoriteType}
-                    options={favoriteTypeOptions}
-                    buttonClassName={
-                      isDayMode
-                        ? "bg-white/85 border-slate-200/80 text-slate-700 w-full"
-                        : "bg-black/40 border-white/10 w-full"
-                    }
-                  />
-                </div>
-              </div>
+    const updateEventPreferenceField = (key, value) => {
+        setEventPreferenceForm((previous) => ({
+            ...previous,
+            [key]: value,
+        }));
+    };
 
-              {loadingFavorites ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-                </div>
-              ) : favorites.length === 0 ? (
-                <div
-                  className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? "text-slate-500 bg-white/82 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
-                >
-                  <Heart size={48} className="mx-auto mb-4 opacity-20" />
-                  <p>{t("user_profile.favorites.no_favorites")}</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  {favorites.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        const targetPath = buildFavoriteTargetPath(item);
-                        // Mark so the detail page's close (X) can return here
-                        // instead of stranding the user on the list.
-                        if (targetPath) navigate(targetPath, { state: { fromFavorites: true } });
-                      }}
-                      className={`group flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border backdrop-blur-md transition-all duration-300 ${isDayMode ? "bg-white/82 border-slate-200/80 hover:bg-white hover:border-indigo-200/80 shadow-[0_16px_36px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"}`}
-                    >
-                      <div
-                        className={`w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0 shadow-lg ${isDayMode ? "bg-slate-100" : "bg-black/50"}`}
-                      >
-                        <img
-                          src={
-                            item.cover ||
-                            item.cover_url ||
-                            item.thumbnail ||
-                            item.url ||
-                            item.image
-                          }
-                          alt={item.title}
-                          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4
-                          className={`font-bold truncate text-base md:text-lg group-hover:text-indigo-400 transition-colors ${isDayMode ? "text-slate-900" : "text-white"}`}
-                        >
-                          {item.title}
-                        </h4>
-                        <p
-                          className={`text-xs truncate ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                        >
-                          {item.artist ||
-                            item.category ||
-                            t(`common.${item.type || favoriteType}`)}
-                        </p>
-                      </div>
-                      <FavoriteButton
-                        itemId={item.id}
-                        itemType={item.type || favoriteType}
-                        initialFavorited={true}
-                        size={18}
-                        showCount={true}
-                        count={item.likes || 0}
-                        className={`p-2.5 rounded-full transition-colors border border-transparent ${isDayMode ? "text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-200/80" : "hover:bg-white/10 text-gray-400 hover:text-white hover:border-white/10"}`}
-                        onToggle={(favorited) => {
-                          if (!favorited) {
-                            setFavorites((prev) =>
-                              prev.filter((f) => f.id !== item.id),
-                            );
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+    const toggleEventPreferenceArrayValue = (key, value) => {
+        setEventPreferenceForm((previous) => {
+            const current = previous[key] || [];
+            return {
+                ...previous,
+                [key]: current.includes(value)
+                    ? current.filter((item) => item !== value)
+                    : [...current, value],
+            };
+        });
+    };
 
-          {isOwner && activeTab === "messages" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3
-                  className={`text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  {t("notifications.title", "通知中心")}
-                </h3>
-              </div>
-              <Suspense fallback={null}>
-                <NotificationCenter embedded />
-              </Suspense>
-            </div>
-          )}
+    const handleEventPreferenceSave = async () => {
+        setEventPreferenceSaving(true);
+        try {
+            const interestTags = splitPreferenceText(eventPreferenceForm.interestTagsText).slice(
+                0,
+                16
+            );
+            const response = await api.put("/events/assistant/preferences", {
+                college: eventPreferenceForm.college,
+                division: eventPreferenceForm.division,
+                grade: eventPreferenceForm.grade,
+                campus: eventPreferenceForm.campus,
+                availability: eventPreferenceForm.availability,
+                interestTags,
+                preferredCategories: eventPreferenceForm.preferredCategories,
+                preferredBenefits: eventPreferenceForm.preferredBenefits,
+                preferredFormat: eventPreferenceForm.preferredFormat,
+            });
+            const data = response.data || {};
+            setEventPreferenceForm({
+                college: data.college || "",
+                division: data.division || "",
+                grade: data.grade || "",
+                campus: data.campus || "",
+                availability: data.availability || "",
+                interestTagsText: (data.interestTags || interestTags).join("、"),
+                preferredCategories: data.preferredCategories || [],
+                preferredBenefits: data.preferredBenefits || [],
+                preferredFormat: data.preferredFormat || "",
+            });
+            setEventPreferenceLoaded(true);
+            await refreshUserSystemOverview();
+            toast.success(t("user_profile.center.toast.activity_saved"));
+        } catch (error) {
+            toast.error(
+                error?.response?.status === 401
+                    ? t("user_profile.center.toast.login_to_save_activity")
+                    : t("user_profile.center.toast.activity_save_failed")
+            );
+        } finally {
+            setEventPreferenceSaving(false);
+        }
+    };
 
-          {isOwner && activeTab === "settings" && (
-            <div ref={settingsContentRef} data-testid="profile-settings-panel" className="scroll-mt-24 space-y-6">
-              <div className={`flex gap-2 overflow-x-auto rounded-2xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/80" : "border-white/10 bg-white/[0.04]"}`}>
-                {settingsTabItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSettingsTab === item.key;
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => {
-                        setActiveSettingsTab(item.key);
-                        navigate(profileTabPath("settings", item.key), { replace: true });
-                      }}
-                      className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-                        isActive
-                          ? isDayMode
-                            ? "bg-indigo-50 text-indigo-700"
-                            : "bg-indigo-500/20 text-indigo-100"
-                          : isDayMode
-                            ? "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                            : "text-gray-400 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <Icon size={16} />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
+    const handleProfileUpdate = async (e) => {
+        e.preventDefault();
+        setProfileLoading(true);
+        try {
+            // Nickname goes through PUT /auth/profile (self-profile endpoint; the
+            // backend's updateUser handler validates + 409s on collision). Only
+            // send if changed, so untouched profiles don't run through unique-
+            // index checks unnecessarily.
+            const trimmedNickname = (profileData.nickname || "").trim();
+            const currentNickname = user?.nickname || "";
+            if (trimmedNickname !== currentNickname) {
+                await api.put("/auth/profile", { nickname: trimmedNickname });
+            }
 
-              {activeSettingsTab === "profile-card" && (
-                <div className="space-y-8">
-              <div ref={profileBasicsRef} data-testid="profile-basics-section" className={`${settingsPanelClass} scroll-mt-24`}>
-                <h3
-                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  <User size={20} className="text-indigo-500" />
-                  {t("user_profile.center.profile_basics")}
-                </h3>
+            // Only PUT organization when the invite code has been verified in
+            // this session — otherwise a nickname-only save would blank out the
+            // user's existing organization_cr on the server.
+            toast.success(t("user_profile.profile_updated"));
+            await refreshUser();
+            await refreshUserSystemOverview();
 
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="pt-2">
-                    <label className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {t("user_profile.center.avatar")}
-                    </label>
-                    <div className={`flex items-center gap-4 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                      <div className={`h-28 w-28 shrink-0 overflow-hidden rounded-2xl border ${isDayMode ? "border-white bg-slate-100" : "border-white/10 bg-white/10"}`}>
-                        {avatarPreview ? (
-                          <div data-avatar-crop-box className="relative h-full w-full select-none overflow-hidden">
-                            <img src={avatarPreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover opacity-55" draggable={false} decoding="async" />
-                            <div
-                              className="absolute cursor-move border-2 border-white bg-white/10 shadow-[0_0_0_999px_rgba(0,0,0,0.28)]"
-                              style={{
-                                left: `${avatarCrop.x * 100}%`,
-                                top: `${avatarCrop.y * 100}%`,
-                                width: `${avatarCrop.size * 100}%`,
-                                height: `${avatarCrop.size * 100}%`,
-                              }}
-                              onPointerDown={handleAvatarCropStart}
-                            >
-                              <div className="absolute bottom-1 right-1 rounded bg-black/45 px-1 py-0.5 text-[9px] font-bold text-white">1:1</div>
-                            </div>
-                          </div>
-                        ) : user.avatar ? (
-                          <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
-                            {avatarInitial}
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 space-y-3">
-                        <label className={`inline-flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${isDayMode ? "bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 text-white border border-white/10 hover:bg-white/15"}`}>
-                          <Upload size={16} />
-                          {t("user_profile.center.choose_image")}
-                          <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatarSelect} />
-                        </label>
-                        <button type="button" onClick={handleAvatarUpload} disabled={!avatarFile || avatarLoading} className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
-                          {avatarLoading ? t("user_profile.center.uploading") : t("user_profile.center.save_avatar")}
-                        </button>
-                        <p className={`text-xs font-bold ${
-                          avatarSaveState === "dirty"
-                            ? "text-amber-500"
-                            : avatarSaveState === "error"
-                              ? "text-rose-500"
-                              : isDayMode
-                                ? "text-slate-500"
-                                : "text-gray-500"
-                        }`}>
-                          {avatarSaveState === "dirty"
-                            ? t("user_profile.center.avatar_state.dirty")
-                            : avatarSaveState === "saving"
-                              ? t("user_profile.center.avatar_state.saving")
-                              : avatarSaveState === "error"
-                                ? t("user_profile.center.avatar_state.error")
-                                : t("user_profile.center.avatar_state.saved")}
-                        </p>
-                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                          {t("user_profile.center.avatar_hint")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+            // Update local user state to reflect changes immediately
+            setUser((prev) => ({
+                ...prev,
+                nickname: trimmedNickname,
+            }));
+        } catch (err) {
+            // Backend returns fixed "该昵称已被使用" for 409 nickname collisions
+            // (see community-identity-and-follow-notifications spec). Surface the
+            // server message verbatim when present so collision / format errors
+            // read naturally; fall back to generic text otherwise.
+            toast.error(err.response?.data?.error || t("admin.toast.update_fail"));
+        } finally {
+            setProfileLoading(false);
+        }
+    };
 
-                  <div className="pt-2">
-                    <label
-                      className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("user_profile.fields.nickname", "显示名称")}
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.nickname}
-                      onChange={(e) =>
-                        setProfileData({
-                          ...profileData,
-                          nickname: e.target.value,
-                        })
+    const buildFavoriteTargetPath = (item) => {
+        const itemType = String(item?.type || favoriteType || "")
+            .trim()
+            .toLowerCase();
+        const itemId = item?.id;
+        if (!itemId) return null;
+
+        const routeMap = {
+            photo: "/gallery",
+            video: "/videos",
+            // Articles live under the AICommunity "tech" tab — must pin the tab
+            // or AICommunity defaults to the help board and the id is ignored.
+            article: "/articles?postTab=tech",
+            event: "/events",
+            // Carry the favorites marker in the query (router state is wiped by the
+            // detail's history push); ProjectPlaza reads ?fromfav=1 to return here.
+            project: "/projects?fromfav=1",
+        };
+
+        const basePath = routeMap[itemType];
+        if (!basePath) return null;
+        const separator = basePath.includes("?") ? "&" : "?";
+        return `${basePath}${separator}id=${itemId}`;
+    };
+
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            toast.error(t("user_profile.security.password_mismatch"));
+            return;
+        }
+        setPasswordLoading(true);
+        try {
+            await api.post("/auth/change-password", { currentPassword, newPassword });
+            toast.success(t("user_profile.security.update_success"));
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (err) {
+            toast.error(err.response?.data?.message || t("user_profile.security.update_fail"));
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
+    const getWechatBindingErrorMessage = (err) => {
+        const errorCode = err?.response?.data?.errorCode;
+        const messageKeyByCode = {
+            WECHAT_NOT_CONFIGURED: "user_profile.security.wechat.not_configured",
+            WECHAT_ALREADY_BOUND: "user_profile.security.wechat.already_bound",
+            WECHAT_USER_ALREADY_BOUND: "user_profile.security.wechat.user_already_bound",
+            WECHAT_BIND_TICKET_INVALID: "user_profile.security.wechat.ticket_invalid",
+            WECHAT_BIND_RATE_LIMITED: "user_profile.security.wechat.rate_limited",
+        };
+        return t(messageKeyByCode[errorCode] || "user_profile.security.wechat.bind_failed");
+    };
+
+    const handleWechatBind = async () => {
+        if (wechatBindingActionLoading || wechatBindingStatus.bound) return;
+
+        if (!isMiniProgramWebView()) {
+            toast.error(t("user_profile.security.wechat.open_in_miniapp"));
+            return;
+        }
+
+        setWechatBindingActionLoading(true);
+        try {
+            const response = await api.post("/auth/wechat-miniapp/bind-ticket");
+            const ticket = response.data?.ticket;
+            if (!ticket) {
+                throw new Error("Missing WeChat bind ticket");
+            }
+
+            const redirectPath = `${location.pathname}${location.search || ""}${location.hash || ""}`;
+            await navigateToMiniProgramPage(
+                buildWechatBindBridgeUrl({
+                    redirectPath,
+                    ticket,
+                })
+            );
+        } catch (err) {
+            toast.error(getWechatBindingErrorMessage(err));
+        } finally {
+            setWechatBindingActionLoading(false);
+        }
+    };
+
+    const handleFollowToggle = async (targetUserId, currentlyFollowing) => {
+        if (!currentUser) {
+            toast.error(t("auth.signin_required"));
+            return;
+        }
+        if (followLoading) return;
+        setFollowLoading(true);
+        try {
+            const method = currentlyFollowing ? "delete" : "post";
+            const res = await api[method](`/users/${targetUserId}/follow`);
+            const payload = res.data || {};
+            setUser((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          is_following: Boolean(payload.is_following),
+                          followers_count:
+                              typeof payload.followers_count === "number"
+                                  ? payload.followers_count
+                                  : prev.followers_count,
                       }
-                      placeholder={t(
-                        "user_profile.fields.nickname_placeholder",
-                        "2-20 字符，可选；不填则显示账号名",
-                      )}
-                      maxLength={20}
-                      className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${
-                        isDayMode
-                          ? "bg-slate-50 border border-slate-200/80 text-slate-900"
-                          : "bg-black/20 border border-white/10 text-white"
-                      }`}
-                    />
-                    <p
-                      className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                    >
-                      {t(
-                        "user_profile.fields.nickname_help",
-                        "允许中英文、数字、下划线；留空则清空。",
-                      )}
-                    </p>
-                  </div>
+                    : prev
+            );
+            if (activeTab === "relations" && relationTab === "followers") {
+                setRelations((prev) =>
+                    prev.map((item) =>
+                        String(item.id) === String(currentUser.id)
+                            ? { ...item, is_following: Boolean(payload.is_following) }
+                            : item
+                    )
+                );
+            }
+            toast.success(
+                currentlyFollowing
+                    ? t("user_profile.center.follow.unfollowed")
+                    : t("user_profile.center.follow.followed")
+            );
+        } catch (err) {
+            toast.error(
+                err.response?.data?.error || t("user_profile.center.toast.operation_failed")
+            );
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
-                  <div className="flex justify-end pt-4">
-                    <button
-                      type="submit"
-                      disabled={profileLoading}
-                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                    >
-                      {profileLoading ? t("common.saving") : t("common.save")}
-                    </button>
-                  </div>
-                </form>
-              </div>
+    const handleRelationItemFollowToggle = async (targetUserId, currentlyFollowing) => {
+        if (!currentUser) {
+            toast.error(t("auth.signin_required"));
+            return;
+        }
+        setRelationFollowLoadingIds((prev) => ({ ...prev, [targetUserId]: true }));
+        try {
+            await api[currentlyFollowing ? "delete" : "post"](`/users/${targetUserId}/follow`);
+            setRelations((prev) =>
+                prev.map((item) =>
+                    String(item.id) === String(targetUserId)
+                        ? { ...item, is_following: !currentlyFollowing }
+                        : item
+                )
+            );
+            if (String(user?.id) === String(targetUserId)) {
+                setUser((prev) =>
+                    prev
+                        ? {
+                              ...prev,
+                              is_following: !currentlyFollowing,
+                              followers_count: Math.max(
+                                  0,
+                                  (prev.followers_count || 0) + (currentlyFollowing ? -1 : 1)
+                              ),
+                          }
+                        : prev
+                );
+            }
+        } catch (err) {
+            toast.error(
+                err.response?.data?.error || t("user_profile.center.toast.operation_failed")
+            );
+        } finally {
+            setRelationFollowLoadingIds((prev) => ({
+                ...prev,
+                [targetUserId]: false,
+            }));
+        }
+    };
 
-              <div className={settingsPanelClass}>
-                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3
-                      className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                    >
-                      <ShieldCheck size={20} className="text-emerald-500" />
-                      {t("user_profile.security.wechat.title")}
-                    </h3>
-                    <p className={`mt-2 text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {t("user_profile.security.wechat.description")}
-                    </p>
-                  </div>
-                  <span
-                    className={`inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-xs font-bold ${
-                      wechatBindingStatus.bound
-                        ? "bg-emerald-500/12 text-emerald-400"
-                        : isDayMode
-                          ? "bg-slate-100 text-slate-600"
-                          : "bg-white/10 text-gray-300"
-                    }`}
-                  >
-                    {wechatBindingLoading
-                      ? t("common.loading")
-                      : wechatBindingStatus.bound
-                        ? t("user_profile.security.wechat.bound")
-                        : t("user_profile.security.wechat.unbound")}
-                  </span>
-                </div>
+    // Navigate to the matching resource detail route, stamping the current
+    // profile context into history.state so the back-navigation effect above
+    // can restore tab + scroll.
+    const handleContentClick = (item) => {
+        const typeKey = normalizeContentType(item);
+        if (!typeKey || item?.id == null) return;
+        const path = {
+            photo: `/gallery?id=${item.id}`,
+            video: `/videos?id=${item.id}`,
+            article: `/articles?postTab=tech&id=${item.id}`,
+            event: `/events?id=${item.id}`,
+            news: `/articles?postTab=news&news=${item.id}`,
+            help: `/articles?postTab=help&post=${item.id}`,
+            materials: `/articles?postTab=materials&post=${item.id}`,
+            team: `/articles?postTab=team&post=${item.id}`,
+            competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
+            project: `/projects?fromfav=1&id=${item.id}`,
+        }[typeKey];
+        if (!path) return;
+        navigate(path, {
+            state: {
+                fromUserProfile: {
+                    userId: user?.id,
+                    scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+                    contentTab: activeContentType,
+                },
+            },
+        });
+    };
 
-                <div className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}>
-                  <div className={`${settingsIconClass} ${wechatBindingStatus.bound ? "text-emerald-400" : ""}`}>
-                    <MessageCircle size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className={`text-sm font-semibold ${isDayMode ? "text-slate-800" : "text-white"}`}>
-                      {wechatBindingStatus.bound
-                        ? t("user_profile.security.wechat.bound_hint")
-                        : t("user_profile.security.wechat.unbound_hint")}
-                    </div>
-                    <div className={`mt-1 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {wechatBindingStatus.bound && wechatBindingStatus.lastLoginAt
-                        ? t("user_profile.security.wechat.last_login", {
-                            time: new Date(wechatBindingStatus.lastLoginAt).toLocaleString(),
-                          })
-                        : t("user_profile.security.wechat.no_openid_exposed")}
-                    </div>
-                  </div>
-                </div>
-
-                {!wechatBindingStatus.bound && (
-                  <button
-                    type="button"
-                    onClick={handleWechatBind}
-                    disabled={wechatBindingActionLoading || !canBindWechatInMiniProgram}
-                    className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                      canBindWechatInMiniProgram
-                        ? "bg-[#07c160] text-white hover:bg-[#06ad56]"
-                        : isDayMode
-                          ? "bg-slate-100 text-slate-500"
-                          : "bg-white/10 text-gray-300"
-                    }`}
-                  >
-                    {wechatBindingActionLoading ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
-                    {canBindWechatInMiniProgram
-                      ? t("user_profile.security.wechat.bind_button")
-                      : t("user_profile.security.wechat.open_in_miniapp")}
-                  </button>
-                )}
-              </div>
-
-              <div ref={profileCardEditorRef} data-testid="profile-card-editor-section" className={`${settingsPanelClass} scroll-mt-24`}>
-                <h3
-                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  <User size={20} className="text-indigo-500" />
-                  {t("user_profile.center.profile_card")}
-                </h3>
-                <ProfileCardEditor
-                  profileCard={profileCard}
-                  isDayMode={isDayMode}
-                  onSaved={(nextProfileCard) => setProfileCard(nextProfileCard)}
-                />
-              </div>
-                </div>
-              )}
-
-              {activeSettingsTab === "activity-profile" && (
-                <div className="space-y-6">
-                  <div ref={activityProfileRef} data-testid="activity-profile-section" className={`${settingsPanelClass} scroll-mt-24`}>
-                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                          <Sparkles size={20} className="text-indigo-500" />
-                          {t("user_profile.center.activity_profile.title")}
-                        </h3>
-                        <p className={`mt-2 max-w-2xl text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                          {t("user_profile.center.activity_profile.desc")}
-                        </p>
-                      </div>
-                      <div className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"}`}>
-                        <UserCheck size={15} />
-                        {t("user_profile.center.activity_profile.source_badge")}
-                      </div>
-                    </div>
-
-                    {eventPreferenceLoading ? (
-                      <div className={`flex min-h-[180px] items-center justify-center gap-2 rounded-2xl border ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}>
-                        <Loader2 size={18} className="animate-spin" />
-                        {t("user_profile.center.activity_profile.loading")}
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {[
-                            ["college", "user_profile.center.activity_profile.fields.college", "user_profile.center.activity_profile.placeholders.college", User],
-                            ["division", "user_profile.center.activity_profile.fields.division", "user_profile.center.activity_profile.placeholders.division", Briefcase],
-                            ["grade", "user_profile.center.activity_profile.fields.grade", "user_profile.center.activity_profile.placeholders.grade", Calendar],
-                            ["campus", "user_profile.center.activity_profile.fields.campus", "user_profile.center.activity_profile.placeholders.campus", MapPin],
-                          ].map(([key, label, placeholder, Icon]) => (
-                            <label key={key} className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
-                              <span className="flex items-center gap-2">
-                                <Icon size={15} />
-                                {t(label)}
-                              </span>
-                              <input
-                                type="text"
-                                value={eventPreferenceForm[key]}
-                                onChange={(event) => updateEventPreferenceField(key, event.target.value)}
-                                placeholder={t(placeholder)}
-                                className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
-                              />
-                            </label>
-                          ))}
-                        </div>
-
-                        <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
-                          <span className="flex items-center gap-2">
-                            <Clock3 size={15} />
-                            {t("user_profile.center.activity_profile.fields.availability")}
-                          </span>
-                          <input
-                            type="text"
-                            value={eventPreferenceForm.availability}
-                            onChange={(event) => updateEventPreferenceField("availability", event.target.value)}
-                            placeholder={t("user_profile.center.activity_profile.placeholders.availability")}
-                            className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
-                          />
-                        </label>
-
-                        <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
-                          {t("user_profile.center.activity_profile.fields.interest_tags")}
-                          <input
-                            type="text"
-                            value={eventPreferenceForm.interestTagsText}
-                            onChange={(event) => updateEventPreferenceField("interestTagsText", event.target.value)}
-                            placeholder={t("user_profile.center.activity_profile.placeholders.interest_tags")}
-                            className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
-                          />
-                        </label>
-
-                        <div className="grid gap-5 lg:grid-cols-2">
-                          <div>
-                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>{t("user_profile.center.activity_profile.preferred_categories")}</div>
-                            <div className="flex flex-wrap gap-2">
-                              {EVENT_CATEGORY_OPTIONS.map((option) => {
-                                const active = eventPreferenceForm.preferredCategories.includes(option.value);
-                                return (
-                                  <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => toggleEventPreferenceArrayValue("preferredCategories", option.value)}
-                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-indigo-500 bg-indigo-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
-                                  >
-                                    {t(option.labelKey)}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          <div>
-                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>{t("user_profile.center.activity_profile.preferred_benefits")}</div>
-                            <div className="flex flex-wrap gap-2">
-                              {EVENT_BENEFIT_OPTIONS.map((option) => {
-                                const active = eventPreferenceForm.preferredBenefits.includes(option.value);
-                                return (
-                                  <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => toggleEventPreferenceArrayValue("preferredBenefits", option.value)}
-                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-emerald-500 bg-emerald-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
-                                  >
-                                    {t(option.labelKey)}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex flex-wrap gap-2">
-                            {EVENT_FORMAT_OPTIONS.map((option) => {
-                              const active = eventPreferenceForm.preferredFormat === option.value;
-                              return (
-                                <button
-                                  key={option.value || "any"}
-                                  type="button"
-                                  onClick={() => updateEventPreferenceField("preferredFormat", option.value)}
-                                  className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-sky-500 bg-sky-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:text-sky-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
-                                >
-                                  {t(option.labelKey)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleEventPreferenceSave}
-                            disabled={eventPreferenceSaving}
-                            className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
-                          >
-                            {eventPreferenceSaving ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                            {t("user_profile.center.activity_profile.save")}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Security Settings */}
-              {activeSettingsTab === "security" && (
-                <div className="space-y-8">
-              <div className={settingsPanelClass}>
-                <h3
-                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  <Lock size={20} className="text-indigo-500" />
-                  {t("user_profile.security.title")}
-                </h3>
-
-                <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("user_profile.security.current_password")}
-                    </label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("user_profile.security.new_password")}
-                    </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("user_profile.security.confirm_password")}
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={passwordLoading}
-                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {passwordLoading
-                      ? t("user_profile.security.updating")
-                      : t("user_profile.security.update_btn")}
-                  </button>
-                </form>
-              </div>
-
-              <div className={settingsPanelClass}>
-                <h3
-                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  <Settings size={20} className="text-indigo-500" />
-                  {t("me.preferences", "偏好与设备")}
-                </h3>
-
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
-                    className={settingsActionClass}
-                  >
-                    <div
-                      className={`${settingsIconClass} ${isDayMode ? "bg-amber-100 text-amber-500" : "text-yellow-300"}`}
-                    >
-                      {isDayMode ? <Moon size={18} /> : <Sun size={18} />}
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="text-sm font-semibold">
-                        {t("nav.appearance_mode", "显示模式")}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {isDayMode
-                          ? t("nav.night_mode", "夜间模式")
-                          : t("nav.day_mode", "日间模式")}
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={toggleWeatherWidget}
-                    aria-pressed={showWeatherWidget}
-                    className={settingsActionClass}
-                  >
-                    <div
-                      className={`${settingsIconClass} ${isDayMode ? "bg-sky-50 text-sky-500" : "text-sky-300"}`}
-                    >
-                      <CloudSun size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="text-sm font-semibold">
-                        {t("me.weather_widget", "时间与天气")}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {showWeatherWidget
-                          ? t("me.weather_widget_on", "右上角显示时间和天气")
-                          : t("me.weather_widget_off", "右上角默认隐藏")}
-                      </div>
-                    </div>
-                    <span
-                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${settingsSwitchTrackClass}`}
-                      aria-hidden="true"
-                    >
-                      <span
-                        className={`h-5 w-5 rounded-full shadow-sm transition-transform ${settingsSwitchThumbClass}`}
-                      />
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      i18n.changeLanguage(i18n.language.startsWith("zh") ? "en" : "zh")
-                    }
-                    className={settingsActionClass}
-                  >
-                    <div className={settingsIconClass}>
-                      <Globe size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="text-sm font-semibold">
-                        {t("me.language", "语言")}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 uppercase ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {i18n.language}
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event("request-pwa-install"))}
-                    className={settingsActionClass}
-                  >
-                    <div
-                      className={`${settingsIconClass} ${isDayMode ? "bg-indigo-50 text-indigo-500" : ""}`}
-                    >
-                      <Download size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="text-sm font-semibold">
-                        {t("me.install_app", "安装 App")}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {t("me.install_app_hint", "像 App 一样打开拓途浙享。")}
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className={settingsActionClass}
-                  >
-                    <div className={settingsIconClass}>
-                      <LogOut size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="text-sm font-semibold">
-                        {t("auth.log_out", "退出登录")}
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-                </div>
-              )}
-
-              {activeSettingsTab === "identity" && (
-              <div className={settingsPanelClass}>
-                <h3
-                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                >
-                  <Briefcase size={20} className="text-indigo-500" />
-                  {t("user_profile.center.identity.title")}
-                </h3>
-
-                <div className="space-y-5">
-                  <div ref={managedProfilesRef} data-testid="managed-profiles-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.current_org")}</div>
-                    <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
-                      {user?.organization_cr || profileData.organization || t("user_profile.center.identity.no_org")}
-                    </div>
-                    <p className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                      {t("user_profile.center.identity.org_hint")}
-                    </p>
-                  </div>
-
-                  <div ref={identityClaimsRef} data-testid="identity-claims-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.claims_title")}</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2">
-                      <select
-                        value={identityType}
-                        onChange={(event) => setIdentityType(event.target.value)}
-                        className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
-                      >
-                        <option value="person">{t("user_profile.center.identity_types.person")}</option>
-                        <option value="team">{t("user_profile.center.identity_types.team")}</option>
-                        <option value="club">{t("user_profile.center.identity_types.club")}</option>
-                      </select>
-                      <input
-                        type="text"
-                        value={identityName}
-                        onChange={(event) => setIdentityName(event.target.value)}
-                        placeholder={identityType === "club" ? t("user_profile.center.identity.org_name_placeholder") : t("user_profile.center.identity.name_placeholder")}
-                        className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
-                      />
-                    </div>
-                    {identityType === "club" && (
-                      <input
-                        type="text"
-                        value={identityInviteCode}
-                        onChange={(event) => setIdentityInviteCode(event.target.value)}
-                        placeholder={t("user_profile.center.identity.invite_placeholder")}
-                        className={`mt-2 w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
-                      />
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleCreateIdentityClaim}
-                      disabled={identityLoading}
-                      className="mt-3 inline-flex min-h-[38px] items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                      {identityLoading
-                        ? t("common.submitting", "Submitting...")
-                        : identityType === "club"
-                          ? t("user_profile.center.identity.verify_org")
-                          : t("user_profile.center.identity.add_identity")}
-                    </button>
-                    <div className="mt-4 space-y-2">
-                      {identityClaims.length === 0 ? (
-                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("user_profile.center.identity.empty_claims")}</p>
-                      ) : identityClaims.map((claim) => (
-                        <div key={claim.id} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
-                          <span className="font-bold">{claim.display_name}</span>
-                          <span className={`ml-auto text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{identityTypeLabel(claim.type, t)} · {identityStatusLabel(claim.status, t)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div ref={outcomeClaimsRef} data-testid="outcome-claims-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.outcomes_title")}</div>
-                    {outcomeLinksLoading ? (
-                      <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("common.loading")}</p>
-                    ) : outcomeLinks.length === 0 ? (
-                      <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("user_profile.center.identity.empty_outcomes")}</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {outcomeLinks.slice(0, 8).map((link) => (
-                          <div key={link.link_id || `${link.id}-${link.identity_claim_id}`} className={`rounded-xl border p-3 ${isDayMode ? "bg-white border-slate-200" : "bg-white/5 border-white/10"}`}>
-                            <div className={`text-sm font-bold line-clamp-1 ${isDayMode ? "text-slate-900" : "text-white"}`}>{link.title}</div>
-                            <div className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                              {link.bound_identity_name || link.matched_text || link.author} · {outcomeStatusLabel(link.binding_status, t)}
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {link.binding_status !== "confirmed" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "confirm")} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.confirm")}</button>
-                              )}
-                              {link.binding_status === "candidate" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "reject")} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.reject")}</button>
-                              )}
-                              {link.binding_status === "confirmed" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "revoke")} className="rounded-lg bg-slate-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.revoke")}</button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              )}
+    if (loading) {
+        return (
+            <div
+                className={`min-h-screen flex items-center justify-center ${isDayMode ? "bg-[#f8fafc]" : "bg-[#0a0a0a]"}`}
+            >
+                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             </div>
-          )}
-        </div>
-        <div className="h-36 md:hidden" aria-hidden="true" />
-    </PersonalCenterShell>
-  );
+        );
+    }
+
+    if (error || !user) {
+        return (
+            <div
+                className={`min-h-screen flex flex-col items-center justify-center ${isDayMode ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0a0a] text-white"}`}
+            >
+                <h2 className="text-2xl font-bold mb-4">
+                    {t(
+                        error === "load_failed"
+                            ? "user_profile.load_failed"
+                            : "user_profile.user_not_found"
+                    )}
+                </h2>
+                <button
+                    onClick={() => navigate("/")}
+                    className={`px-6 py-2 rounded-full transition-colors ${isDayMode ? "bg-white border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 hover:bg-white/20"}`}
+                >
+                    {t("user_profile.go_home")}
+                </button>
+            </div>
+        );
+    }
+
+    const favoriteTypeOptions = [
+        { value: "all", label: t("common.all", "全部"), icon: Grid },
+        { value: "photo", label: t("nav.gallery"), icon: Image },
+        { value: "video", label: t("nav.videos"), icon: Film },
+        { value: "article", label: t("nav.articles"), icon: FileText },
+        { value: "event", label: t("nav.events"), icon: Calendar },
+        { value: "project", label: t("user_profile.center.content_types.project"), icon: Sparkles },
+    ];
+    const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
+    const avatarInitial = displayName.charAt(0).toUpperCase();
+    const roleLabel = user.role === "admin" ? "Admin" : user.role || "Member";
+    const primaryFollowLabel = !currentUser
+        ? t("user_profile.center.follow.login_to_follow")
+        : followLoading
+          ? t("common.processing", "Processing...")
+          : user.is_following
+            ? t("user_profile.center.follow.following")
+            : t("user_profile.center.follow.follow");
+    const PrimaryFollowIcon = user.is_following ? UserCheck : UserPlus;
+    const profileStats = [
+        {
+            key: "works",
+            label: t("user_profile.stats.works", "作品"),
+            value: visibleResources.length,
+            onClick: () => setActiveTab("published"),
+        },
+        {
+            key: "likes",
+            label: t("user_profile.stats.likes", "获赞"),
+            value: totalLikes,
+        },
+        {
+            key: "followers",
+            label: t("user_profile.center.follow.followers"),
+            value: user.followers_count || 0,
+            onClick: () => {
+                setRelationTab("followers");
+                setActiveTab("relations");
+            },
+        },
+        {
+            key: "following",
+            label: t("user_profile.center.follow.following_count"),
+            value: user.following_count || 0,
+            onClick: () => {
+                setRelationTab("following");
+                setActiveTab("relations");
+            },
+        },
+    ];
+    const profileTabItems = isOwner
+        ? [
+              { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
+              {
+                  key: "submissions",
+                  label: t("user_profile.tabs.submissions", "投稿"),
+                  icon: FileText,
+              },
+              { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart },
+              {
+                  key: "messages",
+                  label: t("user_profile.tabs.messages", "消息"),
+                  icon: Bell,
+                  badge: unreadCount,
+              },
+              { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings },
+          ]
+        : [
+              { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
+              { key: "relations", label: t("user_profile.center.relations"), icon: Users },
+          ];
+    const settingsTabItems = [
+        {
+            key: "profile-card",
+            label: t("user_profile.center.settings_tabs.profile_card"),
+            icon: User,
+        },
+        {
+            key: "activity-profile",
+            label: t("user_profile.center.settings_tabs.activity_profile"),
+            icon: Sparkles,
+        },
+        { key: "security", label: t("user_profile.center.settings_tabs.security"), icon: Lock },
+        {
+            key: "identity",
+            label: t("user_profile.center.settings_tabs.identity"),
+            icon: Briefcase,
+        },
+    ];
+    const canBindWechatInMiniProgram = isMiniProgramWebView();
+
+    const hasProfileCardContent = Boolean(
+        profileCard?.slogan ||
+        profileCard?.status ||
+        profileCard?.tags?.length ||
+        profileCard?.social_links?.length ||
+        profileCard?.cards?.length
+    );
+
+    return (
+        <PersonalCenterShell
+            isDayMode={isDayMode}
+            maxWidthClass="max-w-7xl"
+            showAmbient={!prefersReducedMotion}
+            className="pt-24 md:pt-12"
+        >
+            {/* Mobile account hub */}
+            <div className="mb-5 space-y-4 md:hidden">
+                <div
+                    className={`relative overflow-hidden rounded-[28px] border p-4 ${isDayMode ? "border-slate-200/80 bg-white/92 shadow-[0_18px_42px_rgba(148,163,184,0.16)]" : "border-white/10 bg-white/[0.04] shadow-[0_18px_42px_rgba(0,0,0,0.28)]"}`}
+                >
+                    <div
+                        className={`pointer-events-none absolute inset-x-0 top-0 h-24 ${isDayMode ? "bg-gradient-to-br from-indigo-100/90 via-white to-rose-50/70" : "bg-gradient-to-br from-indigo-500/18 via-transparent to-rose-500/10"}`}
+                    />
+                    <div className="relative flex items-start gap-3">
+                        <div className="relative shrink-0">
+                            <div
+                                className={`h-[76px] w-[76px] overflow-hidden rounded-3xl border ${isDayMode ? "border-white bg-slate-100 shadow-[0_12px_24px_rgba(99,102,241,0.16)]" : "border-white/10 bg-white/10"}`}
+                            >
+                                {user.avatar ? (
+                                    <img
+                                        src={user.avatar}
+                                        alt={displayName}
+                                        className="h-full w-full object-cover"
+                                        loading="eager"
+                                        decoding="async"
+                                        fetchpriority="high"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
+                                        {avatarInitial}
+                                    </div>
+                                )}
+                            </div>
+                            <span
+                                className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isDayMode ? "border-white bg-white text-indigo-600 shadow-sm" : "border-white/10 bg-[#111827] text-indigo-200"}`}
+                            >
+                                {roleLabel}
+                            </span>
+                        </div>
+
+                        <div className="min-w-0 flex-1 pt-1">
+                            <div
+                                className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                            >
+                                {isOwner
+                                    ? t("user_profile.center.my_homepage")
+                                    : t("user_profile.center.user_homepage")}
+                            </div>
+                            <h1
+                                className={`mt-1 truncate text-2xl font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            >
+                                {displayName}
+                            </h1>
+                            <div
+                                className={`mt-1 flex min-h-[22px] items-center gap-1.5 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                            >
+                                <Briefcase size={13} aria-hidden="true" />
+                                <span className="truncate">
+                                    {user.organization_cr ||
+                                        user.username ||
+                                        t("user_profile.center.member_fallback")}
+                                </span>
+                            </div>
+                        </div>
+
+                        {isOwner ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    navigateProfileTab("settings");
+                                }}
+                                aria-label={t("user_profile.edit_profile", "编辑资料")}
+                                className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
+                            >
+                                <Pencil size={18} aria-hidden="true" />
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    currentUser
+                                        ? handleFollowToggle(user.id, Boolean(user.is_following))
+                                        : window.dispatchEvent(new Event("open-auth-modal"))
+                                }
+                                disabled={followLoading}
+                                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-2xl px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 disabled:opacity-60 ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : "bg-indigo-600 text-white"}`}
+                            >
+                                <PrimaryFollowIcon size={16} aria-hidden="true" />
+                                {primaryFollowLabel}
+                            </button>
+                        )}
+                    </div>
+
+                    <div
+                        className={`relative mt-6 grid grid-cols-4 rounded-3xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-black/16"}`}
+                    >
+                        {profileStats.map((stat) => {
+                            const content = (
+                                <>
+                                    <div
+                                        className={`text-lg font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                    >
+                                        {stat.value}
+                                    </div>
+                                    <div
+                                        className={`mt-1 text-[11px] font-medium ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                    >
+                                        {stat.label}
+                                    </div>
+                                </>
+                            );
+
+                            if (stat.onClick) {
+                                return (
+                                    <button
+                                        key={stat.key}
+                                        type="button"
+                                        onClick={stat.onClick}
+                                        className="min-h-[50px] rounded-2xl text-center transition-colors hover:bg-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
+                                    >
+                                        {content}
+                                    </button>
+                                );
+                            }
+
+                            return (
+                                <div
+                                    key={stat.key}
+                                    className="min-h-[50px] rounded-2xl text-center"
+                                >
+                                    {content}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {hasProfileCardContent && (
+                        <div className="relative mt-5 space-y-3">
+                            {profileCard.status && (
+                                <span
+                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}
+                                >
+                                    {profileStatusLabel(profileCard.status, t)}
+                                </span>
+                            )}
+                            {profileCard.slogan && (
+                                <p
+                                    className={`text-sm leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                >
+                                    {profileCard.slogan}
+                                </p>
+                            )}
+                            {profileCard.tags?.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {profileCard.tags.map((tag) => (
+                                        <span
+                                            key={tag.id || tag.label}
+                                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}
+                                        >
+                                            {tag.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            <ProfileSocialLinks
+                                links={profileCard.social_links || []}
+                                isDayMode={isDayMode}
+                            />
+                            <ProfileCustomCards
+                                cards={profileCard.cards || []}
+                                isDayMode={isDayMode}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Profile Header */}
+            <div
+                className={`glass-panel hidden rounded-[2rem] p-5 md:block md:p-12 mb-6 md:mb-8 relative overflow-hidden shadow-2xl border group ${isDayMode ? "border-slate-200/80 bg-white/72 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "border-white/10"}`}
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-50 blur-3xl -z-10 group-hover:scale-105 transition-transform duration-1000" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 -z-10" />
+
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative z-10">
+                    {/* Avatar */}
+                    <div className="relative group shrink-0">
+                        <div
+                            className={`w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-4 shadow-2xl ${isDayMode ? "border-white/80" : "border-white/10"}`}
+                        >
+                            {user.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt={user.nickname || user.username}
+                                    className="w-full h-full object-cover"
+                                    loading="eager"
+                                    decoding="async"
+                                    fetchpriority="high"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl md:text-4xl font-bold text-white">
+                                    {(user.nickname || user.username || "?")
+                                        .charAt(0)
+                                        .toUpperCase()}
+                                </div>
+                            )}
+                        </div>
+                        <div
+                            className={`absolute -bottom-2 -right-2 backdrop-blur-md border px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium text-indigo-400 uppercase tracking-wider ${isDayMode ? "bg-white/90 border-slate-200/80" : "bg-black/80 border-white/10"}`}
+                        >
+                            {user.role}
+                        </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 text-center md:text-left w-full">
+                        <div className="flex flex-col md:flex-row items-center md:justify-between gap-4 mb-4">
+                            <h1
+                                className={`text-2xl md:text-5xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+                            >
+                                {user.nickname || user.username}
+                            </h1>
+                            {isOwner && (
+                                <button
+                                    onClick={() => {
+                                        navigateProfileTab("settings");
+                                    }}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white"}`}
+                                >
+                                    <Settings size={16} />
+                                    {t("user_profile.edit_profile")}
+                                </button>
+                            )}
+                            {!isOwner && (
+                                <button
+                                    onClick={() =>
+                                        currentUser
+                                            ? handleFollowToggle(
+                                                  user.id,
+                                                  Boolean(user.is_following)
+                                              )
+                                            : window.dispatchEvent(new Event("open-auth-modal"))
+                                    }
+                                    disabled={followLoading}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
+                                >
+                                    {!currentUser
+                                        ? t("user_profile.center.follow.login_to_follow")
+                                        : followLoading
+                                          ? t("common.processing", "Processing...")
+                                          : user.is_following
+                                            ? t("user_profile.center.follow.following")
+                                            : t("user_profile.center.follow.follow")}
+                                </button>
+                            )}
+                        </div>
+
+                        {user.organization_cr && (
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs md:text-sm font-medium mb-6">
+                                <Briefcase size={14} />
+                                {user.organization_cr}
+                            </div>
+                        )}
+
+                        {/* Stats */}
+                        <div
+                            className={`grid grid-cols-2 md:flex md:items-center justify-center md:justify-start gap-4 md:gap-12 border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+                        >
+                            <div className="text-center md:text-left">
+                                <div
+                                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    {visibleResources.reduce(
+                                        (acc, curr) => acc + (curr.likes || 0),
+                                        0
+                                    )}
+                                </div>
+                                <div
+                                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                >
+                                    {t("user_profile.stats.likes")}
+                                </div>
+                            </div>
+                            <div className="text-center md:text-left">
+                                <div
+                                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    {visibleResources.length}
+                                </div>
+                                <div
+                                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                >
+                                    {t("user_profile.stats.works")}
+                                </div>
+                            </div>
+                            <div className="text-center md:text-left">
+                                <div
+                                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    {user.followers_count || 0}
+                                </div>
+                                <div
+                                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                >
+                                    {t("user_profile.center.follow.followers")}
+                                </div>
+                            </div>
+                            <div className="text-center md:text-left">
+                                <div
+                                    className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    {user.following_count || 0}
+                                </div>
+                                <div
+                                    className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                >
+                                    {t("user_profile.center.follow.following_count")}
+                                </div>
+                            </div>
+                        </div>
+                        {hasProfileCardContent && (
+                            <div
+                                className={`mt-8 space-y-4 border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+                            >
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {profileCard.status && (
+                                        <span
+                                            className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}
+                                        >
+                                            {profileStatusLabel(profileCard.status, t)}
+                                        </span>
+                                    )}
+                                    {profileCard.tags?.map((tag) => (
+                                        <span
+                                            key={tag.id || tag.label}
+                                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}
+                                        >
+                                            {tag.label}
+                                        </span>
+                                    ))}
+                                </div>
+                                {profileCard.slogan && (
+                                    <p
+                                        className={`max-w-3xl text-base leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                    >
+                                        {profileCard.slogan}
+                                    </p>
+                                )}
+                                <ProfileSocialLinks
+                                    links={profileCard.social_links || []}
+                                    isDayMode={isDayMode}
+                                />
+                                <ProfileCustomCards
+                                    cards={profileCard.cards || []}
+                                    isDayMode={isDayMode}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {isOwner && (
+                <UserSystemOverview
+                    overview={userSystemOverview}
+                    loading={userSystemOverviewLoading}
+                    isDayMode={isDayMode}
+                    t={t}
+                    onOpenTarget={openUserSystemTarget}
+                />
+            )}
+
+            <div ref={profileContentRef} className="scroll-mt-24" />
+
+            {/* Tabs */}
+            <div
+                className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 4 ? "grid-cols-5" : profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}
+            >
+                {profileTabItems.map(({ key, label, icon: Icon, badge }) => {
+                    const active = activeTab === key;
+                    return (
+                        <button
+                            key={key}
+                            type="button"
+                            onClick={() => {
+                                navigateProfileTab(key);
+                            }}
+                            className={`relative flex min-h-[46px] items-center justify-center gap-1.5 rounded-[20px] px-1 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${active ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-500 hover:text-slate-950" : "text-gray-400 hover:text-white"}`}
+                        >
+                            <Icon size={15} aria-hidden="true" />
+                            <span className="truncate">{label}</span>
+                            {badge > 0 ? (
+                                <span
+                                    className={`absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ${active ? (isDayMode ? "ring-blue-50" : "ring-white") : isDayMode ? "ring-white" : "ring-[#111827]"}`}
+                                />
+                            ) : null}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className="mb-6 hidden overflow-x-auto pb-2 custom-scrollbar gap-2 px-1 md:flex">
+                <button
+                    onClick={() => {
+                        navigateProfileTab("relations");
+                    }}
+                    className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                        activeTab === "relations"
+                            ? isDayMode
+                                ? dayActiveSegmentClass
+                                : nightActiveSegmentClass
+                            : isDayMode
+                              ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    <User size={18} />
+                    {t("user_profile.center.relations")}
+                </button>
+
+                <button
+                    onClick={() => {
+                        navigateProfileTab("published");
+                    }}
+                    className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                        activeTab === "published"
+                            ? isDayMode
+                                ? dayActiveSegmentClass
+                                : nightActiveSegmentClass
+                            : isDayMode
+                              ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    <Grid size={18} />
+                    {t("user_profile.tabs.published", "Published")}
+                </button>
+
+                {isOwner && (
+                    <>
+                        <button
+                            onClick={() => {
+                                navigateProfileTab("submissions");
+                            }}
+                            className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                                activeTab === "submissions"
+                                    ? isDayMode
+                                        ? dayActiveSegmentClass
+                                        : nightActiveSegmentClass
+                                    : isDayMode
+                                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                            <FileText size={18} />
+                            {t("user_profile.tabs.submissions", "投稿")}
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigateProfileTab("favorites");
+                            }}
+                            className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                                activeTab === "favorites"
+                                    ? isDayMode
+                                        ? dayActiveSegmentClass
+                                        : nightActiveSegmentClass
+                                    : isDayMode
+                                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                            <Heart size={18} />
+                            {t("user_profile.tabs.favorites")}
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigateProfileTab("messages");
+                            }}
+                            className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                                activeTab === "messages"
+                                    ? isDayMode
+                                        ? dayActiveSegmentClass
+                                        : nightActiveSegmentClass
+                                    : isDayMode
+                                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                            <Bell size={18} />
+                            {t("user_profile.tabs.messages", "消息")}
+                            {isOwner && unreadCount > 0 && (
+                                <span
+                                    aria-label={t("nav.unread_count", "{{count}} 条未读通知", {
+                                        count: unreadCount,
+                                    })}
+                                    className={`absolute top-1.5 right-2 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ${
+                                        isDayMode ? "ring-white" : "ring-[#0a0a0a]"
+                                    }`}
+                                />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigateProfileTab("settings");
+                            }}
+                            className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                                activeTab === "settings"
+                                    ? isDayMode
+                                        ? dayActiveSegmentClass
+                                        : nightActiveSegmentClass
+                                    : isDayMode
+                                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                            <Settings size={18} />
+                            {t("user_profile.tabs.settings", "Settings")}
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {/* Content */}
+            <div className="min-h-[400px]">
+                {activeTab === "published" && (
+                    <div className="space-y-6">
+                        {/* Content-type tabs. Always render so users can tell whether
+                  they have any work at all; "all" is never hidden. */}
+                        <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
+                            {tabsWithCount.map((ct) => {
+                                const active = activeContentType === ct.key;
+                                return (
+                                    <button
+                                        key={ct.key}
+                                        type="button"
+                                        onClick={() => setActiveContentType(ct.key)}
+                                        className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                            active
+                                                ? isDayMode
+                                                    ? dayActiveSegmentClass
+                                                    : nightActiveSegmentClass
+                                                : isDayMode
+                                                  ? "bg-white/85 text-slate-600 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                                                  : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
+                                        }`}
+                                    >
+                                        <span>{t(ct.labelKey)}</span>
+                                        <span
+                                            className={`ml-1.5 text-xs ${active ? "opacity-90" : "opacity-70"}`}
+                                        >
+                                            {ct.count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {visibleContent.length === 0 ? (
+                            <div
+                                className={`text-center py-20 rounded-3xl border border-dashed ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
+                            >
+                                <p className={isDayMode ? "text-slate-500" : "text-gray-500"}>
+                                    {t("user_profile.no_published_works")}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                                {visibleContent.map((item) => (
+                                    <ProfileContentCard
+                                        key={`${item.type || "unknown"}-${item.id}`}
+                                        item={item}
+                                        onClick={() => handleContentClick(item)}
+                                        isDayMode={isDayMode}
+                                        t={t}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "relations" && (
+                    <div className="space-y-4">
+                        <div
+                            className={`grid grid-cols-2 gap-1 rounded-3xl border p-1 md:inline-grid ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-white/[0.04]"}`}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setRelationTab("followers")}
+                                className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "followers" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                            >
+                                {t("user_profile.center.follow.followers")}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRelationTab("following")}
+                                className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "following" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                            >
+                                {t("user_profile.center.follow.following_count")}
+                            </button>
+                        </div>
+                        {relationLoading ? (
+                            <div className="py-12 flex justify-center">
+                                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : relations.length === 0 ? (
+                            <div
+                                className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? "text-slate-500 bg-white/82 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
+                            >
+                                {t("common.no_data", "No data yet")}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {relations.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/10"}`}
+                                    >
+                                        <div
+                                            className={`w-10 h-10 rounded-full overflow-hidden ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}
+                                        >
+                                            {item.avatar ? (
+                                                <img
+                                                    src={item.avatar}
+                                                    alt={item.nickname || item.username}
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-sm font-bold text-indigo-400">
+                                                    {(item.nickname || item.username || "?")
+                                                        .charAt(0)
+                                                        .toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate(`/user/${item.id}`)}
+                                            className="flex-1 text-left min-w-0"
+                                        >
+                                            <div
+                                                className={`font-semibold truncate ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                            >
+                                                {item.nickname || item.username}
+                                            </div>
+                                            <div
+                                                className={`text-xs truncate ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {item.organization_cr || item.username}
+                                            </div>
+                                        </button>
+                                        {currentUser &&
+                                            String(currentUser.id) !== String(item.id) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleRelationItemFollowToggle(
+                                                            item.id,
+                                                            Boolean(item.is_following)
+                                                        )
+                                                    }
+                                                    disabled={Boolean(
+                                                        relationFollowLoadingIds[item.id]
+                                                    )}
+                                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : nightActiveSegmentClass) : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
+                                                >
+                                                    {relationFollowLoadingIds[item.id]
+                                                        ? t("common.processing", "Processing...")
+                                                        : item.is_following
+                                                          ? t(
+                                                                "user_profile.center.follow.following"
+                                                            )
+                                                          : t("user_profile.center.follow.follow")}
+                                                </button>
+                                            )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {isOwner && activeTab === "submissions" && (
+                    <UserCommunitySubmissions userId={user.id} isDayMode={isDayMode} />
+                )}
+
+                {isOwner && activeTab === "favorites" && (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3
+                                className={`text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                            >
+                                {t("user_profile.favorites.title")}
+                            </h3>
+                            <div className="w-40">
+                                <Dropdown
+                                    value={favoriteType}
+                                    onChange={setFavoriteType}
+                                    options={favoriteTypeOptions}
+                                    buttonClassName={
+                                        isDayMode
+                                            ? "bg-white/85 border-slate-200/80 text-slate-700 w-full"
+                                            : "bg-black/40 border-white/10 w-full"
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {loadingFavorites ? (
+                            <div className="flex justify-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                            </div>
+                        ) : favorites.length === 0 ? (
+                            <div
+                                className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? "text-slate-500 bg-white/82 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
+                            >
+                                <Heart size={48} className="mx-auto mb-4 opacity-20" />
+                                <p>{t("user_profile.favorites.no_favorites")}</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                {favorites.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => {
+                                            const targetPath = buildFavoriteTargetPath(item);
+                                            // Mark so the detail page's close (X) can return here
+                                            // instead of stranding the user on the list.
+                                            if (targetPath)
+                                                navigate(targetPath, {
+                                                    state: { fromFavorites: true },
+                                                });
+                                        }}
+                                        className={`group flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border backdrop-blur-md transition-all duration-300 ${isDayMode ? "bg-white/82 border-slate-200/80 hover:bg-white hover:border-indigo-200/80 shadow-[0_16px_36px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"}`}
+                                    >
+                                        <div
+                                            className={`w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0 shadow-lg ${isDayMode ? "bg-slate-100" : "bg-black/50"}`}
+                                        >
+                                            <img
+                                                src={
+                                                    item.cover ||
+                                                    item.cover_url ||
+                                                    item.thumbnail ||
+                                                    item.url ||
+                                                    item.image
+                                                }
+                                                alt={item.title}
+                                                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4
+                                                className={`font-bold truncate text-base md:text-lg group-hover:text-indigo-400 transition-colors ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                            >
+                                                {item.title}
+                                            </h4>
+                                            <p
+                                                className={`text-xs truncate ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                            >
+                                                {item.artist ||
+                                                    item.category ||
+                                                    t(`common.${item.type || favoriteType}`)}
+                                            </p>
+                                        </div>
+                                        <FavoriteButton
+                                            itemId={item.id}
+                                            itemType={item.type || favoriteType}
+                                            initialFavorited={true}
+                                            size={18}
+                                            showCount={true}
+                                            count={item.likes || 0}
+                                            className={`p-2.5 rounded-full transition-colors border border-transparent ${isDayMode ? "text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-200/80" : "hover:bg-white/10 text-gray-400 hover:text-white hover:border-white/10"}`}
+                                            onToggle={(favorited) => {
+                                                if (!favorited) {
+                                                    setFavorites((prev) =>
+                                                        prev.filter((f) => f.id !== item.id)
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {isOwner && activeTab === "messages" && (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3
+                                className={`text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                            >
+                                {t("notifications.title", "通知中心")}
+                            </h3>
+                        </div>
+                        <Suspense fallback={null}>
+                            <NotificationCenter embedded />
+                        </Suspense>
+                    </div>
+                )}
+
+                {isOwner && activeTab === "settings" && (
+                    <div
+                        ref={settingsContentRef}
+                        data-testid="profile-settings-panel"
+                        className="scroll-mt-24 space-y-6"
+                    >
+                        <div
+                            className={`flex gap-2 overflow-x-auto rounded-2xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/80" : "border-white/10 bg-white/[0.04]"}`}
+                        >
+                            {settingsTabItems.map((item) => {
+                                const Icon = item.icon;
+                                const isActive = activeSettingsTab === item.key;
+                                return (
+                                    <button
+                                        key={item.key}
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveSettingsTab(item.key);
+                                            navigate(profileTabPath("settings", item.key), {
+                                                replace: true,
+                                            });
+                                        }}
+                                        className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+                                            isActive
+                                                ? isDayMode
+                                                    ? "bg-indigo-50 text-indigo-700"
+                                                    : "bg-indigo-500/20 text-indigo-100"
+                                                : isDayMode
+                                                  ? "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                                  : "text-gray-400 hover:bg-white/10 hover:text-white"
+                                        }`}
+                                    >
+                                        <Icon size={16} />
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {activeSettingsTab === "profile-card" && (
+                            <div className="space-y-8">
+                                <div
+                                    ref={profileBasicsRef}
+                                    data-testid="profile-basics-section"
+                                    className={`${settingsPanelClass} scroll-mt-24`}
+                                >
+                                    <h3
+                                        className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                    >
+                                        <User size={20} className="text-indigo-500" />
+                                        {t("user_profile.center.profile_basics")}
+                                    </h3>
+
+                                    <form onSubmit={handleProfileUpdate} className="space-y-4">
+                                        <div className="pt-2">
+                                            <label
+                                                className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.center.avatar")}
+                                            </label>
+                                            <div
+                                                className={`flex items-center gap-4 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}
+                                            >
+                                                <div
+                                                    className={`h-28 w-28 shrink-0 overflow-hidden rounded-2xl border ${isDayMode ? "border-white bg-slate-100" : "border-white/10 bg-white/10"}`}
+                                                >
+                                                    {avatarPreview ? (
+                                                        <div
+                                                            data-avatar-crop-box
+                                                            className="relative h-full w-full select-none overflow-hidden"
+                                                        >
+                                                            <img
+                                                                src={avatarPreview}
+                                                                alt={displayName}
+                                                                className="absolute inset-0 h-full w-full object-cover opacity-55"
+                                                                draggable={false}
+                                                                decoding="async"
+                                                            />
+                                                            <div
+                                                                className="absolute cursor-move border-2 border-white bg-white/10 shadow-[0_0_0_999px_rgba(0,0,0,0.28)]"
+                                                                style={{
+                                                                    left: `${avatarCrop.x * 100}%`,
+                                                                    top: `${avatarCrop.y * 100}%`,
+                                                                    width: `${avatarCrop.size * 100}%`,
+                                                                    height: `${avatarCrop.size * 100}%`,
+                                                                }}
+                                                                onPointerDown={
+                                                                    handleAvatarCropStart
+                                                                }
+                                                            >
+                                                                <div className="absolute bottom-1 right-1 rounded bg-black/45 px-1 py-0.5 text-[9px] font-bold text-white">
+                                                                    1:1
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : user.avatar ? (
+                                                        <img
+                                                            src={user.avatar}
+                                                            alt={displayName}
+                                                            className="h-full w-full object-cover"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
+                                                            {avatarInitial}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1 space-y-3">
+                                                    <label
+                                                        className={`inline-flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${isDayMode ? "bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 text-white border border-white/10 hover:bg-white/15"}`}
+                                                    >
+                                                        <Upload size={16} />
+                                                        {t("user_profile.center.choose_image")}
+                                                        <input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png,image/webp"
+                                                            className="sr-only"
+                                                            onChange={handleAvatarSelect}
+                                                        />
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleAvatarUpload}
+                                                        disabled={!avatarFile || avatarLoading}
+                                                        className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {avatarLoading
+                                                            ? t("user_profile.center.uploading")
+                                                            : t("user_profile.center.save_avatar")}
+                                                    </button>
+                                                    <p
+                                                        className={`text-xs font-bold ${
+                                                            avatarSaveState === "dirty"
+                                                                ? "text-amber-500"
+                                                                : avatarSaveState === "error"
+                                                                  ? "text-rose-500"
+                                                                  : isDayMode
+                                                                    ? "text-slate-500"
+                                                                    : "text-gray-500"
+                                                        }`}
+                                                    >
+                                                        {avatarSaveState === "dirty"
+                                                            ? t(
+                                                                  "user_profile.center.avatar_state.dirty"
+                                                              )
+                                                            : avatarSaveState === "saving"
+                                                              ? t(
+                                                                    "user_profile.center.avatar_state.saving"
+                                                                )
+                                                              : avatarSaveState === "error"
+                                                                ? t(
+                                                                      "user_profile.center.avatar_state.error"
+                                                                  )
+                                                                : t(
+                                                                      "user_profile.center.avatar_state.saved"
+                                                                  )}
+                                                    </p>
+                                                    <p
+                                                        className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                    >
+                                                        {t("user_profile.center.avatar_hint")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <label
+                                                className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.fields.nickname", "显示名称")}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={profileData.nickname}
+                                                onChange={(e) =>
+                                                    setProfileData({
+                                                        ...profileData,
+                                                        nickname: e.target.value,
+                                                    })
+                                                }
+                                                placeholder={t(
+                                                    "user_profile.fields.nickname_placeholder",
+                                                    "2-20 字符，可选；不填则显示账号名"
+                                                )}
+                                                maxLength={20}
+                                                className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${
+                                                    isDayMode
+                                                        ? "bg-slate-50 border border-slate-200/80 text-slate-900"
+                                                        : "bg-black/20 border border-white/10 text-white"
+                                                }`}
+                                            />
+                                            <p
+                                                className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                            >
+                                                {t(
+                                                    "user_profile.fields.nickname_help",
+                                                    "允许中英文、数字、下划线；留空则清空。"
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex justify-end pt-4">
+                                            <button
+                                                type="submit"
+                                                disabled={profileLoading}
+                                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                                            >
+                                                {profileLoading
+                                                    ? t("common.saving")
+                                                    : t("common.save")}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div className={settingsPanelClass}>
+                                    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <h3
+                                                className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                            >
+                                                <ShieldCheck
+                                                    size={20}
+                                                    className="text-emerald-500"
+                                                />
+                                                {t("user_profile.security.wechat.title")}
+                                            </h3>
+                                            <p
+                                                className={`mt-2 text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.security.wechat.description")}
+                                            </p>
+                                        </div>
+                                        <span
+                                            className={`inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-xs font-bold ${
+                                                wechatBindingStatus.bound
+                                                    ? "bg-emerald-500/12 text-emerald-400"
+                                                    : isDayMode
+                                                      ? "bg-slate-100 text-slate-600"
+                                                      : "bg-white/10 text-gray-300"
+                                            }`}
+                                        >
+                                            {wechatBindingLoading
+                                                ? t("common.loading")
+                                                : wechatBindingStatus.bound
+                                                  ? t("user_profile.security.wechat.bound")
+                                                  : t("user_profile.security.wechat.unbound")}
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
+                                    >
+                                        <div
+                                            className={`${settingsIconClass} ${wechatBindingStatus.bound ? "text-emerald-400" : ""}`}
+                                        >
+                                            <MessageCircle size={18} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div
+                                                className={`text-sm font-semibold ${isDayMode ? "text-slate-800" : "text-white"}`}
+                                            >
+                                                {wechatBindingStatus.bound
+                                                    ? t("user_profile.security.wechat.bound_hint")
+                                                    : t(
+                                                          "user_profile.security.wechat.unbound_hint"
+                                                      )}
+                                            </div>
+                                            <div
+                                                className={`mt-1 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {wechatBindingStatus.bound &&
+                                                wechatBindingStatus.lastLoginAt
+                                                    ? t("user_profile.security.wechat.last_login", {
+                                                          time: new Date(
+                                                              wechatBindingStatus.lastLoginAt
+                                                          ).toLocaleString(),
+                                                      })
+                                                    : t(
+                                                          "user_profile.security.wechat.no_openid_exposed"
+                                                      )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {!wechatBindingStatus.bound && (
+                                        <button
+                                            type="button"
+                                            onClick={handleWechatBind}
+                                            disabled={
+                                                wechatBindingActionLoading ||
+                                                !canBindWechatInMiniProgram
+                                            }
+                                            className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                                                canBindWechatInMiniProgram
+                                                    ? "bg-[#07c160] text-white hover:bg-[#06ad56]"
+                                                    : isDayMode
+                                                      ? "bg-slate-100 text-slate-500"
+                                                      : "bg-white/10 text-gray-300"
+                                            }`}
+                                        >
+                                            {wechatBindingActionLoading ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <MessageCircle size={16} />
+                                            )}
+                                            {canBindWechatInMiniProgram
+                                                ? t("user_profile.security.wechat.bind_button")
+                                                : t("user_profile.security.wechat.open_in_miniapp")}
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div
+                                    ref={profileCardEditorRef}
+                                    data-testid="profile-card-editor-section"
+                                    className={`${settingsPanelClass} scroll-mt-24`}
+                                >
+                                    <h3
+                                        className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                    >
+                                        <User size={20} className="text-indigo-500" />
+                                        {t("user_profile.center.profile_card")}
+                                    </h3>
+                                    <ProfileCardEditor
+                                        profileCard={profileCard}
+                                        isDayMode={isDayMode}
+                                        onSaved={(nextProfileCard) =>
+                                            setProfileCard(nextProfileCard)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {activeSettingsTab === "activity-profile" && (
+                            <div className="space-y-6">
+                                <div
+                                    ref={activityProfileRef}
+                                    data-testid="activity-profile-section"
+                                    className={`${settingsPanelClass} scroll-mt-24`}
+                                >
+                                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <h3
+                                                className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                            >
+                                                <Sparkles size={20} className="text-indigo-500" />
+                                                {t("user_profile.center.activity_profile.title")}
+                                            </h3>
+                                            <p
+                                                className={`mt-2 max-w-2xl text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.center.activity_profile.desc")}
+                                            </p>
+                                        </div>
+                                        <div
+                                            className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"}`}
+                                        >
+                                            <UserCheck size={15} />
+                                            {t("user_profile.center.activity_profile.source_badge")}
+                                        </div>
+                                    </div>
+
+                                    {eventPreferenceLoading ? (
+                                        <div
+                                            className={`flex min-h-[180px] items-center justify-center gap-2 rounded-2xl border ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}
+                                        >
+                                            <Loader2 size={18} className="animate-spin" />
+                                            {t("user_profile.center.activity_profile.loading")}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                {[
+                                                    [
+                                                        "college",
+                                                        "user_profile.center.activity_profile.fields.college",
+                                                        "user_profile.center.activity_profile.placeholders.college",
+                                                        User,
+                                                    ],
+                                                    [
+                                                        "division",
+                                                        "user_profile.center.activity_profile.fields.division",
+                                                        "user_profile.center.activity_profile.placeholders.division",
+                                                        Briefcase,
+                                                    ],
+                                                    [
+                                                        "grade",
+                                                        "user_profile.center.activity_profile.fields.grade",
+                                                        "user_profile.center.activity_profile.placeholders.grade",
+                                                        Calendar,
+                                                    ],
+                                                    [
+                                                        "campus",
+                                                        "user_profile.center.activity_profile.fields.campus",
+                                                        "user_profile.center.activity_profile.placeholders.campus",
+                                                        MapPin,
+                                                    ],
+                                                ].map(([key, label, placeholder, Icon]) => (
+                                                    <label
+                                                        key={key}
+                                                        className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                                    >
+                                                        <span className="flex items-center gap-2">
+                                                            <Icon size={15} />
+                                                            {t(label)}
+                                                        </span>
+                                                        <input
+                                                            type="text"
+                                                            value={eventPreferenceForm[key]}
+                                                            onChange={(event) =>
+                                                                updateEventPreferenceField(
+                                                                    key,
+                                                                    event.target.value
+                                                                )
+                                                            }
+                                                            placeholder={t(placeholder)}
+                                                            className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                                                        />
+                                                    </label>
+                                                ))}
+                                            </div>
+
+                                            <label
+                                                className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <Clock3 size={15} />
+                                                    {t(
+                                                        "user_profile.center.activity_profile.fields.availability"
+                                                    )}
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    value={eventPreferenceForm.availability}
+                                                    onChange={(event) =>
+                                                        updateEventPreferenceField(
+                                                            "availability",
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    placeholder={t(
+                                                        "user_profile.center.activity_profile.placeholders.availability"
+                                                    )}
+                                                    className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                                                />
+                                            </label>
+
+                                            <label
+                                                className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                                            >
+                                                {t(
+                                                    "user_profile.center.activity_profile.fields.interest_tags"
+                                                )}
+                                                <input
+                                                    type="text"
+                                                    value={eventPreferenceForm.interestTagsText}
+                                                    onChange={(event) =>
+                                                        updateEventPreferenceField(
+                                                            "interestTagsText",
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    placeholder={t(
+                                                        "user_profile.center.activity_profile.placeholders.interest_tags"
+                                                    )}
+                                                    className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                                                />
+                                            </label>
+
+                                            <div className="grid gap-5 lg:grid-cols-2">
+                                                <div>
+                                                    <div
+                                                        className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}
+                                                    >
+                                                        {t(
+                                                            "user_profile.center.activity_profile.preferred_categories"
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {EVENT_CATEGORY_OPTIONS.map((option) => {
+                                                            const active =
+                                                                eventPreferenceForm.preferredCategories.includes(
+                                                                    option.value
+                                                                );
+                                                            return (
+                                                                <button
+                                                                    key={option.value}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        toggleEventPreferenceArrayValue(
+                                                                            "preferredCategories",
+                                                                            option.value
+                                                                        )
+                                                                    }
+                                                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-indigo-500 bg-indigo-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                                                >
+                                                                    {t(option.labelKey)}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div
+                                                        className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}
+                                                    >
+                                                        {t(
+                                                            "user_profile.center.activity_profile.preferred_benefits"
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {EVENT_BENEFIT_OPTIONS.map((option) => {
+                                                            const active =
+                                                                eventPreferenceForm.preferredBenefits.includes(
+                                                                    option.value
+                                                                );
+                                                            return (
+                                                                <button
+                                                                    key={option.value}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        toggleEventPreferenceArrayValue(
+                                                                            "preferredBenefits",
+                                                                            option.value
+                                                                        )
+                                                                    }
+                                                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-emerald-500 bg-emerald-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                                                >
+                                                                    {t(option.labelKey)}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {EVENT_FORMAT_OPTIONS.map((option) => {
+                                                        const active =
+                                                            eventPreferenceForm.preferredFormat ===
+                                                            option.value;
+                                                        return (
+                                                            <button
+                                                                key={option.value || "any"}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    updateEventPreferenceField(
+                                                                        "preferredFormat",
+                                                                        option.value
+                                                                    )
+                                                                }
+                                                                className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-sky-500 bg-sky-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:text-sky-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                                            >
+                                                                {t(option.labelKey)}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleEventPreferenceSave}
+                                                    disabled={eventPreferenceSaving}
+                                                    className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                                                >
+                                                    {eventPreferenceSaving ? (
+                                                        <Loader2
+                                                            size={16}
+                                                            className="animate-spin"
+                                                        />
+                                                    ) : (
+                                                        <Sparkles size={16} />
+                                                    )}
+                                                    {t("user_profile.center.activity_profile.save")}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Security Settings */}
+                        {activeSettingsTab === "security" && (
+                            <div className="space-y-8">
+                                <div className={settingsPanelClass}>
+                                    <h3
+                                        className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                    >
+                                        <Lock size={20} className="text-indigo-500" />
+                                        {t("user_profile.security.title")}
+                                    </h3>
+
+                                    <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                                        <div>
+                                            <label
+                                                className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.security.current_password")}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.security.new_password")}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
+                                                required
+                                                minLength={6}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                className={`block text-sm font-medium mb-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                            >
+                                                {t("user_profile.security.confirm_password")}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
+                                                required
+                                                minLength={6}
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={passwordLoading}
+                                            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+                                        >
+                                            {passwordLoading
+                                                ? t("user_profile.security.updating")
+                                                : t("user_profile.security.update_btn")}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div className={settingsPanelClass}>
+                                    <h3
+                                        className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                    >
+                                        <Settings size={20} className="text-indigo-500" />
+                                        {t("me.preferences", "偏好与设备")}
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
+                                            className={settingsActionClass}
+                                        >
+                                            <div
+                                                className={`${settingsIconClass} ${isDayMode ? "bg-amber-100 text-amber-500" : "text-yellow-300"}`}
+                                            >
+                                                {isDayMode ? <Moon size={18} /> : <Sun size={18} />}
+                                            </div>
+                                            <div className="min-w-0 flex-1 text-left">
+                                                <div className="text-sm font-semibold">
+                                                    {t("nav.appearance_mode", "显示模式")}
+                                                </div>
+                                                <div
+                                                    className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                >
+                                                    {isDayMode
+                                                        ? t("nav.night_mode", "夜间模式")
+                                                        : t("nav.day_mode", "日间模式")}
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={toggleWeatherWidget}
+                                            aria-pressed={showWeatherWidget}
+                                            className={settingsActionClass}
+                                        >
+                                            <div
+                                                className={`${settingsIconClass} ${isDayMode ? "bg-sky-50 text-sky-500" : "text-sky-300"}`}
+                                            >
+                                                <CloudSun size={18} />
+                                            </div>
+                                            <div className="min-w-0 flex-1 text-left">
+                                                <div className="text-sm font-semibold">
+                                                    {t("me.weather_widget", "时间与天气")}
+                                                </div>
+                                                <div
+                                                    className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                >
+                                                    {showWeatherWidget
+                                                        ? t(
+                                                              "me.weather_widget_on",
+                                                              "右上角显示时间和天气"
+                                                          )
+                                                        : t(
+                                                              "me.weather_widget_off",
+                                                              "右上角默认隐藏"
+                                                          )}
+                                                </div>
+                                            </div>
+                                            <span
+                                                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${settingsSwitchTrackClass}`}
+                                                aria-hidden="true"
+                                            >
+                                                <span
+                                                    className={`h-5 w-5 rounded-full shadow-sm transition-transform ${settingsSwitchThumbClass}`}
+                                                />
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                i18n.changeLanguage(
+                                                    i18n.language.startsWith("zh") ? "en" : "zh"
+                                                )
+                                            }
+                                            className={settingsActionClass}
+                                        >
+                                            <div className={settingsIconClass}>
+                                                <Globe size={18} />
+                                            </div>
+                                            <div className="min-w-0 flex-1 text-left">
+                                                <div className="text-sm font-semibold">
+                                                    {t("me.language", "语言")}
+                                                </div>
+                                                <div
+                                                    className={`text-xs mt-1 uppercase ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                >
+                                                    {i18n.language}
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                window.dispatchEvent(
+                                                    new Event("request-pwa-install")
+                                                )
+                                            }
+                                            className={settingsActionClass}
+                                        >
+                                            <div
+                                                className={`${settingsIconClass} ${isDayMode ? "bg-indigo-50 text-indigo-500" : ""}`}
+                                            >
+                                                <Download size={18} />
+                                            </div>
+                                            <div className="min-w-0 flex-1 text-left">
+                                                <div className="text-sm font-semibold">
+                                                    {t("me.install_app", "安装 App")}
+                                                </div>
+                                                <div
+                                                    className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                >
+                                                    {t(
+                                                        "me.install_app_hint",
+                                                        "像 App 一样打开拓途浙享。"
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={logout}
+                                            className={settingsActionClass}
+                                        >
+                                            <div className={settingsIconClass}>
+                                                <LogOut size={18} />
+                                            </div>
+                                            <div className="min-w-0 flex-1 text-left">
+                                                <div className="text-sm font-semibold">
+                                                    {t("auth.log_out", "退出登录")}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeSettingsTab === "identity" && (
+                            <div className={settingsPanelClass}>
+                                <h3
+                                    className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                >
+                                    <Briefcase size={20} className="text-indigo-500" />
+                                    {t("user_profile.center.identity.title")}
+                                </h3>
+
+                                <div className="space-y-5">
+                                    <div
+                                        ref={managedProfilesRef}
+                                        data-testid="managed-profiles-section"
+                                        className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}
+                                    >
+                                        <div
+                                            className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}
+                                        >
+                                            {t("user_profile.center.identity.current_org")}
+                                        </div>
+                                        <div
+                                            className={`rounded-xl border px-3 py-2 text-sm font-bold ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}
+                                        >
+                                            {user?.organization_cr ||
+                                                profileData.organization ||
+                                                t("user_profile.center.identity.no_org")}
+                                        </div>
+                                        <p
+                                            className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                        >
+                                            {t("user_profile.center.identity.org_hint")}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        ref={identityClaimsRef}
+                                        data-testid="identity-claims-section"
+                                        className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}
+                                    >
+                                        <div
+                                            className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}
+                                        >
+                                            {t("user_profile.center.identity.claims_title")}
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2">
+                                            <select
+                                                value={identityType}
+                                                onChange={(event) =>
+                                                    setIdentityType(event.target.value)
+                                                }
+                                                className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                                            >
+                                                <option value="person">
+                                                    {t("user_profile.center.identity_types.person")}
+                                                </option>
+                                                <option value="team">
+                                                    {t("user_profile.center.identity_types.team")}
+                                                </option>
+                                                <option value="club">
+                                                    {t("user_profile.center.identity_types.club")}
+                                                </option>
+                                            </select>
+                                            <input
+                                                type="text"
+                                                value={identityName}
+                                                onChange={(event) =>
+                                                    setIdentityName(event.target.value)
+                                                }
+                                                placeholder={
+                                                    identityType === "club"
+                                                        ? t(
+                                                              "user_profile.center.identity.org_name_placeholder"
+                                                          )
+                                                        : t(
+                                                              "user_profile.center.identity.name_placeholder"
+                                                          )
+                                                }
+                                                className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                                            />
+                                        </div>
+                                        {identityType === "club" && (
+                                            <input
+                                                type="text"
+                                                value={identityInviteCode}
+                                                onChange={(event) =>
+                                                    setIdentityInviteCode(event.target.value)
+                                                }
+                                                placeholder={t(
+                                                    "user_profile.center.identity.invite_placeholder"
+                                                )}
+                                                className={`mt-2 w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                                            />
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={handleCreateIdentityClaim}
+                                            disabled={identityLoading}
+                                            className="mt-3 inline-flex min-h-[38px] items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                                        >
+                                            {identityLoading
+                                                ? t("common.submitting", "Submitting...")
+                                                : identityType === "club"
+                                                  ? t("user_profile.center.identity.verify_org")
+                                                  : t("user_profile.center.identity.add_identity")}
+                                        </button>
+                                        <div className="mt-4 space-y-2">
+                                            {identityClaims.length === 0 ? (
+                                                <p
+                                                    className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                >
+                                                    {t("user_profile.center.identity.empty_claims")}
+                                                </p>
+                                            ) : (
+                                                identityClaims.map((claim) => (
+                                                    <div
+                                                        key={claim.id}
+                                                        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}
+                                                    >
+                                                        <span className="font-bold">
+                                                            {claim.display_name}
+                                                        </span>
+                                                        <span
+                                                            className={`ml-auto text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                        >
+                                                            {identityTypeLabel(claim.type, t)} ·{" "}
+                                                            {identityStatusLabel(claim.status, t)}
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        ref={outcomeClaimsRef}
+                                        data-testid="outcome-claims-section"
+                                        className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}
+                                    >
+                                        <div
+                                            className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}
+                                        >
+                                            {t("user_profile.center.identity.outcomes_title")}
+                                        </div>
+                                        {outcomeLinksLoading ? (
+                                            <p
+                                                className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                            >
+                                                {t("common.loading")}
+                                            </p>
+                                        ) : outcomeLinks.length === 0 ? (
+                                            <p
+                                                className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                            >
+                                                {t("user_profile.center.identity.empty_outcomes")}
+                                            </p>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {outcomeLinks.slice(0, 8).map((link) => (
+                                                    <div
+                                                        key={
+                                                            link.link_id ||
+                                                            `${link.id}-${link.identity_claim_id}`
+                                                        }
+                                                        className={`rounded-xl border p-3 ${isDayMode ? "bg-white border-slate-200" : "bg-white/5 border-white/10"}`}
+                                                    >
+                                                        <div
+                                                            className={`text-sm font-bold line-clamp-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                                                        >
+                                                            {link.title}
+                                                        </div>
+                                                        <div
+                                                            className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                                        >
+                                                            {link.bound_identity_name ||
+                                                                link.matched_text ||
+                                                                link.author}{" "}
+                                                            ·{" "}
+                                                            {outcomeStatusLabel(
+                                                                link.binding_status,
+                                                                t
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {link.binding_status !==
+                                                                "confirmed" && (
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={
+                                                                        outcomeActionId ===
+                                                                        link.link_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleOutcomeAction(
+                                                                            link.link_id,
+                                                                            "confirm"
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                                                                >
+                                                                    {t(
+                                                                        "user_profile.center.identity.confirm"
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                            {link.binding_status ===
+                                                                "candidate" && (
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={
+                                                                        outcomeActionId ===
+                                                                        link.link_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleOutcomeAction(
+                                                                            link.link_id,
+                                                                            "reject"
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                                                                >
+                                                                    {t(
+                                                                        "user_profile.center.identity.reject"
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                            {link.binding_status ===
+                                                                "confirmed" && (
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={
+                                                                        outcomeActionId ===
+                                                                        link.link_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleOutcomeAction(
+                                                                            link.link_id,
+                                                                            "revoke"
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg bg-slate-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                                                                >
+                                                                    {t(
+                                                                        "user_profile.center.identity.revoke"
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+            <div className="h-36 md:hidden" aria-hidden="true" />
+        </PersonalCenterShell>
+    );
 };
 
 export default PublicProfile;

@@ -1,20 +1,27 @@
 # user-profile-content-aggregation Specification
 
 ## Purpose
+
 TBD - created by archiving change community-identity-and-follow-notifications. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: getUserResources Extended Coverage
+
 `GET /users/:id/resources` SHALL include confirmed competition outcome bindings as `type = 'competition_work'`, applying visitor/owner/admin visibility rules.
 
 #### Scenario: Competition work appears in profile resources
+
 - **WHEN** a requester can see a user's confirmed competition work binding
 - **THEN** the resources response includes an item with `type = 'competition_work'`.
 
 #### Scenario: Visitor cannot see candidate work
+
 - **WHEN** a visitor requests resources for a user with candidate, rejected, or revoked competition work bindings
 - **THEN** those bindings are excluded.
 
 #### Scenario: Owner can inspect non-public binding state
+
 - **WHEN** the owner requests resources or binding management data
 - **THEN** relevant candidate, rejected, and revoked states are available only to the owner or an administrator.
 
@@ -54,6 +61,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 主页内容区 SHALL 使用大图 grid 卡片（保留平台既有"已发布" tab 的风格），而不是收藏页的小横条列表。
 
 每张卡片 MUST 包含：
+
 - cover 图（无 cover 的类型用占位渐变 + 类型图标）
 - 类型 badge（左上，按类型色彩）
 - 点赞数（右上）
@@ -79,6 +87,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 点击主页卡片 SHALL 跳转到对应资源的详情页（或资源所在列表的详情弹窗），并在详情页的返回操作上回到原主页的 URL 和滚动位置。
 
 实现约束：
+
 - 前端 navigate 时通过 react-router `state` 传递 `fromUserProfile: { userId, scrollY }`
 - 详情页返回（浏览器 back 或 UI 关闭按钮）时 `navigate(-1)`
 - 返回后主页 tab 选中状态、滚动位置保持不变
@@ -100,6 +109,7 @@ PublicProfile 的"已发布"区 SHALL 按类型 tabs 组织，tabs 列表：
 资源详情弹窗 / 详情页 SHALL 把作者头像区块做成可点击入口，点击 navigate 到 `/profile/:uploaderId`。
 
 约束：
+
 - 当 `uploader_id` 为 null（匿名求助贴 / 孤儿资源）时：头像显示为灰底默认占位，`cursor: not-allowed`，不绑定 onClick
 - 当 `uploader_id` 存在：头像显示作者 avatar，`cursor: pointer`，hover 态加强
 - 组件：`CommunityDetailModal.jsx` 及其他包含作者区块的详情组件
@@ -136,28 +146,33 @@ tabs 旁边显示的内容数量 SHALL 与该访客实际能看到的内容条�
 - **THEN** "求助" tab 显示的数量为 3
 
 ### Requirement: Profile Content Aggregation Includes Projects
+
 个人主页内容聚合 SHALL include a "项目"(project) content type alongside existing types. A user's own published project cards SHALL appear under their profile project category, and favorited projects SHALL appear in the favorites list filterable by the project type. Clicking a project from either the published or favorites list SHALL open the project detail and return to the originating tab on close.
 
 #### Scenario: Own projects on profile
+
 - **WHEN** a visitor views a user's public profile and filters to the project type
 - **THEN** the user's `published` project cards are returned as `type: 'project'`
 - **AND** draft and removed cards are excluded for non-owner visitors.
 
 #### Scenario: Owner sees own drafts
+
 - **WHEN** the owner views their own profile project category
 - **THEN** both published and draft project cards are returned.
 
 #### Scenario: Favorited projects in favorites
+
 - **WHEN** a user views their favorites and filters by the project type
 - **THEN** project cards they favorited are listed
 - **AND** selecting one navigates to `/projects?fromfav=1&id={id}` and returns to the favorites tab on close.
 
 #### Scenario: Click project from published tab
+
 - **WHEN** the owner clicks a project in their "已发布" tab
 - **THEN** the project detail opens (`/projects?...&id={id}`)
 - **AND** closing it returns to the profile tab.
 
 #### Scenario: Favorite type option present
+
 - **WHEN** the profile favorites/content type filter is rendered
 - **THEN** it includes a "项目" option alongside the existing content type options.
-

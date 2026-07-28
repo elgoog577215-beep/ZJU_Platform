@@ -1,8 +1,11 @@
 # android-apk Specification
 
 ## Purpose
+
 TBD - created by archiving change add-android-twa-apk. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Android APK 必须以 TWA 启动主站
 
 Android 交付工程 SHALL 使用 Trusted Web Activity 封装 `https://tuotuzju.com/`，并保留网页自身的启动体验。
@@ -103,4 +106,3 @@ Service Worker precache SHALL 只包含核心 App Shell 与公开验证文件，
 - **Then** `dist/index.html` 不得主动 preload `three-vendor`
 - **Then** `dist/sw.js` 的 precache manifest 不得包含 Three.js、PDF、Mammoth 或后台管理大 chunk
 - **Then** 脚本、样式、图片和上传资源仍可通过 runtime cache 在访问后缓存
-
