@@ -99,7 +99,7 @@ jobs:
                   npm ci --prefix server --legacy-peer-deps
 
             - name: Run backend test suite
-              run: node --test server/tests/*.test.js
+              run: node --test --test-concurrency=1 server/tests/*.test.js
 
     build:
         name: Build dist

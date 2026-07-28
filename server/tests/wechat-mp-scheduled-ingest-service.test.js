@@ -405,11 +405,15 @@ test("WeChat MP activity screening only creates pending events for confident can
                     : "文章是成果报道，不是参与型活动",
             };
         };
+        const governanceCalls = [];
 
         const firstRun = await service.executeIngestRun(db, {
             settings: await service.getIngestSettings(db),
             wechatApi,
             parser,
+            governanceTrigger: async (triggerDb, payload) => {
+                governanceCalls.push({ triggerDb, payload });
+            },
         });
         assert.equal(firstRun.status, "completed");
 
@@ -424,6 +428,13 @@ test("WeChat MP activity screening only creates pending events for confident can
         const rejected = storedArticles.find((article) => article.title === "校园成果新闻");
         assert.equal(accepted.activity_status, "accepted");
         assert.equal(accepted.event_id, events[0].id);
+        assert.equal(governanceCalls.length, 1);
+        assert.equal(governanceCalls[0].triggerDb, db);
+        assert.deepEqual(governanceCalls[0].payload, {
+            eventId: events[0].id,
+            userId: null,
+            source: "automatic_wechat_ingest",
+        });
         assert.equal(rejected.activity_status, "rejected");
         assert.match(rejected.activity_reason, /成果报道/);
 

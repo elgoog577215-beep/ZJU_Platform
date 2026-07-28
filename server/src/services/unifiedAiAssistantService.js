@@ -35,6 +35,14 @@ const normalizeConfidence = (value, fallback = 0.45) => {
     return Math.min(Math.max(number, 0), 1);
 };
 
+const normalizeEventIds = (value) => {
+    const values = Array.isArray(value) ? value : value == null ? [] : [value];
+    const normalized = values
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && item > 0);
+    return [...new Set(normalized)];
+};
+
 const safeJson = (value) => JSON.stringify(value || {});
 
 const parseJson = (value, fallback = {}) => {
@@ -882,6 +890,8 @@ const scanEventGovernance = async (db, options = {}) => {
     const minConfidence = normalizeConfidence(options.minConfidence);
     const userId = options.userId || null;
     const modelRunner = options.modelRunner;
+    const eventIds = normalizeEventIds(options.eventIds ?? options.eventId);
+    const eventFilter = eventIds.length ? `AND id IN (${eventIds.map(() => "?").join(",")})` : "";
 
     const events = await db.all(
         `
@@ -900,10 +910,11 @@ const scanEventGovernance = async (db, options = {}) => {
         status
       FROM events
       WHERE deleted_at IS NULL
+        ${eventFilter}
       ORDER BY id DESC
       LIMIT ?
     `,
-        [limit]
+        [...eventIds, limit]
     );
 
     const ruleSuggestions = events.flatMap((event) =>
@@ -922,6 +933,8 @@ const scanEventGovernance = async (db, options = {}) => {
         suggestionCount: suggestions.length,
         highConfidenceCount: suggestions.filter((item) => item.confidence >= 0.72).length,
         minConfidence,
+        eventIds,
+        triggerSource: options.triggerSource || "manual",
         modelReview: {
             used: Boolean(modelReview.modelStatus?.used),
             fallbackUsed: Boolean(modelReview.modelStatus?.fallbackUsed),
@@ -939,7 +952,7 @@ const scanEventGovernance = async (db, options = {}) => {
 
     const runId = await createRun(db, {
         module: "event_governance",
-        action: "scan",
+        action: options.action || "scan",
         status: "completed",
         userId,
         summary,

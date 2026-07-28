@@ -2,6 +2,7 @@ const fs = require("fs");
 
 const wechatMpAdminService = require("./wechatMpAdminService");
 const { recordWechatParseRun } = require("./wechatParseAuditService");
+const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 
 const DEFAULT_SETTINGS = Object.freeze({
     enabled: false,
@@ -866,7 +867,12 @@ const upsertActivityEvent = async (db, article, parsed) => {
     return { id: result.lastID, created: true, status: "pending" };
 };
 
-const screenArticleActivity = async (db, article, parsed) => {
+const screenArticleActivity = async (
+    db,
+    article,
+    parsed,
+    { userId = null, governanceTrigger = triggerEventGovernance } = {}
+) => {
     const candidate =
         parsed?.is_activity_candidate === true ||
         parsed?.is_activity_candidate === 1 ||
@@ -902,12 +908,22 @@ const screenArticleActivity = async (db, article, parsed) => {
             reason: reason || "通过活动候选筛选",
             eventId: event.id,
         });
+        void Promise.resolve(
+            governanceTrigger(db, {
+                eventId: event.id,
+                userId,
+                source: "automatic_wechat_ingest",
+            })
+        ).catch((error) => {
+            console.error("[WeChat MP Ingest] automatic event governance failed:", error);
+        });
         return {
             status: "accepted",
             confidence: normalizedConfidence,
             reason: reason || "通过活动候选筛选",
             event_id: event.id,
             event_created: event.created,
+            governance_triggered: true,
         };
     } catch (error) {
         const errorMessage = error?.message || String(error);
@@ -1014,7 +1030,7 @@ const extractIngestArticle = async (db, articleId, options = {}) => {
     const result = await extractArticleRecord(db, article, options);
     const activity =
         result.status === "completed"
-            ? await screenArticleActivity(db, article, result.parsed)
+            ? await screenArticleActivity(db, article, result.parsed, options)
             : null;
     return {
         ...result,
@@ -1036,6 +1052,7 @@ const executeIngestRun = async (
         wechatApi = wechatMpAdminService,
         parser = null,
         audit = recordWechatParseRun,
+        governanceTrigger = triggerEventGovernance,
     } = {}
 ) => {
     await ensureWechatMpScheduledIngestSchema(db);
@@ -1135,7 +1152,10 @@ const executeIngestRun = async (
                                 storedArticle.activity_status || "not_screened"
                             )
                         ) {
-                            await screenArticleActivity(db, storedArticle, extraction.parsed);
+                            await screenArticleActivity(db, storedArticle, extraction.parsed, {
+                                userId,
+                                governanceTrigger,
+                            });
                         }
                     }
                 }

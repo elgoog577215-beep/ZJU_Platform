@@ -14,7 +14,7 @@ const {
     trustedWechatAssetUrl,
 } = require("../services/wechatMpAdminService");
 const { downloadWeChatImage, parseWithLLM } = require("../utils/wechat");
-const { recordWechatParseRun } = require("./wechatParseController");
+const { recordWechatParseRun } = require("../services/wechatParseAuditService");
 const wechatMpScheduledIngestService = require("../services/wechatMpScheduledIngestService");
 const { buildWechatMpResourcePayload } = require("../services/wechatMpResourcePayloadService");
 
@@ -35,6 +35,102 @@ const sendError = (res, error, fallback = "微信 MP 操作失败") => {
         message: error?.message || fallback,
         runtime: error?.runtime || undefined,
     });
+};
+
+const buildWechatParseInput = (contentPayload = {}, article = {}) => {
+    const sourceCoverImage = String(
+        contentPayload.coverImage || contentPayload.cover || article.cover || ""
+    ).trim();
+    const hasTrustedCover =
+        Boolean(trustedWechatAssetUrl(sourceCoverImage)) || isLocalUploadUrl(sourceCoverImage);
+    const safeCoverImage = hasTrustedCover ? sourceCoverImage : "";
+
+    return {
+        title: String(contentPayload.title || article.title || "Untitled").slice(0, 500),
+        author: String(
+            contentPayload.author || article.account || article.author || "Unknown"
+        ).slice(0, 300),
+        content: String(contentPayload.contentText || contentPayload.content_text || "").trim(),
+        coverImage: safeCoverImage,
+    };
+};
+
+const summarizeWechatAnalysis = (parsed, status, errorCode = "") => ({
+    status,
+    errorCode: errorCode || null,
+    task: parsed?.aiMeta?.task || "wechat_event_parse",
+    provider: parsed?.aiMeta?.provider || null,
+    model: parsed?.aiMeta?.model || null,
+    category: parsed?.category || null,
+    isActivityCandidate: parsed?.is_activity_candidate ?? null,
+    activityConfidence: parsed?.activity_confidence ?? null,
+    activityReason: parsed?.activity_reason || "",
+});
+
+const analyzeWechatImportContent = async ({
+    db,
+    contentPayload = {},
+    article = {},
+    userId = null,
+} = {}) => {
+    const scrapedData = buildWechatParseInput(contentPayload, article);
+    if (!scrapedData.content) {
+        return {
+            parsed: null,
+            analysis: summarizeWechatAnalysis(null, "skipped", "WECHAT_MP_EMPTY_CONTENT"),
+        };
+    }
+
+    try {
+        const parsed = await parseWithLLM(scrapedData, { db });
+        if (!parsed || typeof parsed !== "object") {
+            throw new Error("公众号文章信息提取返回为空");
+        }
+
+        if (!parsed.content) parsed.content = scrapedData.content;
+        parsed.title = parsed.title || scrapedData.title || "Untitled";
+        parsed.description = parsed.description || scrapedData.content.slice(0, 200);
+        if (scrapedData.coverImage) parsed.coverImage = scrapedData.coverImage;
+
+        await recordWechatParseRun(
+            {
+                status: "completed",
+                userId,
+                cacheHit: false,
+                contentLength: scrapedData.content.length,
+                modelUsed: true,
+                provider: parsed.aiMeta?.provider,
+                model: parsed.aiMeta?.model,
+                runtimeTelemetry: parsed.aiMeta?.runtimeTelemetry,
+                hasCoverImage: Boolean(parsed.coverImage),
+                category: parsed.category,
+                isCollegeNotice: parsed.is_college_notice,
+                noticeType: parsed.notice_type,
+                sourceCollege: parsed.source_college,
+            },
+            db
+        );
+
+        return {
+            parsed,
+            analysis: summarizeWechatAnalysis(parsed, "completed"),
+        };
+    } catch (error) {
+        const errorCode = error?.code || error?.message || "WECHAT_MP_IMPORT_PARSE_FAILED";
+        await recordWechatParseRun(
+            {
+                status: "failed",
+                userId,
+                contentLength: scrapedData.content.length,
+                errorCode,
+            },
+            db
+        );
+        return {
+            parsed: null,
+            analysis: summarizeWechatAnalysis(null, "failed", errorCode),
+        };
+    }
 };
 
 const pacingFromBody = (body = {}) => ({
@@ -149,6 +245,7 @@ const getWechatMpArticleContent = async (req, res) => {
 const buildWechatMpImportPayload = async (req, res) => {
     let contentPayload = req.body?.content || null;
     try {
+        const db = await getDb();
         if (!contentPayload?.contentText && !contentPayload?.content_text && req.body?.url) {
             contentPayload = await fetchArticleContent({ url: req.body.url });
         }
@@ -168,13 +265,20 @@ const buildWechatMpImportPayload = async (req, res) => {
             });
         }
 
+        const analysis = await analyzeWechatImportContent({
+            db,
+            contentPayload,
+            article: req.body?.article || {},
+            userId: req.user?.id,
+        });
         const result = buildWechatMpResourcePayload({
             resourceType: req.body?.resource_type || req.body?.resourceType || "event",
             article: req.body?.article || {},
             content: contentPayload,
+            parsed: analysis.parsed,
             status: req.body?.status,
         });
-        return res.json(result);
+        return res.json({ ...result, analysis: analysis.analysis });
     } catch (error) {
         return sendError(res, error, "生成微信文章导入内容失败");
     }

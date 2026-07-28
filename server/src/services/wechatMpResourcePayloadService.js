@@ -19,6 +19,14 @@ const uniqueTexts = (values = []) => {
     return result;
 };
 
+const normalizeTagValues = (value) => {
+    const values = Array.isArray(value) ? value : [value];
+    return values
+        .flatMap((item) => String(item || "").split(/[，,;；、]+/))
+        .map((item) => item.trim())
+        .filter(Boolean);
+};
+
 const escapeHtml = (value) =>
     toText(value)
         .replace(/&/g, "&amp;")
@@ -202,15 +210,20 @@ const buildRecord = ({ article = {}, content = {} } = {}) => {
     };
 };
 
-const buildArticlePayload = ({ article = {}, content = {}, status = DEFAULT_STATUS } = {}) => {
+const buildArticlePayload = ({
+    article = {},
+    content = {},
+    parsed = null,
+    status = DEFAULT_STATUS,
+} = {}) => {
     const record = buildRecord({ article, content });
     const blocks = buildContentBlocks(record.contentText, record.images);
     const contentHtml = buildContentHtml(blocks, { sourceUrl: record.sourceUrl });
-    const excerpt = buildExcerpt(record.summary || record.contentText);
+    const excerpt = buildExcerpt(parsed?.description || record.summary || record.contentText);
     const cover = record.cover || record.images[0] || "";
 
     return {
-        title: record.title.slice(0, 500),
+        title: (toText(parsed?.title) || record.title).slice(0, 500),
         date: normalizeDate(record.publishedAt),
         excerpt,
         tags: DEFAULT_ARTICLE_TAGS,
@@ -227,34 +240,40 @@ const buildArticlePayload = ({ article = {}, content = {}, status = DEFAULT_STAT
     };
 };
 
-const buildEventPayload = ({ article = {}, content = {}, status = DEFAULT_EVENT_STATUS } = {}) => {
+const buildEventPayload = ({
+    article = {},
+    content = {},
+    parsed = null,
+    status = DEFAULT_EVENT_STATUS,
+} = {}) => {
     const record = buildRecord({ article, content });
     const blocks = buildContentBlocks(record.contentText, record.images);
     const contentHtml = buildContentHtml(blocks, { sourceUrl: record.sourceUrl });
     const excerpt = buildExcerpt(
-        record.summary || record.contentText || stripHtml(contentHtml),
+        parsed?.description || record.summary || record.contentText || stripHtml(contentHtml),
         220
     );
+    const parsedTags = normalizeTagValues(parsed?.tags);
 
     return {
-        title: record.title.slice(0, 500),
-        date: "",
-        end_date: null,
-        location: "",
-        tags: DEFAULT_EVENT_TAGS,
-        image: record.cover || record.images[0] || "",
+        title: (toText(parsed?.title) || record.title).slice(0, 500),
+        date: toText(parsed?.date),
+        end_date: parsed?.end_date || null,
+        location: toText(parsed?.location),
+        tags: uniqueTexts([DEFAULT_EVENT_TAGS, ...parsedTags]).join(","),
+        image: toText(parsed?.coverImage) || record.cover || record.images[0] || "",
         description: excerpt,
-        content: contentHtml || `<p>${escapeHtml(excerpt)}</p>`,
+        content: toText(parsed?.content) || contentHtml || `<p>${escapeHtml(excerpt)}</p>`,
         link: record.sourceUrl,
         featured: 0,
-        score: "",
-        target_audience: "",
-        organizer: record.account,
-        volunteer_time: "",
-        category: DEFAULT_EVENT_CATEGORY,
-        is_college_notice: 0,
-        notice_type: null,
-        source_college: null,
+        score: toText(parsed?.score),
+        target_audience: toText(parsed?.target_audience),
+        organizer: toText(parsed?.organizer) || record.account,
+        volunteer_time: toText(parsed?.volunteer_time),
+        category: toText(parsed?.category) || DEFAULT_EVENT_CATEGORY,
+        is_college_notice: [1, "1", true, "true"].includes(parsed?.is_college_notice) ? 1 : 0,
+        notice_type: toText(parsed?.notice_type) || null,
+        source_college: toText(parsed?.source_college) || null,
         status,
     };
 };
@@ -263,6 +282,7 @@ const buildWechatMpResourcePayload = ({
     resourceType = "event",
     article = {},
     content = {},
+    parsed = null,
     status,
 } = {}) => {
     const normalizedType = String(resourceType || "event")
@@ -275,6 +295,7 @@ const buildWechatMpResourcePayload = ({
             payload: buildEventPayload({
                 article,
                 content,
+                parsed,
                 status: status || DEFAULT_EVENT_STATUS,
             }),
         };
@@ -283,7 +304,12 @@ const buildWechatMpResourcePayload = ({
         return {
             resourceType: "article",
             endpoint: "/articles",
-            payload: buildArticlePayload({ article, content, status: status || DEFAULT_STATUS }),
+            payload: buildArticlePayload({
+                article,
+                content,
+                parsed,
+                status: status || DEFAULT_STATUS,
+            }),
         };
     }
     const error = new Error("Unsupported WeChat MP import resource type");

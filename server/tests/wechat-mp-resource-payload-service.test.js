@@ -63,6 +63,48 @@ test("WeChat MP event payload avoids inventing event time while preserving body"
     assert.match(payload.content, /<ul><li>报名方式<\/li><li>参与对象<\/li><\/ul>/);
 });
 
+test("WeChat MP manual imports apply the shared AI analysis to articles and events", () => {
+    const parsed = {
+        title: "AI 解析后的讲座名称",
+        date: "2026-07-21T14:00",
+        end_date: "2026-07-21T16:00",
+        location: "紫金港校区国际会议中心",
+        tags: ["人工智能", "讲座"],
+        category: "lecture",
+        target_audience: "本科生,研究生",
+        organizer: "浙江大学计算学院",
+        description: "面向学生的人工智能专题讲座。",
+        content: "<h3>活动安排</h3><p>欢迎报名参加。</p>",
+        is_college_notice: 1,
+        notice_type: "lecture",
+        source_college: "计算机科学与技术学院",
+    };
+
+    const eventPayload = buildWechatMpResourcePayload({
+        ...fixture,
+        resourceType: "event",
+        parsed,
+    }).payload;
+    assert.equal(eventPayload.title, parsed.title);
+    assert.equal(eventPayload.date, parsed.date);
+    assert.equal(eventPayload.end_date, parsed.end_date);
+    assert.equal(eventPayload.location, parsed.location);
+    assert.equal(eventPayload.category, parsed.category);
+    assert.match(eventPayload.tags, /微信公众号/);
+    assert.match(eventPayload.tags, /人工智能/);
+    assert.equal(eventPayload.content, parsed.content);
+    assert.equal(eventPayload.status, "pending");
+
+    const articlePayload = buildWechatMpResourcePayload({
+        ...fixture,
+        resourceType: "article",
+        parsed,
+    }).payload;
+    assert.equal(articlePayload.title, parsed.title);
+    assert.equal(articlePayload.excerpt, parsed.description);
+    assert.equal(articlePayload.status, "approved");
+});
+
 test("WeChat MP import payload routes supported resource types", () => {
     const defaultPayload = buildWechatMpResourcePayload(fixture);
     assert.equal(defaultPayload.endpoint, "/events");

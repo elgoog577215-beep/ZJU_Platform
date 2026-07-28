@@ -12,6 +12,7 @@ const {
 } = require("../services/eventIntelligenceService");
 const profileService = require("../services/profileService");
 const { canBypassReview } = require("../utils/userPermissions");
+const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
 
 const buildCommaSeparatedMatch = (field, value) => ({
     clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
@@ -312,6 +313,14 @@ const createHandler = (table, fields) => async (req, res, next) => {
                 organizerProfileId,
                 result.lastID,
             ]);
+        }
+
+        if (table === "events") {
+            void triggerEventGovernance(db, {
+                eventId: result.lastID,
+                userId: uploader_id,
+                source: "automatic_resource_create",
+            });
         }
 
         // Process tags to ensure they exist in the centralized tags table

@@ -364,8 +364,12 @@ activity_reason = AI 判断理由
 
 正文获取完成后，可以：
 
-- **导入为文章**：写入文章内容，默认状态为 `approved`，使用文章标签和文章分类默认值。
-- **导入为活动**：写入活动内容，默认状态为 `pending`，之后在活动管理中补充和审核。
+- **导入为文章**：先复用 `wechat_event_parse` 解析标题和摘要，再写入文章内容；默认状态为 `approved`，使用文章标签和文章分类默认值。
+- **导入为活动**：先复用 `wechat_event_parse` 提取活动字段，再写入活动内容；导入 payload 默认状态为 `pending`，最终资源状态仍遵循现有审核权限规则，之后可在活动管理中补充和审核。
+
+手动导入不再绕过 AI 解析链路。解析成功时，导入接口响应中的 `analysis.status` 为 `completed`，并返回任务、模型、活动候选判断和置信度摘要；AI 暂时不可用时，系统会记录失败审计并使用原始正文的确定性字段继续导入，`analysis.status` 为 `failed`。
+
+只有写入 `events` 的内容才进入 `event_governance`：手动导入为活动，或其他通用活动创建成功后，后台会自动对新活动执行一次限定范围的治理扫描，并把建议写入 AI 治理队列；自动扫描只生成建议，不会替管理员自动通过、发布或应用修改。导入为文章不会因为 AI 判定为活动候选而隐式创建活动记录，如需进入活动治理，应明确选择 **导入为活动**。
 
 当前资源导入调用如果没有明确指定 `resource_type`，默认按 **活动** 处理。这是为了兼容“未明确指定类型的调用从文章导入变成活动导入”的约定。需要导入普通文章时，应明确选择或传入文章类型。
 
@@ -541,7 +545,7 @@ activity_reason = AI 判断理由
 | `POST` | `/admin/wechat-mp/articles`        | 获取文章列表                                  |
 | `POST` | `/admin/wechat-mp/article-content` | 获取指定文章正文                              |
 | `POST` | `/admin/wechat-mp/parse`           | 解析已有正文                                  |
-| `POST` | `/admin/wechat-mp/import-payload`  | 构造文章或活动导入数据                        |
+| `POST` | `/admin/wechat-mp/import-payload`  | 复用 AI 解析并构造文章或活动导入数据          |
 
 ### 14.2 每日增量采集
 
@@ -569,6 +573,7 @@ activity_reason = AI 判断理由
 - 微信登录、Token 验活、文章列表和正文服务：`server/src/services/wechatMpAdminService.js`
 - 增量采集、调度、文章入库、AI 解析重试和活动筛选：`server/src/services/wechatMpScheduledIngestService.js`
 - 文章/活动资源导入默认值：`server/src/services/wechatMpResourcePayloadService.js`
+- 活动创建后的自动治理触发：`server/src/services/eventGovernanceTriggerService.js`
 - AI 解析 prompt 和输出契约：`server/src/utils/wechat.js`
 - 管理员接口：`server/src/controllers/wechatMpAdminController.js`、`server/src/routes/api.js`
 
