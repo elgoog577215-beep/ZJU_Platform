@@ -11,7 +11,6 @@ const {
     buildShareAppMessage,
     buildShareTimelineMessage,
     enableNativeShareMenu,
-    sanitizeSharePayload,
 } = require("../../utils/share");
 const {
     COPY: PROJECT_SHARE_COPY,
