@@ -1,104 +1,324 @@
-name: Deploy
+name: CI/CD
 
 on:
-  push:
-    branches: [master]
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
+
+permissions:
+    contents: read
+
+env:
+    NODE_VERSION: "20"
+    PRODUCTION_URL: https://tuotuzju.com
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    validate:
+        name: Validate
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: npm
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+            - name: Install frontend dependencies
+              run: npm ci --ignore-scripts
 
-      - name: Preflight server backend
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -eu
-            cd /var/www/ZJU_Platform
-            test "$(git branch --show-current)" = "master"
-            git fetch origin master
-            if [ -n "$(git status --porcelain)" ]; then
-              echo "Server worktree is dirty. Resolve or stash server-local changes before deploying."
-              git status --short
-              exit 1
-            fi
-            git reset --hard origin/master
+            - name: Validate source and changed-file formatting
+              env:
+                  BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+              run: |
+                  set -euo pipefail
+                  npm run lint
 
-      - name: Install & Build
-        run: |
-          npm install --legacy-peer-deps --package-lock=false
-          npm run build
+                  if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+                    changed_files=$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
+                  else
+                    changed_files=$(git diff --name-only HEAD^ HEAD)
+                  fi
 
-      - name: Update backend on server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -eu
-            cd /var/www/ZJU_Platform
-            if [ -n "$(git status --porcelain)" ]; then
-              echo "Server worktree became dirty after preflight. Stop before backend update."
-              git status --short
-              exit 1
-            fi
-            git fetch origin master
-            git reset --hard origin/master
-            cd server
-            npm install --omit=dev --legacy-peer-deps --package-lock=false
-            npx playwright install --with-deps chromium
-            node -e "const { chromium } = require('playwright'); chromium.launch({ headless: true }).then(async (browser) => { await browser.close(); console.log('Playwright Chromium launch verified'); }).catch((error) => { console.error(error); process.exit(1); });"
-            cd ..
-            pm2 restart zju-server --update-env
-            for i in $(seq 1 30); do
-              if curl --fail --silent --show-error http://127.0.0.1:3001/api/health > /tmp/zju-health.json; then
-                exit 0
-              fi
-              sleep 2
-            done
-            pm2 logs zju-server --lines 80 --nostream || true
-            cat /tmp/zju-health.json 2>/dev/null || true
-            exit 1
+                  prettier_files=()
+                  while IFS= read -r file; do
+                    case "$file" in
+                      *.css|*.html|*.js|*.jsx|*.json|*.md|*.mjs|*.prettierrc|*.ts|*.tsx|*.yaml|*.yml)
+                        [ -f "$file" ] && prettier_files+=("$file")
+                        ;;
+                    esac
+                  done <<< "$changed_files"
 
-      - name: Upload dist to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "dist/*"
-          target: "/var/www/ZJU_Platform/dist/"
-          strip_components: 1
-          overwrite: true
+                  if [ "${#prettier_files[@]}" -gt 0 ]; then
+                    npx prettier --check "${prettier_files[@]}"
+                  fi
 
-      - name: Validate and reload Caddy
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -eu
-            caddy validate --config /etc/caddy/Caddyfile
-            systemctl reload caddy
-            systemctl is-active --quiet caddy
+                  if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+                    git diff --check "$BASE_SHA" "$GITHUB_SHA"
+                  else
+                    git diff --check HEAD^ HEAD
+                  fi
 
-      - name: Verify production contract
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error https://tuotuzju.com/api/health > /tmp/zju-health.json
-          curl --fail --silent --show-error 'https://tuotuzju.com/api/projects?limit=1' > /tmp/zju-projects.json
-          curl --fail --silent --show-error https://tuotuzju.com/projects > /tmp/zju-projects.html
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        needs: validate
+        env:
+            NODE_ENV: test
+            SECRET_KEY: ci-test-secret
+            JWT_SECRET: ci-test-jwt-secret
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: npm
+
+            - name: Install dependencies
+              run: |
+                  npm ci --ignore-scripts
+                  npm ci --prefix server --legacy-peer-deps
+
+            - name: Run backend test suite
+              run: node --test server/tests/*.test.js
+
+    build:
+        name: Build dist
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: npm
+
+            - name: Install frontend dependencies
+              run: npm ci --ignore-scripts
+
+            - name: Build frontend
+              run: |
+                  npm run build
+                  npm run check:startup-chunks
+
+            - name: Upload built frontend artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-dist-${{ github.sha }}
+                  path: dist/**
+                  if-no-files-found: error
+                  retention-days: 14
+
+    package:
+        name: Package release artifact
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Download built frontend
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-dist-${{ github.sha }}
+                  path: frontend-dist
+
+            - name: Create immutable release package
+              env:
+                  RELEASE_ID: ${{ github.sha }}
+              run: |
+                  set -euo pipefail
+                  package_root="$RUNNER_TEMP/zju-platform-package"
+                  rm -rf "$package_root" release
+                  mkdir -p "$package_root/payload" release
+
+                  git archive --format=tar HEAD server | tar -x -C "$package_root/payload"
+                  frontend_dist=frontend-dist
+                  if [ ! -f "$frontend_dist/index.html" ] && [ -f "$frontend_dist/dist/index.html" ]; then
+                    frontend_dist="$frontend_dist/dist"
+                  fi
+                  test -f "$frontend_dist/index.html"
+                  cp -a "$frontend_dist" "$package_root/payload/dist"
+
+                  rm -rf "$package_root/payload/server/node_modules"
+                  rm -rf "$package_root/payload/server/uploads"
+                  rm -rf "$package_root/payload/server/logs"
+                  rm -rf "$package_root/payload/server/data"
+                  rm -rf "$package_root/payload/server/backups"
+                  find "$package_root/payload/server" -maxdepth 1 -type f -name 'database.sqlite*' -delete
+
+                  printf '%s\n' \
+                    "commit=$RELEASE_ID" \
+                    "ref=$GITHUB_REF" \
+                    "run=$GITHUB_RUN_ID" \
+                    "created_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                    > "$package_root/payload/release-manifest.txt"
+
+                  archive="release/zju-platform-${RELEASE_ID}.tar.gz"
+                  tar -C "$package_root" -czf "$archive" payload
+                  tar -tzf "$archive" | grep -Fq 'payload/dist/index.html'
+                  tar -tzf "$archive" | grep -Fq 'payload/server/index.js'
+                  (cd release && sha256sum "$(basename "$archive")" > "$(basename "$archive").sha256")
+
+            - name: Upload immutable release artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-${{ github.sha }}
+                  path: release/*
+                  if-no-files-found: error
+                  retention-days: 30
+
+    deploy:
+        name: Deploy release artifact
+        runs-on: ubuntu-latest
+        needs: package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        concurrency:
+            group: zju-production-deploy
+            cancel-in-progress: false
+        environment:
+            name: production
+            url: https://tuotuzju.com
+        steps:
+            - name: Download immutable release artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: release-${{ github.sha }}
+                  path: release
+
+            - name: Upload release artifact to server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  source: "release/*"
+                  target: "/tmp/zju-platform/"
+                  overwrite: true
+
+            - name: Deploy artifact, Caddy, and PM2
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  script: |
+                      set -euo pipefail
+
+                      release_id="${{ github.sha }}"
+                      app_root="/var/www/ZJU_Platform"
+                      artifact_dir="/tmp/zju-platform"
+                      artifact="${artifact_dir}/zju-platform-${release_id}.tar.gz"
+                      checksum="${artifact}.sha256"
+                      slot="${app_root}/.deployments/${release_id}"
+                      stage="${slot}/stage"
+                      previous="${slot}/previous"
+                      payload="${stage}/payload"
+
+                      test -d "$app_root/server"
+                      test -d "$app_root/dist"
+                      test -f "$artifact"
+                      test -f "$checksum"
+
+                      (
+                        cd "$artifact_dir"
+                        sha256sum --check "$(basename "$checksum")"
+                      )
+
+                      rm -rf "$slot"
+                      mkdir -p "$stage" "$previous"
+                      tar -xzf "$artifact" -C "$stage"
+                      test -f "$payload/release-manifest.txt"
+                      test -f "$payload/dist/index.html"
+                      test -f "$payload/server/index.js"
+                      node --check "$payload/server/index.js"
+
+                      (
+                        cd "$payload/server"
+                        npm ci --omit=dev --legacy-peer-deps
+                        npx playwright install --with-deps chromium
+                        node -e 'const { chromium } = require("playwright"); chromium.launch({ headless: true }).then(async (browser) => { await browser.close(); console.log("Playwright Chromium launch verified"); }).catch((error) => { console.error(error); process.exit(1); });'
+                      )
+
+                      caddy validate --config /etc/caddy/Caddyfile
+
+                      mv "$app_root/server" "$previous/server"
+                      mv "$app_root/dist" "$previous/dist"
+                      mv "$payload/server" "$app_root/server"
+                      mv "$payload/dist" "$app_root/dist"
+
+                      for runtime_path in .env uploads logs data backups; do
+                        if [ -e "$previous/server/$runtime_path" ] || [ -L "$previous/server/$runtime_path" ]; then
+                          mv "$previous/server/$runtime_path" "$app_root/server/$runtime_path"
+                        fi
+                      done
+                      for database_file in "$previous/server"/database.sqlite*; do
+                        if [ -e "$database_file" ] || [ -L "$database_file" ]; then
+                          mv "$database_file" "$app_root/server/"
+                        fi
+                      done
+
+                      install -m 0644 "$stage/payload/release-manifest.txt" "$app_root/.deployed-release"
+                      grep -Fxq "commit=$release_id" "$app_root/.deployed-release"
+
+                      if systemctl is-enabled --quiet nginx 2>/dev/null || systemctl is-active --quiet nginx 2>/dev/null; then
+                        systemctl disable --now nginx
+                      fi
+
+                      systemctl enable caddy
+                      if systemctl is-active --quiet caddy; then
+                        systemctl reload caddy
+                      else
+                        systemctl start caddy
+                      fi
+                      systemctl is-active --quiet caddy
+
+                      if ! pm2 restart zju-server --update-env; then
+                        pm2 status || true
+                        pm2 logs zju-server --lines 80 --nostream || true
+                        exit 1
+                      fi
+
+                      health_file="/tmp/zju-health-${release_id}.json"
+                      healthy=0
+                      for i in $(seq 1 30); do
+                        if curl --fail --silent --show-error http://127.0.0.1:3001/api/health > "$health_file"; then
+                          healthy=1
+                          break
+                        fi
+                        sleep 2
+                      done
+
+                      if [ "$healthy" -ne 1 ]; then
+                        pm2 logs zju-server --lines 80 --nostream || true
+                        cat "$health_file" 2>/dev/null || true
+                        exit 1
+                      fi
+
+    verify:
+        name: HTTPS smoke test
+        runs-on: ubuntu-latest
+        needs: deploy
+        if: success()
+        steps:
+            - name: Verify production contract
+              run: |
+                  set -euo pipefail
+                  curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                    "$PRODUCTION_URL/api/health" > /tmp/zju-health.json
+                  curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                    "$PRODUCTION_URL/api/projects?limit=1" > /tmp/zju-projects.json
+                  curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                    "$PRODUCTION_URL/projects" > /tmp/zju-projects.html
