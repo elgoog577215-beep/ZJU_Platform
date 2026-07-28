@@ -182,8 +182,11 @@ jobs:
 
                   archive="release/zju-platform-${RELEASE_ID}.tar.gz"
                   tar -C "$package_root" -czf "$archive" payload
-                  tar -tzf "$archive" | grep -Fq 'payload/dist/index.html'
-                  tar -tzf "$archive" | grep -Fq 'payload/server/index.js'
+                  archive_contents="$package_root/archive.list"
+                  tar -tzf "$archive" > "$archive_contents"
+                  grep -Fq 'payload/dist/index.html' "$archive_contents"
+                  grep -Fq 'payload/server/index.js' "$archive_contents"
+                  rm -f "$archive_contents"
                   (cd release && sha256sum "$(basename "$archive")" > "$(basename "$archive").sha256")
 
             - name: Upload immutable release artifact
