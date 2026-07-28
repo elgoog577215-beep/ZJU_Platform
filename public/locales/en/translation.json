@@ -2907,6 +2907,12 @@
           "completed": "Extracted",
           "failed": "Extraction failed"
         },
+        "activity_status": {
+          "not_screened": "Awaiting activity screening",
+          "accepted": "Added for review",
+          "rejected": "Not an activity candidate",
+          "failed": "Activity record failed"
+        },
         "placeholders": {
           "account_name": "Official account name",
           "keywords": "Keywords, comma separated"

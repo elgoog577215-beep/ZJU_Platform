@@ -2963,6 +2963,12 @@
           "completed": "已提取",
           "failed": "提取失败"
         },
+        "activity_status": {
+          "not_screened": "待活动筛选",
+          "accepted": "已进入待审核",
+          "rejected": "非活动候选",
+          "failed": "活动入库失败"
+        },
         "placeholders": {
           "account_name": "公众号名称",
           "keywords": "关键词，可用逗号分隔"

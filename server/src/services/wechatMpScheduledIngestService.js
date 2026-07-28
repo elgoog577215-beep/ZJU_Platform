@@ -978,7 +978,10 @@ const executeIngestRun = async (db, {
               if (extraction.status === 'completed') extractedArticles += 1;
               if (extraction.status === 'failed') extractionFailedCount += 1;
             }
-            if (extraction.status === 'completed' && storedArticle.activity_status === 'not_screened') {
+            if (
+              extraction.status === 'completed'
+              && ['not_screened', 'failed'].includes(storedArticle.activity_status || 'not_screened')
+            ) {
               await screenArticleActivity(db, storedArticle, extraction.parsed);
             }
           }

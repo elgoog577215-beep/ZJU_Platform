@@ -1306,8 +1306,15 @@ const WeChatMpImportManager = () => {
                         {t(`admin.wechat_mp.ingest.content_status.${article.content_status || "not_fetched"}`, article.content_status || "not_fetched")}
                         {" · "}
                         {t(`admin.wechat_mp.ingest.extraction_status.${article.extraction_status || "not_started"}`, article.extraction_status || "not_started")}
+                        {" · "}
+                        {t(`admin.wechat_mp.ingest.activity_status.${article.activity_status || "not_screened"}`, article.activity_status || "not_screened")}
                         {article.extracted_event?.title ? ` · ${article.extracted_event.title}` : ""}
                       </div>
+                      {article.activity_reason ? (
+                        <div className={clsx("mt-1 line-clamp-2 text-xs", mutedTextClass)}>
+                          {article.activity_reason}
+                        </div>
+                      ) : null}
                     </div>
                     <button
                       type="button"

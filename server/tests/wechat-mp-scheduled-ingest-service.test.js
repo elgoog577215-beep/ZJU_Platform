@@ -404,6 +404,82 @@ test('WeChat MP activity screening only creates pending events for confident can
   }
 });
 
+test('WeChat MP retries failed activity writes without parsing the article again', async () => {
+  const db = await createDb();
+  let parseCalls = 0;
+  const article = {
+    title: '活动报名通知',
+    link: 'https://mp.weixin.qq.com/s/recover-activity-write',
+    author: '测试公众号',
+  };
+  const wechatApi = {
+    async fetchArticles() {
+      return { articles: [article] };
+    },
+    async fetchArticleContent() {
+      return { contentText: '包含报名时间和参与方式的活动正文', content_status: 'fetched' };
+    },
+  };
+  const parser = async () => {
+    parseCalls += 1;
+    return {
+      title: article.title,
+      date: '2026-07-20T10:00',
+      category: 'lecture',
+      content: '<p>活动详情</p>',
+      is_activity_candidate: true,
+      activity_confidence: 0.92,
+      activity_reason: '包含明确报名和参与安排',
+    };
+  };
+
+  try {
+    await service.updateIngestSettings(db, {
+      query_delay_range: [0, 0],
+      content_delay_range: [0, 0],
+      auto_parse: true,
+    });
+    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'recovery-fake' });
+
+    const firstRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser,
+    });
+    assert.equal(firstRun.status, 'completed');
+    assert.equal(parseCalls, 1);
+    assert.equal((await service.listIngestArticles(db))[0].activity_status, 'failed');
+
+    await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+
+    const recoveredRun = await service.executeIngestRun(db, {
+      settings: await service.getIngestSettings(db),
+      wechatApi,
+      parser,
+    });
+    assert.equal(recoveredRun.status, 'completed');
+    assert.equal(parseCalls, 1);
+
+    const stored = (await service.listIngestArticles(db))[0];
+    const events = await db.all('SELECT * FROM events');
+    assert.equal(stored.activity_status, 'accepted');
+    assert.equal(events.length, 1);
+    assert.equal(events[0].status, 'pending');
+  } finally {
+    await db.close();
+  }
+});
+
 test('WeChat MP scheduler key respects configured timezone', () => {
   const key = service.getZonedDateTimeKey(new Date('2026-07-10T19:30:00.000Z'), 'Asia/Shanghai');
   assert.equal(key.dateKey, '2026-07-11');
