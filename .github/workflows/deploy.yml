@@ -232,28 +232,48 @@ jobs:
                   username: ${{ secrets.SERVER_USER }}
                   key: ${{ secrets.SERVER_SSH_KEY }}
                   script: |
-                      set -euo pipefail
+                      set -eu
 
                       release_id="${{ github.sha }}"
                       app_root="/var/www/ZJU_Platform"
                       artifact_dir="/tmp/zju-platform"
-                      artifact="${artifact_dir}/zju-platform-${release_id}.tar.gz"
-                      checksum="${artifact}.sha256"
+                      artifact_name="zju-platform-${release_id}.tar.gz"
                       deployment_root="${app_root}/.deployments"
                       slot="${deployment_root}/${release_id}"
                       stage="${slot}/stage"
                       previous="${slot}/previous"
                       payload="${stage}/payload"
 
-                      test -d "$app_root/server"
-                      test -d "$app_root/dist"
-                      test -f "$artifact"
-                      test -f "$checksum"
+                      echo "Deploying ${release_id} on $(hostname) as $(id -un)"
+                      if [ ! -d "$app_root/server" ] || [ ! -d "$app_root/dist" ]; then
+                        echo "ERROR: expected application directories are missing under $app_root"
+                        ls -la "$app_root" 2>/dev/null || true
+                        exit 1
+                      fi
+                      if [ ! -d "$artifact_dir" ]; then
+                        echo "ERROR: artifact directory is missing: $artifact_dir"
+                        exit 1
+                      fi
+
+                      artifact="$(find "$artifact_dir" -maxdepth 2 -type f -name "$artifact_name" -print -quit)"
+                      if [ -z "$artifact" ]; then
+                        echo "ERROR: release artifact was not found: $artifact_name"
+                        find "$artifact_dir" -maxdepth 2 -type f -print || true
+                        exit 1
+                      fi
+                      checksum="$(find "$(dirname "$artifact")" -maxdepth 1 -type f -name "${artifact_name}.sha256" -print -quit)"
+                      if [ -z "$checksum" ]; then
+                        echo "ERROR: release checksum was not found beside $artifact"
+                        find "$(dirname "$artifact")" -maxdepth 1 -type f -print || true
+                        exit 1
+                      fi
+                      echo "Release artifact: $artifact"
 
                       (
-                        cd "$artifact_dir"
+                        cd "$(dirname "$checksum")"
                         sha256sum --check "$(basename "$checksum")"
                       )
+                      echo "Release checksum verified"
 
                       mkdir -p "$deployment_root"
                       find "$deployment_root" -mindepth 1 -maxdepth 1 -type d -exec rm -rf -- {} +
@@ -264,6 +284,7 @@ jobs:
                       test -f "$payload/dist/index.html"
                       test -f "$payload/server/index.js"
                       node --check "$payload/server/index.js"
+                      echo "Release payload validated"
 
                       (
                         cd "$payload/server"
@@ -273,6 +294,7 @@ jobs:
                       )
 
                       caddy validate --config /etc/caddy/Caddyfile
+                      echo "Caddy configuration validated"
 
                       mv "$app_root/server" "$previous/server"
                       mv "$app_root/dist" "$previous/dist"
