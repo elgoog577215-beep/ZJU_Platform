@@ -3,6 +3,7 @@ const fs = require("fs");
 const wechatMpAdminService = require("./wechatMpAdminService");
 const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
+const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
 
 const DEFAULT_SETTINGS = Object.freeze({
     enabled: false,
@@ -19,8 +20,6 @@ const DEFAULT_SETTINGS = Object.freeze({
     fetch_content: true,
     auto_parse: true,
 });
-const ACTIVITY_CONFIDENCE_THRESHOLD = 0.7;
-
 let activeRun = null;
 let schedulerTimer = null;
 let schedulerLastKey = "";
@@ -873,30 +872,16 @@ const screenArticleActivity = async (
     parsed,
     { userId = null, governanceTrigger = triggerEventGovernance } = {}
 ) => {
-    const candidate =
-        parsed?.is_activity_candidate === true ||
-        parsed?.is_activity_candidate === 1 ||
-        String(parsed?.is_activity_candidate || "")
-            .trim()
-            .toLowerCase() === "true";
-    const confidence = Number(parsed?.activity_confidence);
-    const normalizedConfidence = Number.isFinite(confidence)
-        ? Math.min(Math.max(0, confidence), 1)
-        : 0;
-    const reason = String(parsed?.activity_reason || "").trim();
-    if (!candidate || normalizedConfidence < ACTIVITY_CONFIDENCE_THRESHOLD) {
+    const screening = screenActivityCandidate(parsed);
+    if (!screening.accepted) {
         await updateArticleActivity(db, article.id, {
             status: "rejected",
-            reason:
-                reason ||
-                (candidate
-                    ? `活动候选置信度 ${normalizedConfidence.toFixed(2)} 低于阈值 ${ACTIVITY_CONFIDENCE_THRESHOLD.toFixed(2)}`
-                    : "AI 判定为非活动候选"),
+            reason: screening.reason,
         });
         return {
             status: "rejected",
-            confidence: normalizedConfidence,
-            reason: reason || "AI 判定为非活动候选",
+            confidence: screening.confidence,
+            reason: screening.reason,
             event_id: article.event_id || null,
         };
     }
@@ -905,7 +890,7 @@ const screenArticleActivity = async (
         const event = await upsertActivityEvent(db, article, parsed);
         await updateArticleActivity(db, article.id, {
             status: "accepted",
-            reason: reason || "通过活动候选筛选",
+            reason: screening.reason,
             eventId: event.id,
         });
         void Promise.resolve(
@@ -919,8 +904,8 @@ const screenArticleActivity = async (
         });
         return {
             status: "accepted",
-            confidence: normalizedConfidence,
-            reason: reason || "通过活动候选筛选",
+            confidence: screening.confidence,
+            reason: screening.reason,
             event_id: event.id,
             event_created: event.created,
             governance_triggered: true,

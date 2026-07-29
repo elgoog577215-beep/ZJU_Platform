@@ -122,3 +122,15 @@ test("WeChat MP import payload routes supported resource types", () => {
         /Unsupported/
     );
 });
+
+test("WeChat MP rejected event payload preserves the AI screening reason", () => {
+    const result = buildWechatMpResourcePayload({
+        ...fixture,
+        resourceType: "event",
+        status: "rejected",
+        rejectionReason: "文章是成果报道，不是参与型活动",
+    });
+
+    assert.equal(result.payload.status, "rejected");
+    assert.equal(result.payload.rejection_reason, "文章是成果报道，不是参与型活动");
+});

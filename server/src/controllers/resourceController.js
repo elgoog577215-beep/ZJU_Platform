@@ -326,7 +326,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
             ]);
         }
 
-        if (table === "events") {
+        if (table === "events" && status !== "rejected") {
             void triggerEventGovernance(db, {
                 eventId: result.lastID,
                 userId: uploader_id,
@@ -1270,6 +1270,7 @@ const fields = {
         "is_college_notice",
         "notice_type",
         "source_college",
+        "rejection_reason",
     ],
 };
 

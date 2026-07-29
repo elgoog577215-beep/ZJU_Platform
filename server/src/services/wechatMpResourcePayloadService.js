@@ -245,6 +245,7 @@ const buildEventPayload = ({
     content = {},
     parsed = null,
     status = DEFAULT_EVENT_STATUS,
+    rejectionReason = "",
 } = {}) => {
     const record = buildRecord({ article, content });
     const blocks = buildContentBlocks(record.contentText, record.images);
@@ -274,6 +275,7 @@ const buildEventPayload = ({
         is_college_notice: [1, "1", true, "true"].includes(parsed?.is_college_notice) ? 1 : 0,
         notice_type: toText(parsed?.notice_type) || null,
         source_college: toText(parsed?.source_college) || null,
+        rejection_reason: status === "rejected" ? toText(rejectionReason) || null : null,
         status,
     };
 };
@@ -284,6 +286,7 @@ const buildWechatMpResourcePayload = ({
     content = {},
     parsed = null,
     status,
+    rejectionReason = "",
 } = {}) => {
     const normalizedType = String(resourceType || "event")
         .trim()
@@ -297,6 +300,7 @@ const buildWechatMpResourcePayload = ({
                 content,
                 parsed,
                 status: status || DEFAULT_EVENT_STATUS,
+                rejectionReason,
             }),
         };
     }

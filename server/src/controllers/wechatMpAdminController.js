@@ -17,6 +17,7 @@ const { downloadWeChatImage, parseWithLLM } = require("../utils/wechat");
 const { recordWechatParseRun } = require("../services/wechatParseAuditService");
 const wechatMpScheduledIngestService = require("../services/wechatMpScheduledIngestService");
 const { buildWechatMpResourcePayload } = require("../services/wechatMpResourcePayloadService");
+const { resolveWechatImportDecision } = require("../utils/wechatActivityScreening");
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
 const isLocalUploadUrl = (url) => String(url || "").startsWith("/uploads/");
@@ -271,14 +272,19 @@ const buildWechatMpImportPayload = async (req, res) => {
             article: req.body?.article || {},
             userId: req.user?.id,
         });
-        const importStatus =
-            analysis.analysis.status === "completed" ? req.body?.status : "pending";
+        const importDecision = resolveWechatImportDecision({
+            resourceType: req.body?.resource_type || req.body?.resourceType || "event",
+            analysisStatus: analysis.analysis.status,
+            parsed: analysis.parsed,
+            requestedStatus: req.body?.status,
+        });
         const result = buildWechatMpResourcePayload({
             resourceType: req.body?.resource_type || req.body?.resourceType || "event",
             article: req.body?.article || {},
             content: contentPayload,
             parsed: analysis.parsed,
-            status: importStatus,
+            status: importDecision.status,
+            rejectionReason: importDecision.rejectionReason,
         });
         return res.json({ ...result, analysis: analysis.analysis });
     } catch (error) {
