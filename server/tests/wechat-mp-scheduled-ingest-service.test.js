@@ -239,6 +239,7 @@ test("WeChat MP incremental run saves new articles, bodies, and avoids duplicate
                 return {
                     contentText: `正文 ${url}`,
                     contentHtml: `<p>${url}</p>`,
+                    coverImage: "/uploads/covers/wechat-cover.jpg",
                     images: ["https://mmbiz.qpic.cn/body.png"],
                     content_status: "fetched",
                 };
@@ -303,6 +304,103 @@ test("WeChat MP incremental run saves new articles, bodies, and avoids duplicate
             true
         );
         assert.equal(parseCalls.length, 4);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP ingest prefers localized covers and repairs linked events", async () => {
+    const db = await createDb();
+    let fetchContentCalls = 0;
+    let parseCalls = 0;
+    const article = {
+        title: "英语四新专项赛选拔赛",
+        link: "https://mp.weixin.qq.com/s/localized-cover",
+        summary: "报名通知",
+        author: "测试公众号",
+        cover: "https://mmbiz.qpic.cn/list-cover.png",
+    };
+
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, { name: "测试公众号", fakeid: "cover-fake" });
+
+        const wechatApi = {
+            async fetchArticles() {
+                return { articles: [article] };
+            },
+            async fetchArticleContent() {
+                fetchContentCalls += 1;
+                return {
+                    contentText: "包含报名时间和参与方式的活动正文",
+                    contentHtml: "<p>活动详情</p>",
+                    coverImage: "/uploads/covers/wechat-local-cover.jpg",
+                    images: ["/uploads/covers/wechat-local-cover.jpg"],
+                    content_status: "fetched",
+                };
+            },
+        };
+        const parser = async () => {
+            parseCalls += 1;
+            return {
+                title: article.title,
+                date: "2026-07-20T10:00",
+                category: "competition",
+                content: "<p>活动详情</p>",
+                is_activity_candidate: true,
+                activity_confidence: 0.95,
+                activity_reason: "包含明确报名和参与安排",
+            };
+        };
+
+        const firstRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+            governanceTrigger: async () => {},
+        });
+        assert.equal(firstRun.status, "completed");
+
+        let stored = (await service.listIngestArticles(db))[0];
+        let events = await db.all("SELECT * FROM events");
+        assert.equal(stored.cover, "/uploads/covers/wechat-local-cover.jpg");
+        assert.equal(events[0].image, "/uploads/covers/wechat-local-cover.jpg");
+
+        await db.run("UPDATE wechat_mp_ingest_articles SET cover = ? WHERE id = ?", [
+            article.cover,
+            stored.id,
+        ]);
+        await db.run("UPDATE events SET image = ? WHERE id = ?", [article.cover, events[0].id]);
+
+        const repairedRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+            governanceTrigger: async () => {},
+        });
+        assert.equal(repairedRun.status, "completed");
+        assert.equal(fetchContentCalls, 2);
+        assert.equal(parseCalls, 1);
+
+        stored = (await service.listIngestArticles(db))[0];
+        events = await db.all("SELECT * FROM events");
+        assert.equal(stored.cover, "/uploads/covers/wechat-local-cover.jpg");
+        assert.equal(events[0].image, "/uploads/covers/wechat-local-cover.jpg");
     } finally {
         await db.close();
     }

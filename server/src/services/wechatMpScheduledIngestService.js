@@ -127,6 +127,41 @@ const normalizeSettings = (row = {}) => {
 
 const stringifyArray = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
+const isLocalUploadUrl = (value) =>
+    String(value || "")
+        .trim()
+        .startsWith("/uploads/");
+
+const resolveIngestCover = ({ article = {}, content = {}, existingCover = "" } = {}) => {
+    const normalizedContent = content || {};
+    const candidates = [
+        normalizedContent.coverImage,
+        normalizedContent.cover,
+        ...(Array.isArray(normalizedContent.images) ? normalizedContent.images : []),
+        article.cover,
+        article.coverImage,
+        existingCover,
+    ]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean);
+
+    return candidates.find(isLocalUploadUrl) || candidates[0] || "";
+};
+
+const syncEventCover = async (db, eventId, cover) => {
+    if (!eventId || !isLocalUploadUrl(cover)) return;
+
+    await db.run(
+        `
+    UPDATE events
+    SET image = ?
+    WHERE id = ?
+      AND (image IS NULL OR image = '' OR image NOT LIKE '/uploads/%')
+  `,
+        [cover, eventId]
+    );
+};
+
 const ensureWechatMpScheduledIngestSchema = async (db) => {
     await db.exec(`
     CREATE TABLE IF NOT EXISTS wechat_mp_ingest_settings (
@@ -712,7 +747,19 @@ const upsertArticle = async (db, { account, article, content }) => {
     const contentStatus = content?.content_status || article.content_status || "not_fetched";
     const imagesJson = stringifyArray(content?.images || []);
     const contentText = String(content?.contentText || content?.content_text || "").trim();
+    const cover = resolveIngestCover({ article, content, existingCover: existing?.cover });
     if (existing) {
+        if (cover && cover !== existing.cover && (!existing.cover || isLocalUploadUrl(cover))) {
+            await db.run(
+                `
+        UPDATE wechat_mp_ingest_articles
+        SET cover = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `,
+                [cover, existing.id]
+            );
+        }
+        await syncEventCover(db, existing.event_id, cover || existing.cover);
         if (contentText && !existing.content_text) {
             await db.run(
                 `
@@ -742,7 +789,7 @@ const upsertArticle = async (db, { account, article, content }) => {
             link,
             article.summary || "",
             article.author || content?.author || "",
-            article.cover || content?.coverImage || "",
+            cover,
             article.create_time || "",
             article.time_text || "",
             contentText,
@@ -1117,7 +1164,7 @@ const executeIngestRun = async (
                 const article = articles[articleIndex];
                 const existing = article.link
                     ? await db.get(
-                          "SELECT id, content_text FROM wechat_mp_ingest_articles WHERE link = ?",
+                          "SELECT id, content_text, cover FROM wechat_mp_ingest_articles WHERE link = ?",
                           [article.link]
                       )
                     : null;
@@ -1125,7 +1172,7 @@ const executeIngestRun = async (
                 const shouldFetchContent =
                     account.fetch_content &&
                     effectiveSettings.fetch_content &&
-                    (!existing || !existing.content_text);
+                    (!existing || !existing.content_text || !isLocalUploadUrl(existing.cover));
                 if (shouldFetchContent && article.link) {
                     if (articleIndex > 0)
                         await wechatMpAdminService.waitDelayRange(
