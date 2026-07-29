@@ -9,6 +9,7 @@ const {
 const { downloadWeChatImage } = require("./wechatImageDownloader");
 const { cleanWeChatUrl } = require("./wechatUrl");
 const { compactWechatArticleContent } = require("./wechatArticleContext");
+const { normalizePlainText } = require("./plainText");
 
 // Simple In-Memory Cache
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
@@ -172,7 +173,7 @@ async function scrapeWeChat(url) {
         }
 
         return {
-            title: title || "Untitled",
+            title: normalizePlainText(title, "Untitled"),
             author: author || "Unknown",
             content,
             coverImage,
@@ -229,13 +230,13 @@ async function parseWithLLM(data, options = {}) {
                         academicCalendar: ACADEMIC_CALENDAR,
                         standardCatalog: EVENT_CATALOG_CONTEXT,
                         article: {
-                            title: data.title,
+                            title: normalizePlainText(data.title, "Untitled"),
                             author: data.author,
                             content: compactWechatArticleContent(data.content),
                             sourceSummary: String(data.summary || "").trim(),
                         },
                         outputContract: {
-                            title: "活动名称；无具体活动名时用文章标题",
+                            title: "纯文本活动名称；无具体活动名时用文章标题，不要返回 HTML 标签",
                             description:
                                 "80-160 字活动摘要；必须用自己的话概括核心内容、参与对象和参与动作，不要复制原文，不要用省略号截断",
                             content:
@@ -295,6 +296,8 @@ async function parseWithLLM(data, options = {}) {
     if (parsed.volunteer_time)
         parsed.volunteer_time = cleanField(parsed.volunteer_time, /^志愿时长[：:]\s*/);
     if (parsed.score) parsed.score = cleanField(parsed.score, /^综测\/素质分[：:]\s*/);
+
+    parsed.title = normalizePlainText(parsed.title, normalizePlainText(data.title, "Untitled"));
 
     parsed = validateParsedEventPayload(parsed, data);
     parsed.description = String(parsed.description || "").trim();

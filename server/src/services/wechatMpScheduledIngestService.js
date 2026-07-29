@@ -5,6 +5,7 @@ const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { normalizePlainText } = require("../utils/plainText");
 const { normalizeEventCategory, normalizeEventDateTime } = require("./eventIntelligenceService");
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -684,11 +685,18 @@ const listIngestRuns = async (db, { limit = 20 } = {}) => {
     );
 };
 
-const serializeIngestArticle = (row) => ({
-    ...row,
-    images: parseJson(row.images_json, []),
-    extracted_event: parseJson(row.extracted_event_json, null),
-});
+const serializeIngestArticle = (row) => {
+    const extractedEvent = parseJson(row.extracted_event_json, null);
+    return {
+        ...row,
+        title: normalizePlainText(row.title),
+        images: parseJson(row.images_json, []),
+        extracted_event:
+            extractedEvent && typeof extractedEvent === "object"
+                ? { ...extractedEvent, title: normalizePlainText(extractedEvent.title) }
+                : extractedEvent,
+    };
+};
 
 const listIngestArticles = async (db, { limit = 50 } = {}) => {
     await ensureWechatMpScheduledIngestSchema(db);
@@ -709,10 +717,17 @@ const upsertArticle = async (db, { account, article, content }) => {
     const link = cleanWeChatUrl(article.link || "");
     if (!link) return { inserted: false, skipped: true };
     const existing = await db.get("SELECT * FROM wechat_mp_ingest_articles WHERE link = ?", [link]);
+    const title = normalizePlainText(article.title);
     const contentStatus = content?.content_status || article.content_status || "not_fetched";
     const imagesJson = stringifyArray(content?.images || []);
     const contentText = String(content?.contentText || content?.content_text || "").trim();
     if (existing) {
+        if (title && title !== existing.title) {
+            await db.run(
+                "UPDATE wechat_mp_ingest_articles SET title = ?, updated_at = datetime('now') WHERE id = ?",
+                [title, existing.id]
+            );
+        }
         if (contentText && !existing.content_text) {
             await db.run(
                 `
@@ -738,7 +753,7 @@ const upsertArticle = async (db, { account, article, content }) => {
         [
             account.id,
             account.fakeid || article.fakeid || "",
-            article.title || "",
+            title,
             link,
             article.summary || "",
             article.author || content?.author || "",
@@ -811,7 +826,7 @@ const activityEventPayload = (article, parsed) => {
         normalizeEventDateTime(article.time_text) ||
         "";
     return {
-        title: String(parsed.title || article.title || "未命名活动").trim(),
+        title: normalizePlainText(parsed.title || article.title, "未命名活动"),
         date,
         end_date: normalizeEventDateTime(parsed.end_date, parsed.time, 1) || date || null,
         location: String(parsed.location || "").trim(),

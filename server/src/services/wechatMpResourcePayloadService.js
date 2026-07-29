@@ -1,4 +1,5 @@
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { normalizePlainText } = require("../utils/plainText");
 const { normalizeEventCategory, normalizeEventDateTime } = require("./eventIntelligenceService");
 
 const DEFAULT_ARTICLE_TAGS = "微信公众号,浙大资讯";
@@ -185,7 +186,8 @@ const buildRecord = ({ article = {}, content = {} } = {}) => {
     const sourceUrl = cleanWeChatUrl(
         toText(content.url || article.link || article.url || article.source_url)
     );
-    const title = toText(content.title || article.title || article.source_title) || "未命名文章";
+    const title =
+        normalizePlainText(content.title || article.title || article.source_title) || "未命名文章";
     const contentText = toText(content.contentText || content.content_text || article.content_text);
     const images = uniqueTexts([
         ...(Array.isArray(content.images) ? content.images : []),
@@ -222,7 +224,7 @@ const buildArticlePayload = ({
     const cover = record.cover || record.images[0] || "";
 
     return {
-        title: (toText(parsed?.title) || record.title).slice(0, 500),
+        title: (normalizePlainText(parsed?.title) || record.title).slice(0, 500),
         date: normalizeDate(record.publishedAt),
         source_url: record.sourceUrl,
         excerpt,
@@ -256,7 +258,7 @@ const buildEventPayload = ({
     const date = normalizeEventDateTime(parsed?.date, parsed?.time, 0);
 
     return {
-        title: (toText(parsed?.title) || record.title).slice(0, 500),
+        title: (normalizePlainText(parsed?.title) || record.title).slice(0, 500),
         date,
         end_date: normalizeEventDateTime(parsed?.end_date, parsed?.time, 1) || date || null,
         location: toText(parsed?.location),

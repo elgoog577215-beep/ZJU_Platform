@@ -8,10 +8,19 @@ const {
 } = require("../src/services/wechatMpResourcePayloadService");
 const { cleanWeChatUrl } = require("../src/utils/wechatUrl");
 const { compactWechatArticleContent } = require("../src/utils/wechatArticleContext");
+const { normalizePlainText } = require("../src/utils/plainText");
 
 test("WeChat source URLs use a stable value for deduplication", () => {
     const url = "https://mp.weixin.qq.com/s/demo?chksm=tracking&scene=1&utm_source=share#content";
     assert.equal(cleanWeChatUrl(url), "https://mp.weixin.qq.com/s/demo");
+});
+
+test("WeChat titles are stored as plain text without search or AI markup", () => {
+    assert.equal(
+        normalizePlainText('<em class="highlight">报名</em> &amp; <strong>交流</strong>'),
+        "报名 & 交流"
+    );
+    assert.equal(normalizePlainText("&lt;em&gt;校园活动&lt;/em&gt;"), "校园活动");
 });
 
 test("long WeChat articles keep the beginning, key paragraphs, and ending", () => {
@@ -51,7 +60,7 @@ test("WeChat payloads preserve AI summaries and fill normalized event fields", (
         },
     };
     const parsed = {
-        title: "英语读写大赛",
+        title: "<strong>英语读写大赛</strong>",
         description: "面向本科生开放的英语读写竞赛，参赛者按要求提交作品并参加后续评审。",
         content: "<h3>活动安排</h3><p>请按通知要求报名。</p>",
         date: "2026年9月19日",
@@ -67,10 +76,12 @@ test("WeChat payloads preserve AI summaries and fill normalized event fields", (
     assert.equal(event.location, "紫金港校区");
     assert.equal(event.category, "competition");
     assert.equal(event.description, parsed.description);
+    assert.equal(event.title, "英语读写大赛");
 
     const article = buildArticlePayload({ ...fixture, parsed });
     assert.equal(article.source_url, "https://mp.weixin.qq.com/s/demo");
     assert.equal(article.excerpt, parsed.description);
+    assert.equal(article.title, "英语读写大赛");
 });
 
 test("payloads do not turn raw article text into a fake AI summary", () => {

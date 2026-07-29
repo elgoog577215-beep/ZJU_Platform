@@ -271,6 +271,22 @@ test("WeChat MP article normalization drops unsafe links and cover URLs", () => 
     assert.equal(upgraded.cover, "https://mmbiz.qpic.cn/legacy.png");
 });
 
+test("WeChat MP article normalization removes search highlight markup from titles", () => {
+    const article = normalizeMpArticle(
+        {
+            title: '<em class="highlight">报名</em>丨<strong>校园交流</strong>',
+            link: "https://mp.weixin.qq.com/s/highlighted",
+        },
+        {
+            accountName: "Test Account",
+            fakeid: "fakeid",
+            keyword: "报名",
+        }
+    );
+
+    assert.equal(article.title, "报名丨校园交流");
+});
+
 test("WeChat MP article extractor returns clean text and image candidates", () => {
     const parsed = extractArticleBody(`
     <html>

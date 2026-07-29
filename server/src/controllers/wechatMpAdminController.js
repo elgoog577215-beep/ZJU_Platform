@@ -18,6 +18,7 @@ const { recordWechatParseRun } = require("../services/wechatParseAuditService");
 const wechatMpScheduledIngestService = require("../services/wechatMpScheduledIngestService");
 const { buildWechatMpResourcePayload } = require("../services/wechatMpResourcePayloadService");
 const { resolveWechatImportDecision } = require("../utils/wechatActivityScreening");
+const { normalizePlainText } = require("../utils/plainText");
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
 const isLocalUploadUrl = (url) => String(url || "").startsWith("/uploads/");
@@ -49,7 +50,7 @@ const buildWechatParseInput = (contentPayload = {}, article = {}) => {
     const safeCoverImage = hasTrustedCover ? sourceCoverImage : "";
 
     return {
-        title: String(contentPayload.title || article.title || "Untitled").slice(0, 500),
+        title: normalizePlainText(contentPayload.title || article.title, "Untitled").slice(0, 500),
         author: String(
             contentPayload.author || article.account || article.author || "Unknown"
         ).slice(0, 300),
@@ -94,7 +95,7 @@ const analyzeWechatImportContent = async ({
         }
 
         if (!parsed.content) parsed.content = scrapedData.content;
-        parsed.title = parsed.title || scrapedData.title || "Untitled";
+        parsed.title = normalizePlainText(parsed.title, scrapedData.title || "Untitled");
         if (!String(parsed.description || "").trim()) {
             const error = new Error("AI 未返回文章摘要，未创建不完整的导入内容");
             error.code = "WECHAT_AI_SUMMARY_MISSING";
@@ -338,10 +339,10 @@ const parseWechatMpArticle = async (req, res) => {
                 : "";
 
         const scrapedData = {
-            title: String(contentPayload.title || req.body?.article?.title || "Untitled").slice(
-                0,
-                500
-            ),
+            title: normalizePlainText(
+                contentPayload.title || req.body?.article?.title,
+                "Untitled"
+            ).slice(0, 500),
             author: String(contentPayload.author || req.body?.article?.account || "Unknown").slice(
                 0,
                 300
@@ -365,7 +366,7 @@ const parseWechatMpArticle = async (req, res) => {
         }
 
         if (!parsedData.content) parsedData.content = scrapedData.content;
-        parsedData.title = parsedData.title || scrapedData.title || "Untitled";
+        parsedData.title = normalizePlainText(parsedData.title, scrapedData.title || "Untitled");
         if (!String(parsedData.description || "").trim()) {
             const error = new Error("AI 未返回文章摘要，未生成不完整的导入内容");
             error.code = "WECHAT_AI_SUMMARY_MISSING";

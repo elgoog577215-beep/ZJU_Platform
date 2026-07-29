@@ -6,6 +6,7 @@ const path = require("path");
 const { chromium } = require("playwright");
 const { downloadWeChatImage } = require("../utils/wechatImageDownloader");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { normalizePlainText } = require("../utils/plainText");
 
 const WECHAT_MP_BASE_URL = "https://mp.weixin.qq.com";
 const WECHAT_MP_LOGIN_URL = `${WECHAT_MP_BASE_URL}/?lang=zh_CN`;
@@ -1051,7 +1052,7 @@ const normalizeMpArticle = (article, { accountName, fakeid, keyword }) => {
     const link = trustedMpUrl(rawLink) ? rawLink : "";
     const rawCover = normalizeHttpsUrl(article.cover || article.cover_url || "");
     return {
-        title: String(article.title || "").trim(),
+        title: normalizePlainText(article.title),
         link,
         summary: String(article.digest || article.summary || "").trim(),
         account: accountName,
@@ -1264,7 +1265,7 @@ const extractArticleBody = (html) => {
     });
     if (!cover && embeddedImages.length) cover = embeddedImages[0];
     return {
-        title: title || "Untitled",
+        title: normalizePlainText(title, "Untitled"),
         author: author || "",
         summary: summary || "",
         coverImage: cover || "",
