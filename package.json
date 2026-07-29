@@ -20,6 +20,7 @@
         "openspec:validate": "openspec validate --all",
         "openspec:view": "openspec view",
         "build": "vite build",
+        "check:frontend-assets": "node scripts/check-frontend-assets.mjs",
         "cap:build:web": "npm run build",
         "cap:add:ios": "cap add ios",
         "cap:sync:ios": "npm run cap:build:web && cap sync ios",

@@ -733,7 +733,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                             >
                                                 <LogOut size={18} aria-hidden="true" />
                                                 <span className="text-sm font-semibold">
-                                                    {t("auth.log_out")}
+                                                    {t("auth.log_out", "退出登录")}
                                                 </span>
                                             </button>
                                         </>

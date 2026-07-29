@@ -121,13 +121,14 @@ jobs:
             - name: Build frontend
               run: |
                   npm run build
+                  npm run check:frontend-assets
                   npm run check:startup-chunks
 
             - name: Upload built frontend artifact
               uses: actions/upload-artifact@v7
               with:
                   name: frontend-dist-${{ github.sha }}
-                  path: dist/**
+                  path: dist
                   if-no-files-found: error
                   retention-days: 14
 
@@ -164,6 +165,10 @@ jobs:
                     frontend_dist="$frontend_dist/dist"
                   fi
                   test -f "$frontend_dist/index.html"
+                  test -s "$frontend_dist/images/hero-landscape-day-4k.jpg"
+                  test -s "$frontend_dist/images/hero-landscape-night.jpg"
+                  test -s "$frontend_dist/images/hero-background.jpg"
+                  test -s "$frontend_dist/images/hero-campus-day-4k.jpg"
                   cp -a "$frontend_dist" "$package_root/payload/dist"
 
                   rm -rf "$package_root/payload/server/node_modules"
@@ -282,6 +287,10 @@ jobs:
                       tar -xzf "$artifact" -C "$stage"
                       test -f "$payload/release-manifest.txt"
                       test -f "$payload/dist/index.html"
+                      test -s "$payload/dist/images/hero-landscape-day-4k.jpg"
+                      test -s "$payload/dist/images/hero-landscape-night.jpg"
+                      test -s "$payload/dist/images/hero-background.jpg"
+                      test -s "$payload/dist/images/hero-campus-day-4k.jpg"
                       test -f "$payload/server/index.js"
                       node --check "$payload/server/index.js"
                       echo "Release payload validated"
@@ -370,3 +379,11 @@ jobs:
                     "$PRODUCTION_URL/api/projects?limit=1" > /tmp/zju-projects.json
                   curl --fail --silent --show-error --retry 5 --retry-delay 2 \
                     "$PRODUCTION_URL/projects" > /tmp/zju-projects.html
+                  for asset in images/hero-landscape-day-4k.jpg images/hero-landscape-night.jpg images/hero-background.jpg images/hero-campus-day-4k.jpg; do
+                    asset_headers="/tmp/zju-asset-headers"
+                    asset_body="/tmp/zju-asset"
+                    curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                      -D "$asset_headers" -o "$asset_body" "$PRODUCTION_URL/$asset"
+                    grep -Eiq '^content-type:[[:space:]]*image/jpeg([;[:space:]]|$)' "$asset_headers"
+                    test -s "$asset_body"
+                  done
