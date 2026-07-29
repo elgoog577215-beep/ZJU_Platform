@@ -11,7 +11,7 @@ const {
 const WECHAT_URL_REGEX = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
 
 const buildErrorResponse = (error) => {
-    let statusCode = 500;
+    let statusCode = Number.isInteger(error?.status) ? error.status : 500;
     let errorMessage =
         error.message || "An unexpected error occurred while parsing the WeChat article";
 
@@ -105,8 +105,12 @@ const parseWeChatResource = async (req, res) => {
             parsedData.content = scrapedData.content;
         }
         parsedData.title = parsedData.title || scrapedData.title || "Untitled";
-        parsedData.description =
-            parsedData.description || scrapedData.content?.substring(0, 200) || "";
+        if (!String(parsedData.description || "").trim()) {
+            const summaryError = new Error("AI 未返回文章摘要，未生成不完整的导入内容");
+            summaryError.code = "WECHAT_AI_SUMMARY_MISSING";
+            summaryError.status = 422;
+            throw summaryError;
+        }
 
         if (scrapedData.coverImage) {
             try {

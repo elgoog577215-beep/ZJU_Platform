@@ -14,6 +14,7 @@ const profileService = require("../services/profileService");
 const { canBypassReview } = require("../utils/userPermissions");
 const { normalizeEventWorkflowStatus } = require("../utils/resourceWorkflowStatus");
 const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
+const { cleanWeChatUrl } = require("../utils/wechatUrl");
 
 const buildCommaSeparatedMatch = (field, value) => ({
     clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
@@ -204,6 +205,46 @@ const normalizeArticlePayload = (table, body) => {
     body.content_blocks = null;
 };
 
+const SOURCE_DEDUPE_FIELDS = Object.freeze({
+    articles: "source_url",
+    events: "link",
+});
+
+const normalizeResourceSource = (table, body = {}) => {
+    const field = SOURCE_DEDUPE_FIELDS[table];
+    if (!field) return "";
+    const source = String(body[field] || "").trim();
+    if (!source) return "";
+    const normalized = cleanWeChatUrl(source);
+    body[field] = normalized;
+    return normalized;
+};
+
+const findDuplicateResourceSource = async (db, table, source, excludeId = null) => {
+    const field = SOURCE_DEDUPE_FIELDS[table];
+    if (!field || !source) return null;
+    const params = [source];
+    let query = `SELECT id, title, status FROM ${table} WHERE ${field} = ? AND (deleted_at IS NULL OR deleted_at = '')`;
+    if (excludeId !== null && excludeId !== undefined) {
+        query += " AND id != ?";
+        params.push(excludeId);
+    }
+    query += " ORDER BY id ASC LIMIT 1";
+    return db.get(query, params);
+};
+
+const throwDuplicateResourceSource = (table, duplicate) => {
+    if (!duplicate) return;
+    const error = new Error(
+        table === "articles" ? "这篇公众号文章已经导入" : "这个活动原文链接已经导入"
+    );
+    error.status = 409;
+    error.code = "RESOURCE_DUPLICATE_SOURCE";
+    error.existing_id = duplicate.id;
+    error.existing_title = duplicate.title || "";
+    throw error;
+};
+
 const serializeResourceItem = (table, item) => {
     if (!item || typeof item !== "object") return item;
     return serializeLinkageFields(item);
@@ -281,6 +322,8 @@ const createHandler = (table, fields) => async (req, res, next) => {
         if (table === "events") {
             normalizeEventPayload(req.body);
         }
+        const source = normalizeResourceSource(table, req.body);
+        throwDuplicateResourceSource(table, await findDuplicateResourceSource(db, table, source));
         const placeholders = fields.map(() => "?").join(",");
 
         // Determine status based on user role and optional workflow intent.
@@ -367,7 +410,14 @@ const createHandler = (table, fields) => async (req, res, next) => {
             })
         );
     } catch (error) {
-        if (error.status) return res.status(error.status).json({ error: error.message });
+        if (error.status) {
+            return res.status(error.status).json({
+                error: error.code || error.message,
+                message: error.message,
+                existing_id: error.existing_id || null,
+                existing_title: error.existing_title || null,
+            });
+        }
         next(error);
     }
 };
@@ -380,12 +430,18 @@ const updateHandler = (table, fields) => async (req, res, next) => {
             normalizeEventPayload(req.body);
         }
         const { id } = req.params;
+        const source = normalizeResourceSource(table, req.body);
 
         // Check ownership
         const oldItem = await db.get(`SELECT * FROM ${table} WHERE id = ?`, id);
         if (!oldItem) {
             return res.status(404).json({ error: "Item not found" });
         }
+
+        throwDuplicateResourceSource(
+            table,
+            await findDuplicateResourceSource(db, table, source, id)
+        );
 
         if (req.user.role !== "admin" && oldItem.uploader_id !== req.user.id) {
             return res
@@ -442,7 +498,14 @@ const updateHandler = (table, fields) => async (req, res, next) => {
 
         res.json(serializeResourceItem(table, { id, ...req.body, ...profileUpdates }));
     } catch (error) {
-        if (error.status) return res.status(error.status).json({ error: error.message });
+        if (error.status) {
+            return res.status(error.status).json({
+                error: error.code || error.message,
+                message: error.message,
+                existing_id: error.existing_id || null,
+                existing_title: error.existing_title || null,
+            });
+        }
         next(error);
     }
 };
@@ -1239,6 +1302,7 @@ const fields = {
     articles: [
         "title",
         "date",
+        "source_url",
         "excerpt",
         "tags",
         "content",
@@ -1348,6 +1412,8 @@ module.exports = {
     fields,
     _test: {
         buildEventCollegeScopeFilter,
+        findDuplicateResourceSource,
+        normalizeResourceSource,
         normalizeResourceWorkflowStatus,
     },
 };

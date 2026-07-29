@@ -1,3 +1,6 @@
+const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { normalizeEventCategory, normalizeEventDateTime } = require("./eventIntelligenceService");
+
 const DEFAULT_ARTICLE_TAGS = "微信公众号,浙大资讯";
 const DEFAULT_EVENT_TAGS = "微信公众号";
 const DEFAULT_ARTICLE_CATEGORY = "campus";
@@ -36,12 +39,6 @@ const escapeHtml = (value) =>
         .replace(/'/g, "&#39;");
 
 const escapeAttribute = (value) => escapeHtml(value).replace(/`/g, "&#96;");
-
-const stripHtml = (value) =>
-    toText(value)
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
 
 const splitParagraphs = (value) => {
     const lines = String(value || "")
@@ -185,7 +182,9 @@ const normalizeDate = (value) => {
 };
 
 const buildRecord = ({ article = {}, content = {} } = {}) => {
-    const sourceUrl = toText(content.url || article.link || article.url || article.source_url);
+    const sourceUrl = cleanWeChatUrl(
+        toText(content.url || article.link || article.url || article.source_url)
+    );
     const title = toText(content.title || article.title || article.source_title) || "未命名文章";
     const contentText = toText(content.contentText || content.content_text || article.content_text);
     const images = uniqueTexts([
@@ -219,12 +218,13 @@ const buildArticlePayload = ({
     const record = buildRecord({ article, content });
     const blocks = buildContentBlocks(record.contentText, record.images);
     const contentHtml = buildContentHtml(blocks, { sourceUrl: record.sourceUrl });
-    const excerpt = buildExcerpt(parsed?.description || record.summary || record.contentText);
+    const excerpt = buildExcerpt(parsed?.description || record.summary);
     const cover = record.cover || record.images[0] || "";
 
     return {
         title: (toText(parsed?.title) || record.title).slice(0, 500),
         date: normalizeDate(record.publishedAt),
+        source_url: record.sourceUrl,
         excerpt,
         tags: DEFAULT_ARTICLE_TAGS,
         content: contentHtml,
@@ -250,16 +250,15 @@ const buildEventPayload = ({
     const record = buildRecord({ article, content });
     const blocks = buildContentBlocks(record.contentText, record.images);
     const contentHtml = buildContentHtml(blocks, { sourceUrl: record.sourceUrl });
-    const excerpt = buildExcerpt(
-        parsed?.description || record.summary || record.contentText || stripHtml(contentHtml),
-        220
-    );
+    const parsedDescription = toText(parsed?.description);
+    const excerpt = parsedDescription ? parsedDescription : buildExcerpt(record.summary, 220);
     const parsedTags = normalizeTagValues(parsed?.tags);
+    const date = normalizeEventDateTime(parsed?.date, parsed?.time, 0);
 
     return {
         title: (toText(parsed?.title) || record.title).slice(0, 500),
-        date: toText(parsed?.date),
-        end_date: parsed?.end_date || null,
+        date,
+        end_date: normalizeEventDateTime(parsed?.end_date, parsed?.time, 1) || date || null,
         location: toText(parsed?.location),
         tags: uniqueTexts([DEFAULT_EVENT_TAGS, ...parsedTags]).join(","),
         image: toText(parsed?.coverImage) || record.cover || record.images[0] || "",
@@ -271,7 +270,7 @@ const buildEventPayload = ({
         target_audience: toText(parsed?.target_audience),
         organizer: toText(parsed?.organizer) || record.account,
         volunteer_time: toText(parsed?.volunteer_time),
-        category: toText(parsed?.category) || DEFAULT_EVENT_CATEGORY,
+        category: normalizeEventCategory(parsed?.category) || DEFAULT_EVENT_CATEGORY,
         is_college_notice: [1, "1", true, "true"].includes(parsed?.is_college_notice) ? 1 : 0,
         notice_type: toText(parsed?.notice_type) || null,
         source_college: toText(parsed?.source_college) || null,

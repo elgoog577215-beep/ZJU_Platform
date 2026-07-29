@@ -89,6 +89,7 @@ async function ensureCoreSchema(db) {
       tags TEXT,
       content TEXT,
       content_blocks TEXT,
+      source_url TEXT,
       cover TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,

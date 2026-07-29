@@ -68,7 +68,6 @@ const runCrawler = async (url, source) => {
     const parsedData = await parseWithLLM(scrapedData);
     if (!parsedData.content) parsedData.content = scrapedData.content;
     parsedData.title = parsedData.title || scrapedData.title || "Untitled";
-    parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || "";
     parsedData.link = cleanedUrl;
 
     if (scrapedData.coverImage) {

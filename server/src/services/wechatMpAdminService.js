@@ -5,6 +5,7 @@ const os = require("os");
 const path = require("path");
 const { chromium } = require("playwright");
 const { downloadWeChatImage } = require("../utils/wechatImageDownloader");
+const { cleanWeChatUrl } = require("../utils/wechatUrl");
 
 const WECHAT_MP_BASE_URL = "https://mp.weixin.qq.com";
 const WECHAT_MP_LOGIN_URL = `${WECHAT_MP_BASE_URL}/?lang=zh_CN`;
@@ -1040,10 +1041,12 @@ const formatTimestamp = (value) => {
 };
 
 const normalizeMpArticle = (article, { accountName, fakeid, keyword }) => {
-    const rawLink = normalizeHttpsUrl(
-        String(article.link || article.content_url || "")
-            .replace(/&amp;/g, "&")
-            .trim()
+    const rawLink = cleanWeChatUrl(
+        normalizeHttpsUrl(
+            String(article.link || article.content_url || "")
+                .replace(/&amp;/g, "&")
+                .trim()
+        )
     );
     const link = trustedMpUrl(rawLink) ? rawLink : "";
     const rawCover = normalizeHttpsUrl(article.cover || article.cover_url || "");
@@ -1359,7 +1362,7 @@ const fetchArticleContent = async ({ url, article = {}, cover = "" }) => {
         maxBodyLength: MAX_ARTICLE_RESPONSE_BYTES,
         beforeRedirect: assertTrustedMpRedirect,
     });
-    const resolvedUrl = response.request?.res?.responseUrl || articleUrl;
+    const resolvedUrl = cleanWeChatUrl(response.request?.res?.responseUrl || articleUrl);
     if (!trustedMpUrl(resolvedUrl)) {
         const error = new Error("微信文章最终地址不受信任");
         error.code = "WECHAT_MP_UNTRUSTED_REDIRECT";

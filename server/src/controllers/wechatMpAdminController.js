@@ -31,11 +31,13 @@ const toHttpStatus = (error) => {
 
 const sendError = (res, error, fallback = "微信 MP 操作失败") => {
     const status = toHttpStatus(error);
-    return res.status(status).json({
+    const payload = {
         error: error?.code || "WECHAT_MP_ADMIN_ERROR",
         message: error?.message || fallback,
         runtime: error?.runtime || undefined,
-    });
+    };
+    if (error?.analysis) payload.analysis = error.analysis;
+    return res.status(status).json(payload);
 };
 
 const buildWechatParseInput = (contentPayload = {}, article = {}) => {
@@ -51,6 +53,9 @@ const buildWechatParseInput = (contentPayload = {}, article = {}) => {
         author: String(
             contentPayload.author || article.account || article.author || "Unknown"
         ).slice(0, 300),
+        summary: String(contentPayload.summary || article.summary || "")
+            .trim()
+            .slice(0, 1000),
         content: String(contentPayload.contentText || contentPayload.content_text || "").trim(),
         coverImage: safeCoverImage,
     };
@@ -90,7 +95,12 @@ const analyzeWechatImportContent = async ({
 
         if (!parsed.content) parsed.content = scrapedData.content;
         parsed.title = parsed.title || scrapedData.title || "Untitled";
-        parsed.description = parsed.description || scrapedData.content.slice(0, 200);
+        if (!String(parsed.description || "").trim()) {
+            const error = new Error("AI 未返回文章摘要，未创建不完整的导入内容");
+            error.code = "WECHAT_AI_SUMMARY_MISSING";
+            error.status = 422;
+            throw error;
+        }
         if (scrapedData.coverImage) parsed.coverImage = scrapedData.coverImage;
 
         await recordWechatParseRun(
@@ -272,6 +282,13 @@ const buildWechatMpImportPayload = async (req, res) => {
             article: req.body?.article || {},
             userId: req.user?.id,
         });
+        if (analysis.analysis.status !== "completed" || !analysis.parsed) {
+            const error = new Error("AI 解析未完成，未创建不完整的导入内容，请重试");
+            error.code = "WECHAT_MP_ANALYSIS_REQUIRED";
+            error.status = 422;
+            error.analysis = analysis.analysis;
+            throw error;
+        }
         const importDecision = resolveWechatImportDecision({
             resourceType: req.body?.resource_type || req.body?.resourceType || "event",
             analysisStatus: analysis.analysis.status,
@@ -349,7 +366,12 @@ const parseWechatMpArticle = async (req, res) => {
 
         if (!parsedData.content) parsedData.content = scrapedData.content;
         parsedData.title = parsedData.title || scrapedData.title || "Untitled";
-        parsedData.description = parsedData.description || scrapedData.content.slice(0, 200);
+        if (!String(parsedData.description || "").trim()) {
+            const error = new Error("AI 未返回文章摘要，未生成不完整的导入内容");
+            error.code = "WECHAT_AI_SUMMARY_MISSING";
+            error.status = 422;
+            throw error;
+        }
         if (isLocalUploadUrl(scrapedData.coverImage)) {
             parsedData.coverImage = scrapedData.coverImage;
         } else if (scrapedData.coverImage) {

@@ -4,6 +4,8 @@ const wechatMpAdminService = require("./wechatMpAdminService");
 const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
+const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { normalizeEventCategory, normalizeEventDateTime } = require("./eventIntelligenceService");
 
 const DEFAULT_SETTINGS = Object.freeze({
     enabled: false,
@@ -704,7 +706,7 @@ const listIngestArticles = async (db, { limit = 50 } = {}) => {
 };
 
 const upsertArticle = async (db, { account, article, content }) => {
-    const link = String(article.link || "").trim();
+    const link = cleanWeChatUrl(article.link || "");
     if (!link) return { inserted: false, skipped: true };
     const existing = await db.get("SELECT * FROM wechat_mp_ingest_articles WHERE link = ?", [link]);
     const contentStatus = content?.content_status || article.content_status || "not_fetched";
@@ -804,25 +806,27 @@ const activityEventPayload = (article, parsed) => {
               .join(",")
         : String(parsed.tags || "").trim();
     const contentText = String(article.content_text || "").trim();
+    const date =
+        normalizeEventDateTime(parsed.date, parsed.time, 0) ||
+        normalizeEventDateTime(article.time_text) ||
+        "";
     return {
         title: String(parsed.title || article.title || "未命名活动").trim(),
-        date: String(parsed.date || article.create_time || "").trim(),
-        end_date: parsed.end_date || null,
+        date,
+        end_date: normalizeEventDateTime(parsed.end_date, parsed.time, 1) || date || null,
         location: String(parsed.location || "").trim(),
         tags,
         status: "pending",
         image: String(article.cover || "").trim(),
-        description: String(
-            parsed.description || article.summary || contentText.slice(0, 1000)
-        ).trim(),
+        description: String(parsed.description || article.summary || "").trim(),
         content: String(parsed.content || article.content_html || contentText).trim(),
-        link: String(article.link || "").trim(),
+        link: cleanWeChatUrl(article.link || ""),
         featured: 0,
         score: parsed.score || null,
         target_audience: parsed.target_audience || null,
         organizer: parsed.organizer || article.author || article.account_name || null,
         volunteer_time: parsed.volunteer_time || null,
-        category: parsed.category || "other",
+        category: normalizeEventCategory(parsed.category) || "other",
         is_college_notice: [1, "1", true, "true"].includes(parsed.is_college_notice) ? 1 : 0,
         notice_type: parsed.notice_type || null,
         source_college: parsed.source_college || null,

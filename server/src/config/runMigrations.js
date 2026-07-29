@@ -71,6 +71,11 @@ async function runMigrations(db) {
             await db.exec(`ALTER TABLE articles ADD COLUMN content_blocks TEXT`);
             console.log("✅ Added content_blocks to articles table");
         }
+        if (articlesColumns.length > 0 && !articlesColumns.includes("source_url")) {
+            await db.exec(`ALTER TABLE articles ADD COLUMN source_url TEXT`);
+            console.log("✅ Added source_url to articles table");
+        }
+        await db.exec(`CREATE INDEX IF NOT EXISTS idx_articles_source_url ON articles(source_url)`);
     } catch (err) {
         if (!err.message.includes("duplicate column")) {
             console.warn("Migration warning (articles):", err.message);

@@ -38,6 +38,45 @@ const normalizeText = (value = "") =>
         .replace(/\s+/g, " ")
         .trim();
 
+const normalizeEventDateTime = (value, fallbackTime = "", timePosition = 0) => {
+    const text = normalizeText(value);
+    if (!text) return "";
+
+    const match = text.match(
+        /^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})(?:日|号)?(?:[T\s]+(\d{1,2})(?:[:：](\d{2}))?)?/
+    );
+    if (!match) return "";
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const fallbackTimes = String(fallbackTime || "").match(/\d{1,2}[:：]\d{2}/g) || [];
+    const fallbackMatch = fallbackTimes[timePosition] || fallbackTimes[0] || "";
+    const fallbackParts = fallbackMatch.match(/(\d{1,2})[:：](\d{2})/);
+    const hour =
+        match[4] === undefined ? (fallbackParts ? Number(fallbackParts[1]) : 0) : Number(match[4]);
+    const minute =
+        match[5] === undefined ? (fallbackParts ? Number(fallbackParts[2]) : 0) : Number(match[5]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59
+    ) {
+        return "";
+    }
+
+    return `${year.toString().padStart(4, "0")}-${month
+        .toString()
+        .padStart(2, "0")}-${day.toString().padStart(2, "0")}T${hour
+        .toString()
+        .padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+};
+
 const normalizeLookupText = (value = "") => normalizeText(value).toLowerCase();
 
 const unique = (items) => [...new Set(items.filter(Boolean))];
@@ -512,6 +551,7 @@ module.exports = {
     detectCampusTerms,
     getEventCategoryFilterTerms,
     getCategoryLabel,
+    normalizeEventDateTime,
     inferCollegeNoticeSignal,
     inferEventSourceCollege,
     normalizeCollegeNoticeFields,

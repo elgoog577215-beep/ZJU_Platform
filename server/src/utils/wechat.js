@@ -7,35 +7,12 @@ const {
     validateParsedEventPayload,
 } = require("../services/eventIntelligenceService");
 const { downloadWeChatImage } = require("./wechatImageDownloader");
+const { cleanWeChatUrl } = require("./wechatUrl");
+const { compactWechatArticleContent } = require("./wechatArticleContext");
 
 // Simple In-Memory Cache
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 const wechatCache = new Map();
-
-function cleanWeChatUrl(url) {
-    try {
-        const u = new URL(url);
-        // Remove tracking params that don't affect content
-        const paramsToRemove = [
-            "chksm",
-            "scene",
-            "subscene",
-            "ascene",
-            "fasttmpl_type",
-            "fasttmpl_fullversion",
-            "clicktime",
-            "enterid",
-            "utm_source",
-            "utm_medium",
-            "utm_campaign",
-        ];
-        paramsToRemove.forEach((p) => u.searchParams.delete(p));
-        u.hash = ""; // Remove anchor
-        return u.toString();
-    } catch (e) {
-        return url;
-    }
-}
 
 async function scrapeWeChat(url) {
     console.log(`\n🔍 Fetching URL: ${url}...`);
@@ -254,12 +231,15 @@ async function parseWithLLM(data, options = {}) {
                         article: {
                             title: data.title,
                             author: data.author,
-                            content: String(data.content || "").slice(0, 15000),
+                            content: compactWechatArticleContent(data.content),
+                            sourceSummary: String(data.summary || "").trim(),
                         },
                         outputContract: {
                             title: "活动名称；无具体活动名时用文章标题",
-                            description: "0-80 字活动摘要，包含核心内容和参与收益",
-                            content: "活动详情 HTML 片段，只用 h3/p/ul/li 等正文标签",
+                            description:
+                                "80-160 字活动摘要；必须用自己的话概括核心内容、参与对象和参与动作，不要复制原文，不要用省略号截断",
+                            content:
+                                "整理后的活动详情 HTML 片段，最多 1200 字，只用 h3/p/ul/li 等正文标签；不要复制整篇原文，不要用省略号截断",
                             date_reasoning: "说明如何从文章和当前日期推断活动日期",
                             date: "YYYY-MM-DDTHH:MM；无具体时间用 T00:00",
                             end_date: "YYYY-MM-DDTHH:MM；单日活动需与 date 同日",
@@ -299,6 +279,12 @@ async function parseWithLLM(data, options = {}) {
     };
 
     let parsed = result.parsed;
+    if (!parsed || typeof parsed !== "object") {
+        const error = new Error("AI 未返回有效的公众号文章解析结果");
+        error.code = "WECHAT_AI_PARSE_RESULT_INVALID";
+        error.status = 422;
+        throw error;
+    }
     if (parsed.description)
         parsed.description = cleanField(parsed.description, /^活动详情摘要[：:]\s*/);
     if (parsed.content) parsed.content = cleanField(parsed.content, /^活动详细内容[：:]\s*/);
@@ -311,6 +297,13 @@ async function parseWithLLM(data, options = {}) {
     if (parsed.score) parsed.score = cleanField(parsed.score, /^综测\/素质分[：:]\s*/);
 
     parsed = validateParsedEventPayload(parsed, data);
+    parsed.description = String(parsed.description || "").trim();
+    if (!parsed.description) {
+        const error = new Error("AI 未返回文章摘要，未生成不完整的导入内容");
+        error.code = "WECHAT_AI_SUMMARY_MISSING";
+        error.status = 422;
+        throw error;
+    }
     const activityConfidence = Number(parsed.activity_confidence);
     parsed.is_activity_candidate =
         parsed.is_activity_candidate === true ||
@@ -345,6 +338,7 @@ module.exports = {
     scrapeWeChat,
     parseWithLLM,
     cleanWeChatUrl,
+    compactWechatArticleContent,
     wechatCache,
     CACHE_TTL,
     downloadWeChatImage,

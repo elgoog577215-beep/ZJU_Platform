@@ -506,8 +506,8 @@ const WeChatMpImportManager = () => {
             const successFallback =
                 resourceType === "event"
                     ? fallbackText(
-                          "活动已导入，可在活动管理中继续补充时间地点",
-                          "Event imported. You can add time and location in event management."
+                          "活动已导入，AI 解析出的时间、地点和活动属性已写入",
+                          "Event imported with AI-analyzed time, location, and category."
                       )
                     : fallbackText(
                           "文章已导入，可在文章管理中继续编辑",
