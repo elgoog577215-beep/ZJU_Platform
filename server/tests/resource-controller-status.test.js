@@ -3,6 +3,11 @@ const assert = require("node:assert/strict");
 
 const { normalizeEventWorkflowStatus } = require("../src/utils/resourceWorkflowStatus");
 const { _test: resourceControllerTest } = require("../src/controllers/resourceController");
+const { pool } = require("../src/config/db");
+
+test.after(async () => {
+    await pool.close();
+});
 
 test("explicit pending event imports stay in manual review for administrators", () => {
     assert.equal(normalizeEventWorkflowStatus("pending", { role: "admin" }), "pending");
