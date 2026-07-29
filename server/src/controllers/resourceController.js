@@ -16,8 +16,16 @@ const { normalizeEventWorkflowStatus } = require("../utils/resourceWorkflowStatu
 const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
 
+const qualifyColumn = (field) =>
+    String(field || "")
+        .split(".")
+        .map((part) => `"${part}"`)
+        .join(".");
+
+const eventColumn = (field) => `events.${field}`;
+
 const buildCommaSeparatedMatch = (field, value) => ({
-    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
+    clause: `(${qualifyColumn(field)} = ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ?)`,
     params: [value, `${value},%`, `%,${value}`, `%,${value},%`],
 });
 
@@ -41,18 +49,18 @@ const buildOrganizerAnyFilter = (value) => {
     const terms = normalizeOrganizerAny(value);
     if (terms.length === 0) return null;
     return {
-        clause: `(${terms.map(() => '"organizer" = ?').join(" OR ")})`,
+        clause: `(${terms.map(() => `${qualifyColumn(eventColumn("organizer"))} = ?`).join(" OR ")})`,
         params: terms,
     };
 };
 
 const buildAllSchoolAudienceMatch = (field) => ({
-    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
+    clause: `(${qualifyColumn(field)} = ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ? OR ${qualifyColumn(field)} LIKE ?)`,
     params: ["全校", "全校,%", "%,全校", "%,全校,%", "%全校%", "%全校师生%", "%全体师生%"],
 });
 
 const buildTextContainsMatch = (field, value) => ({
-    clause: `("${field}" = ? OR "${field}" LIKE ?)`,
+    clause: `(${qualifyColumn(field)} = ? OR ${qualifyColumn(field)} LIKE ?)`,
     params: [value, `%${value}%`],
 });
 
@@ -69,19 +77,19 @@ const buildEventCollegeScopeFilter = (audience) => {
     if (!normalized) return null;
 
     if (normalized === "全校") {
-        return buildAllSchoolAudienceMatch("target_audience");
+        return buildAllSchoolAudienceMatch(eventColumn("target_audience"));
     }
 
     const filters = [
-        buildCommaSeparatedMatch("target_audience", normalized),
-        buildTextContainsMatch("target_audience", normalized),
-        buildAllSchoolAudienceMatch("target_audience"),
+        buildCommaSeparatedMatch(eventColumn("target_audience"), normalized),
+        buildTextContainsMatch(eventColumn("target_audience"), normalized),
+        buildAllSchoolAudienceMatch(eventColumn("target_audience")),
     ];
 
     if (isCollegeScopeValue(normalized)) {
         filters.push(
-            buildTextContainsMatch("source_college", normalized),
-            buildTextContainsMatch("organizer", normalized)
+            buildTextContainsMatch(eventColumn("source_college"), normalized),
+            buildTextContainsMatch(eventColumn("organizer"), normalized)
         );
     }
 
@@ -92,7 +100,7 @@ const buildEventCategoryFilter = (category) => {
     const normalized = String(category || "").trim();
     if (normalized === "college_notice" || normalized === "学院通知") {
         return {
-            clause: "(is_college_notice = 1 OR tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)",
+            clause: `(${qualifyColumn(eventColumn("is_college_notice"))} = 1 OR ${qualifyColumn(eventColumn("tags"))} = ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ?)`,
             params: ["学院通知", "学院通知,%", "%,学院通知", "%,学院通知,%"],
         };
     }
@@ -100,8 +108,11 @@ const buildEventCategoryFilter = (category) => {
     const terms = getEventCategoryFilterTerms(normalized);
     if (terms.length === 0) return null;
 
-    const categoryClauses = terms.map(() => "category = ?");
-    const tagClauses = terms.map(() => "(tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)");
+    const categoryClauses = terms.map(() => `${qualifyColumn(eventColumn("category"))} = ?`);
+    const tagClauses = terms.map(
+        () =>
+            `(${qualifyColumn(eventColumn("tags"))} = ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ? OR ${qualifyColumn(eventColumn("tags"))} LIKE ?)`
+    );
     const params = [
         ...terms,
         ...terms.flatMap((term) => [term, `${term},%`, `%,${term}`, `%,${term},%`]),
@@ -117,13 +128,13 @@ const buildEventSearchFilter = (searchTerm, rawSearch) => {
     const category = normalizeEventCategory(rawSearch);
     if (!category) {
         return {
-            clause: "(title LIKE ? OR category LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ? OR source_college LIKE ?)",
+            clause: `(${qualifyColumn(eventColumn("title"))} LIKE ? OR ${qualifyColumn(eventColumn("category"))} LIKE ? OR ${qualifyColumn(eventColumn("description"))} LIKE ? OR ${qualifyColumn(eventColumn("organizer"))} LIKE ? OR ${qualifyColumn(eventColumn("target_audience"))} LIKE ? OR ${qualifyColumn(eventColumn("source_college"))} LIKE ?)`,
             params: [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
         };
     }
 
     return {
-        clause: "(title LIKE ? OR category LIKE ? OR category = ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ? OR source_college LIKE ?)",
+        clause: `(${qualifyColumn(eventColumn("title"))} LIKE ? OR ${qualifyColumn(eventColumn("category"))} LIKE ? OR ${qualifyColumn(eventColumn("category"))} = ? OR ${qualifyColumn(eventColumn("description"))} LIKE ? OR ${qualifyColumn(eventColumn("organizer"))} LIKE ? OR ${qualifyColumn(eventColumn("target_audience"))} LIKE ? OR ${qualifyColumn(eventColumn("source_college"))} LIKE ?)`,
         params: [searchTerm, searchTerm, category, searchTerm, searchTerm, searchTerm, searchTerm],
     };
 };
@@ -746,7 +757,7 @@ const getAllHandler =
                 ? Number.parseInt(req.query.uploader_id, 10)
                 : null;
             const sort = req.query.sort || "newest"; // Default to newest
-            const search = req.query.search; // Generic search
+            const search = String(req.query.search || "").trim(); // Generic search
             const trashed = req.query.trashed === "true"; // Check if requesting trash
             const offset = (page - 1) * limit;
 
@@ -844,18 +855,18 @@ const getAllHandler =
                     countParams.push(...eventSearch.params);
                 } else if (table === "articles") {
                     whereClauses.push(
-                        "(title LIKE ? OR tags LIKE ? OR excerpt LIKE ? OR content LIKE ?)"
+                        `(${table}.title LIKE ? OR ${table}.tags LIKE ? OR ${table}.excerpt LIKE ? OR ${table}.content LIKE ?)`
                     );
                     params.push(searchTerm, searchTerm, searchTerm, searchTerm);
                     countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
                 } else if (supportsMediaCategory(table)) {
                     whereClauses.push(
-                        `(title LIKE ? OR tags LIKE ? OR EXISTS (SELECT 1 FROM media_categories mc WHERE mc.id = ${table}.category_id AND mc.name LIKE ?))`
+                        `(${table}.title LIKE ? OR ${table}.tags LIKE ? OR EXISTS (SELECT 1 FROM media_categories mc WHERE mc.id = ${table}.category_id AND mc.name LIKE ?))`
                     );
                     params.push(searchTerm, searchTerm, searchTerm);
                     countParams.push(searchTerm, searchTerm, searchTerm);
                 } else {
-                    whereClauses.push("(title LIKE ? OR tags LIKE ?)");
+                    whereClauses.push(`(${table}.title LIKE ? OR ${table}.tags LIKE ?)`);
                     params.push(searchTerm, searchTerm);
                     countParams.push(searchTerm, searchTerm);
                 }
@@ -895,7 +906,7 @@ const getAllHandler =
                         countParams.push(...categoryFilter.params);
                     }
                 } else {
-                    whereClauses.push("category = ?");
+                    whereClauses.push(`${table}.category = ?`);
                     params.push(category);
                     countParams.push(category);
                 }
@@ -904,7 +915,9 @@ const getAllHandler =
             if (tag && tag !== "All") {
                 const normalizedTag = String(tag).trim();
                 if (normalizedTag) {
-                    whereClauses.push("(tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)");
+                    whereClauses.push(
+                        `(${table}.tags = ? OR ${table}.tags LIKE ? OR ${table}.tags LIKE ? OR ${table}.tags LIKE ?)`
+                    );
                     const tagParams = [
                         normalizedTag,
                         `${normalizedTag},%`,
@@ -937,7 +950,7 @@ const getAllHandler =
                                 countParams.push(...collegeScopeFilter.params);
                             }
                         } else {
-                            whereClauses.push(`"${field}" = ?`);
+                            whereClauses.push(`${table}."${field}" = ?`);
                             params.push(req.query[field]);
                             countParams.push(req.query[field]);
                         }
@@ -1411,6 +1424,7 @@ module.exports = {
     updateStatus,
     fields,
     _test: {
+        buildEventSearchFilter,
         buildEventCollegeScopeFilter,
         findDuplicateResourceSource,
         normalizeResourceSource,
