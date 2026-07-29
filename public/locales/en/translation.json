@@ -2883,6 +2883,22 @@
                     "latest_run": "Latest Job",
                     "new_articles": "New Articles"
                 },
+                "progress": {
+                    "title": "Ingest progress",
+                    "failed_title": "Ingest did not finish",
+                    "accounts": "Accounts: {{processed}} / {{total}}",
+                    "articles": "Articles: {{processed}} / {{total}}",
+                    "stage": {
+                        "starting": "Preparing the job",
+                        "fetching_accounts": "Fetching official account lists",
+                        "fetching_content": "Fetching article body",
+                        "processing_articles": "Processing articles",
+                        "analyzing": "Running AI analysis",
+                        "finalizing": "Saving ingest results",
+                        "completed": "Ingest completed",
+                        "failed": "Ingest failed"
+                    }
+                },
                 "fields": {
                     "enabled": "Scheduled Job",
                     "daily_run_time": "Daily Start",

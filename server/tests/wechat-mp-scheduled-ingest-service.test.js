@@ -270,6 +270,10 @@ test("WeChat MP incremental run saves new articles, bodies, and avoids duplicate
         assert.equal(firstRun.fetched_contents, 4);
         assert.equal(firstRun.extracted_articles, 4);
         assert.equal(firstRun.extraction_failed_count, 0);
+        assert.equal(firstRun.progress_stage, "completed");
+        assert.equal(firstRun.progress_percent, 100);
+        assert.equal(firstRun.processed_accounts, 2);
+        assert.equal(firstRun.processed_articles, 4);
         assert.deepEqual(sleeps, [250, 1000, 250]);
         assert.equal(contentCalls.length, 4);
 
@@ -656,4 +660,37 @@ test("WeChat MP scheduler key respects configured timezone", () => {
     const key = service.getZonedDateTimeKey(new Date("2026-07-10T19:30:00.000Z"), "Asia/Shanghai");
     assert.equal(key.dateKey, "2026-07-11");
     assert.equal(key.timeKey, "03:30");
+});
+
+test("WeChat MP ingest recovers stale running jobs without touching active jobs", async () => {
+    const db = await createDb();
+    try {
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        await db.run(
+            `
+      INSERT INTO wechat_mp_ingest_runs (
+        trigger_type, status, progress_stage, progress_percent, last_heartbeat_at, started_at
+      ) VALUES ('scheduled', 'running', 'fetching_content', 42,
+        datetime('now', '-45 minutes'), datetime('now', '-45 minutes'))
+    `
+        );
+        await db.run(
+            `
+      INSERT INTO wechat_mp_ingest_runs (
+        trigger_type, status, progress_stage, progress_percent, last_heartbeat_at
+      ) VALUES ('manual', 'running', 'fetching_accounts', 5, datetime('now'))
+    `
+        );
+
+        const runs = await service.listIngestRuns(db, { limit: 10 });
+        const staleRun = runs.find((run) => run.trigger_type === "scheduled");
+        const activeRun = runs.find((run) => run.trigger_type === "manual");
+        assert.equal(staleRun.status, "failed");
+        assert.equal(staleRun.progress_stage, "failed");
+        assert.equal(staleRun.progress_percent, 42);
+        assert.equal(staleRun.error, "采集任务因服务重启或长时间无响应而中止");
+        assert.equal(activeRun.status, "running");
+    } finally {
+        await db.close();
+    }
 });

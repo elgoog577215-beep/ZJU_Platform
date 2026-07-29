@@ -2940,6 +2940,22 @@
                     "latest_run": "最近任务",
                     "new_articles": "新增文章"
                 },
+                "progress": {
+                    "title": "采集进度",
+                    "failed_title": "采集任务未完成",
+                    "accounts": "公众号：{{processed}} / {{total}}",
+                    "articles": "文章：{{processed}} / {{total}}",
+                    "stage": {
+                        "starting": "正在准备任务",
+                        "fetching_accounts": "正在获取公众号文章列表",
+                        "fetching_content": "正在抓取文章正文",
+                        "processing_articles": "正在整理文章",
+                        "analyzing": "正在进行 AI 分析",
+                        "finalizing": "正在保存采集结果",
+                        "completed": "采集已完成",
+                        "failed": "采集任务失败"
+                    }
+                },
                 "fields": {
                     "enabled": "定时任务",
                     "daily_run_time": "每日开始时间",

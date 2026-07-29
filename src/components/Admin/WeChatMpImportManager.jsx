@@ -215,14 +215,16 @@ const WeChatMpImportManager = () => {
     const ingestRuns = ingestOverview.runs || [];
     const ingestArticles = ingestOverview.articles || [];
     const latestRun = ingestRuns[0] || null;
+    const latestRunProgress = Math.min(100, Math.max(0, Number(latestRun?.progress_percent) || 0));
+    const contentHtml = content?.contentHtml || "";
 
     const sanitizedContentHtml = useMemo(() => {
-        if (!content?.contentHtml) return "";
-        return DOMPurify.sanitize(content.contentHtml, {
+        if (!contentHtml) return "";
+        return DOMPurify.sanitize(contentHtml, {
             USE_PROFILES: { html: true },
             FORBID_TAGS: ["script", "style", "iframe"],
         });
-    }, [content?.contentHtml]);
+    }, [contentHtml]);
 
     const loadStatus = useCallback(
         async ({ silent = false } = {}) => {
@@ -294,6 +296,16 @@ const WeChatMpImportManager = () => {
         }, 60 * 1000);
         return () => window.clearInterval(timer);
     }, [loadStatus]);
+
+    useEffect(() => {
+        const timer = window.setInterval(
+            () => {
+                loadIngestOverview({ silent: true });
+            },
+            latestRun?.status === "running" ? 2000 : 60 * 1000
+        );
+        return () => window.clearInterval(timer);
+    }, [latestRun?.status, loadIngestOverview]);
 
     const updateForm = (key, value) => {
         setForm((previous) => ({ ...previous, [key]: value }));
@@ -1291,6 +1303,120 @@ const WeChatMpImportManager = () => {
                             tone="violet"
                         />
                     </div>
+
+                    {latestRun?.status === "running" || latestRun?.status === "failed" ? (
+                        <div
+                            className={clsx(
+                                "mt-3 rounded-[8px] border p-4",
+                                latestRun.status === "failed"
+                                    ? isDayMode
+                                        ? "border-rose-200 bg-rose-50/70"
+                                        : "border-rose-500/20 bg-rose-500/10"
+                                    : isDayMode
+                                      ? "border-indigo-200 bg-indigo-50/70"
+                                      : "border-indigo-500/20 bg-indigo-500/10"
+                            )}
+                            aria-live="polite"
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div
+                                        className={clsx(
+                                            "text-sm font-bold",
+                                            latestRun.status === "failed"
+                                                ? isDayMode
+                                                    ? "text-rose-800"
+                                                    : "text-rose-200"
+                                                : headingTextClass
+                                        )}
+                                    >
+                                        {latestRun.status === "failed"
+                                            ? t("admin.wechat_mp.ingest.progress.failed_title")
+                                            : t("admin.wechat_mp.ingest.progress.title")}
+                                    </div>
+                                    <div className={clsx("mt-1 text-xs", mutedTextClass)}>
+                                        {t(
+                                            `admin.wechat_mp.ingest.progress.stage.${latestRun.progress_stage || "starting"}`,
+                                            latestRun.progress_stage || "starting"
+                                        )}
+                                    </div>
+                                </div>
+                                <span
+                                    className={clsx(
+                                        "shrink-0 text-sm font-bold tabular-nums",
+                                        latestRun.status === "failed"
+                                            ? isDayMode
+                                                ? "text-rose-700"
+                                                : "text-rose-200"
+                                            : isDayMode
+                                              ? "text-indigo-700"
+                                              : "text-indigo-200"
+                                    )}
+                                >
+                                    {latestRun.status === "failed"
+                                        ? t("admin.wechat_mp.ingest.run_status.failed")
+                                        : `${latestRunProgress}%`}
+                                </span>
+                            </div>
+                            {latestRun.status === "running" ? (
+                                <div
+                                    className={clsx(
+                                        "mt-3 h-2 overflow-hidden rounded-full",
+                                        isDayMode ? "bg-indigo-100" : "bg-white/10"
+                                    )}
+                                    role="progressbar"
+                                    aria-label={t("admin.wechat_mp.ingest.progress.title")}
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    aria-valuenow={latestRunProgress}
+                                >
+                                    <div
+                                        className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+                                        style={{ width: `${latestRunProgress}%` }}
+                                    />
+                                </div>
+                            ) : null}
+                            <div
+                                className={clsx(
+                                    "mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs",
+                                    mutedTextClass
+                                )}
+                            >
+                                <span>
+                                    {t("admin.wechat_mp.ingest.progress.accounts", {
+                                        processed: latestRun.processed_accounts || 0,
+                                        total: latestRun.total_accounts || 0,
+                                    })}
+                                </span>
+                                <span>
+                                    {t("admin.wechat_mp.ingest.progress.articles", {
+                                        processed: latestRun.processed_articles || 0,
+                                        total: latestRun.total_articles || 0,
+                                    })}
+                                </span>
+                            </div>
+                            {latestRun.status === "running" &&
+                            (latestRun.current_account || latestRun.current_article) ? (
+                                <div className={clsx("mt-2 truncate text-xs", mutedTextClass)}>
+                                    {latestRun.current_account || ""}
+                                    {latestRun.current_account && latestRun.current_article
+                                        ? " · "
+                                        : ""}
+                                    {latestRun.current_article || ""}
+                                </div>
+                            ) : null}
+                            {latestRun.status === "failed" && latestRun.error ? (
+                                <div
+                                    className={clsx(
+                                        "mt-2 line-clamp-2 text-xs",
+                                        isDayMode ? "text-rose-700" : "text-rose-200"
+                                    )}
+                                >
+                                    {latestRun.error}
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
 
                     <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
                         <div className="space-y-3">

@@ -22,7 +22,10 @@ const DEFAULT_SETTINGS = Object.freeze({
     fetch_content: true,
     auto_parse: true,
 });
+const INGEST_STALE_AFTER_MINUTES = 30;
+const STALE_RUN_ERROR = "采集任务因服务重启或长时间无响应而中止";
 let activeRun = null;
+let activeRunId = null;
 let schedulerTimer = null;
 let schedulerLastKey = "";
 let tokenHealthSchedulerTimer = null;
@@ -162,6 +165,102 @@ const syncEventCover = async (db, eventId, cover) => {
     );
 };
 
+const calculateIngestProgressPercent = ({
+    stage = "starting",
+    totalAccounts = 0,
+    processedAccounts = 0,
+    totalArticles = 0,
+    processedArticles = 0,
+} = {}) => {
+    if (stage === "completed") return 100;
+    if (stage === "finalizing") return 98;
+    if (stage === "starting") return 1;
+
+    const accountsTotal = Math.max(Number(totalAccounts) || 0, 0);
+    const accountsDone = Math.min(Math.max(Number(processedAccounts) || 0, 0), accountsTotal);
+    if (stage === "fetching_accounts") {
+        return accountsTotal
+            ? Math.min(20, 5 + Math.round((accountsDone / accountsTotal) * 15))
+            : 5;
+    }
+
+    const articlesTotal = Math.max(Number(totalArticles) || 0, 0);
+    const articlesDone = Math.min(Math.max(Number(processedArticles) || 0, 0), articlesTotal);
+    const articleProgress = articlesTotal ? articlesDone / articlesTotal : 0;
+    return Math.min(95, 20 + Math.round(articleProgress * 75));
+};
+
+const updateRunProgress = async (
+    db,
+    runId,
+    {
+        stage = "starting",
+        totalAccounts = 0,
+        processedAccounts = 0,
+        totalArticles = 0,
+        processedArticles = 0,
+        currentAccount = "",
+        currentArticle = "",
+    } = {}
+) => {
+    if (!runId) return;
+    const progressPercent = calculateIngestProgressPercent({
+        stage,
+        totalAccounts,
+        processedAccounts,
+        totalArticles,
+        processedArticles,
+    });
+    await db.run(
+        `
+    UPDATE wechat_mp_ingest_runs
+    SET total_accounts = ?,
+        processed_accounts = ?,
+        total_articles = ?,
+        processed_articles = ?,
+        progress_stage = ?,
+        progress_percent = MAX(COALESCE(progress_percent, 0), ?),
+        current_account = ?,
+        current_article = ?,
+        last_heartbeat_at = datetime('now')
+    WHERE id = ? AND status = 'running'
+  `,
+        [
+            Math.max(Number(totalAccounts) || 0, 0),
+            Math.max(Number(processedAccounts) || 0, 0),
+            Math.max(Number(totalArticles) || 0, 0),
+            Math.max(Number(processedArticles) || 0, 0),
+            String(stage || "starting"),
+            progressPercent,
+            String(currentAccount || "").trim(),
+            String(currentArticle || "").trim(),
+            runId,
+        ]
+    );
+};
+
+const recoverStaleIngestRuns = async (db) => {
+    const activeRunClause = activeRunId ? "AND id != ?" : "";
+    const params = [STALE_RUN_ERROR];
+    if (activeRunId) params.push(activeRunId);
+    await db.run(
+        `
+    UPDATE wechat_mp_ingest_runs
+    SET status = 'failed',
+        finished_at = COALESCE(finished_at, datetime('now')),
+        progress_stage = 'failed',
+        error = CASE WHEN error IS NULL OR error = '' THEN ? ELSE error END
+    WHERE status = 'running'
+      AND (
+        last_heartbeat_at IS NULL
+        OR last_heartbeat_at < datetime('now', '-${INGEST_STALE_AFTER_MINUTES} minutes')
+      )
+      ${activeRunClause}
+  `,
+        params
+    );
+};
+
 const ensureWechatMpScheduledIngestSchema = async (db) => {
     await db.exec(`
     CREATE TABLE IF NOT EXISTS wechat_mp_ingest_settings (
@@ -240,6 +339,13 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       trigger_type TEXT NOT NULL,
       status TEXT NOT NULL,
+      progress_stage TEXT DEFAULT 'starting',
+      progress_percent INTEGER DEFAULT 0,
+      processed_accounts INTEGER DEFAULT 0,
+      processed_articles INTEGER DEFAULT 0,
+      current_account TEXT DEFAULT '',
+      current_article TEXT DEFAULT '',
+      last_heartbeat_at DATETIME,
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       finished_at DATETIME,
       total_accounts INTEGER DEFAULT 0,
@@ -361,6 +467,39 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
             "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN extraction_failed_count INTEGER DEFAULT 0"
         );
     }
+    if (!runColumnNames.has("progress_stage")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN progress_stage TEXT DEFAULT 'starting'"
+        );
+    }
+    if (!runColumnNames.has("progress_percent")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN progress_percent INTEGER DEFAULT 0"
+        );
+    }
+    if (!runColumnNames.has("processed_accounts")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN processed_accounts INTEGER DEFAULT 0"
+        );
+    }
+    if (!runColumnNames.has("processed_articles")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN processed_articles INTEGER DEFAULT 0"
+        );
+    }
+    if (!runColumnNames.has("current_account")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN current_account TEXT DEFAULT ''"
+        );
+    }
+    if (!runColumnNames.has("current_article")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_runs ADD COLUMN current_article TEXT DEFAULT ''"
+        );
+    }
+    if (!runColumnNames.has("last_heartbeat_at")) {
+        await db.exec("ALTER TABLE wechat_mp_ingest_runs ADD COLUMN last_heartbeat_at DATETIME");
+    }
     await db.run(`
     UPDATE wechat_mp_ingest_settings
     SET content_delay_range = '[10,20]'
@@ -374,6 +513,7 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       page_pause_range, page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content, auto_parse
     ) VALUES (1, 0, 1, 12, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1, 1)
   `);
+    await recoverStaleIngestRuns(db);
 };
 
 const getIngestSettings = async (db) => {
@@ -696,8 +836,9 @@ const createRun = async (db, { triggerType, userId, settings }) => {
     const result = await db.run(
         `
     INSERT INTO wechat_mp_ingest_runs (
-      trigger_type, status, started_at, options_json, created_by
-    ) VALUES (?, 'running', datetime('now'), ?, ?)
+      trigger_type, status, progress_stage, progress_percent, last_heartbeat_at,
+      started_at, options_json, created_by
+    ) VALUES (?, 'running', 'starting', 1, datetime('now'), datetime('now'), ?, ?)
   `,
         [triggerType, JSON.stringify(settings), userId || null]
     );
@@ -1131,12 +1272,29 @@ const executeIngestRun = async (
     let extractedArticles = 0;
     let failedCount = 0;
     let extractionFailedCount = 0;
+    let processedAccounts = 0;
+    let processedArticles = 0;
     const createdRunId =
         runId || (await createRun(db, { triggerType, userId, settings: effectiveSettings }));
 
     try {
+        await updateRunProgress(db, createdRunId, {
+            stage: "fetching_accounts",
+            totalAccounts: accounts.length,
+            processedAccounts,
+            totalArticles,
+            processedArticles,
+        });
         for (let index = 0; index < accounts.length; index += 1) {
             const account = accounts[index];
+            await updateRunProgress(db, createdRunId, {
+                stage: "fetching_accounts",
+                totalAccounts: accounts.length,
+                processedAccounts,
+                totalArticles,
+                processedArticles,
+                currentAccount: account.name,
+            });
             if (index > 0) {
                 await wechatMpAdminService.waitDelayRange(
                     effectiveSettings.query_delay_range,
@@ -1160,8 +1318,26 @@ const executeIngestRun = async (
             });
             const articles = listResult.articles || [];
             totalArticles += articles.length;
+            await updateRunProgress(db, createdRunId, {
+                stage: articles.length ? "processing_articles" : "fetching_accounts",
+                totalAccounts: accounts.length,
+                processedAccounts,
+                totalArticles,
+                processedArticles,
+                currentAccount: account.name,
+                currentArticle: articles[0]?.title || "",
+            });
             for (let articleIndex = 0; articleIndex < articles.length; articleIndex += 1) {
                 const article = articles[articleIndex];
+                await updateRunProgress(db, createdRunId, {
+                    stage: "fetching_content",
+                    totalAccounts: accounts.length,
+                    processedAccounts,
+                    totalArticles,
+                    processedArticles,
+                    currentAccount: account.name,
+                    currentArticle: article.title,
+                });
                 const existing = article.link
                     ? await db.get(
                           "SELECT id, content_text, cover FROM wechat_mp_ingest_articles WHERE link = ?",
@@ -1187,6 +1363,15 @@ const executeIngestRun = async (
                         content = { content_status: error.message || "fetch_failed" };
                     }
                 }
+                await updateRunProgress(db, createdRunId, {
+                    stage: effectiveSettings.auto_parse ? "analyzing" : "processing_articles",
+                    totalAccounts: accounts.length,
+                    processedAccounts,
+                    totalArticles,
+                    processedArticles,
+                    currentAccount: account.name,
+                    currentArticle: article.title,
+                });
                 const saved = await upsertArticle(db, { account, article, content });
                 if (saved.inserted) newArticles += 1;
                 if (effectiveSettings.auto_parse && saved.id) {
@@ -1226,7 +1411,27 @@ const executeIngestRun = async (
                         }
                     }
                 }
+                processedArticles += 1;
+                await updateRunProgress(db, createdRunId, {
+                    stage: "processing_articles",
+                    totalAccounts: accounts.length,
+                    processedAccounts,
+                    totalArticles,
+                    processedArticles,
+                    currentAccount: account.name,
+                    currentArticle: "",
+                });
             }
+            processedAccounts = index + 1;
+            await updateRunProgress(db, createdRunId, {
+                stage: processedAccounts < accounts.length ? "fetching_accounts" : "finalizing",
+                totalAccounts: accounts.length,
+                processedAccounts,
+                totalArticles,
+                processedArticles,
+                currentAccount: processedAccounts < accounts.length ? "" : account.name,
+                currentArticle: "",
+            });
             await db.run(
                 "UPDATE wechat_mp_ingest_accounts SET last_checked_at = datetime('now'), updated_at = datetime('now') WHERE id = ?",
                 [account.id]
@@ -1237,6 +1442,13 @@ const executeIngestRun = async (
             `
       UPDATE wechat_mp_ingest_runs
       SET status = 'completed',
+          progress_stage = 'completed',
+          progress_percent = 100,
+          processed_accounts = ?,
+          processed_articles = ?,
+          current_account = '',
+          current_article = '',
+          last_heartbeat_at = datetime('now'),
           finished_at = datetime('now'),
           total_accounts = ?,
           total_articles = ?,
@@ -1248,6 +1460,8 @@ const executeIngestRun = async (
       WHERE id = ?
     `,
             [
+                processedAccounts,
+                processedArticles,
                 accounts.length,
                 totalArticles,
                 newArticles,
@@ -1263,6 +1477,10 @@ const executeIngestRun = async (
             `
       UPDATE wechat_mp_ingest_runs
       SET status = 'failed',
+          progress_stage = 'failed',
+          current_account = '',
+          current_article = '',
+          last_heartbeat_at = datetime('now'),
           finished_at = datetime('now'),
           total_accounts = ?,
           total_articles = ?,
@@ -1316,8 +1534,10 @@ const startWechatMpIngestRun = async (db, options = {}) => {
         userId: options.userId,
         settings,
     });
+    activeRunId = runId;
     activeRun = executeIngestRun(db, { ...options, runId, settings }).finally(() => {
         activeRun = null;
+        activeRunId = null;
     });
     activeRun.catch((error) => {
         console.error("[WeChat MP Ingest] background run failed:", error);
