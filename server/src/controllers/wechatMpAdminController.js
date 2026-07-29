@@ -457,6 +457,20 @@ const upsertWechatMpIngestAccount = async (req, res) => {
     }
 };
 
+const updateWechatMpIngestAccountEnabled = async (req, res) => {
+    try {
+        const db = await getDb();
+        const account = await wechatMpScheduledIngestService.setIngestAccountEnabled(
+            db,
+            req.params.id,
+            req.body?.enabled
+        );
+        return res.json({ account });
+    } catch (error) {
+        return sendError(res, error, "更新微信 MP 公众号启用状态失败");
+    }
+};
+
 const deleteWechatMpIngestAccount = async (req, res) => {
     try {
         const db = await getDb();
@@ -558,6 +572,7 @@ module.exports = {
     searchWechatMpAccounts,
     startWechatMpIngestRun,
     startWechatMpLogin,
+    updateWechatMpIngestAccountEnabled,
     updateWechatMpIngestSettings,
     upsertWechatMpIngestAccount,
 };

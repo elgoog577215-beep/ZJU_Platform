@@ -14,6 +14,8 @@ import {
     LogIn,
     Newspaper,
     Play,
+    Power,
+    PowerOff,
     Plus,
     QrCode,
     RefreshCw,
@@ -205,6 +207,7 @@ const WeChatMpImportManager = () => {
     const [ingestImporting, setIngestImporting] = useState(false);
     const [ingestFile, setIngestFile] = useState(null);
     const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
+    const [updatingIngestAccountId, setUpdatingIngestAccountId] = useState(null);
 
     const login = status?.login || initialStatus.login;
     const runtimeReady = Boolean(status?.runtime?.chromium_installed);
@@ -219,6 +222,7 @@ const WeChatMpImportManager = () => {
     const contentTextLength = content?.contentText?.length || 0;
     const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
     const ingestAccounts = ingestOverview.accounts || [];
+    const enabledIngestAccountCount = ingestAccounts.filter((account) => account.enabled).length;
     const ingestRuns = ingestOverview.runs || [];
     const ingestArticles = ingestOverview.articles || [];
     const latestRun = ingestRuns[0] || null;
@@ -641,6 +645,35 @@ const WeChatMpImportManager = () => {
                     i18n.resolvedLanguage
                 )
             );
+        }
+    };
+
+    const toggleIngestAccount = async (account) => {
+        const nextEnabled = !account.enabled;
+        setUpdatingIngestAccountId(account.id);
+        try {
+            const response = await api.patch(
+                `/admin/wechat-mp/ingest/accounts/${account.id}/enabled`,
+                { enabled: nextEnabled }
+            );
+            const updatedAccount = response.data?.account || { ...account, enabled: nextEnabled };
+            setIngestOverview((previous) => ({
+                ...previous,
+                accounts: [...(previous.accounts || [])]
+                    .map((item) => (item.id === updatedAccount.id ? updatedAccount : item))
+                    .sort((left, right) => Number(right.enabled) - Number(left.enabled)),
+            }));
+            toast.success(t("admin.wechat_mp.toasts.ingest_account_updated"));
+        } catch (error) {
+            toast.error(
+                getApiErrorMessage(
+                    error,
+                    t("admin.wechat_mp.toasts.ingest_account_update_failed"),
+                    i18n.resolvedLanguage
+                )
+            );
+        } finally {
+            setUpdatingIngestAccountId(null);
         }
     };
 
@@ -1722,26 +1755,54 @@ const WeChatMpImportManager = () => {
                                 </AdminButton>
                             </div>
 
+                            <div className="flex items-center justify-between gap-3">
+                                <div className={clsx("text-xs", mutedTextClass)}>
+                                    {t("admin.wechat_mp.ingest.account_summary", {
+                                        enabled: formatNumber(enabledIngestAccountCount),
+                                        total: formatNumber(ingestAccounts.length),
+                                    })}
+                                </div>
+                            </div>
                             <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
                                 {ingestAccounts.length > 0 ? (
                                     ingestAccounts.map((account) => (
                                         <div
                                             key={account.id}
                                             className={clsx(
-                                                "flex items-start justify-between gap-3 rounded-[8px] border p-3",
+                                                "flex flex-col gap-3 rounded-[8px] border p-3 sm:flex-row sm:items-center sm:justify-between",
                                                 isDayMode
                                                     ? "border-slate-200/70 bg-white/[0.72]"
                                                     : "border-white/10 bg-white/[0.04]"
                                             )}
                                         >
                                             <div className="min-w-0">
-                                                <div
-                                                    className={clsx(
-                                                        "truncate text-sm font-bold",
-                                                        headingTextClass
-                                                    )}
-                                                >
-                                                    {account.name || account.fakeid}
+                                                <div className="flex min-w-0 items-center gap-2">
+                                                    <div
+                                                        className={clsx(
+                                                            "truncate text-sm font-bold",
+                                                            headingTextClass
+                                                        )}
+                                                    >
+                                                        {account.name || account.fakeid}
+                                                    </div>
+                                                    <span
+                                                        className={clsx(
+                                                            "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                                                            account.enabled
+                                                                ? isDayMode
+                                                                    ? "bg-emerald-50 text-emerald-700"
+                                                                    : "bg-emerald-500/10 text-emerald-300"
+                                                                : isDayMode
+                                                                  ? "bg-slate-100 text-slate-500"
+                                                                  : "bg-white/5 text-gray-400"
+                                                        )}
+                                                    >
+                                                        {t(
+                                                            account.enabled
+                                                                ? "admin.wechat_mp.status.enabled"
+                                                                : "admin.wechat_mp.status.disabled"
+                                                        )}
+                                                    </span>
                                                 </div>
                                                 <div
                                                     className={clsx(
@@ -1753,21 +1814,47 @@ const WeChatMpImportManager = () => {
                                                         t("admin.wechat_mp.status.none")}
                                                 </div>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => deleteIngestAccount(account)}
-                                                className={clsx(
-                                                    "rounded-[8px] border p-2 transition-colors",
-                                                    isDayMode
-                                                        ? "border-rose-200 text-rose-600 hover:bg-rose-50"
-                                                        : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
-                                                )}
-                                                aria-label={t(
-                                                    "admin.wechat_mp.actions.delete_account"
-                                                )}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex shrink-0 items-center justify-end gap-2">
+                                                <AdminButton
+                                                    tone={account.enabled ? "subtle" : "success"}
+                                                    onClick={() => toggleIngestAccount(account)}
+                                                    disabled={
+                                                        updatingIngestAccountId === account.id
+                                                    }
+                                                    className="min-h-8 px-2.5 py-1 text-xs md:px-2.5"
+                                                >
+                                                    {updatingIngestAccountId === account.id ? (
+                                                        <Loader2
+                                                            size={14}
+                                                            className="animate-spin"
+                                                        />
+                                                    ) : account.enabled ? (
+                                                        <PowerOff size={14} />
+                                                    ) : (
+                                                        <Power size={14} />
+                                                    )}
+                                                    {t(
+                                                        account.enabled
+                                                            ? "admin.wechat_mp.actions.disable_account"
+                                                            : "admin.wechat_mp.actions.enable_account"
+                                                    )}
+                                                </AdminButton>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => deleteIngestAccount(account)}
+                                                    className={clsx(
+                                                        "rounded-[8px] border p-2 transition-colors",
+                                                        isDayMode
+                                                            ? "border-rose-200 text-rose-600 hover:bg-rose-50"
+                                                            : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
+                                                    )}
+                                                    aria-label={t(
+                                                        "admin.wechat_mp.actions.delete_account"
+                                                    )}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))
                                 ) : (

@@ -572,6 +572,12 @@ router.post(
     isAdmin,
     wechatMpAdminController.upsertWechatMpIngestAccount
 );
+router.patch(
+    "/admin/wechat-mp/ingest/accounts/:id/enabled",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.updateWechatMpIngestAccountEnabled
+);
 router.put(
     "/admin/wechat-mp/ingest/accounts/:id",
     authenticateToken,

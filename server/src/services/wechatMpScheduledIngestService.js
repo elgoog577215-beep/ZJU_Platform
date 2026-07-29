@@ -511,6 +511,37 @@ const upsertIngestAccount = async (db, payload = {}) => {
     return serializeAccount(row);
 };
 
+const setIngestAccountEnabled = async (db, id, enabled) => {
+    await ensureWechatMpScheduledIngestSchema(db);
+    const parsedId = Number.parseInt(id, 10);
+    if (!Number.isFinite(parsedId) || parsedId <= 0) {
+        const error = new Error("公众号 ID 无效");
+        error.status = 400;
+        throw error;
+    }
+    const normalizedEnabled = toBool(enabled, null);
+    if (normalizedEnabled === null) {
+        const error = new Error("公众号启用状态无效");
+        error.status = 400;
+        throw error;
+    }
+    const result = await db.run(
+        `
+      UPDATE wechat_mp_ingest_accounts
+      SET enabled = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `,
+        [normalizedEnabled ? 1 : 0, parsedId]
+    );
+    if (!result.changes) {
+        const error = new Error("公众号不存在");
+        error.status = 404;
+        throw error;
+    }
+    const row = await db.get("SELECT * FROM wechat_mp_ingest_accounts WHERE id = ?", [parsedId]);
+    return serializeAccount(row);
+};
+
 const deleteIngestAccount = async (db, id) => {
     await ensureWechatMpScheduledIngestSchema(db);
     const parsedId = Number.parseInt(id, 10);
@@ -1363,6 +1394,7 @@ module.exports = {
     normalizeSettings,
     parseAccountListContent,
     runWechatMpIngestNow,
+    setIngestAccountEnabled,
     startWechatMpIngestRun,
     startWechatMpIngestScheduler,
     startWechatMpTokenHealthScheduler,

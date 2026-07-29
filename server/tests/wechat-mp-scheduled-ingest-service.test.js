@@ -150,6 +150,34 @@ test("WeChat MP account upsert keeps list idempotent", async () => {
     }
 });
 
+test("WeChat MP account enable toggle changes only the enabled state", async () => {
+    const db = await createDb();
+    try {
+        const account = await service.upsertIngestAccount(db, {
+            name: "可切换公众号",
+            fakeid: "toggle-fake",
+            keywords: ["活动"],
+            fetch_content: false,
+            count_per_page: 7,
+            max_pages: 2,
+        });
+
+        const disabled = await service.setIngestAccountEnabled(db, account.id, false);
+        assert.equal(disabled.enabled, false);
+        assert.equal(disabled.name, account.name);
+        assert.deepEqual(disabled.keywords, account.keywords);
+        assert.equal(disabled.fetch_content, account.fetch_content);
+        assert.equal(disabled.count_per_page, account.count_per_page);
+        assert.equal(disabled.max_pages, account.max_pages);
+
+        const enabled = await service.setIngestAccountEnabled(db, account.id, true);
+        assert.equal(enabled.enabled, true);
+        assert.equal(enabled.name, account.name);
+    } finally {
+        await db.close();
+    }
+});
+
 test("WeChat MP incremental run saves new articles, bodies, and avoids duplicates", async () => {
     const db = await createDb();
     const sleeps = [];

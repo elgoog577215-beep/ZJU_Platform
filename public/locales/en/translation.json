@@ -2797,6 +2797,8 @@
                 "add_account": "Add Account",
                 "import_accounts": "Import List",
                 "delete_account": "Delete Account",
+                "enable_account": "Enable",
+                "disable_account": "Disable",
                 "retry_extraction": "Retry extraction"
             },
             "notes": {
@@ -2868,6 +2870,7 @@
                 "description": "Maintain official accounts and automatically fetch new articles and bodies every day.",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually.",
                 "confirm_delete_account": "Delete “{{name}}”?",
+                "account_summary": "{{enabled}} enabled / {{total}} total",
                 "runs_title": "Recent Jobs",
                 "articles_title": "New Articles",
                 "empty_runs": "No job records yet",
@@ -2998,6 +3001,8 @@
                 "ingest_settings_failed": "Failed to save scheduled ingest settings",
                 "ingest_account_saved": "Account added",
                 "ingest_account_failed": "Failed to save account",
+                "ingest_account_updated": "Account status updated",
+                "ingest_account_update_failed": "Failed to update account status",
                 "ingest_account_deleted": "Account deleted",
                 "ingest_account_delete_failed": "Failed to delete account",
                 "ingest_file_required": "Choose an account list file first",

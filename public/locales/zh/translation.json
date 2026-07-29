@@ -2853,6 +2853,8 @@
                 "add_account": "添加账号",
                 "import_accounts": "导入列表",
                 "delete_account": "删除账号",
+                "enable_account": "启用",
+                "disable_account": "禁用",
                 "retry_extraction": "重新提取信息"
             },
             "notes": {
@@ -2924,6 +2926,7 @@
                 "description": "维护公众号列表，按固定时间自动获取新文章和正文。",
                 "pacing_note": "注意！如果你不知道这些参数的作用，请保持默认不要随意变更！",
                 "confirm_delete_account": "确认删除“{{name}}”？",
+                "account_summary": "已启用 {{enabled}} / 共 {{total}} 个",
                 "runs_title": "最近任务",
                 "articles_title": "新增文章",
                 "empty_runs": "暂无任务记录",
@@ -3054,6 +3057,8 @@
                 "ingest_settings_failed": "保存定时采集配置失败",
                 "ingest_account_saved": "公众号已添加",
                 "ingest_account_failed": "保存公众号失败",
+                "ingest_account_updated": "公众号状态已更新",
+                "ingest_account_update_failed": "更新公众号状态失败",
                 "ingest_account_deleted": "公众号已删除",
                 "ingest_account_delete_failed": "删除公众号失败",
                 "ingest_file_required": "请先选择公众号列表文件",
