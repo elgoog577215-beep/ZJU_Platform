@@ -30,6 +30,7 @@ import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 import api, { uploadFile } from "../../services/api";
+import { formatServerDateTime as formatDateTime } from "../../utils/serverDate";
 import {
     AdminButton,
     AdminEmptyState,
@@ -118,18 +119,6 @@ const getApiErrorMessage = (error, fallback, language) => {
 };
 
 const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
-
-const formatDateTime = (value, language) => {
-    if (!value) return "";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value);
-    return new Intl.DateTimeFormat(language || undefined, {
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-};
 
 const splitKeywords = (value) =>
     String(value || "")

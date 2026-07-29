@@ -9,7 +9,16 @@ import { heroReveal, heroStagger, tapPress, useReducedMotion } from "../utils/an
 const DEFAULT_HERO_TITLE = "浙江大学信息聚合平台";
 const DEFAULT_HERO_SUBTITLE = "打破信息差，共建信息网络";
 const DAY_HERO_IMAGE = "/images/hero-landscape-day-4k.jpg";
-const LEGACY_NIGHT_HERO_IMAGE = "/uploads/1767349451839-56405188.jpg";
+const NIGHT_HERO_IMAGE = "/images/hero-landscape-night.jpg";
+const HERO_IMAGE_ALIASES = {
+    "/uploads/background.jpg": "/images/hero-background.jpg",
+    "/uploads/1767349451839-56405188.jpg": NIGHT_HERO_IMAGE,
+};
+
+const normalizeHeroImage = (value) => {
+    const image = typeof value === "string" ? value.trim() : "";
+    return HERO_IMAGE_ALIASES[image] || image;
+};
 
 const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
     const { scrollY } = useScroll();
@@ -25,11 +34,11 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
     const shouldUseMotion = !prefersReducedMotion;
     const shouldUseParallax = shouldUseMotion && !isMobile && !onScrollNext;
     const dayHeroImage = DAY_HERO_IMAGE;
-    const configuredHeroImage = settings.hero_bg_url;
+    const configuredHeroImage = normalizeHeroImage(settings.hero_bg_url);
     const nightHeroImage =
         configuredHeroImage && configuredHeroImage !== dayHeroImage
             ? configuredHeroImage
-            : LEGACY_NIGHT_HERO_IMAGE;
+            : NIGHT_HERO_IMAGE;
     const heroImage = uiMode === "day" ? dayHeroImage : nightHeroImage;
     const [resolvedHeroImage, setResolvedHeroImage] = useState(heroImage);
     const rawHeroTitle = settings.hero_title || DEFAULT_HERO_TITLE;
