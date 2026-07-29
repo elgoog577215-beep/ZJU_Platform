@@ -918,7 +918,7 @@ const screenArticleActivity = async (
         });
         return {
             status: "failed",
-            confidence: normalizedConfidence,
+            confidence: screening.confidence,
             reason: errorMessage,
             event_id: null,
         };
