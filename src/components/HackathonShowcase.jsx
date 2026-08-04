@@ -468,7 +468,7 @@ const ShowcaseWorkCard = ({
     );
 };
 
-const HackathonShowcase = ({ template }) => {
+const HackathonShowcase = ({ template, onSectionChange }) => {
     const { i18n, t } = useTranslation();
     const language = i18n.resolvedLanguage || i18n.language || "zh";
     const { uiMode } = useSettings();
@@ -511,6 +511,10 @@ const HackathonShowcase = ({ template }) => {
         activeSectionRef.current = index;
         setActiveSection((previous) => (previous === index ? previous : index));
     }, []);
+
+    useEffect(() => {
+        onSectionChange?.(activeSection);
+    }, [activeSection, onSectionChange]);
 
     const getScrollMetrics = useCallback(() => {
         const container = pageRef.current;
@@ -626,6 +630,7 @@ const HackathonShowcase = ({ template }) => {
         return () => {
             if (scrollFrameRef.current) {
                 window.cancelAnimationFrame(scrollFrameRef.current);
+                scrollFrameRef.current = null;
             }
             scrollTarget.removeEventListener("scroll", handleScroll);
             window.removeEventListener("resize", handleScroll);

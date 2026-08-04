@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Film, LockKeyhole, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -39,6 +39,7 @@ const HackathonSeasonOne = () => {
     const floatingNavigationRef = useRef(null);
     const timelineScrollRef = useRef(null);
     const activeNodeRef = useRef(null);
+    const [pageTabsVisible, setPageTabsVisible] = useState(true);
     const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const requestedEventKey = params.get("event");
     const requestedView = viewFromLocation(location);
@@ -76,6 +77,14 @@ const HackathonSeasonOne = () => {
         const targetLeft = node.offsetLeft - (container.clientWidth - node.offsetWidth) / 2;
         container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
     }, [activeEventKey]);
+
+    useEffect(() => {
+        setPageTabsVisible(true);
+    }, [activeEventKey, activeView]);
+
+    const handlePageSectionChange = useCallback((sectionIndex) => {
+        setPageTabsVisible(sectionIndex === 0);
+    }, []);
 
     useLayoutEffect(() => {
         const shell = shellRef.current;
@@ -257,9 +266,14 @@ const HackathonSeasonOne = () => {
                 </div>
 
                 <div
-                    className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] ${shellClass}`}
+                    className={`flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl transition duration-200 sm:w-[min(420px,calc(100vw-2.5rem))] ${shellClass} ${
+                        pageTabsVisible
+                            ? "pointer-events-auto translate-y-0 opacity-100"
+                            : "pointer-events-none -translate-y-2 opacity-0"
+                    }`}
                     role="tablist"
                     aria-label={`${template.event.title}页面切换`}
+                    aria-hidden={!pageTabsVisible}
                 >
                     <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
                         <Trophy
@@ -288,6 +302,7 @@ const HackathonSeasonOne = () => {
                                     aria-selected={selected}
                                     aria-disabled={!view.available}
                                     disabled={!view.available}
+                                    tabIndex={pageTabsVisible ? 0 : -1}
                                     onClick={() => switchView(view)}
                                     className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[6px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
                                         !view.available
@@ -316,9 +331,17 @@ const HackathonSeasonOne = () => {
             </div>
 
             {activeView === "showcase" ? (
-                <HackathonShowcase key={activeEventKey} template={template} />
+                <HackathonShowcase
+                    key={activeEventKey}
+                    template={template}
+                    onSectionChange={handlePageSectionChange}
+                />
             ) : activeView === "register" ? (
-                <HackathonRegistration key={activeEventKey} template={template} />
+                <HackathonRegistration
+                    key={activeEventKey}
+                    template={template}
+                    onSectionChange={handlePageSectionChange}
+                />
             ) : (
                 <div
                     className={`flex min-h-[100svh] items-center justify-center px-6 pt-64 text-center ${

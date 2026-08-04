@@ -63,7 +63,7 @@ const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
 const registrationSectionIds = ["hackathon-hero", "event-brief", "registration-form"];
 
-const HackathonRegistration = ({ template }) => {
+const HackathonRegistration = ({ template, onSectionChange }) => {
     const { i18n, t } = useTranslation();
     const { uiMode } = useSettings();
     const reduceMotion = useReducedMotion();
@@ -107,6 +107,10 @@ const HackathonRegistration = ({ template }) => {
         container.addEventListener("scroll", handleScroll, { passive: true });
         return () => container.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        onSectionChange?.(activeSection);
+    }, [activeSection, onSectionChange]);
 
     useSectionPager({
         containerRef: pageRef,
