@@ -1,0 +1,39 @@
+# Dependencies and generated frontend output
+node_modules/
+server/node_modules/
+dist/
+dev-dist/
+.vite/
+test-results/
+playwright-report/
+blob-report/
+tmp/
+output/
+outputs/
+ui-audit-screenshots/
+
+# Runtime data
+server/data/
+server/uploads/
+server/backups/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Android and iOS generated output
+android-twa/.gradle/
+android-twa/build/
+android-twa/app/build/
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App/public/
+ios/App/Pods/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+
+# HarmonyOS dependencies, caches, and build output
+zju_app/oh_modules/
+zju_app/.hvigor/
+zju_app/**/build/
+zju_app/.preview/

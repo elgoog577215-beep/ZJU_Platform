@@ -3,7 +3,7 @@
 ## 1. OpenSpec
 
 - [x] 1.1 新增 proposal、design、tasks 和 spec delta。
-- [ ] 1.2 运行 `openspec validate add-wechat-mp-pacing --strict` 和 `openspec validate --all`；通过后勾选并归档。
+- [x] 1.2 运行 `openspec validate add-wechat-mp-pacing --strict` 和 `openspec validate --all`；通过后勾选并归档。
 
 ## 2. 后端
 
