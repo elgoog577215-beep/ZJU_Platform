@@ -157,7 +157,7 @@ jobs:
                   mkdir -p "$package_root/payload" release
 
                   server_archive="$package_root/server.tar"
-                  git archive --format=tar --output="$server_archive" HEAD server
+                  git archive --format=tar --output="$server_archive" HEAD server shared
                   tar -xf "$server_archive" -C "$package_root/payload"
                   rm -f "$server_archive"
                   frontend_dist=frontend-dist
@@ -191,6 +191,7 @@ jobs:
                   tar -tzf "$archive" > "$archive_contents"
                   grep -Fq 'payload/dist/index.html' "$archive_contents"
                   grep -Fq 'payload/server/index.js' "$archive_contents"
+                  grep -Fq 'payload/shared/hackathonTemplateDefaults.json' "$archive_contents"
                   rm -f "$archive_contents"
                   (cd release && sha256sum "$(basename "$archive")" > "$(basename "$archive").sha256")
 
@@ -292,6 +293,7 @@ jobs:
                       test -s "$payload/dist/images/hero-background.jpg"
                       test -s "$payload/dist/images/hero-campus-day-4k.jpg"
                       test -f "$payload/server/index.js"
+                      test -f "$payload/shared/hackathonTemplateDefaults.json"
                       node --check "$payload/server/index.js"
                       echo "Release payload validated"
 
@@ -307,8 +309,12 @@ jobs:
 
                       mv "$app_root/server" "$previous/server"
                       mv "$app_root/dist" "$previous/dist"
+                      if [ -e "$app_root/shared" ] || [ -L "$app_root/shared" ]; then
+                        mv "$app_root/shared" "$previous/shared"
+                      fi
                       mv "$payload/server" "$app_root/server"
                       mv "$payload/dist" "$app_root/dist"
+                      mv "$payload/shared" "$app_root/shared"
 
                       for runtime_path in .env uploads logs data backups; do
                         if [ -e "$previous/server/$runtime_path" ] || [ -L "$previous/server/$runtime_path" ]; then

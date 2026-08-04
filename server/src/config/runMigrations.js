@@ -1187,23 +1187,96 @@ async function runMigrations(db) {
         await db.exec(`
       CREATE TABLE IF NOT EXISTS hackathon_registrations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_key TEXT NOT NULL DEFAULT 'zhekesong-current',
         name TEXT NOT NULL,
-        student_id TEXT NOT NULL UNIQUE,
+        student_id TEXT NOT NULL,
         major TEXT NOT NULL,
         grade TEXT NOT NULL,
         ai_tools TEXT NOT NULL,
         experience TEXT DEFAULT '',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        form_data_json TEXT DEFAULT '{}',
+        template_revision INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(event_key, student_id)
       )
     `);
+        await ensureColumns(
+            db,
+            "hackathon_registrations",
+            {
+                event_key: "TEXT NOT NULL DEFAULT 'zhekesong-current'",
+                experience: "TEXT DEFAULT ''",
+                form_data_json: "TEXT DEFAULT '{}'",
+                template_revision: "INTEGER DEFAULT 1",
+            },
+            "hackathon registrations"
+        );
+
+        const registrationIndexes = await db.all("PRAGMA index_list(hackathon_registrations)");
+        let hasEventStudentUnique = false;
+        for (const index of registrationIndexes.filter((item) => item.unique)) {
+            const columns = await db.all(`PRAGMA index_info(${index.name})`);
+            const names = columns.map((column) => column.name);
+            if (names.length === 2 && names[0] === "event_key" && names[1] === "student_id") {
+                hasEventStudentUnique = true;
+                break;
+            }
+        }
+
+        if (!hasEventStudentUnique) {
+            await db.exec("BEGIN IMMEDIATE");
+            try {
+                await db.exec(`
+          CREATE TABLE hackathon_registrations_schedule_migration (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_key TEXT NOT NULL DEFAULT 'zhekesong-current',
+            name TEXT NOT NULL,
+            student_id TEXT NOT NULL,
+            major TEXT NOT NULL,
+            grade TEXT NOT NULL,
+            ai_tools TEXT NOT NULL,
+            experience TEXT DEFAULT '',
+            form_data_json TEXT DEFAULT '{}',
+            template_revision INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(event_key, student_id)
+          );
+          INSERT INTO hackathon_registrations_schedule_migration
+            (id, event_key, name, student_id, major, grade, ai_tools, experience, form_data_json, template_revision, created_at)
+          SELECT
+            id,
+            COALESCE(NULLIF(event_key, ''), 'zhekesong-current'),
+            name,
+            student_id,
+            major,
+            grade,
+            ai_tools,
+            experience,
+            form_data_json,
+            template_revision,
+            created_at
+          FROM hackathon_registrations;
+          DROP TABLE hackathon_registrations;
+          ALTER TABLE hackathon_registrations_schedule_migration
+            RENAME TO hackathon_registrations;
+        `);
+                await db.exec("COMMIT");
+                console.log("✅ Hackathon registrations now support per-event signups");
+            } catch (migrationError) {
+                await db.exec("ROLLBACK");
+                throw migrationError;
+            }
+        }
+
         await db.exec(
             `CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_student_id ON hackathon_registrations(student_id)`
         );
         await db.exec(
+            `CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_event_key ON hackathon_registrations(event_key)`
+        );
+        await db.exec(
             `CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_created_at ON hackathon_registrations(created_at DESC)`
         );
-        // Add experience column to existing tables
-        await db.exec(`ALTER TABLE hackathon_registrations ADD COLUMN experience TEXT DEFAULT ''`);
         console.log("✅ Hackathon registrations table ready");
     } catch (err) {
         if (!err.message.includes("already exists") && !err.message.includes("duplicate column")) {

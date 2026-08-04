@@ -697,133 +697,19 @@ const SettingsManager = () => {
             </AdminPanel>
 
             <AdminPanel
-                title="黑客松页面设置"
-                description="黑客松报名页面的标题、时间和合作方配置。"
+                title="浙客松赛事模板"
+                description="比赛信息、赛制规则和报名表单已经迁移到统一模板管理。"
                 action={<FileText size={18} className="text-indigo-300" />}
             >
-                <div className={sectionGridClassName}>
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 标题</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_title || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_title", event.target.value)
-                                }
-                                placeholder="AI 全栈极速黑客松"
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_title")}
-                        </div>
-                    </div>
-
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 副标题</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_subtitle || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_subtitle", event.target.value)
-                                }
-                                placeholder="5 小时极速开发 · 纯个人参赛 · AI 原生创作"
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_subtitle")}
-                        </div>
-                    </div>
-
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 比赛时间</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_date || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_date", event.target.value)
-                                }
-                                placeholder="5 月 10 日 9:00 A.M."
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_date")}
-                        </div>
-                    </div>
-
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 比赛地点</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_location || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_location", event.target.value)
-                                }
-                                placeholder="北2-112"
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_location")}
-                        </div>
-                    </div>
-
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 比赛形式</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_format || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_format", event.target.value)
-                                }
-                                placeholder="个人赛"
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_format")}
-                        </div>
-                    </div>
-
-                    <div className={fieldClassName}>
-                        <label className={labelClassName}>黑客松 - 比赛时长</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <input
-                                type="text"
-                                value={settings.hackathon_duration || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_duration", event.target.value)
-                                }
-                                placeholder="5 小时"
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_duration")}
-                        </div>
-                    </div>
-
-                    <div className={`${fieldClassName} ${wideFieldClassName}`}>
-                        <label className={labelClassName}>黑客松 - 描述</label>
-                        <div className="flex flex-col gap-3 lg:flex-row">
-                            <textarea
-                                value={settings.hackathon_desc || ""}
-                                onChange={(event) =>
-                                    handleChange("hackathon_desc", event.target.value)
-                                }
-                                placeholder="AI 全栈极速黑客松是以 AI 原生开发为核心的技术赛事，参赛者需在 5 小时内独立完成一个完整的 AI 应用项目。比赛强调快速原型开发、AI 工具运用与创新思维。"
-                                rows={3}
-                                className="theme-admin-input flex-1 rounded-xl p-3"
-                            />
-                            {fieldAction("hackathon_desc")}
-                        </div>
-                    </div>
-
-                    <AdminInlineNote tone="info">
-                        黑客松合作方已经迁移到「生态伙伴」统一维护。现在修改学校、社团和企业伙伴，会同步影响首页、关于页、黑客松报名页和成果展示页。
-                        <a
-                            href="/admin?tab=partners"
-                            className="ml-2 inline-flex font-semibold underline underline-offset-4"
-                        >
-                            打开生态伙伴管理
-                        </a>
-                    </AdminInlineNote>
-                </div>
+                <AdminInlineNote tone="info">
+                    为避免同一内容出现多个配置来源，请前往「黑客松」管理页编辑并一次发布整份模板。
+                    <a
+                        href="/admin?tab=hackathon"
+                        className="ml-2 inline-flex font-semibold underline underline-offset-4"
+                    >
+                        打开浙客松模板管理
+                    </a>
+                </AdminInlineNote>
             </AdminPanel>
         </AdminPageShell>
     );

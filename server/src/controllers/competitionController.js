@@ -6,6 +6,7 @@ const { canBypassReview } = require("../utils/userPermissions");
 const MEDIA_TYPES = new Set(["promo_video", "stage_photo"]);
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 const COMPETITION_STATUSES = new Set(["active", "draft", "archived"]);
+const LEGACY_OUTCOME_SLUG = "ai-full-stack-hackathon-outcome";
 
 const MEDIA_LABELS = {
     promo_video: "赛事宣传片",
@@ -94,6 +95,12 @@ const serializeMedia = (row) => ({
     ...row,
     sort_order: toInteger(row.sort_order, 0),
     type_label: MEDIA_LABELS[row.type] || row.type,
+});
+
+const serializeCompetitionMediaOutcome = (row) => ({
+    ...serializeMedia(row),
+    source_table: "competition_media",
+    source_id: row.id,
 });
 
 const serializePhotoOutcome = (row) => ({
@@ -259,6 +266,29 @@ const getCompetitionById = async (db, id) => {
     return db.get("SELECT * FROM competitions WHERE id = ? AND deleted_at IS NULL", [id]);
 };
 
+const getCompetitionBySlug = async (db, slug) =>
+    db.get(
+        `SELECT * FROM competitions
+         WHERE slug = ? AND status = 'active' AND deleted_at IS NULL`,
+        [slug]
+    );
+
+const getOutcomeSlugFromRequest = (req) =>
+    trimText(
+        req.params?.competitionSlug ||
+            req.query?.competitionSlug ||
+            req.body?.competitionSlug ||
+            req.body?.competition_slug,
+        120
+    );
+
+const getOutcomeCompetition = async (db, req) => {
+    const requestedValue = getOutcomeSlugFromRequest(req);
+    if (!requestedValue) return getFeaturedCompetition(db);
+    const slug = normalizeSlug(requestedValue);
+    return slug ? getCompetitionBySlug(db, slug) : null;
+};
+
 const makeUniqueSlug = async (db, input, excludeId = null) => {
     const base = normalizeSlug(input) || `competition-${Date.now()}`;
     let candidate = base;
@@ -280,10 +310,13 @@ const makeUniqueSlug = async (db, input, excludeId = null) => {
 const getCurrentOutcome = async (req, res, next) => {
     try {
         const db = await getDb();
-        const competition = await getFeaturedCompetition(db);
+        const requestedSlug = getOutcomeSlugFromRequest(req);
+        const competition = await getOutcomeCompetition(db, req);
 
         if (!competition) {
-            return res.json({
+            return res.status(requestedSlug ? 404 : 200).json({
+                error: requestedSlug ? "该赛事尚未绑定可用的成果档案" : undefined,
+                code: requestedSlug ? "COMPETITION_OUTCOME_NOT_FOUND" : undefined,
                 competition: null,
                 media: { promo_videos: [], stage_photos: [] },
                 works: [],
@@ -300,29 +333,72 @@ const getCurrentOutcome = async (req, res, next) => {
         const promoVideoLimit = clampInteger(req.query.promoVideoLimit, 8, 1, 8);
         const workLimit = clampInteger(req.query.workLimit, 20, 1, 60);
 
-        const [photoRows, videoRows, workRows, statsRow] = await Promise.all([
+        const useLegacyMedia = competition.slug === LEGACY_OUTCOME_SLUG;
+        const [
+            competitionPhotoRows,
+            competitionVideoRows,
+            legacyPhotoRows,
+            legacyVideoRows,
+            workRows,
+            mediaStatsRow,
+            legacyStatsRow,
+        ] = await Promise.all([
             db.all(
-                `SELECT p.*, COALESCE(u.nickname, u.username) AS uploader_name
-         FROM photos p
-         LEFT JOIN users u ON u.id = p.uploader_id
-         WHERE p.status = 'approved'
-           AND p.deleted_at IS NULL
-           AND p.gameType = 'hackathon'
-          ORDER BY p.featured DESC, p.id DESC
-          LIMIT ?`,
-                [stagePhotoLimit]
+                `SELECT cm.*, COALESCE(u.nickname, u.username) AS uploader_name
+                 FROM competition_media cm
+                 LEFT JOIN users u ON u.id = cm.uploader_id
+                 WHERE cm.competition_id = ?
+                   AND cm.type = 'stage_photo'
+                   AND cm.status = 'approved'
+                   AND cm.deleted_at IS NULL
+                 ORDER BY
+                   CASE WHEN COALESCE(cm.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                   cm.sort_order ASC,
+                   cm.id DESC
+                 LIMIT ?`,
+                [competition.id, stagePhotoLimit]
             ),
             db.all(
-                `SELECT v.*, COALESCE(u.nickname, u.username) AS uploader_name
-         FROM videos v
-         LEFT JOIN users u ON u.id = v.uploader_id
-         WHERE v.status = 'approved'
-           AND v.deleted_at IS NULL
-           AND v.gameType = 'hackathon'
-          ORDER BY v.featured DESC, v.id DESC
-          LIMIT ?`,
-                [promoVideoLimit]
+                `SELECT cm.*, COALESCE(u.nickname, u.username) AS uploader_name
+                 FROM competition_media cm
+                 LEFT JOIN users u ON u.id = cm.uploader_id
+                 WHERE cm.competition_id = ?
+                   AND cm.type = 'promo_video'
+                   AND cm.status = 'approved'
+                   AND cm.deleted_at IS NULL
+                 ORDER BY
+                   CASE WHEN COALESCE(cm.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                   cm.sort_order ASC,
+                   cm.id DESC
+                 LIMIT ?`,
+                [competition.id, promoVideoLimit]
             ),
+            useLegacyMedia
+                ? db.all(
+                      `SELECT p.*, COALESCE(u.nickname, u.username) AS uploader_name
+                       FROM photos p
+                       LEFT JOIN users u ON u.id = p.uploader_id
+                       WHERE p.status = 'approved'
+                         AND p.deleted_at IS NULL
+                         AND p.gameType = 'hackathon'
+                       ORDER BY p.featured DESC, p.id DESC
+                       LIMIT ?`,
+                      [stagePhotoLimit]
+                  )
+                : Promise.resolve([]),
+            useLegacyMedia
+                ? db.all(
+                      `SELECT v.*, COALESCE(u.nickname, u.username) AS uploader_name
+                       FROM videos v
+                       LEFT JOIN users u ON u.id = v.uploader_id
+                       WHERE v.status = 'approved'
+                         AND v.deleted_at IS NULL
+                         AND v.gameType = 'hackathon'
+                       ORDER BY v.featured DESC, v.id DESC
+                       LIMIT ?`,
+                      [promoVideoLimit]
+                  )
+                : Promise.resolve([]),
             db.all(
                 `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name,
                 GROUP_CONCAT(DISTINCT ic.display_name) AS bound_identity_name,
@@ -352,30 +428,38 @@ const getCurrentOutcome = async (req, res, next) => {
             ),
             db.get(
                 `SELECT
-           (SELECT COUNT(*) FROM photos p
-             WHERE p.status = 'approved'
-               AND p.deleted_at IS NULL
-               AND p.gameType = 'hackathon') AS stage_photos,
-           (SELECT COUNT(*) FROM videos v
-             WHERE v.status = 'approved'
-               AND v.deleted_at IS NULL
-               AND v.gameType = 'hackathon') AS promo_videos,
-           (SELECT COUNT(*) FROM competition_works cw
-             WHERE cw.competition_id = ?
-               AND cw.status = 'approved'
-               AND COALESCE(cw.public_consent, 1) = 1
-               AND cw.deleted_at IS NULL) AS works`,
+                   SUM(CASE WHEN type = 'stage_photo' AND status = 'approved' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS stage_photos,
+                   SUM(CASE WHEN type = 'promo_video' AND status = 'approved' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS promo_videos
+                 FROM competition_media
+                 WHERE competition_id = ?`,
                 [competition.id]
             ),
+            useLegacyMedia
+                ? db.get(
+                      `SELECT
+                         (SELECT COUNT(*) FROM photos p
+                          WHERE p.status = 'approved' AND p.deleted_at IS NULL AND p.gameType = 'hackathon') AS stage_photos,
+                         (SELECT COUNT(*) FROM videos v
+                          WHERE v.status = 'approved' AND v.deleted_at IS NULL AND v.gameType = 'hackathon') AS promo_videos`
+                  )
+                : Promise.resolve({ stage_photos: 0, promo_videos: 0 }),
         ]);
 
-        const media = [
-            ...photoRows.map(serializePhotoOutcome),
-            ...videoRows.map(serializeVideoOutcome),
-        ];
-        const promoVideos = dedupeOutcomeMedia(media.filter((item) => item.type === "promo_video"));
-        const stagePhotos = dedupeOutcomeMedia(media.filter((item) => item.type === "stage_photo"));
+        const stagePhotos = dedupeOutcomeMedia([
+            ...competitionPhotoRows.map(serializeCompetitionMediaOutcome),
+            ...legacyPhotoRows.map(serializePhotoOutcome),
+        ]).slice(0, stagePhotoLimit);
+        const promoVideos = dedupeOutcomeMedia([
+            ...competitionVideoRows.map(serializeCompetitionMediaOutcome),
+            ...legacyVideoRows.map(serializeVideoOutcome),
+        ]).slice(0, promoVideoLimit);
         const works = workRows.map(serializePublicWork);
+        const worksCountRow = await db.get(
+            `SELECT COUNT(*) AS count FROM competition_works
+             WHERE competition_id = ? AND status = 'approved'
+               AND COALESCE(public_consent, 1) = 1 AND deleted_at IS NULL`,
+            [competition.id]
+        );
 
         res.setHeader("Cache-Control", "no-store");
         return res.json({
@@ -386,9 +470,13 @@ const getCurrentOutcome = async (req, res, next) => {
             },
             works,
             stats: {
-                promo_videos: toInteger(statsRow?.promo_videos, promoVideos.length),
-                stage_photos: toInteger(statsRow?.stage_photos, stagePhotos.length),
-                works: toInteger(statsRow?.works, works.length),
+                promo_videos:
+                    toInteger(mediaStatsRow?.promo_videos, 0) +
+                    toInteger(legacyStatsRow?.promo_videos, 0),
+                stage_photos:
+                    toInteger(mediaStatsRow?.stage_photos, 0) +
+                    toInteger(legacyStatsRow?.stage_photos, 0),
+                works: toInteger(worksCountRow?.count, works.length),
             },
         });
     } catch (error) {
@@ -399,9 +487,12 @@ const getCurrentOutcome = async (req, res, next) => {
 const submitCurrentMedia = async (req, res, next) => {
     try {
         const db = await getDb();
-        const competition = await getFeaturedCompetition(db);
+        const competition = await getOutcomeCompetition(db, req);
         if (!competition) {
-            return res.status(404).json({ error: "当前没有配置可投稿的比赛" });
+            return res.status(404).json({
+                error: "该赛事尚未绑定可投稿的成果档案",
+                code: "COMPETITION_OUTCOME_NOT_FOUND",
+            });
         }
 
         const type = trimText(req.body.type, 40);
@@ -455,9 +546,12 @@ const submitCurrentMedia = async (req, res, next) => {
 const submitCurrentWork = async (req, res, next) => {
     try {
         const db = await getDb();
-        const competition = await getFeaturedCompetition(db);
+        const competition = await getOutcomeCompetition(db, req);
         if (!competition) {
-            return res.status(404).json({ error: "当前没有配置可投稿的比赛" });
+            return res.status(404).json({
+                error: "该赛事尚未绑定可投稿的成果档案",
+                code: "COMPETITION_OUTCOME_NOT_FOUND",
+            });
         }
 
         const title = trimText(req.body.title, 140);

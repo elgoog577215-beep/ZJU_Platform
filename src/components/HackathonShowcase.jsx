@@ -17,6 +17,11 @@ import {
     Users,
 } from "lucide-react";
 
+import {
+    getHackathonYear,
+    normalizeHackathonTemplate,
+    splitHackathonTitle,
+} from "../data/hackathonTemplate";
 import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
 import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
@@ -34,38 +39,6 @@ import SEO from "./SEO";
 
 const HERO_IMAGE = "/images/hero-campus-day-4k.jpg";
 const SECONDARY_IMAGE = "/images/hero-landscape-day-4k.jpg";
-
-const eventStats = [
-    {
-        id: "hours",
-        value: "5",
-        unit: "小时",
-        label: "极速交付",
-        detail: "限定时间内完成真实可运行 AI 应用",
-    },
-    {
-        id: "solo",
-        value: "1",
-        unit: "个人",
-        label: "独立参赛",
-        detail: "强调独立构思、构建、调试和交付",
-    },
-    {
-        id: "pitch",
-        value: "0",
-        unit: "路演",
-        label: "只看作品",
-        detail: "减少包装，把判断交给可运行成果",
-    },
-    {
-        id: "prize",
-        value: "17,500",
-        shortValue: "1.75万",
-        unit: "¥",
-        label: "奖金池",
-        detail: "以作品质量和落地潜力完成激励",
-    },
-];
 
 const mediaMoments = [
     {
@@ -379,6 +352,7 @@ const ShowcaseWorkCard = ({
     theme,
     isDayMode,
     t,
+    worksHref,
     featured = false,
     compact = false,
     className = "",
@@ -398,7 +372,7 @@ const ShowcaseWorkCard = ({
             } ${className}`}
         >
             <Link
-                to="/hackathon/works"
+                to={worksHref}
                 className={`showcase-work-cover relative block overflow-hidden ${
                     featured ? "min-h-[14.25rem] lg:min-h-0" : compact ? "min-h-0" : "min-h-[128px]"
                 }`}
@@ -494,7 +468,7 @@ const ShowcaseWorkCard = ({
     );
 };
 
-const HackathonShowcase = () => {
+const HackathonShowcase = ({ template }) => {
     const { i18n, t } = useTranslation();
     const language = i18n.resolvedLanguage || i18n.language || "zh";
     const { uiMode } = useSettings();
@@ -504,6 +478,26 @@ const HackathonShowcase = () => {
     const [compactFlow, setCompactFlow] = useState(() => getShouldUseCompactFlow());
     const shouldAnimate = !reduceMotion && !liteMode;
     const isDayMode = uiMode === "day";
+    const resolvedTemplate = useMemo(() => normalizeHackathonTemplate(template), [template]);
+    const event = resolvedTemplate.event;
+    const competitionSlug = resolvedTemplate.results.competitionSlug;
+    const worksHref = `/hackathon/works?competition=${encodeURIComponent(competitionSlug)}`;
+    const eventYear = getHackathonYear(event);
+    const titleLines = splitHackathonTitle(event.title);
+    const showcaseEventStats = useMemo(
+        () => [
+            ...event.highlights.slice(0, 3),
+            {
+                id: "prize",
+                value: event.prizeValue,
+                shortValue: event.prizeValue,
+                unit: event.prizeUnit,
+                label: t("hackathon.event.prize_pool", "奖金池"),
+                detail: t("hackathon.showcase.stats.prize.detail", "以作品质量和落地潜力完成激励"),
+            },
+        ],
+        [event, t]
+    );
     const pageRef = useRef(null);
     const [activeSection, setActiveSection] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -546,18 +540,21 @@ const HackathonShowcase = () => {
 
     const fetchOutcome = useCallback(async () => {
         try {
-            const response = await api.get("/competitions/current/outcome", {
-                params: {
-                    stagePhotoLimit: SHOWCASE_STAGE_PHOTO_LIMIT,
-                    promoVideoLimit: SHOWCASE_PROMO_VIDEO_LIMIT,
-                    workLimit: SHOWCASE_WORK_LIMIT,
-                },
-            });
+            const response = await api.get(
+                `/competitions/${encodeURIComponent(competitionSlug)}/outcome`,
+                {
+                    params: {
+                        stagePhotoLimit: SHOWCASE_STAGE_PHOTO_LIMIT,
+                        promoVideoLimit: SHOWCASE_PROMO_VIDEO_LIMIT,
+                        workLimit: SHOWCASE_WORK_LIMIT,
+                    },
+                }
+            );
             setOutcome(response.data || null);
         } catch {
             setOutcome(null);
         }
-    }, []);
+    }, [competitionSlug]);
 
     useEffect(() => {
         fetchOutcome();
@@ -700,17 +697,11 @@ const HackathonShowcase = () => {
     );
     const translatedEventStats = useMemo(
         () =>
-            eventStats.map((stat) => ({
+            showcaseEventStats.map((stat) => ({
                 ...stat,
-                shortValue: t(
-                    `hackathon.showcase.stats.${stat.id}.short_value`,
-                    stat.shortValue || stat.value
-                ),
-                unit: t(`hackathon.showcase.stats.${stat.id}.unit`, stat.unit),
-                label: t(`hackathon.showcase.stats.${stat.id}.label`, stat.label),
-                detail: t(`hackathon.showcase.stats.${stat.id}.detail`, stat.detail),
+                shortValue: stat.shortValue || stat.value,
             })),
-        [t]
+        [showcaseEventStats]
     );
     const translatedMediaMoments = useMemo(
         () =>
@@ -726,10 +717,11 @@ const HackathonShowcase = () => {
         () =>
             actionLinks.map((action, index) => ({
                 ...action,
+                to: action.to === "/hackathon/works" ? worksHref : action.to,
                 label: t(`hackathon.showcase.actions.${index}.label`, action.label),
                 detail: t(`hackathon.showcase.actions.${index}.detail`, action.detail),
             })),
-        [t]
+        [t, worksHref]
     );
     const translatedFallbackWorks = useMemo(
         () =>
@@ -984,11 +976,8 @@ const HackathonShowcase = () => {
             }}
         >
             <SEO
-                title={t("hackathon.showcase.meta_title", "AI 全栈极速黑客松比赛成果")}
-                description={t(
-                    "hackathon.showcase.meta_desc",
-                    "AI 全栈极速黑客松比赛成果页，集中呈现宣传片、赛场照片、优秀作品和活动成果。"
-                )}
+                title={`${event.title}比赛成果`}
+                description={`${event.title}比赛成果页，集中呈现宣传片、赛场照片、优秀作品和活动成果。`}
                 image={HERO_IMAGE}
             />
             <style>
@@ -1921,7 +1910,7 @@ const HackathonShowcase = () => {
             <ShowcaseSectionFrame
                 id="gate"
                 className={`showcase-gate-frame ${compactFlow ? "pt-[calc(env(safe-area-inset-top)+7.25rem)]" : "snap-always pt-[calc(env(safe-area-inset-top)+6.7rem)] sm:pt-[calc(env(safe-area-inset-top)+7.4rem)] lg:pt-[calc(env(safe-area-inset-top)+6.4rem)] min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.2rem)]"}`}
-                backgroundWord="2026"
+                backgroundWord={String(eventYear)}
                 liteMode={liteMode}
                 compactFlow={compactFlow}
             >
@@ -1930,15 +1919,17 @@ const HackathonShowcase = () => {
                         className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}
                     >
                         <Film className="h-4 w-4" />
-                        AI Build Arena 2026
+                        {event.brand}
                     </p>
                     <h1
                         data-showcase-title
                         className={`showcase-title mt-5 max-w-[1120px] font-black ${isDayMode ? "text-slate-950" : "text-white"}`}
                     >
-                        <span className="showcase-title-line">
-                            {t("hackathon.showcase.hero.title_desktop")}
-                        </span>
+                        {titleLines.map((line) => (
+                            <span key={line} className="showcase-title-line">
+                                {line}
+                            </span>
+                        ))}
                         <span
                             className={`showcase-title-line ${isDayMode ? "text-cyan-700" : "text-cyan-200"}`}
                         >
@@ -1948,7 +1939,7 @@ const HackathonShowcase = () => {
                     <p
                         className={`showcase-hero-desc mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 ${theme.muted}`}
                     >
-                        {t("hackathon.showcase.hero.desc")}
+                        {event.description} 这里集中呈现宣传片、现场照片、获奖作品和支持阵容。
                     </p>
 
                     <div className="showcase-hero-actions mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -2258,7 +2249,7 @@ const HackathonShowcase = () => {
                         {showcaseWorks.slice(0, 3).map((work, index) => (
                             <Link
                                 key={work.id}
-                                to="/hackathon/works"
+                                to={worksHref}
                                 className={`${isDayMode ? "bg-white/86 hover:bg-cyan-50" : "bg-[#071011]/88 hover:bg-cyan-300/10"} block min-h-[8.5rem] p-4 transition duration-200`}
                                 aria-label={t("hackathon.showcase.works.project_aria", {
                                     title: work.title,
@@ -2284,7 +2275,7 @@ const HackathonShowcase = () => {
                     </div>
                     <div className="showcase-works-cta mt-6 flex flex-col gap-3 sm:flex-row">
                         <Link
-                            to="/hackathon/works"
+                            to={worksHref}
                             className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
                         >
                             {t("hackathon.showcase.works.view_all", { count: publishedWorksCount })}
@@ -2312,6 +2303,7 @@ const HackathonShowcase = () => {
                             theme={theme}
                             isDayMode={isDayMode}
                             t={t}
+                            worksHref={worksHref}
                             featured
                         />
                     ) : null}
@@ -2324,6 +2316,7 @@ const HackathonShowcase = () => {
                                 theme={theme}
                                 isDayMode={isDayMode}
                                 t={t}
+                                worksHref={worksHref}
                                 compact
                             />
                         ))}
@@ -2435,13 +2428,23 @@ const HackathonShowcase = () => {
                                 {t("hackathon.showcase.partners.join", "加入 AI 社区")}
                                 <Users className="h-4 w-4" />
                             </Link>
-                            <Link
-                                to="/hackathon?view=register"
-                                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition ${theme.secondaryButton}`}
-                            >
-                                {t("hackathon.showcase.partners.back", "赛事报名页")}
-                                <CalendarDays className="h-4 w-4" />
-                            </Link>
+                            {resolvedTemplate.navigation.registrationVisible ? (
+                                <Link
+                                    to={`/hackathon?event=${encodeURIComponent(event.key)}&view=register`}
+                                    className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition ${theme.secondaryButton}`}
+                                >
+                                    {t("hackathon.showcase.partners.back", "赛事报名页")}
+                                    <CalendarDays className="h-4 w-4" />
+                                </Link>
+                            ) : (
+                                <span
+                                    aria-disabled="true"
+                                    className={`inline-flex min-h-12 cursor-not-allowed items-center justify-center gap-2 border px-6 text-sm font-bold opacity-50 ${theme.secondaryButton}`}
+                                >
+                                    {t("hackathon.showcase.partners.back", "赛事报名页")} · 未开放
+                                    <CalendarDays className="h-4 w-4" />
+                                </span>
+                            )}
                         </div>
                     </div>
                     <p className={`mt-6 text-sm font-semibold leading-7 ${theme.soft}`}>
@@ -2460,6 +2463,8 @@ const HackathonShowcase = () => {
             <CompetitionOutcomeUploadModal
                 open={Boolean(uploadType)}
                 initialType={uploadType || "stage_photo"}
+                competitionSlug={competitionSlug}
+                competitionTitle={event.title}
                 onClose={() => setUploadType(null)}
                 onSubmitted={fetchOutcome}
             />

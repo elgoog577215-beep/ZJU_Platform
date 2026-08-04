@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft,
     BookOpen,
@@ -385,6 +385,7 @@ const WorkDetailModal = ({ work, isDayMode, onClose, t }) => {
 
 const HackathonWorks = () => {
     const { t } = useTranslation();
+    const [searchParams] = useSearchParams();
     const { uiMode } = useSettings();
     const reduceMotion = useReducedMotion();
     const isDayMode = uiMode === "day";
@@ -396,6 +397,7 @@ const HackathonWorks = () => {
     const [uploadOpen, setUploadOpen] = useState(false);
     const [activeSection, setActiveSection] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
+    const requestedCompetitionSlug = String(searchParams.get("competition") || "").trim();
 
     const setActiveWorkSection = useCallback((index) => {
         setActiveSection((previous) => (previous === index ? previous : index));
@@ -404,7 +406,10 @@ const HackathonWorks = () => {
     const fetchWorks = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get("/competitions/current/outcome");
+            const endpoint = requestedCompetitionSlug
+                ? `/competitions/${encodeURIComponent(requestedCompetitionSlug)}/outcome`
+                : "/competitions/current/outcome";
+            const response = await api.get(endpoint);
             const nextWorks = Array.isArray(response.data?.works)
                 ? response.data.works.map((work, index) => normalizeWork(work, index, t))
                 : [];
@@ -416,7 +421,7 @@ const HackathonWorks = () => {
         } finally {
             setLoading(false);
         }
-    }, [t]);
+    }, [requestedCompetitionSlug, t]);
 
     useEffect(() => {
         fetchWorks();
@@ -753,6 +758,12 @@ const HackathonWorks = () => {
             <CompetitionOutcomeUploadModal
                 open={uploadOpen}
                 initialType="work"
+                competitionSlug={
+                    competition?.slug ||
+                    requestedCompetitionSlug ||
+                    "ai-full-stack-hackathon-outcome"
+                }
+                competitionTitle={competition?.title}
                 onClose={() => setUploadOpen(false)}
                 onSubmitted={fetchWorks}
             />

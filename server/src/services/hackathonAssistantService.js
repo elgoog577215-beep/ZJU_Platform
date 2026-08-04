@@ -559,6 +559,7 @@ const runHackathonAssistant = async ({
     db,
     query,
     participantProfile = {},
+    eventProfile = null,
     userId = null,
     modelRunner,
 }) => {
@@ -574,7 +575,19 @@ const runHackathonAssistant = async ({
         getSettingsMap(db),
         getEcosystemPartnerNames(db),
     ]);
-    const profile = buildHackathonProfile(settings, ecosystemPartnerNames);
+    const defaultProfile = buildHackathonProfile(settings, ecosystemPartnerNames);
+    const profile = eventProfile
+        ? {
+              ...defaultProfile,
+              title: toText(eventProfile.title, 120) || defaultProfile.title,
+              subtitle: toText(eventProfile.subtitle, 180) || defaultProfile.subtitle,
+              date: toText(eventProfile.date, 120) || defaultProfile.date,
+              location: toText(eventProfile.location, 120) || defaultProfile.location,
+              format: toText(eventProfile.format, 120) || defaultProfile.format,
+              duration: toText(eventProfile.duration, 80) || defaultProfile.duration,
+              description: toText(eventProfile.description, 500) || defaultProfile.description,
+          }
+        : defaultProfile;
     const allCards = buildContextCards(profile);
     const intent = detectIntent(normalizedQuery);
     const contextCards = selectContextCards(allCards, normalizedQuery, intent);

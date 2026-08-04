@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Award,
     Calendar,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { formatHackathonAnswer } from "../../data/hackathonTemplate";
 import api from "../../services/api";
 import {
     AdminButton,
@@ -35,6 +36,7 @@ import {
     ToolbarGroup,
     useAdminTheme,
 } from "./AdminUI";
+import HackathonTemplateEditor from "./HackathonTemplateEditor";
 
 const gradeLabels = {
     freshman: "大一",
@@ -61,6 +63,14 @@ const workStatusLabels = {
 };
 
 const itemsPerPage = 20;
+const legacyRegistrationFieldIds = new Set([
+    "name",
+    "studentId",
+    "major",
+    "grade",
+    "aiTools",
+    "experience",
+]);
 
 const safeParseTools = (value) => {
     try {
@@ -87,8 +97,32 @@ const HackathonManager = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [workSearchTerm, setWorkSearchTerm] = useState("");
     const [gradeFilter, setGradeFilter] = useState("");
+    const [eventFilter, setEventFilter] = useState("");
     const [workStatusFilter, setWorkStatusFilter] = useState("all");
+    const [workCompetitionFilter, setWorkCompetitionFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [scheduleConfig, setScheduleConfig] = useState(null);
+
+    const handleTemplateChange = useCallback((_template, schedule) => {
+        setScheduleConfig(schedule);
+    }, []);
+
+    const eventTitleByKey = useMemo(
+        () =>
+            new Map(
+                (scheduleConfig?.events || []).map((item) => [item.event.key, item.event.title])
+            ),
+        [scheduleConfig]
+    );
+
+    const configuredRegistrationFields = useMemo(() => {
+        const fields = (scheduleConfig?.events || []).flatMap((item) => item.form?.fields || []);
+        const unique = new Map();
+        for (const field of fields) {
+            if (!unique.has(field.id)) unique.set(field.id, field);
+        }
+        return [...unique.values()];
+    }, [scheduleConfig]);
 
     const fetchRegistrations = async () => {
         const response = await api.get("/admin/hackathon/registrations");
@@ -124,24 +158,31 @@ const HackathonManager = () => {
                 !query ||
                 [
                     registration.name,
+                    registration.event_key,
+                    eventTitleByKey.get(registration.event_key),
                     registration.student_id,
                     registration.major,
                     registration.grade,
                     registration.experience,
                     safeParseTools(registration.ai_tools).join(" "),
+                    ...Object.values(registration.form_data || {}),
                 ]
                     .map((value) => String(value || "").toLowerCase())
                     .some((value) => value.includes(query));
 
             const matchesGrade = gradeFilter ? registration.grade === gradeFilter : true;
-            return matchesSearch && matchesGrade;
+            const matchesEvent = eventFilter ? registration.event_key === eventFilter : true;
+            return matchesSearch && matchesGrade && matchesEvent;
         });
-    }, [gradeFilter, registrations, searchTerm]);
+    }, [eventFilter, eventTitleByKey, gradeFilter, registrations, searchTerm]);
 
     const filteredWorks = useMemo(() => {
         const query = workSearchTerm.trim().toLowerCase();
         return works.filter((work) => {
             const matchesStatus = workStatusFilter === "all" || work.status === workStatusFilter;
+            const matchesCompetition = workCompetitionFilter
+                ? String(work.competition_id) === workCompetitionFilter
+                : true;
             const matchesSearch =
                 !query ||
                 [
@@ -154,13 +195,24 @@ const HackathonManager = () => {
                     work.highlight,
                     work.experience,
                     work.uploader_name,
+                    work.competition_title,
                 ]
                     .map((value) => String(value || "").toLowerCase())
                     .some((value) => value.includes(query));
 
-            return matchesStatus && matchesSearch;
+            return matchesStatus && matchesCompetition && matchesSearch;
         });
-    }, [workSearchTerm, workStatusFilter, works]);
+    }, [workCompetitionFilter, workSearchTerm, workStatusFilter, works]);
+
+    const workCompetitionOptions = useMemo(() => {
+        const options = new Map();
+        works.forEach((work) => {
+            if (work.competition_id) {
+                options.set(String(work.competition_id), work.competition_title || "未命名比赛");
+            }
+        });
+        return [...options.entries()];
+    }, [works]);
 
     const totalPages = Math.max(1, Math.ceil(filteredRegistrations.length / itemsPerPage));
 
@@ -228,19 +280,66 @@ const HackathonManager = () => {
         );
     };
 
+    const renderAdditionalAnswers = (registration) => {
+        const formData = registration.form_data || {};
+        const fieldsById = new Map(configuredRegistrationFields.map((field) => [field.id, field]));
+        const answers = Object.entries(formData)
+            .filter(
+                ([fieldId, value]) =>
+                    !legacyRegistrationFieldIds.has(fieldId) &&
+                    value !== "" &&
+                    value !== null &&
+                    value !== undefined
+            )
+            .map(([fieldId, value]) => ({
+                id: fieldId,
+                label: fieldsById.get(fieldId)?.label || fieldId,
+                value: formatHackathonAnswer(value, fieldsById.get(fieldId)),
+            }))
+            .filter((item) => item.value);
+
+        if (answers.length === 0) return <span className={mutedTextClass}>暂无</span>;
+        return (
+            <div className="space-y-1.5">
+                {answers.map((answer) => (
+                    <p key={answer.id} className="max-w-[260px] break-words text-xs leading-5">
+                        <span className="font-semibold">{answer.label}：</span>
+                        {answer.value}
+                    </p>
+                ))}
+            </div>
+        );
+    };
+
     const exportRegistrations = () => {
-        const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "项目经验", "报名时间"];
-        const rows = registrations.map((registration) => [
-            registration.name,
-            registration.student_id,
-            registration.major,
-            gradeLabels[registration.grade] || registration.grade,
-            safeParseTools(registration.ai_tools)
-                .map((tool) => aiToolLabels[tool] || tool)
-                .join(", "),
-            registration.experience,
-            formatDateTime(registration.created_at),
-        ]);
+        const configuredFields = configuredRegistrationFields.filter(
+            (field) => field.enabled !== false
+        );
+        const fallbackFields = [
+            { id: "name", label: "姓名" },
+            { id: "studentId", label: "学号" },
+            { id: "major", label: "专业" },
+            { id: "grade", label: "年级" },
+            { id: "aiTools", label: "AI 工具" },
+            { id: "experience", label: "项目经验" },
+        ];
+        const exportFields = configuredFields.length > 0 ? configuredFields : fallbackFields;
+        const headers = ["比赛日程", ...exportFields.map((field) => field.label), "报名时间"];
+        const rows = registrations.map((registration) => {
+            const formData = registration.form_data || {
+                name: registration.name,
+                studentId: registration.student_id,
+                major: registration.major,
+                grade: registration.grade,
+                aiTools: safeParseTools(registration.ai_tools),
+                experience: registration.experience,
+            };
+            return [
+                eventTitleByKey.get(registration.event_key) || registration.event_key || "历史赛事",
+                ...exportFields.map((field) => formatHackathonAnswer(formData[field.id], field)),
+                formatDateTime(registration.created_at),
+            ];
+        });
         const csv =
             "\uFEFF" +
             [headers, ...rows]
@@ -304,6 +403,17 @@ const HackathonManager = () => {
                                     status={work.status}
                                     label={workStatusLabels[work.status] || work.status}
                                 />
+                                {work.competition_title ? (
+                                    <span
+                                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                            isDayMode
+                                                ? "bg-indigo-50 text-indigo-700"
+                                                : "bg-indigo-500/15 text-indigo-100"
+                                        }`}
+                                    >
+                                        {work.competition_title}
+                                    </span>
+                                ) : null}
                                 {work.award ? (
                                     <span
                                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -419,6 +529,11 @@ const HackathonManager = () => {
                                         registration.grade ||
                                         "未填年级"}
                                 </p>
+                                <p className="mt-1 truncate text-[11px] font-semibold text-cyan-500">
+                                    {eventTitleByKey.get(registration.event_key) ||
+                                        registration.event_key ||
+                                        "历史赛事"}
+                                </p>
                             </div>
                         </div>
                         <AdminIconButton
@@ -445,6 +560,9 @@ const HackathonManager = () => {
                             {registration.experience}
                         </p>
                     ) : null}
+                    <div className={`mt-3 text-sm ${mutedTextClass}`}>
+                        {renderAdditionalAnswers(registration)}
+                    </div>
                 </article>
             ))}
         </div>
@@ -458,7 +576,7 @@ const HackathonManager = () => {
         <>
             <AdminPageShell
                 title="黑客松运营管理"
-                description={`报名 ${formatNumber(registrationStats.total)} 条，待审作品 ${formatNumber(workStats.pending)} 条。`}
+                description={`统一维护赛事页面、赛制和报名表单；当前报名 ${formatNumber(registrationStats.total)} 条，待审作品 ${formatNumber(workStats.pending)} 条。`}
                 actions={
                     <>
                         <AdminButton tone="subtle" onClick={refreshAll}>
@@ -476,6 +594,8 @@ const HackathonManager = () => {
                     </>
                 }
             >
+                <HackathonTemplateEditor onTemplateChange={handleTemplateChange} />
+
                 <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                     <AdminMetricCard
                         label="总报名"
@@ -523,6 +643,22 @@ const HackathonManager = () => {
                     </ToolbarGroup>
                     <ToolbarGroup>
                         <select
+                            value={eventFilter}
+                            onChange={(event) => {
+                                setEventFilter(event.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
+                            aria-label="按比赛日程筛选"
+                        >
+                            <option value="">所有比赛日程</option>
+                            {(scheduleConfig?.events || []).map((item) => (
+                                <option key={item.event.key} value={item.event.key}>
+                                    {item.event.title}
+                                </option>
+                            ))}
+                        </select>
+                        <select
                             value={gradeFilter}
                             onChange={(event) => {
                                 setGradeFilter(event.target.value);
@@ -554,15 +690,17 @@ const HackathonManager = () => {
                     ) : (
                         <>
                             {renderRegistrationMobileCards()}
-                            <AdminTableShell minWidth={1180}>
+                            <AdminTableShell minWidth={1460}>
                                 <thead>
                                     <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
                                         <th className="p-4">报名人</th>
+                                        <th className="p-4">比赛日程</th>
                                         <th className="p-4">学号</th>
                                         <th className="p-4">专业</th>
                                         <th className="p-4">年级</th>
                                         <th className="p-4">AI 工具</th>
                                         <th className="p-4">项目经验</th>
+                                        <th className="p-4">其他报名信息</th>
                                         <th className="p-4">报名时间</th>
                                         <th className="p-4 text-right">操作</th>
                                     </tr>
@@ -587,6 +725,13 @@ const HackathonManager = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
+                                                <AdminTableCellText className="max-w-[180px] break-words">
+                                                    {eventTitleByKey.get(registration.event_key) ||
+                                                        registration.event_key ||
+                                                        "历史赛事"}
+                                                </AdminTableCellText>
+                                            </td>
+                                            <td className="p-4">
                                                 <AdminTableCellText>
                                                     {registration.student_id || "-"}
                                                 </AdminTableCellText>
@@ -608,6 +753,11 @@ const HackathonManager = () => {
                                                 <AdminTableCellText className="line-clamp-2 max-w-[280px] break-words">
                                                     {registration.experience || "暂无"}
                                                 </AdminTableCellText>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className={mutedTextClass}>
+                                                    {renderAdditionalAnswers(registration)}
+                                                </div>
                                             </td>
                                             <td className="p-4">
                                                 <AdminTableCellText>
@@ -681,7 +831,7 @@ const HackathonManager = () => {
                                 />
                                 <input
                                     type="text"
-                                    placeholder="搜索作品、作者、荣誉、经验"
+                                    placeholder="搜索比赛、作品、作者、荣誉、经验"
                                     value={workSearchTerm}
                                     onChange={(event) => setWorkSearchTerm(event.target.value)}
                                     className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
@@ -689,6 +839,19 @@ const HackathonManager = () => {
                             </div>
                         </ToolbarGroup>
                         <ToolbarGroup>
+                            <select
+                                value={workCompetitionFilter}
+                                onChange={(event) => setWorkCompetitionFilter(event.target.value)}
+                                className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
+                                aria-label="按成果档案筛选作品"
+                            >
+                                <option value="">所有比赛成果</option>
+                                {workCompetitionOptions.map(([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
                             <select
                                 value={workStatusFilter}
                                 onChange={(event) => setWorkStatusFilter(event.target.value)}

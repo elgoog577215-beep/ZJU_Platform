@@ -39,9 +39,9 @@ const createInitialForm = (type = "stage_photo") => ({
 });
 
 const typeOptions = [
-    { value: "stage_photo", label: "赛场照片", destination: "进入画廊", icon: ImageIcon },
-    { value: "promo_video", label: "赛事宣传片", destination: "进入视频栏目", icon: Film },
-    { value: "work", label: "优秀作品", destination: "进入荣誉与经验分享", icon: PackagePlus },
+    { value: "stage_photo", label: "赛场照片", destination: "本场照片", icon: ImageIcon },
+    { value: "promo_video", label: "赛事宣传片", destination: "本场视频", icon: Film },
+    { value: "work", label: "优秀作品", destination: "本场作品", icon: PackagePlus },
 ];
 
 const uploadAsset = async (file, fieldName = "file") => {
@@ -57,8 +57,6 @@ const uploadAsset = async (file, fieldName = "file") => {
         throw new Error(`${fieldName === "cover" ? "封面" : "文件"}上传失败：${serverMessage}`);
     }
 };
-
-const outcomeTags = "黑客松,比赛成果,AI全栈极速黑客松";
 
 const extractApiError = (error) => {
     const data = error.response?.data;
@@ -76,6 +74,8 @@ const CompetitionOutcomeUploadModal = ({
     onClose,
     onSubmitted,
     initialType = "stage_photo",
+    competitionSlug,
+    competitionTitle,
 }) => {
     const { user, isAdmin } = useAuth();
     const { uiMode } = useSettings();
@@ -164,7 +164,7 @@ const CompetitionOutcomeUploadModal = ({
                     coverUrl = await uploadAsset(form.coverFile, "cover");
                 }
                 setSubmitLabel("正在保存作品信息");
-                await api.post("/competitions/current/works", {
+                await api.post(`/competitions/${encodeURIComponent(competitionSlug)}/works`, {
                     title: form.workTitle,
                     author: form.author,
                     summary: form.summary,
@@ -187,28 +187,14 @@ const CompetitionOutcomeUploadModal = ({
                     setSubmitLabel("正在上传宣传片封面");
                     coverUrl = await uploadAsset(form.coverFile, "cover");
                 }
-                setSubmitLabel(isPromoVideo ? "正在保存到视频栏目" : "正在保存到画廊");
-                if (isPromoVideo) {
-                    await api.post("/videos", {
-                        title: form.title,
-                        tags: outcomeTags,
-                        video: fileUrl,
-                        thumbnail: coverUrl || "",
-                        gameType: "hackathon",
-                        gameDescription: form.description,
-                        featured: 0,
-                    });
-                } else {
-                    await api.post("/photos", {
-                        title: form.title,
-                        tags: outcomeTags,
-                        url: fileUrl,
-                        size: "",
-                        gameType: "hackathon",
-                        gameDescription: form.description,
-                        featured: 0,
-                    });
-                }
+                setSubmitLabel("正在保存到本场成果档案");
+                await api.post(`/competitions/${encodeURIComponent(competitionSlug)}/media`, {
+                    type: form.type,
+                    title: form.title,
+                    url: fileUrl,
+                    cover_url: coverUrl,
+                    description: form.description,
+                });
             }
 
             toast.success(
@@ -216,9 +202,7 @@ const CompetitionOutcomeUploadModal = ({
                     ? isAdmin
                         ? "作品信息已发布"
                         : "作品信息已提交，等待管理员审核"
-                    : isPromoVideo
-                      ? "已提交到视频栏目"
-                      : "已提交到画廊"
+                    : `已提交到“${competitionTitle || "当前比赛"}”成果档案`
             );
             onSubmitted?.();
             resetAndClose();
@@ -244,12 +228,12 @@ const CompetitionOutcomeUploadModal = ({
                             Competition Outcome Upload
                         </p>
                         <h2 className="outcome-upload-title mt-1 text-xl font-black">
-                            提交黑客松成果
+                            提交“{competitionTitle || "当前比赛"}”成果
                         </h2>
                         <p
                             className={`outcome-upload-subtitle mt-1 text-xs leading-5 ${mutedClass}`}
                         >
-                            照片进入画廊，视频进入视频栏目，作品进入优秀作品与经验分享。
+                            照片、视频和作品只会进入本场比赛绑定的独立成果档案。
                         </p>
                     </div>
                     <button

@@ -21,6 +21,13 @@ import {
     Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+    buildHackathonInitialAnswers,
+    formatHackathonSchedule,
+    getActiveHackathonFields,
+    normalizeHackathonTemplate,
+    splitHackathonTitle,
+} from "../data/hackathonTemplate";
 import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
@@ -28,16 +35,6 @@ import { useSectionPager } from "../hooks/useSectionPager";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import SEO from "./SEO";
-
-const isLikelyMojibake = (value) =>
-    typeof value === "string" &&
-    /[�]|鍏|爤|鏋|粦|瀹|澗|灏|忔|椂|涓|璺|紨|璇|鎶|瀛|骞|惧|洟|浼|阃|榄/.test(value);
-
-const readableSetting = (value, fallback) => {
-    if (typeof value !== "string") return fallback;
-    const trimmed = value.trim();
-    return trimmed && !isLikelyMojibake(trimmed) ? trimmed : fallback;
-};
 
 const hasCjkText = (value) => typeof value === "string" && /[\u3400-\u9fff]/.test(value);
 
@@ -66,14 +63,19 @@ const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
 const registrationSectionIds = ["hackathon-hero", "event-brief", "registration-form"];
 
-const HackathonRegistration = () => {
+const HackathonRegistration = ({ template }) => {
     const { i18n, t } = useTranslation();
-    const { settings, uiMode } = useSettings();
+    const { uiMode } = useSettings();
     const reduceMotion = useReducedMotion();
     const shouldAnimate = !reduceMotion;
     const isDayMode = uiMode === "day";
     const language = i18n.resolvedLanguage || i18n.language || "zh";
-    const useSettingCopy = !String(language).startsWith("en");
+    const resolvedTemplate = useMemo(() => normalizeHackathonTemplate(template), [template]);
+    const activeFormFields = useMemo(
+        () => getActiveHackathonFields(resolvedTemplate),
+        [resolvedTemplate]
+    );
+    const formConfig = resolvedTemplate.form;
     const { groups: ecosystemPartnerGroups, enterpriseLogoRows } = useEcosystemPartners();
     const enterpriseLogos = useMemo(() => enterpriseLogoRows.flat(), [enterpriseLogoRows]);
     const pageRef = useRef(null);
@@ -116,14 +118,7 @@ const HackathonRegistration = () => {
         lockMs: 860,
     });
 
-    const [formData, setFormData] = useState({
-        name: "",
-        studentId: "",
-        major: "",
-        grade: "",
-        aiTools: [],
-        experience: "",
-    });
+    const [formData, setFormData] = useState(() => buildHackathonInitialAnswers(resolvedTemplate));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const [coachQuery, setCoachQuery] = useState(
@@ -136,50 +131,25 @@ const HackathonRegistration = () => {
         setCoachQuery(t("hackathon.coach.default_query", "我不会前端但会用 Codex，适合参加吗？"));
     }, [language, t]);
 
+    useEffect(() => {
+        const emptyAnswers = buildHackathonInitialAnswers(resolvedTemplate);
+        setFormData((current) =>
+            Object.fromEntries(
+                activeFormFields.map((field) => [
+                    field.id,
+                    current[field.id] ?? emptyAnswers[field.id],
+                ])
+            )
+        );
+    }, [activeFormFields, resolvedTemplate]);
+
     const event = useMemo(
         () => ({
-            title: useSettingCopy
-                ? readableSetting(
-                      settings.hackathon_title,
-                      t("hackathon.hero.full_title", "AI 全栈极速黑客松")
-                  )
-                : t("hackathon.hero.full_title", "AI Full-Stack Sprint Hackathon"),
-            subtitle: t("hackathon.hero.subtitle", "5小时、1个人、0路演"),
-            date: useSettingCopy
-                ? readableSetting(
-                      settings.hackathon_date,
-                      t("hackathon.event.date", "5月10日 9:00 A.M.")
-                  )
-                : t("hackathon.event.date", "May 10, 9:00 A.M."),
-            location: useSettingCopy
-                ? readableSetting(
-                      settings.hackathon_location,
-                      t("hackathon.event.location", "北2-112")
-                  )
-                : t("hackathon.event.location", "North 2-112"),
-            format: useSettingCopy
-                ? readableSetting(settings.hackathon_format, t("hackathon.event.format", "个人赛"))
-                : t("hackathon.event.format", "Solo Track"),
-            duration: useSettingCopy
-                ? readableSetting(
-                      settings.hackathon_duration,
-                      t("hackathon.event.duration", "5 小时")
-                  )
-                : t("hackathon.event.duration", "5 Hours"),
-            description: useSettingCopy
-                ? readableSetting(
-                      settings.hackathon_desc,
-                      t(
-                          "hackathon.hero.description",
-                          "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。"
-                      )
-                  )
-                : t(
-                      "hackathon.hero.description",
-                      "Build a runnable AI application independently within a limited time. AI tools are allowed; no concept packaging, only real working products."
-                  ),
+            ...resolvedTemplate.event,
+            date: formatHackathonSchedule(resolvedTemplate.event),
+            prize: `${resolvedTemplate.event.prizeValue} ${resolvedTemplate.event.prizeUnit}`.trim(),
         }),
-        [settings, t, useSettingCopy]
+        [resolvedTemplate]
     );
 
     const palette = isDayMode
@@ -234,23 +204,6 @@ const HackathonRegistration = () => {
           }
         : {};
 
-    const aiToolOptions = [
-        { value: "codex", label: "Codex" },
-        { value: "claude", label: "Claude" },
-        { value: "cursor", label: "Cursor" },
-        { value: "trae", label: "Trae" },
-        { value: "other", label: t("common.other", "其他") },
-    ];
-
-    const gradeOptions = [
-        { value: "freshman", label: t("hackathon.form.grade_freshman", "大一") },
-        { value: "sophomore", label: t("hackathon.form.grade_sophomore", "大二") },
-        { value: "junior", label: t("hackathon.form.grade_junior", "大三") },
-        { value: "senior", label: t("hackathon.form.grade_senior", "大四") },
-        { value: "master", label: t("hackathon.form.grade_master", "硕士") },
-        { value: "phd", label: t("hackathon.form.grade_phd", "博士") },
-    ];
-
     const eventMeta = [
         { index: "01", label: t("common.time", "时间"), value: event.date, icon: Calendar },
         { index: "02", label: t("common.location", "地点"), value: event.location, icon: MapPin },
@@ -263,37 +216,19 @@ const HackathonRegistration = () => {
         {
             index: "04",
             label: t("hackathon.event.prize_pool", "奖金池"),
-            value: t("hackathon.event.prize_amount", "17,500 ￥"),
+            value: event.prize,
             icon: Trophy,
         },
     ];
 
-    const challenges = [
-        {
-            title: t("hackathon.rules.ai_native_title", "AI 原生开发"),
-            text: t(
-                "hackathon.rules.ai_native_text",
-                "允许并鼓励使用 Codex、Claude、Cursor、Trae 等工具完成全栈开发。"
-            ),
-            icon: Code2,
-        },
-        {
-            title: t("hackathon.rules.five_hours_title", "5 小时从 0 到 1"),
-            text: t(
-                "hackathon.rules.five_hours_text",
-                "现场完成一个可运行、可体验、能说明问题的 AI 应用。"
-            ),
-            icon: Rocket,
-        },
-        {
-            title: t("hackathon.rules.no_pitch_title", "0 路演"),
-            text: t(
-                "hackathon.rules.no_pitch_text",
-                "不比表达包装，只看作品完成度、真实体验和创新性。"
-            ),
-            icon: ShieldCheck,
-        },
-    ];
+    const ruleIcons = [Code2, Rocket, ShieldCheck, Cpu, Sparkles];
+    const challenges = resolvedTemplate.rules
+        .filter((rule) => rule.enabled)
+        .map((rule, index) => ({
+            ...rule,
+            text: rule.description,
+            icon: ruleIcons[index % ruleIcons.length],
+        }));
 
     const ecosystemGroups = ecosystemPartnerGroups.map((group) => ({
         label: t(`hackathon.partners.group_${group.id}`, group.shortLabel),
@@ -302,11 +237,13 @@ const HackathonRegistration = () => {
         ),
     }));
 
-    const heroStats = [
-        { value: "5", unit: t("hackathon.hero.hours_unit", "小时"), code: "HOURS" },
-        { value: "1", unit: t("hackathon.hero.solo_unit", "个人"), code: "SOLO" },
-        { value: "0", unit: t("hackathon.hero.pitch_unit", "路演"), code: "PITCH" },
-    ];
+    const heroStats = event.highlights.slice(0, 3);
+    const titleLines = splitHackathonTitle(event.title);
+    const boardLines = event.subtitle
+        .split(/[、|]/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, 3);
 
     const sectionAnchors = [
         { id: "hackathon-hero", label: t("hackathon.nav.home", "主页"), icon: Sparkles, index: 0 },
@@ -319,29 +256,29 @@ const HackathonRegistration = () => {
         },
     ];
 
-    const handleInputChange = (field) => (e) => {
-        const value = e.target.value;
-        setFormData((prev) => ({ ...prev, [field]: value }));
-        if (formErrors[field]) {
+    const updateAnswer = (fieldId, value) => {
+        setFormData((prev) => ({ ...prev, [fieldId]: value }));
+        if (formErrors[fieldId]) {
             setFormErrors((prev) => {
                 const next = { ...prev };
-                delete next[field];
+                delete next[fieldId];
                 return next;
             });
         }
     };
 
-    const handleToolToggle = (tool) => {
+    const handleMultiSelectToggle = (fieldId, option) => {
         setFormData((prev) => {
-            const tools = prev.aiTools.includes(tool)
-                ? prev.aiTools.filter((item) => item !== tool)
-                : [...prev.aiTools, tool];
-            return { ...prev, aiTools: tools };
+            const current = Array.isArray(prev[fieldId]) ? prev[fieldId] : [];
+            const values = current.includes(option)
+                ? current.filter((item) => item !== option)
+                : [...current, option];
+            return { ...prev, [fieldId]: values };
         });
-        if (formErrors.aiTools) {
+        if (formErrors[fieldId]) {
             setFormErrors((prev) => {
                 const next = { ...prev };
-                delete next.aiTools;
+                delete next[fieldId];
                 return next;
             });
         }
@@ -349,15 +286,23 @@ const HackathonRegistration = () => {
 
     const validateForm = () => {
         const errors = {};
-        if (!formData.name.trim()) errors.name = t("hackathon.errors.name", "请输入姓名");
-        if (!formData.studentId.trim())
-            errors.studentId = t("hackathon.errors.student_id", "请输入学号");
-        if (!formData.major.trim()) errors.major = t("hackathon.errors.major", "请输入专业");
-        if (!formData.grade) errors.grade = t("hackathon.errors.grade", "请选择年级");
-        if (formData.aiTools.length === 0)
-            errors.aiTools = t("hackathon.errors.ai_tools", "请至少选择一个 AI 工具");
-        if (!formData.experience.trim())
-            errors.experience = t("hackathon.errors.experience", "请简述你的 AI 项目经历");
+        activeFormFields.forEach((field) => {
+            const value = formData[field.id];
+            const missing =
+                value === undefined ||
+                value === null ||
+                value === "" ||
+                value === false ||
+                (Array.isArray(value) && value.length === 0);
+            if (field.required && missing) errors[field.id] = `请填写${field.label}`;
+            if (
+                field.type === "email" &&
+                value &&
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))
+            ) {
+                errors[field.id] = `${field.label}格式不正确`;
+            }
+        });
         return errors;
     };
 
@@ -372,16 +317,23 @@ const HackathonRegistration = () => {
 
         setIsSubmitting(true);
         try {
-            await api.post("/hackathon/register", formData, { noRetry: true });
-            toast.success(t("hackathon.toast.success", "报名成功！请等待后续通知"));
-            setFormData({
-                name: "",
-                studentId: "",
-                major: "",
-                grade: "",
-                aiTools: [],
-                experience: "",
-            });
+            await api.post(
+                "/hackathon/register",
+                {
+                    eventKey: resolvedTemplate.event.key,
+                    answers: formData,
+                    templateRevision: resolvedTemplate.revision,
+                    name: formData.name,
+                    studentId: formData.studentId,
+                    major: formData.major,
+                    grade: formData.grade,
+                    aiTools: formData.aiTools,
+                    experience: formData.experience,
+                },
+                { noRetry: true }
+            );
+            toast.success(formConfig.successMessage);
+            setFormData(buildHackathonInitialAnswers(resolvedTemplate));
         } catch (error) {
             const message =
                 error?.response?.data?.error || t("hackathon.toast.failed", "报名失败，请稍后重试");
@@ -406,6 +358,7 @@ const HackathonRegistration = () => {
                 "/hackathon/assistant",
                 {
                     query,
+                    eventKey: resolvedTemplate.event.key,
                     major: formData.major,
                     grade: formData.grade,
                     aiTools: formData.aiTools,
@@ -674,12 +627,12 @@ const HackathonRegistration = () => {
                                     <span
                                         className={`text-6xl font-black leading-none tracking-tight ${palette.accent} min-[390px]:text-7xl sm:text-8xl xl:text-[5.1rem] min-[1536px]:text-[6rem] min-[1720px]:text-9xl`}
                                     >
-                                        17,500
+                                        {event.prizeValue}
                                     </span>
                                     <span
                                         className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-5 xl:text-5xl min-[1720px]:pb-6 min-[1720px]:text-6xl`}
                                     >
-                                        {t("hackathon.event.currency", "￥")}
+                                        {event.prizeUnit}
                                     </span>
                                     <span
                                         className={`pb-3 text-2xl font-black tracking-[0.12em] ${palette.accent} sm:text-3xl xl:pb-3 xl:text-3xl min-[1720px]:pb-4 min-[1720px]:text-4xl`}
@@ -722,16 +675,12 @@ const HackathonRegistration = () => {
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 text-center min-[1720px]:gap-3">
-                                {[
-                                    t("hackathon.chips.ai_native", "AI 原生"),
-                                    t("hackathon.chips.solo", "独立完成"),
-                                    t("hackathon.chips.work_first", "作品优先"),
-                                ].map((item) => (
+                                {challenges.slice(0, 3).map((item) => (
                                     <div
-                                        key={item}
+                                        key={item.id}
                                         className={`border px-2 py-2.5 text-xs font-semibold sm:py-3 min-[1536px]:py-3.5 min-[1720px]:py-4 min-[1720px]:text-sm ${palette.chip}`}
                                     >
-                                        {item}
+                                        {item.title}
                                     </div>
                                 ))}
                             </div>
@@ -748,16 +697,15 @@ const HackathonRegistration = () => {
                             <Sparkles
                                 className={`h-3.5 w-3.5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`}
                             />
-                            AI Build Arena 2026
+                            {event.brand}
                         </div>
 
                         <h1 className="max-w-[980px] text-[3.2rem] font-black leading-[0.96] tracking-normal min-[390px]:text-6xl sm:text-7xl lg:text-[5.5rem] xl:text-[5.4rem] min-[1536px]:text-[6.4rem] min-[1720px]:text-[7rem] 2xl:text-[8rem]">
-                            <span className="block">
-                                {t("hackathon.hero.title_line_1", "AI 全栈极速")}
-                            </span>
-                            <span className="block">
-                                {t("hackathon.hero.title_line_2", "黑客松")}
-                            </span>
+                            {titleLines.map((line) => (
+                                <span key={line} className="block">
+                                    {line}
+                                </span>
+                            ))}
                         </h1>
 
                         <MotionDiv
@@ -891,19 +839,16 @@ const HackathonRegistration = () => {
                                     Competition Board
                                 </p>
                                 <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl xl:text-[72px] min-[1536px]:text-[82px] 2xl:text-[96px]">
-                                    {t("hackathon.board.title_line_1", "5小时交付")}
+                                    {boardLines[0] || event.duration}
                                     <span className={`block ${palette.accent}`}>
-                                        {t("hackathon.board.title_line_2", "0路演")}
+                                        {boardLines[1] || event.format}
                                     </span>
-                                    {t("hackathon.board.title_line_3", "只看作品")}
+                                    {boardLines[2] || challenges[0]?.title}
                                 </h2>
                                 <p
                                     className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}
                                 >
-                                    {t(
-                                        "hackathon.board.description",
-                                        "现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。"
-                                    )}
+                                    {event.description}
                                 </p>
 
                                 <div className={`mt-10 border-t pt-7 xl:mt-auto ${palette.line}`}>
@@ -1020,15 +965,12 @@ const HackathonRegistration = () => {
                                 Register
                             </p>
                             <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.25rem]">
-                                {t("hackathon.form.section_title", "参赛登记")}
+                                {formConfig.title}
                             </h2>
                             <p
                                 className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
                             >
-                                {t(
-                                    "hackathon.form.section_desc",
-                                    "填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。"
-                                )}
+                                {formConfig.description}
                             </p>
 
                             <div
@@ -1099,10 +1041,10 @@ const HackathonRegistration = () => {
                         >
                             <div>
                                 <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
-                                    {t("hackathon.form.title", "报名信息")}
+                                    {formConfig.title}
                                 </h3>
                                 <p className={`mt-2 text-base ${palette.textMuted}`}>
-                                    {t("hackathon.form.required_hint", "所有带 * 的字段均为必填")}
+                                    {formConfig.requiredHint}
                                 </p>
                             </div>
                             <div
@@ -1114,207 +1056,58 @@ const HackathonRegistration = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
-                                <Field
-                                    label={t("hackathon.form.name", "姓名")}
-                                    required
-                                    error={formErrors.name}
-                                    palette={palette}
-                                >
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={handleInputChange("name")}
-                                        placeholder={t(
-                                            "hackathon.form.name_placeholder",
-                                            "请输入姓名"
-                                        )}
-                                        className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
-                                            formErrors.name
-                                                ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
-                                                : ""
-                                        }`}
-                                    />
-                                </Field>
-
-                                <Field
-                                    label={t("hackathon.form.student_id", "学号")}
-                                    required
-                                    error={formErrors.studentId}
-                                    palette={palette}
-                                >
-                                    <input
-                                        type="text"
-                                        value={formData.studentId}
-                                        onChange={handleInputChange("studentId")}
-                                        placeholder={t(
-                                            "hackathon.form.student_id_placeholder",
-                                            "请输入学号"
-                                        )}
-                                        className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
-                                            formErrors.studentId
-                                                ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
-                                                : ""
-                                        }`}
-                                    />
-                                </Field>
-                            </div>
-
-                            <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
-                                <Field
-                                    label={t("hackathon.form.major", "专业")}
-                                    required
-                                    error={formErrors.major}
-                                    palette={palette}
-                                >
-                                    <input
-                                        type="text"
-                                        value={formData.major}
-                                        onChange={handleInputChange("major")}
-                                        placeholder={t(
-                                            "hackathon.form.major_placeholder",
-                                            "请输入专业"
-                                        )}
-                                        className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
-                                            formErrors.major
-                                                ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
-                                                : ""
-                                        }`}
-                                    />
-                                </Field>
-
-                                <Field
-                                    label={t("hackathon.form.grade", "年级")}
-                                    required
-                                    error={formErrors.grade}
-                                    palette={palette}
-                                >
-                                    <select
-                                        value={formData.grade}
-                                        onChange={handleInputChange("grade")}
-                                        className={`w-full appearance-none border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
-                                            formErrors.grade
-                                                ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
-                                                : ""
-                                        }`}
+                                {activeFormFields.map((field) => (
+                                    <div
+                                        key={field.id}
+                                        className={
+                                            field.width === "half"
+                                                ? "min-w-0"
+                                                : "min-w-0 md:col-span-2"
+                                        }
                                     >
-                                        <option
-                                            value=""
-                                            className={
-                                                isDayMode
-                                                    ? "bg-white text-slate-950"
-                                                    : "bg-slate-950 text-white"
+                                        <DynamicRegistrationField
+                                            field={field}
+                                            value={formData[field.id]}
+                                            error={formErrors[field.id]}
+                                            palette={palette}
+                                            isDayMode={isDayMode}
+                                            onChange={(value) => updateAnswer(field.id, value)}
+                                            onToggle={(option) =>
+                                                handleMultiSelectToggle(field.id, option)
                                             }
-                                        >
-                                            {t("hackathon.form.grade_placeholder", "请选择年级")}
-                                        </option>
-                                        {gradeOptions.map((option) => (
-                                            <option
-                                                key={option.value}
-                                                value={option.value}
-                                                className={
-                                                    isDayMode
-                                                        ? "bg-white text-slate-950"
-                                                        : "bg-slate-950 text-white"
-                                                }
-                                            >
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </Field>
-                            </div>
-
-                            <div>
-                                <label
-                                    className={`mb-3 block text-base font-black ${palette.textSoft}`}
-                                >
-                                    {t("hackathon.form.ai_tools", "常用 AI 工具")}{" "}
-                                    <span className="text-rose-400">*</span>
-                                    <span className={`ml-2 font-normal ${palette.textMuted}`}>
-                                        {t("hackathon.form.multi_select", "可多选")}
-                                    </span>
-                                </label>
-                                <div className="flex flex-wrap gap-2.5">
-                                    {aiToolOptions.map((tool) => {
-                                        const isSelected = formData.aiTools.includes(tool.value);
-                                        return (
-                                            <button
-                                                key={tool.value}
-                                                type="button"
-                                                onClick={() => handleToolToggle(tool.value)}
-                                                className={`inline-flex min-h-12 items-center gap-2 border px-5 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
-                                                    isSelected
-                                                        ? isDayMode
-                                                            ? "border-cyan-600 bg-cyan-600 text-white"
-                                                            : "border-cyan-300 bg-cyan-300 text-slate-950"
-                                                        : `${palette.chip} hover:border-cyan-400 hover:text-cyan-600`
-                                                }`}
-                                            >
-                                                {isSelected && <CheckCircle className="h-4 w-4" />}
-                                                {tool.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {formErrors.aiTools && (
-                                    <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
-                                        <AlertCircle className="h-3.5 w-3.5" />
-                                        {formErrors.aiTools}
-                                    </p>
-                                )}
+                                        />
+                                    </div>
+                                ))}
                             </div>
 
                             <div
-                                className={`grid gap-5 border-t pt-5 ${palette.line} lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)]`}
+                                className={
+                                    "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
+                                    palette.line
+                                }
                             >
-                                <div>
-                                    <label
-                                        className={`mb-3 block text-base font-black ${palette.textSoft}`}
-                                    >
-                                        {t("hackathon.form.experience", "AI 项目经历")}{" "}
-                                        <span className="text-rose-400">*</span>
-                                    </label>
-                                    <textarea
-                                        value={formData.experience}
-                                        onChange={handleInputChange("experience")}
-                                        placeholder={t(
-                                            "hackathon.form.experience_placeholder",
-                                            "简述一下你使用 AI 开发项目的经历..."
-                                        )}
-                                        rows={5}
-                                        className={`min-h-[180px] w-full resize-none rounded-xl border px-5 py-4 text-base font-semibold leading-8 outline-none transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 lg:min-h-[232px] 2xl:min-h-[264px] ${
-                                            isDayMode
-                                                ? "border-slate-200/80 bg-white/80 text-slate-900 placeholder:text-slate-400"
-                                                : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26"
-                                        }`}
-                                    />
-                                    {formErrors.experience && (
-                                        <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
-                                            <AlertCircle className="h-3.5 w-3.5" />
-                                            {formErrors.experience}
+                                <div className={"border px-5 py-4 " + palette.chip}>
+                                    <p className="text-base font-black">
+                                        {t("hackathon.form.before_submit", "提交前确认")}
+                                    </p>
+                                    <p className={"mt-2 text-sm leading-6 " + palette.textMuted}>
+                                        {formConfig.privacyNotice}
+                                    </p>
+                                    {!event.registrationOpen ? (
+                                        <p className="mt-4 font-semibold text-amber-400">
+                                            当前赛事报名尚未开放，表单仅供预览。
                                         </p>
-                                    )}
+                                    ) : null}
                                 </div>
 
                                 <div className="flex flex-col gap-4">
-                                    <div className={`border px-5 py-4 ${palette.chip}`}>
-                                        <p className="text-base font-black">
-                                            {t("hackathon.form.before_submit", "提交前确认")}
-                                        </p>
-                                        <p
-                                            className={`mt-2 text-sm leading-6 ${palette.textMuted}`}
-                                        >
-                                            {t(
-                                                "hackathon.form.before_submit_desc",
-                                                "姓名、学号和项目经历会用于报名核验；AI 工具只帮助赛事组了解现场支持需求。"
-                                            )}
-                                        </p>
-                                    </div>
-
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting}
-                                        className={`group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg ${palette.primary}`}
+                                        disabled={isSubmitting || !event.registrationOpen}
+                                        className={
+                                            "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
+                                            palette.primary
+                                        }
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -1323,7 +1116,9 @@ const HackathonRegistration = () => {
                                             </>
                                         ) : (
                                             <>
-                                                {t("hackathon.form.submit", "提交报名")}
+                                                {event.registrationOpen
+                                                    ? formConfig.submitLabel
+                                                    : "报名未开放"}
                                                 <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                                             </>
                                         )}
@@ -1331,21 +1126,25 @@ const HackathonRegistration = () => {
 
                                     <div>
                                         <label
-                                            className={`mb-3 block text-base font-black ${palette.textSoft}`}
+                                            className={
+                                                "mb-3 block text-base font-black " +
+                                                palette.textSoft
+                                            }
                                         >
                                             {t("hackathon.form.official_group", "官方微信群")}
                                             <span
-                                                className={`ml-2 font-normal ${palette.textMuted}`}
+                                                className={"ml-2 font-normal " + palette.textMuted}
                                             >
                                                 {t("hackathon.form.optional", "可选")}
                                             </span>
                                         </label>
                                         <div
-                                            className={`flex items-center gap-4 border p-3 ${
-                                                isDayMode
+                                            className={
+                                                "flex items-center gap-4 border p-3 " +
+                                                (isDayMode
                                                     ? "border-slate-200 bg-white/80"
-                                                    : "border-white/10 bg-white/[0.04]"
-                                            }`}
+                                                    : "border-white/10 bg-white/[0.04]")
+                                            }
                                         >
                                             <img
                                                 src={officialWechatGroupImage}
@@ -1357,7 +1156,10 @@ const HackathonRegistration = () => {
                                                 loading="lazy"
                                             />
                                             <p
-                                                className={`hidden text-sm font-semibold leading-6 ${palette.textMuted} xl:block`}
+                                                className={
+                                                    "hidden text-sm font-semibold leading-6 xl:block " +
+                                                    palette.textMuted
+                                                }
                                             >
                                                 {t(
                                                     "hackathon.form.official_group_desc",
@@ -1386,6 +1188,116 @@ const HackathonRegistration = () => {
                 </div>
             </section>
         </div>
+    );
+};
+
+const DynamicRegistrationField = ({
+    field,
+    value,
+    error,
+    palette,
+    isDayMode,
+    onChange,
+    onToggle,
+}) => {
+    const controlClass = `w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
+        error ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+    }`;
+
+    if (field.type === "multi_select") {
+        const selectedValues = Array.isArray(value) ? value : [];
+        return (
+            <Field label={field.label} required={field.required} error={error} palette={palette}>
+                {field.placeholder ? (
+                    <p className={`mb-3 text-sm ${palette.textMuted}`}>{field.placeholder}</p>
+                ) : null}
+                <div className="flex flex-wrap gap-2.5">
+                    {field.options.map((option) => {
+                        const selected = selectedValues.includes(option.value);
+                        return (
+                            <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => onToggle(option.value)}
+                                className={`inline-flex min-h-12 items-center gap-2 border px-5 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                                    selected
+                                        ? isDayMode
+                                            ? "border-cyan-600 bg-cyan-600 text-white"
+                                            : "border-cyan-300 bg-cyan-300 text-slate-950"
+                                        : `${palette.chip} hover:border-cyan-400 hover:text-cyan-600`
+                                }`}
+                            >
+                                {selected ? <CheckCircle className="h-4 w-4" /> : null}
+                                {option.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </Field>
+        );
+    }
+
+    if (field.type === "select") {
+        return (
+            <Field label={field.label} required={field.required} error={error} palette={palette}>
+                <select
+                    value={value || ""}
+                    onChange={(event) => onChange(event.target.value)}
+                    className={`${controlClass} appearance-none`}
+                >
+                    <option value="">{field.placeholder || `请选择${field.label}`}</option>
+                    {field.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+        );
+    }
+
+    if (field.type === "checkbox") {
+        return (
+            <Field label={field.label} required={field.required} error={error} palette={palette}>
+                <label className={`flex min-h-14 items-center gap-3 border px-5 ${palette.chip}`}>
+                    <input
+                        type="checkbox"
+                        checked={value === true}
+                        onChange={(event) => onChange(event.target.checked)}
+                        className="h-5 w-5"
+                    />
+                    <span className="text-sm font-semibold">
+                        {field.placeholder || `我已确认${field.label}`}
+                    </span>
+                </label>
+            </Field>
+        );
+    }
+
+    if (field.type === "textarea") {
+        return (
+            <Field label={field.label} required={field.required} error={error} palette={palette}>
+                <textarea
+                    value={value || ""}
+                    onChange={(event) => onChange(event.target.value)}
+                    placeholder={field.placeholder}
+                    rows={5}
+                    className={`${controlClass} min-h-[160px] resize-y leading-8`}
+                />
+            </Field>
+        );
+    }
+
+    return (
+        <Field label={field.label} required={field.required} error={error} palette={palette}>
+            <input
+                type={["email", "tel", "number"].includes(field.type) ? field.type : "text"}
+                value={value || ""}
+                onChange={(event) => onChange(event.target.value)}
+                placeholder={field.placeholder}
+                className={controlClass}
+            />
+        </Field>
     );
 };
 

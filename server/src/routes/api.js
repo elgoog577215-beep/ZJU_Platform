@@ -719,13 +719,28 @@ router.post("/fs/content", authenticateToken, isAdmin, fsController.saveFileCont
 
 // Competition Outcome Routes
 router.get("/competitions/current/outcome", optionalAuth, competitionController.getCurrentOutcome);
+router.get(
+    "/competitions/:competitionSlug/outcome",
+    optionalAuth,
+    competitionController.getCurrentOutcome
+);
 router.post(
     "/competitions/current/media",
     authenticateToken,
     competitionController.submitCurrentMedia
 );
 router.post(
+    "/competitions/:competitionSlug/media",
+    authenticateToken,
+    competitionController.submitCurrentMedia
+);
+router.post(
     "/competitions/current/works",
+    authenticateToken,
+    competitionController.submitCurrentWork
+);
+router.post(
+    "/competitions/:competitionSlug/works",
     authenticateToken,
     competitionController.submitCurrentWork
 );
@@ -894,8 +909,22 @@ router.delete("/admin/messages/:id", authenticateToken, isAdmin, messageControll
 router.put("/admin/messages/:id/read", authenticateToken, isAdmin, messageController.markAsRead);
 
 // Hackathon Registration Routes
+router.get("/hackathon/schedule", hackathonController.getHackathonScheduleConfig);
+router.get("/hackathon/template", hackathonController.getHackathonTemplateConfig);
 router.post("/hackathon/assistant", optionalAuth, hackathonController.handleHackathonAssistant);
 router.post("/hackathon/register", hackathonController.registerHackathon);
+router.put(
+    "/admin/hackathon/schedule",
+    authenticateToken,
+    isAdmin,
+    hackathonController.updateHackathonScheduleConfig
+);
+router.put(
+    "/admin/hackathon/template",
+    authenticateToken,
+    isAdmin,
+    hackathonController.updateHackathonTemplateConfig
+);
 router.get(
     "/admin/hackathon/registrations",
     authenticateToken,
