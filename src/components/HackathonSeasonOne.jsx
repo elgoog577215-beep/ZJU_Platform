@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { CalendarDays, Film, LockKeyhole, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -35,6 +35,8 @@ const HackathonSeasonOne = () => {
     const { settings, uiMode } = useSettings();
     const { schedule, loading: scheduleLoading } = useHackathonSchedule(settings);
     const isDayMode = uiMode === "day";
+    const shellRef = useRef(null);
+    const schedulePanelRef = useRef(null);
     const timelineScrollRef = useRef(null);
     const activeNodeRef = useRef(null);
     const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -74,6 +76,40 @@ const HackathonSeasonOne = () => {
         const targetLeft = node.offsetLeft - (container.clientWidth - node.offsetWidth) / 2;
         container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
     }, [activeEventKey]);
+
+    useLayoutEffect(() => {
+        const shell = shellRef.current;
+        const panel = schedulePanelRef.current;
+        if (!shell || !panel) return undefined;
+
+        let animationFrame = 0;
+        const measureScheduleClearance = () => {
+            window.cancelAnimationFrame(animationFrame);
+            animationFrame = window.requestAnimationFrame(() => {
+                const panelBottom = panel.getBoundingClientRect().bottom;
+                shell.style.setProperty(
+                    "--hackathon-schedule-clearance",
+                    `${Math.ceil(panelBottom + 16)}px`
+                );
+            });
+        };
+
+        const resizeObserver =
+            typeof ResizeObserver === "function"
+                ? new ResizeObserver(measureScheduleClearance)
+                : null;
+        resizeObserver?.observe(panel);
+        window.addEventListener("resize", measureScheduleClearance);
+        window.visualViewport?.addEventListener?.("resize", measureScheduleClearance);
+        measureScheduleClearance();
+
+        return () => {
+            window.cancelAnimationFrame(animationFrame);
+            resizeObserver?.disconnect();
+            window.removeEventListener("resize", measureScheduleClearance);
+            window.visualViewport?.removeEventListener?.("resize", measureScheduleClearance);
+        };
+    }, []);
 
     const views = useMemo(
         () => [
@@ -135,18 +171,29 @@ const HackathonSeasonOne = () => {
         : "cursor-not-allowed text-white/30 opacity-60";
 
     return (
-        <div className="hackathon-schedule-shell day-page-theme day-page-theme-tech relative min-h-[100svh] max-w-full overflow-x-hidden">
+        <div
+            ref={shellRef}
+            className="hackathon-schedule-shell day-page-theme day-page-theme-tech relative min-h-[100svh] max-w-full overflow-x-hidden"
+        >
             <style>
                 {`
+                    .hackathon-schedule-shell {
+                        --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 16rem);
+                    }
                     .hackathon-schedule-shell [data-registration-page] #hackathon-hero {
-                        padding-top: calc(env(safe-area-inset-top) + 14.75rem) !important;
+                        padding-top: var(--hackathon-schedule-clearance) !important;
                     }
                     .hackathon-schedule-shell [data-showcase-page] .showcase-gate-frame {
-                        padding-top: calc(env(safe-area-inset-top) + 14.75rem) !important;
+                        padding-top: var(--hackathon-schedule-clearance) !important;
+                    }
+                    @media (min-width: 640px) {
+                        .hackathon-schedule-shell {
+                            --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 16.5rem);
+                        }
                     }
                     @media (min-width: 1024px) {
                         .hackathon-schedule-shell [data-registration-logo-panel] {
-                            top: calc(env(safe-area-inset-top) + 13.75rem) !important;
+                            top: var(--hackathon-schedule-clearance) !important;
                         }
                     }
                 `}
@@ -154,6 +201,8 @@ const HackathonSeasonOne = () => {
 
             <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
+                    ref={schedulePanelRef}
+                    data-hackathon-schedule-panel
                     className={`pointer-events-auto mx-auto max-w-[1480px] overflow-hidden rounded-[10px] border px-2 py-2 backdrop-blur-2xl sm:px-3 ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
