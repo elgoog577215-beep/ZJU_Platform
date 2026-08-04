@@ -68,4 +68,4 @@
 
 ---
 
-> Plan: docs/archive/superpowers/plans/2026-06-13-add-project-plaza.md
+> Plan: docs/归档/旧版设计/计划/2026-06-13-add-project-plaza.md

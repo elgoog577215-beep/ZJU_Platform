@@ -43,8 +43,9 @@
     - 后续项目后台入口可能复用或扩展 `projectCardController` 和 `/admin/projects/*`。
     - AI 能力状态继续复用 `unifiedAiAssistantService`、`aiAgentRegistryService` 和搜索索引服务。
 - 文档：
-    - `docs/roadmap/admin-console-architecture-audit-20260708.md`
-    - `docs/roadmap/product-iteration-queue.md`
+    - `docs/产品状态.md`
+    - `docs/系统架构.md`
+    - `docs/开发禁区.md`
 - i18n：
     - `public/locales/zh/translation.json`
     - `public/locales/en/translation.json`

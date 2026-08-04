@@ -39,4 +39,4 @@
 
 ---
 
-> Plan: docs/archive/superpowers/plans/2026-04-17-unify-notification-content.md
+> Plan: docs/归档/旧版设计/计划/2026-04-17-unify-notification-content.md

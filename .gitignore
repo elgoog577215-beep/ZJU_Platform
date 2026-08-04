@@ -53,11 +53,13 @@ pkcs11.txt
 *整体规划书*
 *融资材料*
 *路演材料*
-AGENTS.md
+# AGENTS.md 是公开的 AI 协作规则；备份和实验版本仍只保留本地。
 AGENTS.backup-*.md
 AGENTS.compact-*.md
 docs/ai-memory/
 docs/archive/session-summaries/
+docs/归档/session-summaries/
+docs/归档/会话摘要/
 docs/roadmap/
 docs/ai-agent-operating-system.generated.md
 

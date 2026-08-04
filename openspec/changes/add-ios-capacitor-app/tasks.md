@@ -30,7 +30,7 @@
 
 ## 4. 文档
 
-- [x] 4.1 新增 `docs/guides/ios-capacitor-app-guide.md`。
+- [x] 4.1 新增并维护 `docs/指南/iOS应用开发与验收指南.md`。
 - [x] 4.2 文档写明 Windows 能完成的准备工作，以及 macOS/Xcode 必需的构建步骤。
 - [x] 4.3 文档写明证书、Provisioning Profile、Apple ID、密码、Team ID 等敏感信息不得提交。
 - [x] 4.4 文档写明真机调试、缓存清理、外链处理、登录失败和白屏排查路径。
