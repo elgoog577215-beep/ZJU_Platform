@@ -21,6 +21,29 @@
 - **THEN** 总览优先展示内容待审、主体关系、生态项目状态、AI 能力健康和系统风险入口
 - **AND** 管理员可以从总览进入对应治理域。
 
+### Requirement: Content collection follows the notice supply workflow
+
+内容采集 SHALL 围绕来源维护、运行、候选筛选、人工修正和发布组织，不得默认平铺爬虫技术参数。
+
+#### Scenario: 管理员打开内容采集
+
+- **WHEN** 管理员从后台进入内容采集
+- **THEN** 首屏显示采集源数量、连接状态、调度状态、本轮新增和采集流水线
+- **AND** 管理员可以分别进入采集源、候选内容、连接与单次采集工作区
+- **AND** token、fakeid、分页延迟和风控参数不占据默认首屏
+- **AND** 当前实现明确为学院、社团等微信公众号来源，不暗示已经支持任意网站或多平台爬虫。
+
+### Requirement: Detailed settings are progressively disclosed
+
+站点设置 SHALL 按任务分类，并对字段较多的关于页面继续分区收纳。
+
+#### Scenario: 管理员维护关于页面
+
+- **WHEN** 管理员打开站点设置并选择关于站点
+- **THEN** 页面显示团队身份、数据依据、AI 社区、浙客松、支持网络和结尾等内容区块
+- **AND** 同一时刻只展示当前内容区块的字段
+- **AND** 安全和公共外观配置不与关于页面字段同时平铺。
+
 ### Requirement: AI governance wording reflects real capability boundaries
 
 AI 治理界面 SHALL 准确表达当前 AI 能力边界，不得把半成熟能力包装成完整全站 AI 治理。
@@ -51,8 +74,9 @@ AI 治理界面 SHALL 准确表达当前 AI 能力边界，不得把半成熟能
 #### Scenario: 管理员治理项目广场内容
 
 - **WHEN** 管理员进入生态项目运营域
-- **THEN** 后台提供或明确规划项目广场管理入口
+- **THEN** 后台提供项目广场管理入口
 - **AND** 至少覆盖项目列表、状态筛选、举报或下架、作者与组织归属查看
+- **AND** 下架与恢复操作写入审计日志
 - **AND** 项目管理不被误归类为普通图片、文章或音视频资源。
 
 ### Requirement: Admin module status is visible

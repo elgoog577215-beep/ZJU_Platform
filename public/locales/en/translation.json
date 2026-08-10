@@ -1476,8 +1476,14 @@
         "tabs": {
             "aria": "Zhekesong page switcher",
             "register": "Registration",
+            "register_short": "Register",
             "showcase": "Showcase",
-            "showcase_short": "Results"
+            "showcase_short": "Results",
+            "hidden": "{{label}} is not open yet"
+        },
+        "locked": {
+            "title": "This event page is not open yet",
+            "description": "Use the timeline above to browse other events."
         },
         "nav": {
             "home": "Home",
@@ -2154,21 +2160,60 @@
         "tabs": {
             "overview": "Overview",
             "pending": "Review Center",
-            "intelligence": "Intelligence Governance",
-            "wechatMp": "WeChat Import",
-            "events": "Events Hub",
-            "hackathon": "Hackathon",
+            "intelligence": "Capabilities & Models",
+            "wechatMp": "Content Collection",
+            "events": "Events",
+            "hackathon": "ZJUX Hackathon",
             "articles": "Articles",
             "photos": "Photos",
             "videos": "Videos",
             "music": "Audio",
-            "pages": "Pages",
+            "pages": "Page Content",
             "tags": "Tags",
-            "users": "Users",
-            "community": "Community",
-            "messages": "Messages",
-            "settings": "Settings",
-            "attribution": "Attribution"
+            "users": "Accounts & Organizations",
+            "community": "AI Community",
+            "messages": "Feedback",
+            "settings": "Site Settings",
+            "attribution": "Legacy Attribution",
+            "projects": "Project Plaza",
+            "partners": "Ecosystem Partners",
+            "futureLearning": "Industry Projects",
+            "mediaCategories": "Media Categories"
+        },
+        "domains": {
+            "overview": "Operations Overview",
+            "content": "Content & Review",
+            "subjects": "Identities & Relations",
+            "projects": "Ecosystem Programs",
+            "ai": "AI Capabilities",
+            "system": "System & Audit"
+        },
+        "status": {
+            "ready": "Ready",
+            "maintenance": "Maintenance",
+            "experimental": "Experimental",
+            "tool": "Tool"
+        },
+        "dashboard_ui": {
+            "open_navigation": "Open admin navigation",
+            "close_navigation": "Close admin navigation",
+            "quick_jump": "Jump to an admin module",
+            "navigation": "Admin navigation",
+            "navigation_short": "Navigation",
+            "search": "Search admin modules",
+            "search_placeholder": "Search modules or tasks",
+            "clear_search": "Clear search",
+            "open_module": "Open {{label}} module",
+            "no_matches": "No matching modules",
+            "back_to_top": "Back to the top of admin",
+            "back_to_top_short": "Back to top",
+            "resource_titles": {
+                "photos": "Photo Resources",
+                "music": "Audio Resources",
+                "videos": "Video Resources",
+                "articles": "Article Content",
+                "events": "Event Management"
+            }
         },
         "messages": {
             "title": "Messages",
@@ -2345,12 +2390,12 @@
             "systemConfig": "System Config"
         },
         "descriptions": {
-            "overview": "Key metrics, tasks, and common shortcuts",
+            "overview": "Tasks, operating status, and risk entry points",
             "pending": "Review pending content in one place",
-            "intelligence": "Event governance and model interfaces",
-            "wechatMp": "Import official account articles and create event drafts",
+            "intelligence": "Event metadata governance and model interfaces",
+            "wechatMp": "Manage official-account notices from colleges and clubs",
             "events": "Event content, registration, and basics",
-            "hackathon": "Hackathon registrations and participant data",
+            "hackathon": "ZJUX registrations and participant data",
             "articles": "Articles, news, and long-form content",
             "photos": "Image assets and display materials",
             "videos": "Video assets and covers",
@@ -2361,7 +2406,250 @@
             "messages": "Site contact and feedback messages",
             "tags": "Site tags and filter dictionaries",
             "settings": "Site switches and basic configuration",
-            "attribution": "Move official-uploaded events under certified organizations"
+            "attribution": "Move official-uploaded events under certified organizations",
+            "projects": "Project status, reports, takedown, and ownership",
+            "partners": "Organizations, companies, and event providers",
+            "futureLearning": "Industry project applications and configuration",
+            "mediaCategories": "Shared image and video categories"
+        },
+        "settings_console": {
+            "title": "Site Settings",
+            "description": "Maintain site, security, and appearance settings by category.",
+            "navigation": "Settings categories",
+            "loading": "Loading site settings...",
+            "tabs": {
+                "general": "General & Security",
+                "appearance": "Public Appearance",
+                "about": "About Page"
+            },
+            "actions": {
+                "saving": "Saving...",
+                "save": "Save changes",
+                "saved": "Saved"
+            },
+            "toasts": {
+                "load_fail": "Failed to load site settings",
+                "save_success": "Setting saved",
+                "save_fail": "Failed to save setting"
+            },
+            "security": {
+                "title": "Security",
+                "description": "The invite code is sensitive and its current value is never returned by the read API.",
+                "invite_code": "Organization invite code",
+                "invite_placeholder": "Enter a new invite code",
+                "invite_help": "The current invite code changes only after a new value is entered and saved."
+            },
+            "site": {
+                "title": "Site Basics",
+                "description": "Maintain the shared site name.",
+                "name": "Site name"
+            },
+            "template": {
+                "title": "ZJUX Event Template",
+                "description": "Event details, rules, and registration forms share one template.",
+                "note": "Edit and publish the complete template from ZJUX management to avoid conflicting configuration sources.",
+                "action": "Open template management"
+            },
+            "appearance": {
+                "title": "Public Appearance",
+                "description": "Only controls that affect the shared site background live here.",
+                "fields": {
+                    "background_brightness": "Background brightness ({{value}})",
+                    "background_bloom": "Bloom intensity ({{value}})",
+                    "background_vignette": "Vignette intensity ({{value}})"
+                },
+                "help": {
+                    "background_brightness": "Controls overall background brightness.",
+                    "background_bloom": "Controls glow intensity; high values reduce readability.",
+                    "background_vignette": "Controls edge shading without obscuring content."
+                }
+            },
+            "about": {
+                "title": "About Page",
+                "description": "Maintain the public About page by section; only one section is shown at a time.",
+                "navigation": "About page sections",
+                "groups": {
+                    "identity": "Team Identity",
+                    "proof": "Evidence",
+                    "community": "AI Community",
+                    "hackathon": "ZJUX",
+                    "network": "Support Network",
+                    "closing": "Closing"
+                },
+                "fields": {
+                    "about_team_title": "Team title",
+                    "about_team_subtitle": "Team subtitle",
+                    "about_team_intro_1": "Team introduction, paragraph 1",
+                    "about_team_intro_2": "Team introduction, paragraph 2",
+                    "about_support_units": "Support units (comma separated)",
+                    "about_stat_1_value": "Metric 1 value",
+                    "about_stat_1_label": "Metric 1 meaning",
+                    "about_stat_2_value": "Metric 2 value",
+                    "about_stat_2_label": "Metric 2 meaning",
+                    "about_stat_3_value": "Metric 3 value",
+                    "about_stat_3_label": "Metric 3 meaning",
+                    "about_community_title": "Community title",
+                    "about_community_tagline": "Community tag",
+                    "about_community_desc": "Community description",
+                    "about_community_bullets": "Community points (one per line)",
+                    "about_hackathon_title": "ZJUX title",
+                    "about_hackathon_tagline": "ZJUX tag",
+                    "about_hackathon_desc": "ZJUX description",
+                    "about_hackathon_bullets": "ZJUX points (one per line)",
+                    "about_flagship_title": "Community and competition title",
+                    "about_flagship_note": "Community and competition note",
+                    "about_support_title": "Support network title",
+                    "about_support_desc": "Support network description",
+                    "about_support_positioning": "Support network positioning",
+                    "about_support_method": "Support network method",
+                    "about_support_result": "Support network result",
+                    "about_final_title": "Closing title",
+                    "about_final_desc": "Closing description",
+                    "about_final_note": "Closing note"
+                }
+            }
+        },
+        "project_manager": {
+            "title": "Project Governance",
+            "description": "Review project status, report signals, owners, and organization attribution in one place.",
+            "loading": "Loading projects...",
+            "search": "Search projects",
+            "search_placeholder": "Search project, owner, or tech stack",
+            "progress_filter": "Filter by project progress",
+            "list_title": "Projects ({{count}})",
+            "empty_title": "No matching projects",
+            "empty_description": "Try another status, progress, or search term.",
+            "no_intro": "No introduction",
+            "no_organization": "No organization linked",
+            "actions": {
+                "refresh": "Refresh",
+                "search": "Search",
+                "open_project": "Open project: {{title}}",
+                "takedown": "Take down",
+                "restore": "Restore",
+                "takedown_project": "Take down project: {{title}}",
+                "restore_project": "Restore project: {{title}}",
+                "confirm_takedown": "Confirm takedown",
+                "confirm_restore": "Confirm restore"
+            },
+            "status": {
+                "all": "All statuses",
+                "published": "Published",
+                "draft": "Draft",
+                "removed": "Removed"
+            },
+            "progress": {
+                "all": "All progress",
+                "idea": "Idea",
+                "dev": "In development",
+                "live": "Live",
+                "pause": "Paused"
+            },
+            "summary": {
+                "total": "Total projects {{count}}",
+                "visible": "Current results {{count}}",
+                "reports": "Reports {{count}}",
+                "removed": "Removed {{count}}"
+            },
+            "columns": {
+                "project": "Project",
+                "owner": "Owner & organization",
+                "progress": "Progress",
+                "status": "Status",
+                "reports": "Reports",
+                "updated": "Updated",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "takedown_title": "Take down project",
+                "takedown_description": "“{{title}}” will no longer be public, and the action will be written to the audit log.",
+                "restore_title": "Restore project",
+                "restore_description": "“{{title}}” will return to published status.",
+                "reason": "Takedown reason",
+                "reason_placeholder": "Record the report review or takedown basis"
+            },
+            "toasts": {
+                "load_fail": "Failed to load projects",
+                "takedown_success": "Project taken down",
+                "restore_success": "Project restored",
+                "action_fail": "Project action failed"
+            }
+        },
+        "ai_governance": {
+            "title": "AI Capability Governance",
+            "description": "Separate event metadata operations, read-only Agent diagnostics, and model infrastructure; incomplete capabilities are not presented as operational workflows.",
+            "navigation": "AI capability governance sections",
+            "loading": "Loading AI capability status...",
+            "empty_value": "Empty",
+            "change_to": "Change to",
+            "reason": "Reason: {{value}}",
+            "apply_summary": "Applied {{applied}}, skipped {{skipped}}",
+            "selected_count": "Selected {{selected}} / {{total}}",
+            "sections": {
+                "agents": "Capability Status",
+                "governance": "Event Metadata",
+                "models": "Model Configuration"
+            },
+            "status": {
+                "operational": "Operational",
+                "diagnostic": "Read-only diagnostic",
+                "none": "None",
+                "conflict": "Conflicts",
+                "complete": "Complete"
+            },
+            "suggestion_status": {
+                "suggested": "Pending",
+                "applied": "Applied",
+                "skipped": "Skipped",
+                "skipped_conflict": "Conflict"
+            },
+            "agents": {
+                "title": "AI Capability Status",
+                "read_only_note": "This is a read-only diagnostic for Agent, search, recommendation, and index capabilities. A status does not mean an operational governance loop exists.",
+                "agent_count": "Agents",
+                "average_maturity": "Average maturity",
+                "priority_gaps": "Priority gaps",
+                "live_modules": "Live modules",
+                "next_step": "Next: {{value}}",
+                "partial_gaps": "{{count}} partially mature areas",
+                "current_priorities": "Current priorities",
+                "next_iteration": "Next iteration"
+            },
+            "governance": {
+                "title": "Event Metadata Governance",
+                "description": "Scan structured fields such as event categories; administrators select and confirm before applying changes.",
+                "events": "Events",
+                "uncategorized": "Missing categories",
+                "available_keys": "Available keys",
+                "latest_run": "Latest run",
+                "scanned": "Scanned",
+                "suggestions": "Suggestions",
+                "high_confidence": "High confidence"
+            },
+            "models": {
+                "infrastructure_note": "Model keys are infrastructure, not evidence of AI product quality. Changes still require live evaluation and runtime health checks."
+            },
+            "actions": {
+                "refresh": "Refresh",
+                "scan": "Scan",
+                "apply": "Apply",
+                "select_high_confidence": "Select high confidence",
+                "clear": "Clear"
+            },
+            "empty": {
+                "no_suggestions": "No suggestions",
+                "not_scanned": "Not scanned",
+                "no_suggestions_description": "The current scan found no metadata suggestions that need action.",
+                "not_scanned_description": "Run a scan to list event metadata suggestions that can be applied."
+            },
+            "toasts": {
+                "load_fail": "Failed to load AI capability status",
+                "scan_success": "Scan complete: {{count}} suggestions",
+                "scan_fail": "Scan failed",
+                "select_suggestion": "Select at least one suggestion",
+                "apply_success": "Applied {{applied}}, skipped {{skipped}}",
+                "apply_fail": "Apply failed"
+            }
         },
         "pro_tip": "Pro Tip",
         "pro_tip_desc": "Use the grid/list view toggle to manage content efficiently.",
@@ -2556,6 +2844,43 @@
         },
         "overview_ui": {
             "loading_stats": "Loading stats...",
+            "load_fail": "Failed to load stats",
+            "no_permission": "Permission denied",
+            "not_logged_in": "Please sign in",
+            "refresh": "Refresh",
+            "pending": "Pending review",
+            "upcoming": "Upcoming events",
+            "views_7d": "7-day views",
+            "registrations_7d": "7-day registrations",
+            "assets": "Total content",
+            "content_collection": "Content Collection",
+            "priority": "Current Work",
+            "pending_count": "{{count}} pending",
+            "queue_clear": "Review queue is clear",
+            "review_now": "Review now",
+            "manage_sources": "Manage sources",
+            "collection": "Content Collection",
+            "collection_signal": "Official-account notices from colleges and clubs",
+            "open_collection": "Open collection",
+            "subjects_signal": "Accounts, organizations, partners, and legacy attribution",
+            "open_subjects": "View identities",
+            "projects_signal": "Project Plaza, ZJUX, and industry projects",
+            "open_projects": "Open programs",
+            "ai_signal": "Event metadata governance and model status",
+            "open_ai": "View capabilities",
+            "inventory": "Content Status",
+            "type": "Type",
+            "total": "Total",
+            "pending_short": "Pending",
+            "deleted": "Trash",
+            "activity_status": "Event Operations",
+            "open_events": "Open events",
+            "no_activity_data": "No event activity data yet",
+            "no_date": "No date",
+            "views": "views",
+            "registrations": "registrations",
+            "runtime_details": "System Runtime",
+            "uptime_seconds": "Up for {{count}} seconds",
             "system_status": "System Status",
             "node_version": "Node Version",
             "platform": "Platform",
@@ -2785,8 +3110,40 @@
             "empty_desc": "Try another organization, add organization aliases, or inspect historical organizer text."
         },
         "wechat_mp": {
-            "title": "Official Account Article Import",
-            "description": "Import official account article bodies and convert them into editable, publishable site content.",
+            "title": "Content Collection",
+            "description": "Manage school notice sources and turn new content into editable, publishable event candidates.",
+            "workspace": {
+                "title": "Content Collection",
+                "description": "Manage official-account sources for colleges and clubs, then screen new notices for publication.",
+                "navigation": "Content collection workspace",
+                "overview_tab": "Run Overview",
+                "sources_tab": "Sources",
+                "candidates_tab": "Candidates",
+                "advanced_tab": "Connection & Manual Run",
+                "connect_wechat": "Connect WeChat Collection",
+                "sources_status": "Sources {{enabled}}/{{total}}",
+                "login_status": "WeChat {{status}}",
+                "schedule_status": "Daily at {{time}}",
+                "schedule_disabled": "Scheduled collection is off",
+                "new_articles_status": "New this run {{count}}",
+                "pipeline_title": "Collection Pipeline",
+                "pipeline_description": "Work through operational steps; technical settings stay folded until troubleshooting.",
+                "source_count": "{{count}} enabled",
+                "candidate_count": "{{count}} candidates",
+                "manual_review": "Manual review",
+                "advanced_schedule": "Schedule & Risk Controls",
+                "advanced_schedule_hint": "Defaults fit routine operation; adjust only while troubleshooting",
+                "pipeline": {
+                    "sources": "Maintain sources",
+                    "sources_detail": "Official accounts run by colleges and clubs",
+                    "collect": "Run incremental collection",
+                    "collect_detail": "Runs on schedule or on demand",
+                    "screen": "Screen event candidates",
+                    "screen_detail": "Exclude unrelated posts and check event data",
+                    "publish": "Correct and publish",
+                    "publish_detail": "Confirm title, time, place, and organizer"
+                }
+            },
             "actions": {
                 "refresh_status": "Refresh Status",
                 "start_login": "Scan Login",

@@ -15,6 +15,7 @@ import {
     Users,
     ArrowUp,
     ChevronRight,
+    ChevronDown,
     Tag,
     X,
     Menu,
@@ -26,6 +27,7 @@ import {
     Handshake,
     GitBranch,
     QrCode,
+    FolderKanban,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -46,6 +48,7 @@ import EcosystemPartnerManager from "./EcosystemPartnerManager";
 import EventAttributionMigrationManager from "./EventAttributionMigrationManager";
 import MediaCategoryManager from "./MediaCategoryManager";
 import WeChatMpImportManager from "./WeChatMpImportManager";
+import ProjectManager from "./ProjectManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
@@ -53,6 +56,12 @@ const RECENT_STORAGE_KEY = "admin.recentTabs";
 const MAX_RECENT_TABS = 4;
 const LEGACY_TAB_ALIASES = {
     "ai-models": "intelligence",
+};
+const MODULE_STATUS = {
+    ready: "ready",
+    maintenance: "maintenance",
+    experimental: "experimental",
+    tool: "tool",
 };
 const normalizeTabId = (tabId) => LEGACY_TAB_ALIASES[tabId] || tabId;
 const KNOWN_TAB_IDS = new Set([
@@ -63,6 +72,7 @@ const KNOWN_TAB_IDS = new Set([
     "attribution",
     "events",
     "hackathon",
+    "projects",
     "future-learning",
     "articles",
     "photos",
@@ -117,6 +127,7 @@ const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showBackToTop, setShowBackToTop] = useState(false);
     const [navQuery, setNavQuery] = useState("");
+    const [expandedGroupId, setExpandedGroupId] = useState("overview");
     const [, setRecentTabIds] = useState(readRecentTabs);
     const contentTopRef = useRef(null);
     const isDayMode = uiMode === "day";
@@ -152,63 +163,167 @@ const AdminDashboard = () => {
     const menuGroups = useMemo(
         () => [
             {
-                title: t("admin.menu.workspace", "工作台"),
+                id: "overview",
+                title: t("admin.domains.overview", "运营总览"),
+                icon: LayoutDashboard,
                 items: [
                     {
                         id: "overview",
                         label: t("admin.tabs.overview", "总览"),
                         icon: LayoutDashboard,
-                        description: t("admin.descriptions.overview", "关键数据、待办和常用入口"),
+                        description: t("admin.descriptions.overview", "待办、运营状态和风险入口"),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["待办", "状态", "风险"],
                     },
+                ],
+            },
+            {
+                id: "content",
+                title: t("admin.domains.content", "内容与审核"),
+                icon: Inbox,
+                items: [
                     {
                         id: "pending",
                         label: t("admin.tabs.pending", "审核中心"),
                         icon: Inbox,
                         description: t("admin.descriptions.pending", "集中处理待审核内容"),
-                    },
-                ],
-            },
-            {
-                title: t("admin.menu.eventOps", "活动运营"),
-                items: [
-                    {
-                        id: "intelligence",
-                        label: t("admin.tabs.intelligence", "智能治理"),
-                        icon: ShieldCheck,
-                        description: t("admin.descriptions.intelligence", "活动治理和模型接口"),
-                    },
-                    {
-                        id: "wechat-mp",
-                        label: t("admin.tabs.wechatMp", "微信采集"),
-                        icon: QrCode,
-                        description: t(
-                            "admin.descriptions.wechatMp",
-                            "导入公众号文章并生成活动草稿"
-                        ),
-                    },
-                    {
-                        id: "attribution",
-                        label: t("admin.tabs.attribution", "Organization attribution"),
-                        icon: GitBranch,
-                        description: t(
-                            "admin.descriptions.attribution",
-                            "Move historical official-uploaded events to certified organizations"
-                        ),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["审核", "发布", "驳回"],
                     },
                     {
                         id: "events",
                         label: t("admin.tabs.events", "活动"),
                         icon: Calendar,
                         description: t("admin.descriptions.events", "活动内容、报名与基础信息"),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["活动", "报名"],
+                    },
+                    {
+                        id: "community",
+                        label: t("admin.tabs.community", "AI 社区"),
+                        icon: MessageSquare,
+                        description: t("admin.descriptions.community", "统一内容与辅助社群目录"),
+                        status: MODULE_STATUS.maintenance,
+                        keywords: ["帖子", "问答", "社群"],
+                    },
+                    {
+                        id: "articles",
+                        label: t("admin.tabs.articles", "文章"),
+                        icon: BookOpen,
+                        description: t("admin.descriptions.articles", "文章、资讯和长内容"),
+                        status: MODULE_STATUS.ready,
+                    },
+                    {
+                        id: "photos",
+                        label: t("admin.tabs.photos", "图片"),
+                        icon: LayoutGrid,
+                        description: t("admin.descriptions.photos", "图片资源与展示素材"),
+                        status: MODULE_STATUS.ready,
+                    },
+                    {
+                        id: "videos",
+                        label: t("admin.tabs.videos", "视频"),
+                        icon: Film,
+                        description: t("admin.descriptions.videos", "视频资源与封面"),
+                        status: MODULE_STATUS.ready,
+                    },
+                    {
+                        id: "music",
+                        label: t("admin.tabs.music", "音频"),
+                        icon: Music,
+                        description: t("admin.descriptions.music", "音频资源与封面"),
+                        status: MODULE_STATUS.ready,
+                    },
+                    {
+                        id: "wechat-mp",
+                        label: t("admin.tabs.wechatMp", "内容采集"),
+                        icon: QrCode,
+                        description: t(
+                            "admin.descriptions.wechatMp",
+                            "维护学院、社团等通知来源与活动候选"
+                        ),
+                        status: MODULE_STATUS.maintenance,
+                        keywords: ["学院", "社团", "公众号", "通知", "导入", "采集"],
+                    },
+                    {
+                        id: "media-categories",
+                        label: t("admin.tabs.mediaCategories", "影像分类"),
+                        icon: ImageIcon,
+                        description: t("admin.descriptions.mediaCategories", "图片与视频共享分类"),
+                        status: MODULE_STATUS.tool,
+                    },
+                    {
+                        id: "pages",
+                        label: t("admin.tabs.pages", "页面内容"),
+                        icon: LayoutTemplate,
+                        description: t("admin.descriptions.pages", "站点静态文案与页面配置"),
+                        status: MODULE_STATUS.tool,
+                    },
+                    {
+                        id: "tags",
+                        label: t("admin.tabs.tags", "标签"),
+                        icon: Tag,
+                        description: t("admin.descriptions.tags", "站内标签和筛选字典"),
+                        status: MODULE_STATUS.tool,
+                    },
+                ],
+            },
+            {
+                id: "subjects",
+                title: t("admin.domains.subjects", "主体与关系"),
+                icon: Users,
+                items: [
+                    {
+                        id: "users",
+                        label: t("admin.tabs.users", "账号与组织"),
+                        icon: Users,
+                        description: t("admin.descriptions.users", "账号、发布权限与组织成员"),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["用户", "组织", "权限", "成员"],
+                    },
+                    {
+                        id: "partners",
+                        label: t("admin.tabs.partners", "合作主体"),
+                        icon: Handshake,
+                        description: t("admin.descriptions.partners", "合作方与活动提供方分层"),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["生态伙伴", "合作方", "提供方"],
+                    },
+                    {
+                        id: "attribution",
+                        label: t("admin.tabs.attribution", "历史归属修复"),
+                        icon: GitBranch,
+                        description: t("admin.descriptions.attribution", "迁移历史活动发布主体"),
+                        status: MODULE_STATUS.tool,
+                        keywords: ["组织归属", "迁移", "历史"],
+                    },
+                ],
+            },
+            {
+                id: "projects",
+                title: t("admin.domains.projects", "生态项目运营"),
+                icon: Trees,
+                items: [
+                    {
+                        id: "projects",
+                        label: t("admin.tabs.projects", "项目广场"),
+                        icon: FolderKanban,
+                        description: t(
+                            "admin.descriptions.projects",
+                            "项目状态、举报、下架与发起主体"
+                        ),
+                        status: MODULE_STATUS.maintenance,
+                        keywords: ["项目", "广场", "举报", "下架", "作者", "组织"],
                     },
                     {
                         id: "hackathon",
-                        label: t("admin.tabs.hackathon", "黑客松"),
+                        label: t("admin.tabs.hackathon", "浙客松"),
                         icon: Users,
                         description: t(
                             "admin.descriptions.hackathon",
-                            "黑客松报名、作品与经验审核"
+                            "报名、作品、成果与赛事模板"
                         ),
+                        status: MODULE_STATUS.ready,
                     },
                     {
                         id: "future-learning",
@@ -216,98 +331,48 @@ const AdminDashboard = () => {
                         icon: Trees,
                         description: t(
                             "admin.descriptions.futureLearning",
-                            "「智能生命健康」项目报名与问题揭榜"
+                            "产学项目报名与问题揭榜"
                         ),
+                        status: MODULE_STATUS.experimental,
                     },
                 ],
             },
             {
-                title: t("admin.menu.contentAssets", "内容资产"),
+                id: "ai",
+                title: t("admin.domains.ai", "AI 能力治理"),
+                icon: ShieldCheck,
                 items: [
                     {
-                        id: "articles",
-                        label: t("admin.tabs.articles", "文章"),
-                        icon: BookOpen,
-                        description: t("admin.descriptions.articles", "文章、资讯和长内容"),
-                    },
-                    {
-                        id: "photos",
-                        label: t("admin.tabs.photos", "图片"),
-                        icon: LayoutGrid,
-                        description: t("admin.descriptions.photos", "图片资源与展示素材"),
-                    },
-                    {
-                        id: "videos",
-                        label: t("admin.tabs.videos", "视频"),
-                        icon: Film,
-                        description: t("admin.descriptions.videos", "视频资源与封面"),
-                    },
-                    {
-                        id: "media-categories",
-                        label: t("admin.tabs.mediaCategories", "影像分类"),
-                        icon: ImageIcon,
-                        description: t("admin.descriptions.mediaCategories", "图片与视频共享分类"),
-                    },
-                    {
-                        id: "music",
-                        label: t("admin.tabs.music", "音频"),
-                        icon: Music,
-                        description: t("admin.descriptions.music", "音频资源与封面"),
-                    },
-                    {
-                        id: "pages",
-                        label: t("admin.tabs.pages", "页面内容"),
-                        icon: LayoutTemplate,
-                        description: t("admin.descriptions.pages", "站点静态文案与页面配置"),
+                        id: "intelligence",
+                        label: t("admin.tabs.intelligence", "能力与模型"),
+                        icon: ShieldCheck,
+                        description: t(
+                            "admin.descriptions.intelligence",
+                            "活动元数据治理、模型与 Agent 状态"
+                        ),
+                        status: MODULE_STATUS.experimental,
+                        keywords: ["AI", "模型", "Agent", "活动治理"],
                     },
                 ],
             },
             {
-                title: t("admin.menu.communityUsers", "社区与用户"),
+                id: "system",
+                title: t("admin.domains.system", "系统与审计"),
+                icon: Settings,
                 items: [
-                    {
-                        id: "community",
-                        label: t("admin.tabs.community", "社区运营"),
-                        icon: MessageSquare,
-                        description: t("admin.descriptions.community", "帖子、社群和社区数据"),
-                    },
-                    {
-                        id: "users",
-                        label: t("admin.tabs.users", "用户"),
-                        icon: Users,
-                        description: t("admin.descriptions.users", "账号、角色与用户状态"),
-                    },
                     {
                         id: "messages",
-                        label: t("admin.tabs.messages", "留言"),
+                        label: t("admin.tabs.messages", "留言反馈"),
                         icon: Mail,
                         description: t("admin.descriptions.messages", "站内联系与反馈消息"),
-                    },
-                ],
-            },
-            {
-                title: t("admin.menu.systemConfig", "系统配置"),
-                items: [
-                    {
-                        id: "partners",
-                        label: t("admin.tabs.partners", "生态伙伴"),
-                        icon: Handshake,
-                        description: t(
-                            "admin.descriptions.partners",
-                            "学校、社团与企业合作方统一维护"
-                        ),
-                    },
-                    {
-                        id: "tags",
-                        label: t("admin.tabs.tags", "标签"),
-                        icon: Tag,
-                        description: t("admin.descriptions.tags", "站内标签和筛选字典"),
+                        status: MODULE_STATUS.ready,
                     },
                     {
                         id: "settings",
-                        label: t("admin.tabs.settings", "设置"),
+                        label: t("admin.tabs.settings", "站点设置"),
                         icon: Settings,
-                        description: t("admin.descriptions.settings", "站点开关和基础配置"),
+                        description: t("admin.descriptions.settings", "低频站点配置与高风险设置"),
+                        status: MODULE_STATUS.tool,
                     },
                 ],
             },
@@ -327,7 +392,10 @@ const AdminDashboard = () => {
                     (item) =>
                         groupMatches ||
                         item.label.toLowerCase().includes(normalizedNavQuery) ||
-                        item.description.toLowerCase().includes(normalizedNavQuery)
+                        item.description.toLowerCase().includes(normalizedNavQuery) ||
+                        item.keywords?.some((keyword) =>
+                            keyword.toLowerCase().includes(normalizedNavQuery)
+                        )
                 );
                 return { ...group, items };
             })
@@ -337,6 +405,19 @@ const AdminDashboard = () => {
     const activeGroup = menuGroups.find((group) =>
         group.items.some((item) => item.id === activeTab)
     );
+    const statusLabels = useMemo(
+        () => ({
+            [MODULE_STATUS.ready]: t("admin.status.ready", "可运营"),
+            [MODULE_STATUS.maintenance]: t("admin.status.maintenance", "维护中"),
+            [MODULE_STATUS.experimental]: t("admin.status.experimental", "实验性"),
+            [MODULE_STATUS.tool]: t("admin.status.tool", "仅工具"),
+        }),
+        [t]
+    );
+
+    useEffect(() => {
+        if (activeGroup?.id) setExpandedGroupId(activeGroup.id);
+    }, [activeGroup?.id]);
 
     const scrollToContentStart = useCallback((behavior = "smooth") => {
         if (typeof window === "undefined") return;
@@ -425,6 +506,8 @@ const AdminDashboard = () => {
                 return <WeChatMpImportManager />;
             case "attribution":
                 return <EventAttributionMigrationManager />;
+            case "projects":
+                return <ProjectManager />;
             case "users":
                 return <UserManager />;
             case "pages":
@@ -433,7 +516,7 @@ const AdminDashboard = () => {
                 return (
                     <ResourceManager
                         key="photos"
-                        title="图片资源"
+                        title={t("admin.dashboard_ui.resource_titles.photos")}
                         apiEndpoint="photos"
                         type="image"
                         icon={LayoutGrid}
@@ -443,7 +526,7 @@ const AdminDashboard = () => {
                 return (
                     <ResourceManager
                         key="music"
-                        title="音频资源"
+                        title={t("admin.dashboard_ui.resource_titles.music")}
                         apiEndpoint="music"
                         type="audio"
                         icon={Music}
@@ -453,7 +536,7 @@ const AdminDashboard = () => {
                 return (
                     <ResourceManager
                         key="videos"
-                        title="视频资源"
+                        title={t("admin.dashboard_ui.resource_titles.videos")}
                         apiEndpoint="videos"
                         type="video"
                         icon={Film}
@@ -465,7 +548,7 @@ const AdminDashboard = () => {
                 return (
                     <ResourceManager
                         key="articles"
-                        title="文章内容"
+                        title={t("admin.dashboard_ui.resource_titles.articles")}
                         apiEndpoint="articles"
                         type="article"
                         icon={BookOpen}
@@ -475,7 +558,7 @@ const AdminDashboard = () => {
                 return (
                     <ResourceManager
                         key="events"
-                        title="活动管理"
+                        title={t("admin.dashboard_ui.resource_titles.events")}
                         apiEndpoint="events"
                         type="event"
                         icon={Calendar}
@@ -521,6 +604,23 @@ const AdminDashboard = () => {
         : "border-transparent bg-white/[0.03] text-gray-300 hover:border-white/10 hover:bg-white/5 hover:text-white";
     const activeIconClass = isDayMode ? "bg-indigo-100 text-indigo-600" : "bg-white/15";
     const inactiveIconClass = isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5";
+    const groupButtonClass = isDayMode
+        ? "text-slate-700 hover:bg-white hover:text-slate-950"
+        : "text-gray-300 hover:bg-white/[0.05] hover:text-white";
+    const statusBadgeClass = {
+        [MODULE_STATUS.ready]: isDayMode
+            ? "bg-emerald-50 text-emerald-700"
+            : "bg-emerald-500/10 text-emerald-300",
+        [MODULE_STATUS.maintenance]: isDayMode
+            ? "bg-amber-50 text-amber-700"
+            : "bg-amber-500/10 text-amber-300",
+        [MODULE_STATUS.experimental]: isDayMode
+            ? "bg-violet-50 text-violet-700"
+            : "bg-violet-500/10 text-violet-300",
+        [MODULE_STATUS.tool]: isDayMode
+            ? "bg-slate-100 text-slate-600"
+            : "bg-white/[0.06] text-gray-400",
+    }[activeItem?.status];
     const backToTopClass = isDayMode
         ? "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-slate-200/80 bg-white/[0.94] px-3 py-2 text-sm font-semibold text-slate-700 backdrop-blur transition-colors hover:text-indigo-600 md:bottom-6 md:right-6"
         : "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-white/10 bg-black/80 px-3 py-2 text-sm font-semibold text-white backdrop-blur transition-colors hover:text-indigo-200 md:bottom-6 md:right-6";
@@ -534,46 +634,50 @@ const AdminDashboard = () => {
                 tabIndex={-1}
                 className="mx-auto max-w-[1680px] scroll-mt-24 focus:outline-none"
             >
-                <div className="mb-4 flex flex-col gap-3 md:mb-5 xl:flex-row xl:items-end xl:justify-between">
-                    <div className="flex items-center gap-3 md:gap-4">
+                <div
+                    className={`rect-surface mb-3 flex items-center gap-3 border px-3 py-2.5 md:px-4 ${sidebarClass}`}
+                >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                         <button
                             type="button"
-                            aria-label="打开管理导航"
+                            aria-label={t("admin.dashboard_ui.open_navigation")}
                             aria-expanded={isMobileMenuOpen}
                             aria-controls="admin-navigation"
                             className={mobileToggleClass}
                             onClick={() => setIsMobileMenuOpen((value) => !value)}
                         >
-                            <Menu size={22} />
+                            <Menu size={20} />
                         </button>
-                        <div className="min-w-0">
-                            <h1
-                                className={`text-xl font-bold tracking-normal md:text-3xl ${titleClass}`}
-                                style={
-                                    isDayMode
-                                        ? { fontFamily: "var(--theme-font-display)" }
-                                        : undefined
-                                }
-                            >
-                                {t("admin.dashboard", "管理员后台")}
+                        <div className="flex min-w-0 items-center gap-2 text-sm">
+                            <h1 className={`shrink-0 font-bold ${titleClass}`}>
+                                {t("admin.dashboard", "管理控制台")}
                             </h1>
-                            <p className={`mt-1 max-w-2xl text-sm ${mutedClass}`}>
-                                {activeItem?.description ||
-                                    t("admin.subtitle", "统一管理内容、用户、社区和系统配置。")}
-                            </p>
+                            <ChevronRight size={15} className={metaLabelClass} />
+                            <span className={`hidden truncate sm:inline ${mutedClass}`}>
+                                {activeGroup?.title || t("admin.domains.overview", "运营总览")}
+                            </span>
+                            <ChevronRight
+                                size={15}
+                                className={`hidden sm:block ${metaLabelClass}`}
+                            />
+                            <span className={`truncate font-semibold ${titleClass}`}>
+                                {activeItem?.label || t("admin.tabs.overview", "总览")}
+                            </span>
+                            {activeItem?.status ? (
+                                <span
+                                    className={`hidden shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold md:inline ${statusBadgeClass}`}
+                                >
+                                    {statusLabels[activeItem.status]}
+                                </span>
+                            ) : null}
                         </div>
                     </div>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <div
-                            className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
-                        >
-                            {activeGroup?.title || "总览"}
-                        </div>
+                    <div className="hidden shrink-0 sm:block">
                         <select
-                            aria-label="快速跳转到管理模块"
+                            aria-label={t("admin.dashboard_ui.quick_jump")}
                             value={activeTab}
                             onChange={(event) => selectTab(event.target.value)}
-                            className="theme-admin-input rect-field min-h-[40px] min-w-0 px-3 py-2 text-sm font-semibold sm:w-56"
+                            className="theme-admin-input rect-field min-h-[36px] w-48 px-3 py-1.5 text-sm font-semibold xl:w-56"
                         >
                             {menuGroups.map((group) => (
                                 <optgroup key={group.title} label={group.title}>
@@ -603,25 +707,25 @@ const AdminDashboard = () => {
                 <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
                     <aside
                         id="admin-navigation"
-                        aria-label="管理员导航"
+                        aria-label={t("admin.dashboard_ui.navigation")}
                         className={`${
                             isMobileMenuOpen
                                 ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+72px)] bottom-[calc(env(safe-area-inset-bottom)+14px)] z-[100]"
                                 : "hidden"
-                        } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
+                        } lg:static lg:block lg:w-64 lg:flex-shrink-0`}
                     >
                         <div
-                            className={`rect-surface h-full p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-none ${sidebarClass}`}
+                            className={`rect-surface h-full overflow-y-auto p-3 lg:sticky lg:top-24 lg:h-[calc(100dvh-7rem)] ${sidebarClass}`}
                         >
                             <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
                                 <div
                                     className={`text-xs font-semibold uppercase tracking-[0.18em] ${metaLabelClass}`}
                                 >
-                                    导航
+                                    {t("admin.dashboard_ui.navigation_short")}
                                 </div>
                                 <button
                                     type="button"
-                                    aria-label="关闭管理导航"
+                                    aria-label={t("admin.dashboard_ui.close_navigation")}
                                     className={closeClass}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
@@ -637,16 +741,16 @@ const AdminDashboard = () => {
                                     />
                                     <input
                                         type="search"
-                                        aria-label="搜索管理模块"
+                                        aria-label={t("admin.dashboard_ui.search")}
                                         value={navQuery}
                                         onChange={(event) => setNavQuery(event.target.value)}
-                                        placeholder="搜索模块或任务"
+                                        placeholder={t("admin.dashboard_ui.search_placeholder")}
                                         className="theme-admin-input rect-field min-h-[38px] w-full py-2 pl-9 pr-9 text-sm font-semibold"
                                     />
                                     {navQuery ? (
                                         <button
                                             type="button"
-                                            aria-label="清空模块搜索"
+                                            aria-label={t("admin.dashboard_ui.clear_search")}
                                             className={searchClearClass}
                                             onClick={() => setNavQuery("")}
                                         >
@@ -656,56 +760,125 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-1">
                                 {filteredMenuGroups.length > 0 ? (
-                                    filteredMenuGroups.map((group) => (
-                                        <div key={group.title}>
-                                            <div
-                                                className={`px-1 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] ${metaLabelClass}`}
-                                            >
-                                                {group.title}
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1.5">
-                                                {group.items.map((tab) => {
-                                                    const isActive = activeTab === tab.id;
-                                                    return (
-                                                        <button
-                                                            type="button"
-                                                            key={tab.id}
-                                                            aria-label={`打开${tab.label}模块`}
-                                                            aria-current={
-                                                                isActive ? "page" : undefined
-                                                            }
-                                                            onClick={() => selectTab(tab.id)}
-                                                            className={`w-full rounded-[6px] border px-2 py-2 text-left transition-all ${
-                                                                isActive
-                                                                    ? activeItemClass
-                                                                    : inactiveItemClass
-                                                            }`}
-                                                        >
-                                                            <div className="flex min-w-0 items-center gap-2">
-                                                                <div
-                                                                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
+                                    filteredMenuGroups.map((group) => {
+                                        const isExpanded =
+                                            Boolean(normalizedNavQuery) ||
+                                            expandedGroupId === group.id;
+                                        const GroupIcon = group.icon;
+
+                                        return (
+                                            <div key={group.id}>
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={isExpanded}
+                                                    onClick={() =>
+                                                        setExpandedGroupId((current) =>
+                                                            current === group.id ? "" : group.id
+                                                        )
+                                                    }
+                                                    className={`flex min-h-[42px] w-full items-center gap-2 rounded-[6px] px-2 text-left text-sm font-bold transition-colors ${groupButtonClass}`}
+                                                >
+                                                    <span
+                                                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${inactiveIconClass}`}
+                                                    >
+                                                        <GroupIcon size={15} />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1 truncate">
+                                                        {group.title}
+                                                    </span>
+                                                    <span
+                                                        className={`text-[11px] font-normal ${metaLabelClass}`}
+                                                    >
+                                                        {group.items.length}
+                                                    </span>
+                                                    <ChevronDown
+                                                        size={15}
+                                                        className={`shrink-0 transition-transform ${
+                                                            isExpanded ? "rotate-180" : ""
+                                                        } ${metaLabelClass}`}
+                                                    />
+                                                </button>
+                                                {isExpanded ? (
+                                                    <div className="mb-2 ml-4 mt-1 space-y-1 border-l border-[rgba(128,146,167,0.16)] pl-3">
+                                                        {group.items.map((tab) => {
+                                                            const isActive = activeTab === tab.id;
+                                                            const showStatus =
+                                                                tab.status &&
+                                                                tab.status !== MODULE_STATUS.ready;
+                                                            return (
+                                                                <button
+                                                                    type="button"
+                                                                    key={tab.id}
+                                                                    aria-label={t(
+                                                                        "admin.dashboard_ui.open_module",
+                                                                        { label: tab.label }
+                                                                    )}
+                                                                    aria-current={
                                                                         isActive
-                                                                            ? activeIconClass
-                                                                            : inactiveIconClass
+                                                                            ? "page"
+                                                                            : undefined
+                                                                    }
+                                                                    onClick={() =>
+                                                                        selectTab(tab.id)
+                                                                    }
+                                                                    className={`w-full rounded-[6px] border px-2 py-1.5 text-left transition-all ${
+                                                                        isActive
+                                                                            ? activeItemClass
+                                                                            : inactiveItemClass
                                                                     }`}
                                                                 >
-                                                                    <tab.icon size={15} />
-                                                                </div>
-                                                                <div className="min-w-0 truncate text-sm font-semibold">
-                                                                    {tab.label}
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
+                                                                    <div className="flex min-w-0 items-center gap-2">
+                                                                        <div
+                                                                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
+                                                                                isActive
+                                                                                    ? activeIconClass
+                                                                                    : inactiveIconClass
+                                                                            }`}
+                                                                        >
+                                                                            <tab.icon size={15} />
+                                                                        </div>
+                                                                        <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+                                                                            {tab.label}
+                                                                        </div>
+                                                                        {showStatus ? (
+                                                                            <span
+                                                                                className={`shrink-0 text-[10px] font-semibold ${
+                                                                                    tab.status ===
+                                                                                    MODULE_STATUS.experimental
+                                                                                        ? isDayMode
+                                                                                            ? "text-violet-700"
+                                                                                            : "text-violet-300"
+                                                                                        : tab.status ===
+                                                                                            MODULE_STATUS.maintenance
+                                                                                          ? isDayMode
+                                                                                              ? "text-amber-700"
+                                                                                              : "text-amber-300"
+                                                                                          : metaLabelClass
+                                                                                }`}
+                                                                            >
+                                                                                {
+                                                                                    statusLabels[
+                                                                                        tab.status
+                                                                                    ]
+                                                                                }
+                                                                            </span>
+                                                                        ) : null}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : null}
                                             </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 ) : (
                                     <div className={emptySearchClass}>
-                                        <div className="font-semibold">没有匹配的模块</div>
+                                        <div className="font-semibold">
+                                            {t("admin.dashboard_ui.no_matches")}
+                                        </div>
                                         <button
                                             type="button"
                                             className={`mt-2 text-xs font-semibold ${
@@ -713,7 +886,7 @@ const AdminDashboard = () => {
                                             }`}
                                             onClick={() => setNavQuery("")}
                                         >
-                                            清空搜索
+                                            {t("admin.dashboard_ui.clear_search")}
                                         </button>
                                     </div>
                                 )}
@@ -738,7 +911,7 @@ const AdminDashboard = () => {
                 {showBackToTop ? (
                     <motion.button
                         type="button"
-                        aria-label="回到管理员顶部"
+                        aria-label={t("admin.dashboard_ui.back_to_top")}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 12 }}
@@ -746,7 +919,9 @@ const AdminDashboard = () => {
                         onClick={() => scrollToContentStart()}
                     >
                         <ArrowUp size={18} />
-                        <span className="hidden sm:inline">回到顶部</span>
+                        <span className="hidden sm:inline">
+                            {t("admin.dashboard_ui.back_to_top_short")}
+                        </span>
                     </motion.button>
                 ) : null}
             </AnimatePresence>

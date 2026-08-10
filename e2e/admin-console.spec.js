@@ -138,6 +138,30 @@ const messagesPayload = [
     },
 ];
 
+const projectsPayload = {
+    items: [
+        {
+            id: 31,
+            user_id: 2,
+            owner_name: "student_demo",
+            owner_profiles: ["浙江大学 AI 社团"],
+            title: "校园 AI 助手",
+            intro: "面向校园服务的智能问答项目",
+            progress: "dev",
+            need_tags: ["产品"],
+            tech_tags: ["React"],
+            status: "published",
+            report_count: 1,
+            latest_report_reason: "联系方式疑似失效",
+            updated_at: "2026-05-04T10:00:00.000Z",
+        },
+    ],
+    page: 1,
+    limit: 60,
+    total: 1,
+    totalPages: 1,
+};
+
 const aiOverviewPayload = {
     health: {
         eventCount: 12,
@@ -237,6 +261,10 @@ const installAdminMocks = async (page) => {
             return route.fulfill({ json: messagesPayload });
         }
 
+        if (path === "/admin/projects" && request.method() === "GET") {
+            return route.fulfill({ json: projectsPayload });
+        }
+
         if (path === "/admin/ai-assistant/overview") {
             return route.fulfill({ json: aiOverviewPayload });
         }
@@ -307,10 +335,16 @@ test.describe("admin console refinement", () => {
         await expect(page.getByRole("link", { name: "拓途浙享首页" })).toBeVisible();
         await expect(page.getByRole("button", { name: "打开总览模块" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
-        await expect(page.getByText("当前待审核内容")).toBeVisible();
-        await expect(page.getByRole("button", { name: /资产总量/ })).toBeVisible();
+        await expect(page.getByRole("button", { name: /待审核 3/ })).toBeVisible();
+        await expect(page.getByRole("button", { name: /内容总量 26/ })).toBeVisible();
         await expect(page.getByRole("button", { name: /近 7 日访问/ })).toBeVisible();
-        await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "当前工作" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "内容状态" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "内容与审核 11" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "主体与关系 3" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "生态项目运营 3" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "AI 能力治理 1" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "系统与审计 2" })).toBeVisible();
         const quickJump = page.getByRole("combobox", {
             name: "快速跳转到管理模块",
         });
@@ -324,6 +358,44 @@ test.describe("admin console refinement", () => {
         await quickJump.selectOption("overview");
         await expect(page).toHaveURL(/tab=overview/);
         await expect(quickJump).toHaveValue("overview");
+
+        await quickJump.selectOption("wechat-mp");
+        await expect(page).toHaveURL(/tab=wechat-mp/);
+        await expect(page.getByRole("heading", { name: "内容采集" })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "运行概况" })).toHaveAttribute(
+            "aria-selected",
+            "true"
+        );
+        await expect(page.getByRole("heading", { name: "采集流水线" })).toBeVisible();
+        await expect(page.getByText("定时与风控参数")).toHaveCount(0);
+        await page.getByRole("tab", { name: "连接与单次采集" }).click();
+        await expect(page.getByRole("heading", { name: "扫码登录" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "扫码登录" })).toBeVisible();
+
+        await quickJump.selectOption("settings");
+        await expect(page.getByRole("heading", { name: "站点设置" })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "基础与安全" })).toHaveAttribute(
+            "aria-selected",
+            "true"
+        );
+        await page.getByRole("tab", { name: "关于站点" }).click();
+        await expect(page.getByRole("tab", { name: "团队身份" })).toHaveAttribute(
+            "aria-selected",
+            "true"
+        );
+        await expect(page.getByRole("textbox", { name: "团队标题" })).toBeVisible();
+        await expect(page.getByRole("textbox", { name: "数据 1 数值" })).toHaveCount(0);
+        await page.getByRole("tab", { name: "数据依据" }).click();
+        await expect(page.getByRole("textbox", { name: "数据 1 数值" })).toBeVisible();
+        await expect(page.getByRole("textbox", { name: "团队标题" })).toHaveCount(0);
+
+        await quickJump.selectOption("projects");
+        await expect(page).toHaveURL(/tab=projects/);
+        await expect(page.getByRole("heading", { name: "项目治理" })).toBeVisible();
+        await expect(page.getByRole("cell", { name: /校园 AI 助手/ })).toBeVisible();
+        await expect(page.getByText("浙江大学 AI 社团")).toBeVisible();
+        await expect(page.getByText("联系方式疑似失效")).toBeVisible();
+        await expect(page.getByRole("button", { name: /下架项目：校园 AI 助手/ })).toBeVisible();
 
         await quickJump.selectOption("photos");
         await expect(page).toHaveURL(/tab=photos/);
@@ -372,17 +444,18 @@ test.describe("admin console refinement", () => {
 
         await quickJump.selectOption("intelligence");
         await expect(page).toHaveURL(/tab=intelligence/);
-        await expect(page.getByRole("heading", { name: "治理与模型配置" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "治理建议", exact: true })).toBeVisible();
-        await expect(page.getByRole("button", { name: "模型配置", exact: true })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "AI 能力治理" })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "活动元数据", exact: true })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "模型配置", exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
-        await expect(page.getByRole("heading", { name: "Agent 体系完成度" })).toBeVisible();
-        await page.getByRole("button", { name: "治理建议", exact: true }).click();
+        await expect(page.getByRole("heading", { name: "AI 能力状态" })).toBeVisible();
+        await page.getByRole("tab", { name: "活动元数据", exact: true }).click();
+        await expect(page.getByRole("heading", { name: "活动元数据治理" })).toBeVisible();
         await page.getByRole("button", { name: "扫描" }).first().click();
         await expect(page.getByText(/^原因：标题和描述包含黑客松/)).toBeVisible();
         await expect(page.getByRole("button", { name: "选择高置信" })).toBeVisible();
 
-        await page.getByRole("button", { name: "模型配置", exact: true }).click();
+        await page.getByRole("tab", { name: "模型配置", exact: true }).click();
         await expect(page.getByRole("heading", { name: "Key 列表 (1)" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "添加 Key" })).toHaveCount(0);
         await page.getByRole("button", { name: "添加 Key" }).click();
@@ -436,6 +509,7 @@ test.describe("admin console refinement", () => {
         await expect(page.getByLabel("管理员导航")).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
+        await page.getByRole("button", { name: "生态项目运营 3" }).click();
         await page.getByRole("button", { name: "打开黑客松模块" }).click();
         await expect(page.getByRole("heading", { name: "黑客松运营管理" })).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
@@ -447,7 +521,7 @@ test.describe("admin console refinement", () => {
 
         await menuButton.click();
         await page.getByRole("searchbox", { name: "搜索管理模块" }).fill("用户");
-        await page.getByRole("button", { name: /打开.*用户.*模块/ }).click();
+        await page.getByRole("button", { name: /打开.*账号与组织.*模块/ }).click();
         await expect(page.getByRole("heading", { name: "用户管理" })).toBeVisible();
         await expect(page.getByText("123").first()).toBeVisible();
         await expect

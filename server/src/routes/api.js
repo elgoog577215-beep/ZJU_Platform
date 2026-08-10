@@ -427,11 +427,18 @@ router.post(
 router.put("/projects/:id", authenticateToken, projectCardController.updateProject);
 router.delete("/projects/:id", authenticateToken, projectCardController.deleteProject);
 router.post("/projects/:id/report", authenticateToken, projectCardController.reportProject);
+router.get("/admin/projects", authenticateToken, isAdmin, projectCardController.listAdminProjects);
 router.put(
     "/admin/projects/:id/takedown",
     authenticateToken,
     isAdmin,
     projectCardController.takedownProject
+);
+router.put(
+    "/admin/projects/:id/restore",
+    authenticateToken,
+    isAdmin,
+    projectCardController.restoreProject
 );
 
 // System Routes

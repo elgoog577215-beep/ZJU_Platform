@@ -239,6 +239,86 @@ const listProjects = async (req, res, next) => {
     }
 };
 
+// GET /api/admin/projects  (admin list; includes drafts, removals and report signals)
+const listAdminProjects = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const { q, progress } = req.query;
+        const status = ["published", "draft", "removed"].includes(req.query.status)
+            ? req.query.status
+            : "all";
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 30));
+        const offset = (page - 1) * limit;
+        const where = ["1 = 1"];
+        const params = [];
+
+        if (status !== "all") {
+            where.push("p.status = ?");
+            params.push(status);
+        }
+        if (progress && PROGRESS.has(progress)) {
+            where.push("p.progress = ?");
+            params.push(progress);
+        }
+        if (q) {
+            where.push(
+                "(p.title LIKE ? OR p.tech_tags LIKE ? OR COALESCE(NULLIF(u.nickname, ''), u.username) LIKE ?)"
+            );
+            const like = `%${q}%`;
+            params.push(like, like, like);
+        }
+
+        const whereSql = where.join(" AND ");
+        const totalRow = await db.get(
+            `SELECT COUNT(*) AS n
+               FROM project_cards p
+               LEFT JOIN users u ON u.id = p.user_id
+              WHERE ${whereSql}`,
+            params
+        );
+        const rows = await db.all(
+            `SELECT p.*,
+                    COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name,
+                    (SELECT COUNT(*) FROM project_reports r WHERE r.project_id = p.id) AS report_count,
+                    (SELECT r.reason FROM project_reports r
+                      WHERE r.project_id = p.id
+                      ORDER BY r.created_at DESC, r.id DESC LIMIT 1) AS latest_report_reason,
+                    (SELECT GROUP_CONCAT(DISTINCT pr.display_name)
+                       FROM profiles pr
+                       LEFT JOIN profile_members pm ON pm.profile_id = pr.id
+                      WHERE pr.deleted_at IS NULL
+                        AND pr.status = 'active'
+                        AND (pr.owner_user_id = p.user_id OR (pm.user_id = p.user_id AND pm.status = 'active'))
+                    ) AS owner_profiles
+               FROM project_cards p
+               LEFT JOIN users u ON u.id = p.user_id
+              WHERE ${whereSql}
+              ORDER BY report_count DESC, p.updated_at DESC, p.id DESC
+              LIMIT ? OFFSET ?`,
+            [...params, limit, offset]
+        );
+
+        res.json({
+            items: rows.map((row) => ({
+                ...serialize(row, { viewer: req.user.id }),
+                owner_profiles: String(row.owner_profiles || "")
+                    .split(",")
+                    .map((name) => name.trim())
+                    .filter(Boolean),
+                report_count: Number(row.report_count || 0),
+                latest_report_reason: row.latest_report_reason || null,
+            })),
+            page,
+            limit,
+            total: totalRow?.n || 0,
+            totalPages: Math.max(1, Math.ceil((totalRow?.n || 0) / limit)),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // GET /api/projects/:id  (detail; contact login-gated; views++)
 const getProject = async (req, res, next) => {
     try {
@@ -309,6 +389,37 @@ const takedownProject = async (req, res, next) => {
             req.params.id,
         ]);
         if (!result.changes) return res.status(404).json({ error: "项目不存在" });
+        await db.run(
+            `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason)
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+                req.user.id,
+                "project_cards",
+                req.params.id,
+                "takedown",
+                req.body?.reason ? String(req.body.reason).slice(0, 500) : "Admin removed project",
+            ]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// PUT /api/admin/projects/:id/restore  (admin)
+const restoreProject = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const result = await db.run(
+            `UPDATE project_cards SET status = 'published', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+            [req.params.id]
+        );
+        if (!result.changes) return res.status(404).json({ error: "项目不存在" });
+        await db.run(
+            `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason)
+             VALUES (?, ?, ?, ?, ?)`,
+            [req.user.id, "project_cards", req.params.id, "restore", "Admin restored project"]
+        );
         res.json({ success: true });
     } catch (error) {
         next(error);
@@ -320,8 +431,10 @@ module.exports = {
     updateProject,
     deleteProject,
     listProjects,
+    listAdminProjects,
     getProject,
     getProjectShareCard,
     reportProject,
     takedownProject,
+    restoreProject,
 };

@@ -11,11 +11,13 @@ import {
     XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import api from "../../services/api";
 import {
     AdminButton,
     AdminEmptyState,
+    AdminInlineNote,
     AdminLoadingState,
     AdminPageShell,
     AdminPanel,
@@ -25,15 +27,15 @@ import {
 import AiModelConfigManager from "./AiModelConfigManager";
 
 const sections = [
-    { id: "agents", label: "Agent 体系", icon: Network },
-    { id: "governance", label: "治理建议", icon: Database },
-    { id: "models", label: "模型配置", icon: KeyRound },
+    { id: "agents", labelKey: "agents", icon: Network },
+    { id: "governance", labelKey: "governance", icon: Database },
+    { id: "models", labelKey: "models", icon: KeyRound },
 ];
 
-const valueText = (value) => {
-    if (value === null || value === undefined) return "空";
+const valueText = (value, emptyLabel) => {
+    if (value === null || value === undefined) return emptyLabel;
     const text = String(value).trim();
-    return text || "空";
+    return text || emptyLabel;
 };
 
 const confidenceClass = (confidence, isDayMode) => {
@@ -53,10 +55,10 @@ const confidenceClass = (confidence, isDayMode) => {
 };
 
 const suggestionStatusMeta = {
-    suggested: { label: "待处理", tone: "neutral" },
-    applied: { label: "已应用", tone: "success" },
-    skipped: { label: "已跳过", tone: "warning" },
-    skipped_conflict: { label: "冲突", tone: "warning" },
+    suggested: { tone: "neutral" },
+    applied: { tone: "success" },
+    skipped: { tone: "warning" },
+    skipped_conflict: { tone: "warning" },
 };
 
 const suggestionStatusClass = (status, isDayMode) => {
@@ -77,40 +79,21 @@ const suggestionStatusClass = (status, isDayMode) => {
 };
 
 const CompactStat = ({ label, value, icon: Icon }) => {
-    const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
+    const { mutedTextClass, headingTextClass } = useAdminTheme();
 
     return (
-        <div
-            className={clsx(
-                "rounded-xl border p-3",
-                isDayMode
-                    ? "border-slate-200/70 bg-white/[0.74]"
-                    : "border-white/10 bg-white/[0.04]"
-            )}
-        >
-            <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                    <div className={clsx("text-xs", mutedTextClass)}>{label}</div>
-                    <div className={clsx("mt-1 text-xl font-bold", headingTextClass)}>
-                        {value ?? 0}
-                    </div>
-                </div>
-                {Icon ? (
-                    <div
-                        className={clsx(
-                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                            isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5 text-gray-300"
-                        )}
-                    >
-                        <Icon size={16} />
-                    </div>
-                ) : null}
-            </div>
+        <div className="flex min-w-0 items-center gap-2 py-1">
+            {Icon ? <Icon size={15} className={mutedTextClass} /> : null}
+            <span className={clsx("text-xs", mutedTextClass)}>{label}</span>
+            <span className={clsx("text-base font-bold tabular-nums", headingTextClass)}>
+                {value ?? 0}
+            </span>
         </div>
     );
 };
 
 const AgentSystemView = ({ overview }) => {
+    const { t } = useTranslation();
     const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
     const agentSystem = overview?.agentSystem || {};
     const summary = agentSystem.summary || {};
@@ -123,105 +106,74 @@ const AgentSystemView = ({ overview }) => {
             : agentSystem.continuousImprovementPlan || [];
 
     return (
-        <AdminPanel title="Agent 体系完成度">
+        <AdminPanel title={t("admin.ai_governance.agents.title")}>
             <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+                <AdminInlineNote tone="info">
+                    {t("admin.ai_governance.agents.read_only_note")}
+                </AdminInlineNote>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-[rgba(128,146,167,0.14)] pb-3">
                     <CompactStat
-                        label="Agent"
+                        label={t("admin.ai_governance.agents.agent_count")}
                         value={summary.agentCount ?? modules.length}
                         icon={Network}
                     />
                     <CompactStat
-                        label="平均成熟度"
+                        label={t("admin.ai_governance.agents.average_maturity")}
                         value={`${Math.round((summary.averageMaturity || 0) * 100)}%`}
                         icon={ShieldCheck}
                     />
                     <CompactStat
-                        label="高优先缺口"
+                        label={t("admin.ai_governance.agents.priority_gaps")}
                         value={summary.highPriorityGapCount ?? gaps.length}
                         icon={XCircle}
                     />
                     <CompactStat
-                        label="在线模块"
+                        label={t("admin.ai_governance.agents.live_modules")}
                         value={summary.liveAgentCount || 0}
                         icon={CheckCircle2}
                     />
                 </div>
 
-                <div className="grid gap-3 xl:grid-cols-2">
+                <div className="divide-y divide-[rgba(128,146,167,0.14)]">
                     {modules.map((module) => (
                         <div
                             key={module.id}
-                            className={clsx(
-                                "rounded-xl border p-4",
-                                isDayMode
-                                    ? "border-slate-200/70 bg-white/[0.82]"
-                                    : "border-white/10 bg-white/[0.04]"
-                            )}
+                            className="grid gap-2 py-3 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_minmax(200px,0.8fr)_100px] md:items-center"
                         >
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                    <div
-                                        className={clsx(
-                                            "truncate text-sm font-bold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {module.title}
-                                    </div>
-                                    <div className={clsx("mt-1 text-xs", mutedTextClass)}>
-                                        {module.entrance}
-                                    </div>
+                            <div className="min-w-0">
+                                <div
+                                    className={clsx("truncate text-sm font-bold", headingTextClass)}
+                                >
+                                    {module.title}
                                 </div>
+                                <div className={clsx("mt-1 truncate text-xs", mutedTextClass)}>
+                                    {module.entrance}
+                                </div>
+                            </div>
+                            <div className={clsx("line-clamp-2 text-xs leading-5", mutedTextClass)}>
+                                {module.description}
+                                {(module.nextImprovements || []).length > 0 ? (
+                                    <span className="ml-1 text-indigo-500">
+                                        {t("admin.ai_governance.agents.next_step", {
+                                            value: module.nextImprovements[0],
+                                        })}
+                                    </span>
+                                ) : null}
+                            </div>
+                            <div className="flex justify-start md:justify-end">
                                 <span
                                     className={clsx(
-                                        "shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold",
+                                        "shrink-0 rounded border px-2 py-1 text-xs font-semibold",
                                         module.status === "live" || module.status === "ready"
                                             ? suggestionStatusClass("applied", isDayMode)
                                             : suggestionStatusClass("skipped", isDayMode)
                                     )}
                                 >
-                                    {module.status}
+                                    {module.status === "live" || module.status === "ready"
+                                        ? t("admin.ai_governance.status.operational")
+                                        : t("admin.ai_governance.status.diagnostic")}
                                 </span>
                             </div>
-
-                            <p
-                                className={clsx(
-                                    "mt-3 line-clamp-2 text-sm leading-6",
-                                    mutedTextClass
-                                )}
-                            >
-                                {module.description}
-                            </p>
-
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {(module.metrics || []).slice(0, 5).map((metric) => (
-                                    <span
-                                        key={`${module.id}-${metric.label}`}
-                                        className={clsx(
-                                            "rounded-full border px-2.5 py-1 text-xs font-semibold",
-                                            isDayMode
-                                                ? "border-slate-200 bg-slate-50 text-slate-600"
-                                                : "border-white/10 bg-white/[0.04] text-gray-300"
-                                        )}
-                                    >
-                                        {metric.label}: {metric.value}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {(module.nextImprovements || []).length > 0 ? (
-                                <div
-                                    className={clsx(
-                                        "mt-3 rounded-lg px-3 py-2 text-xs leading-5",
-                                        isDayMode
-                                            ? "bg-indigo-50 text-indigo-800"
-                                            : "bg-indigo-400/10 text-indigo-100"
-                                    )}
-                                >
-                                    下一步：{module.nextImprovements[0]}
-                                </div>
-                            ) : null}
                         </div>
                     ))}
                 </div>
@@ -236,7 +188,9 @@ const AgentSystemView = ({ overview }) => {
                         )}
                     >
                         <div className={clsx("text-sm font-bold", headingTextClass)}>
-                            继续打磨：{summary.partialGapCount ?? partialGaps.length} 个半成熟环节
+                            {t("admin.ai_governance.agents.partial_gaps", {
+                                count: summary.partialGapCount ?? partialGaps.length,
+                            })}
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                             {partialGaps.slice(0, 8).map((gap) => (
@@ -266,7 +220,7 @@ const AgentSystemView = ({ overview }) => {
                         )}
                     >
                         <div className={clsx("text-sm font-bold", headingTextClass)}>
-                            当前优先补齐
+                            {t("admin.ai_governance.agents.current_priorities")}
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                             {gaps.slice(0, 6).map((gap) => (
@@ -294,7 +248,7 @@ const AgentSystemView = ({ overview }) => {
                         )}
                     >
                         <div className={clsx("text-sm font-bold", headingTextClass)}>
-                            下一轮任务
+                            {t("admin.ai_governance.agents.next_iteration")}
                         </div>
                         <div className="mt-3 grid gap-2">
                             {nextPlan.slice(0, 4).map((item) => (
@@ -324,12 +278,11 @@ const AgentSystemView = ({ overview }) => {
 };
 
 const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
+    const { t } = useTranslation();
     const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
     const suggestionId = suggestion.suggestionId || suggestion.id;
     const confidence = Number(suggestion.confidence || 0);
     const status = suggestion.status || "suggested";
-    const statusMeta = suggestionStatusMeta[status] || suggestionStatusMeta.suggested;
-
     return (
         <label
             title={suggestion.reason || ""}
@@ -376,16 +329,18 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
                                 : "bg-white/[0.04] text-gray-300"
                         )}
                     >
-                        {valueText(suggestion.currentValue)}
+                        {valueText(suggestion.currentValue, t("admin.ai_governance.empty_value"))}
                     </div>
-                    <div className={clsx("hidden text-xs md:block", mutedTextClass)}>改为</div>
+                    <div className={clsx("hidden text-xs md:block", mutedTextClass)}>
+                        {t("admin.ai_governance.change_to")}
+                    </div>
                     <div
                         className={clsx(
                             "truncate rounded-lg px-2.5 py-2 font-semibold",
                             isDayMode ? "bg-sky-50 text-sky-800" : "bg-sky-400/10 text-sky-200"
                         )}
                     >
-                        {valueText(suggestion.suggestedValue)}
+                        {valueText(suggestion.suggestedValue, t("admin.ai_governance.empty_value"))}
                     </div>
                 </div>
 
@@ -398,7 +353,7 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
                                 : "bg-amber-400/10 text-amber-100"
                         )}
                     >
-                        原因：{suggestion.reason}
+                        {t("admin.ai_governance.reason", { value: suggestion.reason })}
                     </div>
                 ) : null}
             </div>
@@ -410,7 +365,7 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
                         suggestionStatusClass(status, isDayMode)
                     )}
                 >
-                    {statusMeta.label}
+                    {t(`admin.ai_governance.suggestion_status.${status}`)}
                 </span>
                 <span
                     className={clsx(
@@ -426,6 +381,7 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
 };
 
 const AiAssistantManager = () => {
+    const { t } = useTranslation();
     const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
     const [activeSection, setActiveSection] = useState("agents");
     const [overview, setOverview] = useState(null);
@@ -457,7 +413,9 @@ const AiAssistantManager = () => {
             const response = await api.get("/admin/ai-assistant/overview");
             setOverview(response.data);
         } catch (error) {
-            toast.error(error?.response?.data?.message || "状态加载失败");
+            toast.error(
+                error?.response?.data?.message || t("admin.ai_governance.toasts.load_fail")
+            );
         } finally {
             setLoading(false);
         }
@@ -481,10 +439,16 @@ const AiAssistantManager = () => {
                 .map((item) => item.suggestionId || item.id)
                 .filter(Boolean);
             setSelectedIds(nextSelected);
-            toast.success(`扫描完成：${response.data?.summary?.suggestionCount || 0} 条建议`);
+            toast.success(
+                t("admin.ai_governance.toasts.scan_success", {
+                    count: response.data?.summary?.suggestionCount || 0,
+                })
+            );
             loadOverview();
         } catch (error) {
-            toast.error(error?.response?.data?.message || "扫描失败");
+            toast.error(
+                error?.response?.data?.message || t("admin.ai_governance.toasts.scan_fail")
+            );
         } finally {
             setScanning(false);
         }
@@ -499,7 +463,7 @@ const AiAssistantManager = () => {
 
     const applySelected = async () => {
         if (!scanResult?.runId || selectedIds.length === 0) {
-            toast.error("请选择建议");
+            toast.error(t("admin.ai_governance.toasts.select_suggestion"));
             return;
         }
 
@@ -535,20 +499,23 @@ const AiAssistantManager = () => {
             setApplySummary(response.data || null);
             setSelectedIds([]);
             toast.success(
-                `已应用 ${response.data?.appliedCount || 0} 条，跳过 ${
-                    response.data?.skippedCount || 0
-                } 条`
+                t("admin.ai_governance.toasts.apply_success", {
+                    applied: response.data?.appliedCount || 0,
+                    skipped: response.data?.skippedCount || 0,
+                })
             );
             loadOverview();
         } catch (error) {
-            toast.error(error?.response?.data?.message || "应用失败");
+            toast.error(
+                error?.response?.data?.message || t("admin.ai_governance.toasts.apply_fail")
+            );
         } finally {
             setApplying(false);
         }
     };
 
     if (loading && !overview) {
-        return <AdminLoadingState text="加载中..." />;
+        return <AdminLoadingState text={t("admin.ai_governance.loading")} />;
     }
 
     const health = overview?.health || {};
@@ -558,7 +525,8 @@ const AiAssistantManager = () => {
 
     const governanceView = (
         <AdminPanel
-            title="活动治理建议"
+            title={t("admin.ai_governance.governance.title")}
+            description={t("admin.ai_governance.governance.description")}
             action={
                 <div className="flex flex-wrap gap-2">
                     <AdminButton tone="subtle" onClick={runScan} disabled={scanning}>
@@ -567,7 +535,7 @@ const AiAssistantManager = () => {
                         ) : (
                             <RefreshCw size={16} />
                         )}
-                        扫描
+                        {t("admin.ai_governance.actions.scan")}
                     </AdminButton>
                     <AdminButton
                         tone="primary"
@@ -579,45 +547,49 @@ const AiAssistantManager = () => {
                         ) : (
                             <CheckCircle2 size={16} />
                         )}
-                        应用
+                        {t("admin.ai_governance.actions.apply")}
                     </AdminButton>
                 </div>
             }
         >
             <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                    <CompactStat label="活动" value={health.eventCount || 0} icon={Database} />
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-[rgba(128,146,167,0.14)] pb-3">
                     <CompactStat
-                        label="待补分类"
+                        label={t("admin.ai_governance.governance.events")}
+                        value={health.eventCount || 0}
+                        icon={Database}
+                    />
+                    <CompactStat
+                        label={t("admin.ai_governance.governance.uncategorized")}
                         value={health.uncategorizedEventCount || 0}
                         icon={CheckCircle2}
                     />
                     <CompactStat
-                        label="可用 Key"
+                        label={t("admin.ai_governance.governance.available_keys")}
                         value={health.enabledModelConfigCount || 0}
                         icon={KeyRound}
                     />
                     <CompactStat
-                        label="最近运行"
-                        value={recentRuns[0] ? recentCount : "无"}
+                        label={t("admin.ai_governance.governance.latest_run")}
+                        value={recentRuns[0] ? recentCount : t("admin.ai_governance.status.none")}
                         icon={ShieldCheck}
                     />
                 </div>
 
                 {scanResult ? (
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
                         <CompactStat
-                            label="扫描"
+                            label={t("admin.ai_governance.governance.scanned")}
                             value={scanResult.summary?.scannedEventCount || 0}
                             icon={Database}
                         />
                         <CompactStat
-                            label="建议"
+                            label={t("admin.ai_governance.governance.suggestions")}
                             value={scanResult.summary?.suggestionCount || 0}
                             icon={CheckCircle2}
                         />
                         <CompactStat
-                            label="高置信"
+                            label={t("admin.ai_governance.governance.high_confidence")}
                             value={scanResult.summary?.highConfidenceCount || 0}
                             icon={ShieldCheck}
                         />
@@ -634,8 +606,10 @@ const AiAssistantManager = () => {
                         )}
                     >
                         <div className={clsx("font-semibold", headingTextClass)}>
-                            已应用 {applySummary.appliedCount || 0} 条，跳过{" "}
-                            {applySummary.skippedCount || 0} 条
+                            {t("admin.ai_governance.apply_summary", {
+                                applied: applySummary.appliedCount || 0,
+                                skipped: applySummary.skippedCount || 0,
+                            })}
                         </div>
                         {(applySummary.skippedCount || 0) > 0 ? (
                             <span
@@ -645,7 +619,7 @@ const AiAssistantManager = () => {
                                 )}
                             >
                                 <XCircle size={14} />
-                                有冲突
+                                {t("admin.ai_governance.status.conflict")}
                             </span>
                         ) : (
                             <span
@@ -655,7 +629,7 @@ const AiAssistantManager = () => {
                                 )}
                             >
                                 <ShieldCheck size={14} />
-                                完成
+                                {t("admin.ai_governance.status.complete")}
                             </span>
                         )}
                     </div>
@@ -664,17 +638,20 @@ const AiAssistantManager = () => {
                 {suggestions.length > 0 ? (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className={clsx("text-sm", mutedTextClass)}>
-                            已选 {selectedIds.length} / {suggestions.length}
+                            {t("admin.ai_governance.selected_count", {
+                                selected: selectedIds.length,
+                                total: suggestions.length,
+                            })}
                         </div>
                         <div className="flex flex-wrap gap-2">
                             <AdminButton
                                 tone="subtle"
                                 onClick={() => setSelectedIds(highConfidenceIds)}
                             >
-                                选择高置信
+                                {t("admin.ai_governance.actions.select_high_confidence")}
                             </AdminButton>
                             <AdminButton tone="subtle" onClick={() => setSelectedIds([])}>
-                                清空
+                                {t("admin.ai_governance.actions.clear")}
                             </AdminButton>
                         </div>
                     </div>
@@ -683,11 +660,15 @@ const AiAssistantManager = () => {
                 {suggestions.length === 0 ? (
                     <AdminEmptyState
                         icon={Database}
-                        title={scanResult ? "暂无建议" : "未扫描"}
+                        title={
+                            scanResult
+                                ? t("admin.ai_governance.empty.no_suggestions")
+                                : t("admin.ai_governance.empty.not_scanned")
+                        }
                         description={
                             scanResult
-                                ? "当前扫描没有发现需要处理的治理建议。"
-                                : "运行扫描后会列出可应用的活动治理建议。"
+                                ? t("admin.ai_governance.empty.no_suggestions_description")
+                                : t("admin.ai_governance.empty.not_scanned_description")
                         }
                         action={
                             <AdminButton tone="primary" onClick={runScan} disabled={scanning}>
@@ -696,7 +677,7 @@ const AiAssistantManager = () => {
                                 ) : (
                                     <RefreshCw size={16} />
                                 )}
-                                扫描
+                                {t("admin.ai_governance.actions.scan")}
                             </AdminButton>
                         }
                     />
@@ -719,8 +700,8 @@ const AiAssistantManager = () => {
 
     return (
         <AdminPageShell
-            title="治理与模型配置"
-            description="集中处理活动治理建议和模型接口配置，保留必要的自动化能力，减少无关助手入口。"
+            title={t("admin.ai_governance.title")}
+            description={t("admin.ai_governance.description")}
             actions={
                 <AdminButton tone="subtle" onClick={loadOverview} disabled={loading}>
                     {loading ? (
@@ -728,22 +709,28 @@ const AiAssistantManager = () => {
                     ) : (
                         <RefreshCw size={16} />
                     )}
-                    刷新
+                    {t("admin.ai_governance.actions.refresh")}
                 </AdminButton>
             }
             toolbar={
-                <div className="flex flex-wrap gap-2">
+                <div
+                    className="flex flex-wrap gap-2"
+                    role="tablist"
+                    aria-label={t("admin.ai_governance.navigation")}
+                >
                     {sections.map((section) => {
                         const Icon = section.icon;
                         return (
                             <FilterChip
                                 key={section.id}
+                                role="tab"
+                                aria-selected={activeSection === section.id}
                                 active={activeSection === section.id}
                                 onClick={() => setActiveSection(section.id)}
                             >
                                 <span className="inline-flex items-center gap-2">
                                     <Icon size={16} />
-                                    {section.label}
+                                    {t(`admin.ai_governance.sections.${section.labelKey}`)}
                                 </span>
                             </FilterChip>
                         );
@@ -754,7 +741,14 @@ const AiAssistantManager = () => {
             <div className="space-y-4">
                 {activeSection === "agents" ? <AgentSystemView overview={overview} /> : null}
                 {activeSection === "governance" ? governanceView : null}
-                {activeSection === "models" ? <AiModelConfigManager embedded /> : null}
+                {activeSection === "models" ? (
+                    <div className="space-y-3">
+                        <AdminInlineNote tone="warning">
+                            {t("admin.ai_governance.models.infrastructure_note")}
+                        </AdminInlineNote>
+                        <AiModelConfigManager embedded />
+                    </div>
+                ) : null}
             </div>
         </AdminPageShell>
     );

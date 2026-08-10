@@ -12,6 +12,8 @@
 - 将“智能治理”语义收窄为“AI 能力治理”或“AI 与数据治理”，明确当前能力覆盖模型配置、活动元数据治理、运行健康和 Agent 缺口，不伪装成全站 AI 治理。
 - 将生态伙伴、组织主体、组织成员、历史归属迁移和用户权限统一放入“主体与关系”治理心智，遵守既有三轴权限模型和 `partner_scope` 分层。
 - 在总览页增加面向生态运营的模块状态表达，让管理员能区分可运营、维护中、实验性和仅工具模块。
+- 将“微信采集”从技术工具入口提升为“内容采集”运营工作台，围绕采集源、定时运行、候选筛选、人工修正与发布组织界面。
+- 将站点设置按基础与安全、公共外观、关于站点分类；关于站点的详细字段继续按内容区块二次收纳。
 - 为项目广场补齐后台运营入口的设计边界，使项目育人不再只有前台和单个 takedown API。
 - 后续改动涉及用户可见文案时，同步维护中英文 i18n。
 
@@ -37,10 +39,12 @@
     - `src/components/Admin/UserManager.jsx`
     - `src/components/Admin/EcosystemPartnerManager.jsx`
     - `src/components/Admin/AdminCommunity.jsx`
-    - 可能新增项目后台管理组件。
+    - `src/components/Admin/WeChatMpImportManager.jsx`
+    - `src/components/Admin/SettingsManager.jsx`
+    - `src/components/Admin/ProjectManager.jsx`
 - 后端：
     - 第一阶段不要求数据库迁移。
-    - 后续项目后台入口可能复用或扩展 `projectCardController` 和 `/admin/projects/*`。
+    - 项目后台入口复用 `projectCardController`，新增 `/admin/projects` 列表与恢复接口，并继续使用既有下架接口和审计日志。
     - AI 能力状态继续复用 `unifiedAiAssistantService`、`aiAgentRegistryService` 和搜索索引服务。
 - 文档：
     - `docs/产品状态.md`
@@ -56,4 +60,5 @@
 - 不把所有 AI 能力合并成一个超级 Agent 入口。
 - 不做破坏性组织归属迁移。
 - 不一次性重写后台所有组件。
+- 不把当前公众号采集实现描述成已经支持任意学院网站、社团网站或多平台爬虫；新增连接器需要后续独立设计数据合同和运行状态。
 - 不删除历史功能，除非先有审计清单、替代入口和回滚路径。

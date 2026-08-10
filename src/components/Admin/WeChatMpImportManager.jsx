@@ -197,6 +197,7 @@ const WeChatMpImportManager = () => {
     const [ingestFile, setIngestFile] = useState(null);
     const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
     const [updatingIngestAccountId, setUpdatingIngestAccountId] = useState(null);
+    const [activeWorkspace, setActiveWorkspace] = useState("overview");
 
     const login = status?.login || initialStatus.login;
     const runtimeReady = Boolean(status?.runtime?.chromium_installed);
@@ -778,8 +779,11 @@ const WeChatMpImportManager = () => {
 
     return (
         <AdminPageShell
-            title={t("admin.wechat_mp.title")}
-            description={t("admin.wechat_mp.description")}
+            title={t("admin.wechat_mp.workspace.title", "内容采集")}
+            description={t(
+                "admin.wechat_mp.workspace.description",
+                "维护学院、社团等公众号采集源，把新增通知筛选为可发布内容。"
+            )}
             actions={
                 <ToolbarGroup className="justify-start lg:justify-end">
                     <AdminButton
@@ -792,1031 +796,500 @@ const WeChatMpImportManager = () => {
                     </AdminButton>
                     <AdminButton
                         tone="primary"
-                        onClick={startLogin}
-                        disabled={loginStarting || loginActive || !runtimeReady}
+                        onClick={
+                            credentialsReady ? runIngestNow : () => setActiveWorkspace("advanced")
+                        }
+                        disabled={
+                            credentialsReady
+                                ? ingestRunning
+                                : loginStarting || loginActive || !runtimeReady
+                        }
                     >
-                        {loginStarting ? (
+                        {loginStarting || ingestRunning ? (
                             <Loader2 size={16} className="animate-spin" />
+                        ) : credentialsReady ? (
+                            <Play size={16} />
                         ) : (
                             <LogIn size={16} />
                         )}
-                        {t("admin.wechat_mp.actions.start_login")}
+                        {credentialsReady
+                            ? t("admin.wechat_mp.actions.run_ingest")
+                            : t("admin.wechat_mp.workspace.connect_wechat", "连接微信采集")}
                     </AdminButton>
                 </ToolbarGroup>
+            }
+            toolbar={
+                <div
+                    className="flex gap-2 overflow-x-auto"
+                    role="tablist"
+                    aria-label={t("admin.wechat_mp.workspace.navigation", "内容采集工作区")}
+                >
+                    {[
+                        ["overview", "overview_tab", "运行概况"],
+                        ["sources", "sources_tab", "采集源"],
+                        ["candidates", "candidates_tab", "候选内容"],
+                        ["advanced", "advanced_tab", "连接与单次采集"],
+                    ].map(([id, key, fallback]) => (
+                        <FilterChip
+                            key={id}
+                            role="tab"
+                            aria-selected={activeWorkspace === id}
+                            active={activeWorkspace === id}
+                            onClick={() => setActiveWorkspace(id)}
+                            className="shrink-0"
+                        >
+                            {t(`admin.wechat_mp.workspace.${key}`, fallback)}
+                        </FilterChip>
+                    ))}
+                </div>
             }
         >
             <div className="space-y-3">
                 <AdminInlineNote tone={runtimeNoteTone}>{runtimeNoteText}</AdminInlineNote>
 
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-                    <AdminPanel
-                        title={t("admin.wechat_mp.auth.title")}
-                        description={t("admin.wechat_mp.auth.description")}
-                        action={
-                            loginActive ? (
-                                <AdminButton
-                                    tone="danger"
-                                    onClick={cancelLogin}
-                                    disabled={loginCancelling}
-                                >
-                                    {loginCancelling ? (
-                                        <Loader2 size={16} className="animate-spin" />
-                                    ) : (
-                                        <XCircle size={16} />
-                                    )}
-                                    {t("admin.wechat_mp.actions.cancel_login")}
-                                </AdminButton>
-                            ) : null
-                        }
-                    >
-                        <div className="grid gap-3 sm:grid-cols-3">
-                            <AdminMetricCard
-                                label={t("admin.wechat_mp.metrics.browser")}
-                                value={
-                                    runtimeReady
-                                        ? t("admin.wechat_mp.status.ready")
-                                        : t("admin.wechat_mp.status.missing")
-                                }
-                                icon={runtimeReady ? CheckCircle2 : AlertTriangle}
-                                tone={runtimeReady ? "emerald" : "rose"}
-                            />
-                            <AdminMetricCard
-                                label={t("admin.wechat_mp.metrics.credentials")}
-                                value={t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}
-                                icon={KeyRound}
-                                tone={
-                                    credentialHealthStatus === "expired"
-                                        ? "rose"
-                                        : credentialsReady
-                                          ? "emerald"
-                                          : "amber"
-                                }
-                            />
-                            <AdminMetricCard
-                                label={t("admin.wechat_mp.metrics.login_stage")}
-                                value={t(
-                                    `admin.wechat_mp.login_stages.${login.stage}`,
-                                    login.stage || "idle"
-                                )}
-                                icon={ShieldCheck}
-                                tone={
-                                    login.stage === "failed"
-                                        ? "rose"
-                                        : login.stage === "saved"
-                                          ? "emerald"
-                                          : "indigo"
-                                }
-                            />
-                        </div>
-
-                        <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
-                            <div
-                                className={clsx(
-                                    "flex aspect-square w-full max-w-[240px] items-center justify-center overflow-hidden rounded-[8px] border p-3",
-                                    isDayMode
-                                        ? "border-slate-200 bg-white"
-                                        : "border-white/10 bg-white/[0.04]"
-                                )}
-                            >
-                                {login.qr_data_url ? (
-                                    <img
-                                        src={login.qr_data_url}
-                                        alt={t("admin.wechat_mp.auth.qr_alt")}
-                                        className="h-full w-full object-contain"
-                                    />
-                                ) : (
-                                    <div className={clsx("text-center text-sm", mutedTextClass)}>
-                                        <QrCode size={48} className="mx-auto mb-3" />
-                                        <div>{t("admin.wechat_mp.auth.qr_empty")}</div>
-                                    </div>
-                                )}
+                {activeWorkspace === "overview" ? (
+                    <>
+                        <AdminPanel>
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                                <span className={headingTextClass}>
+                                    {t("admin.wechat_mp.workspace.sources_status", {
+                                        enabled: formatNumber(enabledIngestAccountCount),
+                                        total: formatNumber(ingestAccounts.length),
+                                        defaultValue: `采集源 ${enabledIngestAccountCount}/${ingestAccounts.length}`,
+                                    })}
+                                </span>
+                                <span className={mutedTextClass}>|</span>
+                                <span className={headingTextClass}>
+                                    {t("admin.wechat_mp.workspace.login_status", {
+                                        status: t(
+                                            `admin.wechat_mp.simple_status.${simpleLoginStatus}`
+                                        ),
+                                        defaultValue: `微信连接 ${t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}`,
+                                    })}
+                                </span>
+                                <span className={mutedTextClass}>|</span>
+                                <span className={headingTextClass}>
+                                    {ingestSettings.enabled
+                                        ? t("admin.wechat_mp.workspace.schedule_status", {
+                                              time: ingestSettings.daily_run_time,
+                                              defaultValue: `每日 ${ingestSettings.daily_run_time}`,
+                                          })
+                                        : t(
+                                              "admin.wechat_mp.workspace.schedule_disabled",
+                                              "定时采集未启用"
+                                          )}
+                                </span>
+                                <span className={mutedTextClass}>|</span>
+                                <span className={headingTextClass}>
+                                    {t("admin.wechat_mp.workspace.new_articles_status", {
+                                        count: formatNumber(
+                                            latestRun?.new_articles || ingestArticles.length
+                                        ),
+                                        defaultValue: `本轮新增 ${formatNumber(latestRun?.new_articles || ingestArticles.length)}`,
+                                    })}
+                                </span>
                             </div>
-                            <div className="min-w-0 space-y-3">
-                                <div
-                                    role="status"
-                                    aria-live="polite"
-                                    className={clsx(
-                                        "rounded-[8px] border px-3 py-2 text-sm leading-6",
-                                        statusTone(
-                                            credentialsReady &&
-                                                credentialHealthStatus !== "expired",
-                                            isDayMode
-                                        )
-                                    )}
-                                >
-                                    <div className="font-semibold">
-                                        {login.message || t("admin.wechat_mp.auth.idle_message")}
-                                    </div>
-                                    {login.error ? (
-                                        <div className="mt-1 break-words text-xs">
-                                            {login.error}
-                                        </div>
-                                    ) : null}
-                                </div>
-                                <div className={clsx("grid gap-2 text-xs", mutedTextClass)}>
-                                    <details className="group">
-                                        <summary className="cursor-pointer text-xs font-semibold">
-                                            {t("admin.wechat_mp.auth.diagnostics")}
-                                        </summary>
-                                        <div className="mt-2 grid gap-2">
-                                            <div>
-                                                {t("admin.wechat_mp.auth.cookie_names")}:{" "}
-                                                {(status?.credentials?.cookie_names || []).length >
-                                                0
-                                                    ? status.credentials.cookie_names.join(", ")
-                                                    : t("admin.wechat_mp.status.none")}
-                                            </div>
-                                            <div>
-                                                {t("admin.wechat_mp.auth.token_mask")}:{" "}
-                                                {status?.credentials?.token_mask ||
-                                                    t("admin.wechat_mp.status.none")}
-                                            </div>
-                                            <div className="break-all">
-                                                {t("admin.wechat_mp.auth.chromium_path")}:{" "}
-                                                {status?.runtime?.executable_path ||
-                                                    t("admin.wechat_mp.status.none")}
-                                            </div>
-                                        </div>
-                                    </details>
-                                </div>
-                            </div>
-                        </div>
-                    </AdminPanel>
+                        </AdminPanel>
 
-                    <AdminPanel
-                        title={t("admin.wechat_mp.collect.title")}
-                        description={t("admin.wechat_mp.collect.description")}
-                        action={
-                            <AdminButton
-                                tone="primary"
-                                onClick={fetchArticles}
-                                disabled={articlesLoading || !credentialsReady}
-                            >
-                                {articlesLoading ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <Newspaper size={16} />
-                                )}
-                                {t("admin.wechat_mp.actions.fetch_articles")}
-                            </AdminButton>
-                        }
-                    >
-                        <div className="grid gap-3 lg:grid-cols-2">
-                            <label
-                                className={clsx("block text-sm font-semibold", headingTextClass)}
-                            >
-                                {t("admin.wechat_mp.fields.account_name")}
-                                <div className="mt-1 flex gap-2">
-                                    <input
-                                        value={form.accountName}
-                                        onChange={(event) =>
-                                            updateForm("accountName", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
-                                        placeholder={t("admin.wechat_mp.placeholders.account_name")}
-                                    />
-                                    <AdminButton
-                                        tone="subtle"
-                                        onClick={searchAccounts}
-                                        disabled={accountSearching || !credentialsReady}
-                                        className="shrink-0"
+                        <AdminPanel
+                            title={t("admin.wechat_mp.workspace.pipeline_title", "采集流水线")}
+                            description={t(
+                                "admin.wechat_mp.workspace.pipeline_description",
+                                "按运营动作推进，技术参数只在异常排查时展开。"
+                            )}
+                        >
+                            <div className="divide-y divide-[rgba(128,146,167,0.14)]">
+                                {[
+                                    {
+                                        index: "1",
+                                        title: t(
+                                            "admin.wechat_mp.workspace.pipeline.sources",
+                                            "维护采集源"
+                                        ),
+                                        detail: t(
+                                            "admin.wechat_mp.workspace.pipeline.sources_detail",
+                                            "学院、社团等公众号账号"
+                                        ),
+                                        state: t("admin.wechat_mp.workspace.source_count", {
+                                            count: formatNumber(enabledIngestAccountCount),
+                                            defaultValue: `${formatNumber(enabledIngestAccountCount)} 个启用`,
+                                        }),
+                                        target: "sources",
+                                    },
+                                    {
+                                        index: "2",
+                                        title: t(
+                                            "admin.wechat_mp.workspace.pipeline.collect",
+                                            "执行增量采集"
+                                        ),
+                                        detail: t(
+                                            "admin.wechat_mp.workspace.pipeline.collect_detail",
+                                            "按计划自动运行，也可立即执行"
+                                        ),
+                                        state: latestRun
+                                            ? t(
+                                                  `admin.wechat_mp.ingest.run_status.${latestRun.status}`,
+                                                  latestRun.status
+                                              )
+                                            : t("admin.wechat_mp.status.none"),
+                                        target: "sources",
+                                    },
+                                    {
+                                        index: "3",
+                                        title: t(
+                                            "admin.wechat_mp.workspace.pipeline.screen",
+                                            "筛选活动候选"
+                                        ),
+                                        detail: t(
+                                            "admin.wechat_mp.workspace.pipeline.screen_detail",
+                                            "排除非通知内容，检查活动信息"
+                                        ),
+                                        state: t("admin.wechat_mp.workspace.candidate_count", {
+                                            count: formatNumber(ingestArticles.length),
+                                            defaultValue: `${formatNumber(ingestArticles.length)} 条候选`,
+                                        }),
+                                        target: "candidates",
+                                    },
+                                    {
+                                        index: "4",
+                                        title: t(
+                                            "admin.wechat_mp.workspace.pipeline.publish",
+                                            "修正并发布"
+                                        ),
+                                        detail: t(
+                                            "admin.wechat_mp.workspace.pipeline.publish_detail",
+                                            "确认标题、时间、地点与主办主体"
+                                        ),
+                                        state: t(
+                                            "admin.wechat_mp.workspace.manual_review",
+                                            "人工确认"
+                                        ),
+                                        target: "candidates",
+                                    },
+                                ].map((step) => (
+                                    <button
+                                        key={step.index}
+                                        type="button"
+                                        onClick={() => setActiveWorkspace(step.target)}
+                                        className="flex w-full items-center gap-3 py-3 text-left first:pt-0 last:pb-0"
                                     >
-                                        {accountSearching ? (
+                                        <span
+                                            className={clsx(
+                                                "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold",
+                                                isDayMode
+                                                    ? "bg-slate-100 text-slate-600"
+                                                    : "bg-white/[0.06] text-gray-300"
+                                            )}
+                                        >
+                                            {step.index}
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span
+                                                className={clsx(
+                                                    "block text-sm font-bold",
+                                                    headingTextClass
+                                                )}
+                                            >
+                                                {step.title}
+                                            </span>
+                                            <span className={clsx("block text-xs", mutedTextClass)}>
+                                                {step.detail}
+                                            </span>
+                                        </span>
+                                        <span
+                                            className={clsx(
+                                                "shrink-0 text-xs font-semibold",
+                                                mutedTextClass
+                                            )}
+                                        >
+                                            {step.state}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </AdminPanel>
+                    </>
+                ) : null}
+
+                {activeWorkspace === "advanced" ? (
+                    <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                        <AdminPanel
+                            title={t("admin.wechat_mp.auth.title")}
+                            description={t("admin.wechat_mp.auth.description")}
+                            action={
+                                loginActive ? (
+                                    <AdminButton
+                                        tone="danger"
+                                        onClick={cancelLogin}
+                                        disabled={loginCancelling}
+                                    >
+                                        {loginCancelling ? (
                                             <Loader2 size={16} className="animate-spin" />
                                         ) : (
-                                            <Search size={16} />
+                                            <XCircle size={16} />
                                         )}
-                                        <span className="hidden sm:inline">
-                                            {t("admin.wechat_mp.actions.search_account")}
-                                        </span>
+                                        {t("admin.wechat_mp.actions.cancel_login")}
                                     </AdminButton>
-                                </div>
-                            </label>
-                            <label
-                                className={clsx("block text-sm font-semibold", headingTextClass)}
-                            >
-                                {t("admin.wechat_mp.fields.fakeid")}
-                                <input
-                                    value={form.fakeid}
-                                    onChange={(event) => updateForm("fakeid", event.target.value)}
-                                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    placeholder={t("admin.wechat_mp.placeholders.fakeid")}
-                                />
-                            </label>
-                            <label
-                                className={clsx("block text-sm font-semibold", headingTextClass)}
-                            >
-                                {t("admin.wechat_mp.fields.keyword")}
-                                <input
-                                    value={form.keyword}
-                                    onChange={(event) => updateForm("keyword", event.target.value)}
-                                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    placeholder={t("admin.wechat_mp.placeholders.keyword")}
-                                />
-                            </label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.count")}
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                        value={form.count}
-                                        onChange={(event) =>
-                                            updateForm("count", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.max_pages")}
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="5"
-                                        value={form.maxPages}
-                                        onChange={(event) =>
-                                            updateForm("maxPages", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <label
-                                className={clsx(
-                                    "inline-flex items-center gap-2 text-sm",
-                                    subtleTextClass
-                                )}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={form.allowFirst}
-                                    onChange={(event) =>
-                                        updateForm("allowFirst", event.target.checked)
-                                    }
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                                />
-                                {t("admin.wechat_mp.fields.allow_first")}
-                            </label>
-                            {accounts.map((account) => (
-                                <FilterChip
-                                    key={account.fakeid}
-                                    active={form.fakeid === account.fakeid}
-                                    onClick={() => chooseAccount(account)}
-                                >
-                                    {account.nickname || account.alias || account.fakeid}
-                                </FilterChip>
-                            ))}
-                        </div>
-
-                        <details
-                            className={clsx(
-                                "mt-4 rounded-[8px] border p-3",
-                                isDayMode
-                                    ? "border-slate-200 bg-white/70"
-                                    : "border-white/10 bg-white/[0.03]"
-                            )}
-                        >
-                            <summary
-                                className={clsx(
-                                    "cursor-pointer text-sm font-semibold",
-                                    headingTextClass
-                                )}
-                            >
-                                {t("admin.wechat_mp.collect.pacing_title")}
-                            </summary>
-                            <AdminInlineNote tone="warning" className="mt-3">
-                                {t("admin.wechat_mp.collect.pacing_note")}
-                            </AdminInlineNote>
-                            <div className="mt-3 grid gap-3 md:grid-cols-3">
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.query_delay_min")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            value={form.queryDelayMin}
-                                            onChange={(event) =>
-                                                updateForm("queryDelayMin", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="95"
-                                        />
-                                    </label>
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.query_delay_max")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            value={form.queryDelayMax}
-                                            onChange={(event) =>
-                                                updateForm("queryDelayMax", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="125"
-                                        />
-                                    </label>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.page_pause_min")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            step="0.5"
-                                            value={form.pagePauseMin}
-                                            onChange={(event) =>
-                                                updateForm("pagePauseMin", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="10"
-                                        />
-                                    </label>
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.page_pause_max")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            step="0.5"
-                                            value={form.pagePauseMax}
-                                            onChange={(event) =>
-                                                updateForm("pagePauseMax", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="25"
-                                        />
-                                    </label>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.content_delay_min")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            value={form.contentDelayMin}
-                                            onChange={(event) =>
-                                                updateForm("contentDelayMin", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="10"
-                                        />
-                                    </label>
-                                    <label
-                                        className={clsx(
-                                            "block text-xs font-semibold",
-                                            headingTextClass
-                                        )}
-                                    >
-                                        {t("admin.wechat_mp.fields.content_delay_max")}
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="3600"
-                                            value={form.contentDelayMax}
-                                            onChange={(event) =>
-                                                updateForm("contentDelayMax", event.target.value)
-                                            }
-                                            className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                                            placeholder="20"
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                        </details>
-                    </AdminPanel>
-                </div>
-
-                <AdminPanel
-                    title={t("admin.wechat_mp.ingest.title")}
-                    description={t("admin.wechat_mp.ingest.description")}
-                    action={
-                        <ToolbarGroup className="justify-start sm:justify-end">
-                            <AdminButton
-                                tone="subtle"
-                                onClick={() => loadIngestOverview()}
-                                disabled={ingestLoading}
-                            >
-                                <RefreshCw
-                                    size={16}
-                                    className={ingestLoading ? "animate-spin" : ""}
-                                />
-                                {t("admin.wechat_mp.actions.refresh_ingest")}
-                            </AdminButton>
-                            <AdminButton
-                                tone="primary"
-                                onClick={runIngestNow}
-                                disabled={ingestRunning || !credentialsReady}
-                            >
-                                {ingestRunning ? (
-                                    <Loader2 size={16} className="animate-spin" />
                                 ) : (
-                                    <Play size={16} />
-                                )}
-                                {t("admin.wechat_mp.actions.run_ingest")}
-                            </AdminButton>
-                        </ToolbarGroup>
-                    }
-                >
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        <AdminMetricCard
-                            label={t("admin.wechat_mp.ingest.metrics.schedule")}
-                            value={
-                                ingestSettings.enabled
-                                    ? ingestSettings.daily_run_time
-                                    : t("admin.wechat_mp.status.disabled")
+                                    <AdminButton
+                                        tone="primary"
+                                        onClick={startLogin}
+                                        disabled={loginStarting || !runtimeReady}
+                                    >
+                                        {loginStarting ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                        ) : (
+                                            <LogIn size={16} />
+                                        )}
+                                        {t("admin.wechat_mp.actions.start_login")}
+                                    </AdminButton>
+                                )
                             }
-                            icon={CalendarClock}
-                            tone={ingestSettings.enabled ? "emerald" : "amber"}
-                        />
-                        <AdminMetricCard
-                            label={t("admin.wechat_mp.ingest.metrics.accounts")}
-                            value={formatNumber(ingestAccounts.length)}
-                            icon={ClipboardList}
-                            tone="indigo"
-                        />
-                        <AdminMetricCard
-                            label={t("admin.wechat_mp.ingest.metrics.latest_run")}
-                            value={
-                                latestRun
-                                    ? t(
-                                          `admin.wechat_mp.ingest.run_status.${latestRun.status}`,
-                                          latestRun.status
-                                      )
-                                    : t("admin.wechat_mp.status.none")
-                            }
-                            icon={Clock3}
-                            tone={
-                                latestRun?.status === "completed"
-                                    ? "emerald"
-                                    : latestRun?.status === "failed"
-                                      ? "rose"
-                                      : "violet"
-                            }
-                        />
-                        <AdminMetricCard
-                            label={t("admin.wechat_mp.ingest.metrics.new_articles")}
-                            value={formatNumber(latestRun?.new_articles || ingestArticles.length)}
-                            icon={Newspaper}
-                            tone="violet"
-                        />
-                    </div>
-
-                    {latestRun?.status === "running" || latestRun?.status === "failed" ? (
-                        <div
-                            className={clsx(
-                                "mt-3 rounded-[8px] border p-4",
-                                latestRun.status === "failed"
-                                    ? isDayMode
-                                        ? "border-rose-200 bg-rose-50/70"
-                                        : "border-rose-500/20 bg-rose-500/10"
-                                    : isDayMode
-                                      ? "border-indigo-200 bg-indigo-50/70"
-                                      : "border-indigo-500/20 bg-indigo-500/10"
-                            )}
-                            aria-live="polite"
                         >
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                <AdminMetricCard
+                                    label={t("admin.wechat_mp.metrics.browser")}
+                                    value={
+                                        runtimeReady
+                                            ? t("admin.wechat_mp.status.ready")
+                                            : t("admin.wechat_mp.status.missing")
+                                    }
+                                    icon={runtimeReady ? CheckCircle2 : AlertTriangle}
+                                    tone={runtimeReady ? "emerald" : "rose"}
+                                />
+                                <AdminMetricCard
+                                    label={t("admin.wechat_mp.metrics.credentials")}
+                                    value={t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}
+                                    icon={KeyRound}
+                                    tone={
+                                        credentialHealthStatus === "expired"
+                                            ? "rose"
+                                            : credentialsReady
+                                              ? "emerald"
+                                              : "amber"
+                                    }
+                                />
+                                <AdminMetricCard
+                                    label={t("admin.wechat_mp.metrics.login_stage")}
+                                    value={t(
+                                        `admin.wechat_mp.login_stages.${login.stage}`,
+                                        login.stage || "idle"
+                                    )}
+                                    icon={ShieldCheck}
+                                    tone={
+                                        login.stage === "failed"
+                                            ? "rose"
+                                            : login.stage === "saved"
+                                              ? "emerald"
+                                              : "indigo"
+                                    }
+                                />
+                            </div>
+
+                            <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+                                <div
+                                    className={clsx(
+                                        "flex aspect-square w-full max-w-[240px] items-center justify-center overflow-hidden rounded-[8px] border p-3",
+                                        isDayMode
+                                            ? "border-slate-200 bg-white"
+                                            : "border-white/10 bg-white/[0.04]"
+                                    )}
+                                >
+                                    {login.qr_data_url ? (
+                                        <img
+                                            src={login.qr_data_url}
+                                            alt={t("admin.wechat_mp.auth.qr_alt")}
+                                            className="h-full w-full object-contain"
+                                        />
+                                    ) : (
+                                        <div
+                                            className={clsx("text-center text-sm", mutedTextClass)}
+                                        >
+                                            <QrCode size={48} className="mx-auto mb-3" />
+                                            <div>{t("admin.wechat_mp.auth.qr_empty")}</div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="min-w-0 space-y-3">
                                     <div
+                                        role="status"
+                                        aria-live="polite"
                                         className={clsx(
-                                            "text-sm font-bold",
-                                            latestRun.status === "failed"
-                                                ? isDayMode
-                                                    ? "text-rose-800"
-                                                    : "text-rose-200"
-                                                : headingTextClass
+                                            "rounded-[8px] border px-3 py-2 text-sm leading-6",
+                                            statusTone(
+                                                credentialsReady &&
+                                                    credentialHealthStatus !== "expired",
+                                                isDayMode
+                                            )
                                         )}
                                     >
-                                        {latestRun.status === "failed"
-                                            ? t("admin.wechat_mp.ingest.progress.failed_title")
-                                            : t("admin.wechat_mp.ingest.progress.title")}
+                                        <div className="font-semibold">
+                                            {login.message ||
+                                                t("admin.wechat_mp.auth.idle_message")}
+                                        </div>
+                                        {login.error ? (
+                                            <div className="mt-1 break-words text-xs">
+                                                {login.error}
+                                            </div>
+                                        ) : null}
                                     </div>
-                                    <div className={clsx("mt-1 text-xs", mutedTextClass)}>
-                                        {t(
-                                            `admin.wechat_mp.ingest.progress.stage.${latestRun.progress_stage || "starting"}`,
-                                            latestRun.progress_stage || "starting"
-                                        )}
-                                    </div>
-                                </div>
-                                <span
-                                    className={clsx(
-                                        "shrink-0 text-sm font-bold tabular-nums",
-                                        latestRun.status === "failed"
-                                            ? isDayMode
-                                                ? "text-rose-700"
-                                                : "text-rose-200"
-                                            : isDayMode
-                                              ? "text-indigo-700"
-                                              : "text-indigo-200"
-                                    )}
-                                >
-                                    {latestRun.status === "failed"
-                                        ? t("admin.wechat_mp.ingest.run_status.failed")
-                                        : `${latestRunProgress}%`}
-                                </span>
-                            </div>
-                            {latestRun.status === "running" ? (
-                                <div
-                                    className={clsx(
-                                        "mt-3 h-2 overflow-hidden rounded-full",
-                                        isDayMode ? "bg-indigo-100" : "bg-white/10"
-                                    )}
-                                    role="progressbar"
-                                    aria-label={t("admin.wechat_mp.ingest.progress.title")}
-                                    aria-valuemin="0"
-                                    aria-valuemax="100"
-                                    aria-valuenow={latestRunProgress}
-                                >
-                                    <div
-                                        className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
-                                        style={{ width: `${latestRunProgress}%` }}
-                                    />
-                                </div>
-                            ) : null}
-                            <div
-                                className={clsx(
-                                    "mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs",
-                                    mutedTextClass
-                                )}
-                            >
-                                <span>
-                                    {t("admin.wechat_mp.ingest.progress.accounts", {
-                                        processed: latestRun.processed_accounts || 0,
-                                        total: latestRun.total_accounts || 0,
-                                    })}
-                                </span>
-                                <span>
-                                    {t("admin.wechat_mp.ingest.progress.articles", {
-                                        processed: latestRun.processed_articles || 0,
-                                        total: latestRun.total_articles || 0,
-                                    })}
-                                </span>
-                            </div>
-                            {latestRun.status === "running" &&
-                            (latestRun.current_account || latestRun.current_article) ? (
-                                <div className={clsx("mt-2 truncate text-xs", mutedTextClass)}>
-                                    {latestRun.current_account || ""}
-                                    {latestRun.current_account && latestRun.current_article
-                                        ? " · "
-                                        : ""}
-                                    {latestRun.current_article || ""}
-                                </div>
-                            ) : null}
-                            {latestRun.status === "failed" && latestRun.error ? (
-                                <div
-                                    className={clsx(
-                                        "mt-2 line-clamp-2 text-xs",
-                                        isDayMode ? "text-rose-700" : "text-rose-200"
-                                    )}
-                                >
-                                    {latestRun.error}
-                                </div>
-                            ) : null}
-                        </div>
-                    ) : null}
-
-                    <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
-                        <div className="space-y-3">
-                            <div className="grid gap-3 md:grid-cols-3">
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.ingest.fields.enabled")}
-                                    <select
-                                        value={ingestSettings.enabled ? "1" : "0"}
-                                        onChange={(event) =>
-                                            updateIngestSetting(
-                                                "enabled",
-                                                event.target.value === "1"
-                                            )
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    >
-                                        <option value="1">
-                                            {t("admin.wechat_mp.status.enabled")}
-                                        </option>
-                                        <option value="0">
-                                            {t("admin.wechat_mp.status.disabled")}
-                                        </option>
-                                    </select>
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.ingest.fields.daily_run_time")}
-                                    <input
-                                        type="time"
-                                        value={ingestSettings.daily_run_time}
-                                        onChange={(event) =>
-                                            updateIngestSetting(
-                                                "daily_run_time",
-                                                event.target.value
-                                            )
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.ingest.fields.timezone")}
-                                    <input
-                                        value={ingestSettings.timezone}
-                                        onChange={(event) =>
-                                            updateIngestSetting("timezone", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                            </div>
-
-                            <div className="mt-3 grid gap-3 md:grid-cols-3">
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.ingest.fields.token_health_enabled")}
-                                    <select
-                                        value={ingestSettings.token_health_enabled ? "1" : "0"}
-                                        onChange={(event) =>
-                                            updateIngestSetting(
-                                                "token_health_enabled",
-                                                event.target.value === "1"
-                                            )
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    >
-                                        <option value="1">
-                                            {t("admin.wechat_mp.status.enabled")}
-                                        </option>
-                                        <option value="0">
-                                            {t("admin.wechat_mp.status.disabled")}
-                                        </option>
-                                    </select>
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.ingest.fields.token_health_interval")}
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="168"
-                                        step="1"
-                                        value={ingestSettings.token_health_interval_hours}
-                                        onChange={(event) =>
-                                            updateIngestSetting(
-                                                "token_health_interval_hours",
-                                                event.target.value
-                                            )
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                                <AdminInlineNote tone="info" className="self-end">
-                                    {t("admin.wechat_mp.ingest.token_health_note")}
-                                </AdminInlineNote>
-                            </div>
-
-                            <AdminInlineNote tone="warning">
-                                {t("admin.wechat_mp.ingest.pacing_note")}
-                            </AdminInlineNote>
-
-                            <div className="grid gap-3 md:grid-cols-3">
-                                <div>
-                                    <div
-                                        className={clsx("text-sm font-semibold", headingTextClass)}
-                                    >
-                                        {t("admin.wechat_mp.ingest.fields.query_delay")}
-                                    </div>
-                                    <div className="mt-1 grid grid-cols-2 gap-2">
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.query_delay_min")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={ingestSettings.query_delay_range?.[0] ?? 95}
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "query_delay_range",
-                                                        0,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.query_delay_max")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={ingestSettings.query_delay_range?.[1] ?? 125}
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "query_delay_range",
-                                                        1,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        className={clsx("text-sm font-semibold", headingTextClass)}
-                                    >
-                                        {t("admin.wechat_mp.ingest.fields.page_pause")}
-                                    </div>
-                                    <div className="mt-1 grid grid-cols-2 gap-2">
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.page_pause_min")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={ingestSettings.page_pause_range?.[0] ?? 10}
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "page_pause_range",
-                                                        0,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.page_pause_max")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={ingestSettings.page_pause_range?.[1] ?? 25}
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "page_pause_range",
-                                                        1,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        className={clsx("text-sm font-semibold", headingTextClass)}
-                                    >
-                                        {t("admin.wechat_mp.ingest.fields.content_delay")}
-                                    </div>
-                                    <div className="mt-1 grid grid-cols-2 gap-2">
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.content_delay_min")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={
-                                                    ingestSettings.content_delay_range?.[0] ?? 10
-                                                }
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "content_delay_range",
-                                                        0,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
-                                        <label
-                                            className={clsx(
-                                                "block text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {t("admin.wechat_mp.fields.content_delay_max")}
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={
-                                                    ingestSettings.content_delay_range?.[1] ?? 20
-                                                }
-                                                onChange={(event) =>
-                                                    updateIngestDelay(
-                                                        "content_delay_range",
-                                                        1,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                            />
-                                        </label>
+                                    <div className={clsx("grid gap-2 text-xs", mutedTextClass)}>
+                                        <details className="group">
+                                            <summary className="cursor-pointer text-xs font-semibold">
+                                                {t("admin.wechat_mp.auth.diagnostics")}
+                                            </summary>
+                                            <div className="mt-2 grid gap-2">
+                                                <div>
+                                                    {t("admin.wechat_mp.auth.cookie_names")}:{" "}
+                                                    {(status?.credentials?.cookie_names || [])
+                                                        .length > 0
+                                                        ? status.credentials.cookie_names.join(", ")
+                                                        : t("admin.wechat_mp.status.none")}
+                                                </div>
+                                                <div>
+                                                    {t("admin.wechat_mp.auth.token_mask")}:{" "}
+                                                    {status?.credentials?.token_mask ||
+                                                        t("admin.wechat_mp.status.none")}
+                                                </div>
+                                                <div className="break-all">
+                                                    {t("admin.wechat_mp.auth.chromium_path")}:{" "}
+                                                    {status?.runtime?.executable_path ||
+                                                        t("admin.wechat_mp.status.none")}
+                                                </div>
+                                            </div>
+                                        </details>
                                     </div>
                                 </div>
                             </div>
+                        </AdminPanel>
 
-                            <div className="grid gap-3 md:grid-cols-3">
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.count")}
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                        value={ingestSettings.count_per_page}
-                                        onChange={(event) =>
-                                            updateIngestSetting(
-                                                "count_per_page",
-                                                event.target.value
-                                            )
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.max_pages")}
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="5"
-                                        value={ingestSettings.max_pages}
-                                        onChange={(event) =>
-                                            updateIngestSetting("max_pages", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                    />
-                                </label>
-                                <div className={clsx("mt-7 space-y-2 text-sm", subtleTextClass)}>
-                                    <label className="inline-flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={Boolean(ingestSettings.fetch_content)}
-                                            onChange={(event) =>
-                                                updateIngestSetting(
-                                                    "fetch_content",
-                                                    event.target.checked
-                                                )
-                                            }
-                                            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                                        />
-                                        {t("admin.wechat_mp.ingest.fields.fetch_content")}
-                                    </label>
-                                    <label className="inline-flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={Boolean(ingestSettings.auto_parse)}
-                                            onChange={(event) =>
-                                                updateIngestSetting(
-                                                    "auto_parse",
-                                                    event.target.checked
-                                                )
-                                            }
-                                            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                                        />
-                                        {t("admin.wechat_mp.ingest.fields.auto_parse")}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end">
+                        <AdminPanel
+                            title={t("admin.wechat_mp.collect.title")}
+                            description={t("admin.wechat_mp.collect.description")}
+                            action={
                                 <AdminButton
                                     tone="primary"
-                                    onClick={saveIngestSettings}
-                                    disabled={ingestSaving}
+                                    onClick={fetchArticles}
+                                    disabled={articlesLoading || !credentialsReady}
                                 >
-                                    {ingestSaving ? (
+                                    {articlesLoading ? (
                                         <Loader2 size={16} className="animate-spin" />
                                     ) : (
-                                        <Settings2 size={16} />
+                                        <Newspaper size={16} />
                                     )}
-                                    {t("admin.wechat_mp.actions.save_ingest")}
+                                    {t("admin.wechat_mp.actions.fetch_articles")}
                                 </AdminButton>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="grid gap-2 sm:grid-cols-2">
-                                <input
-                                    value={ingestAccountForm.name}
-                                    onChange={(event) =>
-                                        updateIngestAccountForm("name", event.target.value)
-                                    }
-                                    className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                                    placeholder={t(
-                                        "admin.wechat_mp.ingest.placeholders.account_name"
+                            }
+                        >
+                            <div className="grid gap-3 lg:grid-cols-2">
+                                <label
+                                    className={clsx(
+                                        "block text-sm font-semibold",
+                                        headingTextClass
                                     )}
-                                />
-                                <input
-                                    value={ingestAccountForm.fakeid}
-                                    onChange={(event) =>
-                                        updateIngestAccountForm("fakeid", event.target.value)
-                                    }
-                                    className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                                    placeholder={t("admin.wechat_mp.placeholders.fakeid")}
-                                />
-                                <input
-                                    value={ingestAccountForm.keywords}
-                                    onChange={(event) =>
-                                        updateIngestAccountForm("keywords", event.target.value)
-                                    }
-                                    className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
-                                    placeholder={t("admin.wechat_mp.ingest.placeholders.keywords")}
-                                />
+                                >
+                                    {t("admin.wechat_mp.fields.account_name")}
+                                    <div className="mt-1 flex gap-2">
+                                        <input
+                                            value={form.accountName}
+                                            onChange={(event) =>
+                                                updateForm("accountName", event.target.value)
+                                            }
+                                            className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
+                                            placeholder={t(
+                                                "admin.wechat_mp.placeholders.account_name"
+                                            )}
+                                        />
+                                        <AdminButton
+                                            tone="subtle"
+                                            onClick={searchAccounts}
+                                            disabled={accountSearching || !credentialsReady}
+                                            className="shrink-0"
+                                        >
+                                            {accountSearching ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <Search size={16} />
+                                            )}
+                                            <span className="hidden sm:inline">
+                                                {t("admin.wechat_mp.actions.search_account")}
+                                            </span>
+                                        </AdminButton>
+                                    </div>
+                                </label>
+                                <label
+                                    className={clsx(
+                                        "block text-sm font-semibold",
+                                        headingTextClass
+                                    )}
+                                >
+                                    {t("admin.wechat_mp.fields.fakeid")}
+                                    <input
+                                        value={form.fakeid}
+                                        onChange={(event) =>
+                                            updateForm("fakeid", event.target.value)
+                                        }
+                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                        placeholder={t("admin.wechat_mp.placeholders.fakeid")}
+                                    />
+                                </label>
+                                <label
+                                    className={clsx(
+                                        "block text-sm font-semibold",
+                                        headingTextClass
+                                    )}
+                                >
+                                    {t("admin.wechat_mp.fields.keyword")}
+                                    <input
+                                        value={form.keyword}
+                                        onChange={(event) =>
+                                            updateForm("keyword", event.target.value)
+                                        }
+                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                        placeholder={t("admin.wechat_mp.placeholders.keyword")}
+                                    />
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label
+                                        className={clsx(
+                                            "block text-sm font-semibold",
+                                            headingTextClass
+                                        )}
+                                    >
+                                        {t("admin.wechat_mp.fields.count")}
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100"
+                                            value={form.count}
+                                            onChange={(event) =>
+                                                updateForm("count", event.target.value)
+                                            }
+                                            className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                        />
+                                    </label>
+                                    <label
+                                        className={clsx(
+                                            "block text-sm font-semibold",
+                                            headingTextClass
+                                        )}
+                                    >
+                                        {t("admin.wechat_mp.fields.max_pages")}
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="5"
+                                            value={form.maxPages}
+                                            onChange={(event) =>
+                                                updateForm("maxPages", event.target.value)
+                                            }
+                                            className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                        />
+                                    </label>
+                                </div>
                             </div>
-                            <div className="flex flex-wrap items-center justify-between gap-2">
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
                                 <label
                                     className={clsx(
                                         "inline-flex items-center gap-2 text-sm",
@@ -1825,607 +1298,1469 @@ const WeChatMpImportManager = () => {
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={Boolean(ingestAccountForm.enabled)}
+                                        checked={form.allowFirst}
                                         onChange={(event) =>
-                                            updateIngestAccountForm("enabled", event.target.checked)
+                                            updateForm("allowFirst", event.target.checked)
                                         }
                                         className="h-4 w-4 rounded border-slate-300 text-indigo-600"
                                     />
-                                    {t("admin.wechat_mp.ingest.fields.account_enabled")}
+                                    {t("admin.wechat_mp.fields.allow_first")}
                                 </label>
-                                <AdminButton
-                                    tone="subtle"
-                                    onClick={saveIngestAccount}
-                                    disabled={ingestSaving}
-                                >
-                                    {ingestSaving ? (
-                                        <Loader2 size={16} className="animate-spin" />
-                                    ) : (
-                                        <Plus size={16} />
-                                    )}
-                                    {t("admin.wechat_mp.actions.add_account")}
-                                </AdminButton>
+                                {accounts.map((account) => (
+                                    <FilterChip
+                                        key={account.fakeid}
+                                        active={form.fakeid === account.fakeid}
+                                        onClick={() => chooseAccount(account)}
+                                    >
+                                        {account.nickname || account.alias || account.fakeid}
+                                    </FilterChip>
+                                ))}
                             </div>
 
-                            <div className="flex flex-col gap-2 sm:flex-row">
-                                <input
-                                    type="file"
-                                    accept=".json,.csv,.tsv,.txt"
-                                    onChange={(event) =>
-                                        setIngestFile(event.target.files?.[0] || null)
-                                    }
-                                    className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
-                                />
-                                <AdminButton
-                                    tone="subtle"
-                                    onClick={importIngestAccounts}
-                                    disabled={ingestImporting}
-                                >
-                                    {ingestImporting ? (
-                                        <Loader2 size={16} className="animate-spin" />
-                                    ) : (
-                                        <Upload size={16} />
+                            <details
+                                className={clsx(
+                                    "mt-4 rounded-[8px] border p-3",
+                                    isDayMode
+                                        ? "border-slate-200 bg-white/70"
+                                        : "border-white/10 bg-white/[0.03]"
+                                )}
+                            >
+                                <summary
+                                    className={clsx(
+                                        "cursor-pointer text-sm font-semibold",
+                                        headingTextClass
                                     )}
-                                    {t("admin.wechat_mp.actions.import_accounts")}
-                                </AdminButton>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-3">
-                                <div className={clsx("text-xs", mutedTextClass)}>
-                                    {t("admin.wechat_mp.ingest.account_summary", {
-                                        enabled: formatNumber(enabledIngestAccountCount),
-                                        total: formatNumber(ingestAccounts.length),
-                                    })}
-                                </div>
-                            </div>
-                            <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
-                                {ingestAccounts.length > 0 ? (
-                                    ingestAccounts.map((account) => (
-                                        <div
-                                            key={account.id}
+                                >
+                                    {t("admin.wechat_mp.collect.pacing_title")}
+                                </summary>
+                                <AdminInlineNote tone="warning" className="mt-3">
+                                    {t("admin.wechat_mp.collect.pacing_note")}
+                                </AdminInlineNote>
+                                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label
                                             className={clsx(
-                                                "flex flex-col gap-3 rounded-[8px] border p-3 sm:flex-row sm:items-center sm:justify-between",
-                                                isDayMode
-                                                    ? "border-slate-200/70 bg-white/[0.72]"
-                                                    : "border-white/10 bg-white/[0.04]"
+                                                "block text-xs font-semibold",
+                                                headingTextClass
                                             )}
                                         >
-                                            <div className="min-w-0">
-                                                <div className="flex min-w-0 items-center gap-2">
-                                                    <div
-                                                        className={clsx(
-                                                            "truncate text-sm font-bold",
-                                                            headingTextClass
-                                                        )}
-                                                    >
-                                                        {account.name || account.fakeid}
-                                                    </div>
-                                                    <span
-                                                        className={clsx(
-                                                            "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                                                            account.enabled
-                                                                ? isDayMode
-                                                                    ? "bg-emerald-50 text-emerald-700"
-                                                                    : "bg-emerald-500/10 text-emerald-300"
-                                                                : isDayMode
-                                                                  ? "bg-slate-100 text-slate-500"
-                                                                  : "bg-white/5 text-gray-400"
-                                                        )}
-                                                    >
-                                                        {t(
-                                                            account.enabled
-                                                                ? "admin.wechat_mp.status.enabled"
-                                                                : "admin.wechat_mp.status.disabled"
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        "mt-1 truncate text-xs",
-                                                        mutedTextClass
-                                                    )}
-                                                >
-                                                    {account.fakeid ||
-                                                        t("admin.wechat_mp.status.none")}
-                                                </div>
-                                            </div>
-                                            <div className="flex shrink-0 items-center justify-end gap-2">
-                                                <AdminButton
-                                                    tone={account.enabled ? "subtle" : "success"}
-                                                    onClick={() => toggleIngestAccount(account)}
-                                                    disabled={
-                                                        updatingIngestAccountId === account.id
-                                                    }
-                                                    className="min-h-8 px-2.5 py-1 text-xs md:px-2.5"
-                                                >
-                                                    {updatingIngestAccountId === account.id ? (
-                                                        <Loader2
-                                                            size={14}
-                                                            className="animate-spin"
-                                                        />
-                                                    ) : account.enabled ? (
-                                                        <PowerOff size={14} />
-                                                    ) : (
-                                                        <Power size={14} />
-                                                    )}
-                                                    {t(
-                                                        account.enabled
-                                                            ? "admin.wechat_mp.actions.disable_account"
-                                                            : "admin.wechat_mp.actions.enable_account"
-                                                    )}
-                                                </AdminButton>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => deleteIngestAccount(account)}
-                                                    className={clsx(
-                                                        "rounded-[8px] border p-2 transition-colors",
-                                                        isDayMode
-                                                            ? "border-rose-200 text-rose-600 hover:bg-rose-50"
-                                                            : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
-                                                    )}
-                                                    aria-label={t(
-                                                        "admin.wechat_mp.actions.delete_account"
-                                                    )}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <AdminEmptyState
-                                        icon={ClipboardList}
-                                        title={t("admin.wechat_mp.ingest.empty_accounts_title")}
-                                        description={t(
-                                            "admin.wechat_mp.ingest.empty_accounts_desc"
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                        <div
-                            className={clsx(
-                                "rounded-[8px] border p-3",
-                                isDayMode ? "border-slate-200/70" : "border-white/10"
-                            )}
-                        >
-                            <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
-                                {t("admin.wechat_mp.ingest.runs_title")}
-                            </div>
-                            <div className="space-y-2">
-                                {ingestRuns.length > 0 ? (
-                                    ingestRuns.slice(0, 4).map((run) => (
-                                        <div
-                                            key={run.id}
+                                            {t("admin.wechat_mp.fields.query_delay_min")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                value={form.queryDelayMin}
+                                                onChange={(event) =>
+                                                    updateForm("queryDelayMin", event.target.value)
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="95"
+                                            />
+                                        </label>
+                                        <label
                                             className={clsx(
-                                                "flex items-center justify-between gap-3 text-sm",
-                                                mutedTextClass
+                                                "block text-xs font-semibold",
+                                                headingTextClass
                                             )}
                                         >
-                                            <span>
-                                                {formatDateTime(
-                                                    run.started_at,
-                                                    i18n.resolvedLanguage
-                                                )}
-                                            </span>
-                                            <span>
-                                                {t(
-                                                    `admin.wechat_mp.ingest.run_status.${run.status}`,
-                                                    run.status
-                                                )}
-                                            </span>
-                                            <span>{formatNumber(run.new_articles || 0)}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className={clsx("text-sm", mutedTextClass)}>
-                                        {t("admin.wechat_mp.ingest.empty_runs")}
+                                            {t("admin.wechat_mp.fields.query_delay_max")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                value={form.queryDelayMax}
+                                                onChange={(event) =>
+                                                    updateForm("queryDelayMax", event.target.value)
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="125"
+                                            />
+                                        </label>
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                        <div
-                            className={clsx(
-                                "rounded-[8px] border p-3",
-                                isDayMode ? "border-slate-200/70" : "border-white/10"
-                            )}
-                        >
-                            <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
-                                {t("admin.wechat_mp.ingest.articles_title")}
-                            </div>
-                            <div className="space-y-2">
-                                {ingestArticles.length > 0 ? (
-                                    ingestArticles.slice(0, 4).map((article) => (
-                                        <div
-                                            key={article.id || article.link}
-                                            className="flex min-w-0 items-start justify-between gap-3"
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label
+                                            className={clsx(
+                                                "block text-xs font-semibold",
+                                                headingTextClass
+                                            )}
                                         >
-                                            <div className="min-w-0">
-                                                <div
-                                                    className={clsx(
-                                                        "truncate text-sm font-semibold",
-                                                        headingTextClass
-                                                    )}
-                                                >
-                                                    {article.title ||
-                                                        t("admin.wechat_mp.articles.untitled")}
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        "mt-1 truncate text-xs",
-                                                        mutedTextClass
-                                                    )}
-                                                >
-                                                    {article.account_name ||
-                                                        article.fakeid ||
-                                                        t("admin.wechat_mp.status.none")}
-                                                </div>
-                                                <div
-                                                    className={clsx("mt-1 text-xs", mutedTextClass)}
-                                                >
-                                                    {t(
-                                                        `admin.wechat_mp.ingest.content_status.${article.content_status || "not_fetched"}`,
-                                                        article.content_status || "not_fetched"
-                                                    )}
-                                                    {" · "}
-                                                    {t(
-                                                        `admin.wechat_mp.ingest.extraction_status.${article.extraction_status || "not_started"}`,
-                                                        article.extraction_status || "not_started"
-                                                    )}
-                                                    {" · "}
-                                                    {t(
-                                                        `admin.wechat_mp.ingest.activity_status.${article.activity_status || "not_screened"}`,
-                                                        article.activity_status || "not_screened"
-                                                    )}
-                                                    {article.extracted_event?.title
-                                                        ? ` · ${article.extracted_event.title}`
-                                                        : ""}
-                                                </div>
-                                                {article.activity_reason ? (
-                                                    <div
-                                                        className={clsx(
-                                                            "mt-1 line-clamp-2 text-xs",
-                                                            mutedTextClass
-                                                        )}
-                                                    >
-                                                        {article.activity_reason}
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    retryIngestArticleExtraction(article)
+                                            {t("admin.wechat_mp.fields.page_pause_min")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                step="0.5"
+                                                value={form.pagePauseMin}
+                                                onChange={(event) =>
+                                                    updateForm("pagePauseMin", event.target.value)
                                                 }
-                                                disabled={
-                                                    extractingIngestArticleId === article.id ||
-                                                    !article.content_text
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="10"
+                                            />
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-xs font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.page_pause_max")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                step="0.5"
+                                                value={form.pagePauseMax}
+                                                onChange={(event) =>
+                                                    updateForm("pagePauseMax", event.target.value)
                                                 }
-                                                className={clsx(
-                                                    "shrink-0 rounded-[8px] border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                                                    isDayMode
-                                                        ? "border-slate-200 text-slate-600 hover:bg-slate-50"
-                                                        : "border-white/10 text-gray-300 hover:bg-white/10"
-                                                )}
-                                                aria-label={t(
-                                                    "admin.wechat_mp.actions.retry_extraction"
-                                                )}
-                                                title={t(
-                                                    "admin.wechat_mp.actions.retry_extraction"
-                                                )}
-                                            >
-                                                <RefreshCw
-                                                    size={14}
-                                                    className={
-                                                        extractingIngestArticleId === article.id
-                                                            ? "animate-spin"
-                                                            : ""
-                                                    }
-                                                />
-                                            </button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className={clsx("text-sm", mutedTextClass)}>
-                                        {t("admin.wechat_mp.ingest.empty_articles")}
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="25"
+                                            />
+                                        </label>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label
+                                            className={clsx(
+                                                "block text-xs font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.content_delay_min")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                value={form.contentDelayMin}
+                                                onChange={(event) =>
+                                                    updateForm(
+                                                        "contentDelayMin",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="10"
+                                            />
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-xs font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.content_delay_max")}
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="3600"
+                                                value={form.contentDelayMax}
+                                                onChange={(event) =>
+                                                    updateForm(
+                                                        "contentDelayMax",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                                                placeholder="20"
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            </details>
+                        </AdminPanel>
                     </div>
-                </AdminPanel>
+                ) : null}
 
-                <div className="grid gap-3 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]">
+                {activeWorkspace === "sources" ? (
                     <AdminPanel
-                        title={t("admin.wechat_mp.articles.title")}
-                        description={t("admin.wechat_mp.articles.description")}
-                    >
-                        {articles.length > 0 ? (
-                            <div className="space-y-2">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <AdminMetricCard
-                                        label={t("admin.wechat_mp.metrics.fetched_articles")}
-                                        value={formatNumber(articles.length)}
-                                        icon={ClipboardList}
-                                        tone="indigo"
-                                    />
-                                    <AdminMetricCard
-                                        label={t("admin.wechat_mp.metrics.remote_total")}
-                                        value={formatNumber(
-                                            articlesResult?.total || articles.length
-                                        )}
-                                        icon={Newspaper}
-                                        tone="violet"
-                                    />
-                                </div>
-                                <div className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
-                                    {articles.map((article) => {
-                                        const active = selectedArticle?.link === article.link;
-                                        return (
-                                            <button
-                                                key={article.link || article.title}
-                                                type="button"
-                                                onClick={() => selectArticle(article)}
-                                                className={clsx(
-                                                    "w-full rounded-[8px] border p-3 text-left transition-colors",
-                                                    active
-                                                        ? isDayMode
-                                                            ? "border-indigo-300 bg-indigo-50 text-slate-950"
-                                                            : "border-indigo-400/40 bg-indigo-500/10 text-white"
-                                                        : isDayMode
-                                                          ? "border-slate-200/70 bg-white/[0.74] text-slate-700 hover:border-indigo-200"
-                                                          : "border-white/10 bg-white/[0.04] text-gray-200 hover:border-white/20"
-                                                )}
-                                            >
-                                                <div className="line-clamp-2 text-sm font-bold">
-                                                    {article.title ||
-                                                        t("admin.wechat_mp.articles.untitled")}
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        "mt-1 line-clamp-2 text-xs leading-5",
-                                                        mutedTextClass
-                                                    )}
-                                                >
-                                                    {article.summary ||
-                                                        t("admin.wechat_mp.articles.no_summary")}
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        "mt-2 flex flex-wrap gap-2 text-xs",
-                                                        mutedTextClass
-                                                    )}
-                                                >
-                                                    <span>
-                                                        {article.account ||
-                                                            articlesResult?.account?.nickname ||
-                                                            t("admin.wechat_mp.status.none")}
-                                                    </span>
-                                                    <span>
-                                                        {article.time_text ||
-                                                            t("admin.wechat_mp.status.none")}
-                                                    </span>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : articlesLoading ? (
-                            <div className={clsx("py-10 text-center text-sm", mutedTextClass)}>
-                                <Loader2 size={28} className="mx-auto mb-3 animate-spin" />
-                                {t("admin.wechat_mp.articles.loading")}
-                            </div>
-                        ) : (
-                            <AdminEmptyState
-                                icon={Newspaper}
-                                title={t("admin.wechat_mp.articles.empty_title")}
-                                description={t("admin.wechat_mp.articles.empty_desc")}
-                            />
-                        )}
-                    </AdminPanel>
-
-                    <AdminPanel
-                        title={t("admin.wechat_mp.preview.title")}
-                        description={
-                            selectedArticle?.title || t("admin.wechat_mp.preview.description")
-                        }
+                        title={t("admin.wechat_mp.ingest.title")}
+                        description={t("admin.wechat_mp.ingest.description")}
                         action={
-                            selectedArticle ? (
-                                <ToolbarGroup className="justify-start sm:justify-end">
-                                    <AdminButton
-                                        tone="subtle"
-                                        onClick={fetchContent}
-                                        disabled={contentLoading}
-                                    >
-                                        {contentLoading ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                        ) : (
-                                            <FileText size={16} />
+                            <ToolbarGroup className="justify-start sm:justify-end">
+                                <AdminButton
+                                    tone="subtle"
+                                    onClick={() => loadIngestOverview()}
+                                    disabled={ingestLoading}
+                                >
+                                    <RefreshCw
+                                        size={16}
+                                        className={ingestLoading ? "animate-spin" : ""}
+                                    />
+                                    {t("admin.wechat_mp.actions.refresh_ingest")}
+                                </AdminButton>
+                                <AdminButton
+                                    tone="primary"
+                                    onClick={runIngestNow}
+                                    disabled={ingestRunning || !credentialsReady}
+                                >
+                                    {ingestRunning ? (
+                                        <Loader2 size={16} className="animate-spin" />
+                                    ) : (
+                                        <Play size={16} />
+                                    )}
+                                    {t("admin.wechat_mp.actions.run_ingest")}
+                                </AdminButton>
+                            </ToolbarGroup>
+                        }
+                    >
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                            <AdminMetricCard
+                                label={t("admin.wechat_mp.ingest.metrics.schedule")}
+                                value={
+                                    ingestSettings.enabled
+                                        ? ingestSettings.daily_run_time
+                                        : t("admin.wechat_mp.status.disabled")
+                                }
+                                icon={CalendarClock}
+                                tone={ingestSettings.enabled ? "emerald" : "amber"}
+                            />
+                            <AdminMetricCard
+                                label={t("admin.wechat_mp.ingest.metrics.accounts")}
+                                value={formatNumber(ingestAccounts.length)}
+                                icon={ClipboardList}
+                                tone="indigo"
+                            />
+                            <AdminMetricCard
+                                label={t("admin.wechat_mp.ingest.metrics.latest_run")}
+                                value={
+                                    latestRun
+                                        ? t(
+                                              `admin.wechat_mp.ingest.run_status.${latestRun.status}`,
+                                              latestRun.status
+                                          )
+                                        : t("admin.wechat_mp.status.none")
+                                }
+                                icon={Clock3}
+                                tone={
+                                    latestRun?.status === "completed"
+                                        ? "emerald"
+                                        : latestRun?.status === "failed"
+                                          ? "rose"
+                                          : "violet"
+                                }
+                            />
+                            <AdminMetricCard
+                                label={t("admin.wechat_mp.ingest.metrics.new_articles")}
+                                value={formatNumber(
+                                    latestRun?.new_articles || ingestArticles.length
+                                )}
+                                icon={Newspaper}
+                                tone="violet"
+                            />
+                        </div>
+
+                        {latestRun?.status === "running" || latestRun?.status === "failed" ? (
+                            <div
+                                className={clsx(
+                                    "mt-3 rounded-[8px] border p-4",
+                                    latestRun.status === "failed"
+                                        ? isDayMode
+                                            ? "border-rose-200 bg-rose-50/70"
+                                            : "border-rose-500/20 bg-rose-500/10"
+                                        : isDayMode
+                                          ? "border-indigo-200 bg-indigo-50/70"
+                                          : "border-indigo-500/20 bg-indigo-500/10"
+                                )}
+                                aria-live="polite"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div
+                                            className={clsx(
+                                                "text-sm font-bold",
+                                                latestRun.status === "failed"
+                                                    ? isDayMode
+                                                        ? "text-rose-800"
+                                                        : "text-rose-200"
+                                                    : headingTextClass
+                                            )}
+                                        >
+                                            {latestRun.status === "failed"
+                                                ? t("admin.wechat_mp.ingest.progress.failed_title")
+                                                : t("admin.wechat_mp.ingest.progress.title")}
+                                        </div>
+                                        <div className={clsx("mt-1 text-xs", mutedTextClass)}>
+                                            {t(
+                                                `admin.wechat_mp.ingest.progress.stage.${latestRun.progress_stage || "starting"}`,
+                                                latestRun.progress_stage || "starting"
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span
+                                        className={clsx(
+                                            "shrink-0 text-sm font-bold tabular-nums",
+                                            latestRun.status === "failed"
+                                                ? isDayMode
+                                                    ? "text-rose-700"
+                                                    : "text-rose-200"
+                                                : isDayMode
+                                                  ? "text-indigo-700"
+                                                  : "text-indigo-200"
                                         )}
-                                        {t("admin.wechat_mp.actions.fetch_content")}
-                                    </AdminButton>
-                                    <AdminButton
-                                        tone="subtle"
-                                        onClick={() => importContent("article")}
-                                        disabled={
-                                            Boolean(importingResource) || !content?.contentText
-                                        }
                                     >
-                                        {importingResource === "article" ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                        ) : (
-                                            <Newspaper size={16} />
+                                        {latestRun.status === "failed"
+                                            ? t("admin.wechat_mp.ingest.run_status.failed")
+                                            : `${latestRunProgress}%`}
+                                    </span>
+                                </div>
+                                {latestRun.status === "running" ? (
+                                    <div
+                                        className={clsx(
+                                            "mt-3 h-2 overflow-hidden rounded-full",
+                                            isDayMode ? "bg-indigo-100" : "bg-white/10"
                                         )}
+                                        role="progressbar"
+                                        aria-label={t("admin.wechat_mp.ingest.progress.title")}
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"
+                                        aria-valuenow={latestRunProgress}
+                                    >
+                                        <div
+                                            className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+                                            style={{ width: `${latestRunProgress}%` }}
+                                        />
+                                    </div>
+                                ) : null}
+                                <div
+                                    className={clsx(
+                                        "mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs",
+                                        mutedTextClass
+                                    )}
+                                >
+                                    <span>
+                                        {t("admin.wechat_mp.ingest.progress.accounts", {
+                                            processed: latestRun.processed_accounts || 0,
+                                            total: latestRun.total_accounts || 0,
+                                        })}
+                                    </span>
+                                    <span>
+                                        {t("admin.wechat_mp.ingest.progress.articles", {
+                                            processed: latestRun.processed_articles || 0,
+                                            total: latestRun.total_articles || 0,
+                                        })}
+                                    </span>
+                                </div>
+                                {latestRun.status === "running" &&
+                                (latestRun.current_account || latestRun.current_article) ? (
+                                    <div className={clsx("mt-2 truncate text-xs", mutedTextClass)}>
+                                        {latestRun.current_account || ""}
+                                        {latestRun.current_account && latestRun.current_article
+                                            ? " · "
+                                            : ""}
+                                        {latestRun.current_article || ""}
+                                    </div>
+                                ) : null}
+                                {latestRun.status === "failed" && latestRun.error ? (
+                                    <div
+                                        className={clsx(
+                                            "mt-2 line-clamp-2 text-xs",
+                                            isDayMode ? "text-rose-700" : "text-rose-200"
+                                        )}
+                                    >
+                                        {latestRun.error}
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : null}
+
+                        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
+                            <details
+                                className={clsx(
+                                    "rounded-[8px] border p-3",
+                                    isDayMode
+                                        ? "border-slate-200/70 bg-white/[0.5]"
+                                        : "border-white/10 bg-white/[0.025]"
+                                )}
+                            >
+                                <summary
+                                    className={clsx(
+                                        "cursor-pointer text-sm font-bold",
+                                        headingTextClass
+                                    )}
+                                >
+                                    {t(
+                                        "admin.wechat_mp.workspace.advanced_schedule",
+                                        "定时与风控参数"
+                                    )}
+                                    <span
+                                        className={clsx("ml-2 text-xs font-normal", mutedTextClass)}
+                                    >
                                         {t(
-                                            "admin.wechat_mp.actions.import_article",
-                                            fallbackText("导入为文章", "Import Article")
+                                            "admin.wechat_mp.workspace.advanced_schedule_hint",
+                                            "默认值适合日常运行，仅在异常排查时调整"
                                         )}
-                                    </AdminButton>
-                                    <AdminButton
-                                        tone="primary"
-                                        onClick={() => importContent("event")}
-                                        disabled={
-                                            Boolean(importingResource) || !content?.contentText
+                                    </span>
+                                </summary>
+                                <div className="mt-3 space-y-3">
+                                    <div className="grid gap-3 md:grid-cols-3">
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.ingest.fields.enabled")}
+                                            <select
+                                                value={ingestSettings.enabled ? "1" : "0"}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "enabled",
+                                                        event.target.value === "1"
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            >
+                                                <option value="1">
+                                                    {t("admin.wechat_mp.status.enabled")}
+                                                </option>
+                                                <option value="0">
+                                                    {t("admin.wechat_mp.status.disabled")}
+                                                </option>
+                                            </select>
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.ingest.fields.daily_run_time")}
+                                            <input
+                                                type="time"
+                                                value={ingestSettings.daily_run_time}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "daily_run_time",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            />
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.ingest.fields.timezone")}
+                                            <input
+                                                value={ingestSettings.timezone}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "timezone",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t(
+                                                "admin.wechat_mp.ingest.fields.token_health_enabled"
+                                            )}
+                                            <select
+                                                value={
+                                                    ingestSettings.token_health_enabled ? "1" : "0"
+                                                }
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "token_health_enabled",
+                                                        event.target.value === "1"
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            >
+                                                <option value="1">
+                                                    {t("admin.wechat_mp.status.enabled")}
+                                                </option>
+                                                <option value="0">
+                                                    {t("admin.wechat_mp.status.disabled")}
+                                                </option>
+                                            </select>
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t(
+                                                "admin.wechat_mp.ingest.fields.token_health_interval"
+                                            )}
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="168"
+                                                step="1"
+                                                value={ingestSettings.token_health_interval_hours}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "token_health_interval_hours",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            />
+                                        </label>
+                                        <AdminInlineNote tone="info" className="self-end">
+                                            {t("admin.wechat_mp.ingest.token_health_note")}
+                                        </AdminInlineNote>
+                                    </div>
+
+                                    <AdminInlineNote tone="warning">
+                                        {t("admin.wechat_mp.ingest.pacing_note")}
+                                    </AdminInlineNote>
+
+                                    <div className="grid gap-3 md:grid-cols-3">
+                                        <div>
+                                            <div
+                                                className={clsx(
+                                                    "text-sm font-semibold",
+                                                    headingTextClass
+                                                )}
+                                            >
+                                                {t("admin.wechat_mp.ingest.fields.query_delay")}
+                                            </div>
+                                            <div className="mt-1 grid grid-cols-2 gap-2">
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.query_delay_min")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings.query_delay_range?.[0] ??
+                                                            95
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "query_delay_range",
+                                                                0,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.query_delay_max")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings.query_delay_range?.[1] ??
+                                                            125
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "query_delay_range",
+                                                                1,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div
+                                                className={clsx(
+                                                    "text-sm font-semibold",
+                                                    headingTextClass
+                                                )}
+                                            >
+                                                {t("admin.wechat_mp.ingest.fields.page_pause")}
+                                            </div>
+                                            <div className="mt-1 grid grid-cols-2 gap-2">
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.page_pause_min")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings.page_pause_range?.[0] ??
+                                                            10
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "page_pause_range",
+                                                                0,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.page_pause_max")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings.page_pause_range?.[1] ??
+                                                            25
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "page_pause_range",
+                                                                1,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div
+                                                className={clsx(
+                                                    "text-sm font-semibold",
+                                                    headingTextClass
+                                                )}
+                                            >
+                                                {t("admin.wechat_mp.ingest.fields.content_delay")}
+                                            </div>
+                                            <div className="mt-1 grid grid-cols-2 gap-2">
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.content_delay_min")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings
+                                                                .content_delay_range?.[0] ?? 10
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "content_delay_range",
+                                                                0,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                                <label
+                                                    className={clsx(
+                                                        "block text-xs font-semibold",
+                                                        mutedTextClass
+                                                    )}
+                                                >
+                                                    {t("admin.wechat_mp.fields.content_delay_max")}
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            ingestSettings
+                                                                .content_delay_range?.[1] ?? 20
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateIngestDelay(
+                                                                "content_delay_range",
+                                                                1,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-3 md:grid-cols-3">
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.count")}
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="100"
+                                                value={ingestSettings.count_per_page}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "count_per_page",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            />
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.max_pages")}
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="5"
+                                                value={ingestSettings.max_pages}
+                                                onChange={(event) =>
+                                                    updateIngestSetting(
+                                                        "max_pages",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                            />
+                                        </label>
+                                        <div
+                                            className={clsx(
+                                                "mt-7 space-y-2 text-sm",
+                                                subtleTextClass
+                                            )}
+                                        >
+                                            <label className="inline-flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={Boolean(ingestSettings.fetch_content)}
+                                                    onChange={(event) =>
+                                                        updateIngestSetting(
+                                                            "fetch_content",
+                                                            event.target.checked
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                                                />
+                                                {t("admin.wechat_mp.ingest.fields.fetch_content")}
+                                            </label>
+                                            <label className="inline-flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={Boolean(ingestSettings.auto_parse)}
+                                                    onChange={(event) =>
+                                                        updateIngestSetting(
+                                                            "auto_parse",
+                                                            event.target.checked
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                                                />
+                                                {t("admin.wechat_mp.ingest.fields.auto_parse")}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <AdminButton
+                                            tone="primary"
+                                            onClick={saveIngestSettings}
+                                            disabled={ingestSaving}
+                                        >
+                                            {ingestSaving ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <Settings2 size={16} />
+                                            )}
+                                            {t("admin.wechat_mp.actions.save_ingest")}
+                                        </AdminButton>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <div className="space-y-3">
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                    <input
+                                        value={ingestAccountForm.name}
+                                        onChange={(event) =>
+                                            updateIngestAccountForm("name", event.target.value)
                                         }
+                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                                        placeholder={t(
+                                            "admin.wechat_mp.ingest.placeholders.account_name"
+                                        )}
+                                    />
+                                    <input
+                                        value={ingestAccountForm.fakeid}
+                                        onChange={(event) =>
+                                            updateIngestAccountForm("fakeid", event.target.value)
+                                        }
+                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                                        placeholder={t("admin.wechat_mp.placeholders.fakeid")}
+                                    />
+                                    <input
+                                        value={ingestAccountForm.keywords}
+                                        onChange={(event) =>
+                                            updateIngestAccountForm("keywords", event.target.value)
+                                        }
+                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
+                                        placeholder={t(
+                                            "admin.wechat_mp.ingest.placeholders.keywords"
+                                        )}
+                                    />
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <label
+                                        className={clsx(
+                                            "inline-flex items-center gap-2 text-sm",
+                                            subtleTextClass
+                                        )}
                                     >
-                                        {importingResource === "event" ? (
+                                        <input
+                                            type="checkbox"
+                                            checked={Boolean(ingestAccountForm.enabled)}
+                                            onChange={(event) =>
+                                                updateIngestAccountForm(
+                                                    "enabled",
+                                                    event.target.checked
+                                                )
+                                            }
+                                            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                                        />
+                                        {t("admin.wechat_mp.ingest.fields.account_enabled")}
+                                    </label>
+                                    <AdminButton
+                                        tone="subtle"
+                                        onClick={saveIngestAccount}
+                                        disabled={ingestSaving}
+                                    >
+                                        {ingestSaving ? (
                                             <Loader2 size={16} className="animate-spin" />
                                         ) : (
                                             <Plus size={16} />
                                         )}
-                                        {t(
-                                            "admin.wechat_mp.actions.import_event",
-                                            fallbackText("导入为活动", "Import Event")
-                                        )}
+                                        {t("admin.wechat_mp.actions.add_account")}
                                     </AdminButton>
-                                </ToolbarGroup>
-                            ) : null
-                        }
-                    >
-                        {selectedArticle ? (
-                            <div className="space-y-4">
-                                <div className="flex flex-col gap-3 lg:flex-row">
-                                    {previewCoverSrc ? (
-                                        <img
-                                            src={previewCoverSrc}
-                                            alt=""
-                                            className={clsx(
-                                                "h-36 w-full rounded-[8px] object-contain lg:w-56",
-                                                isDayMode ? "bg-slate-100" : "bg-white/[0.04]"
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <input
+                                        type="file"
+                                        accept=".json,.csv,.tsv,.txt"
+                                        onChange={(event) =>
+                                            setIngestFile(event.target.files?.[0] || null)
+                                        }
+                                        className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
+                                    />
+                                    <AdminButton
+                                        tone="subtle"
+                                        onClick={importIngestAccounts}
+                                        disabled={ingestImporting}
+                                    >
+                                        {ingestImporting ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                        ) : (
+                                            <Upload size={16} />
+                                        )}
+                                        {t("admin.wechat_mp.actions.import_accounts")}
+                                    </AdminButton>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className={clsx("text-xs", mutedTextClass)}>
+                                        {t("admin.wechat_mp.ingest.account_summary", {
+                                            enabled: formatNumber(enabledIngestAccountCount),
+                                            total: formatNumber(ingestAccounts.length),
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
+                                    {ingestAccounts.length > 0 ? (
+                                        ingestAccounts.map((account) => (
+                                            <div
+                                                key={account.id}
+                                                className={clsx(
+                                                    "flex flex-col gap-3 rounded-[8px] border p-3 sm:flex-row sm:items-center sm:justify-between",
+                                                    isDayMode
+                                                        ? "border-slate-200/70 bg-white/[0.72]"
+                                                        : "border-white/10 bg-white/[0.04]"
+                                                )}
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        <div
+                                                            className={clsx(
+                                                                "truncate text-sm font-bold",
+                                                                headingTextClass
+                                                            )}
+                                                        >
+                                                            {account.name || account.fakeid}
+                                                        </div>
+                                                        <span
+                                                            className={clsx(
+                                                                "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                                                                account.enabled
+                                                                    ? isDayMode
+                                                                        ? "bg-emerald-50 text-emerald-700"
+                                                                        : "bg-emerald-500/10 text-emerald-300"
+                                                                    : isDayMode
+                                                                      ? "bg-slate-100 text-slate-500"
+                                                                      : "bg-white/5 text-gray-400"
+                                                            )}
+                                                        >
+                                                            {t(
+                                                                account.enabled
+                                                                    ? "admin.wechat_mp.status.enabled"
+                                                                    : "admin.wechat_mp.status.disabled"
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        className={clsx(
+                                                            "mt-1 truncate text-xs",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {account.fakeid ||
+                                                            t("admin.wechat_mp.status.none")}
+                                                    </div>
+                                                </div>
+                                                <div className="flex shrink-0 items-center justify-end gap-2">
+                                                    <AdminButton
+                                                        tone={
+                                                            account.enabled ? "subtle" : "success"
+                                                        }
+                                                        onClick={() => toggleIngestAccount(account)}
+                                                        disabled={
+                                                            updatingIngestAccountId === account.id
+                                                        }
+                                                        className="min-h-8 px-2.5 py-1 text-xs md:px-2.5"
+                                                    >
+                                                        {updatingIngestAccountId === account.id ? (
+                                                            <Loader2
+                                                                size={14}
+                                                                className="animate-spin"
+                                                            />
+                                                        ) : account.enabled ? (
+                                                            <PowerOff size={14} />
+                                                        ) : (
+                                                            <Power size={14} />
+                                                        )}
+                                                        {t(
+                                                            account.enabled
+                                                                ? "admin.wechat_mp.actions.disable_account"
+                                                                : "admin.wechat_mp.actions.enable_account"
+                                                        )}
+                                                    </AdminButton>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => deleteIngestAccount(account)}
+                                                        className={clsx(
+                                                            "rounded-[8px] border p-2 transition-colors",
+                                                            isDayMode
+                                                                ? "border-rose-200 text-rose-600 hover:bg-rose-50"
+                                                                : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
+                                                        )}
+                                                        aria-label={t(
+                                                            "admin.wechat_mp.actions.delete_account"
+                                                        )}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <AdminEmptyState
+                                            icon={ClipboardList}
+                                            title={t("admin.wechat_mp.ingest.empty_accounts_title")}
+                                            description={t(
+                                                "admin.wechat_mp.ingest.empty_accounts_desc"
                                             )}
                                         />
-                                    ) : null}
-                                    <div className="min-w-0 flex-1">
-                                        <div
-                                            className={clsx(
-                                                "text-base font-bold",
-                                                headingTextClass
-                                            )}
-                                        >
-                                            {content?.title ||
-                                                selectedArticle.title ||
-                                                t("admin.wechat_mp.articles.untitled")}
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                            <div
+                                className={clsx(
+                                    "rounded-[8px] border p-3",
+                                    isDayMode ? "border-slate-200/70" : "border-white/10"
+                                )}
+                            >
+                                <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
+                                    {t("admin.wechat_mp.ingest.runs_title")}
+                                </div>
+                                <div className="space-y-2">
+                                    {ingestRuns.length > 0 ? (
+                                        ingestRuns.slice(0, 4).map((run) => (
+                                            <div
+                                                key={run.id}
+                                                className={clsx(
+                                                    "flex items-center justify-between gap-3 text-sm",
+                                                    mutedTextClass
+                                                )}
+                                            >
+                                                <span>
+                                                    {formatDateTime(
+                                                        run.started_at,
+                                                        i18n.resolvedLanguage
+                                                    )}
+                                                </span>
+                                                <span>
+                                                    {t(
+                                                        `admin.wechat_mp.ingest.run_status.${run.status}`,
+                                                        run.status
+                                                    )}
+                                                </span>
+                                                <span>{formatNumber(run.new_articles || 0)}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={clsx("text-sm", mutedTextClass)}>
+                                            {t("admin.wechat_mp.ingest.empty_runs")}
                                         </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div
+                                className={clsx(
+                                    "rounded-[8px] border p-3",
+                                    isDayMode ? "border-slate-200/70" : "border-white/10"
+                                )}
+                            >
+                                <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
+                                    {t("admin.wechat_mp.ingest.articles_title")}
+                                </div>
+                                <div className="space-y-2">
+                                    {ingestArticles.length > 0 ? (
+                                        ingestArticles.slice(0, 4).map((article) => (
+                                            <div
+                                                key={article.id || article.link}
+                                                className="flex min-w-0 items-start justify-between gap-3"
+                                            >
+                                                <div className="min-w-0">
+                                                    <div
+                                                        className={clsx(
+                                                            "truncate text-sm font-semibold",
+                                                            headingTextClass
+                                                        )}
+                                                    >
+                                                        {article.title ||
+                                                            t("admin.wechat_mp.articles.untitled")}
+                                                    </div>
+                                                    <div
+                                                        className={clsx(
+                                                            "mt-1 truncate text-xs",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {article.account_name ||
+                                                            article.fakeid ||
+                                                            t("admin.wechat_mp.status.none")}
+                                                    </div>
+                                                    <div
+                                                        className={clsx(
+                                                            "mt-1 text-xs",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {t(
+                                                            `admin.wechat_mp.ingest.content_status.${article.content_status || "not_fetched"}`,
+                                                            article.content_status || "not_fetched"
+                                                        )}
+                                                        {" · "}
+                                                        {t(
+                                                            `admin.wechat_mp.ingest.extraction_status.${article.extraction_status || "not_started"}`,
+                                                            article.extraction_status ||
+                                                                "not_started"
+                                                        )}
+                                                        {" · "}
+                                                        {t(
+                                                            `admin.wechat_mp.ingest.activity_status.${article.activity_status || "not_screened"}`,
+                                                            article.activity_status ||
+                                                                "not_screened"
+                                                        )}
+                                                        {article.extracted_event?.title
+                                                            ? ` · ${article.extracted_event.title}`
+                                                            : ""}
+                                                    </div>
+                                                    {article.activity_reason ? (
+                                                        <div
+                                                            className={clsx(
+                                                                "mt-1 line-clamp-2 text-xs",
+                                                                mutedTextClass
+                                                            )}
+                                                        >
+                                                            {article.activity_reason}
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        retryIngestArticleExtraction(article)
+                                                    }
+                                                    disabled={
+                                                        extractingIngestArticleId === article.id ||
+                                                        !article.content_text
+                                                    }
+                                                    className={clsx(
+                                                        "shrink-0 rounded-[8px] border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                                                        isDayMode
+                                                            ? "border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                            : "border-white/10 text-gray-300 hover:bg-white/10"
+                                                    )}
+                                                    aria-label={t(
+                                                        "admin.wechat_mp.actions.retry_extraction"
+                                                    )}
+                                                    title={t(
+                                                        "admin.wechat_mp.actions.retry_extraction"
+                                                    )}
+                                                >
+                                                    <RefreshCw
+                                                        size={14}
+                                                        className={
+                                                            extractingIngestArticleId === article.id
+                                                                ? "animate-spin"
+                                                                : ""
+                                                        }
+                                                    />
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={clsx("text-sm", mutedTextClass)}>
+                                            {t("admin.wechat_mp.ingest.empty_articles")}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </AdminPanel>
+                ) : null}
+
+                {activeWorkspace === "candidates" ? (
+                    <div className="grid gap-3 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]">
+                        <AdminPanel
+                            title={t("admin.wechat_mp.articles.title")}
+                            description={t("admin.wechat_mp.articles.description")}
+                        >
+                            {articles.length > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <AdminMetricCard
+                                            label={t("admin.wechat_mp.metrics.fetched_articles")}
+                                            value={formatNumber(articles.length)}
+                                            icon={ClipboardList}
+                                            tone="indigo"
+                                        />
+                                        <AdminMetricCard
+                                            label={t("admin.wechat_mp.metrics.remote_total")}
+                                            value={formatNumber(
+                                                articlesResult?.total || articles.length
+                                            )}
+                                            icon={Newspaper}
+                                            tone="violet"
+                                        />
+                                    </div>
+                                    <div className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
+                                        {articles.map((article) => {
+                                            const active = selectedArticle?.link === article.link;
+                                            return (
+                                                <button
+                                                    key={article.link || article.title}
+                                                    type="button"
+                                                    onClick={() => selectArticle(article)}
+                                                    className={clsx(
+                                                        "w-full rounded-[8px] border p-3 text-left transition-colors",
+                                                        active
+                                                            ? isDayMode
+                                                                ? "border-indigo-300 bg-indigo-50 text-slate-950"
+                                                                : "border-indigo-400/40 bg-indigo-500/10 text-white"
+                                                            : isDayMode
+                                                              ? "border-slate-200/70 bg-white/[0.74] text-slate-700 hover:border-indigo-200"
+                                                              : "border-white/10 bg-white/[0.04] text-gray-200 hover:border-white/20"
+                                                    )}
+                                                >
+                                                    <div className="line-clamp-2 text-sm font-bold">
+                                                        {article.title ||
+                                                            t("admin.wechat_mp.articles.untitled")}
+                                                    </div>
+                                                    <div
+                                                        className={clsx(
+                                                            "mt-1 line-clamp-2 text-xs leading-5",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {article.summary ||
+                                                            t(
+                                                                "admin.wechat_mp.articles.no_summary"
+                                                            )}
+                                                    </div>
+                                                    <div
+                                                        className={clsx(
+                                                            "mt-2 flex flex-wrap gap-2 text-xs",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        <span>
+                                                            {article.account ||
+                                                                articlesResult?.account?.nickname ||
+                                                                t("admin.wechat_mp.status.none")}
+                                                        </span>
+                                                        <span>
+                                                            {article.time_text ||
+                                                                t("admin.wechat_mp.status.none")}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ) : articlesLoading ? (
+                                <div className={clsx("py-10 text-center text-sm", mutedTextClass)}>
+                                    <Loader2 size={28} className="mx-auto mb-3 animate-spin" />
+                                    {t("admin.wechat_mp.articles.loading")}
+                                </div>
+                            ) : (
+                                <AdminEmptyState
+                                    icon={Newspaper}
+                                    title={t("admin.wechat_mp.articles.empty_title")}
+                                    description={t("admin.wechat_mp.articles.empty_desc")}
+                                />
+                            )}
+                        </AdminPanel>
+
+                        <AdminPanel
+                            title={t("admin.wechat_mp.preview.title")}
+                            description={
+                                selectedArticle?.title || t("admin.wechat_mp.preview.description")
+                            }
+                            action={
+                                selectedArticle ? (
+                                    <ToolbarGroup className="justify-start sm:justify-end">
+                                        <AdminButton
+                                            tone="subtle"
+                                            onClick={fetchContent}
+                                            disabled={contentLoading}
+                                        >
+                                            {contentLoading ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <FileText size={16} />
+                                            )}
+                                            {t("admin.wechat_mp.actions.fetch_content")}
+                                        </AdminButton>
+                                        <AdminButton
+                                            tone="subtle"
+                                            onClick={() => importContent("article")}
+                                            disabled={
+                                                Boolean(importingResource) || !content?.contentText
+                                            }
+                                        >
+                                            {importingResource === "article" ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <Newspaper size={16} />
+                                            )}
+                                            {t(
+                                                "admin.wechat_mp.actions.import_article",
+                                                fallbackText("导入为文章", "Import Article")
+                                            )}
+                                        </AdminButton>
+                                        <AdminButton
+                                            tone="primary"
+                                            onClick={() => importContent("event")}
+                                            disabled={
+                                                Boolean(importingResource) || !content?.contentText
+                                            }
+                                        >
+                                            {importingResource === "event" ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <Plus size={16} />
+                                            )}
+                                            {t(
+                                                "admin.wechat_mp.actions.import_event",
+                                                fallbackText("导入为活动", "Import Event")
+                                            )}
+                                        </AdminButton>
+                                    </ToolbarGroup>
+                                ) : null
+                            }
+                        >
+                            {selectedArticle ? (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-3 lg:flex-row">
+                                        {previewCoverSrc ? (
+                                            <img
+                                                src={previewCoverSrc}
+                                                alt=""
+                                                className={clsx(
+                                                    "h-36 w-full rounded-[8px] object-contain lg:w-56",
+                                                    isDayMode ? "bg-slate-100" : "bg-white/[0.04]"
+                                                )}
+                                            />
+                                        ) : null}
+                                        <div className="min-w-0 flex-1">
+                                            <div
+                                                className={clsx(
+                                                    "text-base font-bold",
+                                                    headingTextClass
+                                                )}
+                                            >
+                                                {content?.title ||
+                                                    selectedArticle.title ||
+                                                    t("admin.wechat_mp.articles.untitled")}
+                                            </div>
+                                            <div
+                                                className={clsx(
+                                                    "mt-2 grid gap-1 text-xs",
+                                                    mutedTextClass
+                                                )}
+                                            >
+                                                <span>
+                                                    {content?.author ||
+                                                        selectedArticle.author ||
+                                                        selectedArticle.account ||
+                                                        t("admin.wechat_mp.status.none")}
+                                                </span>
+                                                <span>
+                                                    {selectedArticle.time_text ||
+                                                        t("admin.wechat_mp.status.none")}
+                                                </span>
+                                                {selectedUrl ? (
+                                                    <a
+                                                        href={selectedUrl}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center gap-1 text-indigo-500 hover:underline"
+                                                    >
+                                                        {t("admin.wechat_mp.preview.open_original")}
+                                                        <ExternalLink size={13} />
+                                                    </a>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        <AdminMetricCard
+                                            label={t("admin.wechat_mp.metrics.content_status")}
+                                            value={
+                                                content?.content_status
+                                                    ? t(
+                                                          `admin.wechat_mp.content_status.${content.content_status}`,
+                                                          content.content_status
+                                                      )
+                                                    : t(
+                                                          "admin.wechat_mp.content_status.not_fetched"
+                                                      )
+                                            }
+                                            icon={FileText}
+                                            tone={content?.contentText ? "emerald" : "amber"}
+                                        />
+                                        <AdminMetricCard
+                                            label={t("admin.wechat_mp.metrics.content_length")}
+                                            value={formatNumber(contentTextLength)}
+                                            icon={ClipboardList}
+                                            tone="indigo"
+                                        />
+                                        <AdminMetricCard
+                                            label={t("admin.wechat_mp.metrics.images")}
+                                            value={formatNumber(content?.images?.length || 0)}
+                                            icon={Newspaper}
+                                            tone="violet"
+                                        />
+                                    </div>
+
+                                    {contentLoading ? (
                                         <div
                                             className={clsx(
-                                                "mt-2 grid gap-1 text-xs",
+                                                "py-12 text-center text-sm",
                                                 mutedTextClass
                                             )}
                                         >
-                                            <span>
-                                                {content?.author ||
-                                                    selectedArticle.author ||
-                                                    selectedArticle.account ||
-                                                    t("admin.wechat_mp.status.none")}
-                                            </span>
-                                            <span>
-                                                {selectedArticle.time_text ||
-                                                    t("admin.wechat_mp.status.none")}
-                                            </span>
-                                            {selectedUrl ? (
-                                                <a
-                                                    href={selectedUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="inline-flex items-center gap-1 text-indigo-500 hover:underline"
-                                                >
-                                                    {t("admin.wechat_mp.preview.open_original")}
-                                                    <ExternalLink size={13} />
-                                                </a>
-                                            ) : null}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-3 sm:grid-cols-3">
-                                    <AdminMetricCard
-                                        label={t("admin.wechat_mp.metrics.content_status")}
-                                        value={
-                                            content?.content_status
-                                                ? t(
-                                                      `admin.wechat_mp.content_status.${content.content_status}`,
-                                                      content.content_status
-                                                  )
-                                                : t("admin.wechat_mp.content_status.not_fetched")
-                                        }
-                                        icon={FileText}
-                                        tone={content?.contentText ? "emerald" : "amber"}
-                                    />
-                                    <AdminMetricCard
-                                        label={t("admin.wechat_mp.metrics.content_length")}
-                                        value={formatNumber(contentTextLength)}
-                                        icon={ClipboardList}
-                                        tone="indigo"
-                                    />
-                                    <AdminMetricCard
-                                        label={t("admin.wechat_mp.metrics.images")}
-                                        value={formatNumber(content?.images?.length || 0)}
-                                        icon={Newspaper}
-                                        tone="violet"
-                                    />
-                                </div>
-
-                                {contentLoading ? (
-                                    <div
-                                        className={clsx(
-                                            "py-12 text-center text-sm",
-                                            mutedTextClass
-                                        )}
-                                    >
-                                        <Loader2 size={28} className="mx-auto mb-3 animate-spin" />
-                                        {t("admin.wechat_mp.preview.loading_content")}
-                                    </div>
-                                ) : content?.contentText ? (
-                                    <div
-                                        className={clsx(
-                                            "max-h-[520px] overflow-y-auto rounded-[8px] border p-4",
-                                            isDayMode
-                                                ? "border-slate-200/70 bg-white"
-                                                : "border-white/10 bg-white/[0.03]"
-                                        )}
-                                    >
-                                        {sanitizedContentHtml ? (
-                                            <div
-                                                className={clsx(
-                                                    "prose prose-sm max-w-none",
-                                                    isDayMode ? "prose-slate" : "prose-invert"
-                                                )}
-                                                dangerouslySetInnerHTML={{
-                                                    __html: sanitizedContentHtml,
-                                                }}
+                                            <Loader2
+                                                size={28}
+                                                className="mx-auto mb-3 animate-spin"
                                             />
-                                        ) : (
-                                            <div
-                                                className={clsx(
-                                                    "space-y-3 text-sm leading-7",
-                                                    subtleTextClass
-                                                )}
-                                            >
-                                                {paragraphs.map((paragraph) => (
-                                                    <p key={paragraph}>{paragraph}</p>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <AdminInlineNote tone="warning">
-                                        {t("admin.wechat_mp.preview.need_fetch_content")}
-                                    </AdminInlineNote>
-                                )}
-                            </div>
-                        ) : (
-                            <AdminEmptyState
-                                icon={FileText}
-                                title={t("admin.wechat_mp.preview.empty_title")}
-                                description={t("admin.wechat_mp.preview.empty_desc")}
-                            />
-                        )}
-                    </AdminPanel>
-                </div>
+                                            {t("admin.wechat_mp.preview.loading_content")}
+                                        </div>
+                                    ) : content?.contentText ? (
+                                        <div
+                                            className={clsx(
+                                                "max-h-[520px] overflow-y-auto rounded-[8px] border p-4",
+                                                isDayMode
+                                                    ? "border-slate-200/70 bg-white"
+                                                    : "border-white/10 bg-white/[0.03]"
+                                            )}
+                                        >
+                                            {sanitizedContentHtml ? (
+                                                <div
+                                                    className={clsx(
+                                                        "prose prose-sm max-w-none",
+                                                        isDayMode ? "prose-slate" : "prose-invert"
+                                                    )}
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: sanitizedContentHtml,
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div
+                                                    className={clsx(
+                                                        "space-y-3 text-sm leading-7",
+                                                        subtleTextClass
+                                                    )}
+                                                >
+                                                    {paragraphs.map((paragraph) => (
+                                                        <p key={paragraph}>{paragraph}</p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <AdminInlineNote tone="warning">
+                                            {t("admin.wechat_mp.preview.need_fetch_content")}
+                                        </AdminInlineNote>
+                                    )}
+                                </div>
+                            ) : (
+                                <AdminEmptyState
+                                    icon={FileText}
+                                    title={t("admin.wechat_mp.preview.empty_title")}
+                                    description={t("admin.wechat_mp.preview.empty_desc")}
+                                />
+                            )}
+                        </AdminPanel>
+                    </div>
+                ) : null}
             </div>
         </AdminPageShell>
     );
