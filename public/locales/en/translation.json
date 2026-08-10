@@ -2182,6 +2182,14 @@
             "ai": "AI Capabilities",
             "system": "System & Audit"
         },
+        "hackathon_manager": {
+            "navigation": "ZJUX management sections",
+            "tabs": {
+                "registrations": "Registrations",
+                "works": "Work review {{count}}",
+                "template": "Event settings"
+            }
+        },
         "status": {
             "ready": "Ready",
             "maintenance": "Maintenance",

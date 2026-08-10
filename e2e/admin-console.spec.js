@@ -169,6 +169,40 @@ const aiOverviewPayload = {
         enabledModelConfigCount: 1,
     },
     recentRuns: [],
+    agentSystem: {
+        summary: {
+            agentCount: 1,
+            averageMaturity: 0.82,
+            highPriorityGapCount: 0,
+            liveAgentCount: 1,
+        },
+        modules: [
+            {
+                id: "event-recommendation",
+                title: "Event Recommendation Agent",
+                entrance: "Events page AI search",
+                description: "Recommend explainable campus activities.",
+                status: "live",
+                nextImprovements: ["这段内部下一步不应出现在管理员主界面"],
+            },
+        ],
+        partialGaps: [
+            {
+                agentId: "event-recommendation",
+                agentTitle: "Event Recommendation Agent",
+                dimensionId: "observability",
+                dimensionLabel: "Observability",
+            },
+        ],
+        nextIterationPlan: [
+            {
+                order: 1,
+                target: "Event Recommendation Agent",
+                dimension: "Observability",
+                task: "这段内部路线图不应出现在管理员主界面",
+            },
+        ],
+    },
 };
 
 const aiScanPayload = {
@@ -335,6 +369,9 @@ test.describe("admin console refinement", () => {
         await expect(page.getByRole("link", { name: "拓途浙享首页" })).toBeVisible();
         await expect(page.getByRole("button", { name: "打开总览模块" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
+        await expect(
+            page.getByRole("heading", { name: "运营总览" }).locator("xpath=ancestor::header[1]")
+        ).not.toHaveClass(/rect-surface|theme-admin-panel/);
         await expect(page.getByRole("button", { name: /待审核 3/ })).toBeVisible();
         await expect(page.getByRole("button", { name: /内容总量 26/ })).toBeVisible();
         await expect(page.getByRole("button", { name: /近 7 日访问/ })).toBeVisible();
@@ -411,6 +448,9 @@ test.describe("admin console refinement", () => {
         await expect(page.getByRole("search", { name: "搜索图片资源" })).toBeVisible();
         await expect(page.getByRole("textbox", { name: "搜索图片资源" })).toBeVisible();
         await expect(page.getByRole("table")).toBeVisible();
+        await expect(
+            page.getByText("本页内容", { exact: true }).locator("xpath=../..")
+        ).not.toHaveClass(/rect-surface|theme-admin-panel/);
         await expect(page.locator("table.theme-admin-table-sticky")).toBeVisible();
         const pendingRequest = page.waitForRequest((request) => {
             const url = new URL(request.url());
@@ -443,8 +483,17 @@ test.describe("admin console refinement", () => {
         await quickJump.selectOption("hackathon");
         await expect(page.getByRole("heading", { name: "黑客松运营管理" })).toBeVisible();
         await expect(page.getByRole("button", { name: "导出报名" })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "报名" })).toHaveAttribute(
+            "aria-selected",
+            "true"
+        );
+        await expect(page.getByRole("heading", { name: "赛事日程与页面模板" })).toHaveCount(0);
         await expect(page.getByRole("combobox", { name: "按年级筛选" })).toBeVisible();
         await expect(page.getByRole("cell", { name: "张同学" })).toBeVisible();
+        await page.getByRole("tab", { name: /赛事设置/ }).click();
+        await expect(
+            page.getByRole("heading", { name: /赛事(日程与页面|页面)模板/ })
+        ).toBeVisible();
         await quickJump.selectOption("events");
         await expect(page.getByRole("heading", { name: "活动管理", exact: true })).toBeVisible();
 
@@ -455,6 +504,8 @@ test.describe("admin console refinement", () => {
         await expect(page.getByRole("tab", { name: "模型配置", exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
         await expect(page.getByRole("heading", { name: "AI 能力状态" })).toBeVisible();
+        await expect(page.getByText("这段内部下一步不应出现在管理员主界面")).toHaveCount(0);
+        await expect(page.getByText("这段内部路线图不应出现在管理员主界面")).toHaveCount(0);
         await page.getByRole("tab", { name: "活动元数据", exact: true }).click();
         await expect(page.getByRole("heading", { name: "活动元数据治理" })).toBeVisible();
         await page.getByRole("button", { name: "扫描" }).first().click();
@@ -498,6 +549,49 @@ test.describe("admin console refinement", () => {
                 page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
             )
             .toBe(true);
+    });
+
+    test("all right-hand admin workspaces use the compact shared structure", async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 1050 });
+        await installAdminMocks(page);
+        await page.goto("/admin");
+
+        const quickJump = page.getByRole("combobox", {
+            name: "快速跳转到管理模块",
+        });
+        const tabs = [
+            "overview",
+            "pending",
+            "events",
+            "community",
+            "articles",
+            "photos",
+            "videos",
+            "music",
+            "wechat-mp",
+            "media-categories",
+            "pages",
+            "tags",
+            "users",
+            "partners",
+            "attribution",
+            "projects",
+            "hackathon",
+            "future-learning",
+            "intelligence",
+            "messages",
+            "settings",
+        ];
+
+        for (const tab of tabs) {
+            await quickJump.selectOption(tab);
+            await expect(page).toHaveURL(new RegExp(`tab=${tab}`));
+            const workspace = page.locator("main main");
+            const pageHeader = workspace.locator("header").first();
+            await expect(pageHeader).toBeVisible();
+            await expect(pageHeader).not.toHaveClass(/rect-surface|theme-admin-panel/);
+            await expect(workspace.locator("section.rect-surface")).toHaveCount(0);
+        }
     });
 
     test("mobile admin drawer opens, closes, and navigates without body scroll leak", async ({

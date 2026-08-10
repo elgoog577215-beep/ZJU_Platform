@@ -99,11 +99,6 @@ const AgentSystemView = ({ overview }) => {
     const summary = agentSystem.summary || {};
     const modules = agentSystem.modules || overview?.modules || [];
     const gaps = agentSystem.highPriorityGaps || [];
-    const partialGaps = agentSystem.partialGaps || [];
-    const nextPlan =
-        (agentSystem.nextIterationPlan || []).length > 0
-            ? agentSystem.nextIterationPlan
-            : agentSystem.continuousImprovementPlan || [];
 
     return (
         <AdminPanel title={t("admin.ai_governance.agents.title")}>
@@ -152,13 +147,6 @@ const AgentSystemView = ({ overview }) => {
                             </div>
                             <div className={clsx("line-clamp-2 text-xs leading-5", mutedTextClass)}>
                                 {module.description}
-                                {(module.nextImprovements || []).length > 0 ? (
-                                    <span className="ml-1 text-indigo-500">
-                                        {t("admin.ai_governance.agents.next_step", {
-                                            value: module.nextImprovements[0],
-                                        })}
-                                    </span>
-                                ) : null}
                             </div>
                             <div className="flex justify-start md:justify-end">
                                 <span
@@ -177,38 +165,6 @@ const AgentSystemView = ({ overview }) => {
                         </div>
                     ))}
                 </div>
-
-                {partialGaps.length > 0 ? (
-                    <div
-                        className={clsx(
-                            "rounded-xl border p-4",
-                            isDayMode
-                                ? "border-sky-500/20 bg-sky-500/[0.06]"
-                                : "border-sky-400/20 bg-sky-400/10"
-                        )}
-                    >
-                        <div className={clsx("text-sm font-bold", headingTextClass)}>
-                            {t("admin.ai_governance.agents.partial_gaps", {
-                                count: summary.partialGapCount ?? partialGaps.length,
-                            })}
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {partialGaps.slice(0, 8).map((gap) => (
-                                <span
-                                    key={`${gap.agentId}-${gap.dimensionId}`}
-                                    className={clsx(
-                                        "rounded-full border px-2.5 py-1 text-xs font-semibold",
-                                        isDayMode
-                                            ? "border-sky-500/20 bg-white/70 text-sky-800"
-                                            : "border-sky-300/20 bg-white/[0.04] text-sky-100"
-                                    )}
-                                >
-                                    {gap.agentTitle} / {gap.dimensionLabel}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                ) : null}
 
                 {gaps.length > 0 ? (
                     <div
@@ -233,41 +189,6 @@ const AgentSystemView = ({ overview }) => {
                                 >
                                     {gap.agentTitle} / {gap.dimensionLabel}
                                 </span>
-                            ))}
-                        </div>
-                    </div>
-                ) : null}
-
-                {nextPlan.length > 0 ? (
-                    <div
-                        className={clsx(
-                            "rounded-xl border p-4",
-                            isDayMode
-                                ? "border-slate-200/70 bg-white/[0.82]"
-                                : "border-white/10 bg-white/[0.04]"
-                        )}
-                    >
-                        <div className={clsx("text-sm font-bold", headingTextClass)}>
-                            {t("admin.ai_governance.agents.next_iteration")}
-                        </div>
-                        <div className="mt-3 grid gap-2">
-                            {nextPlan.slice(0, 4).map((item) => (
-                                <div
-                                    key={`${item.order}-${item.target}-${item.dimension}`}
-                                    className={clsx(
-                                        "rounded-lg px-3 py-2 text-xs leading-5",
-                                        isDayMode
-                                            ? "bg-slate-50 text-slate-700"
-                                            : "bg-white/[0.04] text-gray-300"
-                                    )}
-                                >
-                                    <span className="font-bold">
-                                        {item.order}. {item.target} / {item.dimension}
-                                    </span>
-                                    <span className={clsx("ml-2", mutedTextClass)}>
-                                        {item.task}
-                                    </span>
-                                </div>
                             ))}
                         </div>
                     </div>

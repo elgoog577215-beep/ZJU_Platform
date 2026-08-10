@@ -17,6 +17,7 @@ import {
     XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import { formatHackathonAnswer } from "../../data/hackathonTemplate";
 import api from "../../services/api";
@@ -32,6 +33,7 @@ import {
     AdminTableShell,
     AdminToolbar,
     ConfirmDialog,
+    FilterChip,
     StatusBadge,
     ToolbarGroup,
     useAdminTheme,
@@ -88,6 +90,7 @@ const formatDateTime = (value) => (value ? new Date(value).toLocaleString("zh-CN
 const formatNumber = (value) => new Intl.NumberFormat("zh-CN").format(Number(value || 0));
 
 const HackathonManager = () => {
+    const { t } = useTranslation();
     const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
     const [registrations, setRegistrations] = useState([]);
     const [works, setWorks] = useState([]);
@@ -102,6 +105,7 @@ const HackathonManager = () => {
     const [workCompetitionFilter, setWorkCompetitionFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [scheduleConfig, setScheduleConfig] = useState(null);
+    const [activeWorkspace, setActiveWorkspace] = useState("registrations");
 
     const handleTemplateChange = useCallback((_template, schedule) => {
         setScheduleConfig(schedule);
@@ -593,9 +597,35 @@ const HackathonManager = () => {
                         </AdminButton>
                     </>
                 }
+                toolbar={
+                    <div
+                        className="flex flex-wrap gap-2"
+                        role="tablist"
+                        aria-label={t("admin.hackathon_manager.navigation")}
+                    >
+                        {[
+                            ["registrations", t("admin.hackathon_manager.tabs.registrations")],
+                            [
+                                "works",
+                                t("admin.hackathon_manager.tabs.works", {
+                                    count: formatNumber(workStats.pending),
+                                }),
+                            ],
+                            ["template", t("admin.hackathon_manager.tabs.template")],
+                        ].map(([id, label]) => (
+                            <FilterChip
+                                key={id}
+                                role="tab"
+                                aria-selected={activeWorkspace === id}
+                                active={activeWorkspace === id}
+                                onClick={() => setActiveWorkspace(id)}
+                            >
+                                {label}
+                            </FilterChip>
+                        ))}
+                    </div>
+                }
             >
-                <HackathonTemplateEditor onTemplateChange={handleTemplateChange} />
-
                 <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                     <AdminMetricCard
                         label="总报名"
@@ -603,8 +633,8 @@ const HackathonManager = () => {
                         icon={Users}
                     />
                     <AdminMetricCard
-                        label="当前显示"
-                        value={formatNumber(registrationStats.filtered)}
+                        label="比赛日程"
+                        value={formatNumber(scheduleConfig?.events?.length)}
                         icon={Filter}
                         tone="emerald"
                     />
@@ -622,261 +652,293 @@ const HackathonManager = () => {
                     />
                 </div>
 
-                <AdminToolbar>
-                    <ToolbarGroup className="w-full flex-1">
-                        <div className="relative w-full min-w-0 flex-1 md:max-w-lg">
-                            <Search
-                                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                                size={16}
-                            />
-                            <input
-                                type="text"
-                                placeholder="搜索姓名、学号、专业、项目经验"
-                                value={searchTerm}
-                                onChange={(event) => {
-                                    setSearchTerm(event.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
-                            />
-                        </div>
-                    </ToolbarGroup>
-                    <ToolbarGroup>
-                        <select
-                            value={eventFilter}
-                            onChange={(event) => {
-                                setEventFilter(event.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
-                            aria-label="按比赛日程筛选"
-                        >
-                            <option value="">所有比赛日程</option>
-                            {(scheduleConfig?.events || []).map((item) => (
-                                <option key={item.event.key} value={item.event.key}>
-                                    {item.event.title}
-                                </option>
-                            ))}
-                        </select>
-                        <select
-                            value={gradeFilter}
-                            onChange={(event) => {
-                                setGradeFilter(event.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
-                            aria-label="按年级筛选"
-                        >
-                            <option value="">所有年级</option>
-                            {Object.entries(gradeLabels).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                    {label}
-                                </option>
-                            ))}
-                        </select>
-                    </ToolbarGroup>
-                </AdminToolbar>
+                {activeWorkspace === "template" ? (
+                    <HackathonTemplateEditor onTemplateChange={handleTemplateChange} />
+                ) : null}
 
-                <AdminPanel
-                    title={`报名列表 (${formatNumber(filteredRegistrations.length)})`}
-                    description={`第 ${currentPage} / ${totalPages} 页，CSV 导出包含全部 ${formatNumber(registrationStats.total)} 条。`}
-                >
-                    {paginatedRegistrations.length === 0 ? (
-                        <AdminEmptyState
-                            icon={Users}
-                            title="暂无匹配的报名数据"
-                            description="可以清空搜索词、切换年级筛选，或稍后刷新。"
-                        />
-                    ) : (
-                        <>
-                            {renderRegistrationMobileCards()}
-                            <AdminTableShell minWidth={1460}>
-                                <thead>
-                                    <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
-                                        <th className="p-4">报名人</th>
-                                        <th className="p-4">比赛日程</th>
-                                        <th className="p-4">学号</th>
-                                        <th className="p-4">专业</th>
-                                        <th className="p-4">年级</th>
-                                        <th className="p-4">AI 工具</th>
-                                        <th className="p-4">项目经验</th>
-                                        <th className="p-4">其他报名信息</th>
-                                        <th className="p-4">报名时间</th>
-                                        <th className="p-4 text-right">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="theme-admin-table-body divide-y">
-                                    {paginatedRegistrations.map((registration) => (
-                                        <tr key={registration.id} className="theme-admin-row">
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div
-                                                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                                                            isDayMode
-                                                                ? "bg-cyan-100 text-cyan-700"
-                                                                : "bg-cyan-500/15 text-cyan-200"
-                                                        }`}
-                                                    >
-                                                        <User size={16} />
-                                                    </div>
-                                                    <AdminTableCellText strong>
-                                                        {registration.name || "未命名"}
-                                                    </AdminTableCellText>
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <AdminTableCellText className="max-w-[180px] break-words">
-                                                    {eventTitleByKey.get(registration.event_key) ||
-                                                        registration.event_key ||
-                                                        "历史赛事"}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">
-                                                <AdminTableCellText>
-                                                    {registration.student_id || "-"}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">
-                                                <AdminTableCellText className="max-w-[180px] break-words">
-                                                    {registration.major || "-"}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">
-                                                <AdminTableCellText>
-                                                    {gradeLabels[registration.grade] ||
-                                                        registration.grade ||
-                                                        "-"}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">{renderToolTags(registration)}</td>
-                                            <td className="p-4">
-                                                <AdminTableCellText className="line-clamp-2 max-w-[280px] break-words">
-                                                    {registration.experience || "暂无"}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className={mutedTextClass}>
-                                                    {renderAdditionalAnswers(registration)}
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <AdminTableCellText>
-                                                    {formatDateTime(registration.created_at)}
-                                                </AdminTableCellText>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex justify-end">
-                                                    <AdminIconButton
-                                                        label="删除报名记录"
-                                                        tone="danger"
-                                                        onClick={() =>
-                                                            setConfirmState({ id: registration.id })
-                                                        }
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </AdminIconButton>
-                                                </div>
-                                            </td>
-                                        </tr>
+                {activeWorkspace === "registrations" ? (
+                    <>
+                        <AdminToolbar>
+                            <ToolbarGroup className="w-full flex-1">
+                                <div className="relative w-full min-w-0 flex-1 md:max-w-lg">
+                                    <Search
+                                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                        size={16}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="搜索姓名、学号、专业、项目经验"
+                                        value={searchTerm}
+                                        onChange={(event) => {
+                                            setSearchTerm(event.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
+                                    />
+                                </div>
+                            </ToolbarGroup>
+                            <ToolbarGroup>
+                                <select
+                                    value={eventFilter}
+                                    onChange={(event) => {
+                                        setEventFilter(event.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
+                                    aria-label="按比赛日程筛选"
+                                >
+                                    <option value="">所有比赛日程</option>
+                                    {(scheduleConfig?.events || []).map((item) => (
+                                        <option key={item.event.key} value={item.event.key}>
+                                            {item.event.title}
+                                        </option>
                                     ))}
-                                </tbody>
-                            </AdminTableShell>
-                        </>
-                    )}
-
-                    {filteredRegistrations.length > itemsPerPage ? (
-                        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div className={`text-sm ${mutedTextClass}`}>
-                                第 {(currentPage - 1) * itemsPerPage + 1} -{" "}
-                                {Math.min(currentPage * itemsPerPage, filteredRegistrations.length)}{" "}
-                                条， 共 {formatNumber(filteredRegistrations.length)} 条
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <AdminButton
-                                    tone="subtle"
-                                    disabled={currentPage === 1}
-                                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                </select>
+                                <select
+                                    value={gradeFilter}
+                                    onChange={(event) => {
+                                        setGradeFilter(event.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
+                                    aria-label="按年级筛选"
                                 >
-                                    <ChevronLeft size={16} />
-                                    上一页
-                                </AdminButton>
-                                <span className={`text-sm font-semibold ${headingTextClass}`}>
-                                    {currentPage} / {totalPages}
-                                </span>
-                                <AdminButton
-                                    tone="subtle"
-                                    disabled={currentPage === totalPages}
-                                    onClick={() =>
-                                        setCurrentPage((page) => Math.min(totalPages, page + 1))
+                                    <option value="">所有年级</option>
+                                    {Object.entries(gradeLabels).map(([value, label]) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </ToolbarGroup>
+                        </AdminToolbar>
+
+                        <AdminPanel
+                            title={`报名列表 (${formatNumber(filteredRegistrations.length)})`}
+                            description={`第 ${currentPage} / ${totalPages} 页，CSV 导出包含全部 ${formatNumber(registrationStats.total)} 条。`}
+                        >
+                            {paginatedRegistrations.length === 0 ? (
+                                <AdminEmptyState
+                                    icon={Users}
+                                    title="暂无匹配的报名数据"
+                                    description="可以清空搜索词、切换年级筛选，或稍后刷新。"
+                                />
+                            ) : (
+                                <>
+                                    {renderRegistrationMobileCards()}
+                                    <AdminTableShell minWidth={1460}>
+                                        <thead>
+                                            <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+                                                <th className="p-4">报名人</th>
+                                                <th className="p-4">比赛日程</th>
+                                                <th className="p-4">学号</th>
+                                                <th className="p-4">专业</th>
+                                                <th className="p-4">年级</th>
+                                                <th className="p-4">AI 工具</th>
+                                                <th className="p-4">项目经验</th>
+                                                <th className="p-4">其他报名信息</th>
+                                                <th className="p-4">报名时间</th>
+                                                <th className="p-4 text-right">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="theme-admin-table-body divide-y">
+                                            {paginatedRegistrations.map((registration) => (
+                                                <tr
+                                                    key={registration.id}
+                                                    className="theme-admin-row"
+                                                >
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div
+                                                                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                                                                    isDayMode
+                                                                        ? "bg-cyan-100 text-cyan-700"
+                                                                        : "bg-cyan-500/15 text-cyan-200"
+                                                                }`}
+                                                            >
+                                                                <User size={16} />
+                                                            </div>
+                                                            <AdminTableCellText strong>
+                                                                {registration.name || "未命名"}
+                                                            </AdminTableCellText>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText className="max-w-[180px] break-words">
+                                                            {eventTitleByKey.get(
+                                                                registration.event_key
+                                                            ) ||
+                                                                registration.event_key ||
+                                                                "历史赛事"}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText>
+                                                            {registration.student_id || "-"}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText className="max-w-[180px] break-words">
+                                                            {registration.major || "-"}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText>
+                                                            {gradeLabels[registration.grade] ||
+                                                                registration.grade ||
+                                                                "-"}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {renderToolTags(registration)}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText className="line-clamp-2 max-w-[280px] break-words">
+                                                            {registration.experience || "暂无"}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className={mutedTextClass}>
+                                                            {renderAdditionalAnswers(registration)}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <AdminTableCellText>
+                                                            {formatDateTime(
+                                                                registration.created_at
+                                                            )}
+                                                        </AdminTableCellText>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex justify-end">
+                                                            <AdminIconButton
+                                                                label="删除报名记录"
+                                                                tone="danger"
+                                                                onClick={() =>
+                                                                    setConfirmState({
+                                                                        id: registration.id,
+                                                                    })
+                                                                }
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </AdminIconButton>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </AdminTableShell>
+                                </>
+                            )}
+
+                            {filteredRegistrations.length > itemsPerPage ? (
+                                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className={`text-sm ${mutedTextClass}`}>
+                                        第 {(currentPage - 1) * itemsPerPage + 1} -{" "}
+                                        {Math.min(
+                                            currentPage * itemsPerPage,
+                                            filteredRegistrations.length
+                                        )}{" "}
+                                        条， 共 {formatNumber(filteredRegistrations.length)} 条
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <AdminButton
+                                            tone="subtle"
+                                            disabled={currentPage === 1}
+                                            onClick={() =>
+                                                setCurrentPage((page) => Math.max(1, page - 1))
+                                            }
+                                        >
+                                            <ChevronLeft size={16} />
+                                            上一页
+                                        </AdminButton>
+                                        <span
+                                            className={`text-sm font-semibold ${headingTextClass}`}
+                                        >
+                                            {currentPage} / {totalPages}
+                                        </span>
+                                        <AdminButton
+                                            tone="subtle"
+                                            disabled={currentPage === totalPages}
+                                            onClick={() =>
+                                                setCurrentPage((page) =>
+                                                    Math.min(totalPages, page + 1)
+                                                )
+                                            }
+                                        >
+                                            下一页
+                                            <ChevronRight size={16} />
+                                        </AdminButton>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </AdminPanel>
+                    </>
+                ) : null}
+
+                {activeWorkspace === "works" ? (
+                    <AdminPanel
+                        title={`作品与经验审核 (${formatNumber(filteredWorks.length)})`}
+                        description={`待审 ${formatNumber(workStats.pending)} 条，已发布 ${formatNumber(workStats.approved)} 条。`}
+                    >
+                        <AdminToolbar>
+                            <ToolbarGroup className="w-full flex-1">
+                                <div className="relative w-full min-w-0 flex-1 md:max-w-lg">
+                                    <Search
+                                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                        size={16}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="搜索比赛、作品、作者、荣誉、经验"
+                                        value={workSearchTerm}
+                                        onChange={(event) => setWorkSearchTerm(event.target.value)}
+                                        className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
+                                    />
+                                </div>
+                            </ToolbarGroup>
+                            <ToolbarGroup>
+                                <select
+                                    value={workCompetitionFilter}
+                                    onChange={(event) =>
+                                        setWorkCompetitionFilter(event.target.value)
                                     }
+                                    className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
+                                    aria-label="按成果档案筛选作品"
                                 >
-                                    下一页
-                                    <ChevronRight size={16} />
-                                </AdminButton>
-                            </div>
-                        </div>
-                    ) : null}
-                </AdminPanel>
+                                    <option value="">所有比赛成果</option>
+                                    {workCompetitionOptions.map(([value, label]) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={workStatusFilter}
+                                    onChange={(event) => setWorkStatusFilter(event.target.value)}
+                                    className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
+                                    aria-label="按作品审核状态筛选"
+                                >
+                                    {Object.entries(workStatusLabels).map(([value, label]) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </ToolbarGroup>
+                        </AdminToolbar>
 
-                <AdminPanel
-                    title={`作品与经验审核 (${formatNumber(filteredWorks.length)})`}
-                    description={`待审 ${formatNumber(workStats.pending)} 条，已发布 ${formatNumber(workStats.approved)} 条。`}
-                >
-                    <AdminToolbar>
-                        <ToolbarGroup className="w-full flex-1">
-                            <div className="relative w-full min-w-0 flex-1 md:max-w-lg">
-                                <Search
-                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                                    size={16}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="搜索比赛、作品、作者、荣誉、经验"
-                                    value={workSearchTerm}
-                                    onChange={(event) => setWorkSearchTerm(event.target.value)}
-                                    className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
-                                />
-                            </div>
-                        </ToolbarGroup>
-                        <ToolbarGroup>
-                            <select
-                                value={workCompetitionFilter}
-                                onChange={(event) => setWorkCompetitionFilter(event.target.value)}
-                                className="theme-admin-input min-h-[40px] max-w-[220px] rounded-xl px-3 py-2 text-sm"
-                                aria-label="按成果档案筛选作品"
-                            >
-                                <option value="">所有比赛成果</option>
-                                {workCompetitionOptions.map(([value, label]) => (
-                                    <option key={value} value={value}>
-                                        {label}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                value={workStatusFilter}
-                                onChange={(event) => setWorkStatusFilter(event.target.value)}
-                                className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
-                                aria-label="按作品审核状态筛选"
-                            >
-                                {Object.entries(workStatusLabels).map(([value, label]) => (
-                                    <option key={value} value={value}>
-                                        {label}
-                                    </option>
-                                ))}
-                            </select>
-                        </ToolbarGroup>
-                    </AdminToolbar>
-
-                    {filteredWorks.length === 0 ? (
-                        <AdminEmptyState
-                            icon={Award}
-                            title="暂无匹配的作品/经验"
-                            description="外部提交作品后会进入这里；也可以在审核中心批量处理。"
-                        />
-                    ) : (
-                        renderWorkCards()
-                    )}
-                </AdminPanel>
+                        {filteredWorks.length === 0 ? (
+                            <AdminEmptyState
+                                icon={Award}
+                                title="暂无匹配的作品/经验"
+                                description="外部提交作品后会进入这里；也可以在审核中心批量处理。"
+                            />
+                        ) : (
+                            renderWorkCards()
+                        )}
+                    </AdminPanel>
+                ) : null}
             </AdminPageShell>
 
             <ConfirmDialog

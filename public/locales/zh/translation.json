@@ -2186,6 +2186,14 @@
             "ai": "AI 能力治理",
             "system": "系统与审计"
         },
+        "hackathon_manager": {
+            "navigation": "浙客松管理分类",
+            "tabs": {
+                "registrations": "报名",
+                "works": "作品审核 {{count}}",
+                "template": "赛事设置"
+            }
+        },
         "status": {
             "ready": "可用",
             "maintenance": "维护中",

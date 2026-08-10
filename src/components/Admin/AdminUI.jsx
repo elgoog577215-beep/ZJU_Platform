@@ -95,13 +95,22 @@ export const useAdminTheme = () => {
     };
 };
 
-export const AdminPageShell = ({ title, description, actions, toolbar, children }) => {
-    const { panelClass, mutedTextClass, subtleTextClass, headingTextClass, isDayMode } =
-        useAdminTheme();
+export const AdminPageShell = ({
+    title,
+    description,
+    descriptionVisible = false,
+    actions,
+    toolbar,
+    children,
+}) => {
+    const { mutedTextClass, subtleTextClass, headingTextClass, isDayMode } = useAdminTheme();
 
     return (
         <div className="space-y-3">
-            <div className={clsx("rect-surface px-4 py-3 md:px-5", panelClass)}>
+            <header
+                className="border-b border-[rgba(128,146,167,0.18)] pb-3"
+                aria-description={description || undefined}
+            >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <h2
@@ -115,10 +124,10 @@ export const AdminPageShell = ({ title, description, actions, toolbar, children 
                         >
                             {title}
                         </h2>
-                        {description ? (
+                        {description && descriptionVisible ? (
                             <p
                                 className={clsx(
-                                    "mt-1 max-w-3xl text-xs leading-5 md:text-sm",
+                                    "mt-0.5 max-w-3xl text-xs leading-5",
                                     mutedTextClass
                                 )}
                             >
@@ -137,22 +146,23 @@ export const AdminPageShell = ({ title, description, actions, toolbar, children 
                         </div>
                     ) : null}
                 </div>
-                {toolbar ? (
-                    <div className="mt-3 border-t border-[rgba(128,146,167,0.14)] pt-3">
-                        {toolbar}
-                    </div>
-                ) : null}
-            </div>
+                {toolbar ? <div className="mt-3">{toolbar}</div> : null}
+            </header>
             {children}
         </div>
     );
 };
 
 export const AdminPanel = ({ title, description, action, children, className }) => {
-    const { panelClass, mutedTextClass, headingTextClass } = useAdminTheme();
+    const { mutedTextClass, headingTextClass } = useAdminTheme();
 
     return (
-        <section className={clsx("rect-surface p-4", panelClass, className)}>
+        <section
+            className={clsx(
+                "border-b border-[rgba(128,146,167,0.16)] py-4 last:border-b-0",
+                className
+            )}
+        >
             {(title || action) && (
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
@@ -181,11 +191,11 @@ export const AdminPanel = ({ title, description, action, children, className }) 
 };
 
 export const AdminLoadingState = ({ text = "正在加载..." }) => {
-    const { panelClass, mutedTextClass, isDayMode } = useAdminTheme();
+    const { mutedTextClass, isDayMode } = useAdminTheme();
 
     return (
         <div
-            className={clsx("rect-surface p-10 text-center text-sm", panelClass, mutedTextClass)}
+            className={clsx("py-10 text-center text-sm", mutedTextClass)}
             role="status"
             aria-live="polite"
         >
@@ -203,18 +213,13 @@ export const AdminLoadingState = ({ text = "正在加载..." }) => {
 };
 
 export const AdminEmptyState = ({ icon: Icon, title, description, action }) => {
-    const { panelClass, iconWrapClass, mutedTextClass, headingTextClass } = useAdminTheme();
+    const { mutedTextClass, headingTextClass } = useAdminTheme();
 
     return (
-        <div className={clsx("rect-surface border-dashed p-8 text-center md:p-10", panelClass)}>
+        <div className="py-8 text-center md:py-10">
             {Icon ? (
-                <div
-                    className={clsx(
-                        "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md",
-                        iconWrapClass
-                    )}
-                >
-                    <Icon size={26} />
+                <div className={clsx("mx-auto mb-3 w-fit", mutedTextClass)}>
+                    <Icon size={22} strokeWidth={1.6} />
                 </div>
             ) : null}
             <h3 className={clsx("text-base font-semibold", headingTextClass)}>{title}</h3>
@@ -434,41 +439,27 @@ export const AdminTableCellText = ({ children, className, strong = false }) => {
 export const AdminMetricCard = ({ label, value, icon: Icon, helper, tone = "indigo" }) => {
     const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
     const toneClassName = {
-        indigo: isDayMode ? "bg-indigo-100 text-indigo-600" : "bg-indigo-500/15 text-indigo-300",
-        emerald: isDayMode
-            ? "bg-emerald-500/10 text-emerald-700"
-            : "bg-emerald-500/15 text-emerald-300",
-        amber: isDayMode ? "bg-amber-500/[0.12] text-amber-700" : "bg-amber-500/15 text-amber-300",
-        violet: isDayMode ? "bg-violet-500/10 text-violet-700" : "bg-violet-500/15 text-violet-300",
-        rose: isDayMode ? "bg-rose-500/10 text-rose-700" : "bg-rose-500/15 text-rose-300",
+        indigo: isDayMode ? "text-indigo-600" : "text-indigo-300",
+        emerald: isDayMode ? "text-emerald-700" : "text-emerald-300",
+        amber: isDayMode ? "text-amber-700" : "text-amber-300",
+        violet: isDayMode ? "text-violet-700" : "text-violet-300",
+        rose: isDayMode ? "text-rose-700" : "text-rose-300",
     }[tone];
 
     return (
-        <div
-            className={clsx(
-                "rect-surface-soft border p-3",
-                isDayMode ? "border-slate-200/70 bg-white/[0.72]" : "border-white/10 bg-white/5"
-            )}
-        >
-            <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <p className={clsx("text-xs font-semibold", mutedTextClass)}>{label}</p>
-                    <p className={clsx("mt-2 text-xl font-bold tabular-nums", headingTextClass)}>
-                        {value}
-                    </p>
-                </div>
-                {Icon ? (
-                    <div
-                        className={clsx(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-                            toneClassName
-                        )}
-                    >
-                        <Icon size={16} />
-                    </div>
-                ) : null}
+        <div className="flex min-w-0 items-center gap-2 border-l border-[rgba(128,146,167,0.18)] px-3 py-1 first:border-l-0 first:pl-0">
+            {Icon ? (
+                <span className={clsx("shrink-0", toneClassName)}>
+                    <Icon size={15} strokeWidth={1.8} />
+                </span>
+            ) : null}
+            <div className="min-w-0">
+                <p className={clsx("text-xs", mutedTextClass)}>{label}</p>
+                <p className={clsx("text-base font-bold tabular-nums", headingTextClass)}>
+                    {value}
+                </p>
+                {helper ? <p className={clsx("text-xs", mutedTextClass)}>{helper}</p> : null}
             </div>
-            {helper ? <p className={clsx("mt-2 text-xs", mutedTextClass)}>{helper}</p> : null}
         </div>
     );
 };

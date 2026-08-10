@@ -169,8 +169,8 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
     );
     const dirty = schedulePayload ? JSON.stringify(schedulePayload) !== initialPayload : false;
 
-    const fieldClass = `rect-surface-soft border p-3 ${
-        isDayMode ? "border-slate-200/70 bg-white/[0.72]" : "border-white/10 bg-white/[0.03]"
+    const fieldClass = `border-b py-3 last:border-b-0 ${
+        isDayMode ? "border-slate-200/70" : "border-white/10"
     }`;
     const labelClass = `mb-2 block text-xs font-semibold ${
         isDayMode ? "text-slate-600" : "text-gray-300"
@@ -449,7 +449,6 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
 
             <AdminPanel
                 title="日程节点"
-                description="先选择一场比赛，再编辑下面的完整页面模板；带“默认”的节点会作为首次访问时的默认赛事。"
                 action={
                     <div className="flex flex-wrap gap-2">
                         <AdminButton tone="subtle" onClick={() => addScheduleEvent(false)}>
@@ -527,7 +526,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
             </AdminPanel>
 
             <AdminPanel
-                title="1. 当前比赛信息"
+                title="比赛信息"
                 description="维护标题、时间、地点、比赛形式和首屏关键数据。"
                 action={<FileText size={18} className="text-indigo-300" />}
             >
@@ -791,7 +790,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
             </AdminPanel>
 
             <AdminPanel
-                title="2. 比赛规则与形式"
+                title="比赛规则与形式"
                 description="规则可以启用、停用、排序或新增；前台赛制区会按这里的顺序展示。"
                 action={
                     <AdminButton tone="subtle" onClick={addRule}>
@@ -880,7 +879,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
             </AdminPanel>
 
             <AdminPanel
-                title="3. 报名表单"
+                title="报名表单"
                 description="支持文本、邮箱、电话、数字、单选、多选和确认勾选，可设置必填、宽度与顺序。"
                 action={
                     <AdminButton tone="subtle" onClick={addField}>

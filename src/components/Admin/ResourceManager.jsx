@@ -364,20 +364,20 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     };
 
     const renderMobileCards = () => (
-        <div className="grid grid-cols-1 gap-3 md:hidden">
+        <div className="grid grid-cols-1 md:hidden">
             {filteredItems.map((item) => {
                 const isSelected = selectedIds.includes(item.id);
                 return (
                     <article
                         key={item.id}
-                        className={`rounded-2xl border p-4 transition-colors ${
+                        className={`border-b py-4 transition-colors last:border-b-0 ${
                             isSelected
                                 ? isDayMode
-                                    ? "border-indigo-300 bg-indigo-50/80"
-                                    : "border-indigo-400/40 bg-indigo-500/10"
+                                    ? "border-indigo-300 bg-indigo-50/80 px-3"
+                                    : "border-indigo-400/40 bg-indigo-500/10 px-3"
                                 : isDayMode
-                                  ? "border-slate-200/70 bg-white/[0.78]"
-                                  : "border-white/10 bg-white/[0.03]"
+                                  ? "border-slate-200/70"
+                                  : "border-white/10"
                         }`}
                     >
                         <div className="flex items-start gap-3">
@@ -571,6 +571,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             <AdminPageShell
                 title={title}
                 description={`${formatNumber(serverTotal)} 条内容，${refreshing ? "正在刷新" : activeFilterLabel}${searchQuery ? `，搜索“${searchQuery}”` : ""}`}
+                descriptionVisible
                 actions={
                     <>
                         <AdminButton tone="subtle" onClick={() => fetchItems(pagination.page)}>

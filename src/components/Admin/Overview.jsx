@@ -28,7 +28,7 @@ const DEFAULT_STATS = {
 
 const Overview = ({ onChangeTab }) => {
     const { t, i18n } = useTranslation();
-    const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
+    const { headingTextClass, mutedTextClass } = useAdminTheme();
     const [stats, setStats] = useState(DEFAULT_STATS);
     const [loading, setLoading] = useState(true);
 
@@ -314,11 +314,7 @@ const Overview = ({ onChangeTab }) => {
                 )}
             </AdminPanel>
 
-            <details
-                className={`rect-surface border px-4 py-3 text-sm ${
-                    isDayMode ? "theme-admin-panel" : "border-white/10 bg-white/[0.035]"
-                }`}
-            >
+            <details className="border-t border-[rgba(128,146,167,0.16)] py-3 text-sm">
                 <summary className={`cursor-pointer font-semibold ${headingTextClass}`}>
                     {t("admin.overview_ui.runtime_details", "系统运行信息")}
                 </summary>

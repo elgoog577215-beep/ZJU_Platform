@@ -134,8 +134,8 @@ const SettingsManager = () => {
 
     const currentAboutGroup =
         ABOUT_GROUPS.find((group) => group.id === activeAboutGroup) || ABOUT_GROUPS[0];
-    const fieldClassName = `rect-surface-soft border p-3 ${
-        isDayMode ? "border-slate-200/70 bg-white/[0.7]" : "border-white/10 bg-white/[0.03]"
+    const fieldClassName = `border-b py-3 last:border-b-0 ${
+        isDayMode ? "border-slate-200/70" : "border-white/10"
     }`;
     const labelClassName = `mb-2 block text-sm font-medium ${
         isDayMode ? "text-slate-600" : "text-gray-400"

@@ -263,7 +263,7 @@ const PendingReviewManager = () => {
                     description="这里只展示尚未处理的资源审核项。"
                     action={
                         filteredItems.length > 0 ? (
-                            <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300">
+                            <label className="inline-flex items-center gap-2 py-2 text-sm text-gray-300">
                                 <input
                                     type="checkbox"
                                     aria-label="全选当前结果"
@@ -299,10 +299,8 @@ const PendingReviewManager = () => {
                                 return (
                                     <div
                                         key={itemKey}
-                                        className={`grid gap-4 rounded-2xl border p-4 transition-colors md:grid-cols-[auto_96px_minmax(0,1fr)_auto] ${
-                                            isSelected
-                                                ? "border-indigo-500/30 bg-indigo-500/10"
-                                                : "border-white/10 bg-white/[0.03]"
+                                        className={`grid gap-4 border-b border-white/10 py-4 transition-colors last:border-b-0 md:grid-cols-[auto_96px_minmax(0,1fr)_auto] ${
+                                            isSelected ? "bg-indigo-500/10 px-3" : ""
                                         }`}
                                     >
                                         <div className="flex items-start pt-1">

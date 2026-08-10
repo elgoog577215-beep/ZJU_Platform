@@ -597,9 +597,12 @@ const AdminCommunity = () => {
                         text={t("admin.community.loading_stats", "正在加载社区统计...")}
                     />
                 ) : (
-                    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-y-3 lg:grid-cols-4">
                         {statCards.map((card) => (
-                            <AdminPanel key={card.label} className="p-3">
+                            <div
+                                key={card.label}
+                                className="border-l border-[rgba(128,146,167,0.18)] px-3 first:border-l-0 first:pl-0"
+                            >
                                 <div className="flex items-center gap-2 text-xs text-gray-500">
                                     <card.icon
                                         size={16}
@@ -610,11 +613,11 @@ const AdminCommunity = () => {
                                     {card.label}
                                 </div>
                                 <div
-                                    className={`mt-2 text-xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                    className={`mt-1 text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}
                                 >
                                     {card.value}
                                 </div>
-                            </AdminPanel>
+                            </div>
                         ))}
                     </div>
                 )}
