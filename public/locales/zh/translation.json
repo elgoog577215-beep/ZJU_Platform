@@ -1478,14 +1478,8 @@
         "tabs": {
             "aria": "浙客松页面切换",
             "register": "赛事报名",
-            "register_short": "报名",
             "showcase": "比赛成果",
-            "showcase_short": "成果",
-            "hidden": "{{label}}暂未开放"
-        },
-        "locked": {
-            "title": "该赛事页面暂未开放",
-            "description": "可以继续通过上方时间轴查看其他比赛日程。"
+            "showcase_short": "成果"
         },
         "nav": {
             "home": "主页",

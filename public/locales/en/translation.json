@@ -1476,14 +1476,8 @@
         "tabs": {
             "aria": "Zhekesong page switcher",
             "register": "Registration",
-            "register_short": "Register",
             "showcase": "Showcase",
-            "showcase_short": "Results",
-            "hidden": "{{label}} is not open yet"
-        },
-        "locked": {
-            "title": "This event page is not open yet",
-            "description": "Use the timeline above to browse other events."
+            "showcase_short": "Results"
         },
         "nav": {
             "home": "Home",
