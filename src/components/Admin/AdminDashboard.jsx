@@ -15,7 +15,6 @@ import {
     Users,
     ArrowUp,
     ChevronRight,
-    ChevronDown,
     Tag,
     X,
     Menu,
@@ -127,7 +126,6 @@ const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showBackToTop, setShowBackToTop] = useState(false);
     const [navQuery, setNavQuery] = useState("");
-    const [expandedGroupId, setExpandedGroupId] = useState("overview");
     const [, setRecentTabIds] = useState(readRecentTabs);
     const contentTopRef = useRef(null);
     const isDayMode = uiMode === "day";
@@ -415,10 +413,6 @@ const AdminDashboard = () => {
         [t]
     );
 
-    useEffect(() => {
-        if (activeGroup?.id) setExpandedGroupId(activeGroup.id);
-    }, [activeGroup?.id]);
-
     const scrollToContentStart = useCallback((behavior = "smooth") => {
         if (typeof window === "undefined") return;
         window.requestAnimationFrame(() => {
@@ -604,9 +598,6 @@ const AdminDashboard = () => {
         : "border-transparent bg-white/[0.03] text-gray-300 hover:border-white/10 hover:bg-white/5 hover:text-white";
     const activeIconClass = isDayMode ? "bg-indigo-100 text-indigo-600" : "bg-white/15";
     const inactiveIconClass = isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5";
-    const groupButtonClass = isDayMode
-        ? "text-slate-700 hover:bg-white hover:text-slate-950"
-        : "text-gray-300 hover:bg-white/[0.05] hover:text-white";
     const statusBadgeClass = {
         [MODULE_STATUS.ready]: isDayMode
             ? "bg-emerald-50 text-emerald-700"
@@ -712,10 +703,10 @@ const AdminDashboard = () => {
                             isMobileMenuOpen
                                 ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+72px)] bottom-[calc(env(safe-area-inset-bottom)+14px)] z-[100]"
                                 : "hidden"
-                        } lg:static lg:block lg:w-64 lg:flex-shrink-0`}
+                        } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
                     >
                         <div
-                            className={`rect-surface h-full overflow-y-auto p-3 lg:sticky lg:top-24 lg:h-[calc(100dvh-7rem)] ${sidebarClass}`}
+                            className={`rect-surface h-full p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto ${sidebarClass}`}
                         >
                             <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
                                 <div
@@ -760,120 +751,56 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-3">
                                 {filteredMenuGroups.length > 0 ? (
-                                    filteredMenuGroups.map((group) => {
-                                        const isExpanded =
-                                            Boolean(normalizedNavQuery) ||
-                                            expandedGroupId === group.id;
-                                        const GroupIcon = group.icon;
-
-                                        return (
-                                            <div key={group.id}>
-                                                <button
-                                                    type="button"
-                                                    aria-expanded={isExpanded}
-                                                    onClick={() =>
-                                                        setExpandedGroupId((current) =>
-                                                            current === group.id ? "" : group.id
-                                                        )
-                                                    }
-                                                    className={`flex min-h-[42px] w-full items-center gap-2 rounded-[6px] px-2 text-left text-sm font-bold transition-colors ${groupButtonClass}`}
-                                                >
-                                                    <span
-                                                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${inactiveIconClass}`}
-                                                    >
-                                                        <GroupIcon size={15} />
-                                                    </span>
-                                                    <span className="min-w-0 flex-1 truncate">
-                                                        {group.title}
-                                                    </span>
-                                                    <span
-                                                        className={`text-[11px] font-normal ${metaLabelClass}`}
-                                                    >
-                                                        {group.items.length}
-                                                    </span>
-                                                    <ChevronDown
-                                                        size={15}
-                                                        className={`shrink-0 transition-transform ${
-                                                            isExpanded ? "rotate-180" : ""
-                                                        } ${metaLabelClass}`}
-                                                    />
-                                                </button>
-                                                {isExpanded ? (
-                                                    <div className="mb-2 ml-4 mt-1 space-y-1 border-l border-[rgba(128,146,167,0.16)] pl-3">
-                                                        {group.items.map((tab) => {
-                                                            const isActive = activeTab === tab.id;
-                                                            const showStatus =
-                                                                tab.status &&
-                                                                tab.status !== MODULE_STATUS.ready;
-                                                            return (
-                                                                <button
-                                                                    type="button"
-                                                                    key={tab.id}
-                                                                    aria-label={t(
-                                                                        "admin.dashboard_ui.open_module",
-                                                                        { label: tab.label }
-                                                                    )}
-                                                                    aria-current={
+                                    filteredMenuGroups.map((group) => (
+                                        <div key={group.id}>
+                                            <div
+                                                className={`px-1 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] ${metaLabelClass}`}
+                                            >
+                                                {group.title}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1.5">
+                                                {group.items.map((tab) => {
+                                                    const isActive = activeTab === tab.id;
+                                                    return (
+                                                        <button
+                                                            type="button"
+                                                            key={tab.id}
+                                                            aria-label={t(
+                                                                "admin.dashboard_ui.open_module",
+                                                                { label: tab.label }
+                                                            )}
+                                                            aria-current={
+                                                                isActive ? "page" : undefined
+                                                            }
+                                                            onClick={() => selectTab(tab.id)}
+                                                            className={`w-full rounded-[6px] border px-2 py-2 text-left transition-all ${
+                                                                isActive
+                                                                    ? activeItemClass
+                                                                    : inactiveItemClass
+                                                            }`}
+                                                        >
+                                                            <div className="flex min-w-0 items-center gap-2">
+                                                                <div
+                                                                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
                                                                         isActive
-                                                                            ? "page"
-                                                                            : undefined
-                                                                    }
-                                                                    onClick={() =>
-                                                                        selectTab(tab.id)
-                                                                    }
-                                                                    className={`w-full rounded-[6px] border px-2 py-1.5 text-left transition-all ${
-                                                                        isActive
-                                                                            ? activeItemClass
-                                                                            : inactiveItemClass
+                                                                            ? activeIconClass
+                                                                            : inactiveIconClass
                                                                     }`}
                                                                 >
-                                                                    <div className="flex min-w-0 items-center gap-2">
-                                                                        <div
-                                                                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
-                                                                                isActive
-                                                                                    ? activeIconClass
-                                                                                    : inactiveIconClass
-                                                                            }`}
-                                                                        >
-                                                                            <tab.icon size={15} />
-                                                                        </div>
-                                                                        <div className="min-w-0 flex-1 truncate text-sm font-semibold">
-                                                                            {tab.label}
-                                                                        </div>
-                                                                        {showStatus ? (
-                                                                            <span
-                                                                                className={`shrink-0 text-[10px] font-semibold ${
-                                                                                    tab.status ===
-                                                                                    MODULE_STATUS.experimental
-                                                                                        ? isDayMode
-                                                                                            ? "text-violet-700"
-                                                                                            : "text-violet-300"
-                                                                                        : tab.status ===
-                                                                                            MODULE_STATUS.maintenance
-                                                                                          ? isDayMode
-                                                                                              ? "text-amber-700"
-                                                                                              : "text-amber-300"
-                                                                                          : metaLabelClass
-                                                                                }`}
-                                                                            >
-                                                                                {
-                                                                                    statusLabels[
-                                                                                        tab.status
-                                                                                    ]
-                                                                                }
-                                                                            </span>
-                                                                        ) : null}
-                                                                    </div>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : null}
+                                                                    <tab.icon size={15} />
+                                                                </div>
+                                                                <div className="min-w-0 truncate text-sm font-semibold">
+                                                                    {tab.label}
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
-                                        );
-                                    })
+                                        </div>
+                                    ))
                                 ) : (
                                     <div className={emptySearchClass}>
                                         <div className="font-semibold">

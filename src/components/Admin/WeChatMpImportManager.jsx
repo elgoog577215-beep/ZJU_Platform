@@ -780,10 +780,6 @@ const WeChatMpImportManager = () => {
     return (
         <AdminPageShell
             title={t("admin.wechat_mp.workspace.title", "内容采集")}
-            description={t(
-                "admin.wechat_mp.workspace.description",
-                "维护学院、社团等公众号采集源，把新增通知筛选为可发布内容。"
-            )}
             actions={
                 <ToolbarGroup className="justify-start lg:justify-end">
                     <AdminButton
@@ -825,10 +821,10 @@ const WeChatMpImportManager = () => {
                     aria-label={t("admin.wechat_mp.workspace.navigation", "内容采集工作区")}
                 >
                     {[
-                        ["overview", "overview_tab", "运行概况"],
+                        ["overview", "overview_tab", "概况"],
                         ["sources", "sources_tab", "采集源"],
                         ["candidates", "candidates_tab", "候选内容"],
-                        ["advanced", "advanced_tab", "连接与单次采集"],
+                        ["advanced", "advanced_tab", "连接与工具"],
                     ].map(([id, key, fallback]) => (
                         <FilterChip
                             key={id}
@@ -891,121 +887,98 @@ const WeChatMpImportManager = () => {
                             </div>
                         </AdminPanel>
 
-                        <AdminPanel
-                            title={t("admin.wechat_mp.workspace.pipeline_title", "采集流水线")}
-                            description={t(
-                                "admin.wechat_mp.workspace.pipeline_description",
-                                "按运营动作推进，技术参数只在异常排查时展开。"
-                            )}
-                        >
-                            <div className="divide-y divide-[rgba(128,146,167,0.14)]">
-                                {[
-                                    {
-                                        index: "1",
-                                        title: t(
-                                            "admin.wechat_mp.workspace.pipeline.sources",
-                                            "维护采集源"
-                                        ),
-                                        detail: t(
-                                            "admin.wechat_mp.workspace.pipeline.sources_detail",
-                                            "学院、社团等公众号账号"
-                                        ),
-                                        state: t("admin.wechat_mp.workspace.source_count", {
-                                            count: formatNumber(enabledIngestAccountCount),
-                                            defaultValue: `${formatNumber(enabledIngestAccountCount)} 个启用`,
-                                        }),
-                                        target: "sources",
-                                    },
-                                    {
-                                        index: "2",
-                                        title: t(
-                                            "admin.wechat_mp.workspace.pipeline.collect",
-                                            "执行增量采集"
-                                        ),
-                                        detail: t(
-                                            "admin.wechat_mp.workspace.pipeline.collect_detail",
-                                            "按计划自动运行，也可立即执行"
-                                        ),
-                                        state: latestRun
-                                            ? t(
-                                                  `admin.wechat_mp.ingest.run_status.${latestRun.status}`,
-                                                  latestRun.status
-                                              )
-                                            : t("admin.wechat_mp.status.none"),
-                                        target: "sources",
-                                    },
-                                    {
-                                        index: "3",
-                                        title: t(
-                                            "admin.wechat_mp.workspace.pipeline.screen",
-                                            "筛选活动候选"
-                                        ),
-                                        detail: t(
-                                            "admin.wechat_mp.workspace.pipeline.screen_detail",
-                                            "排除非通知内容，检查活动信息"
-                                        ),
-                                        state: t("admin.wechat_mp.workspace.candidate_count", {
-                                            count: formatNumber(ingestArticles.length),
-                                            defaultValue: `${formatNumber(ingestArticles.length)} 条候选`,
-                                        }),
-                                        target: "candidates",
-                                    },
-                                    {
-                                        index: "4",
-                                        title: t(
-                                            "admin.wechat_mp.workspace.pipeline.publish",
-                                            "修正并发布"
-                                        ),
-                                        detail: t(
-                                            "admin.wechat_mp.workspace.pipeline.publish_detail",
-                                            "确认标题、时间、地点与主办主体"
-                                        ),
-                                        state: t(
-                                            "admin.wechat_mp.workspace.manual_review",
-                                            "人工确认"
-                                        ),
-                                        target: "candidates",
-                                    },
-                                ].map((step) => (
-                                    <button
-                                        key={step.index}
-                                        type="button"
-                                        onClick={() => setActiveWorkspace(step.target)}
-                                        className="flex w-full items-center gap-3 py-3 text-left first:pt-0 last:pb-0"
-                                    >
-                                        <span
-                                            className={clsx(
-                                                "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold",
-                                                isDayMode
-                                                    ? "bg-slate-100 text-slate-600"
-                                                    : "bg-white/[0.06] text-gray-300"
-                                            )}
-                                        >
-                                            {step.index}
-                                        </span>
-                                        <span className="min-w-0 flex-1">
-                                            <span
-                                                className={clsx(
-                                                    "block text-sm font-bold",
-                                                    headingTextClass
-                                                )}
-                                            >
-                                                {step.title}
-                                            </span>
-                                            <span className={clsx("block text-xs", mutedTextClass)}>
-                                                {step.detail}
-                                            </span>
-                                        </span>
-                                        <span
-                                            className={clsx(
-                                                "shrink-0 text-xs font-semibold",
-                                                mutedTextClass
-                                            )}
-                                        >
-                                            {step.state}
-                                        </span>
-                                    </button>
-                                ))}
+                        <AdminPanel>
+                            <div className="grid md:grid-cols-2 md:divide-x md:divide-[rgba(128,146,167,0.14)]">
+                                <section className="pb-4 md:pb-0 md:pr-5">
+                                    <h3 className={clsx("text-sm font-bold", headingTextClass)}>
+                                        {t("admin.wechat_mp.ingest.runs_title", "最近采集")}
+                                    </h3>
+                                    <div className="mt-3 divide-y divide-[rgba(128,146,167,0.14)]">
+                                        {ingestLoading ? (
+                                            <div className={clsx("py-3 text-sm", mutedTextClass)}>
+                                                {t("common.loading", "加载中...")}
+                                            </div>
+                                        ) : ingestRuns.length > 0 ? (
+                                            ingestRuns.slice(0, 5).map((run) => (
+                                                <div
+                                                    key={run.id}
+                                                    className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 text-sm"
+                                                >
+                                                    <span
+                                                        className={clsx("truncate", mutedTextClass)}
+                                                    >
+                                                        {formatDateTime(
+                                                            run.started_at,
+                                                            i18n.resolvedLanguage
+                                                        )}
+                                                    </span>
+                                                    <span className={headingTextClass}>
+                                                        {t(
+                                                            `admin.wechat_mp.ingest.run_status.${run.status}`,
+                                                            run.status
+                                                        )}
+                                                    </span>
+                                                    <span
+                                                        className={clsx(
+                                                            "tabular-nums",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {formatNumber(run.new_articles || 0)}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className={clsx("py-3 text-sm", mutedTextClass)}>
+                                                {t("admin.wechat_mp.ingest.empty_runs")}
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+
+                                <section className="border-t border-[rgba(128,146,167,0.14)] pt-4 md:border-t-0 md:pl-5 md:pt-0">
+                                    <h3 className={clsx("text-sm font-bold", headingTextClass)}>
+                                        {t("admin.wechat_mp.ingest.articles_title", "候选内容")}
+                                    </h3>
+                                    <div className="mt-3 divide-y divide-[rgba(128,146,167,0.14)]">
+                                        {ingestLoading ? (
+                                            <div className={clsx("py-3 text-sm", mutedTextClass)}>
+                                                {t("common.loading", "加载中...")}
+                                            </div>
+                                        ) : ingestArticles.length > 0 ? (
+                                            ingestArticles.slice(0, 5).map((article) => (
+                                                <div
+                                                    key={article.id || article.link}
+                                                    className="flex min-w-0 items-center justify-between gap-3 py-2.5"
+                                                >
+                                                    <span
+                                                        className={clsx(
+                                                            "min-w-0 truncate text-sm font-semibold",
+                                                            headingTextClass
+                                                        )}
+                                                    >
+                                                        {article.title ||
+                                                            t("admin.wechat_mp.articles.untitled")}
+                                                    </span>
+                                                    <span
+                                                        className={clsx(
+                                                            "shrink-0 text-xs",
+                                                            mutedTextClass
+                                                        )}
+                                                    >
+                                                        {article.account_name ||
+                                                            article.fakeid ||
+                                                            t("admin.wechat_mp.status.none")}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className={clsx("py-3 text-sm", mutedTextClass)}>
+                                                {t("admin.wechat_mp.ingest.empty_articles")}
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
                             </div>
                         </AdminPanel>
                     </>

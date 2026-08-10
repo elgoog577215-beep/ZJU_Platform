@@ -340,11 +340,15 @@ test.describe("admin console refinement", () => {
         await expect(page.getByRole("button", { name: /近 7 日访问/ })).toBeVisible();
         await expect(page.getByRole("heading", { name: "当前工作" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "内容状态" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "内容与审核 11" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "主体与关系 3" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "生态项目运营 3" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "AI 能力治理 1" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "系统与审计 2" })).toBeVisible();
+        const adminNavigation = page.getByRole("complementary", { name: "管理员导航" });
+        await expect(adminNavigation.getByText("内容与审核", { exact: true })).toBeVisible();
+        await expect(adminNavigation.getByText("主体与关系", { exact: true })).toBeVisible();
+        await expect(adminNavigation.getByText("生态项目运营", { exact: true })).toBeVisible();
+        await expect(adminNavigation.getByText("AI 能力治理", { exact: true })).toBeVisible();
+        await expect(adminNavigation.getByText("系统与审计", { exact: true })).toBeVisible();
+        await expect(
+            adminNavigation.getByRole("button", { name: "打开内容采集模块" })
+        ).toBeVisible();
         const quickJump = page.getByRole("combobox", {
             name: "快速跳转到管理模块",
         });
@@ -362,13 +366,15 @@ test.describe("admin console refinement", () => {
         await quickJump.selectOption("wechat-mp");
         await expect(page).toHaveURL(/tab=wechat-mp/);
         await expect(page.getByRole("heading", { name: "内容采集" })).toBeVisible();
-        await expect(page.getByRole("tab", { name: "运行概况" })).toHaveAttribute(
+        await expect(page.getByRole("tab", { name: "概况" })).toHaveAttribute(
             "aria-selected",
             "true"
         );
-        await expect(page.getByRole("heading", { name: "采集流水线" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "最近采集" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "候选内容" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "采集流水线" })).toHaveCount(0);
         await expect(page.getByText("定时与风控参数")).toHaveCount(0);
-        await page.getByRole("tab", { name: "连接与单次采集" }).click();
+        await page.getByRole("tab", { name: "连接与工具" }).click();
         await expect(page.getByRole("heading", { name: "扫码登录" })).toBeVisible();
         await expect(page.getByRole("button", { name: "扫码登录" })).toBeVisible();
 
@@ -509,7 +515,6 @@ test.describe("admin console refinement", () => {
         await expect(page.getByLabel("管理员导航")).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
-        await page.getByRole("button", { name: "生态项目运营 3" }).click();
         await page.getByRole("button", { name: "打开黑客松模块" }).click();
         await expect(page.getByRole("heading", { name: "黑客松运营管理" })).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
