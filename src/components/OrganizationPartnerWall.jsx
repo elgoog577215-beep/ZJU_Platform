@@ -127,7 +127,7 @@ const OrganizationPartnerWall = ({
     const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
     const shellClass = isDayMode
         ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
-        : "border-white/[0.105] bg-[rgba(8,18,34,0.78)]";
+        : "border-white/[0.105] bg-[rgba(8,18,34,0.58)] backdrop-blur-md";
     const buttonBase =
         "relative flex w-12 shrink-0 flex-col items-center gap-0.5 rounded-[4px] border px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
     const getButtonClass = (active) => {
@@ -258,7 +258,7 @@ const OrganizationPartnerWall = ({
                     className={`pointer-events-none absolute bottom-1 right-0 top-1 w-12 ${
                         isDayMode
                             ? "bg-gradient-to-l from-white to-transparent"
-                            : "bg-gradient-to-l from-[#0b1222] to-transparent"
+                            : "bg-gradient-to-l from-[rgba(8,18,34,0.88)] to-transparent"
                     }`}
                 />
                 <span className={`sr-only ${mutedClass}`}>

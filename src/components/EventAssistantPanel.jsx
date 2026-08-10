@@ -318,7 +318,7 @@ const EventAssistantPanel = ({
         : isRailVariant
           ? isDayMode
               ? "bg-white border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_14px_34px_rgba(15,23,42,0.05)]"
-              : "bg-[#0d111a]/94 border-white/10 shadow-[0_18px_46px_rgba(0,0,0,0.34)]"
+              : "bg-[#0d111a]/78 border-white/10 shadow-[0_18px_46px_rgba(0,0,0,0.28)]"
           : isDayMode
             ? "bg-white border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_12px_30px_rgba(15,23,42,0.045)]"
             : "bg-[#10121d]/88 border-white/10 shadow-none";
@@ -411,7 +411,7 @@ const EventAssistantPanel = ({
                 <div className={`relative ${panelPaddingClass}`}>
                     {isRailVariant ? (
                         <div
-                            className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#0d111a]/92 backdrop-blur-xl"}`}
+                            className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#0d111a]/76 backdrop-blur-xl"}`}
                         >
                             <div className="flex items-center justify-between gap-2.5">
                                 <div className="flex min-w-0 items-center gap-2 text-left">

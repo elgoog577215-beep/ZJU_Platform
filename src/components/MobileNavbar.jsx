@@ -68,11 +68,41 @@ const MobileNavbar = () => {
             : null;
 
     const navItems = [
-        { key: "events", path: "/events", icon: Calendar, label: t("nav.events") },
-        { key: "articles", path: "/articles", icon: Trees, label: t("nav.community") },
-        { key: "projects", path: "/projects", icon: Rocket, label: t("nav.projects") },
-        { key: "hackathon", path: "/hackathon", icon: Sparkles, label: t("nav.hackathon") },
-        { key: "me", path: profilePath, icon: UserCircle, label: t("nav.profile") },
+        {
+            key: "events",
+            path: "/events",
+            icon: Calendar,
+            label: t("nav.mobile_events"),
+            ariaLabel: t("nav.events"),
+        },
+        {
+            key: "articles",
+            path: "/articles",
+            icon: Trees,
+            label: t("nav.mobile_community"),
+            ariaLabel: t("nav.community"),
+        },
+        {
+            key: "projects",
+            path: "/projects",
+            icon: Rocket,
+            label: t("nav.mobile_projects"),
+            ariaLabel: t("nav.projects"),
+        },
+        {
+            key: "hackathon",
+            path: "/hackathon",
+            icon: Sparkles,
+            label: t("nav.mobile_hackathon"),
+            ariaLabel: t("nav.hackathon"),
+        },
+        {
+            key: "me",
+            path: profilePath,
+            icon: UserCircle,
+            label: t("nav.mobile_me"),
+            ariaLabel: t("nav.profile"),
+        },
     ];
 
     const isItemActive = (path, key) => {
@@ -158,7 +188,7 @@ const MobileNavbar = () => {
                                 <button
                                     key={item.key}
                                     type="button"
-                                    aria-label={item.label}
+                                    aria-label={item.ariaLabel}
                                     aria-current={isActive ? "page" : undefined}
                                     onClick={() =>
                                         window.dispatchEvent(new Event("open-auth-modal"))
@@ -174,7 +204,7 @@ const MobileNavbar = () => {
                             <Link
                                 key={item.key}
                                 to={item.path}
-                                aria-label={item.label}
+                                aria-label={item.ariaLabel}
                                 aria-current={isActive ? "page" : undefined}
                                 className={sharedClassName}
                             >
