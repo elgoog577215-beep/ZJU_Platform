@@ -348,25 +348,33 @@ const CommunityFeedPanel = ({
                         </button>
                     </div>
                 ) : displayItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center px-4 py-12 md:py-20">
+                    <div
+                        className={`flex flex-col items-center justify-center px-4 text-center ${
+                            isLearningSurface
+                                ? `border-y border-dashed py-6 md:rounded-lg md:border md:px-6 md:py-8 ${isDayMode ? "border-slate-200" : "border-white/10"}`
+                                : "py-12 md:py-20"
+                        }`}
+                    >
                         <div
-                            className={`mb-4 rounded-lg border bg-gradient-to-br p-6 md:mb-6 md:p-8 ${gradientFrom} ${isDayMode ? "shadow-none" : "backdrop-blur-xl shadow-xl"} ${emptyBorder}`}
+                            className={`${isLearningSurface ? "mb-3 p-4" : "mb-4 p-6 md:mb-6 md:p-8"} rounded-lg border bg-gradient-to-br ${gradientFrom} ${isDayMode ? "shadow-none" : "backdrop-blur-xl shadow-xl"} ${emptyBorder}`}
                         >
                             {EmptyIcon && (
                                 <EmptyIcon
-                                    size={56}
-                                    className={`${emptyIconClass} opacity-80 md:size-16`}
+                                    size={isLearningSurface ? 36 : 56}
+                                    className={`${emptyIconClass} opacity-80 ${isLearningSurface ? "" : "md:size-16"}`}
                                 />
                             )}
                         </div>
                         <h3
-                            className={`mb-2 text-center text-xl font-bold md:text-2xl ${th.textPrimary}`}
+                            className={`mb-2 text-center font-bold ${isLearningSurface ? "text-lg" : "text-xl md:text-2xl"} ${th.textPrimary}`}
                         >
                             {showFilteredEmptyState
                                 ? t("community.no_filtered_results", "没有符合当前条件的内容")
                                 : emptyTitle}
                         </h3>
-                        <p className={`text-center max-w-md ${th.textSecondary}`}>
+                        <p
+                            className={`max-w-md text-center ${isLearningSurface ? "text-sm" : ""} ${th.textSecondary}`}
+                        >
                             {showFilteredEmptyState
                                 ? t(
                                       "community.no_filtered_results_desc",

@@ -1771,7 +1771,7 @@ const CommunityPosts = () => {
     return (
         <div className="space-y-3 md:space-y-5">
             <nav
-                className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:gap-3 md:border-0 md:px-0 ${
+                className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
                     isDayMode ? "border-slate-200" : "border-white/10"
                 }`}
                 aria-label={t("community_learning.area_nav_label", "学习社区分区")}
@@ -1786,7 +1786,7 @@ const CommunityPosts = () => {
                             type="button"
                             aria-pressed={active}
                             onClick={() => handleAreaChange(area.key)}
-                            className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:block md:min-h-[118px] md:rounded-lg md:border md:p-4 md:text-left ${
+                            className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:min-h-[62px] md:flex-1 md:justify-start md:gap-3 md:rounded-none md:border-0 md:border-r md:px-4 md:py-2 md:text-left md:last:border-r-0 ${
                                 active
                                     ? isDayMode
                                         ? tone.card
@@ -1796,22 +1796,16 @@ const CommunityPosts = () => {
                                       : "border-transparent text-gray-300 hover:text-white md:border-white/10 md:bg-white/[0.035] md:hover:border-white/20 md:hover:bg-white/[0.06]"
                             }`}
                         >
-                            <div className="flex items-center justify-between gap-3 md:mb-3">
+                            <div className="flex items-center justify-between gap-3">
                                 <span
-                                    className={`flex h-6 w-6 items-center justify-center rounded-md md:h-10 md:w-10 ${active ? "md:bg-white/35" : isDayMode ? "md:bg-slate-100" : "md:bg-white/[0.06]"}`}
+                                    className={`flex h-6 w-6 items-center justify-center rounded-md md:h-8 md:w-8 ${active ? "md:bg-white/35" : isDayMode ? "md:bg-slate-100" : "md:bg-white/[0.06]"}`}
                                 >
                                     <Icon size={16} className="md:h-[19px] md:w-[19px]" />
                                 </span>
-                                {active ? (
-                                    <ArrowRight size={18} className="hidden md:block" />
-                                ) : null}
                             </div>
-                            <div className="truncate md:text-lg md:font-black">
+                            <div className="truncate md:text-sm md:font-black">
                                 {t(area.titleKey, area.titleFallback)}
                             </div>
-                            <p className="mt-1 hidden text-sm leading-6 opacity-80 md:block">
-                                {t(area.descKey, area.descFallback)}
-                            </p>
                         </button>
                     );
                 })}

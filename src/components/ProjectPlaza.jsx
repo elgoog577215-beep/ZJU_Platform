@@ -1119,91 +1119,104 @@ const ProjectPlaza = () => {
                             </div>
                         </section>
 
-                        <section
-                            className="ppp-radar"
-                            aria-label={t("project_plaza.radar.aria", "项目机会雷达")}
-                        >
-                            <div>
-                                <span className="ppp-radar-k">
-                                    <Radar size={15} />
-                                    {t("project_plaza.radar.kicker", "机会雷达")}
-                                </span>
-                                <strong>{getRadarHeadline(t, recruitingCount)}</strong>
-                                <p>
-                                    {t(
-                                        "project_plaza.radar.copy",
-                                        "按进度、需求和热度自动把更值得加入的项目排到前面。"
-                                    )}
-                                </p>
+                        <div className="ppp-results">
+                            <div className="ppp-results-main">
+                                {loading ? (
+                                    <div className="ppp-empty">
+                                        {t("project_plaza.loading", "加载中...")}
+                                    </div>
+                                ) : visibleItems.length === 0 ? (
+                                    <div className="ppp-empty">
+                                        <UserRound size={34} />
+                                        <strong>
+                                            {t("project_plaza.empty_title", "还没有匹配的项目名片")}
+                                        </strong>
+                                        <span>
+                                            {t(
+                                                "project_plaza.empty_desc",
+                                                "换个关键词，或发布第一个项目。"
+                                            )}
+                                        </span>
+                                        <button
+                                            className="ppp-newbtn ppp-empty-action"
+                                            type="button"
+                                            onClick={startCreate}
+                                        >
+                                            <Plus size={18} />
+                                            {t(
+                                                "project_plaza.actions.publish_first",
+                                                "发布第一个项目"
+                                            )}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div
+                                        className={`ppp-grid ${
+                                            visibleItems.length === 1 ? "is-sparse" : ""
+                                        }`}
+                                    >
+                                        {visibleItems.map((project) => (
+                                            <Card
+                                                p={project}
+                                                key={project.id}
+                                                onOpen={openDetail}
+                                                onFav={applyFav}
+                                                t={t}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <div className="ppp-radar-stats">
-                                <button
-                                    type="button"
-                                    className={recruitingOnly ? "on" : ""}
-                                    onClick={showRecruitingProjects}
-                                >
-                                    <span>{recruitingCount}</span>
-                                    {t("project_plaza.radar.recruiting", "开放招募")}
-                                </button>
-                                <button
-                                    type="button"
-                                    className={!recruitingOnly && progFilter === "live" ? "on" : ""}
-                                    onClick={showLiveProjects}
-                                >
-                                    <span>{liveCount}</span>
-                                    {t("project_plaza.radar.live", "已上线")}
-                                </button>
-                                <button
-                                    type="button"
-                                    className={
-                                        !recruitingOnly && needFilter === topNeed ? "on" : ""
-                                    }
-                                    onClick={showTopNeedProjects}
-                                >
-                                    <span>{getNeedLabel(t, topNeed)}</span>
-                                    {t("project_plaza.radar.hot_need", "最热需求")}
-                                </button>
-                            </div>
-                        </section>
 
-                        {loading ? (
-                            <div className="ppp-empty">
-                                {t("project_plaza.loading", "加载中...")}
-                            </div>
-                        ) : visibleItems.length === 0 ? (
-                            <div className="ppp-empty">
-                                <UserRound size={34} />
-                                <strong>
-                                    {t("project_plaza.empty_title", "还没有匹配的项目名片")}
-                                </strong>
-                                <span>
-                                    {t(
-                                        "project_plaza.empty_desc",
-                                        "换个关键词，或发布第一个项目。"
-                                    )}
-                                </span>
-                                <button
-                                    className="ppp-newbtn ppp-empty-action"
-                                    type="button"
-                                    onClick={startCreate}
-                                >
-                                    <Plus size={18} />
-                                    {t("project_plaza.actions.publish_first", "发布第一个项目")}
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="ppp-grid">
-                                {visibleItems.map((project) => (
-                                    <Card
-                                        p={project}
-                                        key={project.id}
-                                        onOpen={openDetail}
-                                        onFav={applyFav}
-                                        t={t}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                            <section
+                                className="ppp-radar"
+                                aria-label={t("project_plaza.radar.aria", "项目机会雷达")}
+                            >
+                                <div>
+                                    <span className="ppp-radar-k">
+                                        <Radar size={15} />
+                                        {t("project_plaza.radar.kicker", "机会雷达")}
+                                    </span>
+                                    <strong>{getRadarHeadline(t, recruitingCount)}</strong>
+                                    <p>
+                                        {t(
+                                            "project_plaza.radar.copy",
+                                            "按进度、需求和热度自动把更值得加入的项目排到前面。"
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="ppp-radar-stats">
+                                    <button
+                                        type="button"
+                                        className={recruitingOnly ? "on" : ""}
+                                        onClick={showRecruitingProjects}
+                                    >
+                                        <span>{recruitingCount}</span>
+                                        {t("project_plaza.radar.recruiting", "开放招募")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={
+                                            !recruitingOnly && progFilter === "live" ? "on" : ""
+                                        }
+                                        onClick={showLiveProjects}
+                                    >
+                                        <span>{liveCount}</span>
+                                        {t("project_plaza.radar.live", "已上线")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={
+                                            !recruitingOnly && needFilter === topNeed ? "on" : ""
+                                        }
+                                        onClick={showTopNeedProjects}
+                                    >
+                                        <span>{getNeedLabel(t, topNeed)}</span>
+                                        {t("project_plaza.radar.hot_need", "最热需求")}
+                                    </button>
+                                </div>
+                            </section>
+                        </div>
                     </>
                 )}
             </div>

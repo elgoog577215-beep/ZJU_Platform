@@ -71,7 +71,7 @@ const ProfileDirectory = () => {
 
     return (
         <div
-            className={`min-h-screen px-4 pb-6 pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:py-8 lg:px-8 ${isDayMode ? "bg-slate-50 text-slate-950" : "bg-[#0d0f14] text-white"}`}
+            className={`min-h-screen px-4 pb-6 pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pb-10 md:pt-[calc(env(safe-area-inset-top)+96px)] lg:px-8 ${isDayMode ? "bg-slate-50 text-slate-950" : "bg-[#0d0f14] text-white"}`}
         >
             <SEO
                 title={t("profiles.directory_title", "组织目录")}

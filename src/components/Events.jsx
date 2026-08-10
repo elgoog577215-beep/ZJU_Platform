@@ -70,10 +70,8 @@ import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatM
 
 const EVENT_CARD_GRID_CLASS =
     "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
-const EVENT_CONTENT_WIDTH_CLASS =
-    "mx-auto w-full max-w-[84rem] xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
-const EVENT_FILTER_WIDTH_CLASS =
-    "mx-auto w-full max-w-5xl xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
+const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
+const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
     all: LayoutGrid,
     [COLLEGE_NOTICE_CATEGORY_VALUE]: FileText,
@@ -2211,25 +2209,15 @@ END:VCALENDAR`;
                 {canRenderDesktopAssistant &&
                     createPortal(
                         <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
-                            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden xl:block xl:right-[max(1rem,calc((100vw-84rem-300px-2rem)/2))] 2xl:right-[max(1rem,calc((100vw-84rem-400px-2rem)/2))]">
-                                <div className="pointer-events-auto flex h-[calc(100vh-136px)] w-[300px] flex-col 2xl:w-[400px]">
-                                    <EventAssistantPanel
-                                        isDayMode={isDayMode}
-                                        onOpenEvent={handleOpenAssistantEvent}
-                                        variant="rail"
-                                        className="h-full"
-                                    />
-                                </div>
-                            </div>
-
                             <button
                                 type="button"
                                 onClick={() => setIsDesktopAssistantOpen(true)}
+                                aria-expanded={isDesktopAssistantOpen}
                                 aria-label={t(
                                     "events.assistant.open_assistant",
                                     "打开 AI 活动助手"
                                 )}
-                                className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex xl:hidden ${
+                                className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex ${
                                     isDayMode
                                         ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
                                         : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
@@ -2246,7 +2234,7 @@ END:VCALENDAR`;
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             onClick={() => setIsDesktopAssistantOpen(false)}
-                                            className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block xl:hidden ${isDayMode ? "bg-transparent" : "bg-black/45"}`}
+                                            className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block ${isDayMode ? "bg-slate-950/5" : "bg-black/45"}`}
                                         />
                                         <motion.aside
                                             initial={{ opacity: 0, x: 28 }}
@@ -2263,7 +2251,7 @@ END:VCALENDAR`;
                                                 "events.assistant.mobile_title",
                                                 "AI 活动助手"
                                             )}
-                                            className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+96px)] z-[92] hidden h-[calc(100vh-128px)] w-[min(400px,calc(100vw-2rem))] md:block xl:hidden"
+                                            className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+88px)] z-[92] hidden h-[calc(100vh-112px)] w-[min(400px,calc(100vw-2rem))] md:block"
                                         >
                                             <EventAssistantPanel
                                                 isDayMode={isDayMode}

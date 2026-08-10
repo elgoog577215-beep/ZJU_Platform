@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Film, LockKeyhole, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -36,7 +36,6 @@ const HackathonSeasonOne = () => {
     const { schedule, loading: scheduleLoading } = useHackathonSchedule(settings);
     const isDayMode = uiMode === "day";
     const shellRef = useRef(null);
-    const floatingNavigationRef = useRef(null);
     const timelineScrollRef = useRef(null);
     const activeNodeRef = useRef(null);
     const [pageTabsVisible, setPageTabsVisible] = useState(true);
@@ -79,46 +78,36 @@ const HackathonSeasonOne = () => {
     }, [activeEventKey]);
 
     useEffect(() => {
-        setPageTabsVisible(true);
-    }, [activeEventKey, activeView]);
-
-    const handlePageSectionChange = useCallback((sectionIndex) => {
-        setPageTabsVisible(sectionIndex === 0);
-    }, []);
-
-    useLayoutEffect(() => {
         const shell = shellRef.current;
-        const navigation = floatingNavigationRef.current;
-        if (!shell || !navigation) return undefined;
+        if (!shell) return undefined;
 
+        const pageScroller = shell.querySelector("[data-registration-page], [data-showcase-page]");
+        if (!pageScroller) return undefined;
+
+        const usesWindowScroll = pageScroller.classList.contains("showcase-compact-flow");
+        const scrollTarget = usesWindowScroll ? window : pageScroller;
         let animationFrame = 0;
-        const measureScheduleClearance = () => {
+
+        const updatePageTabs = () => {
             window.cancelAnimationFrame(animationFrame);
             animationFrame = window.requestAnimationFrame(() => {
-                const navigationBottom = navigation.getBoundingClientRect().bottom;
-                shell.style.setProperty(
-                    "--hackathon-schedule-clearance",
-                    `${Math.ceil(navigationBottom + 16)}px`
-                );
+                const scrollOffset = usesWindowScroll
+                    ? Math.max(0, -shell.getBoundingClientRect().top)
+                    : pageScroller.scrollTop;
+                setPageTabsVisible(scrollOffset < 96);
             });
         };
 
-        const resizeObserver =
-            typeof ResizeObserver === "function"
-                ? new ResizeObserver(measureScheduleClearance)
-                : null;
-        resizeObserver?.observe(navigation);
-        window.addEventListener("resize", measureScheduleClearance);
-        window.visualViewport?.addEventListener?.("resize", measureScheduleClearance);
-        measureScheduleClearance();
+        updatePageTabs();
+        scrollTarget.addEventListener("scroll", updatePageTabs, { passive: true });
+        window.addEventListener("resize", updatePageTabs, { passive: true });
 
         return () => {
             window.cancelAnimationFrame(animationFrame);
-            resizeObserver?.disconnect();
-            window.removeEventListener("resize", measureScheduleClearance);
-            window.visualViewport?.removeEventListener?.("resize", measureScheduleClearance);
+            scrollTarget.removeEventListener("scroll", updatePageTabs);
+            window.removeEventListener("resize", updatePageTabs);
         };
-    }, []);
+    }, [activeEventKey, activeView]);
 
     const views = useMemo(
         () => [
@@ -203,10 +192,7 @@ const HackathonSeasonOne = () => {
                 `}
             </style>
 
-            <div
-                ref={floatingNavigationRef}
-                className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7"
-            >
+            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
                     className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[8px] border px-2 py-1.5 backdrop-blur-2xl sm:px-3 ${shellClass}`}
@@ -265,83 +251,73 @@ const HackathonSeasonOne = () => {
                     </div>
                 </div>
 
-                <div
-                    className={`flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl transition duration-200 sm:w-[min(420px,calc(100vw-2.5rem))] ${shellClass} ${
-                        pageTabsVisible
-                            ? "pointer-events-auto translate-y-0 opacity-100"
-                            : "pointer-events-none -translate-y-2 opacity-0"
-                    }`}
-                    role="tablist"
-                    aria-label={`${template.event.title}页面切换`}
-                    aria-hidden={!pageTabsVisible}
-                >
-                    <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
-                        <Trophy
-                            className={`h-3.5 w-3.5 shrink-0 ${isDayMode ? "text-emerald-500" : "text-cyan-400"}`}
-                        />
-                        <div className="min-w-0">
-                            <p className={`truncate text-xs font-black leading-none ${titleClass}`}>
-                                {t("hackathon.brand", "浙客松")}
-                            </p>
-                            <p
-                                className={`text-[10px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}
-                            >
-                                ZHEKESONG
-                            </p>
+                {pageTabsVisible ? (
+                    <div
+                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] ${shellClass}`}
+                        role="tablist"
+                        aria-label={`${template.event.title}页面切换`}
+                    >
+                        <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
+                            <Trophy
+                                className={`h-3.5 w-3.5 shrink-0 ${isDayMode ? "text-emerald-500" : "text-cyan-400"}`}
+                            />
+                            <div className="min-w-0">
+                                <p
+                                    className={`truncate text-xs font-black leading-none ${titleClass}`}
+                                >
+                                    {t("hackathon.brand", "浙客松")}
+                                </p>
+                                <p
+                                    className={`text-[10px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}
+                                >
+                                    ZHEKESONG
+                                </p>
+                            </div>
+                        </div>
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">
+                            {views.map((view) => {
+                                const Icon = view.icon;
+                                const selected = activeView === view.id;
+                                return (
+                                    <button
+                                        key={view.id}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={selected}
+                                        aria-disabled={!view.available}
+                                        disabled={!view.available}
+                                        onClick={() => switchView(view)}
+                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[6px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                                            !view.available
+                                                ? disabledTabClass
+                                                : selected
+                                                  ? activeTabClass
+                                                  : idleTabClass
+                                        }`}
+                                        title={view.available ? view.label : `${view.label}已隐藏`}
+                                    >
+                                        {view.available ? (
+                                            <Icon className="h-4 w-4" />
+                                        ) : (
+                                            <LockKeyhole className="h-4 w-4" />
+                                        )}
+                                        <span className="hidden sm:inline">{view.label}</span>
+                                        <span className="sm:hidden">{view.shortLabel}</span>
+                                        {!view.available ? (
+                                            <span className="text-[9px] font-bold">未开放</span>
+                                        ) : null}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
-                    <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">
-                        {views.map((view) => {
-                            const Icon = view.icon;
-                            const selected = activeView === view.id;
-                            return (
-                                <button
-                                    key={view.id}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={selected}
-                                    aria-disabled={!view.available}
-                                    disabled={!view.available}
-                                    tabIndex={pageTabsVisible ? 0 : -1}
-                                    onClick={() => switchView(view)}
-                                    className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[6px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
-                                        !view.available
-                                            ? disabledTabClass
-                                            : selected
-                                              ? activeTabClass
-                                              : idleTabClass
-                                    }`}
-                                    title={view.available ? view.label : `${view.label}已隐藏`}
-                                >
-                                    {view.available ? (
-                                        <Icon className="h-4 w-4" />
-                                    ) : (
-                                        <LockKeyhole className="h-4 w-4" />
-                                    )}
-                                    <span className="hidden sm:inline">{view.label}</span>
-                                    <span className="sm:hidden">{view.shortLabel}</span>
-                                    {!view.available ? (
-                                        <span className="text-[9px] font-bold">未开放</span>
-                                    ) : null}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
+                ) : null}
             </div>
 
             {activeView === "showcase" ? (
-                <HackathonShowcase
-                    key={activeEventKey}
-                    template={template}
-                    onSectionChange={handlePageSectionChange}
-                />
+                <HackathonShowcase key={activeEventKey} template={template} />
             ) : activeView === "register" ? (
-                <HackathonRegistration
-                    key={activeEventKey}
-                    template={template}
-                    onSectionChange={handlePageSectionChange}
-                />
+                <HackathonRegistration key={activeEventKey} template={template} />
             ) : (
                 <div
                     className={`flex min-h-[100svh] items-center justify-center px-6 pt-64 text-center ${

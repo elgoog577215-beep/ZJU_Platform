@@ -387,7 +387,7 @@ const MediaCategoryRail = memo(
         );
 
         return (
-            <div className="relative z-10 mx-auto w-fit max-w-full md:w-full md:max-w-[760px]">
+            <div className="relative z-10 w-full max-w-full md:max-w-[760px]">
                 <div
                     className={`relative overflow-visible border-0 p-0 md:border md:p-1 ${
                         isDayMode
@@ -773,76 +773,68 @@ const MediaLibrary = () => {
                     initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
                     animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="mb-4 md:mb-9 text-center"
+                    className="mb-3 md:mb-8"
                 >
-                    <div className="md:hidden mb-3 text-left">
-                        <h1
-                            className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+                    <div className="hidden items-start justify-between gap-6 md:flex">
+                        <div className="min-w-0 text-left">
+                            <motion.h2
+                                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className={`text-3xl font-semibold tracking-tight md:text-4xl ${
+                                    isDayMode ? "text-slate-950" : "text-white"
+                                }`}
+                            >
+                                {t("media_library.title", "影像库")}
+                            </motion.h2>
+                            <motion.p
+                                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                                className={`mt-2 max-w-xl text-sm ${
+                                    isDayMode ? "text-slate-500" : "text-gray-400"
+                                }`}
+                            >
+                                {t(
+                                    "media_library.description",
+                                    "按分类归档现场照片与视频记录。当前分类：{{category}}。",
+                                    { category: activeCategoryName }
+                                )}
+                            </motion.p>
+                        </div>
+
+                        <motion.button
+                            whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
+                            whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
+                            onClick={() => openUpload()}
+                            className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-sm font-semibold transition-all ${
+                                isDayMode
+                                    ? "day-quiet-button text-slate-700 hover:text-emerald-700"
+                                    : "border-white/10 bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                            title={t("media_library.upload_media", "上传影像")}
                         >
-                            {t("media_library.title", "影像库")}
-                        </h1>
-                        <p
-                            className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                            {t("media_library.current_category_label", "当前分类：{{category}}", {
-                                category: activeCategoryName,
-                            })}
-                        </p>
+                            <Upload size={18} />
+                            <span>{t("media_library.upload_media", "上传影像")}</span>
+                        </motion.button>
                     </div>
 
-                    <motion.button
-                        whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
-                        whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-                        onClick={() => openUpload()}
-                        className={`hidden md:mx-auto md:mb-4 md:inline-flex xl:absolute xl:right-0 xl:top-1 xl:mb-0 p-2.5 rounded-lg border transition-all ${
-                            isDayMode
-                                ? "day-quiet-button text-slate-700 hover:text-emerald-700"
-                                : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
-                        }`}
-                        title={t("media_library.upload_media", "上传影像")}
-                    >
-                        <Upload size={18} className="md:w-5 md:h-5" />
-                    </motion.button>
-
-                    <motion.h2
-                        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className={`hidden md:block text-3xl md:text-4xl font-semibold tracking-tight mb-3 ${
-                            isDayMode ? "text-slate-950" : "text-white"
-                        }`}
-                    >
-                        {t("media_library.title", "影像库")}
-                    </motion.h2>
-                    <motion.p
-                        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className={`hidden md:block max-w-xl mx-auto mb-5 md:mb-6 text-sm ${
-                            isDayMode ? "text-slate-500" : "text-gray-400"
-                        }`}
-                    >
-                        {t(
-                            "media_library.description",
-                            "按分类归档现场照片与视频记录。当前分类：{{category}}。",
-                            { category: activeCategoryName }
-                        )}
-                    </motion.p>
-
-                    <motion.div
-                        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        className="relative z-50 flex flex-col items-stretch justify-center gap-2 md:flex-row md:items-center md:gap-4"
-                    >
-                        <MediaCategoryRail
-                            categories={categories}
-                            activeCategoryId={categoryId}
-                            onChange={setCategoryId}
-                            isDayMode={isDayMode}
-                            allLabel={t("common.all", "全部")}
-                        />
-                    </motion.div>
+                    {categories.length > 0 ? (
+                        <motion.div
+                            initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+                            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                            transition={{ duration: 0.45, delay: 0.2 }}
+                            className="relative z-50 mt-3 flex min-w-0 items-center md:mt-5"
+                        >
+                            <MediaCategoryRail
+                                categories={categories}
+                                activeCategoryId={categoryId}
+                                onChange={setCategoryId}
+                                isDayMode={isDayMode}
+                                allLabel={t("common.all", "全部")}
+                            />
+                        </motion.div>
+                    ) : null}
 
                     {categoriesError ? (
                         <div
@@ -871,15 +863,6 @@ const MediaLibrary = () => {
                             className={`mt-2 text-xs md:mt-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
                             {t("media_library.category_loading", "正在加载影像分类...")}
-                        </p>
-                    ) : categories.length === 0 ? (
-                        <p
-                            className={`mt-2 text-xs md:mt-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                            {t(
-                                "media_library.no_categories",
-                                "暂无影像分类，内容会显示在全部与未分类中。"
-                            )}
                         </p>
                     ) : null}
                 </motion.div>

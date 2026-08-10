@@ -163,16 +163,27 @@ test.describe("event assistant flow", () => {
         await page.setViewportSize({ width: 1920, height: 1080 });
         await page.goto("/events");
 
-        await expect(page.getByRole("button", { name: "本周可去" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "筛选" })).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "全部", exact: true })).toBeVisible();
-        await expect(page.getByRole("button", { name: "讲座", exact: true })).toBeVisible();
-        await expect(page.getByRole("button", { name: "技能作品集" })).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "偏好" })).toHaveCount(0);
-        await expect(page.getByText("用户系统画像")).toHaveCount(0);
-        await expect(page.getByText("暂未维护活动画像")).toHaveCount(0);
-        await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
-        await page.getByRole("button", { name: "开始推荐" }).click();
+        const openDesktopAssistant = page.getByRole("button", {
+            name: "打开 AI 活动助手",
+        });
+        await expect(openDesktopAssistant).toBeVisible();
+        await openDesktopAssistant.click();
+        const desktopAssistantDialog = page.getByRole("dialog", { name: "AI 活动助手" });
+        await expect(desktopAssistantDialog).toBeVisible();
+        await expect(
+            desktopAssistantDialog.getByRole("button", { name: "本周可去" })
+        ).toBeVisible();
+        await expect(desktopAssistantDialog.getByRole("button", { name: "筛选" })).toHaveCount(0);
+        await expect(
+            desktopAssistantDialog.getByRole("button", { name: "技能作品集" })
+        ).toHaveCount(0);
+        await expect(desktopAssistantDialog.getByRole("button", { name: "偏好" })).toHaveCount(0);
+        await expect(desktopAssistantDialog.getByText("用户系统画像")).toHaveCount(0);
+        await expect(desktopAssistantDialog.getByText("暂未维护活动画像")).toHaveCount(0);
+        await desktopAssistantDialog
+            .getByPlaceholder(/比如/)
+            .fill("AI project at Zijingang with score");
+        await desktopAssistantDialog.getByRole("button", { name: "开始推荐" }).click();
         await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
         expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
         expect(assistantRequests[0].rememberPreference).toBeUndefined();
@@ -188,13 +199,15 @@ test.describe("event assistant flow", () => {
         await expect(page.getByText("缺失：面向对象")).toHaveCount(0);
         await expect(page.getByText("已参考反馈")).toHaveCount(0);
 
-        const desktopRejectButton = page.getByRole("button", {
+        const desktopRejectButton = desktopAssistantDialog.getByRole("button", {
             name: "推荐不适合我",
         });
         await desktopRejectButton.scrollIntoViewIfNeeded();
         await desktopRejectButton.click();
-        await expect(page.getByRole("button", { name: "时间不合适" })).toBeVisible();
-        await page.getByRole("button", { name: "时间不合适" }).click();
+        await expect(
+            desktopAssistantDialog.getByRole("button", { name: "时间不合适" })
+        ).toBeVisible();
+        await desktopAssistantDialog.getByRole("button", { name: "时间不合适" }).click();
         await expect.poll(() => feedbackRequests.length).toBeGreaterThanOrEqual(1);
         expect(feedbackRequests[0]).toMatchObject({
             eventId: event.id,
@@ -204,7 +217,7 @@ test.describe("event assistant flow", () => {
             source: "event_assistant_card",
         });
 
-        const desktopRecommendationButton = page.getByRole("button", {
+        const desktopRecommendationButton = desktopAssistantDialog.getByRole("button", {
             name: new RegExp(event.title),
         });
         await desktopRecommendationButton.scrollIntoViewIfNeeded();
@@ -217,14 +230,20 @@ test.describe("event assistant flow", () => {
             source: "event_assistant_card",
         });
         expect(actionRequests[0].visitorKey).toEqual(expect.any(String));
+        const desktopDetailDialog = page.getByRole("dialog", { name: event.title });
         await expect(
-            page.getByRole("dialog", { name: event.title }).getByRole("heading", {
+            desktopDetailDialog.getByRole("heading", {
                 name: event.title,
                 level: 2,
             })
         ).toBeVisible();
 
-        await page.getByTestId("event-detail-favorite-desktop").click();
+        const desktopFavoriteButton = desktopDetailDialog.getByTestId(
+            "event-detail-favorite-desktop"
+        );
+        await expect(desktopFavoriteButton).toBeVisible();
+        await page.waitForTimeout(350);
+        await desktopFavoriteButton.click();
         await expect
             .poll(() => actionRequests.some((request) => request.actionType === "favorite"))
             .toBeTruthy();
@@ -259,25 +278,35 @@ test.describe("event assistant flow", () => {
         await page.goto("/events");
 
         await page.getByRole("button", { name: /AI 活动助手/ }).click();
-        await expect(page.getByRole("button", { name: "本周可去" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "技能作品集" })).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "偏好" })).toHaveCount(0);
-        await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
-        await page.getByRole("button", { name: "开始推荐" }).click();
+        const mobileAssistantDialog = page.getByRole("dialog", { name: "社区活动" });
+        await expect(mobileAssistantDialog).toBeVisible();
+        await expect(mobileAssistantDialog.getByRole("button", { name: "本周可去" })).toBeVisible();
+        await expect(mobileAssistantDialog.getByRole("button", { name: "技能作品集" })).toHaveCount(
+            0
+        );
+        await expect(mobileAssistantDialog.getByRole("button", { name: "偏好" })).toHaveCount(0);
+        await mobileAssistantDialog
+            .getByPlaceholder(/比如/)
+            .fill("AI project at Zijingang with score");
+        await mobileAssistantDialog.getByRole("button", { name: "开始推荐" }).click();
         await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
         expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
         expect(assistantRequests[0].rememberPreference).toBeUndefined();
 
-        await expect(page.getByRole("dialog", { name: "AI 活动助手" })).toBeVisible();
-        await expect(page.getByRole("button", { name: new RegExp(event.title) })).toBeVisible();
+        await expect(mobileAssistantDialog).toBeVisible();
+        await expect(
+            mobileAssistantDialog.getByRole("button", { name: new RegExp(event.title) })
+        ).toBeVisible();
         await expect(page.getByText("优先查看「AI Agent Product Workshop」详情")).toBeVisible();
         await expect(page.getByText("硬约束 54/68")).toHaveCount(0);
         await expect(page.getByText(/取舍：当前排序最靠前/)).toHaveCount(0);
         await expect(page.getByText("匹配：收益匹配：综测/加分")).toHaveCount(0);
 
-        await page.getByRole("button", { name: "推荐不适合我" }).click();
-        await expect(page.getByRole("button", { name: "地点不合适" })).toBeVisible();
-        await page.getByRole("button", { name: "地点不合适" }).click();
+        await mobileAssistantDialog.getByRole("button", { name: "推荐不适合我" }).click();
+        await expect(
+            mobileAssistantDialog.getByRole("button", { name: "地点不合适" })
+        ).toBeVisible();
+        await mobileAssistantDialog.getByRole("button", { name: "地点不合适" }).click();
         await expect.poll(() => feedbackRequests.length).toBeGreaterThanOrEqual(1);
         expect(feedbackRequests[0]).toMatchObject({
             eventId: event.id,
@@ -287,7 +316,7 @@ test.describe("event assistant flow", () => {
             source: "event_assistant_mobile",
         });
 
-        await page.getByRole("button", { name: new RegExp(event.title) }).click();
+        await mobileAssistantDialog.getByRole("button", { name: new RegExp(event.title) }).click();
         await expect
             .poll(() => actionRequests.some((request) => request.actionType === "view_detail"))
             .toBeTruthy();

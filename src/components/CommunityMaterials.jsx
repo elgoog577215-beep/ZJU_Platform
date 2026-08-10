@@ -364,7 +364,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
                                 type="button"
                                 aria-pressed={isActive}
                                 onClick={() => handleTypeFilter(isActive ? "" : item.type)}
-                                className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[132px] md:flex-row md:items-start md:justify-start md:gap-4 md:px-5 md:py-5 md:text-left ${
+                                className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
                                     isActive
                                         ? isDayMode
                                             ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
@@ -375,16 +375,16 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
                                 }`}
                             >
                                 <span
-                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:mt-0.5 md:h-14 md:w-14 md:rounded-lg ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
+                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
                                 >
                                     <Icon size={18} className="md:h-6 md:w-6" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block truncate text-xs font-black md:text-xl">
+                                    <span className="block truncate text-xs font-black md:text-base">
                                         {item.label}
                                     </span>
                                     <span
-                                        className={`mt-2 hidden text-sm leading-6 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                        className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
                                     >
                                         {t(`community.material_type_${item.type}_desc`, "资源内容")}
                                     </span>
