@@ -28,11 +28,30 @@
 
 ## 5. Later Cleanup
 
-- [ ] 5.1 Add first-class `event_key` / campaign relation for photo/video records.
+- [x] 5.1 Add the non-destructive `competition_media_links` event relation for canonical photo/video records, including idempotent indexes and known-event backfill.
 - [ ] 5.2 Archive or migrate legacy `competition_media` records after confirming no production UI depends on them.
 
-## 6. 验证记录
+## 6. Event-Scoped Outcome System
+
+- [x] 6.1 Extend the public outcome read model and event list metadata with approved photo/video/work counts and stable event identifiers.
+- [x] 6.2 Rebuild `/media` around a URL-backed event switcher; keep categories as optional in-event facets and preserve generic unlinked media.
+- [x] 6.3 Compress the showcase to three primary chapters: 赛事总览、现场档案、作品与荣誉.
+- [x] 6.4 Render the complete approved work catalogue and work detail interaction inside the showcase, including `work=<id>` deep links.
+- [x] 6.5 Convert `/gallery` and `/hackathon/works` into compatibility entries for the selected event archive/showcase instead of parallel destinations.
+- [ ] 6.6 Add admin assignment controls for linking canonical photos/videos to an event and ordering official film, highlights, and archive media.
+
+## 7. Event-System Verification
+
+- [ ] 7.1 Verify desktop and mobile event switching, browser back/forward, deep links, empty events, and unlinked-media fallback.
+- [x] 7.2 Verify that work detail uses body portal, `100dvh`, scroll lock, and return/back close without horizontal overflow on mobile.
+- [x] 7.3 Verify Chinese and English locale completeness and JSON parsing.
+- [x] 7.4 Run focused frontend lint, backend tests for event-media association and outcome serialization, production build, strict OpenSpec validation, and local browser screenshots.
+
+## 8. 验证记录
 
 - 2026-06-29：`openspec validate rescue-hackathon-outcome-architecture --strict` 通过。
 - 2026-06-29：审计 `src/`，未发现前端继续调用 `competition-media` / `admin/competition-media`；legacy `competition_media` 当前只保留在后端 admin 兼容接口和数据层。
 - 2026-06-29：按当前阶段决策，不做破坏性迁移或删除；5.2 仍保留为后续数据迁移/归档任务。
+- 2026-08-11：完成事件级媒体关系、三章节成果页、事件制影像库和旧路由兼容；桌面 `1440×1024`、手机 `390×844` 实拍均无横向溢出。
+- 2026-08-11：中英文 locale 解析、目标 ESLint、2 个后端测试文件共 6 项测试、生产构建、`git diff --check`、严格 OpenSpec 校验全部通过；设计对照见项目根目录 `design-qa.md`。
+- 2026-08-11：当前本地仅有一个公开赛事，7.1 的多赛事前端切换和空赛事视觉态仍待有第二场真实数据后验收；后端双赛事隔离已由自动化测试覆盖。

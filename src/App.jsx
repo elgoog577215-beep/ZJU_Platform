@@ -103,15 +103,14 @@ const lazyRoute = (loader) =>
         })
     );
 
-const loadGallery = () => import("./components/Gallery");
-const loadMediaLibrary = () => import("./components/MediaLibrary");
+const loadMediaLibrary = () => import("./components/MediaEventArchive");
 const loadVideos = () => import("./components/Videos");
 const loadArticles = () => import("./components/AICommunity");
 const loadEvents = () => import("./components/Events");
 const loadAbout = () => import("./components/About");
 const loadAppDownload = () => import("./components/AppDownload");
 const loadHackathonSeasonOne = () => import("./components/HackathonSeasonOne");
-const loadHackathonWorks = () => import("./components/HackathonWorks");
+const loadHackathonWorks = () => import("./components/HackathonWorksRedirect");
 const loadFutureLearningCenter = () => import("./components/FutureLearningCenter");
 const loadAdminDashboard = () => import("./components/Admin/AdminDashboard");
 const loadAdminAccessGate = () => import("./components/Admin/AdminAccessGate");
@@ -128,7 +127,6 @@ const loadScrollToTop = () => import("./components/ScrollToTop");
 const loadPWAInstallPrompt = () => import("./components/PWAInstallPrompt");
 const loadPerformancePanel = () => import("./components/PerformancePanel");
 
-const Gallery = lazyRoute(loadGallery);
 const MediaLibrary = lazyRoute(loadMediaLibrary);
 const Videos = lazyRoute(loadVideos);
 const Articles = lazyRoute(loadArticles);
@@ -582,11 +580,7 @@ const AppContent = () => {
                             />
                             <Route
                                 path="/gallery"
-                                element={
-                                    <PageTransition>
-                                        <Gallery />
-                                    </PageTransition>
-                                }
+                                element={<Navigate to="/media" replace />}
                             />
                             <Route path="/music" element={<MusicRedirect />} />
                             <Route

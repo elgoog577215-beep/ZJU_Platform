@@ -2175,6 +2175,21 @@ async function runMigrations(db) {
             "competition_works"
         );
 
+        await db.exec(`
+      CREATE TABLE IF NOT EXISTS competition_media_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        competition_id INTEGER NOT NULL,
+        resource_type TEXT NOT NULL CHECK (resource_type IN ('photo', 'video')),
+        resource_id INTEGER NOT NULL,
+        role TEXT DEFAULT 'archive' CHECK (role IN ('official_film', 'highlight', 'archive')),
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(competition_id, resource_type, resource_id),
+        FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
+      );
+    `);
+
         await ensureColumns(
             db,
             "photos",
@@ -2210,6 +2225,10 @@ async function runMigrations(db) {
         ON competition_works(status, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_competition_works_uploader_status
         ON competition_works(uploader_id, status, deleted_at, public_consent, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_competition_media_links_event
+        ON competition_media_links(competition_id, resource_type, role, sort_order, resource_id);
+      CREATE INDEX IF NOT EXISTS idx_competition_media_links_resource
+        ON competition_media_links(resource_type, resource_id, competition_id);
       CREATE INDEX IF NOT EXISTS idx_videos_game_type_status
         ON videos(gameType, status, deleted_at, id DESC);
       CREATE INDEX IF NOT EXISTS idx_photos_game_type_status
@@ -2230,6 +2249,35 @@ async function runMigrations(db) {
                     "赛事宣传片、赛场照片和优秀作品会在审核通过后展示在这里。",
                     "2026",
                 ]
+            );
+        }
+
+        const legacyOutcome = await db.get(
+            `SELECT id FROM competitions
+             WHERE slug = 'ai-full-stack-hackathon-outcome' AND deleted_at IS NULL`
+        );
+        if (legacyOutcome?.id) {
+            await db.run(
+                `INSERT OR IGNORE INTO competition_media_links
+                    (competition_id, resource_type, resource_id, role, sort_order, created_at, updated_at)
+                 SELECT ?, 'photo', p.id,
+                        CASE WHEN COALESCE(p.featured, 0) = 1 THEN 'highlight' ELSE 'archive' END,
+                        CASE WHEN COALESCE(p.featured, 0) = 1 THEN 1 ELSE 0 END,
+                        datetime('now'), datetime('now')
+                 FROM photos p
+                 WHERE p.gameType = 'hackathon' AND p.deleted_at IS NULL`,
+                [legacyOutcome.id]
+            );
+            await db.run(
+                `INSERT OR IGNORE INTO competition_media_links
+                    (competition_id, resource_type, resource_id, role, sort_order, created_at, updated_at)
+                 SELECT ?, 'video', v.id,
+                        CASE WHEN COALESCE(v.featured, 0) = 1 THEN 'official_film' ELSE 'archive' END,
+                        CASE WHEN COALESCE(v.featured, 0) = 1 THEN 1 ELSE 0 END,
+                        datetime('now'), datetime('now')
+                 FROM videos v
+                 WHERE v.gameType = 'hackathon' AND v.deleted_at IS NULL`,
+                [legacyOutcome.id]
             );
         }
         console.log("Competition outcome tables ready");

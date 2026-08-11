@@ -725,6 +725,7 @@ router.get("/fs/content", authenticateToken, isAdmin, fsController.getFileConten
 router.post("/fs/content", authenticateToken, isAdmin, fsController.saveFileContent);
 
 // Competition Outcome Routes
+router.get("/competitions", optionalAuth, competitionController.listPublicCompetitions);
 router.get("/competitions/current/outcome", optionalAuth, competitionController.getCurrentOutcome);
 router.get(
     "/competitions/:competitionSlug/outcome",

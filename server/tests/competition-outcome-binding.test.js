@@ -126,10 +126,28 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
             user: { id: userResult.lastID, role: "admin" },
         });
         assert.equal(submitResponse.statusCode, 201);
-        const submitted = await db.get("SELECT * FROM competition_media WHERE id = ?", [
+        assert.equal(submitResponse.body.source_table, "photos");
+        const submitted = await db.get("SELECT * FROM photos WHERE id = ?", [
             submitResponse.body.id,
         ]);
-        assert.equal(submitted.competition_id, secondResult.lastID);
+        assert.equal(submitted.title, "第二场新投稿");
+        const submittedLink = await db.get(
+            `SELECT * FROM competition_media_links
+             WHERE resource_type = 'photo' AND resource_id = ?`,
+            [submitResponse.body.id]
+        );
+        assert.equal(submittedLink.competition_id, secondResult.lastID);
+
+        const publicArchiveResponse = await runController(
+            competitionController.listPublicCompetitions,
+            { params: {}, query: {}, body: {} }
+        );
+        assert.equal(publicArchiveResponse.statusCode, 200);
+        const secondArchive = publicArchiveResponse.body.find(
+            (item) => item.slug === "event-two-outcome"
+        );
+        assert.equal(secondArchive.stage_photo_count, 2);
+        assert.equal(secondArchive.works_count, 1);
 
         await db.run(
             `INSERT INTO competitions (slug, title, status)

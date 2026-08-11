@@ -164,6 +164,19 @@ async function ensureCoreSchema(db) {
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS competition_media_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      competition_id INTEGER NOT NULL,
+      resource_type TEXT NOT NULL CHECK (resource_type IN ('photo', 'video')),
+      resource_id INTEGER NOT NULL,
+      role TEXT DEFAULT 'archive' CHECK (role IN ('official_film', 'highlight', 'archive')),
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(competition_id, resource_type, resource_id),
+      FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS competition_works (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       competition_id INTEGER NOT NULL,
@@ -194,6 +207,11 @@ async function ensureCoreSchema(db) {
       FOREIGN KEY (uploader_id) REFERENCES users(id) ON DELETE SET NULL,
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_competition_media_links_event
+      ON competition_media_links(competition_id, resource_type, role, sort_order, resource_id);
+    CREATE INDEX IF NOT EXISTS idx_competition_media_links_resource
+      ON competition_media_links(resource_type, resource_id, competition_id);
 
     CREATE TABLE IF NOT EXISTS user_identity_claims (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

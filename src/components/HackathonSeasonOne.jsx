@@ -10,7 +10,7 @@ import {
 } from "../data/hackathonTemplate";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
 import HackathonRegistration from "./HackathonRegistration";
-import HackathonShowcase from "./HackathonShowcase";
+import HackathonShowcase from "./HackathonOutcomeShowcase";
 
 const viewFromLocation = (location) => {
     const params = new URLSearchParams(location.search);
@@ -41,10 +41,21 @@ const HackathonSeasonOne = () => {
     const [pageTabsVisible, setPageTabsVisible] = useState(true);
     const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const requestedEventKey = params.get("event");
+    const requestedCompetitionSlug = params.get("competition");
     const requestedView = viewFromLocation(location);
     const template = useMemo(
-        () => getHackathonScheduleEvent(schedule, requestedEventKey),
-        [requestedEventKey, schedule]
+        () => {
+            const competitionEvent = requestedCompetitionSlug
+                ? schedule.events.find(
+                      (item) => item.results.competitionSlug === requestedCompetitionSlug
+                  )
+                : null;
+            return getHackathonScheduleEvent(
+                schedule,
+                requestedEventKey || competitionEvent?.event.key
+            );
+        },
+        [requestedCompetitionSlug, requestedEventKey, schedule]
     );
     const activeEventKey = template.event.key;
     const activeView = getFirstAvailableHackathonView(template, requestedView);
@@ -198,21 +209,20 @@ const HackathonSeasonOne = () => {
             <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
-                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[8px] border px-2 py-1.5 backdrop-blur-2xl sm:px-3 lg:min-w-0 lg:flex-1 ${shellClass}`}
+                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-none border p-0 backdrop-blur-2xl lg:min-w-0 lg:flex-1 ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
                     <div
                         ref={timelineScrollRef}
                         className="hackathon-timeline-scroll overflow-x-auto"
                     >
-                        <div className="relative flex min-w-full w-max items-start">
-                            <div
-                                className={`pointer-events-none absolute left-5 right-5 top-[7px] h-px ${
-                                    isDayMode ? "bg-emerald-200" : "bg-cyan-300/30"
-                                }`}
-                            />
+                        <div className="flex min-w-full w-max items-stretch">
                             {schedule.events.map((item) => {
                                 const selected = item.event.key === activeEventKey;
+                                const eventEnd = item.event.endAt || item.event.startAt;
+                                const isArchived = eventEnd
+                                    ? Date.parse(eventEnd) < Date.now()
+                                    : !item.event.registrationOpen;
                                 return (
                                     <button
                                         key={item.event.key}
@@ -220,32 +230,26 @@ const HackathonSeasonOne = () => {
                                         type="button"
                                         onClick={() => switchEvent(item)}
                                         aria-current={selected ? "step" : undefined}
-                                        className={`group relative flex min-w-[132px] flex-1 flex-col items-center px-1 pb-0.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 sm:min-w-[156px] ${
+                                        className={`group grid min-h-[58px] min-w-[280px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400/60 ${
                                             selected
                                                 ? isDayMode
-                                                    ? "text-emerald-800"
-                                                    : "text-white"
+                                                    ? "border-cyan-600 bg-cyan-50 text-cyan-950 shadow-[inset_0_-2px_#0891b2]"
+                                                    : "border-cyan-300/30 bg-cyan-300/[0.06] text-white shadow-[inset_0_-2px_#67e8f9]"
                                                 : isDayMode
-                                                  ? "text-slate-500 hover:text-emerald-700"
-                                                  : "text-cyan-100/55 hover:text-white"
+                                                  ? "border-slate-200 text-slate-500 hover:bg-cyan-50 hover:text-cyan-900"
+                                                  : "border-white/10 text-cyan-100/48 hover:bg-white/[0.04] hover:text-white"
                                         }`}
                                     >
                                         <span
-                                            className={`relative z-10 h-3.5 w-3.5 rounded-full border-[3px] transition duration-200 ${
-                                                selected
-                                                    ? isDayMode
-                                                        ? "border-emerald-500 bg-white shadow-[0_0_0_4px_rgba(16,185,129,0.16)]"
-                                                        : "border-cyan-300 bg-[#061014] shadow-[0_0_0_4px_rgba(103,232,249,0.16)]"
-                                                    : isDayMode
-                                                      ? "border-emerald-200 bg-white group-hover:border-emerald-400"
-                                                      : "border-cyan-300/35 bg-[#061014] group-hover:border-cyan-300/70"
-                                            }`}
-                                        />
-                                        <span className="mt-1 flex max-w-full items-baseline gap-1 truncate px-1 text-[10px] font-bold leading-none sm:text-[11px]">
-                                            <span className="shrink-0 font-black tabular-nums opacity-65">
-                                                {formatTimelineDate(item.event.startAt)}
-                                            </span>
-                                            <span className="truncate">{item.event.title}</span>
+                                            className={`font-mono text-lg font-black tabular-nums ${selected ? (isDayMode ? "text-cyan-700" : "text-cyan-300") : "opacity-60"}`}
+                                        >
+                                            {formatTimelineDate(item.event.startAt)}
+                                        </span>
+                                        <span className="truncate text-sm font-black">{item.event.title}</span>
+                                        <span className="border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] opacity-60">
+                                            {isArchived
+                                                ? t("hackathon.outcome_archive.archived")
+                                                : t("hackathon.outcome_archive.open_for_registration")}
                                         </span>
                                     </button>
                                 );
@@ -256,7 +260,7 @@ const HackathonSeasonOne = () => {
 
                 {pageTabsVisible ? (
                     <div
-                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
+                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-none border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
                         role="tablist"
                         aria-label={`${template.event.title}页面切换`}
                     >
@@ -290,7 +294,7 @@ const HackathonSeasonOne = () => {
                                         aria-disabled={!view.available}
                                         disabled={!view.available}
                                         onClick={() => switchView(view)}
-                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[6px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-none px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
                                             !view.available
                                                 ? disabledTabClass
                                                 : selected

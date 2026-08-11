@@ -93,3 +93,89 @@ The system SHALL let admins review hackathon work/story submissions from the hac
 - GIVEN submitted works exist
 - WHEN an admin opens the hackathon manager
 - THEN they can see work counts, filter by review status, search works, and approve or reject work/story submissions.
+
+### Requirement: Media Library Is Organized By Event Archive
+
+The system SHALL organize event photos and videos by a first-class event association before applying optional editorial categories.
+
+#### Scenario: Visitor switches between event archives
+
+- GIVEN multiple published competitions have approved media
+- WHEN a visitor selects a different event in `/media`
+- THEN the page shows only that event's approved photos and videos
+- AND the selected event is represented in the URL
+- AND browser back and forward restore the previous event selection.
+
+#### Scenario: Visitor opens all activities
+
+- GIVEN multiple event archives exist
+- WHEN a visitor chooses the all-activities view
+- THEN the page shows event archive summaries with date and media counts
+- AND it does not flatten all event photos into one undifferentiated stream.
+
+#### Scenario: Canonical media is not linked to an event
+
+- GIVEN an approved photo or video has no event association
+- WHEN a visitor opens the generic media archive
+- THEN the record remains discoverable through the existing generic archive
+- AND it is not silently assigned to an unrelated event from its category or filename.
+
+### Requirement: Showcase Uses Three Primary Outcome Chapters
+
+The system SHALL present an event outcome through 赛事总览、现场档案、作品与荣誉 as its only primary showcase chapters.
+
+#### Scenario: Visitor scans one event outcome
+
+- GIVEN an event has official media, approved photos, approved works and support partners
+- WHEN a visitor opens the event showcase
+- THEN those outcomes are presented within the three primary chapters
+- AND works are not repeated in a separate full-screen index chapter
+- AND partner credits do not occupy a separate primary chapter.
+
+### Requirement: Complete Work Exhibition Stays In Event Context
+
+The system SHALL expose the complete approved work catalogue and each work story from the event showcase.
+
+#### Scenario: Visitor opens a work detail
+
+- GIVEN approved works exist for the selected event
+- WHEN a visitor selects a work in the showcase
+- THEN its award, author, summary, experience and public project link appear without navigating to a competing catalogue page
+- AND the URL contains a stable work identifier
+- AND closing or navigating back returns to the same showcase position.
+
+#### Scenario: Visitor opens a legacy work URL
+
+- GIVEN a visitor opens `/hackathon/works?competition=<slug>`
+- WHEN the route resolves
+- THEN the system enters the corresponding event showcase work exhibition
+- AND approved works remain scoped to that competition.
+
+### Requirement: Event Media Association Does Not Duplicate Canonical Records
+
+The system SHALL relate canonical photos and videos to competitions without copying the media record into a second content store.
+
+#### Scenario: Admin links a photo to an event
+
+- GIVEN an approved canonical photo exists
+- WHEN an admin assigns it to a competition archive
+- THEN the system stores an event-media association with role and ordering metadata
+- AND the original photo remains the canonical resource.
+
+#### Scenario: Event archive is serialized publicly
+
+- GIVEN approved linked media exists
+- WHEN a visitor requests the competition outcome
+- THEN only public-safe canonical media fields and event ordering metadata are returned
+- AND review notes, upload metadata and private user fields are excluded.
+
+### Requirement: Mobile Event Outcome Navigation Is Continuous
+
+The system SHALL preserve native vertical scrolling and truthful browser navigation on mobile outcome surfaces.
+
+#### Scenario: Visitor scrolls the event showcase on a phone
+
+- GIVEN a viewport at or below the mobile breakpoint
+- WHEN the visitor scrolls through the three chapters and opens or closes a work detail
+- THEN the page has no horizontal overflow or trapped nested vertical scroll
+- AND the mobile bottom navigation does not cover the final interactive content.

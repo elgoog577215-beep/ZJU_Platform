@@ -115,7 +115,10 @@ const serializePhotoOutcome = (row) => ({
     cover_url: row.url,
     tags: row.tags,
     status: row.status,
-    sort_order: 0,
+    sort_order: toInteger(row.link_sort_order ?? row.sort_order, 0),
+    role: row.link_role || "archive",
+    category_id: row.category_id || null,
+    category_name: row.category_name || null,
     uploader_name: row.uploader_name,
     created_at: row.created_at,
 });
@@ -132,7 +135,10 @@ const serializeVideoOutcome = (row) => ({
     cover_url: row.thumbnail,
     tags: row.tags,
     status: row.status,
-    sort_order: 0,
+    sort_order: toInteger(row.link_sort_order ?? row.sort_order, 0),
+    role: row.link_role || "archive",
+    category_id: row.category_id || null,
+    category_name: row.category_name || null,
     uploader_name: row.uploader_name,
     created_at: row.created_at,
 });
@@ -326,23 +332,66 @@ const getCurrentOutcome = async (req, res, next) => {
 
         const stagePhotoLimit = clampInteger(
             req.query.stagePhotoLimit || req.query.mediaLimit,
-            18,
+            60,
             1,
-            18
+            120
         );
-        const promoVideoLimit = clampInteger(req.query.promoVideoLimit, 8, 1, 8);
-        const workLimit = clampInteger(req.query.workLimit, 20, 1, 60);
+        const promoVideoLimit = clampInteger(req.query.promoVideoLimit, 12, 1, 24);
+        const workLimit = clampInteger(req.query.workLimit, 60, 1, 100);
 
         const useLegacyMedia = competition.slug === LEGACY_OUTCOME_SLUG;
         const [
+            linkedPhotoRows,
+            linkedVideoRows,
             competitionPhotoRows,
             competitionVideoRows,
             legacyPhotoRows,
             legacyVideoRows,
             workRows,
+            linkedStatsRow,
             mediaStatsRow,
             legacyStatsRow,
         ] = await Promise.all([
+            db.all(
+                `SELECT p.*, l.role AS link_role, l.sort_order AS link_sort_order,
+                        COALESCE(u.nickname, u.username) AS uploader_name,
+                        mc.name AS category_name
+                 FROM competition_media_links l
+                 JOIN photos p ON p.id = l.resource_id
+                 LEFT JOIN users u ON u.id = p.uploader_id
+                 LEFT JOIN media_categories mc ON mc.id = p.category_id
+                 WHERE l.competition_id = ?
+                   AND l.resource_type = 'photo'
+                   AND p.status = 'approved'
+                   AND p.deleted_at IS NULL
+                 ORDER BY
+                   CASE l.role WHEN 'highlight' THEN 0 ELSE 1 END,
+                   CASE WHEN COALESCE(l.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                   l.sort_order ASC,
+                   p.id DESC
+                 LIMIT ?`,
+                [competition.id, stagePhotoLimit]
+            ),
+            db.all(
+                `SELECT v.*, l.role AS link_role, l.sort_order AS link_sort_order,
+                        COALESCE(u.nickname, u.username) AS uploader_name,
+                        mc.name AS category_name
+                 FROM competition_media_links l
+                 JOIN videos v ON v.id = l.resource_id
+                 LEFT JOIN users u ON u.id = v.uploader_id
+                 LEFT JOIN media_categories mc ON mc.id = v.category_id
+                 WHERE l.competition_id = ?
+                   AND l.resource_type = 'video'
+                   AND v.status = 'approved'
+                   AND v.deleted_at IS NULL
+                 ORDER BY
+                   CASE l.role WHEN 'official_film' THEN 0 WHEN 'highlight' THEN 1 ELSE 2 END,
+                   CASE WHEN COALESCE(l.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                   l.sort_order ASC,
+                   v.id DESC
+                 LIMIT ?`,
+                [competition.id, promoVideoLimit]
+            ),
             db.all(
                 `SELECT cm.*, COALESCE(u.nickname, u.username) AS uploader_name
                  FROM competition_media cm
@@ -381,6 +430,10 @@ const getCurrentOutcome = async (req, res, next) => {
                        WHERE p.status = 'approved'
                          AND p.deleted_at IS NULL
                          AND p.gameType = 'hackathon'
+                         AND NOT EXISTS (
+                           SELECT 1 FROM competition_media_links l
+                           WHERE l.resource_type = 'photo' AND l.resource_id = p.id
+                         )
                        ORDER BY p.featured DESC, p.id DESC
                        LIMIT ?`,
                       [stagePhotoLimit]
@@ -394,6 +447,10 @@ const getCurrentOutcome = async (req, res, next) => {
                        WHERE v.status = 'approved'
                          AND v.deleted_at IS NULL
                          AND v.gameType = 'hackathon'
+                         AND NOT EXISTS (
+                           SELECT 1 FROM competition_media_links l
+                           WHERE l.resource_type = 'video' AND l.resource_id = v.id
+                         )
                        ORDER BY v.featured DESC, v.id DESC
                        LIMIT ?`,
                       [promoVideoLimit]
@@ -428,6 +485,16 @@ const getCurrentOutcome = async (req, res, next) => {
             ),
             db.get(
                 `SELECT
+                   SUM(CASE WHEN l.resource_type = 'photo' AND p.status = 'approved' AND p.deleted_at IS NULL THEN 1 ELSE 0 END) AS stage_photos,
+                   SUM(CASE WHEN l.resource_type = 'video' AND v.status = 'approved' AND v.deleted_at IS NULL THEN 1 ELSE 0 END) AS promo_videos
+                 FROM competition_media_links l
+                 LEFT JOIN photos p ON l.resource_type = 'photo' AND p.id = l.resource_id
+                 LEFT JOIN videos v ON l.resource_type = 'video' AND v.id = l.resource_id
+                 WHERE l.competition_id = ?`,
+                [competition.id]
+            ),
+            db.get(
+                `SELECT
                    SUM(CASE WHEN type = 'stage_photo' AND status = 'approved' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS stage_photos,
                    SUM(CASE WHEN type = 'promo_video' AND status = 'approved' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS promo_videos
                  FROM competition_media
@@ -438,20 +505,32 @@ const getCurrentOutcome = async (req, res, next) => {
                 ? db.get(
                       `SELECT
                          (SELECT COUNT(*) FROM photos p
-                          WHERE p.status = 'approved' AND p.deleted_at IS NULL AND p.gameType = 'hackathon') AS stage_photos,
+                          WHERE p.status = 'approved' AND p.deleted_at IS NULL AND p.gameType = 'hackathon'
+                            AND NOT EXISTS (
+                              SELECT 1 FROM competition_media_links l
+                              WHERE l.resource_type = 'photo' AND l.resource_id = p.id
+                            )) AS stage_photos,
                          (SELECT COUNT(*) FROM videos v
-                          WHERE v.status = 'approved' AND v.deleted_at IS NULL AND v.gameType = 'hackathon') AS promo_videos`
+                          WHERE v.status = 'approved' AND v.deleted_at IS NULL AND v.gameType = 'hackathon'
+                            AND NOT EXISTS (
+                              SELECT 1 FROM competition_media_links l
+                              WHERE l.resource_type = 'video' AND l.resource_id = v.id
+                            )) AS promo_videos`
                   )
                 : Promise.resolve({ stage_photos: 0, promo_videos: 0 }),
         ]);
 
+        const useLegacyPhotoFallback = linkedPhotoRows.length === 0;
+        const useLegacyVideoFallback = linkedVideoRows.length === 0;
         const stagePhotos = dedupeOutcomeMedia([
+            ...linkedPhotoRows.map(serializePhotoOutcome),
             ...competitionPhotoRows.map(serializeCompetitionMediaOutcome),
-            ...legacyPhotoRows.map(serializePhotoOutcome),
+            ...(useLegacyPhotoFallback ? legacyPhotoRows.map(serializePhotoOutcome) : []),
         ]).slice(0, stagePhotoLimit);
         const promoVideos = dedupeOutcomeMedia([
+            ...linkedVideoRows.map(serializeVideoOutcome),
             ...competitionVideoRows.map(serializeCompetitionMediaOutcome),
-            ...legacyVideoRows.map(serializeVideoOutcome),
+            ...(useLegacyVideoFallback ? legacyVideoRows.map(serializeVideoOutcome) : []),
         ]).slice(0, promoVideoLimit);
         const works = workRows.map(serializePublicWork);
         const worksCountRow = await db.get(
@@ -471,11 +550,13 @@ const getCurrentOutcome = async (req, res, next) => {
             works,
             stats: {
                 promo_videos:
+                    toInteger(linkedStatsRow?.promo_videos, 0) +
                     toInteger(mediaStatsRow?.promo_videos, 0) +
-                    toInteger(legacyStatsRow?.promo_videos, 0),
+                    (useLegacyVideoFallback ? toInteger(legacyStatsRow?.promo_videos, 0) : 0),
                 stage_photos:
+                    toInteger(linkedStatsRow?.stage_photos, 0) +
                     toInteger(mediaStatsRow?.stage_photos, 0) +
-                    toInteger(legacyStatsRow?.stage_photos, 0),
+                    (useLegacyPhotoFallback ? toInteger(legacyStatsRow?.stage_photos, 0) : 0),
                 works: toInteger(worksCountRow?.count, works.length),
             },
         });
@@ -513,31 +594,64 @@ const submitCurrentMedia = async (req, res, next) => {
                 : canBypassReview(req.user || {})
                   ? "approved"
                   : "pending";
-        const reviewedBy = status === "approved" || status === "rejected" ? req.user.id : null;
-        const reviewedAt = reviewedBy ? new Date().toISOString() : null;
+        const resourceType = type === "stage_photo" ? "photo" : "video";
+        const role =
+            resourceType === "video"
+                ? "official_film"
+                : req.body.role === "highlight"
+                  ? "highlight"
+                  : "archive";
+        const tags = ["hackathon", competition.slug].join(",");
 
-        const result = await db.run(
-            `INSERT INTO competition_media (
-        competition_id, type, title, description, url, cover_url, sort_order,
-        status, uploader_id, reviewed_by, reviewed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-            [
-                competition.id,
+        try {
+            await db.exec("BEGIN TRANSACTION");
+            const result =
+                resourceType === "photo"
+                    ? await db.run(
+                          `INSERT INTO photos (
+                             url, title, tags, gameType, gameDescription, featured,
+                             status, uploader_id, created_at
+                           ) VALUES (?, ?, ?, 'hackathon', ?, 0, ?, ?, datetime('now'))`,
+                          [url, title, tags, description, status, req.user.id]
+                      )
+                    : await db.run(
+                          `INSERT INTO videos (
+                             title, tags, thumbnail, video, gameType, gameDescription, featured,
+                             status, uploader_id, created_at
+                           ) VALUES (?, ?, ?, ?, 'hackathon', ?, 0, ?, ?, datetime('now'))`,
+                          [title, tags, coverUrl, url, description, status, req.user.id]
+                      );
+
+            const linkResult = await db.run(
+                `INSERT INTO competition_media_links (
+                   competition_id, resource_type, resource_id, role, sort_order, created_at, updated_at
+                 ) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+                [
+                    competition.id,
+                    resourceType,
+                    result.lastID,
+                    role,
+                    toInteger(req.body.sort_order, 0),
+                ]
+            );
+            await db.exec("COMMIT");
+
+            return res.status(201).json({
+                id: result.lastID,
+                link_id: linkResult.lastID,
+                competition_id: competition.id,
+                source_table: resourceType === "photo" ? "photos" : "videos",
                 type,
                 title,
-                description,
-                url,
-                coverUrl,
-                toInteger(req.body.sort_order, 0),
                 status,
-                req.user.id,
-                reviewedBy,
-                reviewedAt,
-            ]
-        );
-
-        const row = await db.get("SELECT * FROM competition_media WHERE id = ?", [result.lastID]);
-        return res.status(201).json(serializeMedia(row));
+                role,
+                url,
+                cover_url: resourceType === "video" ? coverUrl : url,
+            });
+        } catch (error) {
+            await db.exec("ROLLBACK");
+            throw error;
+        }
     } catch (error) {
         return next(error);
     }
@@ -612,6 +726,84 @@ const submitCurrentWork = async (req, res, next) => {
         const row = await db.get("SELECT * FROM competition_works WHERE id = ?", [result.lastID]);
         await createCandidateLinksForWork(db, row);
         return res.status(201).json(serializeWork(row));
+    } catch (error) {
+        return next(error);
+    }
+};
+
+const listPublicCompetitions = async (_req, res, next) => {
+    try {
+        const db = await getDb();
+        const rows = await db.all(`
+          SELECT
+            c.id,
+            c.slug,
+            c.title,
+            c.subtitle,
+            c.description,
+            c.event_date,
+            c.cover_image,
+            c.is_featured,
+            c.status,
+            c.created_at,
+            c.updated_at,
+            (SELECT COUNT(*)
+               FROM competition_media_links l
+               JOIN photos p ON l.resource_type = 'photo' AND p.id = l.resource_id
+              WHERE l.competition_id = c.id
+                AND p.status = 'approved' AND p.deleted_at IS NULL)
+              +
+            (SELECT COUNT(*) FROM competition_media cm
+              WHERE cm.competition_id = c.id AND cm.type = 'stage_photo'
+                AND cm.status = 'approved' AND cm.deleted_at IS NULL) AS stage_photo_count,
+            (SELECT COUNT(*)
+               FROM competition_media_links l
+               JOIN videos v ON l.resource_type = 'video' AND v.id = l.resource_id
+              WHERE l.competition_id = c.id
+                AND v.status = 'approved' AND v.deleted_at IS NULL)
+              +
+            (SELECT COUNT(*) FROM competition_media cm
+              WHERE cm.competition_id = c.id AND cm.type = 'promo_video'
+                AND cm.status = 'approved' AND cm.deleted_at IS NULL) AS promo_video_count,
+            (SELECT COUNT(*) FROM competition_works cw
+              WHERE cw.competition_id = c.id AND cw.status = 'approved'
+                AND COALESCE(cw.public_consent, 1) = 1 AND cw.deleted_at IS NULL) AS works_count,
+            COALESCE(
+              c.cover_image,
+              (SELECT p.url
+                 FROM competition_media_links l
+                 JOIN photos p ON l.resource_type = 'photo' AND p.id = l.resource_id
+                WHERE l.competition_id = c.id AND p.status = 'approved' AND p.deleted_at IS NULL
+                ORDER BY CASE l.role WHEN 'highlight' THEN 0 ELSE 1 END,
+                         CASE WHEN COALESCE(l.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                         l.sort_order ASC, p.id DESC
+                LIMIT 1),
+              (SELECT COALESCE(cm.cover_url, cm.url) FROM competition_media cm
+                WHERE cm.competition_id = c.id AND cm.status = 'approved' AND cm.deleted_at IS NULL
+                ORDER BY CASE cm.type WHEN 'stage_photo' THEN 0 ELSE 1 END,
+                         CASE WHEN COALESCE(cm.sort_order, 0) > 0 THEN 0 ELSE 1 END,
+                         cm.sort_order ASC, cm.id DESC
+                LIMIT 1)
+            ) AS archive_cover
+          FROM competitions c
+          WHERE c.status = 'active' AND c.deleted_at IS NULL
+          ORDER BY c.is_featured DESC,
+                   COALESCE(c.event_date, c.updated_at, c.created_at) DESC,
+                   c.id DESC
+        `);
+
+        res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+        return res.json(
+            rows.map((row) => ({
+                ...row,
+                is_featured: Boolean(row.is_featured),
+                stage_photo_count: toInteger(row.stage_photo_count, 0),
+                promo_video_count: toInteger(row.promo_video_count, 0),
+                works_count: toInteger(row.works_count, 0),
+                media_count:
+                    toInteger(row.stage_photo_count, 0) + toInteger(row.promo_video_count, 0),
+            }))
+        );
     } catch (error) {
         return next(error);
     }
@@ -1378,6 +1570,7 @@ const listPendingCompetitionItems = async (db) => {
 
 module.exports = {
     getCurrentOutcome,
+    listPublicCompetitions,
     submitCurrentMedia,
     submitCurrentWork,
     listCompetitions,
