@@ -317,23 +317,25 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             </div>
                         </div>
                         <div className="outcome-film">
-                            <button
-                                type="button"
-                                onClick={() => officialVideo && setVideoOpen(true)}
-                                disabled={!officialVideo}
-                                aria-label={t("hackathon.outcome_archive.play_film")}
-                            >
-                                <SmartImage
-                                    src={normalizeExternalImageUrl(heroCover, 1400)}
-                                    alt={t("hackathon.outcome_archive.film_alt")}
-                                    type="video"
-                                    priority
-                                    className="h-full w-full"
-                                    imageClassName="h-full w-full object-cover"
-                                />
-                                {officialVideo ? <span className="outcome-film-play"><Play className="h-6 w-6" fill="currentColor" /></span> : null}
-                            </button>
-                            <div><span>{t("hackathon.outcome_archive.official_film")}</span><strong>{officialVideo?.title || t("hackathon.outcome_archive.film_pending")}</strong></div>
+                            <div className="outcome-film-frame">
+                                <button
+                                    type="button"
+                                    onClick={() => officialVideo && setVideoOpen(true)}
+                                    disabled={!officialVideo}
+                                    aria-label={t("hackathon.outcome_archive.play_film")}
+                                >
+                                    <SmartImage
+                                        src={normalizeExternalImageUrl(heroCover, 1400)}
+                                        alt={t("hackathon.outcome_archive.film_alt")}
+                                        type="video"
+                                        priority
+                                        className="h-full w-full"
+                                        imageClassName="h-full w-full object-cover"
+                                    />
+                                    {officialVideo ? <span className="outcome-film-play"><Play className="h-6 w-6" fill="currentColor" /></span> : null}
+                                </button>
+                            </div>
+                            <div className="outcome-film-caption"><span>{t("hackathon.outcome_archive.official_film")}</span><strong>{officialVideo?.title || t("hackathon.outcome_archive.film_pending")}</strong></div>
                         </div>
                     </div>
                 </section>
@@ -457,13 +459,17 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-primary-actions button:hover,.outcome-section-topline>a:hover,.outcome-section-topline>button:hover,.outcome-work-detail-actions a:hover{transform:translateY(-2px);border-color:var(--x-lime);background:rgba(185,255,24,.12)}
                 .outcome-primary-actions button:first-child:hover{background:var(--x-lime-soft)}
                 .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 4.25vw);margin-right:calc((100vw - min(1480px,calc(100vw - 4rem)))/-2);margin-left:-4.25vw;padding-bottom:1.5rem}
-                .outcome-film button{position:relative;display:block;width:100%;aspect-ratio:16/9.35;overflow:hidden;border:1px solid rgba(185,255,24,.72);border-radius:72px 0 0 72px;background:var(--x-surface);padding:0;box-shadow:0 26px 70px rgba(0,0,0,.45),-1px 1px 0 rgba(185,255,24,.35)}
+                .outcome-film-frame{width:100%;aspect-ratio:16/9.35;overflow:hidden;padding:1px;background:rgba(185,255,24,.72);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);filter:drop-shadow(0 26px 34px rgba(0,0,0,.5))}
+                .outcome-film button{position:relative;display:block;width:100%;height:100%;overflow:hidden;border:0;background:var(--x-surface);padding:0;clip-path:inherit}
+                @supports (clip-path:shape(from 0 0,line to 100% 0,line to 100% 100%,close)){
+                    .outcome-film-frame,.outcome-film button{clip-path:shape(from 19% 0,line to 100% 0,line to 100% 100%,line to 2% 100%,curve to 0 94% with 0 98%,line to 15% 10%,curve to 19% 0 with 16.5% 1%,close)}
+                }
                 .outcome-film button img{transition:transform .7s cubic-bezier(.2,.65,.2,1)}
                 .outcome-film button:hover img{transform:scale(1.018)}
                 .outcome-film-play{position:absolute;right:1.1rem;bottom:1.1rem;display:grid;width:56px;height:56px;place-items:center;border:1px solid rgba(255,255,255,.72);border-radius:50%;background:rgba(2,8,6,.62);color:#fff;backdrop-filter:blur(10px)}
-                .outcome-film>div{display:flex;justify-content:space-between;gap:1rem;padding:.85rem .25rem 0;font-size:.69rem}
-                .outcome-film>div span{color:var(--x-lime);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-                .outcome-film>div strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--x-muted)}
+                .outcome-film-caption{display:flex;justify-content:space-between;gap:1rem;padding:.85rem .25rem 0;font-size:.69rem}
+                .outcome-film-caption span{color:var(--x-lime);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+                .outcome-film-caption strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--x-muted)}
                 .outcome-section-heading{display:flex;align-items:flex-end;gap:1.05rem;padding:1rem 0 1.5rem}
                 .outcome-section-heading>span{color:var(--x-lime);font:300 clamp(3.8rem,7vw,6.8rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-section-heading p{margin:0 0 .38rem;color:var(--x-lime);font-size:.64rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
@@ -559,7 +565,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-stat-grid>div{border-bottom:1px solid rgba(247,248,242,.1)}
                     .outcome-primary-actions{display:grid;grid-template-columns:1fr 1fr}.outcome-primary-actions button{min-width:0;min-height:54px;font-size:.83rem}
                     .outcome-film{padding-bottom:0}
-                    .outcome-film button{aspect-ratio:4/3;border-radius:28px 10px 28px 10px}
+                    .outcome-film-frame{aspect-ratio:4/3;border-radius:28px 10px 28px 10px;clip-path:none;filter:drop-shadow(0 20px 30px rgba(0,0,0,.38))}
+                    .outcome-film button{border-radius:27px 9px 27px 9px;clip-path:none}
                     .outcome-film-play{width:50px;height:50px}
                     .outcome-section-heading{gap:.65rem;padding-bottom:1.2rem}.outcome-section-heading>span{font-size:3.45rem}
                     .outcome-section-topline{align-items:flex-end}.outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1rem;min-height:42px;padding:.55rem .72rem}.outcome-archive .outcome-section-topline{display:flex}.outcome-archive .outcome-section-heading{grid-column:auto}.outcome-archive .outcome-section-topline>a{grid-column:auto;justify-self:auto}

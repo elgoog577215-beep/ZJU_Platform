@@ -21,9 +21,15 @@
 
 - 首轮实现虽然使用了相同背景与色彩，但全站导航、宽赛事条和额外 `01 OVERVIEW` 把首屏切成多层，标题、照片和主操作也明显小于效果图，构图忠实度未达标。
 - 本轮删除首屏重复章节标签，恢复“标题 → 日期 → 赛事总览 → 描述 → 数据”的效果图顺序，并把标题、数据和按钮放大到同一视觉尺度。
-- 现场照片向左扩展并贴到视口右边缘，使用大左侧圆角与 X-field 形成一个整体；现场档案章节标题重新回到首屏底部中央。
+- 现场照片向左扩展并贴到视口右边缘；桌面主照片恢复效果图中上窄下宽、向右冲出的“车头”异形轮廓，与 X-field 形成一个整体，现场档案章节标题重新回到首屏底部中央。
 - 桌面导航切换为浙客松专属锁定标识和六项赛事导航，赛事切换条收窄为局部控件，不再横贯页面。章节导航现在保留 `event` 与 hash，点击可真实滚动到对应章节。
 - 修复英文模式下“比赛结果”使用错误 locale key 的问题；英语导航和按钮在 `1440px` 视口无溢出。
+
+## 三次校正：主照片方向性
+
+- 用户明确要求保护效果图中主照片类似“火车头”的轮廓，不再把它简化为普通大圆角矩形。
+- 桌面照片左边界现在由上方 19% 位置向左下方收放，带两段缓和曲线；右边界继续冲出内容列，形成明确的向右运动感。
+- 支持 CSS `shape()` 的浏览器使用曲线轮廓，不支持时退化为同方向的多边形轮廓；手机端不使用异形裁切，继续采用稳定的圆角 4:3 照片。
 
 ## 对照证据
 
@@ -31,6 +37,8 @@
 - 二次校正桌面首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-desktop-final.jpg`
 - 二次校正手机首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-mobile-final.jpg`
 - 英文桌面首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-desktop-en.jpg`
+- 车头轮廓桌面复核：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/train-nose-desktop-v2.jpg`
+- 车头轮廓手机版复核：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/train-nose-mobile.jpg`
 - 成果页手机滚动与照片横滑：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/impact-mobile-scroll-final.jpg`
 - 影像库桌面首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/media-desktop-v1.jpg`
 - 影像库手机首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/media-mobile-v1.jpg`

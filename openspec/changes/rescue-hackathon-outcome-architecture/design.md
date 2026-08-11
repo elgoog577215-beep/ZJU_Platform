@@ -25,7 +25,7 @@ Hackathon content is split by ownership:
 - On the desktop showcase, the global header adapts into a Zhekesong lockup and six-item event navigation. The event switcher remains a compact secondary control below it instead of becoming a second full-width navigation bar.
 - The X-field must remain visibly present in the first viewport. It is not recreated with CSS shapes and must not be hidden under an opaque page mask.
 - Acid lime is reserved for the event title accent, key numbers, selected state, section numbering, and primary actions. White carries content hierarchy; muted copy remains low-contrast.
-- Rounding is selective rather than global: event media uses restrained 12–24 px radii, controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based.
+- Rounding is selective rather than global: the desktop overview film preserves the selected mockup's directional “train-nose” silhouette, other event media uses restrained 12–24 px radii, and controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based. Mobile keeps the overview film as a stable rounded rectangle rather than carrying the desktop crop into a narrow viewport.
 - Photos never receive a persistent text panel or dark overlay. Functional video affordances may float over media, but captions and metadata remain below the image.
 - Desktop composition deliberately separates the upper-left title from the lower-right event photo across the X. Mobile collapses to one vertical story, keeps horizontal photo strips independently scrollable, and never introduces document-level horizontal overflow.
 
