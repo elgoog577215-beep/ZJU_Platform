@@ -65,6 +65,7 @@ const Navbar = ({ miniProgramMode = false }) => {
     const [time, setTime] = useState(new Date());
     const prefersReducedMotion = useReducedMotion();
     const isDayMode = uiMode === "day";
+    const isHackathonRoute = location.pathname.startsWith("/hackathon");
     const weatherWidgetEnabled = showWeatherWidget && isDesktopViewport;
     const hideMobileTopBar = location.pathname === "/events";
 
@@ -120,17 +121,38 @@ const Navbar = ({ miniProgramMode = false }) => {
         return <Cloud size={14} />;
     };
 
-    const navLinks = [
-        { key: "events", path: "/events" },
-        { key: "hackathon", path: "/hackathon" },
-        { key: "articles", path: "/articles" },
-        { key: "projects", path: "/projects" },
-        { key: "media", path: "/media" },
-        { key: "about", path: "/about" },
-        ...(!miniProgramMode ? [{ key: "download", path: "/download" }] : []),
-        ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin" }] : []),
-    ];
+    const navLinks = isHackathonRoute
+        ? [
+              {
+                  key: "hackathonOverview",
+                  path: "/hackathon?view=showcase#showcase-overview",
+                  label: t("hackathon.outcome_archive.overview"),
+              },
+              {
+                  key: "hackathonArchive",
+                  path: "/hackathon?view=showcase#showcase-archive",
+                  label: t("hackathon.outcome_archive.archive_title"),
+              },
+              { key: "articles", path: "/articles" },
+              { key: "projects", path: "/projects" },
+              { key: "media", path: "/media" },
+              { key: "about", path: "/about" },
+          ]
+        : [
+              { key: "events", path: "/events" },
+              { key: "hackathon", path: "/hackathon" },
+              { key: "articles", path: "/articles" },
+              { key: "projects", path: "/projects" },
+              { key: "media", path: "/media" },
+              { key: "about", path: "/about" },
+              ...(!miniProgramMode ? [{ key: "download", path: "/download" }] : []),
+              ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin" }] : []),
+          ];
     const isNavItemActive = (path) => {
+        if (isHackathonRoute && path.includes("#showcase-")) {
+            const hash = `#${path.split("#")[1]}`;
+            return location.hash ? location.hash === hash : hash === "#showcase-overview";
+        }
         if (path === "/hackathon") return location.pathname.startsWith("/hackathon");
         if (path === "/media") {
             return (
@@ -190,18 +212,26 @@ const Navbar = ({ miniProgramMode = false }) => {
         return () => window.removeEventListener("open-auth-modal", openAuthModal);
     }, []);
 
-    const shellClasses = isDayMode
-        ? "bg-white border-slate-900/[0.08] shadow-none"
-        : "bg-black/62 border-white/10 shadow-none";
-    const desktopPillClasses = isDayMode
-        ? "rounded-[6px] bg-white border-violet-100/80 shadow-none"
-        : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
-    const navLinkClasses = isDayMode
-        ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white hover:text-slate-950 xl:px-4 xl:text-sm"
-        : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
-    const navIndicatorClasses = isDayMode
-        ? "absolute inset-0 rounded-[5px] border border-slate-900/[0.12] bg-white shadow-none"
-        : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
+    const shellClasses = isHackathonRoute
+        ? "bg-[#020806]/94 border-[#b9ff18]/10 shadow-none"
+        : isDayMode
+          ? "bg-white border-slate-900/[0.08] shadow-none"
+          : "bg-black/62 border-white/10 shadow-none";
+    const desktopPillClasses = isHackathonRoute
+        ? "rounded-none bg-transparent border-transparent shadow-none"
+        : isDayMode
+          ? "rounded-[6px] bg-white border-violet-100/80 shadow-none"
+          : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
+    const navLinkClasses = isHackathonRoute
+        ? "motion-link relative group whitespace-nowrap rounded-none px-2.5 py-2 text-xs font-semibold text-[#cdd2ca]/70 hover:bg-transparent hover:text-white xl:px-4 xl:text-sm"
+        : isDayMode
+          ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white hover:text-slate-950 xl:px-4 xl:text-sm"
+          : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
+    const navIndicatorClasses = isHackathonRoute
+        ? "absolute inset-x-3 -bottom-1 h-0.5 bg-[#b9ff18]"
+        : isDayMode
+          ? "absolute inset-0 rounded-[5px] border border-slate-900/[0.12] bg-white shadow-none"
+          : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
     const weatherButtonClasses = isDayMode
         ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
         : "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 cursor-pointer group";
@@ -250,30 +280,40 @@ const Navbar = ({ miniProgramMode = false }) => {
             aria-label={t("nav.main_aria")}
         >
             <Link
-                to="/"
+                to={isHackathonRoute ? "/hackathon?view=showcase" : "/"}
                 className="hidden lg:flex items-center gap-3 text-white group z-50"
                 aria-label={t("nav.home_aria")}
             >
-                <div className="relative">
-                    <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
+                {isHackathonRoute ? (
                     <img
-                        src="/newlogo.png"
+                        src="/images/hackathon/zhekesong-lockup.webp"
                         alt={t("nav.logo_alt")}
-                        className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                        className="h-[52px] w-auto object-contain brightness-125 transition-transform duration-300 group-hover:scale-[1.02]"
                     />
-                </div>
-                <div className="flex flex-col items-start leading-none">
-                    <span
-                        className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-violet-800" : "text-white group-hover:text-indigo-200"}`}
-                    >
-                        {t("nav.site_brand")}
-                    </span>
-                    <span
-                        className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-pink-700" : "text-gray-400 group-hover:text-indigo-400"}`}
-                    >
-                        {t("nav.site_tagline")}
-                    </span>
-                </div>
+                ) : (
+                    <>
+                        <div className="relative">
+                            <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
+                            <img
+                                src="/newlogo.png"
+                                alt={t("nav.logo_alt")}
+                                className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                            />
+                        </div>
+                        <div className="flex flex-col items-start leading-none">
+                            <span
+                                className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-violet-800" : "text-white group-hover:text-indigo-200"}`}
+                            >
+                                {t("nav.site_brand")}
+                            </span>
+                            <span
+                                className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-pink-700" : "text-gray-400 group-hover:text-indigo-400"}`}
+                            >
+                                {t("nav.site_tagline")}
+                            </span>
+                        </div>
+                    </>
+                )}
             </Link>
 
             <div

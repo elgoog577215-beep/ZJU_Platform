@@ -22,6 +22,7 @@ Hackathon content is split by ownership:
 ## Public Visual Language
 
 - The showcase and event archive share one spatial world: deep black-green ground, a real raster X-field as the compositional backbone, acid-lime signals, documentary event media, and monumental Chinese type.
+- On the desktop showcase, the global header adapts into a Zhekesong lockup and six-item event navigation. The event switcher remains a compact secondary control below it instead of becoming a second full-width navigation bar.
 - The X-field must remain visibly present in the first viewport. It is not recreated with CSS shapes and must not be hidden under an opaque page mask.
 - Acid lime is reserved for the event title accent, key numbers, selected state, section numbering, and primary actions. White carries content hierarchy; muted copy remains low-contrast.
 - Rounding is selective rather than global: event media uses restrained 12–24 px radii, controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based.

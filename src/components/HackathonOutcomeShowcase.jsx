@@ -279,13 +279,6 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 <section id="showcase-overview" className="outcome-overview" aria-labelledby="outcome-title">
                     <div className="outcome-overview-grid">
                         <div className="outcome-hero-copy">
-                            <p className="outcome-hero-label">
-                                <span>01</span>
-                                {t("hackathon.outcome_archive.overview_eyebrow")}
-                            </p>
-                            <p className="outcome-date-line">
-                                {formatDate(event.startAt)} · {event.location}
-                            </p>
                             <h1 id="outcome-title">
                                 {titleParts.map((part, index) => (
                                     <span key={part} className={index === titleParts.length - 1 ? "is-accent" : ""}>
@@ -296,6 +289,13 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             <h2 className="sr-only" id="overview-heading">
                                 {t("hackathon.outcome_archive.overview")}
                             </h2>
+                            <div className="outcome-title-rule" aria-hidden="true" />
+                            <p className="outcome-date-line">
+                                {formatDate(event.startAt)} · {event.location}
+                            </p>
+                            <p className="outcome-overview-name">
+                                {t("hackathon.outcome_archive.overview")}
+                            </p>
                             <p className="outcome-description">{event.description}</p>
                             <div className="outcome-stat-grid">
                                 {eventStats.map((stat) => (
@@ -436,28 +436,28 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-overview,.outcome-archive,.outcome-works{position:relative;padding:0 0 clamp(4rem,7vw,7rem)}
                 .outcome-archive,.outcome-works{scroll-margin-top:9.5rem}
                 .outcome-overview{min-height:min(850px,calc(100svh - 8rem));display:flex;align-items:center;padding-bottom:2rem}
-                .outcome-overview-grid{display:grid;width:100%;min-height:800px;grid-template-columns:minmax(430px,.88fr) minmax(560px,1.12fr);gap:clamp(2rem,5vw,6rem);align-items:stretch}
-                .outcome-hero-copy{align-self:start;padding:clamp(1rem,3vw,2.5rem) 0}
-                .outcome-hero-label{display:flex;align-items:center;gap:.75rem;margin:0 0 1.5rem;color:var(--x-lime);font-size:.68rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
-                .outcome-hero-label span{font:900 1.1rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-hero-label::after{content:"";width:min(220px,32vw);height:1px;background:rgba(185,255,24,.48)}
-                .outcome-date-line{margin:0;color:var(--x-lime);font-size:.86rem;font-weight:900;letter-spacing:.045em}
-                .outcome-hero-copy h1{display:grid;margin:1rem 0 0;font-size:clamp(4.9rem,7vw,7.9rem);font-weight:950;line-height:.8;letter-spacing:-.075em;text-shadow:0 10px 40px rgba(0,0,0,.32)}
+                .outcome-overview-grid{display:grid;width:100%;min-height:800px;grid-template-columns:minmax(560px,.96fr) minmax(620px,1.04fr);gap:clamp(1.5rem,2.5vw,3rem);align-items:stretch}
+                .outcome-hero-copy{position:relative;z-index:2;align-self:start;padding:clamp(.25rem,1vw,.8rem) 0}
+                .outcome-date-line{margin:0;color:var(--x-lime);font-size:1rem;font-weight:900;letter-spacing:.045em}
+                .outcome-hero-copy h1{display:grid;margin:0;font-size:clamp(6.25rem,8.65vw,9.55rem);font-weight:950;line-height:.78;letter-spacing:-.078em;text-shadow:0 10px 40px rgba(0,0,0,.32)}
                 .outcome-hero-copy h1 .is-accent{color:var(--x-lime)}
-                .outcome-description{max-width:610px;margin:1.55rem 0 0;color:rgba(247,248,242,.75);font-size:.95rem;font-weight:650;line-height:1.9}
-                .outcome-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);margin-top:1.8rem;border-block:1px solid rgba(247,248,242,.15)}
-                .outcome-stat-grid>div{position:relative;padding:1rem .9rem 1rem 0}
+                .outcome-title-rule{width:min(100%,46rem);height:1px;margin:2.2rem 0 1.05rem;background:rgba(185,255,24,.48)}
+                .outcome-overview-name{margin:1.35rem 0 0;color:var(--x-text);font-size:1.05rem;font-weight:900;letter-spacing:.03em}
+                .outcome-description{max-width:620px;margin:1rem 0 0;color:rgba(247,248,242,.7);font-size:.85rem;font-weight:650;line-height:1.85}
+                .outcome-stat-grid{display:grid;width:min(100%,594px);grid-template-columns:repeat(4,1fr);margin-top:3.9rem;border-block:0}
+                .outcome-stat-grid>div{position:relative;padding:1rem 1rem 1rem 0}
                 .outcome-stat-grid>div:not(:last-child)::after{content:"";position:absolute;right:.7rem;top:24%;height:52%;width:1px;background:rgba(185,255,24,.34)}
-                .outcome-stat-grid strong{display:block;color:var(--x-lime);font:900 clamp(1.35rem,2vw,1.9rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-stat-grid small{margin-left:.28rem;font-size:.68rem;color:var(--x-text)}
-                .outcome-stat-grid span{display:block;margin-top:.55rem;color:var(--x-muted);font-size:.68rem;font-weight:800}
-                .outcome-primary-actions{display:flex;gap:.8rem;margin-top:1.55rem}
-                .outcome-primary-actions button,.outcome-section-topline>a,.outcome-section-topline>button,.outcome-work-detail-actions a{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:.6rem;padding:.7rem 1.1rem;border:1px solid rgba(185,255,24,.48);border-radius:11px;background:rgba(2,8,6,.35);color:inherit;font-size:.77rem;font-weight:900;transition:transform .2s ease,background-color .2s ease,border-color .2s ease}
+                .outcome-stat-grid strong{display:block;color:var(--x-lime);font:900 clamp(1.9rem,2.65vw,2.8rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-stat-grid small{margin-left:.28rem;font-size:.78rem;color:var(--x-text)}
+                .outcome-stat-grid span{display:block;margin-top:.62rem;color:var(--x-muted);font-size:.74rem;font-weight:800}
+                .outcome-primary-actions{display:flex;gap:1rem;margin-top:2rem}
+                .outcome-primary-actions button,.outcome-section-topline>a,.outcome-section-topline>button,.outcome-work-detail-actions a{display:inline-flex;min-height:50px;align-items:center;justify-content:center;gap:.65rem;padding:.76rem 1.2rem;border:1px solid rgba(185,255,24,.48);border-radius:11px;background:rgba(2,8,6,.35);color:inherit;font-size:.8rem;font-weight:900;transition:transform .2s ease,background-color .2s ease,border-color .2s ease}
+                .outcome-primary-actions button{min-width:13.25rem;min-height:64px;font-size:1rem}
                 .outcome-primary-actions button:first-child{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
                 .outcome-primary-actions button:hover,.outcome-section-topline>a:hover,.outcome-section-topline>button:hover,.outcome-work-detail-actions a:hover{transform:translateY(-2px);border-color:var(--x-lime);background:rgba(185,255,24,.12)}
                 .outcome-primary-actions button:first-child:hover{background:var(--x-lime-soft)}
-                .outcome-film{align-self:end;padding-bottom:1.5rem}
-                .outcome-film button{position:relative;display:block;width:100%;aspect-ratio:16/9.35;overflow:hidden;border:1px solid rgba(185,255,24,.68);border-radius:34px 12px 34px 12px;background:var(--x-surface);padding:0;box-shadow:0 26px 70px rgba(0,0,0,.45),-1px 1px 0 rgba(185,255,24,.35)}
+                .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 4.25vw);margin-right:calc((100vw - min(1480px,calc(100vw - 4rem)))/-2);margin-left:-4.25vw;padding-bottom:1.5rem}
+                .outcome-film button{position:relative;display:block;width:100%;aspect-ratio:16/9.35;overflow:hidden;border:1px solid rgba(185,255,24,.72);border-radius:72px 0 0 72px;background:var(--x-surface);padding:0;box-shadow:0 26px 70px rgba(0,0,0,.45),-1px 1px 0 rgba(185,255,24,.35)}
                 .outcome-film button img{transition:transform .7s cubic-bezier(.2,.65,.2,1)}
                 .outcome-film button:hover img{transform:scale(1.018)}
                 .outcome-film-play{position:absolute;right:1.1rem;bottom:1.1rem;display:grid;width:56px;height:56px;place-items:center;border:1px solid rgba(255,255,255,.72);border-radius:50%;background:rgba(2,8,6,.62);color:#fff;backdrop-filter:blur(10px)}
@@ -472,6 +472,10 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-section-topline::after{content:"";position:absolute;right:0;top:-1px;width:clamp(70px,13vw,190px);height:1px;background:var(--x-lime)}
                 .outcome-section-topline .outcome-section-heading{padding-bottom:1.25rem}
                 .outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1.25rem}
+                .outcome-archive .outcome-section-topline{display:grid;grid-template-columns:1fr auto 1fr;align-items:end}
+                .outcome-archive .outcome-section-heading{grid-column:2}
+                .outcome-archive .outcome-section-heading>span{font-size:clamp(3rem,4vw,4.5rem)}
+                .outcome-archive .outcome-section-topline>a{grid-column:3;justify-self:end}
                 .outcome-photo-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem}
                 .outcome-photo-strip figure{min-width:0;margin:0}
                 .outcome-photo-strip figure>a{display:block;aspect-ratio:1.45/1;overflow:hidden;border-radius:13px;background:var(--x-surface)}
@@ -536,7 +540,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-overview{min-height:auto}
                     .outcome-overview-grid{min-height:auto;grid-template-columns:1fr}
                     .outcome-hero-copy{max-width:760px}
-                    .outcome-film{width:min(100%,900px);margin-left:auto}
+                    .outcome-film{width:min(100%,900px);margin-right:0;margin-left:auto}
                     .outcome-works-layout{grid-template-columns:1fr 1fr}.outcome-work-detail{grid-column:1/-1}.outcome-work-detail:not(.is-compact){position:relative;top:auto}
                 }
                 @media(max-width:767px){
@@ -546,19 +550,19 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-overview,.outcome-archive,.outcome-works{padding-inline:1rem;padding-bottom:3.6rem}.outcome-overview{padding-bottom:2rem}
                     .outcome-overview-grid{gap:1.7rem}
                     .outcome-hero-copy{padding-top:.5rem}
-                    .outcome-hero-label{margin-bottom:1.1rem}.outcome-hero-label::after{width:6rem}
-                    .outcome-date-line{font-size:.76rem}
-                    .outcome-hero-copy h1{font-size:clamp(3.45rem,17vw,5rem);line-height:.8;letter-spacing:-.07em}
+                    .outcome-date-line{font-size:.82rem}
+                    .outcome-hero-copy h1{font-size:clamp(3.7rem,18vw,5.35rem);line-height:.79;letter-spacing:-.072em}
+                    .outcome-title-rule{margin:1.4rem 0 .8rem}.outcome-overview-name{margin-top:1rem;font-size:.92rem}
                     .outcome-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:4;-webkit-box-orient:vertical;font-size:.84rem;line-height:1.78}
-                    .outcome-stat-grid{grid-template-columns:repeat(2,1fr)}
+                    .outcome-stat-grid{grid-template-columns:repeat(2,1fr);margin-top:1.7rem}
                     .outcome-stat-grid>div:nth-child(2)::after{display:none}
                     .outcome-stat-grid>div{border-bottom:1px solid rgba(247,248,242,.1)}
-                    .outcome-primary-actions{display:grid;grid-template-columns:1fr 1fr}
+                    .outcome-primary-actions{display:grid;grid-template-columns:1fr 1fr}.outcome-primary-actions button{min-width:0;min-height:54px;font-size:.83rem}
                     .outcome-film{padding-bottom:0}
-                    .outcome-film button{aspect-ratio:4/3;border-radius:24px 10px 24px 10px}
+                    .outcome-film button{aspect-ratio:4/3;border-radius:28px 10px 28px 10px}
                     .outcome-film-play{width:50px;height:50px}
                     .outcome-section-heading{gap:.65rem;padding-bottom:1.2rem}.outcome-section-heading>span{font-size:3.45rem}
-                    .outcome-section-topline{align-items:flex-end}.outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1rem;min-height:42px;padding:.55rem .72rem}
+                    .outcome-section-topline{align-items:flex-end}.outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1rem;min-height:42px;padding:.55rem .72rem}.outcome-archive .outcome-section-topline{display:flex}.outcome-archive .outcome-section-heading{grid-column:auto}.outcome-archive .outcome-section-topline>a{grid-column:auto;justify-self:auto}
                     .outcome-photo-strip{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;gap:.75rem;margin-inline:-1rem;padding:0 1rem .35rem;scrollbar-width:none}
                     .outcome-photo-strip::-webkit-scrollbar{display:none}.outcome-photo-strip figure{min-width:78vw;scroll-snap-align:start}.outcome-photo-strip figure>a{aspect-ratio:4/3;border-radius:12px}
                     .outcome-works-layout{grid-template-columns:1fr;gap:2rem}.outcome-podium>button{grid-template-columns:86px 1.8rem minmax(0,1fr)}

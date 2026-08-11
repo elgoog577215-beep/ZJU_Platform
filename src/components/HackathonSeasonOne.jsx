@@ -70,16 +70,29 @@ const HackathonSeasonOne = () => {
         const nextParams = new URLSearchParams(location.search);
         nextParams.set("event", activeEventKey);
         if (activeView) nextParams.set("view", activeView);
-        navigate(`/hackathon?${nextParams.toString()}`, { replace: true });
+        navigate(`/hackathon?${nextParams.toString()}${location.hash || ""}`, { replace: true });
     }, [
         activeEventKey,
         activeView,
+        location.hash,
         location.search,
         navigate,
         requestedEventKey,
         requestedView,
         scheduleLoading,
     ]);
+
+    useEffect(() => {
+        if (!location.hash.startsWith("#showcase-")) return undefined;
+        const animationFrame = window.requestAnimationFrame(() => {
+            if (location.hash === "#showcase-overview") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
+            document.querySelector(location.hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return () => window.cancelAnimationFrame(animationFrame);
+    }, [activeEventKey, activeView, location.hash]);
 
     useEffect(() => {
         const container = timelineScrollRef.current;
@@ -132,8 +145,8 @@ const HackathonSeasonOne = () => {
             },
             {
                 id: "showcase",
-                label: t("hackathon.tabs.results", "比赛结果"),
-                shortLabel: t("hackathon.tabs.results_short", "结果"),
+                label: t("hackathon.tabs.showcase", "比赛成果"),
+                shortLabel: t("hackathon.tabs.showcase_short", "成果"),
                 icon: Film,
                 available: template.navigation.resultsVisible,
             },
@@ -217,10 +230,10 @@ const HackathonSeasonOne = () => {
                 `}
             </style>
 
-            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start min-[1720px]:left-7 min-[1720px]:right-7">
+            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start lg:justify-between min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
-                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl lg:min-w-0 lg:flex-1 ${shellClass}`}
+                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl lg:mx-0 lg:w-[520px] lg:min-w-0 lg:flex-none ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
                     <div
@@ -277,7 +290,7 @@ const HackathonSeasonOne = () => {
                     <div
                         className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[12px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
                         role="tablist"
-                        aria-label={`${template.event.title}页面切换`}
+                        aria-label={t("hackathon.tabs.aria")}
                     >
                         <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
                             <Trophy
