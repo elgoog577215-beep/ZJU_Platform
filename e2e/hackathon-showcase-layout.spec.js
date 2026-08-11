@@ -51,6 +51,13 @@ test("hackathon showcase keeps one desktop command row and a balanced hero", asy
     );
     expect(titleFontSize).toBeLessThanOrEqual(96);
     await expect(page.locator('nav[aria-label="比赛成果展览章节"]')).toHaveCount(0);
+    await expect(page.locator("#gallery .showcase-media-overlay")).toHaveCount(0);
+
+    const workPhotoPseudoContent = await page
+        .locator("#works .showcase-work-cover")
+        .first()
+        .evaluate((element) => window.getComputedStyle(element, "::after").content);
+    expect(["none", "normal", '""']).toContain(workPhotoPseudoContent);
 
     const showcaseLayout = await page.locator("[data-showcase-page]").evaluate((element) => {
         const ids = ["gate", "gallery", "archive", "works", "index", "partners"];

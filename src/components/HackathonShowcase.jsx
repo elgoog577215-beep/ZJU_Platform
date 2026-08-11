@@ -244,14 +244,14 @@ const ShowcaseSectionFrame = ({
                     aria-hidden="true"
                 />
                 <div
-                    className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(99,102,241,0.10),transparent_26%)]"
+                    className="showcase-section-glow pointer-events-none absolute inset-0"
                     aria-hidden="true"
                 />
             </>
         ) : null}
         {backgroundWord ? (
             <div
-                className="pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.035] text-[18vw]"
+                className="showcase-background-word pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-[18vw]"
                 aria-hidden="true"
             >
                 {backgroundWord}
@@ -300,49 +300,52 @@ const ShowcaseImageCard = ({
     compact = false,
 }) => (
     <article
-        className={`showcase-image-card ${featured ? "showcase-image-card-featured" : ""} ${compact ? "showcase-image-card-compact" : ""} group relative min-h-[15rem] max-w-full overflow-hidden border ${theme.surfaceStrong} ${
+        className={`showcase-image-card ${featured ? "showcase-image-card-featured" : ""} ${compact ? "showcase-image-card-compact" : ""} group relative grid min-h-[15rem] max-w-full overflow-hidden border ${theme.surfaceStrong} ${
             featured
-                ? "min-h-[18rem] sm:min-h-[24rem] lg:h-full lg:min-h-0"
+                ? "min-h-[18rem] grid-rows-[minmax(0,1fr)_auto] sm:min-h-[24rem] lg:h-full lg:min-h-0"
                 : compact
-                  ? "min-h-[9rem] w-[18rem] shrink-0 sm:min-h-[9.5rem] sm:w-[22rem] lg:h-full lg:min-h-0 lg:w-auto"
+                  ? "min-h-[9rem] w-[18rem] shrink-0 grid-rows-[minmax(0,1fr)_auto] sm:min-h-[9.5rem] sm:w-[22rem] lg:h-full lg:min-h-0 lg:w-auto"
                   : "sm:min-h-[11.5rem] lg:min-h-[12rem] min-[1720px]:min-h-[13rem]"
         }`}
     >
-        <img
-            src={getShowcaseImageUrl(moment.image, featured ? 1400 : 640)}
-            alt={moment.title}
-            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-            style={{
-                filter: isDayMode
-                    ? "brightness(1.04) saturate(1.08) contrast(1.01)"
-                    : "brightness(0.9) saturate(1.1) contrast(1.02)",
-            }}
-            loading={index === 0 ? "eager" : "lazy"}
-            decoding={index === 0 ? "sync" : "async"}
-            fetchpriority={index === 0 ? "high" : "low"}
-            sizes={featured ? "(min-width: 1280px) 58vw, 100vw" : "(min-width: 1280px) 22vw, 22rem"}
-            onError={(event) => handleShowcaseImageError(event, SECONDARY_IMAGE)}
-        />
-        <div className="showcase-media-overlay absolute inset-0" />
+        <div className="showcase-image-visual relative min-h-0 overflow-hidden">
+            <img
+                src={getShowcaseImageUrl(moment.image, featured ? 1400 : 640)}
+                alt={moment.title}
+                className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                style={{
+                    filter: isDayMode
+                        ? "brightness(1.04) saturate(1.05) contrast(1.01)"
+                        : "brightness(1.01) saturate(1.06) contrast(1.01)",
+                }}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding={index === 0 ? "sync" : "async"}
+                fetchpriority={index === 0 ? "high" : "low"}
+                sizes={
+                    featured ? "(min-width: 1280px) 58vw, 100vw" : "(min-width: 1280px) 22vw, 22rem"
+                }
+                onError={(event) => handleShowcaseImageError(event, SECONDARY_IMAGE)}
+            />
+        </div>
         <div
-            className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"} ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}
+            className={`showcase-image-meta border-t ${compact ? "p-3" : "p-4 sm:p-5"} ${theme.border} ${isDayMode ? "bg-white" : "bg-[#08100f]"}`}
         >
             <div
-                className={`${compact ? "mb-2" : "mb-3"} inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950`}
+                className={`${compact ? "mb-1.5" : "mb-2"} inline-flex items-center gap-2 text-[11px] font-black uppercase ${theme.accent}`}
             >
                 <Camera className="h-3.5 w-3.5" />
                 {moment.label}
             </div>
             <h3
-                className={`showcase-image-title ${featured ? "max-w-[min(42rem,calc(100%-1rem))] text-3xl sm:text-5xl" : compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"} break-words font-black leading-[0.95] tracking-normal text-white`}
+                className={`${featured ? "text-2xl sm:text-3xl" : compact ? "text-base sm:text-lg" : "text-xl sm:text-2xl"} break-words font-black leading-tight tracking-normal`}
             >
                 {moment.title}
             </h3>
-            <p
-                className={`showcase-image-copy ${compact ? "line-clamp-2" : "line-clamp-2"} mt-2 max-w-[min(42rem,calc(100%-1rem))] break-words text-xs font-semibold leading-5 text-white/78 sm:text-sm sm:leading-6`}
-            >
-                {moment.caption}
-            </p>
+            {!compact ? (
+                <p className={`mt-1.5 line-clamp-2 text-xs font-semibold leading-5 ${theme.muted}`}>
+                    {moment.caption}
+                </p>
+            ) : null}
         </div>
     </article>
 );
@@ -388,8 +391,8 @@ const ShowcaseWorkCard = ({
                     className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
                     style={{
                         filter: isDayMode
-                            ? "brightness(1.03) saturate(1.08) contrast(1.01)"
-                            : "brightness(0.82) saturate(1.14) contrast(1.04)",
+                            ? "brightness(1.03) saturate(1.05) contrast(1.01)"
+                            : "brightness(1.01) saturate(1.06) contrast(1.01)",
                     }}
                     loading={index === 0 ? "eager" : "lazy"}
                     decoding={index === 0 ? "sync" : "async"}
@@ -407,9 +410,6 @@ const ShowcaseWorkCard = ({
                     }
                 />
                 <div
-                    className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/12 via-transparent to-white/8" : "bg-gradient-to-t from-black/66 via-black/12 to-transparent"}`}
-                />
-                <div
                     className={`showcase-award-badge absolute right-4 top-4 z-10 inline-flex items-center gap-2.5 overflow-hidden border px-3.5 py-2.5 text-sm font-black backdrop-blur ${isDayMode ? "showcase-award-badge-day border-cyan-200 bg-gradient-to-r from-white via-cyan-50 to-amber-50 text-slate-950 shadow-[0_18px_42px_rgba(8,145,178,0.22)] ring-1 ring-white/80" : "border-cyan-200/40 bg-slate-950/58 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]"} ${featured ? "showcase-award-badge-featured sm:px-5 sm:py-3.5 sm:text-lg" : ""}`}
                 >
                     <span
@@ -422,28 +422,18 @@ const ShowcaseWorkCard = ({
                     </span>
                     {badgeLabel}
                 </div>
-                {featured ? (
-                    <div className="absolute bottom-4 left-5 right-5 z-10 sm:bottom-5 sm:left-6 sm:right-6">
-                        <p className="showcase-image-kicker text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
-                            Winner Focus
-                        </p>
-                        <p className="showcase-image-title mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.2rem]">
-                            {work.title}
-                        </p>
-                    </div>
-                ) : compact ? (
-                    <div className="absolute bottom-3 left-3 right-3 z-10 sm:bottom-4 sm:left-4 sm:right-4">
-                        <p className="showcase-image-title line-clamp-2 text-xl font-black leading-tight text-white sm:text-2xl">
-                            {work.title}
-                        </p>
-                    </div>
-                ) : null}
             </Link>
             <div
                 className={`flex min-w-0 flex-col ${featured ? "p-3.5 sm:p-4" : compact ? "p-3" : "p-3 sm:p-3.5"}`}
             >
+                <Link
+                    to={worksHref}
+                    className={`${featured ? "text-xl sm:text-2xl" : "text-base sm:text-lg"} line-clamp-2 font-black leading-tight transition-colors hover:text-cyan-300`}
+                >
+                    {work.title}
+                </Link>
                 <div className="flex flex-wrap gap-2">
-                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
+                    <span className={`mt-2 border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
                         {work.author}
                         {work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
                     </span>
@@ -931,6 +921,95 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
                 {`
           .showcase-page {
             scroll-padding-top: 1.25rem;
+            isolation: isolate;
+          }
+
+          .showcase-ambient-backdrop {
+            background:
+              radial-gradient(ellipse at 8% 22%, rgba(34, 211, 238, 0.17), transparent 34%),
+              radial-gradient(ellipse at 92% 62%, rgba(99, 102, 241, 0.14), transparent 32%),
+              linear-gradient(145deg, #07100e 0%, #020504 52%, #060811 100%);
+          }
+
+          .showcase-ambient-beam {
+            position: absolute;
+            top: -32%;
+            bottom: -32%;
+            width: 28vw;
+            min-width: 18rem;
+            background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.09), transparent);
+            filter: blur(24px);
+            mix-blend-mode: screen;
+            opacity: 0.72;
+            transform: rotate(18deg);
+            animation: showcase-beam-drift 14s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+            will-change: transform;
+          }
+
+          .showcase-ambient-beam-left {
+            left: -8vw;
+          }
+
+          .showcase-ambient-beam-right {
+            right: -10vw;
+            animation-name: showcase-beam-drift-right;
+            animation-delay: -7s;
+            background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.08), transparent);
+            transform: rotate(-16deg);
+          }
+
+          .showcase-perspective-plane {
+            position: absolute;
+            left: -12%;
+            right: -12%;
+            bottom: -34%;
+            height: 70%;
+            background-image:
+              linear-gradient(rgba(103, 232, 249, 0.09) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(103, 232, 249, 0.075) 1px, transparent 1px);
+            background-size: 72px 72px;
+            opacity: 0.55;
+            transform: perspective(680px) rotateX(62deg);
+            transform-origin: center bottom;
+            animation: showcase-grid-drift 18s linear infinite;
+            will-change: background-position;
+          }
+
+          .showcase-horizon-line {
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            top: 54%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.34), rgba(129, 140, 248, 0.18), transparent);
+            box-shadow: 0 10px 42px rgba(34, 211, 238, 0.16);
+            opacity: 0.72;
+          }
+
+          @keyframes showcase-beam-drift {
+            from { transform: translate3d(-4vw, -2%, 0) rotate(18deg); }
+            to { transform: translate3d(11vw, 4%, 0) rotate(22deg); }
+          }
+
+          @keyframes showcase-grid-drift {
+            from { background-position: 0 0; }
+            to { background-position: 0 72px; }
+          }
+
+          @keyframes showcase-beam-drift-right {
+            from { transform: translate3d(5vw, -3%, 0) rotate(-16deg); }
+            to { transform: translate3d(-10vw, 4%, 0) rotate(-21deg); }
+          }
+
+          .showcase-theme-day .showcase-ambient-backdrop {
+            background:
+              radial-gradient(ellipse at 8% 22%, rgba(8, 145, 178, 0.13), transparent 34%),
+              radial-gradient(ellipse at 92% 62%, rgba(79, 70, 229, 0.09), transparent 32%),
+              linear-gradient(145deg, #f8fbfc 0%, #eef7f7 52%, #f4f5fb 100%);
+          }
+
+          .showcase-theme-day .showcase-perspective-plane {
+            opacity: 0.36;
           }
 
           .showcase-paged-flow {
@@ -972,16 +1051,32 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
 
           .showcase-stage-bg {
             background:
-              linear-gradient(rgba(103, 232, 249, 0.065) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(103, 232, 249, 0.05) 1px, transparent 1px);
-            background-size: 64px 64px;
-            mask-image: linear-gradient(180deg, black 0%, black 76%, transparent 100%);
+              linear-gradient(rgba(103, 232, 249, 0.055) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(103, 232, 249, 0.045) 1px, transparent 1px);
+            background-size: 72px 72px;
+          }
+
+          .showcase-section-glow {
+            background:
+              radial-gradient(circle at 15% 22%, rgba(34, 211, 238, 0.12), transparent 30%),
+              radial-gradient(circle at 84% 32%, rgba(99, 102, 241, 0.09), transparent 28%);
+          }
+
+          .showcase-background-word {
+            color: rgba(255, 255, 255, 0.012);
+            -webkit-text-stroke: 1px rgba(103, 232, 249, 0.085);
+            text-shadow: 0 18px 72px rgba(34, 211, 238, 0.08);
           }
 
           .showcase-theme-day .showcase-stage-bg {
             background:
               linear-gradient(rgba(8, 145, 178, 0.075) 1px, transparent 1px),
               linear-gradient(90deg, rgba(8, 145, 178, 0.052) 1px, transparent 1px);
+          }
+
+          .showcase-theme-day .showcase-background-word {
+            color: rgba(15, 23, 42, 0.015);
+            -webkit-text-stroke-color: rgba(8, 145, 178, 0.1);
           }
 
           .showcase-logo-tile {
@@ -1746,6 +1841,12 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             scroll-snap-type: none;
           }
 
+          .showcase-lite .showcase-ambient-beam,
+          .showcase-lite .showcase-perspective-plane {
+            animation: none;
+            opacity: 0.28;
+          }
+
           .showcase-lite .showcase-stage-bg,
           .showcase-lite .showcase-media-overlay {
             background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.48) 100%);
@@ -1821,20 +1922,11 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
               linear-gradient(90deg, rgba(15, 23, 42, 0.06), transparent 62%);
           }
 
-          .showcase-work-cover::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-              linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.54) 100%),
-              linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 64%);
-            pointer-events: none;
-          }
-
-          .showcase-theme-day .showcase-work-cover::after {
-            background:
-              linear-gradient(180deg, rgba(15, 23, 42, 0.01) 0%, rgba(15, 23, 42, 0.24) 100%),
-              linear-gradient(90deg, rgba(15, 23, 42, 0.06), transparent 64%);
+          @media (prefers-reduced-motion: reduce) {
+            .showcase-ambient-beam,
+            .showcase-perspective-plane {
+              animation: none;
+            }
           }
 
           @media (min-width: 1024px) {
@@ -2074,6 +2166,15 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
           }
         `}
             </style>
+            <div
+                className="showcase-ambient-backdrop pointer-events-none fixed inset-0 z-0 overflow-hidden"
+                aria-hidden="true"
+            >
+                <div className="showcase-ambient-beam showcase-ambient-beam-left" />
+                <div className="showcase-ambient-beam showcase-ambient-beam-right" />
+                <div className="showcase-perspective-plane" />
+                <div className="showcase-horizon-line" />
+            </div>
             <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-[130] h-0.5">
                 <div
                     className={`h-full bg-gradient-to-r transition-all duration-150 ${theme.progress}`}
