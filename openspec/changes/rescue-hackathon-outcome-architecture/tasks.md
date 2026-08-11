@@ -70,3 +70,5 @@
 - [x] 9.3 Keep the hero title to exactly two lines at laptop width and rebalance the works detail/index at desktop width.
 - [x] 9.4 Verify desktop, laptop, mobile, Chinese, and English states with real local screenshots and side-by-side concept comparisons.
 - [x] 9.5 Reconcile the final 03 concept at `1536×1024`, including podium/detail/index balance, mobile portal visibility, URL-backed selection, and localized podium labels.
+- [x] 9.6 Reconcile all four selected concepts at `1487×1058`: remove showcase-only floating chrome, lock the Chinese hero to two lines, restore per-chapter breathing room, and make 04 a full closing screen without changing the shared Navbar or Logo.
+- [x] 9.7 Recheck `1366×768` laptop, `390×844` mobile, English localization, document overflow, and the mobile work-detail open/close scroll-lock cycle.

@@ -59,7 +59,25 @@
 - 修复异步赛事数据加载后章节 hash 偶发漂移；桌面选择作品只更新同页详情与 `work=` 参数，手机选择作品使用高于底部导航的 `100dvh` portal。portal 自带主题变量，避免挂到 `body` 后背景变量丢失而变透明。
 - `1536×1024` 桌面、`390×844` 手机均实测 `scrollWidth === innerWidth`；手机作品详情打开时滚动锁生效，关闭后恢复。英文模式的前三名奖项、详情标题和创作者标签改为独立翻译，不再把中文奖项值拼进英文 UI。
 
+## 八次校正：1487 × 1058 四屏像素级复刻
+
+- 本轮把用户再次指定的 01 概念图作为不可自由发挥的尺寸合同，不再把它当作情绪参考。中文标题由两个固定语义行承载：第一行仅为“AI 全栈极速”，第二行仅为“黑客松”；桌面、笔记本和手机均不得由浏览器重新拆成第三行。
+- 删除概念图中不存在、且会压缩首屏的成果页赛事时间轴与报名 / 结果浮层；注册页仍保留原功能。共享的 `拓浙AI生态` Logo、全站导航名称和全局控制未随浙客松路由替换。
+- 01 按同视口重新校准标题、横线、日期、说明、四项数据、按钮与右下“车头”照片；02 取消侵入上一屏的负间距，恢复一张主照片和四张连续辅图；03 保持完整奖台、近等宽详情 / 索引；04 从圆角后台卡片改为整屏开放式企业跑道和知识网络。
+- 四个章节均获得独立的满屏节奏和章节呼吸感。`1487×1058` 中文页面、`1366×768` 笔记本、`390×844` 手机和英文桌面均无文档级横向溢出；英文首屏改用现有 locale 的两行标题、描述、地点和统计标签。
+- 手机作品详情实测为 `844px === 100dvh`；打开时 `body` 为 `overflow: hidden`，关闭后恢复。手机 02 的照片带保持独立横滑，页面本身 `scrollWidth === innerWidth === 390`。
+
 ## 对照证据
+
+- 本轮四屏最终拼图：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/four-screens-final-contact-sheet.jpg`
+- 01 概念图 / 最终实现同尺寸并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/01-reference-vs-final.jpg`
+- 02 概念图 / 最终实现同尺寸并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/02-reference-vs-final.jpg`
+- 03 概念图 / 最终实现同尺寸并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/03-reference-vs-final.jpg`
+- 04 概念图 / 最终实现同尺寸并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/04-reference-vs-final.jpg`
+- 笔记本两行标题：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/hero-laptop-1366x768.jpg`
+- 手机四段：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/mobile-hero-390x844.jpg`、`mobile-archive-390x844.jpg`、`mobile-works-390x844.jpg`、`mobile-support-390x844.jpg`
+- 手机作品详情：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/mobile-work-detail-390x844.jpg`
+- 英文首屏：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/hero-en-v2-1487x1058.jpg`
 
 - 01 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/hero-concept-vs-local-final.jpg`
 - 02 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/archive-concept-vs-local-final.jpg`
@@ -129,6 +147,8 @@
 - `npm run build` 通过。
 - `git diff --check` 通过。
 - 严格 OpenSpec 校验通过。
+- `competition-outcome-binding` 与 `hackathon-template` 两个后端测试文件共 6 项测试通过。
+- 本地 `5180` 成果页和 `5181/api/health` 均可访问，后端数据库状态为 `connected`；最终浏览器控制台无 `warn / error`。
 
 未发现剩余 P0、P1、P2 视觉或交互问题。
 

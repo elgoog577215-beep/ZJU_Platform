@@ -230,7 +230,7 @@ const HackathonSeasonOne = () => {
                 `}
             </style>
 
-            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start lg:justify-between min-[1720px]:left-7 min-[1720px]:right-7">
+            {!showcaseMode ? <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start lg:justify-between min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
                     className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl transition-[opacity,transform] duration-300 ease-out lg:mx-0 lg:w-[520px] lg:min-w-0 lg:flex-none ${
@@ -351,7 +351,7 @@ const HackathonSeasonOne = () => {
                         </div>
                     </div>
                 ) : null}
-            </div>
+            </div> : null}
 
             {activeView === "showcase" ? (
                 <HackathonShowcase key={activeEventKey} template={template} />

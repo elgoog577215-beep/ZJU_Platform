@@ -216,7 +216,16 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     const template = useMemo(() => normalizeHackathonTemplate(templateInput || {}), [templateInput]);
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
-    const titleParts = splitHackathonTitle(event.title);
+    const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
+    const titleParts = useEnglishContent
+        ? [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")]
+        : splitHackathonTitle(event.title);
+    const eventDescription = useEnglishContent
+        ? t("hackathon.hero.description")
+        : event.description;
+    const eventLocation = useEnglishContent
+        ? t("hackathon.event.location")
+        : event.location;
     const [outcome, setOutcome] = useState(null);
     const [loading, setLoading] = useState(true);
     const [uploadType, setUploadType] = useState(null);
@@ -310,8 +319,17 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 label: t("hackathon.outcome_archive.prize_pool"),
             });
         }
-        return stats.slice(0, 4);
-    }, [event.highlights, event.prizeUnit, event.prizeValue, t]);
+        const normalized = stats.slice(0, 4);
+        if (!useEnglishContent) return normalized;
+        const englishStatCopy = [
+            { unit: t("hackathon.hero.hours_unit"), label: t("hackathon.board.title_line_1") },
+            { unit: t("hackathon.hero.solo_unit"), label: t("hackathon.chips.solo") },
+            { unit: t("hackathon.hero.pitch_unit"), label: t("hackathon.board.title_line_2") },
+        ];
+        return normalized.map((stat, index) =>
+            englishStatCopy[index] ? { ...stat, ...englishStatCopy[index] } : stat
+        );
+    }, [event.highlights, event.prizeUnit, event.prizeValue, t, useEnglishContent]);
     const partnerCount = (partnerGroups || []).reduce(
         (total, group) => total + (group.partners?.length || 0),
         0
@@ -319,7 +337,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     const communitySupportGroups = (partnerGroups || []).filter(
         (group) => group.id !== "enterprise"
     );
-    const useEnglishPartnerNames = i18n.resolvedLanguage?.startsWith("en");
+    const useEnglishPartnerNames = useEnglishContent;
 
     return (
         <div className={`hackathon-outcome showcase-compact-flow ${isDayMode ? "is-day" : "is-dark"}`} data-showcase-page>
@@ -362,12 +380,12 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             </h2>
                             <div className="outcome-title-rule" aria-hidden="true" />
                             <p className="outcome-date-line">
-                                {formatDate(event.startAt)} · {event.location}
+                                {formatDate(event.startAt)} · {eventLocation}
                             </p>
                             <p className="outcome-overview-name">
                                 {t("hackathon.outcome_archive.overview")}
                             </p>
-                            <p className="outcome-description">{event.description}</p>
+                            <p className="outcome-description">{eventDescription}</p>
                             <div className="outcome-stat-grid">
                                 {eventStats.map((stat) => (
                                     <div key={stat.id}>
@@ -408,6 +426,16 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             </div>
                             <div className="outcome-film-caption"><span>{t("hackathon.outcome_archive.official_film")}</span><strong>{officialVideo?.title || t("hackathon.outcome_archive.film_pending")}</strong></div>
                         </div>
+                    </div>
+                    <div className="outcome-next-section">
+                        <div>
+                            <span aria-hidden="true">02</span>
+                            <strong>{t("hackathon.outcome_archive.archive_title")}</strong>
+                        </div>
+                        <Link to={`/media?event=${encodeURIComponent(competitionSlug)}`}>
+                            {t("hackathon.outcome_archive.view_all_photos", { count: outcome?.stats?.stage_photos || photos.length })}
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
                     </div>
                 </section>
 
@@ -518,6 +546,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                     <h3>{t("hackathon.outcome_archive.support_title")}</h3>
                                 </div>
                                 <p>{t("hackathon.outcome_archive.support_statement")}</p>
+                                <p className="outcome-credits-deck">{t("hackathon.outcome_archive.support_enterprise_desc")}</p>
                             </div>
                             <div className="outcome-credits-proof">
                                 <strong>{partnerCount}</strong>
@@ -619,7 +648,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 }
                 .outcome-x-field{position:absolute;z-index:-1;inset:0 0 auto 0;height:min(1120px,100svh);pointer-events:none;overflow:hidden}
                 .outcome-x-field img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(1.08) contrast(1.05)}
-                .hackathon-outcome-inner{width:min(1480px,calc(100% - 4rem));margin:0 auto}
+                .hackathon-outcome-inner{width:min(1480px,calc(100% - 5.75rem));margin:0 auto}
                 .outcome-overview,.outcome-archive,.outcome-works{position:relative;isolation:isolate;padding:0 0 clamp(4rem,7vw,7rem)}
                 .outcome-section-field{position:absolute;z-index:-2;inset:0 calc((100vw - min(1480px,calc(100vw - 4rem)))/-2) auto;height:min(1080px,100svh);overflow:hidden;pointer-events:none;opacity:.58}
                 .outcome-section-field img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) contrast(1.04)}
@@ -627,40 +656,46 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-section-field.is-works{top:1rem;opacity:.38}.outcome-section-field.is-works img{object-position:72% center}
                 .outcome-section-field.is-support{inset:0;z-index:-1;width:100%;height:100%;opacity:.52}.outcome-section-field.is-support img{object-position:72% top}
                 .outcome-archive,.outcome-works,.outcome-support{scroll-margin-top:5.25rem}
-                .outcome-overview{min-height:min(800px,calc(100svh - 7rem));display:flex;align-items:center;padding-bottom:2rem}
-                .outcome-overview-grid{display:grid;width:100%;min-height:min(760px,calc(100svh - 8.5rem));grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(1.25rem,2.2vw,2.5rem);align-items:stretch}
-                .outcome-hero-copy{position:relative;z-index:2;align-self:start;padding:clamp(.25rem,1vw,.8rem) 0}
+                .outcome-overview{min-height:900px;display:flex;align-items:flex-start;padding-bottom:2rem}
+                .outcome-overview-grid{display:grid;width:100%;min-height:min(766px,calc(100svh - 8.15rem));grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(1.25rem,2.2vw,2.5rem);align-items:stretch}
+                .outcome-hero-copy{position:relative;z-index:2;align-self:start;padding:2.75rem 0 0}
                 .outcome-date-line{margin:0;color:var(--x-lime);font-size:1rem;font-weight:900;letter-spacing:.045em}
-                .outcome-hero-copy h1{display:grid;margin:0;font-size:clamp(4.9rem,6.45vw,6.45rem);font-weight:950;line-height:.84;letter-spacing:-.04em;text-shadow:0 10px 40px rgba(0,0,0,.32)}
-                .outcome-hero-copy h1>span{white-space:nowrap}
+                .outcome-hero-copy h1{display:grid;row-gap:1.4rem;margin:0;font-size:clamp(6rem,8.65vw,8rem);font-weight:950;line-height:.84;letter-spacing:-.04em;text-shadow:0 10px 40px rgba(0,0,0,.32)}
+                .outcome-hero-copy h1>span{transform:scaleX(.963);transform-origin:left center;white-space:nowrap}
                 .outcome-hero-copy h1 .is-accent{color:var(--x-lime)}
-                .outcome-title-rule{width:min(100%,46rem);height:1px;margin:2.2rem 0 1.05rem;background:rgba(185,255,24,.48)}
-                .outcome-overview-name{margin:1.35rem 0 0;color:var(--x-text);font-size:1.05rem;font-weight:900;letter-spacing:.03em}
+                .outcome-title-rule{width:min(100%,46rem);height:1px;margin:3rem 0 1.05rem;background:rgba(185,255,24,.48)}
+                .outcome-overview-name{margin:1.45rem 0 0;color:var(--x-text);font-size:1.05rem;font-weight:900;letter-spacing:.03em}
                 .outcome-description{max-width:620px;margin:1rem 0 0;color:rgba(247,248,242,.7);font-size:.85rem;font-weight:650;line-height:1.85}
-                .outcome-stat-grid{display:grid;width:min(100%,594px);grid-template-columns:repeat(4,1fr);margin-top:3.9rem;border-block:0}
+                .outcome-stat-grid{display:grid;width:min(100%,594px);grid-template-columns:repeat(4,1fr);margin-top:6.4rem;border-block:0}
                 .outcome-stat-grid>div{position:relative;padding:1rem 1rem 1rem 0}
                 .outcome-stat-grid>div:not(:last-child)::after{content:"";position:absolute;right:.7rem;top:24%;height:52%;width:1px;background:rgba(185,255,24,.34)}
                 .outcome-stat-grid strong{display:block;color:var(--x-lime);font:900 clamp(1.9rem,2.65vw,2.8rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-stat-grid small{margin-left:.28rem;font-size:.78rem;color:var(--x-text)}
                 .outcome-stat-grid span{display:block;margin-top:.62rem;color:var(--x-muted);font-size:.74rem;font-weight:800}
-                .outcome-primary-actions{display:flex;gap:1rem;margin-top:2rem}
+                .outcome-primary-actions{display:flex;gap:1rem;margin-top:2.9rem}
                 .outcome-primary-actions button,.outcome-section-topline>a,.outcome-section-topline>button,.outcome-work-detail-actions a{display:inline-flex;min-height:50px;align-items:center;justify-content:center;gap:.65rem;padding:.76rem 1.2rem;border:1px solid rgba(185,255,24,.48);border-radius:11px;background:rgba(2,8,6,.35);color:inherit;font-size:.8rem;font-weight:900;transition:transform .2s ease,background-color .2s ease,border-color .2s ease}
-                .outcome-primary-actions button{min-width:13.25rem;min-height:64px;font-size:1rem}
+                .outcome-primary-actions button{min-width:13.25rem;min-height:64px;border-radius:2px;font-size:1rem}
                 .outcome-primary-actions button:first-child{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
                 .outcome-primary-actions button:hover,.outcome-section-topline>a:hover,.outcome-section-topline>button:hover,.outcome-work-detail-actions a:hover{transform:translateY(-2px);border-color:var(--x-lime);background:rgba(185,255,24,.12)}
                 .outcome-primary-actions button:first-child:hover{background:var(--x-lime-soft)}
-                .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 4.25vw);margin-right:calc((100vw - min(1480px,calc(100vw - 4rem)))/-2);margin-left:-4.25vw;padding-bottom:1.5rem}
-                .outcome-film-frame{width:100%;aspect-ratio:16/9.35;overflow:hidden;padding:1px;background:rgba(185,255,24,.72);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);filter:drop-shadow(0 26px 34px rgba(0,0,0,.5))}
+                .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 4.5vw);margin-right:calc((100vw - min(1480px,calc(100vw - 5.75rem)))/-2);margin-left:-.55vw;padding-bottom:0}
+                .outcome-film-frame{width:100%;aspect-ratio:16/8.4;overflow:hidden;padding:1px;background:rgba(185,255,24,.72);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);filter:drop-shadow(0 26px 34px rgba(0,0,0,.5))}
                 .outcome-film button{position:relative;display:block;width:100%;height:100%;overflow:hidden;border:0;background:var(--x-surface);padding:0;clip-path:inherit}
                 @supports (clip-path:shape(from 0 0,line to 100% 0,line to 100% 100%,close)){
                     .outcome-film-frame,.outcome-film button{clip-path:shape(from 19% 0,line to 100% 0,line to 100% 100%,line to 2% 100%,curve to 0 94% with 0 98%,line to 15% 10%,curve to 19% 0 with 16.5% 1%,close)}
                 }
                 .outcome-film button img{transition:transform .7s cubic-bezier(.2,.65,.2,1)}
                 .outcome-film button:hover img{transform:scale(1.018)}
-                .outcome-film-play{position:absolute;right:1.1rem;bottom:1.1rem;display:grid;width:56px;height:56px;place-items:center;border:1px solid rgba(255,255,255,.72);border-radius:50%;background:rgba(2,8,6,.62);color:#fff;backdrop-filter:blur(10px)}
-                .outcome-film-caption{display:flex;justify-content:space-between;gap:1rem;padding:.85rem .25rem 0;font-size:.69rem}
+                .outcome-film-play{display:none}
+                .outcome-film-caption{display:none}
                 .outcome-film-caption span{color:var(--x-lime);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
                 .outcome-film-caption strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--x-muted)}
+                .outcome-next-section{position:absolute;z-index:3;right:0;bottom:.35rem;left:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2rem;color:var(--x-text)}
+                .outcome-next-section>div{display:grid;grid-template-columns:minmax(10rem,1fr) auto minmax(10rem,1fr);align-items:center;gap:1.5rem}
+                .outcome-next-section>div::before,.outcome-next-section>div::after{content:"";height:1px;background:rgba(185,255,24,.42)}
+                .outcome-next-section span{color:var(--x-lime);font:300 3.1rem/.9 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-next-section strong{white-space:nowrap;font-size:1.05rem;letter-spacing:.02em}
+                .outcome-next-section a{display:flex;align-items:center;gap:.75rem;color:var(--x-muted);font-size:.7rem;font-weight:850;white-space:nowrap}
                 .outcome-section-heading{display:flex;align-items:flex-end;gap:1.05rem;padding:1rem 0 1.5rem}
                 .outcome-section-heading>span{color:var(--x-lime);font:300 clamp(3.8rem,7vw,6.8rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-section-heading p{margin:0 0 .38rem;color:var(--x-lime);font-size:.64rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
@@ -669,25 +704,29 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-section-topline::after{content:"";position:absolute;right:0;top:-1px;width:clamp(70px,13vw,190px);height:1px;background:var(--x-lime)}
                 .outcome-section-topline .outcome-section-heading{padding-bottom:1.25rem}
                 .outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1.25rem}
-                .outcome-archive{min-height:780px;padding-top:clamp(1.5rem,3vw,3rem)}
-                .outcome-archive-stage{display:grid;grid-template-columns:minmax(250px,.34fr) minmax(0,1.66fr);gap:clamp(1.5rem,3.5vw,3.5rem);align-items:end}
-                .outcome-archive-intro{align-self:center}
+                .outcome-archive{min-height:780px;padding-top:8rem;padding-bottom:3rem}
+                .outcome-archive-stage{display:grid;grid-template-columns:minmax(300px,.49fr) minmax(0,1.51fr);gap:clamp(1.5rem,3.5vw,3.5rem);align-items:start}
+                .outcome-archive-intro{align-self:start;padding-top:2rem}
                 .outcome-archive-intro .outcome-section-heading{display:block;padding:0}
                 .outcome-archive-intro .outcome-section-heading>span{display:block;font-size:clamp(6.5rem,10vw,10rem);line-height:.72}
-                .outcome-archive-intro .outcome-section-heading>div{margin-top:2rem}
-                .outcome-archive-intro .outcome-section-heading p{margin:0 0 .7rem}
-                .outcome-archive-intro .outcome-section-heading h2{font-size:clamp(2.35rem,4vw,4.25rem);line-height:1;letter-spacing:-.04em}
-                .outcome-archive-intro>a{display:inline-flex;min-height:52px;align-items:center;gap:.8rem;margin-top:2.2rem;padding:.8rem 1rem;border:1px solid rgba(185,255,24,.5);border-radius:11px;color:inherit;font-size:.76rem;font-weight:900;transition:transform .2s ease,border-color .2s ease,background-color .2s ease}
+                .outcome-archive-intro .outcome-section-heading>div{display:flex;flex-direction:column;margin-top:2rem}
+                .outcome-archive-intro .outcome-section-heading p{order:2;margin:.85rem 0 0}
+                .outcome-archive-intro .outcome-section-heading h2{order:1;font-size:clamp(3rem,5.25vw,5.25rem);line-height:1;letter-spacing:-.04em}
+                .outcome-archive-intro>a{display:inline-flex;min-width:18.75rem;min-height:58px;align-items:center;justify-content:center;gap:.8rem;margin-top:4.75rem;padding:.8rem 1rem;border:1px solid rgba(185,255,24,.5);border-radius:2px;color:inherit;font-size:.88rem;font-weight:900;transition:transform .2s ease,border-color .2s ease,background-color .2s ease}
                 .outcome-archive-intro>a:hover{transform:translateY(-2px);border-color:var(--x-lime);background:rgba(185,255,24,.1)}
                 .outcome-archive-feature{min-width:0;margin:0}
-                .outcome-archive-feature>a{display:block;aspect-ratio:16/8.25;overflow:hidden;padding:1px;border-radius:16px;background:rgba(185,255,24,.72);clip-path:polygon(10% 0,100% 0,100% 100%,0 100%)}
+                .outcome-archive-feature>a{display:block;aspect-ratio:16/7.05;overflow:hidden;padding:1px;border-radius:18px 2px 18px 2px;background:rgba(185,255,24,.72);clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)}
                 .outcome-archive-feature>a>div{clip-path:inherit}
+                @supports (clip-path:shape(from 0 0,line to 100% 0,line to 100% 100%,close)){
+                    .outcome-archive-feature>a,.outcome-archive-feature>a>div{clip-path:shape(from 12% 0,line to 100% 0,line to 100% 100%,line to 3% 100%,curve to 0 91% with 0 97%,line to 9% 12%,curve to 12% 0 with 10% 1%,close)}
+                }
                 .outcome-archive-feature figcaption,.outcome-photo-strip figcaption{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.4rem;padding:.78rem .05rem;border-bottom:1px solid rgba(247,248,242,.13)}
                 .outcome-archive-feature figcaption span,.outcome-photo-strip figcaption span{color:var(--x-lime);font:800 .68rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-archive-feature figcaption strong,.outcome-photo-strip figcaption strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem}
-                .outcome-photo-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin-top:clamp(1.4rem,2.4vw,2.5rem)}
+                .outcome-archive-feature figcaption,.outcome-photo-strip figcaption{display:none}
+                .outcome-photo-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:4rem 1.25rem 0}
                 .outcome-photo-strip figure{min-width:0;margin:0}
-                .outcome-photo-strip figure>a{display:block;aspect-ratio:1.42/1;overflow:hidden;border-radius:14px 4px 14px 4px;background:var(--x-surface);clip-path:polygon(7% 0,100% 0,100% 88%,93% 100%,0 100%,0 12%)}
+                .outcome-photo-strip figure>a{display:block;aspect-ratio:1.28/1;overflow:hidden;padding:1px;border-radius:14px 4px 14px 4px;background:rgba(185,255,24,.65);clip-path:polygon(7% 0,100% 0,100% 88%,93% 100%,0 100%,0 12%)}
                 .outcome-photo-strip img{transition:transform .55s ease}
                 .outcome-photo-strip a:hover img{transform:scale(1.025)}
                 .outcome-empty-line{min-height:210px;display:grid;place-items:center;border-block:1px solid rgba(247,248,242,.13);font-weight:800;opacity:.48}
@@ -752,26 +791,29 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-work-detail blockquote{padding-left:1rem;border-left:1px solid var(--x-lime)}
                 .outcome-work-detail-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.75rem}
                 .outcome-work-detail-actions a{min-height:42px;padding:.58rem .85rem;font-size:.68rem}
-                .outcome-credits{position:relative;isolation:isolate;overflow:hidden;margin-top:clamp(5rem,9vw,9rem);padding:clamp(3rem,6vw,6rem) clamp(1.25rem,3.6vw,4rem) clamp(2.4rem,4vw,4rem);border-top:1px solid rgba(185,255,24,.66);border-bottom:1px solid rgba(185,255,24,.28);border-radius:16px;background:rgba(2,10,7,.86)}
-                .outcome-credits-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:clamp(2rem,6vw,6rem);align-items:end}
+                .outcome-credits{position:relative;isolation:isolate;display:grid;min-height:calc(100svh - 5.25rem);overflow:hidden;margin-top:clamp(5rem,9vw,9rem);padding:clamp(7.5rem,8.6vw,8.25rem) 0 clamp(3rem,5vw,4.5rem);border-top:1px solid rgba(185,255,24,.66);background:transparent}
+                .outcome-credits-head{display:contents}
+                .outcome-credits-lead{order:1;max-width:58rem}
                 .outcome-credits-lead>span,.outcome-enterprise-stage header span,.outcome-support-network-intro>span{display:block;color:var(--x-lime);font-size:.65rem;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
-                .outcome-credits-lead>div{display:flex;align-items:baseline;gap:1.5rem;margin-top:.8rem}
-                .outcome-credits-lead>div>strong{color:var(--x-lime);font:300 clamp(4.8rem,7.5vw,7.5rem)/.75 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-credits-lead h3{max-width:760px;margin:0;font-size:clamp(3.2rem,6.2vw,5.8rem);font-weight:950;line-height:.9;letter-spacing:-.04em}
-                .outcome-credits-lead p{max-width:740px;margin:1.3rem 0 0;color:rgba(247,248,242,.82);font-size:clamp(1.2rem,2.1vw,2rem);font-weight:800;line-height:1.38}
-                .outcome-credits-proof{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.2rem;align-items:end;padding:1.2rem 0;border-top:1px solid rgba(247,248,242,.24);border-bottom:1px solid rgba(247,248,242,.24)}
-                .outcome-credits-proof>strong{color:var(--x-lime);font:300 clamp(4.8rem,8vw,7.6rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.04em}
+                .outcome-credits-lead>div{display:flex;align-items:baseline;gap:1.15rem;margin-top:.8rem}
+                .outcome-credits-lead>div>strong{color:var(--x-lime);font:300 clamp(4.2rem,5.4vw,5.2rem)/.75 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-credits-lead>div>strong::after{content:"/";display:inline-block;margin-left:.7rem;color:rgba(185,255,24,.55);font-size:.42em;vertical-align:.45em}
+                .outcome-credits-lead h3{max-width:760px;margin:0;font-size:clamp(3rem,4.7vw,4.45rem);font-weight:950;line-height:.92;letter-spacing:-.04em}
+                .outcome-credits-lead>p:not(.outcome-credits-deck){max-width:740px;margin:1.15rem 0 0;color:rgba(247,248,242,.82);font-size:clamp(1.1rem,1.65vw,1.45rem);font-weight:800;line-height:1.38}
+                .outcome-credits-deck{max-width:42rem;margin:.8rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.7}
+                .outcome-credits-proof{order:3;display:grid;grid-template-columns:minmax(11rem,.3fr) minmax(0,1fr);gap:1.2rem;align-items:end;margin-top:2rem;padding:1.25rem 0;border-top:1px solid rgba(247,248,242,.24);border-bottom:1px solid rgba(247,248,242,.24)}
+                .outcome-credits-proof>strong{color:var(--x-lime);font:300 clamp(3.4rem,4.6vw,4.5rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.04em}
                 .outcome-credits-proof span{font-size:.72rem;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
                 .outcome-credits-proof p{max-width:32rem;margin:.55rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.7}
-                .outcome-enterprise-stage{margin-top:clamp(2.5rem,5vw,5rem);padding:clamp(1.25rem,2.5vw,2.25rem);border:1px solid rgba(185,255,24,.48);border-radius:16px;background:rgba(2,9,6,.82)}
+                .outcome-enterprise-stage{order:2;margin-top:3.5rem;padding:0;border:0;border-radius:0;background:transparent}
                 .outcome-enterprise-stage>header{display:grid;grid-template-columns:minmax(220px,.55fr) minmax(0,1.45fr);gap:clamp(1.5rem,4vw,4rem);align-items:end}
-                .outcome-enterprise-stage h4{margin:.65rem 0 0;font-size:clamp(1.75rem,2.4vw,2.5rem);line-height:1.05;letter-spacing:-.03em}
-                .outcome-enterprise-stage header>p{max-width:45rem;margin:0;color:var(--x-muted);font-size:.76rem;line-height:1.75}
+                .outcome-enterprise-stage h4{margin:.65rem 0 0;font-size:clamp(1.45rem,2vw,1.9rem);line-height:1.05;letter-spacing:-.03em}
+                .outcome-enterprise-stage header>p{display:none}
                 .outcome-enterprise-logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:1.6rem;border-top:1px solid rgba(247,248,242,.14);border-left:1px solid rgba(247,248,242,.14)}
-                .outcome-enterprise-logos>div{display:flex;min-height:92px;align-items:center;justify-content:center;padding:.9rem;border-right:1px solid rgba(247,248,242,.14);border-bottom:1px solid rgba(247,248,242,.14);background:rgba(255,255,255,.035)}
+                .outcome-enterprise-logos>div{display:flex;min-height:70px;align-items:center;justify-content:center;padding:.75rem;border-right:1px solid rgba(247,248,242,.14);border-bottom:1px solid rgba(247,248,242,.14);background:rgba(255,255,255,.025)}
                 .outcome-enterprise-logos img{display:block;max-width:82%;max-height:34px;object-fit:contain}
                 .outcome-enterprise-logos strong{font-size:.82rem;text-align:center}
-                .outcome-support-network{display:grid;grid-template-columns:minmax(220px,.52fr) minmax(0,1.48fr);gap:clamp(1.5rem,4vw,4rem);margin-top:clamp(2rem,4vw,3.5rem)}
+                .outcome-support-network{order:4;display:grid;grid-template-columns:minmax(220px,.52fr) minmax(0,1.48fr);gap:clamp(1.5rem,4vw,4rem);margin-top:clamp(2rem,3vw,2.8rem)}
                 .outcome-support-network-intro{align-self:start;padding-top:1.2rem;border-top:1px solid rgba(247,248,242,.22)}
                 .outcome-support-network-intro h4{margin:.65rem 0 0;font-size:clamp(1.55rem,2.6vw,2.5rem);line-height:1.08;letter-spacing:-.03em}
                 .outcome-support-network-intro p{max-width:30rem;margin:1rem 0 0;color:var(--x-muted);font-size:.74rem;line-height:1.75}
@@ -796,13 +838,19 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-mobile-work-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem}
                 .outcome-mobile-work-bar button{display:grid;width:40px;height:40px;place-items:center;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:transparent;color:#fff}
                 .outcome-mobile-work-scroll{height:calc(100dvh - 58px);overflow-y:auto;padding:1rem 1rem calc(env(safe-area-inset-bottom) + 2rem)}
-                @media(min-width:1121px){.outcome-archive{margin-top:-4rem}}
+                @media(min-width:1121px){.outcome-archive{margin-top:0}}
                 @media(max-width:1120px){
-                    .hackathon-outcome{padding-top:11.8rem}
+                    .hackathon-outcome{padding-top:7rem}
                     .outcome-overview{min-height:auto}
                     .outcome-overview-grid{min-height:auto;grid-template-columns:1fr}
                     .outcome-hero-copy{max-width:760px}
+                    .outcome-title-rule{margin-top:2.6rem}
+                    .outcome-hero-copy h1{row-gap:.8rem;font-size:clamp(5rem,9.6vw,6.8rem)}
+                    .outcome-overview-name{margin-top:1.4rem}
+                    .outcome-stat-grid{margin-top:3rem}
+                    .outcome-primary-actions{margin-top:2.5rem}
                     .outcome-film{width:min(100%,900px);margin-right:0;margin-left:auto}
+                    .outcome-next-section{display:none}
                     .outcome-works-layout{grid-template-columns:1fr}
                     .outcome-podium,.outcome-work-detail,.outcome-ranking{grid-column:1}
                     .outcome-ranking{position:relative;top:auto}
@@ -815,14 +863,14 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-enterprise-logos{grid-template-columns:repeat(3,minmax(0,1fr))}
                 }
                 @media(max-width:767px){
-                    .hackathon-outcome{padding-top:10.8rem}
+                    .hackathon-outcome{padding-top:5.5rem}
                     .outcome-x-field{height:780px;opacity:.92}.outcome-x-field img{object-position:58% top}
                     .hackathon-outcome-inner{width:100%}
                     .outcome-overview,.outcome-archive,.outcome-works{padding-inline:1rem;padding-bottom:3.6rem}.outcome-overview{padding-bottom:2rem}
                     .outcome-overview-grid{gap:1.7rem}
                     .outcome-hero-copy{padding-top:.5rem}
                     .outcome-date-line{font-size:.82rem}
-                    .outcome-hero-copy h1{font-size:clamp(3.15rem,14vw,4.1rem);line-height:.83;letter-spacing:-.04em}
+                    .outcome-hero-copy h1{row-gap:.2rem;font-size:clamp(3.15rem,14vw,4.1rem);line-height:.9;letter-spacing:-.04em}
                     .outcome-title-rule{margin:1.4rem 0 .8rem}.outcome-overview-name{margin-top:1rem;font-size:.92rem}
                     .outcome-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:4;-webkit-box-orient:vertical;font-size:.84rem;line-height:1.78}
                     .outcome-stat-grid{grid-template-columns:repeat(2,1fr);margin-top:1.7rem}
@@ -842,7 +890,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-archive-intro .outcome-section-heading>span{font-size:4.3rem}
                     .outcome-archive-intro .outcome-section-heading>div{margin-top:0}
                     .outcome-archive-intro .outcome-section-heading h2{font-size:2rem}
-                    .outcome-archive-intro>a{min-height:46px;margin-top:1.2rem}
+                    .outcome-archive-intro{padding-top:0}
+                    .outcome-archive-intro>a{width:100%;min-width:0;min-height:46px;margin-top:1.2rem}
                     .outcome-archive-feature>a{aspect-ratio:4/3;border-radius:16px 6px 16px 6px;clip-path:none}
                     .outcome-photo-strip{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;gap:.75rem;margin-inline:-1rem;padding:0 1rem .35rem;scrollbar-width:none}
                     .outcome-photo-strip::-webkit-scrollbar{display:none}.outcome-photo-strip figure{min-width:78vw;scroll-snap-align:start}.outcome-photo-strip figure>a{aspect-ratio:4/3;border-radius:12px;clip-path:none}
@@ -865,7 +914,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-credits-lead>div{gap:.8rem}
                     .outcome-credits-lead>div>strong{font-size:4.2rem}
                     .outcome-credits-lead h3{font-size:3.15rem}
-                    .outcome-credits-lead p{font-size:1.18rem}
+                    .outcome-credits-lead>p:not(.outcome-credits-deck){font-size:1.18rem}
+                    .outcome-credits-deck{font-size:.78rem}
                     .outcome-credits-proof{grid-template-columns:auto minmax(0,1fr);gap:1rem;padding:1rem 0}
                     .outcome-credits-proof>strong{font-size:4.3rem}
                     .outcome-enterprise-stage{gap:1.4rem;margin-top:2.5rem;padding:1rem}
@@ -882,6 +932,19 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-credits-groups section>div{grid-template-columns:1fr}
                     .outcome-video-dialog{padding:0}.outcome-video-dialog article{border:0;border-radius:0}.outcome-video-dialog video{max-height:100dvh}
                     .outcome-work-detail.is-compact{border:0;padding:0;background:transparent}.outcome-work-detail-body{grid-template-columns:1fr}.outcome-work-detail.is-compact .outcome-work-detail-image{aspect-ratio:16/11}
+                }
+                @media(min-width:1121px) and (max-height:850px){
+                    .hackathon-outcome{padding-top:7rem}
+                    .outcome-overview{min-height:calc(100svh - 7rem);padding-bottom:1rem}
+                    .outcome-overview-grid{min-height:calc(100svh - 9rem)}
+                    .outcome-hero-copy{padding-top:.7rem}
+                    .outcome-hero-copy h1{row-gap:.4rem;font-size:clamp(4.7rem,6vw,5.6rem);line-height:.96}
+                    .outcome-title-rule{margin:1.9rem 0 .8rem}
+                    .outcome-overview-name{margin-top:1rem}
+                    .outcome-description{margin-top:.65rem;line-height:1.65}
+                    .outcome-stat-grid{margin-top:2rem}
+                    .outcome-primary-actions{margin-top:1.45rem}
+                    .outcome-primary-actions button{min-height:54px}
                 }
                 @media(max-width:380px){.outcome-primary-actions{grid-template-columns:1fr}.outcome-section-topline>a,.outcome-section-topline>button{max-width:46%;font-size:.68rem}.outcome-stat-grid strong{font-size:1.22rem}}
                 @media(prefers-reduced-motion:reduce){.hackathon-outcome *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}}

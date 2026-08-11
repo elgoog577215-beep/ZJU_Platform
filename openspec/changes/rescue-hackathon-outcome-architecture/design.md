@@ -12,10 +12,11 @@ Hackathon content is split by ownership:
 
 ## Public Information Architecture
 
-- `/hackathon?event=<event-key>&view=showcase`: the primary event result surface. It has three top-level chapters only:
+- `/hackathon?event=<event-key>&view=showcase`: the primary event result surface. It has four continuous, full-viewport chapters:
     1. `赛事总览`: event identity, official film, essential facts, and submission action.
     2. `现场档案`: a restrained highlight sequence with an event-scoped jump to the complete archive.
-    3. `作品与荣誉`: podium emphasis, the complete approved work index, and in-context work detail. Partner/support credits close this chapter rather than forming another full-screen page.
+    3. `作品与荣誉`: podium emphasis, the complete approved work index, and in-context work detail.
+    4. `共同见证`: enterprise backers plus the school and community support network. It remains part of the same showcase route rather than becoming a parallel product surface.
 - `/media?event=<competition-slug>`: canonical event archive. The selected event is URL-backed, and the visitor can switch to another event without losing the media-library context.
 - `/hackathon/works?competition=<competition-slug>` and `/gallery`: compatibility routes. They resolve to the corresponding event-scoped showcase or media archive instead of presenting competing product surfaces.
 
@@ -29,6 +30,15 @@ Hackathon content is split by ownership:
 - Rounding is selective rather than global: the desktop overview film preserves the selected mockup's directional “train-nose” silhouette, other event media uses restrained 12–24 px radii, and controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based. Mobile keeps the overview film as a stable rounded rectangle rather than carrying the desktop crop into a narrow viewport.
 - Photos never receive a persistent text panel or dark overlay. Functional video affordances may float over media, but captions and metadata remain below the image.
 - Desktop composition deliberately separates the upper-left title from the lower-right event photo across the X. Mobile collapses to one vertical story, keeps horizontal photo strips independently scrollable, and never introduces document-level horizontal overflow.
+
+### Final Four-Screen Fidelity Constraints
+
+- The selected `1487 × 1058` concept images are the dimensional contract for 01–04. Every desktop chapter receives its own viewport-scale composition and breathing space; no negative margin may pull the following chapter into the current one.
+- The Chinese hero title is locked to exactly two semantic spans: `AI 全栈极速` on line one and `黑客松` on line two. Responsive sizing may change, but the browser may not choose a third or different line break.
+- The first-screen documentary image keeps the directional train-nose silhouette and occupies the lower-right field. Event switchers, registration tabs, or route controls that do not exist in the selected concept may not float over the public showcase.
+- The original shared ecosystem Logo, navigation destinations, and global controls remain untouched. Pixel fidelity applies to the showcase canvas below that shell, not to replacing the shell with concept-only branding.
+- The 02 archive uses one dominant field image and a four-item horizontal photo rail; 03 keeps the podium/detail/index at comparable visual scales; 04 opens the partner runway and support network into a full closing screen instead of wrapping them in a dashboard card.
+- At `1366 × 768`, the entire 01 story still reads as one compact screen. At `390 × 844`, the document has no horizontal overflow, the archive rail alone may scroll horizontally, and work detail uses a `100dvh` portal with scroll lock and a reversible close action.
 
 ### Final 03 Fidelity Constraints
 
