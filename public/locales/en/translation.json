@@ -1835,8 +1835,8 @@
             "prize_pool": "Prize Pool",
             "fallback_award": "Winning Work",
             "fallback_honor": "Awarded Builder",
-            "fallback_title": "Untitled Work",
-            "fallback_author": "Awarded Builder",
+            "fallback_title": "Awarded Work {{rank}}",
+            "fallback_author": "Builder / Team",
             "work_cover_alt": "{{title}} cover",
             "author": "Author / Team",
             "background": "Year / Major",
@@ -1849,6 +1849,12 @@
             "work_dialog": "{{title}} details",
             "support_eyebrow": "Credits",
             "support_title": "Built Together",
+            "support_lineup": "Knowledge & Innovation Network",
+            "support_groups": {
+                "school": "School Support",
+                "organization": "Campus Force",
+                "enterprise": "Enterprise Partners"
+            },
             "support_count": "{{count}} school, community, and enterprise partners supported this event.",
             "open_for_registration": "Open",
             "archived": "Archived"

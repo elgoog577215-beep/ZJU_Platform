@@ -39,7 +39,11 @@ const normalizeWork = (work, index, t) => ({
         work.honorTitle ||
         work.award ||
         t("hackathon.outcome_archive.fallback_honor"),
-    title: work.title || t("hackathon.outcome_archive.fallback_title"),
+    title:
+        work.title ||
+        t("hackathon.outcome_archive.fallback_title", {
+            rank: normalizeRank(work.rank, index),
+        }),
     author: work.author || work.uploader_name || t("hackathon.outcome_archive.fallback_author"),
     cover: work.cover_url || work.cover || (index % 2 === 0 ? FALLBACK_HERO : FALLBACK_PHOTO),
     gitUrl: work.git_url || work.gitUrl || "",
@@ -163,7 +167,7 @@ const SectionNumber = ({ number, eyebrow, title, id }) => (
 );
 
 const HackathonOutcomeShowcase = ({ template: templateInput }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
@@ -209,7 +213,16 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
         const source = Array.isArray(outcome?.works) && outcome.works.length > 0
             ? outcome.works
             : fallbackPodiumWorks;
-        return source.map((work, index) => normalizeWork(work, index, t));
+        const usingFallback = source === fallbackPodiumWorks;
+        return source.map((work, index) =>
+            normalizeWork(
+                usingFallback
+                    ? { ...work, award: "", honorTitle: "", title: "", author: "" }
+                    : work,
+                index,
+                t
+            )
+        );
     }, [outcome, t]);
     const requestedWork = String(searchParams.get("work") || "").trim();
     const selectedWork =
@@ -249,6 +262,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
         (total, group) => total + (group.partners?.length || 0),
         0
     );
+    const useEnglishPartnerNames = i18n.resolvedLanguage?.startsWith("en");
 
     return (
         <div className={`hackathon-outcome showcase-compact-flow ${isDayMode ? "is-day" : "is-dark"}`} data-showcase-page>
@@ -389,24 +403,58 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                 </button>
                             ))}
                         </div>
+                        <WorkDetail work={selectedWork} t={t} />
                         <div className="outcome-ranking">
                             <h3>{t("hackathon.outcome_archive.complete_ranking", { count: works.length })}</h3>
                             <div>
                                 {(remainingWorks.length > 0 ? remainingWorks : podium).map((work) => (
                                     <button key={work.id} type="button" onClick={() => selectWork(work)} className={selectedWork?.id === work.id ? "is-selected" : ""}>
-                                        <span>{work.rank}</span><strong>{work.title}</strong><small>{work.author}</small><ArrowRight className="h-3.5 w-3.5" />
+                                        <div className="outcome-ranking-thumb">
+                                            <SmartImage src={normalizeExternalImageUrl(work.cover, 360)} alt="" type="image" className="h-full w-full" imageClassName="h-full w-full object-cover" />
+                                        </div>
+                                        <span>{work.rank}</span>
+                                        <div><strong>{work.title}</strong><small>{work.author}</small></div>
+                                        <ArrowRight className="h-4 w-4" />
                                     </button>
                                 ))}
                             </div>
                         </div>
-                        <WorkDetail work={selectedWork} t={t} />
                     </div>
                     <footer className="outcome-credits">
-                        <div><span>{t("hackathon.outcome_archive.support_eyebrow")}</span><strong>{t("hackathon.outcome_archive.support_title")}</strong></div>
-                        <p>{t("hackathon.outcome_archive.support_count", { count: partnerCount })}</p>
-                        {(partnerGroups || []).flatMap((group) => group.partners || []).slice(0, 12).map((partner) => (
-                            <span key={partner.id || partner.name}>{partner.name}</span>
-                        ))}
+                        <div className="outcome-credits-lead">
+                            <span>{t("hackathon.outcome_archive.support_eyebrow")}</span>
+                            <strong>{partnerCount}</strong>
+                            <div>
+                                <h3>{t("hackathon.outcome_archive.support_title")}</h3>
+                                <p>{t("hackathon.outcome_archive.support_lineup")}</p>
+                            </div>
+                            <p>{t("hackathon.outcome_archive.support_count", { count: partnerCount })}</p>
+                        </div>
+                        <div className="outcome-credits-groups">
+                            {(partnerGroups || []).map((group, groupIndex) => (
+                                <section key={group.id}>
+                                    <header>
+                                        <span>{String(groupIndex + 1).padStart(2, "0")}</span>
+                                        <div>
+                                            <p>{group.code}</p>
+                                            <h4>{t(`hackathon.outcome_archive.support_groups.${group.id}`)}</h4>
+                                        </div>
+                                    </header>
+                                    <div>
+                                        {(group.partners || []).map((partner, partnerIndex) => (
+                                            <span key={partner.id || partner.name}>
+                                                <small>{String(partnerIndex + 1).padStart(2, "0")}</small>
+                                                <strong>
+                                                    {useEnglishPartnerNames
+                                                        ? partner.name_en || partner.name
+                                                        : partner.name}
+                                                </strong>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </section>
+                            ))}
+                        </div>
                     </footer>
                 </section>
             </main>
@@ -491,45 +539,67 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-photo-strip figcaption span{color:var(--x-lime);font:800 .68rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-photo-strip figcaption strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem}
                 .outcome-empty-line{min-height:210px;display:grid;place-items:center;border-block:1px solid rgba(247,248,242,.13);font-weight:800;opacity:.48}
-                .outcome-works-layout{display:grid;grid-template-columns:minmax(270px,.78fr) minmax(250px,.62fr) minmax(410px,1fr);gap:clamp(1.2rem,2vw,2rem)}
+                .outcome-works-layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(420px,.97fr);gap:clamp(1.5rem,2.5vw,2.6rem);align-items:start}
                 .outcome-works-layout h3{margin:0 0 1rem;font-size:.76rem;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
-                .outcome-podium>button{width:100%;display:grid;grid-template-columns:92px 2.2rem minmax(0,1fr);align-items:center;gap:.75rem;padding:.7rem 0;border:0;border-bottom:1px solid rgba(247,248,242,.13);background:transparent;color:inherit;text-align:left}
-                .outcome-podium>button.is-selected,.outcome-podium>button:hover{border-bottom-color:var(--x-lime)}
-                .outcome-podium-thumb{aspect-ratio:16/10;overflow:hidden;border-radius:10px;background:var(--x-surface)}
-                .outcome-podium>button>span{color:var(--x-lime);font:900 .76rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-podium{grid-column:1/-1;display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:1rem;margin-bottom:clamp(1.2rem,2vw,2rem)}
+                .outcome-podium>h3{grid-column:1/-1;margin:0;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.38)}
+                .outcome-podium>button{position:relative;width:100%;display:grid;grid-template-columns:4.25rem minmax(0,1fr);align-items:center;gap:.85rem;overflow:hidden;padding:0 1rem 1.05rem;border:1px solid rgba(247,248,242,.12);border-radius:16px;background:rgba(2,8,6,.54);color:inherit;text-align:left;transition:transform .25s ease,border-color .25s ease,background-color .25s ease}
+                .outcome-podium>button:hover{transform:translateY(-4px);border-color:rgba(185,255,24,.46);background:rgba(8,19,12,.84)}
+                .outcome-podium>button.is-selected{border-color:var(--x-lime);background:rgba(185,255,24,.055)}
+                .outcome-podium>button:focus-visible,.outcome-ranking button:focus-visible{outline:2px solid var(--x-lime);outline-offset:3px}
+                .outcome-podium-thumb{grid-column:1/-1;width:calc(100% + 2rem);margin:0 -1rem .2rem;aspect-ratio:16/10.6;overflow:hidden;background:var(--x-surface)}
+                .outcome-podium>button:first-of-type .outcome-podium-thumb{aspect-ratio:16/8.6}
+                .outcome-podium>button>span{align-self:start;color:var(--x-lime);font:300 clamp(2.4rem,3.8vw,4rem)/.85 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-podium strong,.outcome-podium small{display:block}
-                .outcome-podium strong{font-size:.84rem;line-height:1.3}
-                .outcome-podium small{margin-top:.32rem;font-size:.65rem;color:var(--x-muted)}
-                .outcome-ranking>div{max-height:370px;overflow-y:auto;border-top:1px solid rgba(247,248,242,.14)}
-                .outcome-ranking button{width:100%;display:grid;grid-template-columns:2rem minmax(0,1fr) auto 1rem;align-items:center;gap:.55rem;padding:.78rem .35rem;border:0;border-bottom:1px solid rgba(247,248,242,.12);border-radius:8px;background:transparent;color:inherit;text-align:left}
-                .outcome-ranking button:hover,.outcome-ranking button.is-selected{background:rgba(185,255,24,.08);color:var(--x-lime-soft)}
-                .outcome-ranking button>span{color:var(--x-lime);font:850 .72rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-ranking strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem}
-                .outcome-ranking small{max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.62rem;color:var(--x-muted)}
-                .outcome-work-detail{overflow:hidden;border:1px solid rgba(185,255,24,.24);border-radius:14px;background:rgba(4,12,8,.74);padding:1rem;backdrop-filter:blur(14px)}
-                .outcome-work-detail:not(.is-compact){position:sticky;top:5rem;max-height:720px;overflow-y:auto}
-                .outcome-work-detail-head{display:grid;grid-template-columns:2.4rem minmax(0,1fr);gap:.65rem;align-items:start}
+                .outcome-podium strong{font-size:clamp(.88rem,1.15vw,1.08rem);line-height:1.35}
+                .outcome-podium small{margin-top:.42rem;font-size:.68rem;color:var(--x-muted)}
+                .outcome-ranking{grid-column:2;position:sticky;top:5.5rem}
+                .outcome-ranking>div{max-height:720px;overflow-y:auto;border-top:1px solid rgba(247,248,242,.16);scrollbar-width:thin;scrollbar-color:rgba(185,255,24,.45) transparent}
+                .outcome-ranking button{width:100%;display:grid;grid-template-columns:clamp(92px,8.2vw,132px) 2.5rem minmax(0,1fr) 1.25rem;align-items:center;gap:clamp(.7rem,1.25vw,1.15rem);padding:.8rem .5rem .8rem 0;border:0;border-bottom:1px solid rgba(247,248,242,.12);background:transparent;color:inherit;text-align:left;transition:background-color .2s ease,color .2s ease,transform .2s ease}
+                .outcome-ranking button:hover,.outcome-ranking button.is-selected{transform:translateX(.25rem);background:rgba(185,255,24,.08);color:var(--x-lime-soft)}
+                .outcome-ranking-thumb{aspect-ratio:16/10;overflow:hidden;border-radius:10px;background:var(--x-surface)}
+                .outcome-ranking button>span{color:var(--x-lime);font:850 clamp(.8rem,1vw,1rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-ranking button>div:nth-of-type(2){min-width:0}
+                .outcome-ranking strong,.outcome-ranking small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+                .outcome-ranking strong{font-size:clamp(.8rem,1vw,.95rem)}
+                .outcome-ranking small{margin-top:.45rem;font-size:.68rem;color:var(--x-muted)}
+                .outcome-work-detail{grid-column:1;overflow:hidden;border:1px solid rgba(185,255,24,.32);border-radius:16px;background:rgba(4,12,8,.76);padding:clamp(1rem,2vw,1.6rem);backdrop-filter:blur(14px)}
+                .outcome-work-detail:not(.is-compact){max-height:680px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(185,255,24,.45) transparent}
+                .outcome-work-detail-head{display:grid;grid-template-columns:clamp(3.7rem,7vw,6.5rem) minmax(0,1fr);gap:1rem;align-items:end;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.26)}
                 .outcome-work-detail-head>span,.outcome-work-detail-head p{color:var(--x-lime)}
-                .outcome-work-detail-head>span{font:900 .78rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-work-detail-head>span{font:300 clamp(3.25rem,5.8vw,5.4rem)/.75 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-work-detail-head p{margin:0;font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-                .outcome-work-detail-head h3{margin:.32rem 0 0;font-size:1.05rem;letter-spacing:0;text-transform:none}
-                .outcome-work-detail-image{margin-top:1rem;aspect-ratio:16/8.7;overflow:hidden;border-radius:11px;background:var(--x-surface)}
+                .outcome-work-detail-head h3{margin:.38rem 0 0;font-size:clamp(1.45rem,2.5vw,2.45rem);line-height:1.08;letter-spacing:-.035em;text-transform:none}
+                .outcome-work-detail-image{margin-top:1.25rem;aspect-ratio:16/8.8;overflow:hidden;border-radius:13px;background:var(--x-surface)}
                 .outcome-work-detail-meta{display:grid;grid-template-columns:1fr 1fr;margin:0}
-                .outcome-work-detail-meta>div{padding:.8rem .1rem;border-bottom:1px solid rgba(247,248,242,.12)}
-                .outcome-work-detail-meta>div+div{padding-left:.8rem;border-left:1px solid rgba(247,248,242,.12)}
+                .outcome-work-detail-meta>div{padding:1rem .1rem;border-bottom:1px solid rgba(247,248,242,.12)}
+                .outcome-work-detail-meta>div+div{padding-left:1rem;border-left:1px solid rgba(247,248,242,.12)}
                 .outcome-work-detail-meta dt{font-size:.58rem;font-weight:900;opacity:.45;text-transform:uppercase}
-                .outcome-work-detail-meta dd{margin:.3rem 0 0;font-size:.7rem;font-weight:800}
-                .outcome-work-detail section{margin-top:1rem}
-                .outcome-work-detail h4{margin:0;font-size:.68rem;font-weight:950}
-                .outcome-work-detail section p,.outcome-work-detail blockquote{margin:.45rem 0 0;color:rgba(247,248,242,.65);font-size:.72rem;line-height:1.75}
-                .outcome-work-detail blockquote{padding-left:.75rem;border-left:2px solid var(--x-lime)}
+                .outcome-work-detail-meta dd{margin:.32rem 0 0;font-size:.76rem;font-weight:850}
+                .outcome-work-detail section{margin-top:1.25rem}
+                .outcome-work-detail h4{margin:0;font-size:.72rem;font-weight:950}
+                .outcome-work-detail section p,.outcome-work-detail blockquote{margin:.55rem 0 0;color:rgba(247,248,242,.68);font-size:.76rem;line-height:1.85}
+                .outcome-work-detail blockquote{padding-left:1rem;border-left:1px solid var(--x-lime)}
                 .outcome-work-detail-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
                 .outcome-work-detail-actions a{min-height:38px;padding:.5rem .75rem;font-size:.68rem}
-                .outcome-credits{display:flex;flex-wrap:wrap;align-items:center;gap:.65rem 1rem;margin-top:3.5rem;padding:1.25rem 0;border-block:1px solid rgba(247,248,242,.12)}
-                .outcome-credits>div{margin-right:auto}.outcome-credits>div span,.outcome-credits>div strong{display:block}
-                .outcome-credits>div span{color:var(--x-lime);font-size:.6rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-                .outcome-credits>div strong{margin-top:.25rem;font-size:.85rem}.outcome-credits p{margin:0;font-size:.66rem;opacity:.48}
-                .outcome-credits>span{font-size:.66rem;font-weight:800;opacity:.62}
+                .outcome-credits{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:clamp(2rem,5vw,5rem);margin-top:clamp(5rem,9vw,9rem);padding:clamp(2.5rem,5vw,5rem) 0 1rem;border-top:1px solid rgba(185,255,24,.5)}
+                .outcome-credits-lead{align-self:start}
+                .outcome-credits-lead>span{display:block;color:var(--x-lime);font-size:.66rem;font-weight:950;letter-spacing:.18em;text-transform:uppercase}
+                .outcome-credits-lead>strong{display:block;margin-top:1rem;color:var(--x-lime);font:300 clamp(7rem,13vw,12rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.08em}
+                .outcome-credits-lead>div{margin-top:1.6rem;padding-top:1.1rem;border-top:1px solid rgba(247,248,242,.2)}
+                .outcome-credits-lead h3{margin:0;font-size:clamp(2rem,4vw,4rem);font-weight:950;letter-spacing:-.04em}
+                .outcome-credits-lead>div p{margin:.55rem 0 0;color:var(--x-lime);font-size:.82rem;font-weight:900;letter-spacing:.08em}
+                .outcome-credits-lead>p{max-width:34rem;margin:1.2rem 0 0;color:var(--x-muted);font-size:.76rem;line-height:1.8}
+                .outcome-credits-groups{display:grid;align-content:start}
+                .outcome-credits-groups>section{display:grid;grid-template-columns:minmax(150px,.55fr) minmax(0,1.45fr);gap:1rem;padding:1.4rem 0;border-top:1px solid rgba(247,248,242,.18)}
+                .outcome-credits-groups>section:last-child{border-bottom:1px solid rgba(247,248,242,.18)}
+                .outcome-credits-groups header{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.75rem;align-items:start}
+                .outcome-credits-groups header>span,.outcome-credits-groups small{color:var(--x-lime);font:850 .65rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-credits-groups header p{margin:0;color:var(--x-muted);font-size:.58rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+                .outcome-credits-groups h4{margin:.3rem 0 0;font-size:1rem;font-weight:950}
+                .outcome-credits-groups section>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1.25rem}
+                .outcome-credits-groups section>div>span{display:grid;grid-template-columns:1.8rem minmax(0,1fr);gap:.5rem;align-items:baseline;padding:.5rem 0;border-bottom:1px solid rgba(247,248,242,.09)}
+                .outcome-credits-groups section>div strong{font-size:clamp(.8rem,1vw,.95rem);line-height:1.4}
                 .outcome-video-dialog{position:fixed;inset:0;z-index:180;display:grid;place-items:center;padding:1rem;background:rgba(0,0,0,.88);backdrop-filter:blur(12px)}
                 .outcome-video-dialog article{position:relative;width:min(1120px,100%);overflow:hidden;border:1px solid rgba(185,255,24,.36);border-radius:16px;background:#000}
                 .outcome-video-dialog video{display:block;width:100%;max-height:calc(100dvh - 2rem)}
@@ -547,7 +617,11 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-overview-grid{min-height:auto;grid-template-columns:1fr}
                     .outcome-hero-copy{max-width:760px}
                     .outcome-film{width:min(100%,900px);margin-right:0;margin-left:auto}
-                    .outcome-works-layout{grid-template-columns:1fr 1fr}.outcome-work-detail{grid-column:1/-1}.outcome-work-detail:not(.is-compact){position:relative;top:auto}
+                    .outcome-works-layout{grid-template-columns:1fr}
+                    .outcome-podium,.outcome-work-detail,.outcome-ranking{grid-column:1}
+                    .outcome-ranking{position:relative;top:auto}
+                    .outcome-work-detail:not(.is-compact){position:relative;top:auto}
+                    .outcome-credits{grid-template-columns:1fr}
                 }
                 @media(max-width:767px){
                     .hackathon-outcome{padding-top:10.8rem}
@@ -572,9 +646,24 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-section-topline{align-items:flex-end}.outcome-section-topline>a,.outcome-section-topline>button{margin-bottom:1rem;min-height:42px;padding:.55rem .72rem}.outcome-archive .outcome-section-topline{display:flex}.outcome-archive .outcome-section-heading{grid-column:auto}.outcome-archive .outcome-section-topline>a{grid-column:auto;justify-self:auto}
                     .outcome-photo-strip{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;gap:.75rem;margin-inline:-1rem;padding:0 1rem .35rem;scrollbar-width:none}
                     .outcome-photo-strip::-webkit-scrollbar{display:none}.outcome-photo-strip figure{min-width:78vw;scroll-snap-align:start}.outcome-photo-strip figure>a{aspect-ratio:4/3;border-radius:12px}
-                    .outcome-works-layout{grid-template-columns:1fr;gap:2rem}.outcome-podium>button{grid-template-columns:86px 1.8rem minmax(0,1fr)}
+                    .outcome-works-layout{grid-template-columns:1fr;gap:2rem}
+                    .outcome-podium{grid-template-columns:1fr 1fr;gap:.75rem}
+                    .outcome-podium>h3,.outcome-podium>button:first-of-type{grid-column:1/-1}
+                    .outcome-podium>button{grid-template-columns:2.75rem minmax(0,1fr);padding:0 .75rem .85rem;border-radius:13px}
+                    .outcome-podium-thumb{width:calc(100% + 1.5rem);margin-inline:-.75rem;aspect-ratio:16/11.5}
+                    .outcome-podium>button:first-of-type .outcome-podium-thumb{aspect-ratio:16/8.8}
+                    .outcome-podium>button>span{font-size:2rem}
+                    .outcome-podium strong{font-size:.8rem}.outcome-podium small{font-size:.61rem}
                     .outcome-ranking>div{max-height:none}.outcome-work-detail:not(.is-compact){display:none}.outcome-mobile-work{display:block}
-                    .outcome-credits{align-items:flex-start}.outcome-credits>div{width:100%}
+                    .outcome-ranking button{grid-template-columns:76px 2rem minmax(0,1fr) 1rem;gap:.6rem;padding:.65rem 0}
+                    .outcome-credits{grid-template-columns:1fr;gap:2.5rem;margin-top:4rem;padding-top:2.5rem}
+                    .outcome-credits-lead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1rem 1.25rem;align-items:end}
+                    .outcome-credits-lead>span,.outcome-credits-lead>p{grid-column:1/-1}
+                    .outcome-credits-lead>strong{margin:0;font-size:5.8rem}
+                    .outcome-credits-lead>div{margin:0;padding:0 0 .35rem;border-top:0}
+                    .outcome-credits-lead h3{font-size:2.15rem}
+                    .outcome-credits-groups>section{grid-template-columns:1fr;gap:.8rem;padding:1.2rem 0}
+                    .outcome-credits-groups section>div{grid-template-columns:1fr}
                     .outcome-video-dialog{padding:0}.outcome-video-dialog article{border:0;border-radius:0}.outcome-video-dialog video{max-height:100dvh}
                     .outcome-work-detail.is-compact{border:0;padding:0;background:transparent}.outcome-work-detail.is-compact .outcome-work-detail-image{aspect-ratio:16/11}
                 }

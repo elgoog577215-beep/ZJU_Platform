@@ -22,7 +22,7 @@ Hackathon content is split by ownership:
 ## Public Visual Language
 
 - The showcase and event archive share one spatial world: deep black-green ground, a real raster X-field as the compositional backbone, acid-lime signals, documentary event media, and monumental Chinese type.
-- On the desktop showcase, the global header adapts into a Zhekesong lockup and six-item event navigation. The event switcher remains a compact secondary control below it instead of becoming a second full-width navigation bar.
+- The global platform header is a route-invariant shell: opening the showcase keeps the original 拓途浙享 logo, destinations, controls, and flat underline navigation. The hackathon route may activate `浙客松`, but it must not replace the platform identity or rename the navigation. The event switcher remains a compact secondary control below it instead of becoming a second full-width navigation bar.
 - The X-field must remain visibly present in the first viewport. It is not recreated with CSS shapes and must not be hidden under an opaque page mask.
 - Acid lime is reserved for the event title accent, key numbers, selected state, section numbering, and primary actions. White carries content hierarchy; muted copy remains low-contrast.
 - Rounding is selective rather than global: the desktop overview film preserves the selected mockup's directional “train-nose” silhouette, other event media uses restrained 12–24 px radii, and controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based. Mobile keeps the overview film as a stable rounded rectangle rather than carrying the desktop crop into a narrow viewport.
@@ -39,12 +39,13 @@ Hackathon content is split by ownership:
 
 ## Work Exhibition Interaction
 
-1. The showcase renders the top three works with stronger hierarchy, followed immediately by a compact ranked index for every other approved work.
+1. The showcase renders the top three works as a media-led award podium: the champion owns the dominant track, while second and third place remain aligned companion stories. Below it, the selected work and complete approved index share near-equal desktop tracks. The index uses real cover thumbnails and readable metadata so it cannot collapse into a tiny side rail beside an oversized detail panel.
 2. Selecting a work opens its story without leaving the event context:
     - desktop: a wide detail layer or inline expansion with cover, award, author, summary, experience and project link;
     - mobile: a body-portal full-screen detail view using `100dvh`, scroll lock, and browser/back-button close.
 3. The selected work is represented by `work=<id>` in the showcase URL so details are shareable and browser navigation remains truthful.
 4. The separate winner-story page is not a second catalogue; it only adapts old deep links into this interaction.
+5. Partner credits close the chapter as a typographic knowledge-and-innovation network: a large truthful partner count, grouped support roles, and an indexed name matrix. It does not become a logo-card wall or a separate full-screen page.
 
 ## Event-Media Relation
 

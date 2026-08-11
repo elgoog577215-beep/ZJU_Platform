@@ -233,7 +233,11 @@ const HackathonSeasonOne = () => {
             <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start lg:justify-between min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
-                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl lg:mx-0 lg:w-[520px] lg:min-w-0 lg:flex-none ${shellClass}`}
+                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl transition-[opacity,transform] duration-300 ease-out lg:mx-0 lg:w-[520px] lg:min-w-0 lg:flex-none ${
+                        pageTabsVisible
+                            ? "max-lg:translate-y-0 max-lg:opacity-100"
+                            : "max-lg:pointer-events-none max-lg:-translate-y-[150%] max-lg:opacity-0"
+                    } ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
                     <div

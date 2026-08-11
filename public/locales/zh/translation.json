@@ -1837,8 +1837,8 @@
             "prize_pool": "奖金池",
             "fallback_award": "获奖作品",
             "fallback_honor": "获奖创作者",
-            "fallback_title": "未命名作品",
-            "fallback_author": "获奖创作者",
+            "fallback_title": "获奖作品 {{rank}}",
+            "fallback_author": "作者 / 团队",
             "work_cover_alt": "{{title}}作品封面",
             "author": "作者 / 团队",
             "background": "年级 / 专业",
@@ -1851,6 +1851,12 @@
             "work_dialog": "{{title}}作品详情",
             "support_eyebrow": "Credits",
             "support_title": "共同见证",
+            "support_lineup": "知识与创新阵容",
+            "support_groups": {
+                "school": "学校支持",
+                "organization": "社团协作",
+                "enterprise": "企业生态"
+            },
             "support_count": "{{count}} 位学校、社团与企业伙伴共同支持本场比赛。",
             "open_for_registration": "开放中",
             "archived": "已归档"
