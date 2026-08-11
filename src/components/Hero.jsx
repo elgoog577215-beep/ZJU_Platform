@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { heroReveal, heroStagger, tapPress, useReducedMotion } from "../utils/animations";
 
-const DEFAULT_HERO_TITLE = "浙江大学信息聚合平台";
-const DEFAULT_HERO_SUBTITLE = "打破信息差，共建信息网络";
+const DEFAULT_HERO_TITLE = "拓浙AI生态";
+const DEFAULT_HERO_SUBTITLE = "连接人才、技术与真实产业";
 const DAY_HERO_IMAGE = "/images/hero-landscape-day-4k.jpg";
 const NIGHT_HERO_IMAGE = "/images/hero-landscape-night.jpg";
 const HERO_IMAGE_ALIASES = {

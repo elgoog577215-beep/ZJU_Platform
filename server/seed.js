@@ -11,17 +11,18 @@ const settingsSeed = {
     pagination_enabled: "false",
     theme: "cyber",
     language: "zh",
-    site_title: "拓途浙享 | TUOTUZJU",
-    hero_title: "浙江大学信息聚合平台",
-    hero_subtitle: "打破信息差，共建信息网络",
-    about_title: "浙江大学信息聚合平台",
-    about_subtitle: "打破信息差，共建信息网络",
-    about_intro: "我们致力于消除信息差，提供一个优质信息共享平台。",
+    site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
+    hero_title: "拓浙AI生态",
+    hero_subtitle: "连接人才、技术与真实产业",
+    about_title: "拓浙AI生态",
+    about_subtitle: "从校园连接真实世界",
+    about_intro:
+        "我们连接学生、学院、企业与真实 AI 需求，让机会、学习、项目和成果进入同一套可持续协作的生态。",
     about_detail:
-        "欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！",
+        "在这里，你可以发现校园机会、加入 AI 社区、参与项目与浙客松，并把过程、作品和关系沉淀为下一次合作的基础。",
     contact_email: "service@tuotuzju.com",
     contact_phone: "0571-87950000",
-    contact_address: "AI生态团队",
+    contact_address: "拓浙AI生态",
 };
 
 const usersSeed = [
@@ -30,7 +31,7 @@ const usersSeed = [
         password: process.env.SEED_ADMIN_PASSWORD || "Admin123456",
         role: "admin",
         nickname: "种子管理员",
-        organization_cr: "拓途浙享",
+        organization_cr: "拓浙AI生态",
         created_at: "2026-03-01 09:00:00",
     },
     {
@@ -123,7 +124,7 @@ const articlesSeed = [
         tags: "校园指南,活动,信息整合",
         cover: "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&auto=format&fit=crop&q=80",
         content:
-            "<p>拓途浙享希望减少“知道得晚、错过报名”的问题。好的活动信息，应该被更早、更清晰地看见。</p>",
+            "<p>拓浙AI生态希望让校园机会更早、更清晰地被合适的人看见，并进一步连接到社区、项目与真实协作。</p>",
         category: "tech",
         featured: 1,
         created_at: "2026-03-16 09:30:00",

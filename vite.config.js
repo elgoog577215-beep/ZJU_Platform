@@ -38,10 +38,10 @@ export default defineConfig(({ mode }) => {
                     "icons/maskable-icon-512.png",
                 ],
                 manifest: {
-                    name: "拓途浙享",
-                    short_name: "拓途浙享",
+                    name: "拓浙AI生态",
+                    short_name: "拓浙AI生态",
                     description:
-                        "拓途浙享校园 AI 信息共享平台，连接活动、AI 社区、影像记录与实践项目。",
+                        "拓浙AI生态连接校园机会、AI 社区、实践项目、浙客松成果与产学协作。",
                     lang: "zh-CN",
                     theme_color: "#0a0a0a",
                     background_color: "#0a0a0a",

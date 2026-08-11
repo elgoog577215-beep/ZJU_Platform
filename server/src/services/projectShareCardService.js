@@ -114,9 +114,9 @@ const buildBodySvg = (project) => {
         font-family="Arial, 'Microsoft YaHei', sans-serif">${intro}</text>
       ${tagSvg}
       <text x="942" y="724" text-anchor="end" fill="#64748b" font-size="18" font-weight="800"
-        font-family="Arial, 'Microsoft YaHei', sans-serif">TUOTUZJU</text>
+        font-family="Arial, 'Microsoft YaHei', sans-serif">TUOZHE AI ECOSYSTEM</text>
       <text x="942" y="752" text-anchor="end" fill="#64748b" font-size="18" font-weight="700"
-        font-family="Arial, 'Microsoft YaHei', sans-serif">拓途浙享</text>
+        font-family="Arial, 'Microsoft YaHei', sans-serif">拓浙AI生态</text>
     </svg>
   `);
 };

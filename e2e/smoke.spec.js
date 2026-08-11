@@ -14,9 +14,9 @@ test("home page loads with primary navigation", async ({ page }) => {
     });
 
     await page.goto("/");
-    await expect(page).toHaveTitle(/拓途浙享/);
+    await expect(page).toHaveTitle(/拓浙AI生态/);
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByRole("link", { name: /拓途浙享首页/ })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "活动聚合" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /拓浙AI生态首页/ })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "校园机会" })).toBeVisible();
     expect(startupErrors).toEqual([]);
 });

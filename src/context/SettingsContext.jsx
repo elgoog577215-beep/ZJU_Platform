@@ -5,21 +5,39 @@ import { DEFAULT_BACKGROUND_SCENE, isBackgroundSceneId } from "../constants/back
 const DEFAULT_SETTINGS = {
     pagination_enabled: "false",
     language: "zh",
-    site_title: "拓途浙享 | TUOTUZJU",
-    hero_title: "浙江大学信息聚合平台",
-    hero_subtitle: "打破信息差，共建信息网络",
+    site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
+    hero_title: "拓浙AI生态",
+    hero_subtitle: "连接人才、技术与真实产业",
     background_brightness: "1.0",
     background_vignette: "0.5",
     background_bloom: "0.8",
     hero_bg_url: "/images/hero-landscape-day-4k.jpg",
-    about_title: "浙江大学信息聚合平台",
-    about_subtitle: "打破信息差，共建信息网络",
-    about_intro: "我们致力于消除信息差，提供一个高质量的信息共享平台。",
+    about_title: "拓浙AI生态",
+    about_subtitle: "从校园连接真实世界",
+    about_intro:
+        "我们连接学生、学院、企业与真实 AI 需求，让机会、学习、项目和成果进入同一套可持续协作的生态。",
     about_detail:
-        "欢迎加入我们。在这里，你可以参与优质活动，并分享相关影像、文章、音乐与视频，一起建设有温度的校园社区。",
+        "在这里，你可以发现校园机会、加入 AI 社区、参与项目与浙客松，并把过程、作品和关系沉淀为下一次合作的基础。",
     contact_email: "service@tuotuzju.com",
     contact_phone: "0571-87950000",
-    contact_address: "AI生态团队",
+    contact_address: "拓浙AI生态",
+};
+
+const LEGACY_SETTING_VALUES = {
+    site_title: ["拓途浙享 | TUOTUZJU"],
+    hero_title: ["浙江大学信息聚合平台"],
+    hero_subtitle: ["打破信息差，共建信息网络"],
+    about_title: ["浙江大学信息聚合平台"],
+    about_subtitle: ["打破信息差，共建信息网络"],
+    about_intro: [
+        "我们致力于消除信息差，提供一个高质量的信息共享平台。",
+        "我们致力于消除信息差，提供一个优质信息共享平台。",
+    ],
+    about_detail: [
+        "欢迎加入我们。在这里，你可以参与优质活动，并分享相关影像、文章、音乐与视频，一起建设有温度的校园社区。",
+        "欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！",
+    ],
+    contact_address: ["AI生态团队"],
 };
 
 const DEFAULT_UI_MODE = "dark";
@@ -46,6 +64,12 @@ const writeStorage = (key, value) => {
 
 const normalizeSettings = (nextSettings = {}) => {
     const merged = { ...DEFAULT_SETTINGS, ...nextSettings };
+
+    Object.entries(LEGACY_SETTING_VALUES).forEach(([key, values]) => {
+        if (values.includes(merged[key])) {
+            merged[key] = DEFAULT_SETTINGS[key];
+        }
+    });
 
     return {
         ...merged,

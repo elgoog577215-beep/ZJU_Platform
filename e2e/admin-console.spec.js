@@ -258,7 +258,7 @@ const installAdminMocks = async (page) => {
         if (path === "/settings") {
             return route.fulfill({
                 json: {
-                    site_title: "拓途浙享 | TUOTUZJU",
+                    site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
                     pagination_enabled: "false",
                     language: "zh",
                 },
@@ -340,7 +340,7 @@ test.describe("admin console refinement", () => {
         await page.route("**/api/settings", (route) =>
             route.fulfill({
                 json: {
-                    site_title: "拓途浙享 | TUOTUZJU",
+                    site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
                     pagination_enabled: "false",
                     language: "zh",
                 },
@@ -366,7 +366,7 @@ test.describe("admin console refinement", () => {
 
         await expect(page.getByRole("heading", { name: "管理控制台" })).toBeVisible();
         await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
-        await expect(page.getByRole("link", { name: "拓途浙享首页" })).toBeVisible();
+        await expect(page.getByRole("link", { name: "拓浙AI生态首页" })).toBeVisible();
         await expect(page.getByRole("button", { name: "打开总览模块" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
         await expect(

@@ -1,4 +1,4 @@
-# robots.txt for 拓途浙享 (TUOTU ZHEXIANG)
+# robots.txt for 拓浙AI生态 (TUOZHE AI ECOSYSTEM)
 # https://tuotuzj.com
 
 User-agent: *

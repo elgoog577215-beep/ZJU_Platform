@@ -101,7 +101,7 @@ self.addEventListener("push", (event) => {
         ],
     };
 
-    event.waitUntil(self.registration.showNotification("拓途浙享", options));
+    event.waitUntil(self.registration.showNotification("拓浙AI生态", options));
 });
 
 // 通知点击事件

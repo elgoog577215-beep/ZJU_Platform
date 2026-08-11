@@ -23,7 +23,7 @@ const Footer = () => {
                 <div className="flex flex-col items-center gap-2.5 md:items-start">
                     <div className="flex items-center gap-2">
                         <span className="text-[1.05rem] font-bold tracking-tight">
-                            {t("footer.brand", "拓途浙享")}
+                            {t("footer.brand", "拓浙AI生态")}
                         </span>
                         <span className={isDayMode ? "text-slate-300" : "text-white/20"}>|</span>
                         <span
@@ -31,7 +31,7 @@ const Footer = () => {
                                 isDayMode ? "text-slate-500" : "text-gray-400"
                             }`}
                         >
-                            TUOTUZJU
+                            {t("footer.alt_brand", "TUOZHE AI ECOSYSTEM")}
                         </span>
                     </div>
                     <p
@@ -39,7 +39,7 @@ const Footer = () => {
                             isDayMode ? "text-slate-500" : "text-gray-500"
                         }`}
                     >
-                        {t("footer.copyright", "© {{year}} AI生态团队. All rights reserved.", {
+                        {t("footer.copyright", "© {{year}} 拓浙AI生态. All rights reserved.", {
                             year: currentYear,
                         })}
                     </p>

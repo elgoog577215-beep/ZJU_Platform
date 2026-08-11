@@ -44,7 +44,7 @@ const installAdminPartnerMocks = async (page, onUpdate) => {
         if (path === "/settings") {
             return route.fulfill({
                 json: {
-                    site_title: "拓途浙享 | TUOTUZJU",
+                    site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
                     pagination_enabled: "false",
                     language: "zh",
                 },

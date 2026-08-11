@@ -3102,7 +3102,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                                 >
                                                     {t(
                                                         "me.install_app_hint",
-                                                        "像 App 一样打开拓途浙享。"
+                                                        "像 App 一样打开拓浙AI生态。"
                                                     )}
                                                 </div>
                                             </div>

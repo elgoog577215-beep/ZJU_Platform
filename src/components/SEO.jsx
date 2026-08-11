@@ -1,9 +1,10 @@
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
-const SITE_NAME = "拓途浙享";
-const SITE_ALT_NAME = "TUOTUZJU";
-const DEFAULT_DESCRIPTION = "AI生态团队信息聚合平台，聚合活动、画廊、视频与 AI 社区内容。";
+const SITE_NAME = "拓浙AI生态";
+const SITE_ALT_NAME = "TUOZHE AI ECOSYSTEM";
+const DEFAULT_DESCRIPTION =
+    "拓浙AI生态连接学生、学院、企业与真实 AI 需求，让机会、学习、项目、赛事和成果持续形成下一次合作。";
 
 const toAbsoluteUrl = (siteUrl, value) => {
     if (!value) return `${siteUrl}/newlogo.png`;
@@ -18,13 +19,19 @@ const SEO = ({ title, description, image, url, type = "website", article = {} })
     const siteName = t("seo.site_name", SITE_NAME);
     const siteAltName = t("seo.site_alt_name", SITE_ALT_NAME);
     const defaultDescription = t("seo.default_desc", DEFAULT_DESCRIPTION);
-    const authorName = t("seo.author", "AI生态团队");
+    const authorName = t("seo.author", "拓浙AI生态");
     const keywords = t(
         "seo.keywords",
-        "拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 视频, AI社区, 校园平台"
+        "拓浙AI生态, 浙江大学, AI社区, 校园机会, 项目实践, 浙客松, 产学协作"
     );
 
-    const seoTitle = title ? `${title} | ${siteName}` : `${siteName} | ${siteAltName}`;
+    const normalizedTitle = typeof title === "string" ? title.trim() : "";
+    const seoTitle =
+        !normalizedTitle || normalizedTitle === siteName
+            ? `${siteName} | ${siteAltName}`
+            : normalizedTitle.includes(siteName) || normalizedTitle.includes(siteAltName)
+              ? normalizedTitle
+              : `${normalizedTitle} | ${siteName}`;
     const seoDescription = description || defaultDescription;
     const seoImage = toAbsoluteUrl(siteUrl, image);
     const seoUrl = url || siteUrl;
@@ -76,10 +83,6 @@ const SEO = ({ title, description, image, url, type = "website", article = {} })
                     url: siteUrl,
                     logo: `${siteUrl}/newlogo.png`,
                     description: defaultDescription,
-                    founder: {
-                        "@type": "Organization",
-                        name: authorName,
-                    },
                     contactPoint: {
                         "@type": "ContactPoint",
                         contactType: "customer support",

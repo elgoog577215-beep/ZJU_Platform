@@ -53,7 +53,7 @@
         "view_related_photo": "View {{title}}"
     },
     "pwa": {
-        "install_title": "Install the TUOTU ZJU App",
+        "install_title": "Install the TUOZHE AI ECOSYSTEM App",
         "install_desc": "Add it to your home screen and open it like an app.",
         "install_action": "Install App"
     },
@@ -64,7 +64,7 @@
         "weather_widget_off": "Keep the top right clean by default",
         "language": "Language",
         "install_app": "Install App",
-        "install_app_hint": "Open TUOTU ZJU like an app."
+        "install_app_hint": "Open the TUOZHE AI ECOSYSTEM like an app."
     },
     "auth": {
         "welcome_back": "Welcome Back",
@@ -473,7 +473,7 @@
             "relations": "Relationships",
             "my_homepage": "My Homepage",
             "user_homepage": "User Homepage",
-            "member_fallback": "TUOTUZJU Member",
+            "member_fallback": "TUOZHE AI ECOSYSTEM Member",
             "profile_basics": "Avatar & Display Name",
             "avatar": "Avatar",
             "choose_image": "Choose Image",
@@ -497,15 +497,15 @@
         "music": "AI Podcast",
         "tags": "Tags",
         "videos": "Videos",
-        "articles": "Learning Community",
+        "articles": "AI Community",
         "projects": "Project Plaza",
-        "about": "About",
+        "about": "Ecosystem",
         "contact": "Contact",
-        "events": "Events Hub",
+        "events": "Opportunities",
         "hackathon": "Hackathon",
         "future_learning": "Future Learning",
         "admin": "Admin",
-        "community": "Learning Community",
+        "community": "AI Community",
         "community_help": "Help",
         "community_tech": "Tech sharing",
         "community_news": "News",
@@ -524,7 +524,7 @@
         "language_switcher": "Switch language",
         "mobile_more_title": "More",
         "mobile_events": "Events",
-        "mobile_community": "Learn",
+        "mobile_community": "Community",
         "mobile_projects": "Projects",
         "mobile_hackathon": "Hackathon",
         "mobile_me": "Me",
@@ -532,11 +532,11 @@
         "profile": "Me",
         "mobile_tabbar": "Mobile bottom navigation",
         "main_aria": "Main navigation",
-        "home_aria": "TUOTU ZJU home",
-        "logo_alt": "TUOTU ZJU Logo",
+        "home_aria": "TUOZHE AI ECOSYSTEM home",
+        "logo_alt": "TUOZHE AI ECOSYSTEM Logo",
         "menu_aria": "Navigation menu",
-        "site_brand": "TUOTU ZJU",
-        "site_tagline": "Digital Art & Technology",
+        "site_brand": "拓浙AI生态",
+        "site_tagline": "TUOZHE AI ECOSYSTEM",
         "download": "Download App",
         "wallpaper_title": "Live Wallpaper",
         "wallpaper_aria": "Live wallpaper settings",
@@ -905,24 +905,24 @@
         "exhibitions": "Exhibitions",
         "projects": "Projects",
         "ecosystem": {
-            "meta_title": "ZJU AI Ecosystem",
-            "meta_desc": "Learn how the ZJU AI Ecosystem brings real AI briefs onto campus and helps students move from learning, projects, competitions, and recognition into industry opportunities.",
+            "meta_title": "TUOZHE AI ECOSYSTEM",
+            "meta_desc": "See how the TUOZHE AI ECOSYSTEM connects students, colleges, companies, and real AI needs so learning, projects, competitions, and industry collaboration keep producing outcomes.",
             "pagination_aria": "About page sections",
             "hero": {
-                "brand": "ZJU AI Ecosystem",
-                "title_1": "ZJU",
+                "brand": "TUOZHE AI ECOSYSTEM",
+                "title_1": "TUOZHE",
                 "title_2": "AI Ecosystem",
-                "title_3": "TUOZHE AI NETWORK",
+                "title_3": "FROM ZJU TO THE REAL WORLD",
                 "strong": "Open to all streams. Built without limits.",
-                "desc": "Starting from ZJU, we aggregate resources and talent to build an AI-centered industry-education training system.",
-                "primary_cta": "Enter Tuotu ZJU",
-                "secondary_cta": "View Business Map"
+                "desc": "Starting from ZJU, we connect students, colleges, companies, and real AI needs so learning, competitions, projects, and industry collaboration keep producing outcomes.",
+                "primary_cta": "Explore Opportunities",
+                "secondary_cta": "See How It Works"
             },
             "stats": {
                 "users": "Registered Users",
                 "daily_views": "Daily Views",
                 "events": "Campus Events Collected",
-                "community": "AI Community Capacity",
+                "community": "AI Community Participants",
                 "hackathon": "First ZJUHack Sign-ups"
             },
             "brief": {
@@ -931,18 +931,18 @@
                 "status": "ZJU Origin",
                 "title_1": "Open to all streams.",
                 "title_2": "Built without limits.",
-                "desc": "Starting from ZJU, we aggregate resources and talent to build an AI-centered industry-education training system.",
-                "signature": "Resource aggregation / Talent network / AI-centered education"
+                "desc": "Starting from ZJU, we connect people and real AI needs so every participation can leave reusable outcomes and relationships.",
+                "signature": "Talent connection / Project practice / Industry collaboration"
             },
             "loop": {
                 "discover": "Digital Base",
-                "discover_desc": "Tuotu ZJU carries events, AI community, project square, and event showcases",
-                "learn": "Organization & Learning",
-                "learn_desc": "The association and groups organize students to learn by building",
-                "build": "Flagship Events",
-                "build_desc": "ZJUHack turns college and enterprise briefs into outcomes and talent signals",
-                "recognize": "Industry Loop",
-                "recognize_desc": "Real needs move to student delivery, then recognition, internships, and incubation"
+                "discover_desc": "The public entry connects campus opportunities, profiles, projects, competitions, and outcomes",
+                "learn": "Community Connection",
+                "learn_desc": "The AI Community and agent association carry learning, team formation, and project collaboration",
+                "build": "Projects & Talent Selection",
+                "build_desc": "Real projects and Zhekesong turn learning into work, delivery, and talent signals",
+                "recognize": "Industry Connection",
+                "recognize_desc": "College and enterprise needs enter; outcomes return to talent, organizations, and the next collaboration"
             },
             "support": {
                 "title_1": "Resources are not decoration.",
@@ -988,37 +988,38 @@
                 }
             },
             "business": {
-                "title_1": "Three businesses",
-                "title_2": "turn resources into student growth paths.",
-                "desc": "The information entry builds trust and reach, the AI ecosystem growth system carries learning and project execution, and the ZJUHack series turns interdisciplinary problems into high-density practice and outcome recognition.",
-                "info_title": "Information Sharing Platform",
-                "info_short": "Events hub / Campus opportunity entry",
-                "info_desc": "For scattered campus notices, talks, competitions, and student organization events, the platform uses aggregation, search, recommendations, and organization profiles to bring opportunities into one entry point.",
-                "info_metric": "700+ events collected",
-                "info_cta": "View Events",
-                "grow_title": "AI Ecosystem Growth System",
-                "grow_short": "AI Community / Learning system / Project execution",
-                "grow_desc": "The public AI Community on the website works with WeChat groups, the agent association, and real projects to form a path from AI onboarding to collaborative practice.",
-                "grow_metric": "500-member community full",
+                "eyebrow": "Ecosystem Engine",
+                "title_1": "Three ecosystem mechanisms",
+                "title_2": "keep talent, real needs, and outcomes moving.",
+                "desc": "The digital base handles reach and records, the AI Community carries learning and collaboration, and Zhekesong validates work and talent. Together, they move resources into real projects and industry connections.",
+                "info_title": "Digital Base & Opportunity Entry",
+                "info_short": "Discover opportunities / Connect profiles / Record outcomes",
+                "info_desc": "Campus opportunities, the AI Community, projects, competitions, people, and organizations share one public entry that supports discovery, participation, and durable records.",
+                "info_metric": "Reach · Connect · Record",
+                "info_cta": "Explore Opportunities",
+                "grow_title": "AI Community & Project Collaboration",
+                "grow_short": "Shared learning / Team practice / Project delivery",
+                "grow_desc": "The AI Community retains knowledge and questions, the agent association organizes learning and execution, and real projects move participants from discussion into collaboration and delivery.",
+                "grow_metric": "Learn → Team Up → Deliver",
                 "grow_cta": "Enter AI Community",
-                "hackathon_title": "ZJUHack Series",
+                "hackathon_title": "Zhekesong Hackathon Series",
                 "hackathon_short": "Interdisciplinary competitions / Talent selection / Outcome recognition",
-                "hackathon_desc": "Around themes such as quant, medicine, hardware, and humanities or social sciences, the series helps students complete project loops and connect with enterprise recognition, referrals, and incubation.",
-                "hackathon_metric": "Quarterly AI crossover events",
-                "hackathon_cta": "View ZJUHack"
+                "hackathon_desc": "Interdisciplinary sprints around real college and enterprise briefs turn learning into work, delivery, and verifiable talent signals.",
+                "hackathon_metric": "Practice → Work → Talent Signal",
+                "hackathon_cta": "View Zhekesong"
             },
             "join": {
-                "title_1": "Join the ZJU",
+                "title_1": "Join the TUOZHE",
                 "title_2": "AI Ecosystem",
-                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, you can enter the platform, download the app, or start a collaboration here.",
+                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, start with a concrete opportunity, community, project, competition, or collaboration path.",
                 "download_cta": "Download App",
-                "platform_cta": "Enter Platform",
+                "platform_cta": "Explore Opportunities",
                 "contact_cta": "Contact for Collaboration",
                 "student_title": "Students",
-                "student_desc": "Discover campus opportunities, join the AI Community, participate in projects and hackathons, and turn learning into work.",
-                "student_cta": "Enter Platform",
+                "student_desc": "Discover campus opportunities, join the AI Community, and turn projects and Zhekesong participation into work and verifiable experience.",
+                "student_cta": "Explore Opportunities",
                 "org_title": "Organizations",
-                "org_desc": "Create organization profiles, publish events and project calls, and build the campus AI resource network together.",
+                "org_desc": "Maintain an organization profile, publish events and project calls, and keep members, content, and outcomes tied to the same public identity.",
                 "org_cta": "View Directory",
                 "enterprise_title": "Companies & Brief Owners",
                 "enterprise_desc": "Submit real needs, co-host themed competitions, and connect with student teams and verifiable AI practice outcomes.",
@@ -1069,13 +1070,14 @@
         "explore": "Explore",
         "made_with": "Made with",
         "by_trae": "by Trae",
-        "brand": "TUOTU ZJU",
-        "copyright": "© {{year}} AI Ecosystem Team. All rights reserved.",
-        "tagline": "Digital Art & Technology"
+        "brand": "拓浙AI生态",
+        "alt_brand": "TUOZHE AI ECOSYSTEM",
+        "copyright": "© {{year}} TUOZHE AI ECOSYSTEM. All rights reserved.",
+        "tagline": "Connecting Talent, Technology & Industry"
     },
     "home": {
-        "meta_title": "Home",
-        "meta_desc": "Explore the latest photos, music, videos, and articles.",
+        "meta_title": "TUOZHE AI ECOSYSTEM",
+        "meta_desc": "Connect campus opportunities, AI learning, project practice, Zhekesong outcomes, and industry collaboration.",
         "featured_premiere": "Featured Premiere",
         "cinematic_journey": "Cinematic Journey",
         "now_playing": "Now Playing",
@@ -1115,12 +1117,12 @@
             }
         },
         "categories": {
-            "events_desc": "Discover the latest workshops, exhibitions, and meetups.",
+            "events_desc": "Discover talks, competitions, project calls, and campus collaboration opportunities.",
             "gallery_desc": "Browse live event photos, campus photography, and curated image highlights.",
             "media_desc": "Browse event photos and video records by category.",
             "music_desc": "Immerse yourself in our curated audio journeys and soundscapes.",
             "videos_desc": "Experience boundary-pushing cinematic storytelling and visual art.",
-            "articles_desc": "Join the AI community — share tech, get help, and team up."
+            "articles_desc": "Enter the AI Community to share knowledge, ask questions, and find collaborators."
         },
         "platform": {
             "nav_home": "Home",
@@ -1206,17 +1208,17 @@
             "login_to_view_feed": "Log in to view your following feed"
         },
         "hero": {
-            "kicker": "ZJU CAMPUS NETWORK",
-            "title_line_1": "Zhejiang University",
-            "title_line_2": "Information Hub",
-            "subtitle": "Close the information gap and build a shared campus network",
-            "badge": "Digital Art · Tech Community · Campus Co-Creation"
+            "kicker": "TUOZHE AI ECOSYSTEM",
+            "title_line_1": "TUOZHE AI",
+            "title_line_2": "ECOSYSTEM",
+            "subtitle": "Turn opportunity discovery, community learning, project practice, and competition validation into the next connection.",
+            "badge": "Opportunity · Community · Projects · Validation"
         },
         "splash": {
-            "meta_title": "TUOTUZJU",
-            "meta_desc": "TUOTUZJU is a campus AI information platform connecting events, the AI community, media records, and practice projects.",
-            "auto_enter": "Entering Events in {{seconds}}s",
-            "route_hint": "This leads into the main resource flow, with events, community, and media still available.",
+            "meta_title": "TUOZHE AI ECOSYSTEM",
+            "meta_desc": "The TUOZHE AI ECOSYSTEM connects campus opportunities, the AI Community, projects, Zhekesong outcomes, and industry collaboration.",
+            "auto_enter": "Opening Campus Opportunities in {{seconds}}s",
+            "route_hint": "Start with one opportunity, then move into the community, projects, competitions, and outcome network.",
             "enter_now": "Enter now"
         }
     },
@@ -1939,10 +1941,10 @@
         }
     },
     "events": {
-        "meta_title": "Events Hub",
-        "meta_desc": "Browse campus events, volunteer opportunities, talks, and registration information at Zhejiang University.",
-        "title": "Community Events",
-        "subtitle": "Join our latest activities and workshops",
+        "meta_title": "Campus Opportunities",
+        "meta_desc": "Discover talks, competitions, volunteering, project calls, and collaboration opportunities across Zhejiang University and its innovation network.",
+        "title": "Discover Campus Opportunities",
+        "subtitle": "Find your next action across talks, competitions, volunteering, project calls, and AI practice.",
         "organizations": {
             "aria": "Organization event filter",
             "kicker": "Partner organizations",
@@ -3629,27 +3631,27 @@
         "privacy_note": "The card does not show hidden contact details, hidden cards, or login-only information."
     },
     "download": {
-        "meta_title": "Download the TUOTU ZJU App",
-        "meta_desc": "Download the TUOTU ZJU Android app.",
+        "meta_title": "Download the TUOZHE AI ECOSYSTEM App",
+        "meta_desc": "Download the TUOZHE AI ECOSYSTEM Android app.",
         "kicker": "Android App",
-        "title": "Download the TUOTU ZJU App",
-        "subtitle": "Install it and open TUOTU ZJU directly.",
+        "title": "Download the TUOZHE AI ECOSYSTEM App",
+        "subtitle": "Open campus opportunities, the AI Community, projects, and Zhekesong directly after installation.",
         "primary_action": "Download Android App",
         "browse_web": "Continue on web",
         "file_note": "v{{version}} · Updated {{date}}",
         "preview_label": "App preview",
-        "app_name": "TUOTU ZJU",
-        "card_title": "Campus AI information hub",
+        "app_name": "TUOZHE AI ECOSYSTEM",
+        "card_title": "AI ecosystem public entry",
         "preview_events": "Events",
         "preview_ai": "AI Community",
         "preview_media": "Media"
     },
     "seo": {
-        "site_name": "TUOTU ZJU",
-        "site_alt_name": "TUOTUZJU",
-        "default_desc": "An AI ecosystem information platform for events, galleries, videos, and community content.",
-        "author": "AI Ecosystem Team",
-        "keywords": "TUOTU ZJU, Zhejiang University, AI ecosystem, events, gallery, video, AI community, campus platform"
+        "site_name": "TUOZHE AI ECOSYSTEM",
+        "site_alt_name": "拓浙AI生态",
+        "default_desc": "The TUOZHE AI ECOSYSTEM connects students, colleges, companies, and real AI needs so opportunities, learning, projects, competitions, and outcomes keep producing the next collaboration.",
+        "author": "TUOZHE AI ECOSYSTEM",
+        "keywords": "TUOZHE AI ECOSYSTEM, Zhejiang University, AI community, campus opportunities, project practice, Zhekesong, industry collaboration"
     },
     "community_learning": {
         "meta_title": "Learning Community",

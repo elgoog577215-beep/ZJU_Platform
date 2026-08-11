@@ -1826,7 +1826,7 @@ END:VCALENDAR`;
                         <h1
                             className={`truncate text-base font-bold leading-9 tracking-wide ${isDayMode ? "text-slate-800" : "text-white/90"}`}
                         >
-                            {t("events.title", "社区活动")}
+                            {t("events.title", "发现校园机会")}
                         </h1>
                     </div>
                     <div className="flex justify-end gap-1.5">

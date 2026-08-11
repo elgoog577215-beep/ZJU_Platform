@@ -254,7 +254,7 @@ const About = () => {
         },
         {
             value: "500",
-            label: t("about.ecosystem.stats.community", "AI 社群满额"),
+            label: t("about.ecosystem.stats.community", "AI 社区参与者"),
         },
         {
             value: "300",
@@ -327,14 +327,14 @@ const About = () => {
     const businessLines = [
         {
             index: "01",
-            code: "INFO",
-            title: t("about.ecosystem.business.info_title", "信息共享平台"),
-            short: t("about.ecosystem.business.info_short", "活动聚合 / 校园机会入口"),
+            code: "PLATFORM",
+            title: t("about.ecosystem.business.info_title", "数字底座与机会入口"),
+            short: t("about.ecosystem.business.info_short", "发现机会 / 连接主体 / 沉淀记录"),
             description: t(
                 "about.ecosystem.business.info_desc",
-                "面向校园通知、讲座、竞赛与社团活动分散的问题，通过活动聚合、搜索推荐和组织主页，把机会统一沉淀到一个入口。"
+                "把校园机会、AI 社区、项目、赛事、个人与组织身份放进同一套可发现、可参与、可沉淀的公共入口。"
             ),
-            metric: t("about.ecosystem.business.info_metric", "700+ 活动收录"),
+            metric: t("about.ecosystem.business.info_metric", "触达 · 连接 · 记录"),
             route: "/events",
             cta: t("about.ecosystem.business.info_cta", "查看活动"),
             icon: CalendarDays,
@@ -342,14 +342,14 @@ const About = () => {
         },
         {
             index: "02",
-            code: "GROW",
-            title: t("about.ecosystem.business.grow_title", "AI 生态培养体系"),
-            short: t("about.ecosystem.business.grow_short", "AI 社区 / 学习体系 / 项目执行"),
+            code: "COMMUNITY",
+            title: t("about.ecosystem.business.grow_title", "AI 社区与项目协作"),
+            short: t("about.ecosystem.business.grow_short", "学习共建 / 组队实践 / 项目交付"),
             description: t(
                 "about.ecosystem.business.grow_desc",
-                "以网站 AI 社区为公开内容沉淀入口，结合微信群社群、智能体协会和真实项目，形成从 AI 入门到协作实践的成长体系。"
+                "AI 社区沉淀知识与问题，智能体协会组织学习和执行，真实项目让参与者从交流走向协作与交付。"
             ),
-            metric: t("about.ecosystem.business.grow_metric", "500 人社群满额"),
+            metric: t("about.ecosystem.business.grow_metric", "学习 → 组队 → 交付"),
             route: "/articles",
             cta: t("about.ecosystem.business.grow_cta", "进入 AI 社区"),
             icon: GraduationCap,
@@ -357,14 +357,14 @@ const About = () => {
         },
         {
             index: "03",
-            code: "ZJUHACK",
+            code: "HACKATHON",
             title: t("about.ecosystem.business.hackathon_title", "浙客松系列黑客松"),
             short: t("about.ecosystem.business.hackathon_short", "交叉赛事 / 人才选拔 / 成果认证"),
             description: t(
                 "about.ecosystem.business.hackathon_desc",
-                "围绕量化、医学、硬件、人文社科等交叉主题持续举办 AI 实战赛事，让学生完成作品闭环，并连接企业认证、实习内推和项目孵化。"
+                "围绕学院与企业真实命题开展跨学科实战，让学习转化为作品、交付和可验证的人才信号。"
             ),
-            metric: t("about.ecosystem.business.hackathon_metric", "季度化 AI 交叉赛事"),
+            metric: t("about.ecosystem.business.hackathon_metric", "实战 → 作品 → 人才信号"),
             route: "/hackathon",
             cta: t("about.ecosystem.business.hackathon_cta", "查看浙客松"),
             icon: Trophy,
@@ -379,7 +379,7 @@ const About = () => {
                 "about.ecosystem.join.student_desc",
                 "发现校园机会，加入 AI 社区，参与项目与黑客松，把学习转化成作品。"
             ),
-            action: t("about.ecosystem.join.student_cta", "进入平台"),
+            action: t("about.ecosystem.join.student_cta", "发现校园机会"),
             route: "/events",
             icon: Users,
         },
@@ -425,10 +425,10 @@ const About = () => {
             className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory ${palette.page}`}
         >
             <SEO
-                title={t("about.ecosystem.meta_title", "拓浙 AI 生态")}
+                title={t("about.ecosystem.meta_title", "拓浙AI生态")}
                 description={t(
                     "about.ecosystem.meta_desc",
-                    "了解拓浙 AI 生态如何以信息共享平台、AI 生态培养体系与浙客松系列黑客松连接学生、学院、企业和真实 AI 场景。"
+                    "了解拓浙AI生态如何连接学生、学院、企业与真实 AI 需求，让学习、项目、赛事和产业协作持续形成成果。"
                 )}
             />
 
@@ -486,7 +486,7 @@ const About = () => {
                                 <span
                                     className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`}
                                 />
-                                {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
+                                {t("about.ecosystem.hero.brand", "拓浙AI生态")}
                             </div>
 
                             <h1
@@ -503,7 +503,7 @@ const About = () => {
                                     {t("about.ecosystem.hero.title_2", "AI 生态")}
                                 </span>
                                 <span className={`block ${palette.accent}`}>
-                                    {t("about.ecosystem.hero.title_3", "ZJU AI ECOSYSTEM")}
+                                    {t("about.ecosystem.hero.title_3", "TUOZHE AI ECOSYSTEM")}
                                 </span>
                             </h1>
 
@@ -515,7 +515,7 @@ const About = () => {
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
-                                    "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。"
+                                    "从浙大出发，连接学生、学院、企业与真实 AI 需求，让学习、赛事、项目实践和产业协作持续形成成果。"
                                 )}
                             </p>
 
@@ -525,14 +525,14 @@ const About = () => {
                                     className={`inline-flex min-h-12 items-center justify-center gap-2.5 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
                                 >
                                     <Rocket className="h-5 w-5" />
-                                    {t("about.ecosystem.hero.primary_cta", "进入拓途浙享")}
+                                    {t("about.ecosystem.hero.primary_cta", "发现生态机会")}
                                 </Link>
                                 <a
                                     href="#business-lines"
                                     className={`inline-flex min-h-12 items-center justify-center gap-2.5 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
                                 >
                                     <BookOpen className="h-5 w-5" />
-                                    {t("about.ecosystem.hero.secondary_cta", "看业务架构")}
+                                    {t("about.ecosystem.hero.secondary_cta", "了解运行方式")}
                                 </a>
                             </div>
                         </motion.div>
@@ -567,7 +567,7 @@ const About = () => {
                                     >
                                         {t(
                                             "about.ecosystem.brief.desc",
-                                            "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。"
+                                            "从浙大出发，连接学生、学院、企业与真实 AI 需求，让每次参与都能留下可复用的成果与关系。"
                                         )}
                                     </p>
                                 </div>
@@ -809,21 +809,21 @@ const About = () => {
                     <div
                         className={`pointer-events-none absolute -right-[6vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}
                     >
-                        BUILD
+                        ENGINE
                     </div>
                     <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
                         <div className="max-w-5xl">
                             <p className={`text-sm font-black uppercase ${palette.label}`}>
-                                Three Businesses
+                                {t("about.ecosystem.business.eyebrow", "Ecosystem Engine")}
                             </p>
                             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_1", "三项业务，")}
+                                    {t("about.ecosystem.business.title_1", "三项生态机制，")}
                                 </span>
                                 <span className="block">
                                     {t(
                                         "about.ecosystem.business.title_2",
-                                        "把资源转化为学生成长路径。"
+                                        "让人才、真实需求与成果持续流动。"
                                     )}
                                 </span>
                             </h2>
@@ -832,7 +832,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "信息入口带来信任和触达，AI 生态培养体系完成学习与项目承接，浙客松系列黑客松把交叉学科问题转化为高密度实战与成果认证。"
+                                    "数字底座负责触达与记录，AI 社区负责学习与协作，浙客松负责实战验证和人才识别；三者共同把资源送入真实项目与产业连接。"
                                 )}
                             </p>
                         </div>
@@ -961,7 +961,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.join.desc",
-                                    "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从这里进入平台、下载 App 或发起合作。"
+                                    "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从具体机会、社区、项目、赛事或合作入口开始行动。"
                                 )}
                             </p>
 
@@ -978,7 +978,7 @@ const About = () => {
                                     className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
                                 >
                                     <Smartphone className="h-4 w-4" />
-                                    {t("about.ecosystem.join.platform_cta", "进入平台")}
+                                    {t("about.ecosystem.join.platform_cta", "发现校园机会")}
                                 </Link>
                                 <Link
                                     to="/future-learning"

@@ -23,7 +23,7 @@ const MIME_BY_EXT = {
 };
 
 const usage = () => {
-    console.log(`拓途浙享 AI 社区 CLI
+    console.log(`拓浙AI生态 · AI 社区 CLI
 
 用法:
   zju login --server https://tuotuzj.com --username alice
