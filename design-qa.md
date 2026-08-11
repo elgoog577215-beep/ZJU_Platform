@@ -44,8 +44,23 @@
 - 修复后详情与索引接近 1:1 分栏，详情的最大高度和超大名次同步收紧；索引获得接近一半页面宽度，并为每件作品加入真实封面、加大的名次、标题和作者层级。
 - 当当前赛事只有 3 件可见作品时，右侧不再像悬空的微型目录；当作品增多时继续在同一高度内滚动，不把详情无限拉长。
 
+## 六次校正：四屏概念图驱动落地
+
+- 本轮不再直接凭代码试样式。先固定用户选定的 01 首屏概念图，再分别生成 02 现场档案、03 作品与荣誉、04 共同见证的同一视觉体系概念图，之后逐屏落地并制作同视口并排对照板。
+- 01 在 `1366×768` 笔记本视口把“AI 全栈极速 / 黑客松”锁定为严格两行；标题、说明、四项数据、双操作和车头形现场照片均保持在首屏可见范围。原站 Logo、全站导航名称和全局按钮不随浙客松路由替换。
+- 02 采用“左侧巨型章节编号 + 右侧单张主现场照片 + 底部四张连续辅图”的编辑式结构，照片不加门板；03 采用完整 TOP 3 奖台、近等宽作品详情与真实封面索引，消除“大物件压着小列表”的比例失衡。
+- 04 使用真实 About 合作方数据构成六枚企业 Logo 单行跑道，并将学校支持与社团协作压缩为编号阵列；桌面保持横向阵容感，手机改为两列 Logo 墙和纵向知识网络。
+- 手机 `390×844` 逐段实拍。02 的辅图只在自身横向轨道滑动，03 的冠军独占一行、亚季军并列，04 的“技术与产业支持”不再被挤成逐字竖排；页面正文没有文档级横向漂移。
+
 ## 对照证据
 
+- 01 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/hero-concept-vs-local-final.jpg`
+- 02 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/archive-concept-vs-local-final.jpg`
+- 03 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/works-concept-vs-local-final.jpg`
+- 04 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/support-concept-vs-local-final.jpg`
+- 笔记本两行标题验收：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/laptop-1366x768-final.jpg`
+- 手机四段验收：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/mobile-hero-final.jpg`、`mobile-archive-final.jpg`、`mobile-works-final.jpg`、`mobile-support-final.jpg`
+- 英文首屏与共同见证：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/english-final.jpg`、`english-support-final.jpg`
 - 参考图与二次校正实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-reference-vs-final-v2.jpg`
 - 二次校正桌面首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-desktop-final.jpg`
 - 二次校正手机首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-mobile-final.jpg`
@@ -82,6 +97,7 @@
 - 手机作品详情仍使用 body portal、`100dvh` 和滚动锁；打开时 `body` 为 `overflow: hidden`，关闭后弹层消失并恢复页面滚动。
 - 手机深滚动时赛事时间轴和页面切换条均离开视口，作品与共同见证内容不再被固定浮层遮挡。
 - 用户反馈截图尺寸 `1742×1006` 下，作品详情与索引宽度分别约为 `741px / 698px`；真实 20 件作品数据下两列高度约为 `680px / 754px`，右侧每项包含真实封面，不再是窄小文字列表。
+- 笔记本 `1366×768` 与桌面 `1440×1024` 均保持首屏标题严格两行；中文、英文桌面和手机四段均使用真实本地页面完成截图验收。
 - 本地后端健康启动后使用新标签页复测，浏览器 `warn / error` 日志为空。
 
 ## 工程检查
@@ -96,7 +112,7 @@
 - 对比历史：来源图中的 P1 问题是“大详情 + 微型目录”；修复后在相同 `1742×1006` 状态下变为近等宽、媒体化索引，复测没有剩余 P0 / P1 / P2 问题。
 
 - 目标组件 ESLint 通过。
-- Impeccable anti-pattern detector 对本轮成果页样式未发现新增问题；它报告的 8 项 warning 均来自 `Navbar.jsx` 中本轮未触及的天气、壁纸与移动菜单旧配色分支。
+- Impeccable anti-pattern detector 对最终组件与中英文词典返回空问题集 `[]`。
 - 中英文 locale 均可被 `JSON.parse`。
 - `npm run build` 通过。
 - `git diff --check` 通过。

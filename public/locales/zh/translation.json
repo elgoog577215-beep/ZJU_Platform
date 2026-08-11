@@ -1851,13 +1851,24 @@
             "project_link": "查看项目",
             "story_file": "查看原文附件",
             "work_dialog": "{{title}}作品详情",
-            "support_eyebrow": "Credits",
+            "support_eyebrow": "Supported By",
             "support_title": "共同见证",
+            "support_statement": "资源不是附属，而是让赛事真正发生的基础。",
+            "support_partner_unit": "支持伙伴",
+            "support_enterprise_title": "技术与产业支持",
+            "support_enterprise_desc": "模型、云资源、开发工具与产业视野，共同支撑参赛者把创意推进到真实作品。",
+            "support_network_label": "Campus Network",
             "support_lineup": "知识与创新阵容",
+            "support_network_desc": "学校提供场景与机制，学生组织承接传播与执行，让一次比赛成为可以持续生长的创新网络。",
             "support_groups": {
                 "school": "学校支持",
                 "organization": "社团协作",
                 "enterprise": "企业生态"
+            },
+            "support_group_desc": {
+                "school": "提供校园场景、专业指导与长期机制支持。",
+                "organization": "连接学生社群，承担组织、传播与现场执行。",
+                "enterprise": "提供模型、平台、开发资源与技术生态支持。"
             },
             "support_count": "{{count}} 位学校、社团与企业伙伴共同支持本场比赛。",
             "open_for_registration": "开放中",

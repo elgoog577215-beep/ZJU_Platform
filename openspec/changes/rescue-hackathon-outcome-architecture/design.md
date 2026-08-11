@@ -21,6 +21,7 @@ Hackathon content is split by ownership:
 
 ## Public Visual Language
 
+- 视觉重构采用概念图驱动：先固定经用户选中的目标图，再为后续章节生成同一体系的 02 / 03 / 04 概念图；实现后必须在同一视口制作“概念图 / 真实页面”并排对照，不能以单张实现截图代替视觉验收。
 - The showcase and event archive share one spatial world: deep black-green ground, a real raster X-field as the compositional backbone, acid-lime signals, documentary event media, and monumental Chinese type.
 - The global ecosystem header is a route-invariant shell: every route uses the `拓浙AI生态` primary identity, shared destinations, controls, and flat underline navigation. The hackathon route may activate `浙客松`, but it must not replace the ecosystem identity or rename global navigation. The event switcher remains a compact secondary control below it instead of becoming a second full-width navigation bar.
 - The X-field must remain visibly present in the first viewport. It is not recreated with CSS shapes and must not be hidden under an opaque page mask.
@@ -45,7 +46,7 @@ Hackathon content is split by ownership:
     - mobile: a body-portal full-screen detail view using `100dvh`, scroll lock, and browser/back-button close.
 3. The selected work is represented by `work=<id>` in the showcase URL so details are shareable and browser navigation remains truthful.
 4. The separate winner-story page is not a second catalogue; it only adapts old deep links into this interaction.
-5. Partner credits close the chapter as a typographic knowledge-and-innovation network: a large truthful partner count, grouped support roles, and an indexed name matrix. It does not become a logo-card wall or a separate full-screen page.
+5. Partner credits close the chapter as a knowledge-and-innovation network: a large truthful partner count, one restrained enterprise-logo runway sourced from the About partner truth, then grouped school/community roles and an indexed name matrix. It does not become a repeated logo-card wall or a separate route.
 
 ## Event-Media Relation
 

@@ -60,3 +60,11 @@
 - 2026-08-11：根据用户反馈恢复桌面首屏照片上窄下宽、向右冲出的“车头”异形轮廓；浏览器支持时使用曲线 `shape()`，否则保留同方向多边形降级，手机继续使用圆角矩形。桌面与手机文档宽度分别复测为 `1440` 和 `390`，均无横向溢出。
 - 2026-08-11：全站桌面导航统一为 `拓浙AI生态` 主品牌与扁平下划线交互；进入浙客松仅切换当前项，不替换生态 Logo、导航名称或全局控制。作品区升级为“冠军主展位 + 亚季军并列 + 选中作品焦点展览 + 完整排行侧栏”，共同见证升级为分组知识与创新阵容；移动端滚动后同步收起赛事时间轴与页面切换条，避免遮挡作品和阵容内容。
 - 2026-08-11：针对用户指出的作品详情 / 索引尺度失衡再次校正：桌面两列实测宽度约 `741 / 698px`，索引加入真实封面并放大名次、标题和作者层级；`1742×1006`、`1440×1000` 与 `390×844` 均无文档级横向溢出。
+- 2026-08-11：按概念图驱动流程完成 01 / 02 / 03 / 04 四屏收口：01 在 `1366×768` 保持严格两行标题，02 使用主图与四图连续档案，03 重排奖台、详情和完整索引，04 复用 About 真实企业合作方与学校 / 社团阵容；最终以 `1440×1024` 并排对照板、`390×844` 四段手机实拍及中英文页面验收。
+
+## 9. Concept-First Visual Closure
+
+- [x] 9.1 Freeze the selected 01 visual target and generate matching 02, 03, and 04 concept images before implementation.
+- [x] 9.2 Rebuild the four showcase chapters against the selected concepts while preserving the shared ecosystem Navbar and Logo.
+- [x] 9.3 Keep the hero title to exactly two lines at laptop width and rebalance the works detail/index at desktop width.
+- [x] 9.4 Verify desktop, laptop, mobile, Chinese, and English states with real local screenshots and side-by-side concept comparisons.

@@ -1849,13 +1849,24 @@
             "project_link": "View Project",
             "story_file": "View Original Story",
             "work_dialog": "{{title}} details",
-            "support_eyebrow": "Credits",
+            "support_eyebrow": "Supported By",
             "support_title": "Built Together",
+            "support_statement": "Support is not decoration. It is the infrastructure that makes the event possible.",
+            "support_partner_unit": "Support Partners",
+            "support_enterprise_title": "Technology & Industry Backers",
+            "support_enterprise_desc": "Models, cloud resources, development tools, and industry perspective help builders turn ideas into working products.",
+            "support_network_label": "Campus Network",
             "support_lineup": "Knowledge & Innovation Network",
+            "support_network_desc": "Schools provide the setting and long-term mechanism. Student organizations connect communities and carry operations from outreach to event day.",
             "support_groups": {
                 "school": "School Support",
                 "organization": "Campus Force",
                 "enterprise": "Enterprise Partners"
+            },
+            "support_group_desc": {
+                "school": "Campus scenarios, professional guidance, and long-term institutional support.",
+                "organization": "Student community reach, event organization, communication, and on-site execution.",
+                "enterprise": "Models, platforms, development resources, and technology ecosystem support."
             },
             "support_count": "{{count}} school, community, and enterprise partners supported this event.",
             "open_for_registration": "Open",
