@@ -144,3 +144,102 @@ test("hackathon showcase preserves the mobile reading order and clears page tabs
     await expect(pageTabs).toHaveCount(0);
     await expect(timeline).toBeVisible();
 });
+
+test("hackathon showcase keeps one continuous mobile scroll surface", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/hackathon?event=zhekesong-current&view=showcase");
+
+    const showcasePage = page.locator("[data-showcase-page]");
+    await expect(showcasePage).toBeVisible();
+
+    const initialScrollState = await showcasePage.evaluate((element) => {
+        const style = window.getComputedStyle(element);
+        const documentElement = document.documentElement;
+        return {
+            documentHeight: documentElement.scrollHeight,
+            horizontalOverflow: documentElement.scrollWidth - documentElement.clientWidth,
+            rootClientHeight: element.clientHeight,
+            rootScrollHeight: element.scrollHeight,
+            rootScrollTop: element.scrollTop,
+            overflowY: style.overflowY,
+            scrollSnapType: style.scrollSnapType,
+            touchAction: style.touchAction,
+        };
+    });
+
+    expect(initialScrollState.documentHeight).toBeGreaterThan(844);
+    expect(initialScrollState.horizontalOverflow).toBeLessThanOrEqual(1);
+    expect(initialScrollState.rootClientHeight).toBe(initialScrollState.rootScrollHeight);
+    expect(initialScrollState.rootScrollTop).toBe(0);
+    expect(initialScrollState.overflowY).toBe("visible");
+    expect(initialScrollState.scrollSnapType).toBe("none");
+    expect(initialScrollState.touchAction).toContain("pan-y");
+
+    const visitedSections = new Set(["gate"]);
+    let previousScrollY = 0;
+    let reachedBottom = false;
+
+    for (let step = 0; step < 32; step += 1) {
+        await page.mouse.wheel(0, 360);
+        await page.waitForTimeout(24);
+
+        const sample = await page.evaluate(() => {
+            const documentElement = document.documentElement;
+            const viewportCenter = window.innerHeight / 2;
+            const currentSection = ["gate", "archive", "works", "index", "partners"]
+                .map((id) => document.getElementById(id))
+                .filter(Boolean)
+                .find((section) => {
+                    const rect = section.getBoundingClientRect();
+                    return rect.top <= viewportCenter && rect.bottom >= viewportCenter;
+                });
+
+            return {
+                sectionId: currentSection?.id || null,
+                scrollY: window.scrollY,
+                maxScrollY: documentElement.scrollHeight - window.innerHeight,
+                showcaseScrollTop: document.querySelector("[data-showcase-page]")?.scrollTop || 0,
+            };
+        });
+
+        expect(sample.scrollY).toBeGreaterThanOrEqual(previousScrollY);
+        expect(sample.showcaseScrollTop).toBe(0);
+        if (sample.sectionId) visitedSections.add(sample.sectionId);
+        previousScrollY = sample.scrollY;
+
+        if (sample.scrollY >= sample.maxScrollY - 2) {
+            reachedBottom = true;
+            break;
+        }
+    }
+
+    expect(reachedBottom).toBe(true);
+    expect([...visitedSections]).toEqual(["gate", "archive", "works", "index", "partners"]);
+
+    const bottomSafety = await page.evaluate(() => {
+        const partners = document.getElementById("partners");
+        const lastAction = partners?.querySelector("a:last-of-type, button:last-of-type");
+        const fixedBottomNav = [...document.querySelectorAll("nav")].find((element) => {
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            return style.position === "fixed" && Math.abs(rect.bottom - window.innerHeight) <= 2;
+        });
+
+        return {
+            actionBottom: lastAction?.getBoundingClientRect().bottom ?? window.innerHeight,
+            bottomNavTop: fixedBottomNav?.getBoundingClientRect().top ?? window.innerHeight,
+        };
+    });
+
+    expect(bottomSafety.actionBottom).toBeLessThan(bottomSafety.bottomNavTop);
+
+    for (let step = 0; step < 32 && previousScrollY > 0; step += 1) {
+        await page.mouse.wheel(0, -360);
+        await page.waitForTimeout(24);
+        const nextScrollY = await page.evaluate(() => window.scrollY);
+        expect(nextScrollY).toBeLessThanOrEqual(previousScrollY);
+        previousScrollY = nextScrollY;
+    }
+
+    expect(previousScrollY).toBe(0);
+});
