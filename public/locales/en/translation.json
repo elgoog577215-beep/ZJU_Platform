@@ -1617,7 +1617,6 @@
             "jump_to_section": "Jump to {{title}} section",
             "sections": {
                 "gate": "Home",
-                "gallery": "Field",
                 "archive": "Archive",
                 "works": "Works",
                 "index": "Index",
@@ -1711,12 +1710,12 @@
                 "dynamic_caption": "A hackathon outcome photo from the gallery, automatically synced here after approval."
             },
             "archive": {
-                "eyebrow": "Chapter 03 / Field Archive",
+                "eyebrow": "Chapter 02 / Field Archive",
                 "title": "The Event, Frame by Frame",
-                "desc": "Follow the event from opening and building through awards and exchange. Every frame serves as evidence of the work delivered."
+                "desc": "Highlights and archive now share one page, moving from opening and building through awards and exchange."
             },
             "works": {
-                "eyebrow": "Chapter 04 / Winning Works",
+                "eyebrow": "Chapter 03 / Winning Works",
                 "title": "Winning Works Showcase",
                 "view_all": "View all {{count}} winning works",
                 "submit": "Submit Work / Story",
@@ -1728,17 +1727,17 @@
                 "fallback_title": "Untitled Work",
                 "fallback_author": "Awarded Builder",
                 "fallback_honor": "Top 20 Awarded Builder",
-                "desc": "Work cards focus on outcomes: work name, honor, and builder are visible at a glance.",
+                "desc": "Project imagery establishes hierarchy, while honor, title, and builder stay immediately scannable. Less framing keeps attention on what was built.",
                 "archive_label": "Outcome Archive",
                 "archive_unit": "published works"
             },
             "index": {
-                "eyebrow": "Chapter 05 / Works Index",
+                "eyebrow": "Chapter 04 / Works Index",
                 "title": "Enter the Outcome Archive",
                 "desc": "Scan rank, project, and builder without repeated introductions, then open the complete record or submit another outcome."
             },
             "partners": {
-                "eyebrow": "Chapter 06 / Co-creation",
+                "eyebrow": "Chapter 05 / Co-creation",
                 "title": "Witnessed Together",
                 "desc": "Partners are not decorative logos on the first screen. They form the event endorsement: schools, campus organizations, and enterprises each carry resources, operations, and technical ecosystem support.",
                 "lineup": "Support Lineup",

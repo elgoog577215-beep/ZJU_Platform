@@ -95,11 +95,10 @@ const actionLinks = [
 
 const showcaseSections = [
     { id: "gate", no: "01", title: "首页" },
-    { id: "gallery", no: "02", title: "赛场" },
-    { id: "archive", no: "03", title: "图集" },
-    { id: "works", no: "04", title: "作品" },
-    { id: "index", no: "05", title: "索引" },
-    { id: "partners", no: "06", title: "共创" },
+    { id: "archive", no: "02", title: "图集" },
+    { id: "works", no: "03", title: "作品" },
+    { id: "index", no: "04", title: "索引" },
+    { id: "partners", no: "05", title: "共创" },
 ];
 
 const showcaseSectionIds = showcaseSections.map((section) => section.id);
@@ -367,7 +366,7 @@ const ShowcaseWorkCard = ({
 
     return (
         <article
-            className={`showcase-work-card ${featured ? "showcase-work-card-featured" : ""} ${compact ? "showcase-work-card-compact" : ""} group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
+            className={`showcase-work-card ${featured ? "showcase-work-card-featured" : ""} ${compact ? "showcase-work-card-compact" : ""} group grid transition duration-300 hover:-translate-y-1 ${
                 featured
                     ? "min-h-[25.5rem] grid-rows-[minmax(16rem,1fr)_auto] lg:min-h-full"
                     : compact
@@ -377,7 +376,7 @@ const ShowcaseWorkCard = ({
         >
             <Link
                 to={worksHref}
-                className={`showcase-work-cover relative block overflow-hidden ${
+                className={`showcase-work-cover relative block overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 ${
                     featured ? "min-h-[14.25rem] lg:min-h-0" : compact ? "min-h-0" : "min-h-[128px]"
                 }`}
                 aria-label={t("hackathon.showcase.works.project_aria", { title: work.title })}
@@ -409,49 +408,46 @@ const ShowcaseWorkCard = ({
                         )
                     }
                 />
-                <div
-                    className={`showcase-award-badge absolute right-4 top-4 z-10 inline-flex items-center gap-2.5 overflow-hidden border px-3.5 py-2.5 text-sm font-black backdrop-blur ${isDayMode ? "showcase-award-badge-day border-cyan-200 bg-gradient-to-r from-white via-cyan-50 to-amber-50 text-slate-950 shadow-[0_18px_42px_rgba(8,145,178,0.22)] ring-1 ring-white/80" : "border-cyan-200/40 bg-slate-950/58 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]"} ${featured ? "showcase-award-badge-featured sm:px-5 sm:py-3.5 sm:text-lg" : ""}`}
-                >
-                    <span
-                        className={`pointer-events-none absolute inset-x-2 top-0 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-cyan-300 to-transparent" : "bg-gradient-to-r from-transparent via-white/38 to-transparent"}`}
-                    />
-                    <span
-                        className={`grid shrink-0 place-items-center border ${featured ? "h-8 w-8" : "h-7 w-7"} ${isDayMode ? "border-cyan-200 bg-cyan-100 text-cyan-800 shadow-inner shadow-white/70" : "border-cyan-200/35 bg-cyan-300/14 text-cyan-100"}`}
-                    >
-                        <Trophy className={`${featured ? "h-5 w-5" : "h-4.5 w-4.5"} shrink-0`} />
-                    </span>
-                    {badgeLabel}
-                </div>
             </Link>
             <div
-                className={`flex min-w-0 flex-col ${featured ? "p-3.5 sm:p-4" : compact ? "p-3" : "p-3 sm:p-3.5"}`}
+                className={`showcase-work-meta flex min-w-0 flex-col border-t ${theme.border} ${
+                    featured ? "mt-4 pt-4" : "mt-3 pt-3"
+                }`}
             >
+                <div
+                    className={`showcase-work-honor flex min-w-0 items-center gap-2 font-mono text-[11px] font-black uppercase tracking-[0.14em] ${theme.accent}`}
+                >
+                    <Trophy className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 truncate">{badgeLabel}</span>
+                    <span
+                        className="h-px min-w-5 flex-1 bg-current opacity-35"
+                        aria-hidden="true"
+                    />
+                </div>
                 <Link
                     to={worksHref}
-                    className={`${featured ? "text-xl sm:text-2xl" : "text-base sm:text-lg"} line-clamp-2 font-black leading-tight transition-colors hover:text-cyan-300`}
+                    className={`showcase-work-title ${featured ? "mt-3 text-2xl sm:text-3xl" : "mt-2 text-lg sm:text-xl"} line-clamp-2 font-black leading-[1.08] transition-colors hover:text-cyan-300`}
                 >
                     {work.title}
                 </Link>
-                <div className="flex flex-wrap gap-2">
-                    <span className={`mt-2 border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
-                        {work.author}
-                        {work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
-                    </span>
-                </div>
+                <p className={`mt-2 text-xs font-bold leading-5 ${theme.muted}`}>
+                    {work.author}
+                    {work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
+                </p>
                 {hasGitUrl ? (
                     <a
                         href={work.gitUrl}
                         target="_blank"
                         rel="noreferrer"
                         title={work.gitUrl}
-                        className={`mt-auto inline-flex min-h-9 min-w-0 items-center gap-2 border px-3 text-xs font-black transition duration-200 hover:-translate-y-0.5 ${theme.secondaryButton}`}
+                        className={`mt-auto inline-flex w-fit min-w-0 items-center gap-2 pt-3 text-xs font-black transition duration-200 hover:gap-3 ${theme.accent}`}
                         aria-label={t("hackathon.showcase.works.git_link")}
                     >
                         <Github className="h-4 w-4 shrink-0" />
                         <span className="min-w-0 truncate">
                             {t("hackathon.showcase.works.git_link")}
                         </span>
-                        <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0" />
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0" />
                     </a>
                 ) : null}
             </div>
@@ -1194,25 +1190,31 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             color: rgba(207, 250, 254, 0.98) !important;
           }
 
-          .showcase-award-badge {
-            min-height: 2.625rem;
-            letter-spacing: 0;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+          .showcase-work-card {
+            background: transparent;
+            box-shadow: none;
           }
 
-          .showcase-award-badge-day {
-            background:
-              linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(236, 254, 255, 0.95) 48%, rgba(255, 251, 235, 0.98) 100%) !important;
-            border-color: rgba(14, 165, 233, 0.42) !important;
-            color: rgb(15, 23, 42) !important;
-            box-shadow:
-              0 16px 38px rgba(8, 145, 178, 0.24),
-              0 3px 0 rgba(8, 145, 178, 0.18),
-              inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+          .showcase-work-cover {
+            clip-path: polygon(0 0, calc(100% - 1.15rem) 0, 100% 1.15rem, 100% 100%, 0 100%);
+            isolation: isolate;
           }
 
-          .showcase-award-badge-featured {
-            min-height: 3.25rem;
+          .showcase-work-cover::before {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            box-shadow: inset 0 0 0 1px rgba(165, 243, 252, 0.38);
+            content: "";
+            pointer-events: none;
+          }
+
+          .showcase-theme-day .showcase-work-cover::before {
+            box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.3);
+          }
+
+          .showcase-work-card-featured .showcase-work-cover {
+            clip-path: polygon(0 0, calc(100% - 1.75rem) 0, 100% 1.75rem, 100% 100%, 0 100%);
           }
 
           @media (min-width: 1024px) and (max-height: 820px) {
@@ -1285,9 +1287,6 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
               min-height: 0;
             }
 
-            .showcase-award-badge-featured {
-              min-height: 2.75rem;
-            }
           }
 
           @media (min-width: 1024px) and (max-height: 740px) {
@@ -1578,8 +1577,7 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             .showcase-works-board {
               min-height: clamp(16.5rem, 48svh, 27rem) !important;
               grid-template-columns: minmax(0, 1.08fr) minmax(190px, 0.92fr);
-              gap: 0.65rem;
-              padding: 0.65rem !important;
+              gap: 1rem;
             }
 
             .showcase-work-card-featured {
@@ -1592,37 +1590,9 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
               grid-template-rows: minmax(7.5rem, 1fr) auto;
             }
 
-            .showcase-work-card .showcase-award-badge {
-              right: 0.65rem;
-              top: 0.65rem;
-              max-width: calc(100% - 1.3rem);
-              min-height: 2rem;
-              gap: 0.4rem;
-              padding: 0.45rem 0.6rem;
-              font-size: 0.72rem;
-            }
-
-            .showcase-award-badge-featured {
-              min-height: 2.25rem;
-            }
-
-            .showcase-work-card .showcase-award-badge span {
-              height: 1.55rem;
-              width: 1.55rem;
-            }
-
-            .showcase-work-card-featured .showcase-image-title {
-              font-size: clamp(1.6rem, 2.55vw, 2.35rem);
-              line-height: 1.05;
-            }
-
-            .showcase-work-card-compact .showcase-image-title {
-              font-size: clamp(1.08rem, 1.55vw, 1.38rem);
-              line-height: 1.05;
-            }
-
-            .showcase-work-card > div:last-child {
-              padding: 0.65rem;
+            .showcase-work-meta {
+              margin-top: 0.65rem;
+              padding-top: 0.65rem;
             }
           }
 
@@ -1890,12 +1860,6 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             min-height: 7rem;
           }
 
-          .showcase-compact-flow .showcase-award-badge {
-            right: 0.75rem;
-            top: 0.75rem;
-            max-width: calc(100% - 1.5rem);
-          }
-
           @media (max-width: 640px) {
             .showcase-compact-flow {
               scroll-padding-top: calc(env(safe-area-inset-top) + 5.5rem);
@@ -2096,7 +2060,12 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             }
 
             .showcase-archive-item-4 {
-              grid-column: 7 / 13;
+              grid-column: 7 / 10;
+              grid-row: 2;
+            }
+
+            .showcase-archive-item-5 {
+              grid-column: 10 / 13;
               grid-row: 2;
             }
 
@@ -2108,8 +2077,7 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             #works .showcase-works-board {
               min-height: clamp(28rem, 62svh, 38rem) !important;
               grid-template-columns: minmax(0, 1.16fr) minmax(14rem, 0.84fr);
-              gap: 0.85rem;
-              padding: 0.85rem !important;
+              gap: clamp(1rem, 1.5vw, 1.5rem);
             }
 
             #index .showcase-index-section-grid {
@@ -2359,84 +2327,9 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
             </ShowcaseSectionFrame>
 
             <ShowcaseSectionFrame
-                id="gallery"
-                className={compactFlow ? "pt-14 pb-12" : "showcase-content-screen"}
-                backgroundWord="FIELD"
-                liteMode={liteMode}
-                compactFlow={compactFlow}
-                contentClassName={
-                    compactFlow
-                        ? "items-start"
-                        : "showcase-gallery-overview-grid self-center items-center"
-                }
-            >
-                <MotionDiv {...reveal} className="showcase-gallery-intro min-w-0">
-                    <p
-                        className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}
-                    >
-                        <Camera className="h-4 w-4" />
-                        {t("hackathon.showcase.gallery.eyebrow")}
-                    </p>
-                    <h2 className="showcase-poster-heading mt-5 max-w-4xl text-[clamp(3rem,4.8vw,5.5rem)] font-black tracking-normal">
-                        {t("hackathon.showcase.gallery.title")}
-                    </h2>
-                    <p
-                        className={`showcase-gallery-copy mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}
-                    >
-                        {t("hackathon.showcase.gallery.desc")}
-                    </p>
-                    <div
-                        className={`showcase-gallery-proof-grid mt-8 grid gap-px border-t ${theme.border} sm:grid-cols-2`}
-                    >
-                        <div
-                            className={`showcase-gallery-proof-tile py-4 sm:pr-6 ${isDayMode ? "sm:border-r sm:border-slate-200" : "sm:border-r sm:border-white/10"}`}
-                        >
-                            <p
-                                className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}
-                            >
-                                01 / Stage Proof
-                            </p>
-                            <p className="mt-2 text-4xl font-black 2xl:text-5xl">
-                                {galleryMoments.length}
-                            </p>
-                            <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>
-                                Media Moments
-                            </p>
-                        </div>
-                        <div className="showcase-gallery-proof-tile py-4 sm:pl-6">
-                            <p
-                                className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}
-                            >
-                                02 / Archive
-                            </p>
-                            <p className="mt-2 text-4xl font-black 2xl:text-5xl">Live</p>
-                            <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>
-                                Outcome Gallery
-                            </p>
-                        </div>
-                    </div>
-                </MotionDiv>
-
-                <MotionDiv
-                    {...reveal}
-                    className={`showcase-gallery-feature-shell grid border p-2 ${compactFlow ? "min-h-[20rem]" : "h-full min-h-0"} ${theme.surfaceStrong}`}
-                >
-                    {galleryMoments[0] ? (
-                        <ShowcaseImageCard
-                            moment={galleryMoments[0]}
-                            index={0}
-                            theme={theme}
-                            isDayMode={isDayMode}
-                            featured
-                        />
-                    ) : null}
-                </MotionDiv>
-            </ShowcaseSectionFrame>
-
-            <ShowcaseSectionFrame
                 id="archive"
                 className={compactFlow ? "pt-14 pb-12" : "showcase-content-screen"}
-                backgroundWord="ARCHIVE"
+                backgroundWord="FIELD"
                 liteMode={liteMode}
                 compactFlow={compactFlow}
                 contentClassName={
@@ -2465,14 +2358,14 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
                 </MotionDiv>
 
                 <MotionDiv {...reveal} className="showcase-archive-grid min-h-0">
-                    {galleryMoments.slice(1).map((moment, index) => (
+                    {galleryMoments.map((moment, index) => (
                         <div
                             key={moment.id}
                             className={`showcase-archive-item showcase-archive-item-${index + 1} min-h-0`}
                         >
                             <ShowcaseImageCard
                                 moment={moment}
-                                index={index + 1}
+                                index={index}
                                 theme={theme}
                                 isDayMode={isDayMode}
                                 featured={index === 0}
@@ -2553,7 +2446,7 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
 
                 <MotionDiv
                     {...reveal}
-                    className={`showcase-works-board grid gap-4 border p-3 sm:p-4 ${compactFlow ? "" : "lg:min-h-[clamp(21rem,61svh,36rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(220px,0.82fr)] xl:min-h-[clamp(25rem,66svh,45rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] min-[1536px]:gap-5 min-[1536px]:p-5"} ${theme.surfaceStrong}`}
+                    className={`showcase-works-board grid gap-5 ${compactFlow ? "" : "lg:min-h-[clamp(21rem,61svh,36rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(220px,0.82fr)] xl:min-h-[clamp(25rem,66svh,45rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] min-[1536px]:gap-6"}`}
                 >
                     {showcaseWorks[0] ? (
                         <ShowcaseWorkCard

@@ -51,7 +51,14 @@ test("hackathon showcase keeps one desktop command row and a balanced hero", asy
     );
     expect(titleFontSize).toBeLessThanOrEqual(96);
     await expect(page.locator('nav[aria-label="比赛成果展览章节"]')).toHaveCount(0);
-    await expect(page.locator("#gallery .showcase-media-overlay")).toHaveCount(0);
+    await expect(page.locator("#gallery")).toHaveCount(0);
+    await expect(page.locator("#archive .showcase-image-card")).toHaveCount(5);
+    await expect(page.locator("#archive .showcase-media-overlay")).toHaveCount(0);
+
+    const worksBoardBorderWidth = await page
+        .locator("#works .showcase-works-board")
+        .evaluate((element) => window.getComputedStyle(element).borderTopWidth);
+    expect(worksBoardBorderWidth).toBe("0px");
 
     const workPhotoPseudoContent = await page
         .locator("#works .showcase-work-cover")
@@ -60,7 +67,7 @@ test("hackathon showcase keeps one desktop command row and a balanced hero", asy
     expect(["none", "normal", '""']).toContain(workPhotoPseudoContent);
 
     const showcaseLayout = await page.locator("[data-showcase-page]").evaluate((element) => {
-        const ids = ["gate", "gallery", "archive", "works", "index", "partners"];
+        const ids = ["gate", "archive", "works", "index", "partners"];
         return {
             clientHeight: element.clientHeight,
             scrollHeight: element.scrollHeight,
@@ -77,13 +84,12 @@ test("hackathon showcase keeps one desktop command row and a balanced hero", asy
 
     expect(showcaseLayout.sections.map((section) => section.id)).toEqual([
         "gate",
-        "gallery",
         "archive",
         "works",
         "index",
         "partners",
     ]);
-    expect(showcaseLayout.scrollHeight).toBeGreaterThanOrEqual(showcaseLayout.clientHeight * 5.8);
+    expect(showcaseLayout.scrollHeight).toBeGreaterThanOrEqual(showcaseLayout.clientHeight * 4.8);
     showcaseLayout.sections.forEach((section, index) => {
         expect(section.height).toBeGreaterThanOrEqual(showcaseLayout.clientHeight * 0.95);
         if (index > 0) {
@@ -122,7 +128,7 @@ test("hackathon showcase preserves the mobile reading order and clears page tabs
     expect(titleBox.y).toBeLessThan(filmBox.y);
 
     const mobileSectionOrder = await page.locator("[data-showcase-page]").evaluate(() => {
-        return ["gate", "gallery", "archive", "works", "index", "partners"].map((id) => {
+        return ["gate", "archive", "works", "index", "partners"].map((id) => {
             const section = document.getElementById(id);
             return { id, offsetTop: section?.offsetTop ?? -1 };
         });
