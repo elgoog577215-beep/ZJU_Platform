@@ -1636,8 +1636,10 @@
             "jump_to_section": "跳转到{{title}}章节",
             "sections": {
                 "gate": "首屏",
-                "gallery": "图集",
+                "gallery": "赛场",
+                "archive": "图集",
                 "works": "作品",
+                "index": "索引",
                 "partners": "生态"
             },
             "stats": {
@@ -1678,6 +1680,7 @@
                 "title_mobile_2": "比赛成果"
             },
             "gallery": {
+                "eyebrow": "第二章 / 赛场主视觉",
                 "title": "现场照片精选",
                 "desc": "成果页不能只靠标题讲故事。真实画面会建立可信度：人、现场、颁奖和交流都要被看见。",
                 "view_all": "查看全部照片",
@@ -1685,9 +1688,17 @@
                 "stage_photo": "现场照片",
                 "dynamic_caption": "来自画廊的黑客松成果照片，审核通过后自动同步到这里。"
             },
+            "archive": {
+                "eyebrow": "第三章 / 现场图集",
+                "title": "赛场过程档案",
+                "desc": "从开幕、开发、颁奖到交流，把赛事过程按时间线完整展开；每一张画面都承担真实成果的证据。"
+            },
             "works": {
+                "eyebrow": "第四章 / 获奖作品",
                 "title": "获奖作品展示",
                 "desc": "作品卡片聚焦结果：作品名、荣誉与作者信息一眼可见。",
+                "archive_label": "成果档案",
+                "archive_unit": "件已发布作品",
                 "view_all": "查看 {{count}} 件获奖作品",
                 "submit": "提交作品/故事",
                 "project_aria": "查看{{title}}详情",
@@ -1699,7 +1710,13 @@
                 "fallback_author": "获奖创作者",
                 "fallback_honor": "Top 20 获奖创作者"
             },
+            "index": {
+                "eyebrow": "第五章 / 作品索引",
+                "title": "快速进入成果档案",
+                "desc": "按名次、作品与作者快速扫描，减少重复介绍，把查看详情与继续投稿集中到同一处。"
+            },
             "partners": {
+                "eyebrow": "第六章 / 合作共创",
                 "title": "共同见证",
                 "desc": "合作方不只是首屏装饰性 logo。学校、社团与企业分别承接资源、运营与技术生态支持。",
                 "join": "加入 AI 社区",

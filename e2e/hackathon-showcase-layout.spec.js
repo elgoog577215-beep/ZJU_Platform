@@ -51,6 +51,40 @@ test("hackathon showcase keeps one desktop command row and a balanced hero", asy
     );
     expect(titleFontSize).toBeLessThanOrEqual(96);
     await expect(page.locator('nav[aria-label="比赛成果展览章节"]')).toHaveCount(0);
+
+    const showcaseLayout = await page.locator("[data-showcase-page]").evaluate((element) => {
+        const ids = ["gate", "gallery", "archive", "works", "index", "partners"];
+        return {
+            clientHeight: element.clientHeight,
+            scrollHeight: element.scrollHeight,
+            sections: ids.map((id) => {
+                const section = document.getElementById(id);
+                return {
+                    id,
+                    offsetTop: section?.offsetTop ?? -1,
+                    height: section?.getBoundingClientRect().height ?? 0,
+                };
+            }),
+        };
+    });
+
+    expect(showcaseLayout.sections.map((section) => section.id)).toEqual([
+        "gate",
+        "gallery",
+        "archive",
+        "works",
+        "index",
+        "partners",
+    ]);
+    expect(showcaseLayout.scrollHeight).toBeGreaterThanOrEqual(showcaseLayout.clientHeight * 5.8);
+    showcaseLayout.sections.forEach((section, index) => {
+        expect(section.height).toBeGreaterThanOrEqual(showcaseLayout.clientHeight * 0.95);
+        if (index > 0) {
+            expect(section.offsetTop).toBeGreaterThan(
+                showcaseLayout.sections[index - 1].offsetTop + showcaseLayout.clientHeight * 0.9
+            );
+        }
+    });
 });
 
 test("hackathon showcase preserves the mobile reading order and clears page tabs on scroll", async ({
@@ -79,6 +113,19 @@ test("hackathon showcase preserves the mobile reading order and clears page tabs
     expect(filmBox).not.toBeNull();
     expect(pageTabsBox.y).toBeLessThan(titleBox.y);
     expect(titleBox.y).toBeLessThan(filmBox.y);
+
+    const mobileSectionOrder = await page.locator("[data-showcase-page]").evaluate(() => {
+        return ["gate", "gallery", "archive", "works", "index", "partners"].map((id) => {
+            const section = document.getElementById(id);
+            return { id, offsetTop: section?.offsetTop ?? -1 };
+        });
+    });
+    mobileSectionOrder.forEach((section, index) => {
+        expect(section.offsetTop).toBeGreaterThanOrEqual(0);
+        if (index > 0) {
+            expect(section.offsetTop).toBeGreaterThan(mobileSectionOrder[index - 1].offsetTop);
+        }
+    });
 
     await page.evaluate(() => window.scrollTo(0, 1000));
     await expect(pageTabs).toHaveCount(0);
