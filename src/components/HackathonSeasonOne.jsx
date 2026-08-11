@@ -185,6 +185,9 @@ const HackathonSeasonOne = () => {
                         }
                     }
                     @media (min-width: 1024px) {
+                        .hackathon-schedule-shell {
+                            --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 9.75rem);
+                        }
                         .hackathon-schedule-shell [data-registration-logo-panel] {
                             top: var(--hackathon-schedule-clearance) !important;
                         }
@@ -192,10 +195,10 @@ const HackathonSeasonOne = () => {
                 `}
             </style>
 
-            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7">
+            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
-                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[8px] border px-2 py-1.5 backdrop-blur-2xl sm:px-3 ${shellClass}`}
+                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[8px] border px-2 py-1.5 backdrop-blur-2xl sm:px-3 lg:min-w-0 lg:flex-1 ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
                     <div
@@ -253,7 +256,7 @@ const HackathonSeasonOne = () => {
 
                 {pageTabsVisible ? (
                     <div
-                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] ${shellClass}`}
+                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
                         role="tablist"
                         aria-label={`${template.event.title}页面切换`}
                     >

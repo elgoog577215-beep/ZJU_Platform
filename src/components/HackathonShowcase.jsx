@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -692,14 +691,6 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
         SECONDARY_IMAGE;
     const officialVideoCover = getShowcaseImageUrl(officialVideoCoverSource, 1200);
     const officialVideoPoster = getOriginalUploadUrl(officialVideoCover);
-    const translatedSections = useMemo(
-        () =>
-            showcaseSections.map((section) => ({
-                ...section,
-                title: t(`hackathon.showcase.sections.${section.id}`, section.title),
-            })),
-        [t]
-    );
     const translatedEventStats = useMemo(
         () =>
             showcaseEventStats.map((stat) => ({
@@ -914,57 +905,6 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
               transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
           }
         : {};
-
-    const chapterNav =
-        typeof document !== "undefined"
-            ? createPortal(
-                  <nav
-                      aria-label={t("hackathon.showcase.nav_aria", "比赛成果展览章节")}
-                      className="fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4"
-                  >
-                      {translatedSections.map((step, index) => (
-                          <button
-                              key={step.id}
-                              type="button"
-                              onClick={() => smoothScrollTo(step.id)}
-                              className={`group relative flex items-center gap-3 transition-all duration-300 ${
-                                  activeSection === index ? "pointer-events-none" : ""
-                              }`}
-                              aria-label={t(
-                                  "hackathon.showcase.jump_to_section",
-                                  "跳转到{{title}}章节",
-                                  { title: step.title }
-                              )}
-                          >
-                              <span
-                                  className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
-                                      activeSection === index ? "opacity-100" : ""
-                                  } ${isDayMode ? "text-slate-600" : "text-white/60"}`}
-                              >
-                                  {step.title}
-                              </span>
-                              <div className="relative overflow-hidden rounded-full">
-                                  <div
-                                      className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
-                                          activeSection === index ? theme.navActive : theme.navIdle
-                                      }`}
-                                  >
-                                      {activeSection === index ? (
-                                          <span className="h-2.5 w-2.5 rounded-full bg-current" />
-                                      ) : (
-                                          <span className="text-[10px]">{step.no}</span>
-                                      )}
-                                  </div>
-                                  {activeSection === index ? (
-                                      <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
-                                  ) : null}
-                              </div>
-                          </button>
-                      ))}
-                  </nav>,
-                  document.body
-              )
-            : null;
 
     return (
         <div
@@ -1895,6 +1835,109 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
               linear-gradient(90deg, rgba(15, 23, 42, 0.06), transparent 64%);
           }
 
+          @media (min-width: 1024px) {
+            .showcase-gate-frame .showcase-gate-grid {
+              min-height: calc(100svh - 11.75rem);
+              max-width: 1760px;
+              grid-template-columns: minmax(0, 0.82fr) minmax(520px, 1.18fr);
+              align-items: center;
+              gap: clamp(2rem, 4vw, 5.5rem);
+            }
+
+            .showcase-gate-frame .showcase-hero-copy {
+              align-self: center;
+            }
+
+            .showcase-gate-frame .showcase-title {
+              max-width: 48rem;
+              margin-top: 1.25rem;
+              font-size: clamp(4.4rem, 5.2vw, 6rem);
+              line-height: 0.92;
+            }
+
+            html[lang^="en"] .showcase-gate-frame .showcase-title {
+              font-size: clamp(3.75rem, 4.6vw, 5.5rem);
+              line-height: 0.96;
+            }
+
+            .showcase-gate-frame .showcase-hero-desc {
+              max-width: 65ch;
+              margin-top: 1.25rem;
+              font-size: clamp(0.95rem, 1.05vw, 1.08rem);
+              line-height: 1.65;
+            }
+
+            .showcase-gate-frame .showcase-hero-actions {
+              margin-top: 1.5rem;
+              gap: 0.65rem;
+            }
+
+            .showcase-gate-frame [data-showcase-hero-stats] {
+              margin-top: 1.75rem;
+              gap: 0.65rem;
+            }
+
+            .showcase-gate-frame .showcase-metric-tile {
+              min-width: 0;
+              padding: 0.8rem 0.85rem;
+              box-shadow: none;
+              transform: none;
+            }
+
+            .showcase-gate-frame .showcase-metric-tile .font-mono {
+              max-width: 100%;
+              font-size: clamp(1.55rem, 1.7vw, 1.9rem);
+              letter-spacing: -0.035em;
+            }
+
+            .showcase-gate-frame .showcase-metric-tile p {
+              margin-top: 0.35rem;
+              font-size: 0.78rem;
+              line-height: 1.3;
+            }
+
+            .showcase-gate-frame .showcase-metric-tile p:last-child {
+              display: none;
+            }
+
+            .showcase-gate-frame .showcase-film-card {
+              width: 100%;
+              height: auto !important;
+              min-height: 0 !important;
+              aspect-ratio: 16 / 10;
+              align-self: center;
+              padding: 0.65rem;
+            }
+
+            .showcase-gate-frame .showcase-film-inner {
+              height: 100%;
+              min-height: 0 !important;
+            }
+          }
+
+          @media (min-width: 1280px) {
+            .showcase-gate-frame [data-showcase-hero-stats] {
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+          }
+
+          @media (min-width: 1024px) and (max-height: 820px) {
+            .showcase-gate-frame .showcase-title {
+              font-size: clamp(3.7rem, 4.6vw, 5rem);
+            }
+
+            .showcase-gate-frame .showcase-hero-desc {
+              display: -webkit-box;
+              -webkit-box-orient: vertical;
+              -webkit-line-clamp: 2;
+              overflow: hidden;
+            }
+
+            .showcase-gate-frame [data-showcase-hero-stats] {
+              margin-top: 1rem;
+            }
+          }
+
           @media (max-width: 520px) {
             .showcase-logo-tile {
               min-height: 3rem;
@@ -1910,14 +1953,13 @@ const HackathonShowcase = ({ template, onSectionChange }) => {
                     style={{ width: `${scrollProgress}%` }}
                 />
             </div>
-            {chapterNav}
-
             <ShowcaseSectionFrame
                 id="gate"
                 className={`showcase-gate-frame ${compactFlow ? "pt-[calc(env(safe-area-inset-top)+7.25rem)]" : "snap-always pt-[calc(env(safe-area-inset-top)+6.7rem)] sm:pt-[calc(env(safe-area-inset-top)+7.4rem)] lg:pt-[calc(env(safe-area-inset-top)+6.4rem)] min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.2rem)]"}`}
                 backgroundWord={String(eventYear)}
                 liteMode={liteMode}
                 compactFlow={compactFlow}
+                contentClassName="showcase-gate-grid items-center"
             >
                 <MotionDiv {...heroReveal} className="showcase-hero-copy min-w-0">
                     <p
