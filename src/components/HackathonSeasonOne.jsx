@@ -59,6 +59,7 @@ const HackathonSeasonOne = () => {
     );
     const activeEventKey = template.event.key;
     const activeView = getFirstAvailableHackathonView(template, requestedView);
+    const showcaseMode = activeView === "showcase";
 
     useEffect(() => {
         if (scheduleLoading) return;
@@ -159,18 +160,28 @@ const HackathonSeasonOne = () => {
         navigateTo(activeEventKey, view.id);
     };
 
-    const shellClass = isDayMode
-        ? "border-emerald-200/80 bg-white/78 text-slate-900 shadow-[0_14px_34px_rgba(15,118,110,0.13)]"
-        : "border-cyan-300/16 bg-[#061014]/72 text-white shadow-[0_0_30px_rgba(34,211,238,0.12)]";
-    const titleClass = isDayMode ? "text-slate-950" : "text-white";
-    const mutedClass = isDayMode ? "text-slate-500" : "text-cyan-100/62";
-    const activeTabClass = isDayMode
-        ? "border border-emerald-200/80 bg-emerald-50 text-emerald-700 shadow-[0_8px_20px_rgba(16,185,129,0.15)]"
-        : "bg-cyan-300 text-slate-950 shadow-[0_0_20px_rgba(103,232,249,0.3)]";
-    const idleTabClass = isDayMode
-        ? "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800"
-        : "text-cyan-100/76 hover:bg-white/8 hover:text-white";
-    const disabledTabClass = isDayMode
+    const shellClass = showcaseMode
+        ? "border-[#b9ff18]/30 bg-[#020806]/80 text-white shadow-[0_18px_55px_rgba(0,0,0,0.42)]"
+        : isDayMode
+          ? "border-emerald-200/80 bg-white/78 text-slate-900 shadow-[0_14px_34px_rgba(15,118,110,0.13)]"
+          : "border-cyan-300/16 bg-[#061014]/72 text-white shadow-[0_0_30px_rgba(34,211,238,0.12)]";
+    const titleClass = showcaseMode || !isDayMode ? "text-white" : "text-slate-950";
+    const mutedClass = showcaseMode
+        ? "text-[#d8e0d4]/58"
+        : isDayMode
+          ? "text-slate-500"
+          : "text-cyan-100/62";
+    const activeTabClass = showcaseMode
+        ? "bg-[#b9ff18] text-[#071006] shadow-[0_0_24px_rgba(185,255,24,0.22)]"
+        : isDayMode
+          ? "border border-emerald-200/80 bg-emerald-50 text-emerald-700 shadow-[0_8px_20px_rgba(16,185,129,0.15)]"
+          : "bg-cyan-300 text-cyan-950 shadow-[0_0_20px_rgba(103,232,249,0.3)]";
+    const idleTabClass = showcaseMode
+        ? "text-[#e8eee4]/72 hover:bg-[#b9ff18]/10 hover:text-white"
+        : isDayMode
+          ? "text-emerald-900/75 hover:bg-emerald-50 hover:text-emerald-950"
+          : "text-cyan-100/76 hover:bg-white/8 hover:text-white";
+    const disabledTabClass = isDayMode && !showcaseMode
         ? "cursor-not-allowed text-slate-400 opacity-55"
         : "cursor-not-allowed text-white/30 opacity-60";
 
@@ -209,7 +220,7 @@ const HackathonSeasonOne = () => {
             <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start min-[1720px]:left-7 min-[1720px]:right-7">
                 <div
                     data-hackathon-schedule-panel
-                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-none border p-0 backdrop-blur-2xl lg:min-w-0 lg:flex-1 ${shellClass}`}
+                    className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl lg:min-w-0 lg:flex-1 ${shellClass}`}
                     aria-label="比赛日程时间轴"
                 >
                     <div
@@ -230,18 +241,22 @@ const HackathonSeasonOne = () => {
                                         type="button"
                                         onClick={() => switchEvent(item)}
                                         aria-current={selected ? "step" : undefined}
-                                        className={`group grid min-h-[58px] min-w-[280px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400/60 ${
+                                        className={`group grid min-h-[58px] min-w-[280px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${showcaseMode ? "focus-visible:ring-[#b9ff18]/70" : "focus-visible:ring-cyan-400/60"} ${
                                             selected
-                                                ? isDayMode
+                                                ? showcaseMode
+                                                    ? "border-[#b9ff18]/35 bg-[#b9ff18]/[0.08] text-white shadow-[inset_0_-2px_#b9ff18]"
+                                                    : isDayMode
                                                     ? "border-cyan-600 bg-cyan-50 text-cyan-950 shadow-[inset_0_-2px_#0891b2]"
                                                     : "border-cyan-300/30 bg-cyan-300/[0.06] text-white shadow-[inset_0_-2px_#67e8f9]"
-                                                : isDayMode
-                                                  ? "border-slate-200 text-slate-500 hover:bg-cyan-50 hover:text-cyan-900"
+                                                : showcaseMode
+                                                  ? "border-white/10 text-white/50 hover:bg-[#b9ff18]/[0.05] hover:text-white"
+                                                  : isDayMode
+                                                  ? "border-slate-200 text-cyan-950/60 hover:bg-cyan-50 hover:text-cyan-950"
                                                   : "border-white/10 text-cyan-100/48 hover:bg-white/[0.04] hover:text-white"
                                         }`}
                                     >
                                         <span
-                                            className={`font-mono text-lg font-black tabular-nums ${selected ? (isDayMode ? "text-cyan-700" : "text-cyan-300") : "opacity-60"}`}
+                                            className={`font-mono text-lg font-black tabular-nums ${selected ? (showcaseMode ? "text-[#b9ff18]" : isDayMode ? "text-cyan-700" : "text-cyan-300") : "opacity-60"}`}
                                         >
                                             {formatTimelineDate(item.event.startAt)}
                                         </span>
@@ -260,13 +275,13 @@ const HackathonSeasonOne = () => {
 
                 {pageTabsVisible ? (
                     <div
-                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-none border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
+                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[12px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
                         role="tablist"
                         aria-label={`${template.event.title}页面切换`}
                     >
                         <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
                             <Trophy
-                                className={`h-3.5 w-3.5 shrink-0 ${isDayMode ? "text-emerald-500" : "text-cyan-400"}`}
+                                className={`h-3.5 w-3.5 shrink-0 ${showcaseMode ? "text-[#b9ff18]" : isDayMode ? "text-emerald-500" : "text-cyan-400"}`}
                             />
                             <div className="min-w-0">
                                 <p
@@ -294,7 +309,7 @@ const HackathonSeasonOne = () => {
                                         aria-disabled={!view.available}
                                         disabled={!view.available}
                                         onClick={() => switchView(view)}
-                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-none px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[9px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 ${showcaseMode ? "focus:ring-[#b9ff18]/20" : "focus:ring-cyan-300/20"} ${
                                             !view.available
                                                 ? disabledTabClass
                                                 : selected

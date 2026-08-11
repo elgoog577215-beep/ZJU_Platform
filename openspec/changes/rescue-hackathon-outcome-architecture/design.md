@@ -19,6 +19,15 @@ Hackathon content is split by ownership:
 - `/media?event=<competition-slug>`: canonical event archive. The selected event is URL-backed, and the visitor can switch to another event without losing the media-library context.
 - `/hackathon/works?competition=<competition-slug>` and `/gallery`: compatibility routes. They resolve to the corresponding event-scoped showcase or media archive instead of presenting competing product surfaces.
 
+## Public Visual Language
+
+- The showcase and event archive share one spatial world: deep black-green ground, a real raster X-field as the compositional backbone, acid-lime signals, documentary event media, and monumental Chinese type.
+- The X-field must remain visibly present in the first viewport. It is not recreated with CSS shapes and must not be hidden under an opaque page mask.
+- Acid lime is reserved for the event title accent, key numbers, selected state, section numbering, and primary actions. White carries content hierarchy; muted copy remains low-contrast.
+- Rounding is selective rather than global: event media uses restrained 12–24 px radii, controls use 9–12 px radii, while statistics, rankings, captions, and section dividers remain open and line-based.
+- Photos never receive a persistent text panel or dark overlay. Functional video affordances may float over media, but captions and metadata remain below the image.
+- Desktop composition deliberately separates the upper-left title from the lower-right event photo across the X. Mobile collapses to one vertical story, keeps horizontal photo strips independently scrollable, and never introduces document-level horizontal overflow.
+
 ## Event Archive Interaction
 
 1. The media library opens on the latest published event when event archives exist.
