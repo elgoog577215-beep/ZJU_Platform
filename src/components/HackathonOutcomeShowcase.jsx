@@ -30,6 +30,29 @@ const normalizeRank = (rank, index) => {
     return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
 };
 
+const stripWorkAwardPrefix = (title) =>
+    String(title || "").replace(/^(?:冠军作品|亚军作品|季军作品)[：:]\s*/u, "");
+
+const getPodiumRank = (work) => {
+    const rank = Number.parseInt(work?.rank, 10);
+    return rank >= 1 && rank <= 3 ? rank : null;
+};
+
+const getLocalizedWorkTitle = (work, t) => {
+    const podiumRank = getPodiumRank(work);
+    const title = work.displayTitle || work.title;
+    return podiumRank
+        ? t(`hackathon.outcome_archive.podium_title_${podiumRank}`, { title })
+        : title;
+};
+
+const getLocalizedHonorTitle = (work, t) => {
+    const podiumRank = getPodiumRank(work);
+    return podiumRank
+        ? t("hackathon.outcome_archive.podium_creator", { rank: podiumRank })
+        : work.honorTitle;
+};
+
 const normalizeWork = (work, index, t) => ({
     ...work,
     id: work.id || `fallback-${index + 1}`,
@@ -45,25 +68,32 @@ const normalizeWork = (work, index, t) => ({
         t("hackathon.outcome_archive.fallback_title", {
             rank: normalizeRank(work.rank, index),
         }),
+    displayTitle: stripWorkAwardPrefix(
+        work.title ||
+            t("hackathon.outcome_archive.fallback_title", {
+                rank: normalizeRank(work.rank, index),
+            })
+    ),
     author: work.author || work.uploader_name || t("hackathon.outcome_archive.fallback_author"),
     cover: work.cover_url || work.cover || (index % 2 === 0 ? FALLBACK_HERO : FALLBACK_PHOTO),
     gitUrl: work.git_url || work.gitUrl || "",
     summary: work.summary || work.description || "",
+    highlight: work.highlight || "",
     experience: work.experience || work.highlight || "",
     grade: work.grade || "",
     major: work.major || "",
     storyFileUrl: work.story_file_url || work.storyFileUrl || "",
 });
 
-const WorkDetail = ({ work, t, compact = false }) => {
+const WorkDetail = ({ work, t, compact = false, summaryOnly = false }) => {
     if (!work) return null;
     return (
         <article className={`outcome-work-detail ${compact ? "is-compact" : ""}`}>
             <div className="outcome-work-detail-head">
                 <span>{work.rank}</span>
                 <div>
-                    <p>{work.honorTitle}</p>
-                    <h3>{work.title}</h3>
+                    <p>{getLocalizedHonorTitle(work, t)}</p>
+                    <h3>{getLocalizedWorkTitle(work, t)}</h3>
                 </div>
             </div>
             <div className="outcome-work-detail-body">
@@ -83,9 +113,9 @@ const WorkDetail = ({ work, t, compact = false }) => {
                     </dl>
                     <section>
                         <h4>{t("hackathon.outcome_archive.work_intro")}</h4>
-                        <p>{work.summary || t("hackathon.outcome_archive.empty_intro")}</p>
+                        <p>{(summaryOnly && work.highlight) || work.summary || t("hackathon.outcome_archive.empty_intro")}</p>
                     </section>
-                    {work.experience ? (
+                    {!summaryOnly && work.experience ? (
                         <section>
                             <h4>{t("hackathon.outcome_archive.experience")}</h4>
                             <blockquote>{work.experience}</blockquote>
@@ -125,10 +155,10 @@ const MobileWorkDetail = ({ work, open, onClose, t }) => {
                 className="outcome-mobile-work"
                 role="dialog"
                 aria-modal="true"
-                aria-label={t("hackathon.outcome_archive.work_dialog", { title: work.title })}
+                aria-label={t("hackathon.outcome_archive.work_dialog", { title: getLocalizedWorkTitle(work, t) })}
             >
                 <div className="outcome-mobile-work-bar">
-                    <div><span>{work.rank}</span><strong>{work.title}</strong></div>
+                    <div><span>{work.rank}</span><strong>{getLocalizedWorkTitle(work, t)}</strong></div>
                     <button type="button" onClick={onClose} aria-label={t("common.close")}>
                         <X className="h-5 w-5" />
                     </button>
@@ -212,6 +242,18 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     useEffect(() => {
         loadOutcome();
     }, [loadOutcome]);
+
+    useEffect(() => {
+        if (loading || typeof window === "undefined") return undefined;
+        const targetId = window.location.hash.replace(/^#/, "");
+        if (!["showcase-archive", "showcase-works", "showcase-support"].includes(targetId)) {
+            return undefined;
+        }
+        const frame = window.requestAnimationFrame(() => {
+            document.getElementById(targetId)?.scrollIntoView({ block: "start" });
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [loading, outcome]);
 
     const photos = useMemo(
         () =>
@@ -433,15 +475,19 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     <div className="outcome-works-layout">
                         <div className="outcome-podium">
                             <h3>{t("hackathon.outcome_archive.top_three")}</h3>
-                            {podium.map((work) => (
+                            {podium.map((work, index) => (
                                 <button key={work.id} type="button" onClick={() => selectWork(work)} className={selectedWork?.id === work.id ? "is-selected" : ""}>
                                     <div className="outcome-podium-thumb"><SmartImage src={normalizeExternalImageUrl(work.cover, 500)} alt={work.title} type="image" className="h-full w-full" imageClassName="h-full w-full object-cover" /></div>
                                     <span>{work.rank}</span>
-                                    <div><strong>{work.title}</strong><small>{work.award} · {work.author}</small></div>
+                                    <div>
+                                        <em>{t(`hackathon.outcome_archive.podium_award_${index + 1}`)}</em>
+                                        <strong>{work.displayTitle || work.title}</strong>
+                                        <small>{work.award} · {work.author}</small>
+                                    </div>
                                 </button>
                             ))}
                         </div>
-                        <WorkDetail work={selectedWork} t={t} />
+                        <WorkDetail work={selectedWork} t={t} summaryOnly />
                         <div className="outcome-ranking">
                             <h3>{t("hackathon.outcome_archive.complete_ranking", { count: works.length })}</h3>
                             <div>
@@ -451,11 +497,15 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                             <SmartImage src={normalizeExternalImageUrl(work.cover, 360)} alt="" type="image" className="h-full w-full" imageClassName="h-full w-full object-cover" />
                                         </div>
                                         <span>{work.rank}</span>
-                                        <div><strong>{work.title}</strong><small>{work.author}</small></div>
+                                        <div><strong>{work.displayTitle || work.title}</strong><small>{work.author}</small></div>
                                         <ArrowRight className="h-4 w-4" />
                                     </button>
                                 ))}
                             </div>
+                            <p className="outcome-ranking-hint">
+                                {t("hackathon.outcome_archive.ranking_hint")}
+                                <ArrowRight className="h-3.5 w-3.5" />
+                            </p>
                         </div>
                     </div>
                     <footer id="showcase-support" className="outcome-credits">
@@ -644,51 +694,64 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-works{padding-top:clamp(1.5rem,3vw,3rem)}
                 .outcome-works .outcome-section-heading>span{font-size:clamp(5.5rem,8vw,8rem)}
                 .outcome-works .outcome-section-heading h2{font-size:clamp(2.35rem,4vw,4.25rem);line-height:1;letter-spacing:-.04em}
+                .outcome-works .outcome-section-heading>div{display:flex;flex-direction:column}
+                .outcome-works .outcome-section-heading h2{order:1}.outcome-works .outcome-section-heading p{order:2;margin:.55rem 0 0}
+                .outcome-works .outcome-section-topline{align-items:center}
+                .outcome-works .outcome-section-topline>button{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
+                .outcome-works .outcome-section-topline>button{margin-bottom:0}
+                .outcome-works .outcome-section-topline>button:hover{background:var(--x-lime-soft);color:#071006}
                 .outcome-works-layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(420px,.97fr);gap:clamp(1.5rem,2.5vw,2.6rem);align-items:start}
                 .outcome-works-layout h3{margin:0 0 1rem;font-size:.76rem;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
-                .outcome-podium{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:1rem;margin-bottom:clamp(1rem,1.5vw,1.5rem)}
-                .outcome-podium>h3{grid-column:1/-1;margin:0;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.38)}
-                .outcome-podium>button{position:relative;width:100%;display:grid;grid-template-columns:4.25rem minmax(0,1fr);align-items:center;gap:.85rem;overflow:hidden;padding:0 .35rem 1.05rem;border:0;border-bottom:1px solid rgba(247,248,242,.22);border-radius:0;background:transparent;color:inherit;text-align:left;transition:transform .25s ease,border-color .25s ease,background-color .25s ease}
+                .outcome-podium{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:.65rem;margin-bottom:1.25rem}
+                .outcome-podium>h3{grid-column:1/-1;margin:0;padding-bottom:.72rem;border-bottom:1px solid rgba(185,255,24,.38)}
+                .outcome-podium>button{position:relative;width:100%;display:grid;grid-template-columns:3.6rem minmax(0,1fr);align-items:center;gap:.7rem;overflow:hidden;padding:0 .25rem .7rem;border:0;border-bottom:1px solid rgba(247,248,242,.22);border-radius:0;background:transparent;color:inherit;text-align:left;transition:transform .25s ease,border-color .25s ease,background-color .25s ease}
                 .outcome-podium>button:hover{transform:translateY(-4px);border-color:rgba(185,255,24,.62);background:rgba(185,255,24,.035)}
                 .outcome-podium>button.is-selected{border-color:var(--x-lime);background:rgba(185,255,24,.045)}
                 .outcome-podium>button:focus-visible,.outcome-ranking button:focus-visible{outline:2px solid var(--x-lime);outline-offset:3px}
-                .outcome-podium-thumb{grid-column:1/-1;width:100%;margin:0 0 .2rem;aspect-ratio:16/9;overflow:hidden;border-radius:14px 4px 14px 4px;background:var(--x-surface)}
-                .outcome-podium>button:first-of-type .outcome-podium-thumb{aspect-ratio:16/9}
-                .outcome-podium>button>span{align-self:start;color:var(--x-lime);font:300 clamp(2.4rem,3.8vw,4rem)/.85 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-podium strong,.outcome-podium small{display:block}
-                .outcome-podium strong{font-size:clamp(.88rem,1.15vw,1.08rem);line-height:1.35}
-                .outcome-podium small{margin-top:.42rem;font-size:.68rem;color:var(--x-muted)}
-                .outcome-ranking{grid-column:2;position:sticky;top:5.5rem}
-                .outcome-ranking>div{max-height:610px;overflow-y:auto;border-top:1px solid rgba(247,248,242,.16);scrollbar-width:thin;scrollbar-color:rgba(185,255,24,.45) transparent}
-                .outcome-ranking button{width:100%;display:grid;grid-template-columns:clamp(92px,8.2vw,132px) 2.5rem minmax(0,1fr) 1.25rem;align-items:center;gap:clamp(.7rem,1.25vw,1.15rem);padding:.8rem .5rem .8rem 0;border:0;border-bottom:1px solid rgba(247,248,242,.12);background:transparent;color:inherit;text-align:left;transition:background-color .2s ease,color .2s ease,transform .2s ease}
+                .outcome-podium-thumb{grid-column:1/-1;width:100%;margin:0 0 .1rem;aspect-ratio:2.7/1;overflow:hidden;border-radius:7px 2px 7px 2px;background:var(--x-surface)}
+                .outcome-podium>button>span{align-self:start;color:var(--x-lime);font:300 clamp(2.2rem,3.25vw,3.45rem)/.85 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-podium em,.outcome-podium strong,.outcome-podium small{display:block}
+                .outcome-podium em{margin-bottom:.28rem;color:var(--x-lime);font-size:.58rem;font-style:normal;font-weight:900}
+                .outcome-podium strong{font-size:clamp(.78rem,1vw,.96rem);line-height:1.28}
+                .outcome-podium small{margin-top:.35rem;font-size:.63rem;color:var(--x-muted)}
+                @media(min-width:768px){
+                    .outcome-podium>button:first-of-type{grid-template-columns:8.5rem minmax(0,1fr);grid-template-rows:1fr auto;align-items:end}
+                    .outcome-podium>button:first-of-type .outcome-podium-thumb{grid-column:2;grid-row:1/3;height:180px;min-height:0;aspect-ratio:auto;margin:0}
+                    .outcome-podium>button:first-of-type>span{grid-column:1;grid-row:1;align-self:end}
+                    .outcome-podium>button:first-of-type>div{grid-column:1;grid-row:2;align-self:start;padding-bottom:.15rem}
+                }
+                .outcome-ranking{grid-column:2;position:sticky;top:5.5rem;padding-left:.35rem;border-left:1px solid rgba(247,248,242,.14)}
+                .outcome-ranking>div{max-height:345px;overflow-y:auto;border-top:1px solid rgba(247,248,242,.16);scrollbar-width:thin;scrollbar-color:rgba(185,255,24,.45) transparent}
+                .outcome-ranking button{width:100%;display:grid;grid-template-columns:clamp(78px,6.2vw,98px) 2.25rem minmax(0,1fr) 1.1rem;align-items:center;gap:clamp(.6rem,1vw,.9rem);padding:.5rem .25rem .5rem 0;border:0;border-bottom:1px solid rgba(247,248,242,.12);background:transparent;color:inherit;text-align:left;transition:background-color .2s ease,color .2s ease,transform .2s ease}
                 .outcome-ranking button:hover,.outcome-ranking button.is-selected{transform:translateX(.25rem);background:rgba(185,255,24,.08);color:var(--x-lime-soft)}
-                .outcome-ranking-thumb{aspect-ratio:16/10;overflow:hidden;border-radius:10px;background:var(--x-surface)}
+                .outcome-ranking-thumb{aspect-ratio:16/9;overflow:hidden;border-radius:6px;background:var(--x-surface)}
                 .outcome-ranking button>span{color:var(--x-lime);font:850 clamp(.8rem,1vw,1rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-ranking button>div:nth-of-type(2){min-width:0}
                 .outcome-ranking strong,.outcome-ranking small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
                 .outcome-ranking strong{font-size:clamp(.8rem,1vw,.95rem)}
-                .outcome-ranking small{margin-top:.45rem;font-size:.68rem;color:var(--x-muted)}
-                .outcome-work-detail{grid-column:1;overflow:hidden;border:1px solid rgba(185,255,24,.32);border-radius:16px;background:rgba(3,10,7,.88);padding:clamp(1rem,2vw,1.6rem)}
-                .outcome-work-detail:not(.is-compact){max-height:610px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(185,255,24,.45) transparent}
-                .outcome-work-detail-head{display:grid;grid-template-columns:clamp(3.7rem,7vw,6.5rem) minmax(0,1fr);gap:1rem;align-items:end;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.26)}
+                .outcome-ranking small{margin-top:.34rem;font-size:.63rem;color:var(--x-muted)}
+                .outcome-ranking-hint{display:flex;align-items:center;gap:.5rem;margin:.8rem 0 0;color:var(--x-lime);font-size:.68rem;font-weight:900}
+                .outcome-work-detail{grid-column:1;overflow:visible;border:0;border-right:1px solid rgba(247,248,242,.16);border-radius:0;background:transparent;padding:0 1.35rem 0 .1rem}
+                .outcome-work-detail:not(.is-compact){max-height:none;overflow:visible}
+                .outcome-work-detail-head{display:grid;grid-template-columns:5.1rem minmax(0,1fr);gap:.8rem;align-items:end;padding-bottom:.7rem;border-bottom:1px solid rgba(185,255,24,.26)}
                 .outcome-work-detail-head>span,.outcome-work-detail-head p{color:var(--x-lime)}
-                .outcome-work-detail-head>span{font:300 clamp(3.25rem,5.8vw,5.4rem)/.75 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-work-detail-head p{margin:0;font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-                .outcome-work-detail-head h3{margin:.38rem 0 0;font-size:clamp(1.45rem,2.5vw,2.45rem);line-height:1.08;letter-spacing:-.035em;text-transform:none}
-                .outcome-work-detail-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);gap:1.3rem;margin-top:1.25rem;align-items:start}
-                .outcome-work-detail-image{aspect-ratio:4/3;overflow:hidden;border-radius:13px;background:var(--x-surface)}
+                .outcome-work-detail-head>span{font:300 clamp(2.4rem,3.5vw,3.6rem)/.78 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-work-detail-head p{margin:0;font-size:.58rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+                .outcome-work-detail-head h3{margin:.28rem 0 0;font-size:clamp(1.2rem,1.8vw,1.72rem);line-height:1.08;letter-spacing:-.035em;text-transform:none}
+                .outcome-work-detail-body{display:grid;grid-template-columns:minmax(0,1.52fr) minmax(158px,.48fr);gap:1.15rem;margin-top:.85rem;align-items:start}
+                .outcome-work-detail-image{aspect-ratio:1.5/1;overflow:hidden;border-radius:12px 2px 12px 2px;background:var(--x-surface)}
                 .outcome-work-detail-copy{min-width:0}
                 .outcome-work-detail-meta{display:grid;grid-template-columns:1fr;margin:0}
-                .outcome-work-detail-meta>div{padding:1rem .1rem;border-bottom:1px solid rgba(247,248,242,.12)}
+                .outcome-work-detail-meta>div{padding:.48rem .05rem;border-bottom:1px solid rgba(247,248,242,.12)}
                 .outcome-work-detail-meta>div+div{padding-left:.1rem;border-left:0}
                 .outcome-work-detail-meta dt{font-size:.58rem;font-weight:900;opacity:.45;text-transform:uppercase}
                 .outcome-work-detail-meta dd{margin:.32rem 0 0;font-size:.76rem;font-weight:850}
-                .outcome-work-detail section{margin-top:1.25rem}
+                .outcome-work-detail section{margin-top:.72rem}
                 .outcome-work-detail h4{margin:0;font-size:.72rem;font-weight:950}
-                .outcome-work-detail section p,.outcome-work-detail blockquote{margin:.55rem 0 0;color:rgba(247,248,242,.68);font-size:.76rem;line-height:1.85}
+                .outcome-work-detail section p,.outcome-work-detail blockquote{margin:.42rem 0 0;color:rgba(247,248,242,.68);font-size:.7rem;line-height:1.7}
                 .outcome-work-detail blockquote{padding-left:1rem;border-left:1px solid var(--x-lime)}
-                .outcome-work-detail-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
-                .outcome-work-detail-actions a{min-height:38px;padding:.5rem .75rem;font-size:.68rem}
+                .outcome-work-detail-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.75rem}
+                .outcome-work-detail-actions a{min-height:42px;padding:.58rem .85rem;font-size:.68rem}
                 .outcome-credits{position:relative;isolation:isolate;overflow:hidden;margin-top:clamp(5rem,9vw,9rem);padding:clamp(3rem,6vw,6rem) clamp(1.25rem,3.6vw,4rem) clamp(2.4rem,4vw,4rem);border-top:1px solid rgba(185,255,24,.66);border-bottom:1px solid rgba(185,255,24,.28);border-radius:16px;background:rgba(2,10,7,.86)}
                 .outcome-credits-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:clamp(2rem,6vw,6rem);align-items:end}
                 .outcome-credits-lead>span,.outcome-enterprise-stage header span,.outcome-support-network-intro>span{display:block;color:var(--x-lime);font-size:.65rem;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
@@ -727,7 +790,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-video-dialog article{position:relative;width:min(1120px,100%);overflow:hidden;border:1px solid rgba(185,255,24,.36);border-radius:16px;background:#000}
                 .outcome-video-dialog video{display:block;width:100%;max-height:calc(100dvh - 2rem)}
                 .outcome-video-dialog button{position:absolute;right:1rem;top:1rem;display:grid;width:42px;height:42px;place-items:center;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(0,0,0,.68);color:#fff}
-                .outcome-mobile-work{position:fixed;inset:0;z-index:190;display:none;height:100dvh;background:var(--x-ink);color:#fff}
+                .outcome-mobile-work{--x-ink:#020806;--x-text:#f7f8f2;--x-lime:#b9ff18;--x-lime-soft:#d6ff73;--x-surface:#08110d;--x-muted:#a8b0a6;position:fixed;inset:0;z-index:400;display:none;height:100dvh;isolation:isolate;background:var(--x-ink);color:var(--x-text)}
                 .outcome-mobile-work-bar{display:flex;min-height:58px;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 1rem;border-bottom:1px solid rgba(185,255,24,.28)}
                 .outcome-mobile-work-bar>div{display:flex;min-width:0;align-items:center;gap:.7rem}.outcome-mobile-work-bar span{color:var(--x-lime);font:900 .72rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-mobile-work-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem}
@@ -743,6 +806,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-works-layout{grid-template-columns:1fr}
                     .outcome-podium,.outcome-work-detail,.outcome-ranking{grid-column:1}
                     .outcome-ranking{position:relative;top:auto}
+                    .outcome-work-detail{padding-right:0;border-right:0}
+                    .outcome-ranking{padding-left:0;border-left:0}
                     .outcome-work-detail:not(.is-compact){position:relative;top:auto}
                     .outcome-credits-head{grid-template-columns:minmax(0,1.1fr) minmax(270px,.9fr)}
                     .outcome-support-network{grid-template-columns:1fr}
@@ -793,7 +858,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-podium>button:first-of-type .outcome-podium-thumb{aspect-ratio:16/8.8}
                     .outcome-podium>button>span{font-size:2rem}
                     .outcome-podium strong{font-size:.8rem}.outcome-podium small{font-size:.61rem}
-                    .outcome-ranking>div{max-height:none}.outcome-work-detail:not(.is-compact){display:none}.outcome-mobile-work{display:block}
+                    .outcome-ranking>div{max-height:none}.outcome-ranking-hint{display:none}.outcome-work-detail:not(.is-compact){display:none}.outcome-mobile-work{display:block}
                     .outcome-ranking button{grid-template-columns:76px 2rem minmax(0,1fr) 1rem;gap:.6rem;padding:.65rem 0}
                     .outcome-credits{margin-top:4rem;padding:2.5rem 1rem 2rem;border-radius:0}
                     .outcome-credits-head{grid-template-columns:1fr;gap:1.8rem}

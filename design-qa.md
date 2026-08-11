@@ -52,6 +52,13 @@
 - 04 使用真实 About 合作方数据构成六枚企业 Logo 单行跑道，并将学校支持与社团协作压缩为编号阵列；桌面保持横向阵容感，手机改为两列 Logo 墙和纵向知识网络。
 - 手机 `390×844` 逐段实拍。02 的辅图只在自身横向轨道滑动，03 的冠军独占一行、亚季军并列，04 的“技术与产业支持”不再被挤成逐字竖排；页面正文没有文档级横向漂移。
 
+## 七次校正：03 作品与荣誉忠实度收口
+
+- 以用户最终选定的 `exec-15f67c14-3688-4ba9-870a-d5fbea6cc7ed.png` 为唯一 03 视觉目标，不再另换卡片语言。桌面首屏同时容纳章节标题、完整 TOP 3、冠军详情和 04–08 索引，避免上一版奖台图片过高、下半区掉出视口。
+- TOP 3 恢复“冠军主轨 + 亚季军并列”的媒体展览比例；详情移除包裹整区的大圆角容器，改为开放式图文轨道；完整索引缩短行高、保留真实缩略图和滚动提示，左右信息量与视觉尺度接近概念图。
+- 修复异步赛事数据加载后章节 hash 偶发漂移；桌面选择作品只更新同页详情与 `work=` 参数，手机选择作品使用高于底部导航的 `100dvh` portal。portal 自带主题变量，避免挂到 `body` 后背景变量丢失而变透明。
+- `1536×1024` 桌面、`390×844` 手机均实测 `scrollWidth === innerWidth`；手机作品详情打开时滚动锁生效，关闭后恢复。英文模式的前三名奖项、详情标题和创作者标签改为独立翻译，不再把中文奖项值拼进英文 UI。
+
 ## 对照证据
 
 - 01 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/hero-concept-vs-local-final.jpg`
@@ -61,6 +68,11 @@
 - 笔记本两行标题验收：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/laptop-1366x768-final.jpg`
 - 手机四段验收：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/mobile-hero-final.jpg`、`mobile-archive-final.jpg`、`mobile-works-final.jpg`、`mobile-support-final.jpg`
 - 英文首屏与共同见证：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/english-final.jpg`、`english-support-final.jpg`
+- 03 最终目标 / 实现同尺寸对照：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-works-fidelity/reference-vs-final.jpg`
+- 03 最终桌面：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-works-fidelity/works-final-1536x1024.jpg`
+- 03 最终手机：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-works-fidelity/works-final-mobile-390x844.jpg`
+- 手机作品详情 portal：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-works-fidelity/work-detail-mobile-fixed-v2-390x844.jpg`
+- 03 英文桌面：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-works-fidelity/works-final-en-1536x1024.jpg`
 - 参考图与二次校正实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-reference-vs-final-v2.jpg`
 - 二次校正桌面首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-desktop-final.jpg`
 - 二次校正手机首屏：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-redesign-impact/refine-mobile-final.jpg`

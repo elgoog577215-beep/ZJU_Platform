@@ -30,6 +30,13 @@ Hackathon content is split by ownership:
 - Photos never receive a persistent text panel or dark overlay. Functional video affordances may float over media, but captions and metadata remain below the image.
 - Desktop composition deliberately separates the upper-left title from the lower-right event photo across the X. Mobile collapses to one vertical story, keeps horizontal photo strips independently scrollable, and never introduces document-level horizontal overflow.
 
+### Final 03 Fidelity Constraints
+
+- The final selected 03 concept is the sole visual target for Works & Honors. At `1536×1024`, the section heading, complete TOP 3 podium, selected champion detail, and 04–08 index must form one readable viewport instead of letting one image push the index or detail below the fold.
+- The podium keeps a champion-led track with aligned runner-up stories. The lower half uses an open media/editorial composition with a near-balanced detail/index relationship; restrained image radii are allowed, but a large rounded wrapper around the whole detail is not.
+- The mobile layout keeps the champion on one row and second/third place in two columns. Its `body` portal owns its color variables and sits above the global bottom navigation so the full-screen detail cannot become transparent or visually fall behind the shell.
+- Podium award names, selected-work titles, and creator labels are rank-driven locale strings. English UI never concatenates a Chinese backend award value into an English label; real work names, authors, and event content remain truthful source data.
+
 ## Event Archive Interaction
 
 1. The media library opens on the latest published event when event archives exist.
