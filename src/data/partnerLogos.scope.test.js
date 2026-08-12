@@ -4,6 +4,9 @@ import test from "node:test";
 import {
     ACTIVITY_PROVIDER_SCOPE,
     CORE_PARTNER_SCOPE,
+    ORGANIZATION_PARTNER_LOGOS,
+    defaultEcosystemPartners,
+    getPartnerLogoSrc,
     getPartnersByCategory,
     groupEcosystemPartners,
 } from "./partnerLogos.js";
@@ -56,5 +59,28 @@ test("ecosystem partner helpers separate core partners from activity providers",
     assert.deepEqual(
         organizationGroup.partners.map((partner) => partner.name),
         ["ZJUAI"]
+    );
+});
+
+test("verified core support identities carry theme-aware official logos", () => {
+    const expectedLogoNames = ["未来学习中心", "XLAB", "ZJUAI"];
+    const verifiedPartners = defaultEcosystemPartners.filter((partner) =>
+        expectedLogoNames.includes(partner.name)
+    );
+
+    assert.deepEqual(
+        verifiedPartners.map((partner) => partner.name),
+        expectedLogoNames
+    );
+    for (const partner of verifiedPartners) {
+        assert.equal(typeof ORGANIZATION_PARTNER_LOGOS[partner.name], "object");
+        assert.match(getPartnerLogoSrc(partner, true), /^\/images\/partner-logos\//);
+        assert.match(getPartnerLogoSrc(partner, false), /^\/images\/partner-logos\//);
+    }
+    assert.match(getPartnerLogoSrc(verifiedPartners[1], false), /xlab-white\.svg$/);
+
+    assert.match(
+        getPartnerLogoSrc({ name: "XLAB", logo_url: null, dark_logo_url: null }, false),
+        /xlab-white\.svg$/
     );
 });

@@ -7,6 +7,12 @@ const requiredAssets = [
     "images/hero-landscape-night.jpg",
     "images/hero-background.jpg",
     "images/hero-campus-day-4k.jpg",
+    "images/partner-logos/getui.svg",
+    "images/partner-logos/getui-dark.svg",
+    "images/partner-logos/organizations/official/zhejiang-university.png",
+    "images/partner-logos/organizations/official/xlab.svg",
+    "images/partner-logos/organizations/official/xlab-white.svg",
+    "images/partner-logos/organizations/official/zjuai.webp",
 ];
 
 const missingAssets = requiredAssets.filter((relativePath) => {

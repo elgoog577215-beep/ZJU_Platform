@@ -605,16 +605,35 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                         </header>
                                         <p>{t(`hackathon.outcome_archive.support_group_desc.${group.id}`)}</p>
                                         <div>
-                                            {(group.partners || []).map((partner, partnerIndex) => (
-                                                <span key={partner.id || partner.name}>
-                                                    <small>{String(partnerIndex + 1).padStart(2, "0")}</small>
-                                                    <strong>
-                                                        {useEnglishPartnerNames
-                                                            ? partner.name_en || partner.name
-                                                            : partner.name}
-                                                    </strong>
-                                                </span>
-                                            ))}
+                                            {(group.partners || []).map((partner, partnerIndex) => {
+                                                const partnerLogoSrc = getPartnerLogoSrc(
+                                                    partner,
+                                                    isDayMode
+                                                );
+                                                const partnerName = useEnglishPartnerNames
+                                                    ? partner.name_en || partner.name
+                                                    : partner.name;
+                                                return (
+                                                    <span
+                                                        key={partner.id || partner.name}
+                                                        className={partnerLogoSrc ? "has-logo" : ""}
+                                                    >
+                                                        <small>
+                                                            {String(partnerIndex + 1).padStart(
+                                                                2,
+                                                                "0"
+                                                            )}
+                                                        </small>
+                                                        {partnerLogoSrc ? (
+                                                            <img
+                                                                src={partnerLogoSrc}
+                                                                alt={`${partnerName} logo`}
+                                                            />
+                                                        ) : null}
+                                                        <strong>{partnerName}</strong>
+                                                    </span>
+                                                );
+                                            })}
                                         </div>
                                     </section>
                                 ))}
@@ -828,6 +847,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-credits-groups section>p{min-height:3.3em;margin:.8rem 0 0;color:var(--x-muted);font-size:.66rem;line-height:1.65}
                 .outcome-credits-groups section>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1rem;margin-top:.75rem}
                 .outcome-credits-groups section>div>span{display:grid;grid-template-columns:1.8rem minmax(0,1fr);gap:.5rem;align-items:baseline;padding:.52rem 0;border-bottom:1px solid rgba(247,248,242,.11)}
+                .outcome-credits-groups section>div>span.has-logo{grid-template-columns:1.8rem 1.75rem minmax(0,1fr);align-items:center}
+                .outcome-credits-groups section>div img{display:block;width:1.55rem;height:1.55rem;object-fit:contain;filter:drop-shadow(0 0 10px rgba(247,248,242,.1))}
                 .outcome-credits-groups section>div strong{font-size:clamp(.76rem,.9vw,.9rem);line-height:1.4}
                 @keyframes support-matrix-rise{from{transform:translateY(24px);clip-path:inset(0 0 100% 0)}to{transform:translateY(0);clip-path:inset(0)}}
                 .outcome-video-dialog{position:fixed;inset:0;z-index:180;display:grid;place-items:center;padding:1rem;background:rgba(0,0,0,.88);backdrop-filter:blur(12px)}

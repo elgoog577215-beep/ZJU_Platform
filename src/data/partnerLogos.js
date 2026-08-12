@@ -26,6 +26,18 @@ const organizationLogoBase = "/images/partner-logos/organizations";
 const officialOrganizationLogoBase = `${organizationLogoBase}/official`;
 
 export const ORGANIZATION_PARTNER_LOGOS = {
+    未来学习中心: {
+        logo_url: `${officialOrganizationLogoBase}/zhejiang-university.png`,
+        dark_logo_url: `${officialOrganizationLogoBase}/zhejiang-university.png`,
+    },
+    XLAB: {
+        logo_url: `${officialOrganizationLogoBase}/xlab.svg`,
+        dark_logo_url: `${officialOrganizationLogoBase}/xlab-white.svg`,
+    },
+    ZJUAI: {
+        logo_url: `${officialOrganizationLogoBase}/zjuai.webp`,
+        dark_logo_url: `${officialOrganizationLogoBase}/zjuai.webp`,
+    },
     浙江大学本科生院: `${officialOrganizationLogoBase}/undergraduate-school.png`,
     浙江大学艺术与考古博物馆: `${officialOrganizationLogoBase}/museum-art-archaeology.png`,
     "浙江大学 CC98 论坛": `${officialOrganizationLogoBase}/cc98.png`,
@@ -34,12 +46,14 @@ export const ORGANIZATION_PARTNER_LOGOS = {
 };
 
 const withOrganizationLogo = (partner) => {
-    const logoUrl = ORGANIZATION_PARTNER_LOGOS[partner.name];
-    if (!logoUrl) return partner;
+    const logo = ORGANIZATION_PARTNER_LOGOS[partner.name];
+    if (!logo) return partner;
+    const logoUrl = typeof logo === "string" ? logo : logo.logo_url;
+    const darkLogoUrl = typeof logo === "string" ? logo : logo.dark_logo_url || logoUrl;
     return {
         ...partner,
         logo_url: partner.logo_url || logoUrl,
-        dark_logo_url: partner.dark_logo_url || logoUrl,
+        dark_logo_url: partner.dark_logo_url || darkLogoUrl,
     };
 };
 
@@ -675,9 +689,18 @@ export const getPartnerDisplayName = (partner = {}) => {
 };
 
 export const getPartnerLogoSrc = (partner = {}, isDayMode = true) => {
-    const lightLogo = partner.logo_url || partner.logoUrl || partner.src || "";
+    const officialLogo = ORGANIZATION_PARTNER_LOGOS[partner.name];
+    const officialLightLogo =
+        typeof officialLogo === "string" ? officialLogo : officialLogo?.logo_url || "";
+    const officialDarkLogo =
+        typeof officialLogo === "string"
+            ? officialLogo
+            : officialLogo?.dark_logo_url || officialLightLogo;
+    const lightLogo = partner.logo_url || partner.logoUrl || partner.src || officialLightLogo;
     const darkLogo = partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "";
-    return isDayMode ? lightLogo || darkLogo : darkLogo || lightLogo;
+    return isDayMode
+        ? lightLogo || darkLogo || officialDarkLogo
+        : darkLogo || officialDarkLogo || lightLogo;
 };
 
 export const getPartnerProfilePath = (partner = {}) => {

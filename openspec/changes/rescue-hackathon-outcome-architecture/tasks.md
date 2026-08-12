@@ -73,3 +73,10 @@
 - [x] 9.5 Reconcile the final 03 concept at `1536×1024`, including podium/detail/index balance, mobile portal visibility, URL-backed selection, and localized podium labels.
 - [x] 9.6 Reconcile all four selected concepts at `1487×1058`: remove showcase-only floating chrome, lock the Chinese hero to two lines, restore per-chapter breathing room, and make 04 a full closing screen without changing the shared Navbar or Logo.
 - [x] 9.7 Recheck `1366×768` laptop, `390×844` mobile, English localization, document overflow, and the mobile work-detail open/close scroll-lock cycle.
+
+## 10. Partner Identity Sync
+
+- [x] 10.1 Audit the production partner directory and add only source-confirmed official identity assets for Future Learning Center, XLAB, and ZJUAI.
+- [x] 10.2 Add an idempotent production migration for verified partner logos and the missing Getui core-partner record.
+- [x] 10.3 Render available school/community logos in the 04 support matrix while retaining text fallback for ambiguous identities.
+- [x] 10.4 Extend build, package, deploy, and HTTPS verification to require the partner assets and production API mappings.

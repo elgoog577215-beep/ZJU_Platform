@@ -6,12 +6,43 @@ const {
 } = require("../services/wechatMpScheduledIngestService");
 
 const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
+    未来学习中心: Object.freeze({
+        category: "school",
+        logoUrl: "/images/partner-logos/organizations/official/zhejiang-university.png",
+        darkLogoUrl: "/images/partner-logos/organizations/official/zhejiang-university.png",
+    }),
+    XLAB: Object.freeze({
+        category: "organization",
+        logoUrl: "/images/partner-logos/organizations/official/xlab.svg",
+        darkLogoUrl: "/images/partner-logos/organizations/official/xlab-white.svg",
+    }),
+    ZJUAI: Object.freeze({
+        category: "organization",
+        logoUrl: "/images/partner-logos/organizations/official/zjuai.webp",
+        darkLogoUrl: "/images/partner-logos/organizations/official/zjuai.webp",
+    }),
     浙江大学本科生院: "/images/partner-logos/organizations/official/undergraduate-school.png",
     浙江大学艺术与考古博物馆:
         "/images/partner-logos/organizations/official/museum-art-archaeology.png",
     "浙江大学 CC98 论坛": "/images/partner-logos/organizations/official/cc98.png",
     浙江大学图书馆: "/images/partner-logos/organizations/official/library.png",
     求是学院丹阳青溪学园: "/images/partner-logos/organizations/official/danyang-qingxi-college.png",
+});
+
+const GETUI_PARTNER = Object.freeze({
+    category: "enterprise",
+    name: "每日互动",
+    nameEn: "Getui",
+    description: "提供数据智能、真实行业场景与校企合作支持。",
+    descriptionEn:
+        "Provides data intelligence, real industry scenarios, and university-enterprise collaboration support.",
+    cooperationDirection: "数据智能 / 产业协同",
+    cooperationDirectionEn: "Data intelligence / Industry collaboration",
+    eventOrganizerAliases: ["每日互动", "个推", "Getui"],
+    logoUrl: "/images/partner-logos/getui.svg",
+    darkLogoUrl: "/images/partner-logos/getui-dark.svg",
+    linkUrl: "https://www.getui.com/",
+    sortOrder: 5,
 });
 
 async function runMigrations(db) {
@@ -1866,19 +1897,98 @@ async function runMigrations(db) {
          )`
         );
 
-        for (const [name, logoUrl] of Object.entries(ORGANIZATION_PARTNER_LOGOS)) {
+        const getui = await db.get(
+            `SELECT id
+       FROM ecosystem_partners
+       WHERE category = ?
+         AND name = ?
+         AND deleted_at IS NULL
+       LIMIT 1`,
+            [GETUI_PARTNER.category, GETUI_PARTNER.name]
+        );
+        if (getui) {
+            await db.run(
+                `UPDATE ecosystem_partners
+         SET name_en = COALESCE(NULLIF(TRIM(name_en), ''), ?),
+             description = COALESCE(NULLIF(TRIM(description), ''), ?),
+             description_en = COALESCE(NULLIF(TRIM(description_en), ''), ?),
+             cooperation_direction = COALESCE(NULLIF(TRIM(cooperation_direction), ''), ?),
+             cooperation_direction_en = COALESCE(NULLIF(TRIM(cooperation_direction_en), ''), ?),
+             event_organizer_aliases = CASE
+               WHEN event_organizer_aliases IS NULL
+                 OR TRIM(event_organizer_aliases) = ''
+                 OR TRIM(event_organizer_aliases) = '[]'
+               THEN ?
+               ELSE event_organizer_aliases
+             END,
+             logo_url = ?,
+             dark_logo_url = ?,
+             link_url = COALESCE(NULLIF(TRIM(link_url), ''), ?),
+             sort_order = CASE
+               WHEN sort_order IS NULL OR sort_order <= 0 THEN ?
+               ELSE sort_order
+             END,
+             featured = 1,
+             partner_scope = 'core_partner',
+             updated_at = datetime('now')
+         WHERE id = ?`,
+                [
+                    GETUI_PARTNER.nameEn,
+                    GETUI_PARTNER.description,
+                    GETUI_PARTNER.descriptionEn,
+                    GETUI_PARTNER.cooperationDirection,
+                    GETUI_PARTNER.cooperationDirectionEn,
+                    JSON.stringify(GETUI_PARTNER.eventOrganizerAliases),
+                    GETUI_PARTNER.logoUrl,
+                    GETUI_PARTNER.darkLogoUrl,
+                    GETUI_PARTNER.linkUrl,
+                    GETUI_PARTNER.sortOrder,
+                    getui.id,
+                ]
+            );
+        } else {
+            await db.run(
+                `INSERT INTO ecosystem_partners (
+          category, name, name_en, description, description_en,
+          cooperation_direction, cooperation_direction_en, event_organizer_aliases,
+          logo_url, dark_logo_url, link_url, sort_order, enabled, featured, partner_scope,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'core_partner', datetime('now'), datetime('now'))`,
+                [
+                    GETUI_PARTNER.category,
+                    GETUI_PARTNER.name,
+                    GETUI_PARTNER.nameEn,
+                    GETUI_PARTNER.description,
+                    GETUI_PARTNER.descriptionEn,
+                    GETUI_PARTNER.cooperationDirection,
+                    GETUI_PARTNER.cooperationDirectionEn,
+                    JSON.stringify(GETUI_PARTNER.eventOrganizerAliases),
+                    GETUI_PARTNER.logoUrl,
+                    GETUI_PARTNER.darkLogoUrl,
+                    GETUI_PARTNER.linkUrl,
+                    GETUI_PARTNER.sortOrder,
+                ]
+            );
+        }
+        console.log("✅ Getui ecosystem partner synced");
+
+        for (const [name, logoConfig] of Object.entries(ORGANIZATION_PARTNER_LOGOS)) {
+            const category = typeof logoConfig === "string" ? "organization" : logoConfig.category;
+            const logoUrl = typeof logoConfig === "string" ? logoConfig : logoConfig.logoUrl;
+            const darkLogoUrl =
+                typeof logoConfig === "string" ? logoConfig : logoConfig.darkLogoUrl || logoUrl;
             await db.run(
                 `UPDATE ecosystem_partners
          SET logo_url = ?,
              dark_logo_url = ?,
              updated_at = datetime('now')
-         WHERE category = 'organization'
+         WHERE category = ?
            AND name = ?
            AND deleted_at IS NULL`,
-                [logoUrl, logoUrl, name]
+                [logoUrl, darkLogoUrl, category, name]
             );
         }
-        console.log("✅ Ecosystem organization official logos synced");
+        console.log("✅ Ecosystem partner official logos synced");
     } catch (err) {
         if (!err.message.includes("already exists")) {
             console.warn("Migration warning (ecosystem partners):", err.message);

@@ -169,6 +169,12 @@ jobs:
                   test -s "$frontend_dist/images/hero-landscape-night.jpg"
                   test -s "$frontend_dist/images/hero-background.jpg"
                   test -s "$frontend_dist/images/hero-campus-day-4k.jpg"
+                  test -s "$frontend_dist/images/partner-logos/getui.svg"
+                  test -s "$frontend_dist/images/partner-logos/getui-dark.svg"
+                  test -s "$frontend_dist/images/partner-logos/organizations/official/zhejiang-university.png"
+                  test -s "$frontend_dist/images/partner-logos/organizations/official/xlab.svg"
+                  test -s "$frontend_dist/images/partner-logos/organizations/official/xlab-white.svg"
+                  test -s "$frontend_dist/images/partner-logos/organizations/official/zjuai.webp"
                   cp -a "$frontend_dist" "$package_root/payload/dist"
 
                   rm -rf "$package_root/payload/server/node_modules"
@@ -292,6 +298,12 @@ jobs:
                       test -s "$payload/dist/images/hero-landscape-night.jpg"
                       test -s "$payload/dist/images/hero-background.jpg"
                       test -s "$payload/dist/images/hero-campus-day-4k.jpg"
+                      test -s "$payload/dist/images/partner-logos/getui.svg"
+                      test -s "$payload/dist/images/partner-logos/getui-dark.svg"
+                      test -s "$payload/dist/images/partner-logos/organizations/official/zhejiang-university.png"
+                      test -s "$payload/dist/images/partner-logos/organizations/official/xlab.svg"
+                      test -s "$payload/dist/images/partner-logos/organizations/official/xlab-white.svg"
+                      test -s "$payload/dist/images/partner-logos/organizations/official/zjuai.webp"
                       test -f "$payload/server/index.js"
                       test -f "$payload/shared/hackathonTemplateDefaults.json"
                       node --check "$payload/server/index.js"
@@ -385,6 +397,8 @@ jobs:
                     "$PRODUCTION_URL/api/projects?limit=1" > /tmp/zju-projects.json
                   curl --fail --silent --show-error --retry 5 --retry-delay 2 \
                     "$PRODUCTION_URL/projects" > /tmp/zju-projects.html
+                  curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                    "$PRODUCTION_URL/api/ecosystem-partners" > /tmp/zju-ecosystem-partners.json
                   for asset in images/hero-landscape-day-4k.jpg images/hero-landscape-night.jpg images/hero-background.jpg images/hero-campus-day-4k.jpg; do
                     asset_headers="/tmp/zju-asset-headers"
                     asset_body="/tmp/zju-asset"
@@ -393,3 +407,26 @@ jobs:
                     grep -Eiq '^content-type:[[:space:]]*image/jpeg([;[:space:]]|$)' "$asset_headers"
                     test -s "$asset_body"
                   done
+                  for asset in images/partner-logos/getui.svg images/partner-logos/getui-dark.svg images/partner-logos/organizations/official/zhejiang-university.png images/partner-logos/organizations/official/xlab.svg images/partner-logos/organizations/official/xlab-white.svg images/partner-logos/organizations/official/zjuai.webp; do
+                    curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+                      -o /tmp/zju-partner-logo "$PRODUCTION_URL/$asset"
+                    test -s /tmp/zju-partner-logo
+                  done
+                  node <<'NODE'
+                  const fs = require("node:fs");
+                  const partners = JSON.parse(
+                    fs.readFileSync("/tmp/zju-ecosystem-partners.json", "utf8")
+                  );
+                  const expected = new Map([
+                    ["未来学习中心", "zhejiang-university.png"],
+                    ["XLAB", "xlab.svg"],
+                    ["ZJUAI", "zjuai.webp"],
+                    ["每日互动", "getui.svg"],
+                  ]);
+                  for (const [name, logoSuffix] of expected) {
+                    const partner = partners.find((item) => item.name === name);
+                    if (!partner || !String(partner.logo_url || "").endsWith(logoSuffix)) {
+                      throw new Error(`Missing production partner logo: ${name} -> ${logoSuffix}`);
+                    }
+                  }
+                  NODE
