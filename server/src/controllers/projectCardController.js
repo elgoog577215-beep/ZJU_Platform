@@ -116,6 +116,39 @@ const attachCompetitionSummaries = async (db, rows) => {
     return rows.map((row) => ({ ...row, competitions: summaries.get(Number(row.id)) || [] }));
 };
 
+const serializeLegacyCompetitionWork = (row) => ({
+    id: `competition-work-${row.id}`,
+    source_type: "competition_work",
+    work_id: row.id,
+    user_id: row.uploader_id || null,
+    owner_name: row.author || row.uploader_name || null,
+    owner_avatar: null,
+    title: row.title,
+    intro: row.summary || null,
+    content: row.experience || row.summary || null,
+    progress: "live",
+    need_tags: [],
+    tech_tags: [],
+    repo_url: row.git_url || null,
+    cover_url: row.cover_url || null,
+    images: row.cover_url ? [row.cover_url] : [],
+    status: "published",
+    likes: 0,
+    views: 0,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    competitions: [
+        {
+            work_id: row.id,
+            slug: row.competition_slug,
+            title: row.competition_title,
+            event_date: row.event_date,
+            award: row.award || null,
+            rank: row.rank || null,
+        },
+    ],
+});
+
 const validate = (body) => {
     if (!body.title || !String(body.title).trim()) return "项目名称必填";
     if (String(body.title).trim().length > 40) return "项目名称过长";
@@ -254,14 +287,12 @@ const listProjects = async (req, res, next) => {
                   `SELECT c.id, c.slug, c.title, c.subtitle, c.description, c.event_date,
                           c.cover_image, c.is_featured, c.status,
                           (
-                              SELECT COUNT(DISTINCT cw.project_id)
+                              SELECT COUNT(*)
                                 FROM competition_works cw
-                                JOIN project_cards linked_project ON linked_project.id = cw.project_id
                                WHERE cw.competition_id = c.id
                                  AND cw.status = 'approved'
                                  AND COALESCE(cw.public_consent, 1) = 1
                                  AND cw.deleted_at IS NULL
-                                 AND linked_project.status = 'published'
                           ) AS approved_project_count
                      FROM competitions c
                     WHERE c.slug = ? AND c.status != 'draft' AND c.deleted_at IS NULL`,
@@ -310,21 +341,68 @@ const listProjects = async (req, res, next) => {
             `SELECT COUNT(*) AS n FROM project_cards p LEFT JOIN users u ON u.id = p.user_id WHERE ${whereSql}`,
             params
         );
+        const fetchLimit = competition && !mine ? limit + offset : limit;
         const rows = await db.all(
             `SELECT p.*, COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name, u.avatar AS owner_avatar
          FROM project_cards p LEFT JOIN users u ON u.id = p.user_id
         WHERE ${whereSql}
         ORDER BY p.created_at DESC
         LIMIT ? OFFSET ?`,
-            [...params, limit, offset]
+            [...params, fetchLimit, competition && !mine ? 0 : offset]
         );
         const rowsWithCompetitions = await attachCompetitionSummaries(db, rows);
+        const legacyWorkRows =
+            competition && !mine && !need && (!progress || progress === "live")
+                ? await db.all(
+                      `SELECT cw.*, COUNT(*) OVER() AS legacy_total,
+                              c.slug AS competition_slug, c.title AS competition_title,
+                              c.event_date, COALESCE(u.nickname, u.username) AS uploader_name
+                         FROM competition_works cw
+                         JOIN competitions c ON c.id = cw.competition_id
+                         LEFT JOIN users u ON u.id = cw.uploader_id
+                        WHERE cw.competition_id = ?
+                          AND cw.status = 'approved'
+                          AND COALESCE(cw.public_consent, 1) = 1
+                          AND cw.deleted_at IS NULL
+                          AND NOT EXISTS (
+                              SELECT 1 FROM project_cards p
+                               WHERE p.id = cw.project_id AND p.status = 'published'
+                          )
+                          AND (? = '' OR cw.title LIKE ? OR cw.author LIKE ? OR cw.summary LIKE ?)
+                        ORDER BY cw.created_at DESC, cw.id DESC
+                        LIMIT ?`,
+                      [
+                          competition.id,
+                          String(q || "").trim(),
+                          `%${String(q || "").trim()}%`,
+                          `%${String(q || "").trim()}%`,
+                          `%${String(q || "").trim()}%`,
+                          fetchLimit,
+                      ]
+                  )
+                : [];
+        const publicItems = [
+            ...rowsWithCompetitions.map((row) => serialize(row, { includeContact: false })),
+            ...legacyWorkRows.map(serializeLegacyCompetitionWork),
+        ];
+        const pagedItems =
+            competition && !mine
+                ? publicItems
+                      .sort((left, right) =>
+                          String(right.created_at || "").localeCompare(
+                              String(left.created_at || "")
+                          )
+                      )
+                      .slice(offset, offset + limit)
+                : publicItems;
+        const legacyTotal = Number(legacyWorkRows[0]?.legacy_total || 0);
+        const total = Number(totalRow?.n || 0) + legacyTotal;
         res.json({
-            items: rowsWithCompetitions.map((r) => serialize(r, { includeContact: false })),
+            items: pagedItems,
             page,
             limit,
-            total: totalRow?.n || 0,
-            totalPages: Math.max(1, Math.ceil((totalRow?.n || 0) / limit)),
+            total,
+            totalPages: Math.max(1, Math.ceil(total / limit)),
             competition: competition
                 ? { ...competition, is_featured: Boolean(competition.is_featured) }
                 : null,

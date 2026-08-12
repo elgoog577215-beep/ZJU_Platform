@@ -101,6 +101,7 @@ const serializeCompetitionMediaOutcome = (row) => ({
     ...serializeMedia(row),
     source_table: "competition_media",
     source_id: row.id,
+    role: row.role || "archive",
 });
 
 const serializePhotoOutcome = (row) => ({
@@ -152,6 +153,32 @@ const dedupeOutcomeMedia = (items) => {
         return true;
     });
 };
+
+const mediaCreatedAt = (item) => {
+    const timestamp = Date.parse(item?.created_at || item?.updated_at || 0);
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const sortLivePhotos = (items) =>
+    [...items].sort((left, right) => {
+        const timeDifference = mediaCreatedAt(right) - mediaCreatedAt(left);
+        if (timeDifference !== 0) return timeDifference;
+        return (
+            toInteger(right?.source_id || right?.id, 0) - toInteger(left?.source_id || left?.id, 0)
+        );
+    });
+
+const sortFeaturedPhotos = (items) =>
+    [...items].sort((left, right) => {
+        const leftOrder = toInteger(left?.sort_order, 0);
+        const rightOrder = toInteger(right?.sort_order, 0);
+        if (leftOrder > 0 || rightOrder > 0) {
+            if (leftOrder <= 0) return 1;
+            if (rightOrder <= 0) return -1;
+            if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+        }
+        return mediaCreatedAt(right) - mediaCreatedAt(left);
+    });
 
 const serializeWork = (row) => ({
     ...row,
@@ -527,11 +554,19 @@ const getCurrentOutcome = async (req, res, next) => {
 
         const useLegacyPhotoFallback = linkedPhotoRows.length === 0;
         const useLegacyVideoFallback = linkedVideoRows.length === 0;
-        const stagePhotos = dedupeOutcomeMedia([
+        const allStagePhotos = dedupeOutcomeMedia([
             ...linkedPhotoRows.map(serializePhotoOutcome),
             ...competitionPhotoRows.map(serializeCompetitionMediaOutcome),
             ...(useLegacyPhotoFallback ? legacyPhotoRows.map(serializePhotoOutcome) : []),
-        ]).slice(0, stagePhotoLimit);
+        ]);
+        const livePhotos = sortLivePhotos(allStagePhotos).slice(0, stagePhotoLimit);
+        const featuredPhotos = sortFeaturedPhotos(
+            allStagePhotos.filter((photo) => photo.role === "highlight")
+        ).slice(0, stagePhotoLimit);
+        const stagePhotos = dedupeOutcomeMedia([...featuredPhotos, ...livePhotos]).slice(
+            0,
+            stagePhotoLimit
+        );
         const promoVideos = dedupeOutcomeMedia([
             ...linkedVideoRows.map(serializeVideoOutcome),
             ...competitionVideoRows.map(serializeCompetitionMediaOutcome),
@@ -551,6 +586,8 @@ const getCurrentOutcome = async (req, res, next) => {
             media: {
                 promo_videos: promoVideos,
                 stage_photos: stagePhotos,
+                live_photos: livePhotos,
+                featured_photos: featuredPhotos,
             },
             works,
             stats: {
@@ -562,6 +599,7 @@ const getCurrentOutcome = async (req, res, next) => {
                     toInteger(linkedStatsRow?.stage_photos, 0) +
                     toInteger(mediaStatsRow?.stage_photos, 0) +
                     (useLegacyPhotoFallback ? toInteger(legacyStatsRow?.stage_photos, 0) : 0),
+                featured_photos: featuredPhotos.length,
                 works: toInteger(worksCountRow?.count, works.length),
             },
         });
@@ -722,7 +760,7 @@ const submitCurrentWork = async (req, res, next) => {
         if (!title) return sendBadRequest(res, "请填写作品名称");
         if (!author) return sendBadRequest(res, "请填写作者");
         if (!summary) return sendBadRequest(res, "请填写作品简介");
-        if (!gitUrl || !isHttpUrl(gitUrl)) return sendBadRequest(res, "请填写有效的 Git 链接");
+        if (!gitUrl || !isHttpUrl(gitUrl)) return sendBadRequest(res, "请填写有效的项目链接");
         if (coverUrl && !isSafeAssetUrl(coverUrl)) return sendBadRequest(res, "封面地址无效");
 
         const requestedStatus = normalizeStatus(req.body.status, "approved");
@@ -1102,6 +1140,94 @@ const listAdminMedia = async (req, res, next) => {
         );
 
         return res.json(rows.map(serializeMedia));
+    } catch (error) {
+        return next(error);
+    }
+};
+
+const listAdminMediaLinks = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const competitionId = toInteger(req.query.competition_id || req.query.competitionId, 0);
+        const resourceType = trimText(req.query.resource_type || req.query.resourceType, 20);
+        const clauses = ["c.deleted_at IS NULL"];
+        const params = [];
+        if (competitionId) {
+            clauses.push("l.competition_id = ?");
+            params.push(competitionId);
+        }
+        if (resourceType === "photo" || resourceType === "video") {
+            clauses.push("l.resource_type = ?");
+            params.push(resourceType);
+        }
+
+        const rows = await db.all(
+            `SELECT l.id, l.competition_id, l.resource_type, l.resource_id, l.role,
+                    l.sort_order, l.created_at, l.updated_at,
+                    c.slug AS competition_slug, c.title AS competition_title,
+                    CASE WHEN l.resource_type = 'photo' THEN p.title ELSE v.title END AS title,
+                    CASE WHEN l.resource_type = 'photo' THEN p.url ELSE v.video END AS url,
+                    CASE WHEN l.resource_type = 'photo' THEN p.url ELSE v.thumbnail END AS cover_url,
+                    CASE WHEN l.resource_type = 'photo' THEN p.status ELSE v.status END AS status,
+                    CASE WHEN l.resource_type = 'photo' THEN p.created_at ELSE v.created_at END AS resource_created_at
+               FROM competition_media_links l
+               JOIN competitions c ON c.id = l.competition_id
+               LEFT JOIN photos p ON l.resource_type = 'photo' AND p.id = l.resource_id
+               LEFT JOIN videos v ON l.resource_type = 'video' AND v.id = l.resource_id
+              WHERE ${clauses.join(" AND ")}
+                AND ((l.resource_type = 'photo' AND p.id IS NOT NULL AND p.deleted_at IS NULL)
+                  OR (l.resource_type = 'video' AND v.id IS NOT NULL AND v.deleted_at IS NULL))
+              ORDER BY COALESCE(resource_created_at, l.created_at) DESC, l.id DESC`,
+            params
+        );
+
+        return res.json(
+            rows.map((row) => ({
+                ...row,
+                sort_order: toInteger(row.sort_order, 0),
+            }))
+        );
+    } catch (error) {
+        return next(error);
+    }
+};
+
+const updateAdminMediaLinkRole = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const id = toInteger(req.params.id, 0);
+        const existing = await db.get("SELECT * FROM competition_media_links WHERE id = ?", [id]);
+        if (!existing) return res.status(404).json({ error: "赛事媒体关系不存在" });
+
+        const role = trimText(req.body.role, 24).toLowerCase();
+        const allowedRoles =
+            existing.resource_type === "photo"
+                ? new Set(["archive", "highlight"])
+                : new Set(["archive", "highlight", "official_film"]);
+        if (!allowedRoles.has(role)) return sendBadRequest(res, "赛事媒体角色无效");
+
+        const sortOrder =
+            req.body.sort_order !== undefined
+                ? toInteger(req.body.sort_order, 0)
+                : role === "highlight" && toInteger(existing.sort_order, 0) <= 0
+                  ? 1
+                  : existing.sort_order;
+        await db.run(
+            `UPDATE competition_media_links
+                SET role = ?, sort_order = ?, updated_at = datetime('now')
+              WHERE id = ?`,
+            [role, sortOrder, id]
+        );
+        await createAuditLog(
+            db,
+            req.user?.id,
+            "competition_media_links",
+            id,
+            role === "highlight" ? "feature" : "unfeature",
+            null
+        );
+        const updated = await db.get("SELECT * FROM competition_media_links WHERE id = ?", [id]);
+        return res.json({ ...updated, sort_order: toInteger(updated.sort_order, 0) });
     } catch (error) {
         return next(error);
     }
@@ -1622,8 +1748,10 @@ module.exports = {
     featureCompetition,
     deleteCompetition,
     listAdminMedia,
+    listAdminMediaLinks,
     createAdminMedia,
     updateAdminMedia,
+    updateAdminMediaLinkRole,
     deleteAdminMedia,
     reviewAdminMedia,
     listAdminWorks,

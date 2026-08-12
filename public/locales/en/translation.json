@@ -1473,6 +1473,7 @@
     },
     "hackathon": {
         "brand": "Zhekesong",
+        "timeline_aria": "Competition schedule timeline",
         "meta_title": "{{title}} Registration",
         "meta_desc": "{{title}} - {{subtitle}}. Build a runnable AI app independently within the time limit.",
         "tabs": {
@@ -1562,11 +1563,14 @@
             "grade_phd": "PhD",
             "ai_tools": "AI Tools You Use",
             "multi_select": "Multiple choices",
+            "ai_tool_other": "Other",
             "experience": "AI Project Experience",
             "experience_placeholder": "Briefly describe your experience building with AI...",
             "before_submit": "Before You Submit",
             "before_submit_desc": "Name, student ID, and project experience are used for registration review. AI tools only help the team plan on-site support.",
             "submit": "Submit Registration",
+            "registration_preview": "Registration is not open yet. This form is a preview.",
+            "registration_closed": "Registration Closed",
             "official_group": "Official WeChat Group",
             "optional": "Optional",
             "official_group_qr": "Official WeChat group QR code",
@@ -2276,7 +2280,31 @@
             "tabs": {
                 "registrations": "Registrations",
                 "works": "Work review {{count}}",
+                "media": "Live Photos & Picks",
                 "template": "Event settings"
+            },
+            "results": {
+                "rank": "Public Rank",
+                "rank_placeholder": "e.g. 1",
+                "award": "Public Award",
+                "award_placeholder": "e.g. First Prize / Best Innovation",
+                "save": "Save Result",
+                "saved": "Rank and award updated",
+                "save_failed": "Failed to save judging result"
+            },
+            "media": {
+                "title": "Live Photos & Picks ({{count}})",
+                "description": "Every approved photo enters the live stream. Select post-event highlights here without duplicating the original.",
+                "filter_aria": "Filter event photos by competition",
+                "all_events": "All Competitions",
+                "empty_title": "No Event Photos",
+                "empty_description": "Approved uploads appear here and in the public live stream.",
+                "untitled": "Untitled Photo",
+                "feature_action": "Feature Photo",
+                "remove_action": "Remove from Picks",
+                "featured": "Added to event picks",
+                "removed": "Removed from event picks",
+                "update_failed": "Failed to update featured state"
             }
         },
         "status": {
@@ -3576,7 +3604,9 @@
             "title": "Title",
             "description": "Description",
             "video_file": "Film File",
-            "photo_file": "Photo File"
+            "photo_file": "Photo File",
+            "photo_files": "Field Photos (multiple allowed)",
+            "photo_files_hint": "Up to 24 at a time. Approved photos enter the live stream by upload time."
         },
         "validation": {
             "project_required": "Select a project first",
@@ -3596,19 +3626,44 @@
             "saving_work": "Saving work information",
             "uploading_video": "Uploading event film",
             "uploading_photo": "Uploading photo",
+            "uploading_photo_batch": "Uploading photo {{current}} / {{total}}",
             "uploading_video_cover": "Uploading film cover",
             "saving_archive": "Saving to this event archive"
         },
         "success": {
             "work_published": "Work published",
             "work_pending": "Work submitted for review",
-            "media_submitted": "Submitted to the {{event}} archive"
+            "media_submitted": "Submitted to the {{event}} archive",
+            "media_batch_submitted": "{{count}} photos submitted to the {{event}} live stream"
         },
         "errors": {
             "upload_failed": "Failed to upload {{asset}}: {{message}}",
             "non_json": "The API returned a non-JSON response. The backend may need restarting.",
             "unknown": "Unknown error",
             "submit_failed": "Submission failed: {{message}}"
+        }
+    },
+    "event_project_submit": {
+        "title": "Submit Competition Project",
+        "description": "One cover, a short summary, and an accessible project link complete your entry.",
+        "cover": "Upload Project Cover",
+        "cover_hint": "Use a product screen or a strong project visual",
+        "name": "Project Name",
+        "summary": "Project Summary",
+        "author": "Builder / Team",
+        "url": "Project / Demo / Code Link",
+        "action": "Submit This Project",
+        "submitting": "Submitting",
+        "success": "Project submitted. It will enter the event plaza after review.",
+        "error": "Submission failed: {{message}}",
+        "retry_error": "The long-term project was saved, but the event submission failed: {{message}}. Retry here without creating a duplicate.",
+        "retry_hint": "The long-term project is saved. Submitting again only retries this event snapshot.",
+        "validation": {
+            "cover": "Upload one project cover",
+            "title": "Enter a project name",
+            "summary": "Enter a project summary",
+            "author": "Enter a builder or team name",
+            "url": "Enter a valid project, demo, or code link"
         }
     },
     "media_archive": {
@@ -3632,6 +3687,16 @@
         "empty_desc": "Approved photos and videos will appear here automatically.",
         "photo_eyebrow": "Event Archive",
         "photo_title": "Complete Field Archive",
+        "live_tab": "Live Photos",
+        "featured_tab": "Event Picks",
+        "live_title": "Live Event Photos",
+        "featured_title": "Selected Event Photos",
+        "live_refreshing": "Live · checking for new photos every 15 seconds",
+        "live_complete": "Complete record · newest photos first",
+        "featured_note": "Selected and ordered by the event team",
+        "featured_empty_title": "Event picks are being curated",
+        "featured_empty_desc": "The complete live record is preserved. Selected moments will form the post-event story here.",
+        "view_all_live": "View Complete Live Feed",
         "photo_count": "{{count}} photos shown",
         "field_photo": "Field Photo",
         "video_eyebrow": "Official Films",
@@ -3870,6 +3935,10 @@
             "kicker": "HACKATHON · LIVE PROJECTS",
             "subtitle": "Put the work on stage. Keep the project growing after the event.",
             "submit_action": "Submit Competition Project",
+            "submission_upcoming": "Project submissions open when the competition begins",
+            "submission_upcoming_short": "Opens at Kickoff",
+            "submission_closed": "Submissions are closed. This event is now in showcase mode.",
+            "submission_closed_short": "Submissions Closed",
             "approved_count": "Selected Works",
             "journey_aria": "Related pages for this event",
             "back_event": "Event Live",
@@ -3932,7 +4001,9 @@
             "publish": "Publish Project",
             "publish_first": "Publish First Project",
             "repo": "View Repo",
-            "no_repo": "No Repo"
+            "no_repo": "No Repo",
+            "project_link": "Open Project",
+            "no_project_link": "No Project Link"
         },
         "contact": {
             "wechat": "WeChat",

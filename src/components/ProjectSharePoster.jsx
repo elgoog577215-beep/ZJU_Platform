@@ -31,9 +31,20 @@ const safeFilePart = (value) =>
         .replace(/\s+/g, "-")
         .slice(0, 40) || "project";
 
-const buildProjectUrl = (projectId) => {
-    const url = new URL("/projects", window.location.origin);
-    url.searchParams.set("id", String(projectId));
+const buildProjectUrl = (project) => {
+    const eventRecord = project?.competitions?.[0];
+    const url = new URL(
+        project?.source_type === "competition_work" ? "/hackathon" : "/projects",
+        window.location.origin
+    );
+    if (project?.source_type === "competition_work" && eventRecord) {
+        url.searchParams.set("view", "showcase");
+        url.searchParams.set("competition", eventRecord.slug);
+        url.searchParams.set("work", String(eventRecord.work_id));
+        url.hash = "showcase-works";
+    } else {
+        url.searchParams.set("id", String(project?.id || ""));
+    }
     return url.toString();
 };
 
@@ -52,7 +63,8 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     const [qrDataUrl, setQrDataUrl] = useState("");
     const [busy, setBusy] = useState(null);
 
-    const projectUrl = useMemo(() => buildProjectUrl(project?.id), [project?.id]);
+    const projectUrl = useMemo(() => buildProjectUrl(project), [project]);
+    const projectPath = useMemo(() => projectUrl.replace(window.location.origin, ""), [projectUrl]);
     const title = project?.title || t("project_share_poster.untitled", "未命名项目");
     const intro =
         project?.intro || t("project_share_poster.default_intro", "一个正在生长的校园项目");
@@ -126,7 +138,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
                 await savePosterViaNativeMiniProgram({
                     imageUrl: response.data?.imageUrl,
                     fileName: response.data?.fileName || fileName,
-                    returnPath: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
+                    returnPath: projectPath,
                     auto: true,
                 });
                 toast.success(t("project_share_poster.miniapp_save_opened", "已打开小程序保存页"));
@@ -196,7 +208,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
             title,
             text: shareText,
             url: projectUrl,
-            path: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
+            path: projectPath,
             imageUrl: getProjectShareCardUrl(project),
         };
 

@@ -62,14 +62,14 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
 
         await db.run(
             `INSERT INTO competition_media
-                (competition_id, type, title, url, status, uploader_id)
-             VALUES (?, 'stage_photo', '第一场照片', '/uploads/one.jpg', 'approved', ?)`,
+                (competition_id, type, title, url, status, uploader_id, created_at)
+             VALUES (?, 'stage_photo', '第一场照片', '/uploads/one.jpg', 'approved', ?, '2026-01-01 09:00:00')`,
             [firstResult.lastID, userResult.lastID]
         );
         await db.run(
             `INSERT INTO competition_media
-                (competition_id, type, title, url, status, uploader_id)
-             VALUES (?, 'stage_photo', '第二场照片', '/uploads/two.jpg', 'approved', ?)`,
+                (competition_id, type, title, url, status, uploader_id, created_at)
+             VALUES (?, 'stage_photo', '第二场照片', '/uploads/two.jpg', 'approved', ?, '2026-01-01 09:00:00')`,
             [secondResult.lastID, userResult.lastID]
         );
         await db.run(
@@ -137,6 +137,44 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
             [submitResponse.body.id]
         );
         assert.equal(submittedLink.competition_id, secondResult.lastID);
+        assert.equal(submittedLink.role, "archive");
+
+        const featureResponse = await runController(
+            competitionController.updateAdminMediaLinkRole,
+            {
+                params: { id: submittedLink.id },
+                query: {},
+                body: { role: "highlight" },
+                user: { id: userResult.lastID, role: "admin" },
+            }
+        );
+        assert.equal(featureResponse.statusCode, 200);
+        assert.equal(featureResponse.body.role, "highlight");
+
+        const mediaLinksResponse = await runController(competitionController.listAdminMediaLinks, {
+            params: {},
+            query: { competition_id: secondResult.lastID, resource_type: "photo" },
+            body: {},
+            user: { id: userResult.lastID, role: "admin" },
+        });
+        assert.equal(mediaLinksResponse.statusCode, 200);
+        assert.equal(mediaLinksResponse.body.length, 1);
+        assert.equal(mediaLinksResponse.body[0].role, "highlight");
+
+        const liveResponse = await runController(competitionController.getCurrentOutcome, {
+            params: { competitionSlug: "event-two-outcome" },
+            query: {},
+            body: {},
+        });
+        assert.deepEqual(
+            liveResponse.body.media.live_photos.map((item) => item.title),
+            ["第二场新投稿", "第二场照片"]
+        );
+        assert.deepEqual(
+            liveResponse.body.media.featured_photos.map((item) => item.title),
+            ["第二场新投稿"]
+        );
+        assert.equal(liveResponse.body.stats.featured_photos, 1);
 
         const publicArchiveResponse = await runController(
             competitionController.listPublicCompetitions,

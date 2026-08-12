@@ -58,3 +58,42 @@ The public hackathon outcome page SHALL provide event-scoped actions for browsin
 - **WHEN** a logged-in user selects the submission action
 - **THEN** the system SHALL open the work submission flow for the current event
 - **AND** the flow SHALL offer owned projects or a path to create one in the event-scoped project plaza.
+
+### Requirement: Registration and outcome views remain reachable
+
+The public hackathon route SHALL preserve both the registration view and the outcome view for every event that enables them.
+
+#### Scenario: Visitor opens the hackathon route without a view
+
+- **WHEN** a visitor opens `/hackathon` for an event whose registration view is enabled
+- **THEN** the system MUST open the registration view
+- **AND** the registration form MUST remain visible even when an outcome package already exists.
+
+#### Scenario: Visitor switches from outcome to registration
+
+- **WHEN** a visitor is viewing the event outcome
+- **THEN** a visible registration/outcome switch MUST remain available
+- **AND** choosing registration MUST preserve the current `event` context.
+
+### Requirement: Event media exposes live and curated projections
+
+The public outcome response SHALL expose approved event photos as both a latest-first live stream and an operator-curated selection without duplicating media records.
+
+#### Scenario: Approved archive photo enters the live stream
+
+- **WHEN** an approved event photo has relation role `archive`
+- **THEN** it MUST appear in `media.live_photos`
+- **AND** it MUST NOT appear in `media.featured_photos`.
+
+#### Scenario: Operator selects a highlight
+
+- **WHEN** an administrator changes an event photo relation from `archive` to `highlight`
+- **THEN** the same photo MUST remain in `media.live_photos`
+- **AND** it MUST also appear in `media.featured_photos`
+- **AND** the operation MUST NOT copy the photo or create a second media record.
+
+#### Scenario: Live stream ordering
+
+- **WHEN** multiple approved event photos are returned
+- **THEN** `media.live_photos` MUST order them by capture/upload creation time newest first
+- **AND** `media.featured_photos` MUST honor operator sort order before creation time.

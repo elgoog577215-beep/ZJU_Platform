@@ -11,6 +11,7 @@ import {
     GraduationCap,
     RefreshCw,
     Search,
+    Sparkles,
     Trash2,
     User,
     Users,
@@ -94,6 +95,7 @@ const HackathonManager = () => {
     const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
     const [registrations, setRegistrations] = useState([]);
     const [works, setWorks] = useState([]);
+    const [mediaLinks, setMediaLinks] = useState([]);
     const [confirmState, setConfirmState] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -106,6 +108,8 @@ const HackathonManager = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [scheduleConfig, setScheduleConfig] = useState(null);
     const [activeWorkspace, setActiveWorkspace] = useState("registrations");
+    const [workEdit, setWorkEdit] = useState({});
+    const [mediaCompetitionFilter, setMediaCompetitionFilter] = useState("");
 
     const handleTemplateChange = useCallback((_template, schedule) => {
         setScheduleConfig(schedule);
@@ -140,10 +144,17 @@ const HackathonManager = () => {
         setWorks(Array.isArray(response.data) ? response.data : []);
     };
 
+    const fetchMediaLinks = async () => {
+        const response = await api.get("/admin/competition-media-links", {
+            params: { resource_type: "photo" },
+        });
+        setMediaLinks(Array.isArray(response.data) ? response.data : []);
+    };
+
     const refreshAll = async () => {
         setLoading(true);
         try {
-            await Promise.all([fetchRegistrations(), fetchWorks()]);
+            await Promise.all([fetchRegistrations(), fetchWorks(), fetchMediaLinks()]);
         } catch (error) {
             toast.error(error.response?.data?.error || "加载黑客松运营数据失败");
         } finally {
@@ -389,6 +400,64 @@ const HackathonManager = () => {
         }
     };
 
+    const saveWorkResult = async (work) => {
+        const values = workEdit[work.id] || { rank: work.rank || "", award: work.award || "" };
+        setSaving(true);
+        try {
+            await api.put(`/admin/competition-works/${work.id}`, {
+                rank: values.rank,
+                award: values.award,
+            });
+            await fetchWorks();
+            toast.success(t("admin.hackathon_manager.results.saved"));
+        } catch (error) {
+            toast.error(
+                error.response?.data?.error || t("admin.hackathon_manager.results.save_failed")
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const toggleMediaHighlight = async (media) => {
+        setSaving(true);
+        try {
+            await api.put(`/admin/competition-media-links/${media.id}/role`, {
+                role: media.role === "highlight" ? "archive" : "highlight",
+            });
+            await fetchMediaLinks();
+            toast.success(
+                media.role === "highlight"
+                    ? t("admin.hackathon_manager.media.removed")
+                    : t("admin.hackathon_manager.media.featured")
+            );
+        } catch (error) {
+            toast.error(
+                error.response?.data?.error || t("admin.hackathon_manager.media.update_failed")
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const mediaCompetitionOptions = useMemo(() => {
+        const options = new Map();
+        mediaLinks.forEach((media) =>
+            options.set(String(media.competition_id), media.competition_title || "未命名比赛")
+        );
+        return [...options.entries()];
+    }, [mediaLinks]);
+
+    const filteredMediaLinks = useMemo(
+        () =>
+            mediaLinks.filter(
+                (media) =>
+                    !mediaCompetitionFilter ||
+                    String(media.competition_id) === mediaCompetitionFilter
+            ),
+        [mediaCompetitionFilter, mediaLinks]
+    );
+
     const renderWorkCards = () => (
         <div className="grid gap-3 xl:grid-cols-2">
             {filteredWorks.map((work) => (
@@ -476,6 +545,50 @@ const HackathonManager = () => {
                                 驳回
                             </AdminButton>
                         </div>
+                    </div>
+                    <div className="mt-4 grid gap-2 border-t border-white/10 pt-3 sm:grid-cols-[120px_minmax(0,1fr)_auto]">
+                        <label className={`grid gap-1 text-xs font-semibold ${mutedTextClass}`}>
+                            {t("admin.hackathon_manager.results.rank")}
+                            <input
+                                value={workEdit[work.id]?.rank ?? work.rank ?? ""}
+                                onChange={(event) =>
+                                    setWorkEdit((current) => ({
+                                        ...current,
+                                        [work.id]: {
+                                            rank: event.target.value,
+                                            award: current[work.id]?.award ?? work.award ?? "",
+                                        },
+                                    }))
+                                }
+                                placeholder={t("admin.hackathon_manager.results.rank_placeholder")}
+                                className="theme-admin-input min-h-[38px] rounded-xl px-3"
+                            />
+                        </label>
+                        <label className={`grid gap-1 text-xs font-semibold ${mutedTextClass}`}>
+                            {t("admin.hackathon_manager.results.award")}
+                            <input
+                                value={workEdit[work.id]?.award ?? work.award ?? ""}
+                                onChange={(event) =>
+                                    setWorkEdit((current) => ({
+                                        ...current,
+                                        [work.id]: {
+                                            rank: current[work.id]?.rank ?? work.rank ?? "",
+                                            award: event.target.value,
+                                        },
+                                    }))
+                                }
+                                placeholder={t("admin.hackathon_manager.results.award_placeholder")}
+                                className="theme-admin-input min-h-[38px] rounded-xl px-3"
+                            />
+                        </label>
+                        <AdminButton
+                            tone="primary"
+                            className="self-end"
+                            disabled={saving}
+                            onClick={() => saveWorkResult(work)}
+                        >
+                            {t("admin.hackathon_manager.results.save")}
+                        </AdminButton>
                     </div>
                     {work.highlight ? (
                         <p
@@ -611,6 +724,7 @@ const HackathonManager = () => {
                                     count: formatNumber(workStats.pending),
                                 }),
                             ],
+                            ["media", t("admin.hackathon_manager.tabs.media")],
                             ["template", t("admin.hackathon_manager.tabs.template")],
                         ].map(([id, label]) => (
                             <FilterChip
@@ -936,6 +1050,90 @@ const HackathonManager = () => {
                             />
                         ) : (
                             renderWorkCards()
+                        )}
+                    </AdminPanel>
+                ) : null}
+
+                {activeWorkspace === "media" ? (
+                    <AdminPanel
+                        title={t("admin.hackathon_manager.media.title", {
+                            count: formatNumber(filteredMediaLinks.length),
+                        })}
+                        description={t("admin.hackathon_manager.media.description")}
+                    >
+                        <AdminToolbar>
+                            <ToolbarGroup>
+                                <select
+                                    value={mediaCompetitionFilter}
+                                    onChange={(event) =>
+                                        setMediaCompetitionFilter(event.target.value)
+                                    }
+                                    className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
+                                    aria-label={t("admin.hackathon_manager.media.filter_aria")}
+                                >
+                                    <option value="">
+                                        {t("admin.hackathon_manager.media.all_events")}
+                                    </option>
+                                    {mediaCompetitionOptions.map(([value, label]) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </ToolbarGroup>
+                        </AdminToolbar>
+                        {filteredMediaLinks.length === 0 ? (
+                            <AdminEmptyState
+                                icon={Sparkles}
+                                title={t("admin.hackathon_manager.media.empty_title")}
+                                description={t("admin.hackathon_manager.media.empty_description")}
+                            />
+                        ) : (
+                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                {filteredMediaLinks.map((media) => (
+                                    <article
+                                        key={media.id}
+                                        className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
+                                    >
+                                        <img
+                                            src={media.cover_url || media.url}
+                                            alt={media.title}
+                                            className="aspect-[4/3] w-full object-cover"
+                                        />
+                                        <div className="grid gap-2 p-3">
+                                            <span
+                                                className={`text-[11px] font-bold ${mutedTextClass}`}
+                                            >
+                                                {media.competition_title}
+                                            </span>
+                                            <strong
+                                                className={`line-clamp-1 text-sm ${headingTextClass}`}
+                                            >
+                                                {media.title ||
+                                                    t("admin.hackathon_manager.media.untitled")}
+                                            </strong>
+                                            <AdminButton
+                                                tone={
+                                                    media.role === "highlight"
+                                                        ? "subtle"
+                                                        : "primary"
+                                                }
+                                                disabled={saving || media.status !== "approved"}
+                                                onClick={() => toggleMediaHighlight(media)}
+                                            >
+                                                <Sparkles size={14} />
+                                                {media.role === "highlight"
+                                                    ? t(
+                                                          "admin.hackathon_manager.media.remove_action"
+                                                      )
+                                                    : t(
+                                                          "admin.hackathon_manager.media.feature_action"
+                                                      )}
+                                            </AdminButton>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
                         )}
                     </AdminPanel>
                 ) : null}

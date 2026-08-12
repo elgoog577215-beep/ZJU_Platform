@@ -54,6 +54,7 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-newbtn.ghost{border-color:var(--border-strong)!important;background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;}
 .ppp-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
 .ppp-newbtn:hover{transform:translateY(-1px);}
+.ppp-newbtn:disabled{cursor:not-allowed;filter:saturate(.25);opacity:.62;transform:none;}
 .ppp-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;min-width:0;max-width:100%;padding-top:12px;}
 .ppp-filters[hidden]{display:none;}
 .ppp-filter-group{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;}

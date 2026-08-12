@@ -58,6 +58,83 @@ const getLocalizedPartnerDisplayName = (partner = {}, language = "zh") => {
     );
 };
 
+const formatEnglishSchedule = (event = {}) => {
+    const start = new Date(event.startAt || "");
+    if (Number.isNaN(start.getTime())) return "Schedule TBA";
+
+    const timeZone = event.timezone || "Asia/Shanghai";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone,
+    });
+    const end = new Date(event.endAt || "");
+    if (Number.isNaN(end.getTime())) return formatter.format(start);
+
+    const sameDay = new Intl.DateTimeFormat("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone,
+    });
+    if (sameDay.format(start) === sameDay.format(end)) {
+        const endTime = new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone,
+        });
+        return `${formatter.format(start)}–${endTime.format(end)}`;
+    }
+    return `${formatter.format(start)}–${formatter.format(end)}`;
+};
+
+const getLocalizedRegistrationField = (field, t, isEnglish) => {
+    if (!isEnglish) return field;
+
+    const fieldKeys = {
+        name: ["name", "name_placeholder"],
+        studentId: ["student_id", "student_id_placeholder"],
+        major: ["major", "major_placeholder"],
+        grade: ["grade", "grade_placeholder"],
+        aiTools: ["ai_tools", "multi_select"],
+        experience: ["experience", "experience_placeholder"],
+    };
+    const optionKeys = {
+        freshman: "grade_freshman",
+        sophomore: "grade_sophomore",
+        junior: "grade_junior",
+        senior: "grade_senior",
+        master: "grade_master",
+        phd: "grade_phd",
+        other: "ai_tool_other",
+    };
+    const [labelKey, placeholderKey] = fieldKeys[field.id] || [];
+
+    return {
+        ...field,
+        label: labelKey
+            ? t(`hackathon.form.${labelKey}`)
+            : hasCjkText(field.label)
+              ? "Additional Information"
+              : field.label,
+        placeholder: placeholderKey
+            ? t(`hackathon.form.${placeholderKey}`)
+            : hasCjkText(field.placeholder)
+              ? "Enter the requested information"
+              : field.placeholder,
+        options: field.options.map((option, index) => ({
+            ...option,
+            label: optionKeys[option.value]
+                ? t(`hackathon.form.${optionKeys[option.value]}`)
+                : hasCjkText(option.label)
+                  ? `Option ${index + 1}`
+                  : option.label,
+        })),
+    };
+};
+
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
@@ -70,12 +147,31 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
     const shouldAnimate = !reduceMotion;
     const isDayMode = uiMode === "day";
     const language = i18n.resolvedLanguage || i18n.language || "zh";
+    const isEnglish = String(language).startsWith("en");
     const resolvedTemplate = useMemo(() => normalizeHackathonTemplate(template), [template]);
-    const activeFormFields = useMemo(
+    const sourceFormFields = useMemo(
         () => getActiveHackathonFields(resolvedTemplate),
         [resolvedTemplate]
     );
-    const formConfig = resolvedTemplate.form;
+    const activeFormFields = useMemo(
+        () => sourceFormFields.map((field) => getLocalizedRegistrationField(field, t, isEnglish)),
+        [isEnglish, sourceFormFields, t]
+    );
+    const formConfig = useMemo(
+        () =>
+            isEnglish
+                ? {
+                      ...resolvedTemplate.form,
+                      title: t("hackathon.form.section_title"),
+                      description: t("hackathon.form.section_desc"),
+                      requiredHint: t("hackathon.form.required_hint"),
+                      submitLabel: t("hackathon.form.submit"),
+                      successMessage: t("hackathon.toast.success"),
+                      privacyNotice: t("hackathon.form.before_submit_desc"),
+                  }
+                : resolvedTemplate.form,
+        [isEnglish, resolvedTemplate.form, t]
+    );
     const { groups: ecosystemPartnerGroups, enterpriseLogoRows } = useEcosystemPartners();
     const enterpriseLogos = useMemo(() => enterpriseLogoRows.flat(), [enterpriseLogoRows]);
     const pageRef = useRef(null);
@@ -147,14 +243,51 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         );
     }, [activeFormFields, resolvedTemplate]);
 
-    const event = useMemo(
-        () => ({
-            ...resolvedTemplate.event,
-            date: formatHackathonSchedule(resolvedTemplate.event),
-            prize: `${resolvedTemplate.event.prizeValue} ${resolvedTemplate.event.prizeUnit}`.trim(),
-        }),
-        [resolvedTemplate]
-    );
+    const event = useMemo(() => {
+        const sourceEvent = resolvedTemplate.event;
+        const localizedEvent = isEnglish
+            ? {
+                  ...sourceEvent,
+                  brand: hasCjkText(sourceEvent.brand) ? t("hackathon.brand") : sourceEvent.brand,
+                  title: hasCjkText(sourceEvent.title)
+                      ? t("hackathon.hero.full_title")
+                      : sourceEvent.title,
+                  subtitle: hasCjkText(sourceEvent.subtitle)
+                      ? t("hackathon.hero.subtitle")
+                      : sourceEvent.subtitle,
+                  description: hasCjkText(sourceEvent.description)
+                      ? t("hackathon.hero.description")
+                      : sourceEvent.description,
+                  location: hasCjkText(sourceEvent.location)
+                      ? t("hackathon.event.location")
+                      : sourceEvent.location,
+                  format: hasCjkText(sourceEvent.format)
+                      ? t("hackathon.event.format")
+                      : sourceEvent.format,
+                  duration: hasCjkText(sourceEvent.duration)
+                      ? t("hackathon.event.duration")
+                      : sourceEvent.duration,
+                  prizeUnit: t("hackathon.event.currency"),
+                  highlights: sourceEvent.highlights.map((highlight) => ({
+                      ...highlight,
+                      unit:
+                          {
+                              hours: t("hackathon.hero.hours_unit"),
+                              solo: t("hackathon.hero.solo_unit"),
+                              pitch: t("hackathon.hero.pitch_unit"),
+                          }[highlight.id] || (hasCjkText(highlight.unit) ? "" : highlight.unit),
+                  })),
+              }
+            : sourceEvent;
+        const date = isEnglish
+            ? formatEnglishSchedule(sourceEvent)
+            : formatHackathonSchedule(sourceEvent);
+        return {
+            ...localizedEvent,
+            date,
+            prize: `${localizedEvent.prizeValue} ${localizedEvent.prizeUnit}`.trim(),
+        };
+    }, [isEnglish, resolvedTemplate.event, t]);
 
     const palette = isDayMode
         ? {
@@ -184,7 +317,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
               chip: "border-white/10 bg-white/[0.06] text-white/78",
               field: "border-white/12 bg-black/24 text-white placeholder:text-white/32 focus:border-cyan-300/70 focus:ring-cyan-300/12",
               primary:
-                  "bg-cyan-300 text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
+                  "bg-cyan-300 text-[#071006] shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
               secondary:
                   "border-white/14 bg-white/[0.04] text-white hover:border-cyan-300/50 hover:bg-cyan-300/10",
               accent: "text-cyan-300",
@@ -226,7 +359,28 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
     ];
 
     const ruleIcons = [Code2, Rocket, ShieldCheck, Cpu, Sparkles];
-    const challenges = resolvedTemplate.rules
+    const localizedRules = isEnglish
+        ? resolvedTemplate.rules.map((rule) => {
+              const translationKeys = {
+                  ai_native: ["ai_native_title", "ai_native_text"],
+                  ship_fast: ["five_hours_title", "five_hours_text"],
+                  work_first: ["no_pitch_title", "no_pitch_text"],
+              }[rule.id];
+              if (!translationKeys) {
+                  return {
+                      ...rule,
+                      title: hasCjkText(rule.title) ? "Competition Rule" : rule.title,
+                      description: hasCjkText(rule.description) ? "" : rule.description,
+                  };
+              }
+              return {
+                  ...rule,
+                  title: t(`hackathon.rules.${translationKeys[0]}`),
+                  description: t(`hackathon.rules.${translationKeys[1]}`),
+              };
+          })
+        : resolvedTemplate.rules;
+    const challenges = localizedRules
         .filter((rule) => rule.enabled)
         .map((rule, index) => ({
             ...rule,
@@ -243,11 +397,17 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
 
     const heroStats = event.highlights.slice(0, 3);
     const titleLines = splitHackathonTitle(event.title);
-    const boardLines = event.subtitle
-        .split(/[、|]/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .slice(0, 3);
+    const boardLines = isEnglish
+        ? [
+              t("hackathon.board.title_line_1"),
+              t("hackathon.board.title_line_2"),
+              t("hackathon.board.title_line_3"),
+          ]
+        : event.subtitle
+              .split(/[、|]/)
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .slice(0, 3);
 
     const sectionAnchors = [
         { id: "hackathon-hero", label: t("hackathon.nav.home", "主页"), icon: Sparkles, index: 0 },
@@ -290,6 +450,14 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
 
     const validateForm = () => {
         const errors = {};
+        const errorKeys = {
+            name: "name",
+            studentId: "student_id",
+            major: "major",
+            grade: "grade",
+            aiTools: "ai_tools",
+            experience: "experience",
+        };
         activeFormFields.forEach((field) => {
             const value = formData[field.id];
             const missing =
@@ -298,13 +466,20 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                 value === "" ||
                 value === false ||
                 (Array.isArray(value) && value.length === 0);
-            if (field.required && missing) errors[field.id] = `请填写${field.label}`;
+            if (field.required && missing) {
+                errors[field.id] = t(
+                    `hackathon.errors.${errorKeys[field.id] || field.id}`,
+                    isEnglish ? `Please complete ${field.label}` : `请填写${field.label}`
+                );
+            }
             if (
                 field.type === "email" &&
                 value &&
                 !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))
             ) {
-                errors[field.id] = `${field.label}格式不正确`;
+                errors[field.id] = isEnglish
+                    ? `${field.label} has an invalid format`
+                    : `${field.label}格式不正确`;
             }
         });
         return errors;
@@ -411,8 +586,24 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         <div
             ref={pageRef}
             data-registration-page
+            data-event-visual="acid"
             className={`hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
         >
+            {!isDayMode ? (
+                <style>{`
+                    [data-event-visual="acid"]{--event-acid:#b9ff18}
+                    [data-event-visual="acid"] .text-cyan-300,
+                    [data-event-visual="acid"] .text-cyan-200,
+                    [data-event-visual="acid"] .text-cyan-400{color:var(--event-acid)!important}
+                    [data-event-visual="acid"] .bg-cyan-300,
+                    [data-event-visual="acid"] .bg-cyan-400{background-color:var(--event-acid)!important}
+                    [data-event-visual="acid"] .border-cyan-300{border-color:color-mix(in srgb,var(--event-acid) 62%,transparent)!important}
+                    [data-event-visual="acid"] .hover\\:border-cyan-300\\/70:hover,
+                    [data-event-visual="acid"] .hover\\:border-cyan-300\\/50:hover{border-color:color-mix(in srgb,var(--event-acid) 70%,transparent)!important}
+                    [data-event-visual="acid"] .hover\\:bg-cyan-300\\/10:hover{background-color:color-mix(in srgb,var(--event-acid) 10%,transparent)!important}
+                    [data-event-visual="acid"] .hover\\:text-cyan-300:hover{color:var(--event-acid)!important}
+                `}</style>
+            ) : null}
             <SEO
                 title={t("hackathon.meta_title", { title: event.title })}
                 description={t("hackathon.meta_desc", {
@@ -921,7 +1112,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                                 <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
                                                     <div className="flex items-center gap-3 sm:block">
                                                         <div
-                                                            className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
+                                                            className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-[#071006] sm:h-[88px] sm:w-[88px]`}
                                                         >
                                                             <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
                                                         </div>
@@ -1099,7 +1290,10 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                     </p>
                                     {!event.registrationOpen ? (
                                         <p className="mt-4 font-semibold text-amber-400">
-                                            当前赛事报名尚未开放，表单仅供预览。
+                                            {t(
+                                                "hackathon.form.registration_preview",
+                                                "当前赛事报名尚未开放，表单仅供预览。"
+                                            )}
                                         </p>
                                     ) : null}
                                 </div>
@@ -1122,7 +1316,10 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                             <>
                                                 {event.registrationOpen
                                                     ? formConfig.submitLabel
-                                                    : "报名未开放"}
+                                                    : t(
+                                                          "hackathon.form.registration_closed",
+                                                          "报名未开放"
+                                                      )}
                                                 <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                                             </>
                                         )}
@@ -1227,7 +1424,7 @@ const DynamicRegistrationField = ({
                                     selected
                                         ? isDayMode
                                             ? "border-cyan-600 bg-cyan-600 text-white"
-                                            : "border-cyan-300 bg-cyan-300 text-slate-950"
+                                            : "border-cyan-300 bg-cyan-300 text-[#071006]"
                                         : `${palette.chip} hover:border-cyan-400 hover:text-cyan-600`
                                 }`}
                             >

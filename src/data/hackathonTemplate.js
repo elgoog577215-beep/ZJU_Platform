@@ -258,7 +258,7 @@ export const getHackathonScheduleEvent = (scheduleInput, eventKey) => {
     );
 };
 
-export const getFirstAvailableHackathonView = (templateInput, preferredView = "showcase") => {
+export const getFirstAvailableHackathonView = (templateInput, preferredView = "register") => {
     const template = normalizeHackathonTemplate(templateInput);
     const available = {
         register: template.navigation.registrationVisible,

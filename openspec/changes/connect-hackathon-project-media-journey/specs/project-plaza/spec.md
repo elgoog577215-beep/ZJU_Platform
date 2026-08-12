@@ -96,3 +96,26 @@
 
 - **WHEN** 访问者从项目详情选择某条赛事记录的现场影像
 - **THEN** 系统 MUST 导航到 `/media?event=<slug>`
+
+### Requirement: Media archive follows the event phase
+
+赛事影像库 SHALL 在同一赛事上下文中提供“照片直播”和“赛事精选”，并根据赛事阶段选择合理默认视图。
+
+#### Scenario: Event is in progress
+
+- **WHEN** 当前时间位于赛事 `startAt` 与 `endAt` 之间
+- **THEN** 影像库 MUST 默认显示照片直播
+- **AND** MUST 周期性刷新当前赛事成果而不重置用户已打开的照片
+- **AND** 页面 MUST 明确显示直播状态和最新优先语义
+
+#### Scenario: Event has ended with highlights
+
+- **WHEN** 当前时间晚于赛事 `endAt` 且存在精选照片
+- **THEN** 影像库 MUST 默认显示赛事精选
+- **AND** 访问者 MUST 能切回完整照片记录
+
+#### Scenario: Event has no highlights
+
+- **WHEN** 赛事已经结束但运营者尚未选择精选照片
+- **THEN** 页面 MUST 显示完整记录
+- **AND** MUST NOT 用前几张照片伪装成精选集

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import {
     ArrowRight,
     Eye,
+    ExternalLink,
     Flag,
     Github,
     Images,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
+import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
 import { useAuth } from "../context/AuthContext";
 import { useBackClose } from "../hooks/useBackClose";
 import SEO from "./SEO";
@@ -28,7 +30,9 @@ import api, { getProjects, getProject, createProjectCard } from "../services/api
 import FavoriteButton from "./FavoriteButton";
 import ProjectSharePoster from "./ProjectSharePoster";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
+import EventProjectSubmissionModal from "./EventProjectSubmissionModal";
 import { getProjectShareCardUrl } from "../utils/projectShareCard";
+import { getCompetitionPhase } from "../utils/competitionPhase";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
@@ -95,10 +99,15 @@ const buildProjectSharePayload = (project, t) => {
         project?.description ||
         t("project_share_poster.default_intro", "一个正在生长的校园项目");
     const projectId = String(project?.id || "");
+    const eventRecord = project?.competitions?.[0];
+    const path =
+        project?.source_type === "competition_work" && eventRecord
+            ? `/hackathon?view=showcase&competition=${encodeURIComponent(eventRecord.slug)}&work=${encodeURIComponent(eventRecord.work_id)}#showcase-works`
+            : `/projects?id=${encodeURIComponent(projectId)}`;
     return {
         title,
         text: String(intro).slice(0, 120),
-        path: `/projects?id=${encodeURIComponent(projectId)}`,
+        path,
         imageUrl: getProjectShareCardUrl(project),
     };
 };
@@ -108,8 +117,23 @@ const projectScore = (p) =>
     Math.min(Number(p.likes || 0) * 2 + Number(p.views || 0) * 0.35, 32) +
     Math.min(Number(p.tech_tags?.length || 0) * 2, 9);
 
-const sortProjects = (items, sort) =>
+const numericEventRank = (project, competitionSlug) => {
+    const record = project.competitions?.find((item) => item.slug === competitionSlug);
+    const rank = Number.parseInt(record?.rank, 10);
+    return Number.isFinite(rank) && rank > 0 ? rank : null;
+};
+
+const sortProjects = (items, sort, competitionSlug = "") =>
     [...items].sort((a, b) => {
+        if (competitionSlug && sort === "match") {
+            const leftRank = numericEventRank(a, competitionSlug);
+            const rightRank = numericEventRank(b, competitionSlug);
+            if (leftRank !== null || rightRank !== null) {
+                if (leftRank === null) return 1;
+                if (rightRank === null) return -1;
+                if (leftRank !== rightRank) return leftRank - rightRank;
+            }
+        }
         if (sort === "newest")
             return String(b.created_at || "").localeCompare(String(a.created_at || ""));
         if (sort === "active")
@@ -226,16 +250,18 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                                 {p.views ?? 0}
                             </span>
                         ) : null}
-                        <FavoriteButton
-                            itemId={p.id}
-                            itemType="project"
-                            favorited={p.favorited}
-                            count={p.likes ?? 0}
-                            showCount
-                            size={22}
-                            className="ppp-fav"
-                            onToggle={(fav, likes) => onFav(p.id, fav, likes)}
-                        />
+                        {p.source_type !== "competition_work" ? (
+                            <FavoriteButton
+                                itemId={p.id}
+                                itemType="project"
+                                favorited={p.favorited}
+                                count={p.likes ?? 0}
+                                showCount
+                                size={22}
+                                className="ppp-fav"
+                                onToggle={(fav, likes) => onFav(p.id, fav, likes)}
+                            />
+                        ) : null}
                     </div>
                 </div>
             </div>
@@ -440,15 +466,15 @@ const DetailModal = ({
                                     target="_blank"
                                     rel="noreferrer"
                                 >
-                                    <Github size={16} />
-                                    {t("project_plaza.actions.repo", "看仓库")}
+                                    <ExternalLink size={16} />
+                                    {t("project_plaza.actions.project_link", "打开项目")}
                                 </a>
                             ) : (
                                 <span
                                     className={`ppp-cbtn ${inMiniProgram ? "ghost" : "primary"} ppp-disabled`}
                                 >
-                                    <Github size={16} />
-                                    {t("project_plaza.actions.no_repo", "无仓库")}
+                                    <ExternalLink size={16} />
+                                    {t("project_plaza.actions.no_project_link", "暂无项目链接")}
                                 </span>
                             )}
                             <button
@@ -461,7 +487,7 @@ const DetailModal = ({
                                     ? t("project_share_poster.miniapp_share_short", "分享")
                                     : t("project_share_poster.open_action", "生成海报")}
                             </button>
-                            {loggedIn ? (
+                            {p.source_type === "competition_work" ? null : loggedIn ? (
                                 <span className="ppp-cbtn ghost">
                                     <Mail size={16} />
                                     {p.contact_wechat
@@ -478,16 +504,18 @@ const DetailModal = ({
                                     )}
                                 </span>
                             )}
-                            <FavoriteButton
-                                itemId={p.id}
-                                itemType="project"
-                                favorited={p.favorited}
-                                count={p.likes ?? 0}
-                                showCount
-                                size={24}
-                                className="ppp-fav ppp-fav-modal"
-                                onToggle={(fav, likes) => onFav(p.id, fav, likes)}
-                            />
+                            {p.source_type !== "competition_work" ? (
+                                <FavoriteButton
+                                    itemId={p.id}
+                                    itemType="project"
+                                    favorited={p.favorited}
+                                    count={p.likes ?? 0}
+                                    showCount
+                                    size={24}
+                                    className="ppp-fav ppp-fav-modal"
+                                    onToggle={(fav, likes) => onFav(p.id, fav, likes)}
+                                />
+                            ) : null}
                         </div>
                     </div>
                 </div>
@@ -904,7 +932,8 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
 
 const ProjectPlaza = () => {
     const { t } = useTranslation();
-    const { uiMode } = useSettings();
+    const { settings, uiMode } = useSettings();
+    const { schedule } = useHackathonSchedule(settings);
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -920,7 +949,7 @@ const ProjectPlaza = () => {
     const [showShareCoachmark, setShowShareCoachmark] = useState(false);
     const [creating, setCreating] = useState(false);
     const [submissionOpen, setSubmissionOpen] = useState(false);
-    const [submissionProjectId, setSubmissionProjectId] = useState("");
+    const [existingSubmissionProjectId, setExistingSubmissionProjectId] = useState("");
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [progFilter, setProgFilter] = useState("all");
     const [needFilter, setNeedFilter] = useState(null);
@@ -932,6 +961,12 @@ const ProjectPlaza = () => {
     const deepLinkOpenedRef = useRef(false);
     const shareCoachTimerRef = useRef(null);
     const competitionSlug = String(searchParams.get("competition") || "").trim();
+    const scheduledCompetition = schedule.events.find(
+        (item) => item.results.competitionSlug === competitionSlug
+    );
+    const competitionPhase = getCompetitionPhase(scheduledCompetition?.event);
+    const competitionSubmissionAvailable =
+        competitionPhase === "live" || competitionPhase === "archive";
 
     const fetchList = useCallback(async () => {
         setLoading(true);
@@ -969,10 +1004,16 @@ const ProjectPlaza = () => {
     useEffect(() => {
         if (!competition || !user) return;
         if (searchParams.get("create") === "1") setCreating(true);
-        if (searchParams.get("submit") === "1") setSubmissionOpen(true);
-    }, [competition, searchParams, user]);
+        if (searchParams.get("submit") === "1" && competitionSubmissionAvailable) {
+            setSubmissionOpen(true);
+        }
+    }, [competition, competitionSubmissionAvailable, searchParams, user]);
 
     const openDetail = async (project) => {
+        if (project.source_type === "competition_work") {
+            setSelected(project);
+            return;
+        }
         try {
             const { data } = await getProject(project.id);
             setSelected(data);
@@ -1063,7 +1104,14 @@ const ProjectPlaza = () => {
             toast(t("project_plaza.toasts.login_to_submit", "请先登录后再提交参赛项目"));
             return;
         }
-        setSubmissionProjectId("");
+        if (!competitionSubmissionAvailable) {
+            toast(
+                competitionPhase === "upcoming"
+                    ? t("project_plaza.event.submission_upcoming", "作品通道将在比赛开始后开放")
+                    : t("project_plaza.event.submission_closed", "本场作品提交已结束")
+            );
+            return;
+        }
         setSubmissionOpen(true);
     };
 
@@ -1075,7 +1123,7 @@ const ProjectPlaza = () => {
     const setProgressFilter = (key) => {
         setProgFilter(key);
     };
-    const visibleItems = sortProjects(items, sort);
+    const visibleItems = sortProjects(items, sort, competition?.slug);
     const activeFilterCount = Number(progFilter !== "all") + Number(Boolean(needFilter));
 
     return (
@@ -1110,8 +1158,7 @@ const ProjectPlaza = () => {
                             setCreating(false);
                             fetchList();
                             if (competition && project?.id && project.status === "published") {
-                                setSubmissionProjectId(String(project.id));
-                                setSubmissionOpen(true);
+                                setExistingSubmissionProjectId(String(project.id));
                             }
                         }}
                     />
@@ -1152,9 +1199,23 @@ const ProjectPlaza = () => {
                                             className="ppp-newbtn"
                                             type="button"
                                             onClick={startCompetitionSubmit}
+                                            disabled={!competitionSubmissionAvailable}
                                         >
                                             <Trophy size={18} />
-                                            {t("project_plaza.event.submit_action", "提交本场作品")}
+                                            {competitionSubmissionAvailable
+                                                ? t(
+                                                      "project_plaza.event.submit_action",
+                                                      "提交本场作品"
+                                                  )
+                                                : competitionPhase === "upcoming"
+                                                  ? t(
+                                                        "project_plaza.event.submission_upcoming_short",
+                                                        "等待开赛"
+                                                    )
+                                                  : t(
+                                                        "project_plaza.event.submission_closed_short",
+                                                        "提交已结束"
+                                                    )}
                                         </button>
                                     ) : (
                                         <button
@@ -1329,6 +1390,9 @@ const ProjectPlaza = () => {
                                             onClick={
                                                 competition ? startCompetitionSubmit : startCreate
                                             }
+                                            disabled={
+                                                competition && !competitionSubmissionAvailable
+                                            }
                                         >
                                             {competition ? (
                                                 <Trophy size={18} />
@@ -1336,10 +1400,15 @@ const ProjectPlaza = () => {
                                                 <Plus size={18} />
                                             )}
                                             {competition
-                                                ? t(
-                                                      "project_plaza.event.submit_action",
-                                                      "提交本场作品"
-                                                  )
+                                                ? competitionSubmissionAvailable
+                                                    ? t(
+                                                          "project_plaza.event.submit_action",
+                                                          "提交本场作品"
+                                                      )
+                                                    : t(
+                                                          "project_plaza.event.submission_closed_short",
+                                                          "提交已结束"
+                                                      )
                                                 : t(
                                                       "project_plaza.actions.publish_first",
                                                       "发布第一个项目"
@@ -1389,19 +1458,24 @@ const ProjectPlaza = () => {
                     variant={variant}
                 />
             )}
-            <CompetitionOutcomeUploadModal
+            <EventProjectSubmissionModal
                 open={submissionOpen}
-                onClose={() => {
-                    setSubmissionOpen(false);
-                    setSubmissionProjectId("");
-                }}
+                onClose={() => setSubmissionOpen(false)}
                 onSubmitted={() => {
                     fetchList();
                     setSubmissionOpen(false);
-                    setSubmissionProjectId("");
+                }}
+                competition={competition}
+            />
+            <CompetitionOutcomeUploadModal
+                open={Boolean(existingSubmissionProjectId)}
+                onClose={() => setExistingSubmissionProjectId("")}
+                onSubmitted={() => {
+                    fetchList();
+                    setExistingSubmissionProjectId("");
                 }}
                 initialType="work"
-                initialProjectId={submissionProjectId}
+                initialProjectId={existingSubmissionProjectId}
                 competitionSlug={competition?.slug}
                 competitionTitle={competition?.title}
             />

@@ -790,6 +790,18 @@ router.get(
     isAdmin,
     competitionController.listAdminMedia
 );
+router.get(
+    "/admin/competition-media-links",
+    authenticateToken,
+    isAdmin,
+    competitionController.listAdminMediaLinks
+);
+router.put(
+    "/admin/competition-media-links/:id/role",
+    authenticateToken,
+    isAdmin,
+    competitionController.updateAdminMediaLinkRole
+);
 router.post(
     "/admin/competition-media",
     authenticateToken,

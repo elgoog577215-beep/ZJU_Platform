@@ -3,7 +3,16 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Film, Image as ImageIcon, Play, Upload, X } from "lucide-react";
+import {
+    ArrowRight,
+    Film,
+    Image as ImageIcon,
+    Radio,
+    Sparkles,
+    Play,
+    Upload,
+    X,
+} from "lucide-react";
 
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import Lightbox from "./Lightbox";
@@ -13,6 +22,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
 import api from "../services/api";
+import { getCompetitionPhase } from "../utils/competitionPhase";
 import { getThumbnailUrl, normalizeExternalImageUrl } from "../utils/imageUtils";
 
 const dateLabel = (value) => {
@@ -175,6 +185,7 @@ const MediaEventArchive = () => {
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
     const requestedSlug = String(searchParams.get("event") || "").trim();
+    const requestedView = String(searchParams.get("view") || "").trim();
     const [archives, setArchives] = useState([]);
     const [outcome, setOutcome] = useState(null);
     const [loadingArchives, setLoadingArchives] = useState(true);
@@ -197,6 +208,9 @@ const MediaEventArchive = () => {
                           title: scheduled.event.title || archive.title,
                           description: scheduled.event.description || archive.description,
                           event_date: scheduled.event.startAt || archive.event_date,
+                          event_start_at: scheduled.event.startAt,
+                          event_end_at: scheduled.event.endAt,
+                          registration_open: scheduled.event.registrationOpen,
                       }
                     : archive;
             }),
@@ -262,13 +276,32 @@ const MediaEventArchive = () => {
         setSelectedVideo(null);
     }, [selectedArchive?.slug]);
 
-    const photos = useMemo(
+    const livePhotos = useMemo(
         () =>
-            (Array.isArray(outcome?.media?.stage_photos) ? outcome.media.stage_photos : []).map(
-                normalizePhoto
-            ),
+            (Array.isArray(outcome?.media?.live_photos)
+                ? outcome.media.live_photos
+                : Array.isArray(outcome?.media?.stage_photos)
+                  ? outcome.media.stage_photos
+                  : []
+            ).map(normalizePhoto),
         [outcome]
     );
+    const featuredPhotos = useMemo(
+        () =>
+            (Array.isArray(outcome?.media?.featured_photos)
+                ? outcome.media.featured_photos
+                : []
+            ).map(normalizePhoto),
+        [outcome]
+    );
+    const eventPhase = getCompetitionPhase(selectedArchive);
+    const photoView =
+        requestedView === "live" || requestedView === "featured"
+            ? requestedView
+            : eventPhase === "live" || featuredPhotos.length === 0
+              ? "live"
+              : "featured";
+    const photos = photoView === "featured" ? featuredPhotos : livePhotos;
     const videos = useMemo(
         () =>
             (Array.isArray(outcome?.media?.promo_videos) ? outcome.media.promo_videos : []).map(
@@ -293,10 +326,27 @@ const MediaEventArchive = () => {
         if (index >= 0) setSelectedPhotoIndex(index);
     }, [photos, requestedPhoto]);
 
+    useEffect(() => {
+        if (eventPhase !== "live" || photoView !== "live" || !selectedArchive?.slug) {
+            return undefined;
+        }
+        const timer = window.setInterval(() => loadOutcome(selectedArchive.slug), 15000);
+        return () => window.clearInterval(timer);
+    }, [eventPhase, loadOutcome, photoView, selectedArchive?.slug]);
+
     const selectArchive = (slug) => {
         const next = new URLSearchParams(searchParams);
         next.set("event", slug);
         next.delete("photo");
+        next.delete("view");
+        setSearchParams(next);
+    };
+
+    const selectPhotoView = (view) => {
+        const next = new URLSearchParams(searchParams);
+        next.set("view", view);
+        next.delete("photo");
+        setSelectedPhotoIndex(null);
         setSearchParams(next);
     };
 
@@ -339,7 +389,7 @@ const MediaEventArchive = () => {
         if (selectedArchive?.slug) loadOutcome(selectedArchive.slug);
     };
 
-    const empty = !loadingOutcome && photos.length === 0 && videos.length === 0;
+    const empty = !loadingOutcome && livePhotos.length === 0 && videos.length === 0;
 
     return (
         <section className={`media-event-archive ${isDayMode ? "is-day" : "is-dark"}`}>
@@ -414,14 +464,52 @@ const MediaEventArchive = () => {
                 ) : (
                     <>
                         <section
-                            className="media-event-section"
+                            className={`media-event-section media-photo-stream is-${photoView}`}
                             aria-labelledby="event-photo-heading"
                         >
+                            <div className="media-photo-modebar">
+                                <div className="media-photo-modes" role="tablist">
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={photoView === "live"}
+                                        className={photoView === "live" ? "is-selected" : ""}
+                                        onClick={() => selectPhotoView("live")}
+                                    >
+                                        <Radio className="h-4 w-4" />
+                                        {t("media_archive.live_tab")}
+                                        <span>{livePhotos.length}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={photoView === "featured"}
+                                        className={photoView === "featured" ? "is-selected" : ""}
+                                        onClick={() => selectPhotoView("featured")}
+                                    >
+                                        <Sparkles className="h-4 w-4" />
+                                        {t("media_archive.featured_tab")}
+                                        <span>{featuredPhotos.length}</span>
+                                    </button>
+                                </div>
+                                <p className={`media-photo-status is-${eventPhase}`}>
+                                    {eventPhase === "live" && photoView === "live" ? (
+                                        <span aria-hidden="true" />
+                                    ) : null}
+                                    {photoView === "live"
+                                        ? eventPhase === "live"
+                                            ? t("media_archive.live_refreshing")
+                                            : t("media_archive.live_complete")
+                                        : t("media_archive.featured_note")}
+                                </p>
+                            </div>
                             <div className="media-event-section-heading">
                                 <div>
                                     <div>
                                         <h2 id="event-photo-heading">
-                                            {t("media_archive.photo_title")}
+                                            {photoView === "live"
+                                                ? t("media_archive.live_title")
+                                                : t("media_archive.featured_title")}
                                         </h2>
                                     </div>
                                 </div>
@@ -429,17 +517,28 @@ const MediaEventArchive = () => {
                                     {t("media_archive.photo_count", { count: photos.length })}
                                 </strong>
                             </div>
-                            <div className="media-archive-photo-grid">
-                                {photos.map((photo, index) => (
-                                    <PhotoArchiveCard
-                                        key={photo.archiveId}
-                                        photo={photo}
-                                        index={index}
-                                        onOpen={openPhoto}
-                                        t={t}
-                                    />
-                                ))}
-                            </div>
+                            {photos.length > 0 ? (
+                                <div className="media-archive-photo-grid">
+                                    {photos.map((photo, index) => (
+                                        <PhotoArchiveCard
+                                            key={photo.archiveId}
+                                            photo={photo}
+                                            index={index}
+                                            onOpen={openPhoto}
+                                            t={t}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="media-photo-view-empty">
+                                    <Sparkles className="h-6 w-6" />
+                                    <strong>{t("media_archive.featured_empty_title")}</strong>
+                                    <span>{t("media_archive.featured_empty_desc")}</span>
+                                    <button type="button" onClick={() => selectPhotoView("live")}>
+                                        {t("media_archive.view_all_live")}
+                                    </button>
+                                </div>
+                            )}
                         </section>
 
                         {videos.length > 0 ? (
@@ -534,6 +633,7 @@ const MediaEventArchive = () => {
                 .media-event-actions button:hover,.media-event-actions a:hover{transform:translateY(-2px);color:var(--x-lime)}
                 .media-event-actions button:hover{background:var(--x-lime-soft)}
                 .media-event-section{padding:3.5rem 0 1rem}
+                .media-photo-modebar{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1.35rem}.media-photo-modes{display:flex;gap:1.35rem}.media-photo-modes button{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--x-muted);font-size:.78rem;font-weight:900}.media-photo-modes button.is-selected{border-color:var(--x-lime);color:var(--x-text)}.media-photo-modes button>span{font:800 .68rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;opacity:.58}.media-photo-status{display:flex;align-items:center;gap:.45rem;margin:0;color:var(--x-muted);font-size:.7rem;font-weight:800}.media-photo-status.is-live>span{width:7px;height:7px;border-radius:50%;background:var(--x-lime);box-shadow:0 0 0 5px rgba(185,255,24,.12);animation:media-live-pulse 1.8s ease-out infinite}@keyframes media-live-pulse{50%{box-shadow:0 0 0 9px rgba(185,255,24,0)}}
                 .media-event-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.28)}
                 .media-event-section-heading>div{display:flex;align-items:end;gap:1rem}
                 .media-event-section-heading p{margin:0 0 .35rem;color:var(--x-lime);font-size:.65rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
@@ -541,6 +641,7 @@ const MediaEventArchive = () => {
                 .media-event-section-heading>strong{font-size:.72rem;letter-spacing:.08em;color:var(--x-muted)}
                 .media-archive-photo-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:1.15rem}
                 .media-archive-photo{grid-column:span 4;min-width:0}.media-archive-photo.is-lead{grid-column:span 8}
+                .media-photo-stream.is-live .media-archive-photo,.media-photo-stream.is-live .media-archive-photo.is-lead{grid-column:span 3}.media-photo-stream.is-live .media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:16/10;border-radius:14px}
                 .media-archive-photo-button{display:block;width:100%;aspect-ratio:16/10;overflow:hidden;border:0;border-radius:14px;background:var(--x-surface);padding:0;box-shadow:0 16px 38px rgba(0,0,0,.26)}
                 .media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:16/8.7;border-radius:24px 12px 24px 12px}
                 .media-archive-photo-button img{transition:transform .55s ease}.media-archive-photo-button:hover img{transform:scale(1.018)}
@@ -552,20 +653,22 @@ const MediaEventArchive = () => {
                 .media-archive-play{position:absolute;left:50%;top:50%;display:grid;width:48px;height:48px;place-items:center;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.7);border-radius:50%;background:rgba(0,0,0,.42);color:#fff}
                 .media-archive-video-button:hover .media-archive-play{background:var(--x-lime);color:#061006;border-color:var(--x-lime)}
                 .media-event-loading,.media-event-empty{min-height:42vh;display:grid;place-items:center;text-align:center;border-top:1px solid rgba(247,248,242,.12);font-weight:800;opacity:.62}.media-event-empty{align-content:center;gap:.75rem}.media-event-empty h2,.media-event-empty p{margin:0}
+                .media-photo-view-empty{min-height:32vh;display:grid;place-items:center;align-content:center;gap:.65rem;text-align:center;border-block:1px solid rgba(247,248,242,.12);color:var(--x-muted)}.media-photo-view-empty strong{color:var(--x-text);font-size:1.1rem}.media-photo-view-empty button{margin-top:.45rem;padding:.55rem 0;border:0;border-bottom:1px solid var(--x-lime);background:transparent;color:var(--x-lime);font-weight:900}
                 .media-event-video-dialog{position:fixed;inset:0;z-index:170;display:grid;place-items:center;padding:1rem;background:rgba(0,0,0,.86);backdrop-filter:blur(12px)}
                 .media-event-video-panel{width:min(1120px,100%);max-height:calc(100dvh - 2rem);overflow:auto;border:1px solid rgba(185,255,24,.3);border-radius:16px;background:#030806;color:#fff}
                 .media-event-video-frame{position:relative;aspect-ratio:16/9;background:#000}.media-event-video-frame video{width:100%;height:100%;display:block}
                 .media-event-video-frame button{position:absolute;right:1rem;top:1rem;display:grid;width:42px;height:42px;place-items:center;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(0,0,0,.65);color:#fff}
                 .media-event-video-copy{padding:1.25rem}.media-event-video-copy p{margin:0;color:var(--x-lime);font-size:.66rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.media-event-video-copy h2{margin:.45rem 0 0;font-size:clamp(1.4rem,3vw,2.4rem)}
-                @media(max-width:900px){.media-event-inner{width:min(100% - 1.5rem,1480px)}.media-event-header{grid-template-columns:1fr;gap:1.5rem}.media-event-summary{width:min(100%,520px)}.media-archive-photo{grid-column:span 6}.media-archive-photo.is-lead{grid-column:span 12}.media-archive-video-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+                @media(max-width:900px){.media-event-inner{width:min(100% - 1.5rem,1480px)}.media-event-header{grid-template-columns:1fr;gap:1.5rem}.media-event-summary{width:min(100%,520px)}.media-archive-photo{grid-column:span 6}.media-archive-photo.is-lead{grid-column:span 12}.media-photo-stream.is-live .media-archive-photo,.media-photo-stream.is-live .media-archive-photo.is-lead{grid-column:span 6}.media-archive-video-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
                 @media(max-width:640px){
                     .media-event-archive{padding-top:4.5rem}.media-x-field{height:720px;opacity:.82}.media-x-field img{object-position:58% top}.media-event-inner{width:100%}
                     .media-event-rail{margin-inline:1rem}.media-event-tab,.media-event-tab.is-day{min-width:78vw;min-height:54px;padding:.65rem 0}.media-event-date{font-size:1.1rem}.media-event-name{font-size:.86rem}
                     .media-event-header{padding:2.4rem 1rem 1.8rem}.media-event-header h1{font-size:clamp(2.65rem,12vw,4rem);line-height:.9}.media-event-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:3;-webkit-box-orient:vertical}
                     .media-event-summary{grid-template-columns:repeat(3,1fr)}.media-event-summary div{padding:.75rem .5rem .75rem 0}.media-event-summary strong{font-size:1.25rem}.media-event-actions{display:grid;grid-template-columns:1fr 1fr}.media-event-actions button{grid-column:auto}
                     .media-event-section{padding:2.3rem 1rem .5rem}.media-event-section-heading{align-items:flex-end}.media-event-section-heading>div{gap:.6rem}.media-event-section-heading>strong{display:none}
+                    .media-photo-modebar{display:block}.media-photo-modes{justify-content:space-between}.media-photo-modes button{flex:1;justify-content:center}.media-photo-status{margin-top:.85rem;justify-content:center}
                     .media-archive-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.media-archive-photo,.media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo.is-lead{grid-column:span 2}
-                    .media-archive-photo-button,.media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:4/3;border-radius:12px}.media-archive-caption{grid-template-columns:1.55rem minmax(0,1fr);padding:.65rem 0 .9rem}.media-archive-caption h3{font-size:.76rem}
+                    .media-photo-stream.is-live .media-archive-photo,.media-photo-stream.is-live .media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo-button,.media-archive-photo.is-lead .media-archive-photo-button,.media-photo-stream.is-live .media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:4/3;border-radius:12px}.media-archive-caption{grid-template-columns:1.55rem minmax(0,1fr);padding:.65rem 0 .9rem}.media-archive-caption h3{font-size:.76rem}
                     .media-archive-video-grid{grid-template-columns:1fr}.media-event-video-dialog{padding:0;place-items:end center}.media-event-video-panel{max-height:100dvh;height:100dvh;border:0;border-radius:0;display:flex;flex-direction:column;justify-content:center}.media-event-video-copy{padding:1rem}.media-event-count{display:none}
                 }
                 @media(prefers-reduced-motion:reduce){.media-event-archive *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}}

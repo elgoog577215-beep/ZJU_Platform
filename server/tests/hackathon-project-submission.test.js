@@ -137,6 +137,15 @@ test("hackathon work submissions bind owned projects without leaking removed pro
               WHERE id = ?`,
             [firstSubmit.body.id]
         );
+        const legacyWork = await db.run(
+            `INSERT INTO competition_works
+                (competition_id, title, author, summary, git_url, cover_url,
+                 award, rank, status, uploader_id, public_consent)
+             VALUES (?, '历史赛事快照', '历史团队', '未绑定长期项目的历史作品',
+                     'https://example.com/legacy-work', '/uploads/legacy-work.jpg',
+                     '优秀奖', '2', 'approved', ?, 1)`,
+            [eventA.lastID, owner.lastID]
+        );
 
         const eventProjects = await runController(projectController.listProjects, {
             query: { competition: "event-a" },
@@ -144,12 +153,19 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         });
         assert.equal(eventProjects.statusCode, 200);
         assert.equal(eventProjects.body.competition.slug, "event-a");
-        assert.equal(eventProjects.body.competition.approved_project_count, 1);
+        assert.equal(eventProjects.body.competition.approved_project_count, 2);
+        assert.equal(eventProjects.body.total, 2);
         assert.deepEqual(
-            eventProjects.body.items.map((item) => item.id),
-            [project.lastID]
+            eventProjects.body.items.map((item) => item.title).sort(),
+            ["长期项目", "历史赛事快照"].sort()
         );
-        assert.equal(eventProjects.body.items[0].competitions[0].award, "最佳现场奖");
+        const linkedItem = eventProjects.body.items.find((item) => item.title === "长期项目");
+        const legacyItem = eventProjects.body.items.find((item) => item.title === "历史赛事快照");
+        assert.equal(linkedItem.competitions[0].award, "最佳现场奖");
+        assert.equal(legacyItem.id, `competition-work-${legacyWork.lastID}`);
+        assert.equal(legacyItem.source_type, "competition_work");
+        assert.equal(legacyItem.repo_url, "https://example.com/legacy-work");
+        assert.equal(legacyItem.competitions[0].rank, "2");
 
         const mine = await runController(projectController.listProjects, {
             query: { mine: "1" },

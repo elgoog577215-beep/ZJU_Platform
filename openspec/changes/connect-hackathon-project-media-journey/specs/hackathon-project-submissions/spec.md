@@ -82,3 +82,32 @@
 - **WHEN** 赛事作品关联的项目被下架或不再公开
 - **THEN** 赛事作品快照 MUST 继续按其审核状态展示
 - **AND** 公共响应 MUST 隐藏项目深链
+
+### Requirement: New project submission is a single participant action
+
+赛事项目广场 SHALL 允许参赛者用一张封面、名称、简介、作者和一个公开项目链接完成新作品提交，同时仍分别保存长期项目与单届赛事快照。
+
+#### Scenario: Participant submits a new project
+
+- **WHEN** 已登录用户在赛事项目广场选择直接提交新作品
+- **THEN** 前端 MUST 先通过正式项目创建能力创建 `project_cards`
+- **AND** MUST 立即使用返回的 `project_id` 创建当前赛事作品快照
+- **AND** 用户 MUST NOT 被要求先完成通用项目广场的进度、招募、技术标签或联系方式字段
+
+#### Scenario: Project creation succeeds but competition submission fails
+
+- **WHEN** 长期项目已创建但赛事作品写入失败
+- **THEN** 系统 MUST 保留已创建项目
+- **AND** 错误反馈 MUST 告知用户可选择该项目重试本场提交
+- **AND** MUST NOT 静默创建重复项目
+
+### Requirement: Ranking metadata is operator-owned
+
+名次、奖项和评选后扩展信息 SHALL 由赛事运营者维护在 `competition_works`，不作为普通参赛提交的必填内容，也不得覆盖长期项目事实。
+
+#### Scenario: Operator publishes ranking metadata
+
+- **WHEN** 运营者为已审核作品补充有效数字名次或奖项
+- **THEN** 赛事项目广场 MUST 展示该公开值
+- **AND** 默认赛事排序 MUST 将有效数字名次按升序放在未排名作品之前
+- **AND** 项目自身的标题、简介和长期状态 MUST NOT 因此被改写

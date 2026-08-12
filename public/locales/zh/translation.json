@@ -1475,6 +1475,7 @@
     },
     "hackathon": {
         "brand": "浙客松",
+        "timeline_aria": "比赛日程时间轴",
         "meta_title": "{{title}}报名",
         "meta_desc": "{{title}} - {{subtitle}}。在限定时间内独立完成一个可运行的 AI 应用。",
         "tabs": {
@@ -1564,11 +1565,14 @@
             "grade_phd": "博士",
             "ai_tools": "常用 AI 工具",
             "multi_select": "可多选",
+            "ai_tool_other": "其他",
             "experience": "AI 项目经历",
             "experience_placeholder": "简述一下你使用 AI 开发项目的经历...",
             "before_submit": "提交前确认",
             "before_submit_desc": "姓名、学号和项目经历会用于报名核验；AI 工具只帮助赛事组了解现场支持需求。",
             "submit": "提交报名",
+            "registration_preview": "当前赛事报名尚未开放，表单仅供预览。",
+            "registration_closed": "报名未开放",
             "official_group": "官方微信群",
             "optional": "可选",
             "official_group_qr": "官方微信群二维码",
@@ -2280,7 +2284,31 @@
             "tabs": {
                 "registrations": "报名",
                 "works": "作品审核 {{count}}",
+                "media": "照片直播与精选",
                 "template": "赛事设置"
+            },
+            "results": {
+                "rank": "公开名次",
+                "rank_placeholder": "如 1",
+                "award": "公开奖项",
+                "award_placeholder": "如 一等奖 / 最佳创新奖",
+                "save": "保存结果",
+                "saved": "名次与奖项已更新",
+                "save_failed": "保存评选结果失败"
+            },
+            "media": {
+                "title": "照片直播与精选 ({{count}})",
+                "description": "所有已审核照片进入直播流；在这里选择赛后重点照片，不会复制原图。",
+                "filter_aria": "按比赛筛选赛事照片",
+                "all_events": "所有比赛",
+                "empty_title": "暂无赛事照片",
+                "empty_description": "照片上传并审核通过后会进入这里和公开直播流。",
+                "untitled": "未命名照片",
+                "feature_action": "选为精选",
+                "remove_action": "移出精选",
+                "featured": "已加入赛事精选",
+                "removed": "已移出精选",
+                "update_failed": "更新精选状态失败"
             }
         },
         "status": {
@@ -3614,7 +3642,9 @@
             "title": "标题",
             "description": "简介",
             "video_file": "宣传片文件",
-            "photo_file": "照片文件"
+            "photo_file": "照片文件",
+            "photo_files": "现场照片（可多选）",
+            "photo_files_hint": "单次最多 24 张；审核通过后按上传时间进入照片直播。"
         },
         "validation": {
             "project_required": "请先选择参赛项目",
@@ -3634,19 +3664,44 @@
             "saving_work": "正在保存作品信息",
             "uploading_video": "正在上传宣传片",
             "uploading_photo": "正在上传照片",
+            "uploading_photo_batch": "正在上传照片 {{current}} / {{total}}",
             "uploading_video_cover": "正在上传宣传片封面",
             "saving_archive": "正在保存到本场成果档案"
         },
         "success": {
             "work_published": "作品信息已发布",
             "work_pending": "作品信息已提交，等待管理员审核",
-            "media_submitted": "已提交到“{{event}}”成果档案"
+            "media_submitted": "已提交到“{{event}}”成果档案",
+            "media_batch_submitted": "{{count}} 张照片已提交到“{{event}}”照片直播"
         },
         "errors": {
             "upload_failed": "{{asset}}上传失败：{{message}}",
             "non_json": "接口没有返回 JSON，当前后端可能还没重启到最新版",
             "unknown": "未知错误",
             "submit_failed": "提交失败：{{message}}"
+        }
+    },
+    "event_project_submit": {
+        "title": "提交参赛作品",
+        "description": "一张封面、一个简介和可访问的项目链接，就能完成本场提交。",
+        "cover": "上传作品封面",
+        "cover_hint": "建议使用现场截图或产品主视觉",
+        "name": "作品名称",
+        "summary": "作品简介",
+        "author": "参赛者 / 团队",
+        "url": "项目 / Demo / 代码链接",
+        "action": "提交本场作品",
+        "submitting": "正在提交",
+        "success": "作品已提交，审核通过后会进入本场项目广场",
+        "error": "提交失败：{{message}}",
+        "retry_error": "长期项目已保存，但赛事提交失败：{{message}}。请直接重试，不会重复创建项目。",
+        "retry_hint": "长期项目已经保存；再次提交只会重试本场赛事快照。",
+        "validation": {
+            "cover": "请上传一张作品封面",
+            "title": "请填写作品名称",
+            "summary": "请填写作品简介",
+            "author": "请填写参赛者或团队名称",
+            "url": "请填写有效的项目、Demo 或代码链接"
         }
     },
     "media_archive": {
@@ -3670,6 +3725,16 @@
         "empty_desc": "审核通过的照片与视频会自动进入本场档案。",
         "photo_eyebrow": "Event Archive",
         "photo_title": "完整现场档案",
+        "live_tab": "照片直播",
+        "featured_tab": "赛事精选",
+        "live_title": "现场实时照片",
+        "featured_title": "赛事精选照片",
+        "live_refreshing": "直播中 · 每 15 秒刷新最新照片",
+        "live_complete": "完整记录 · 最新照片优先",
+        "featured_note": "由赛事运营人员精选与排序",
+        "featured_empty_title": "精选照片正在整理",
+        "featured_empty_desc": "完整现场照片已经保留，运营人员选片后会在这里形成赛后专题。",
+        "view_all_live": "查看完整照片直播",
         "photo_count": "已显示 {{count}} 张",
         "field_photo": "赛事现场",
         "video_eyebrow": "Official Films",
@@ -3908,6 +3973,10 @@
             "kicker": "HACKATHON · LIVE PROJECTS",
             "subtitle": "让作品被看见，让项目在赛后继续生长。",
             "submit_action": "提交参赛项目",
+            "submission_upcoming": "作品通道将在比赛开始后开放",
+            "submission_upcoming_short": "等待开赛",
+            "submission_closed": "本场作品提交已结束，现已进入成果展示阶段",
+            "submission_closed_short": "提交已结束",
             "approved_count": "件入选作品",
             "journey_aria": "本场赛事相关页面",
             "back_event": "赛事现场",
@@ -3970,7 +4039,9 @@
             "publish": "发布项目",
             "publish_first": "发布第一个项目",
             "repo": "看仓库",
-            "no_repo": "无仓库"
+            "no_repo": "无仓库",
+            "project_link": "打开项目",
+            "no_project_link": "暂无项目链接"
         },
         "contact": {
             "wechat": "微信",

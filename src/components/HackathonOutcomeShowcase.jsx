@@ -5,7 +5,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, ExternalLink, Github, Play, Upload, X } from "lucide-react";
 
-import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
 import SmartImage from "./SmartImage";
 import { normalizeHackathonTemplate } from "../data/hackathonTemplate";
@@ -15,6 +14,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import api from "../services/api";
+import { getCompetitionPhase } from "../utils/competitionPhase";
 import { normalizeExternalImageUrl } from "../utils/imageUtils";
 
 const FALLBACK_HERO = "/images/hero-campus-day-4k.jpg";
@@ -245,6 +245,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     );
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
+    const competitionIsLive = getCompetitionPhase(event) === "live";
     const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
     const titleParts = [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")];
     const eventDescription = useEnglishContent
@@ -253,7 +254,6 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     const eventLocation = useEnglishContent ? t("hackathon.event.location") : event.location;
     const [outcome, setOutcome] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [uploadType, setUploadType] = useState(null);
     const [videoOpen, setVideoOpen] = useState(false);
     const [mobileWorkOpen, setMobileWorkOpen] = useState(false);
     const { groups: partnerGroups, enterpriseLogos } = useEcosystemPartners();
@@ -433,10 +433,17 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                 ))}
                             </div>
                             <div className="outcome-primary-actions">
-                                <button type="button" onClick={() => setUploadType("work")}>
-                                    <Upload className="h-4 w-4" />
-                                    {t("hackathon.outcome_archive.submit_project", "提交参赛项目")}
-                                </button>
+                                {competitionIsLive ? (
+                                    <Link
+                                        to={`/projects?competition=${encodeURIComponent(competitionSlug)}&submit=1`}
+                                    >
+                                        <Upload className="h-4 w-4" />
+                                        {t(
+                                            "hackathon.outcome_archive.submit_project",
+                                            "提交参赛项目"
+                                        )}
+                                    </Link>
+                                ) : null}
                                 <Link
                                     to={`/projects?competition=${encodeURIComponent(competitionSlug)}`}
                                 >
@@ -597,10 +604,21 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             title={t("hackathon.outcome_archive.works_title")}
                             id="works-heading"
                         />
-                        <button type="button" onClick={() => setUploadType("work")}>
-                            {t("hackathon.outcome_archive.submit_work")}
-                            <Upload className="h-4 w-4" />
-                        </button>
+                        <Link
+                            to={`/projects?competition=${encodeURIComponent(competitionSlug)}${competitionIsLive ? "&submit=1" : ""}`}
+                        >
+                            {competitionIsLive
+                                ? t("hackathon.outcome_archive.submit_work")
+                                : t(
+                                      "hackathon.outcome_archive.browse_projects",
+                                      "进入本场项目广场"
+                                  )}
+                            {competitionIsLive ? (
+                                <Upload className="h-4 w-4" />
+                            ) : (
+                                <ArrowRight className="h-4 w-4" />
+                            )}
+                        </Link>
                     </div>
                     <div className="outcome-works-layout">
                         <div className="outcome-podium">
@@ -813,14 +831,6 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 </section>
             </main>
 
-            <CompetitionOutcomeUploadModal
-                open={Boolean(uploadType)}
-                onClose={() => setUploadType(null)}
-                onSubmitted={loadOutcome}
-                initialType={uploadType || "stage_photo"}
-                competitionSlug={competitionSlug}
-                competitionTitle={event.title}
-            />
             <VideoDialog
                 video={officialVideo}
                 open={videoOpen}

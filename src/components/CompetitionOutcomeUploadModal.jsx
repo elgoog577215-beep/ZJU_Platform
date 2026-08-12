@@ -245,7 +245,7 @@ const CompetitionOutcomeUploadModal = ({
 
         if (!form.title.trim())
             return t("outcome_upload.validation.title_required", "标题不能为空");
-        if (!form.file)
+        if (!form.file || (Array.isArray(form.file) && form.file.length === 0))
             return form.type === "promo_video"
                 ? t("outcome_upload.validation.video_required", "请上传赛事宣传片文件")
                 : t("outcome_upload.validation.photo_required", "请上传赛场照片文件");
@@ -293,12 +293,6 @@ const CompetitionOutcomeUploadModal = ({
                     cover_url: coverUrl,
                 });
             } else {
-                setSubmitLabel(
-                    isPromoVideo
-                        ? t("outcome_upload.status.uploading_video", "正在上传宣传片")
-                        : t("outcome_upload.status.uploading_photo", "正在上传照片")
-                );
-                const fileUrl = await uploadAsset(form.file, "file", t);
                 let coverUrl = null;
                 if (isPromoVideo && form.coverFile) {
                     setSubmitLabel(
@@ -306,14 +300,36 @@ const CompetitionOutcomeUploadModal = ({
                     );
                     coverUrl = await uploadAsset(form.coverFile, "cover", t);
                 }
-                setSubmitLabel(t("outcome_upload.status.saving_archive", "正在保存到本场成果档案"));
-                await api.post(`/competitions/${encodeURIComponent(competitionSlug)}/media`, {
-                    type: form.type,
-                    title: form.title,
-                    url: fileUrl,
-                    cover_url: coverUrl,
-                    description: form.description,
-                });
+                const files = isPromoVideo
+                    ? [form.file]
+                    : Array.isArray(form.file)
+                      ? form.file
+                      : [form.file];
+                for (const [index, file] of files.entries()) {
+                    setSubmitLabel(
+                        isPromoVideo
+                            ? t("outcome_upload.status.uploading_video", "正在上传宣传片")
+                            : t(
+                                  "outcome_upload.status.uploading_photo_batch",
+                                  "正在上传照片 {{current}} / {{total}}",
+                                  { current: index + 1, total: files.length }
+                              )
+                    );
+                    const fileUrl = await uploadAsset(file, "file", t);
+                    setSubmitLabel(
+                        t("outcome_upload.status.saving_archive", "正在保存到本场成果档案")
+                    );
+                    await api.post(`/competitions/${encodeURIComponent(competitionSlug)}/media`, {
+                        type: form.type,
+                        title:
+                            files.length > 1
+                                ? `${form.title} ${String(index + 1).padStart(2, "0")}`
+                                : form.title,
+                        url: fileUrl,
+                        cover_url: coverUrl,
+                        description: form.description,
+                    });
+                }
             }
 
             toast.success(
@@ -321,11 +337,22 @@ const CompetitionOutcomeUploadModal = ({
                     ? isAdmin
                         ? t("outcome_upload.success.work_published", "作品信息已发布")
                         : t("outcome_upload.success.work_pending", "作品信息已提交，等待管理员审核")
-                    : t("outcome_upload.success.media_submitted", "已提交到“{{event}}”成果档案", {
-                          event:
-                              competitionTitle ||
-                              t("outcome_upload.current_competition", "当前比赛"),
-                      })
+                    : Array.isArray(form.file) && form.file.length > 1
+                      ? t(
+                            "outcome_upload.success.media_batch_submitted",
+                            "{{count}} 张照片已提交到“{{event}}”照片直播",
+                            {
+                                count: form.file.length,
+                                event:
+                                    competitionTitle ||
+                                    t("outcome_upload.current_competition", "当前比赛"),
+                            }
+                        )
+                      : t("outcome_upload.success.media_submitted", "已提交到“{{event}}”成果档案", {
+                            event:
+                                competitionTitle ||
+                                t("outcome_upload.current_competition", "当前比赛"),
+                        })
             );
             onSubmitted?.();
             resetAndClose();
@@ -712,18 +739,37 @@ const CompetitionOutcomeUploadModal = ({
                                     <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                                         {isPromoVideo
                                             ? t("outcome_upload.fields.video_file", "宣传片文件")
-                                            : t("outcome_upload.fields.photo_file", "照片文件")}
+                                            : t(
+                                                  "outcome_upload.fields.photo_files",
+                                                  "现场照片（可多选）"
+                                              )}
                                         <input
                                             required
                                             type="file"
+                                            multiple={!isPromoVideo}
                                             accept={
                                                 form.type === "promo_video" ? "video/*" : "image/*"
                                             }
                                             onChange={(event) =>
-                                                updateField("file", event.target.files?.[0] || null)
+                                                updateField(
+                                                    "file",
+                                                    isPromoVideo
+                                                        ? event.target.files?.[0] || null
+                                                        : Array.from(
+                                                              event.target.files || []
+                                                          ).slice(0, 24)
+                                                )
                                             }
                                             className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
                                         />
+                                        {!isPromoVideo ? (
+                                            <span className={`text-xs font-normal ${mutedClass}`}>
+                                                {t(
+                                                    "outcome_upload.fields.photo_files_hint",
+                                                    "单次最多 24 张；审核通过后按上传时间进入照片直播。"
+                                                )}
+                                            </span>
+                                        ) : null}
                                     </label>
                                     {isPromoVideo ? (
                                         <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
