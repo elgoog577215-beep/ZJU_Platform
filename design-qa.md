@@ -67,6 +67,14 @@
 - 四个章节均获得独立的满屏节奏和章节呼吸感。`1487×1058` 中文页面、`1366×768` 笔记本、`390×844` 手机和英文桌面均无文档级横向溢出；英文首屏改用现有 locale 的两行标题、描述、地点和统计标签。
 - 手机作品详情实测为 `844px === 100dvh`；打开时 `body` 为 `overflow: hidden`，关闭后恢复。手机 02 的照片带保持独立横滑，页面本身 `scrollWidth === innerWidth === 390`。
 
+## 九次校正：04 支持矩阵冲击力
+
+- 用户反馈原 04 虽然信息完整，但“共同见证”的力量仍停留在名单层面。本轮只重构 04，不改 01–03、共享 `拓浙AI生态` Logo、导航和全局控制。
+- 桌面把动态真实总数 `14` 设为左侧规模锚点，右侧保留 `04 / 共同见证` 的章节身份；7 家企业伙伴以单行连续编号跑道形成第一层主矩阵，学校与社团再以两组开放式编号阵列承接第二层支持网络。
+- 没有为贴合旧参考图把真实总数写死为 `13`，也没有删除当前 About 伙伴真源中的第 7 家企业；企业数量和支持总数继续随数据源变化。
+- 继续复用真实 X-field 与黑绿 / 酸性荧光绿品牌语言，没有新增全屏遮罩、Logo 卡片墙或虚构图形资产。动画只用于整组阵列入场和 Logo 单元轻微位移，并在 `prefers-reduced-motion` 下关闭。
+- `1487×1058` 中文与英文桌面均完整容纳标题、企业矩阵和学校 / 社团阵列，`390×844` 手机改为两列 Logo 跑道与纵向支持网络；两端均实测 `scrollWidth === innerWidth`。
+
 ## 对照证据
 
 - 本轮四屏最终拼图：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/four-screens-final-contact-sheet.jpg`
@@ -78,6 +86,10 @@
 - 手机四段：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/mobile-hero-390x844.jpg`、`mobile-archive-390x844.jpg`、`mobile-works-390x844.jpg`、`mobile-support-390x844.jpg`
 - 手机作品详情：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/mobile-work-detail-390x844.jpg`
 - 英文首屏：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/hero-en-v2-1487x1058.jpg`
+- 04 重构前基线：`/Users/yq/.codex/visualizations/2026/08/12/support-matrix-impact/baseline-1487x1058.jpg`
+- 04 支持矩阵最终桌面：`/Users/yq/.codex/visualizations/2026/08/12/support-matrix-impact/desktop-final-1487x1058.jpg`
+- 04 支持矩阵最终手机：`/Users/yq/.codex/visualizations/2026/08/12/support-matrix-impact/mobile-final-390x844.jpg`
+- 04 支持矩阵英文桌面：`/Users/yq/.codex/visualizations/2026/08/12/support-matrix-impact/desktop-en-1487x1058.jpg`
 
 - 01 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/hero-concept-vs-local-final.jpg`
 - 02 概念图 / 最终实现并排：`/Users/yq/.codex/visualizations/2026/08/11/hackathon-concept-build/archive-concept-vs-local-final.jpg`

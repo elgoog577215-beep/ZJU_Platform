@@ -63,7 +63,7 @@ Hackathon content is split by ownership:
     - mobile: a body-portal full-screen detail view using `100dvh`, scroll lock, and browser/back-button close.
 3. The selected work is represented by `work=<id>` in the showcase URL so details are shareable and browser navigation remains truthful.
 4. The separate winner-story page is not a second catalogue; it only adapts old deep links into this interaction.
-5. Partner credits close the chapter as a knowledge-and-innovation network: a large truthful partner count, one restrained enterprise-logo runway sourced from the About partner truth, then grouped school/community roles and an indexed name matrix. It does not become a repeated logo-card wall or a separate route.
+5. Partner credits close the chapter as a knowledge-and-innovation network: a monumental truthful partner count anchors the scale, one continuous numbered enterprise-logo runway sourced from the About partner truth forms the primary support matrix, then grouped school/community roles form a secondary indexed network. It does not become a repeated logo-card wall or a separate route, and it never hardcodes a historical count when the shared partner source changes.
 
 ## Event-Media Relation
 

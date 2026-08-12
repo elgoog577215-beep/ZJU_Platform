@@ -539,21 +539,18 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     <footer id="showcase-support" className="outcome-credits">
                         <OutcomeField className="is-support" />
                         <div className="outcome-credits-head">
-                            <div className="outcome-credits-lead">
+                            <div className="outcome-credits-index">
                                 <span>{t("hackathon.outcome_archive.support_eyebrow")}</span>
+                                <strong>{partnerCount}</strong>
+                                <small>{t("hackathon.outcome_archive.support_partner_unit")}</small>
+                            </div>
+                            <div className="outcome-credits-lead">
                                 <div>
                                     <strong>04</strong>
                                     <h3>{t("hackathon.outcome_archive.support_title")}</h3>
                                 </div>
                                 <p>{t("hackathon.outcome_archive.support_statement")}</p>
                                 <p className="outcome-credits-deck">{t("hackathon.outcome_archive.support_enterprise_desc")}</p>
-                            </div>
-                            <div className="outcome-credits-proof">
-                                <strong>{partnerCount}</strong>
-                                <div>
-                                    <span>{t("hackathon.outcome_archive.support_partner_unit")}</span>
-                                    <p>{t("hackathon.outcome_archive.support_count", { count: partnerCount })}</p>
-                                </div>
                             </div>
                         </div>
 
@@ -563,16 +560,17 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                     <span>Enterprise Backers</span>
                                     <h4>{t("hackathon.outcome_archive.support_enterprise_title")}</h4>
                                 </div>
-                                <p>{t("hackathon.outcome_archive.support_enterprise_desc")}</p>
+                                <strong>{String(enterpriseLogos?.length || 0).padStart(2, "0")}</strong>
                             </header>
                             <div className="outcome-enterprise-logos">
-                                {(enterpriseLogos || []).map((logo) => {
+                                {(enterpriseLogos || []).map((logo, logoIndex) => {
                                     const logoSrc = getPartnerLogoSrc(logo, isDayMode);
                                     const logoName = useEnglishPartnerNames
                                         ? logo.name_en || logo.name
                                         : logo.name;
                                     return (
                                         <div key={logo.id || logo.src || logo.name}>
+                                            <span aria-hidden="true">{String(logoIndex + 1).padStart(2, "0")}</span>
                                             {logoSrc ? (
                                                 <img
                                                     src={logoSrc}
@@ -593,6 +591,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                 <span>{t("hackathon.outcome_archive.support_network_label")}</span>
                                 <h4>{t("hackathon.outcome_archive.support_lineup")}</h4>
                                 <p>{t("hackathon.outcome_archive.support_network_desc")}</p>
+                                <strong>{t("hackathon.outcome_archive.support_count", { count: partnerCount })}</strong>
                             </div>
                             <div className="outcome-credits-groups">
                                 {communitySupportGroups.map((group, groupIndex) => (
@@ -791,43 +790,46 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-work-detail blockquote{padding-left:1rem;border-left:1px solid var(--x-lime)}
                 .outcome-work-detail-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.75rem}
                 .outcome-work-detail-actions a{min-height:42px;padding:.58rem .85rem;font-size:.68rem}
-                .outcome-credits{position:relative;isolation:isolate;display:grid;min-height:calc(100svh - 5.25rem);overflow:hidden;margin-top:clamp(5rem,9vw,9rem);padding:clamp(7.5rem,8.6vw,8.25rem) 0 clamp(3rem,5vw,4.5rem);border-top:1px solid rgba(185,255,24,.66);background:transparent}
-                .outcome-credits-head{display:contents}
-                .outcome-credits-lead{order:1;max-width:58rem}
-                .outcome-credits-lead>span,.outcome-enterprise-stage header span,.outcome-support-network-intro>span{display:block;color:var(--x-lime);font-size:.65rem;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
-                .outcome-credits-lead>div{display:flex;align-items:baseline;gap:1.15rem;margin-top:.8rem}
-                .outcome-credits-lead>div>strong{color:var(--x-lime);font:300 clamp(4.2rem,5.4vw,5.2rem)/.75 ui-monospace,SFMono-Regular,Menlo,monospace}
-                .outcome-credits-lead>div>strong::after{content:"/";display:inline-block;margin-left:.7rem;color:rgba(185,255,24,.55);font-size:.42em;vertical-align:.45em}
-                .outcome-credits-lead h3{max-width:760px;margin:0;font-size:clamp(3rem,4.7vw,4.45rem);font-weight:950;line-height:.92;letter-spacing:-.04em}
-                .outcome-credits-lead>p:not(.outcome-credits-deck){max-width:740px;margin:1.15rem 0 0;color:rgba(247,248,242,.82);font-size:clamp(1.1rem,1.65vw,1.45rem);font-weight:800;line-height:1.38}
-                .outcome-credits-deck{max-width:42rem;margin:.8rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.7}
-                .outcome-credits-proof{order:3;display:grid;grid-template-columns:minmax(11rem,.3fr) minmax(0,1fr);gap:1.2rem;align-items:end;margin-top:2rem;padding:1.25rem 0;border-top:1px solid rgba(247,248,242,.24);border-bottom:1px solid rgba(247,248,242,.24)}
-                .outcome-credits-proof>strong{color:var(--x-lime);font:300 clamp(3.4rem,4.6vw,4.5rem)/.72 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.04em}
-                .outcome-credits-proof span{font-size:.72rem;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
-                .outcome-credits-proof p{max-width:32rem;margin:.55rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.7}
-                .outcome-enterprise-stage{order:2;margin-top:3.5rem;padding:0;border:0;border-radius:0;background:transparent}
-                .outcome-enterprise-stage>header{display:grid;grid-template-columns:minmax(220px,.55fr) minmax(0,1.45fr);gap:clamp(1.5rem,4vw,4rem);align-items:end}
-                .outcome-enterprise-stage h4{margin:.65rem 0 0;font-size:clamp(1.45rem,2vw,1.9rem);line-height:1.05;letter-spacing:-.03em}
-                .outcome-enterprise-stage header>p{display:none}
-                .outcome-enterprise-logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:1.6rem;border-top:1px solid rgba(247,248,242,.14);border-left:1px solid rgba(247,248,242,.14)}
-                .outcome-enterprise-logos>div{display:flex;min-height:70px;align-items:center;justify-content:center;padding:.75rem;border-right:1px solid rgba(247,248,242,.14);border-bottom:1px solid rgba(247,248,242,.14);background:rgba(255,255,255,.025)}
-                .outcome-enterprise-logos img{display:block;max-width:82%;max-height:34px;object-fit:contain}
+                .outcome-credits{position:relative;isolation:isolate;display:grid;min-height:calc(100svh - 5.25rem);overflow:hidden;margin-top:clamp(5rem,9vw,9rem);padding:clamp(6.8rem,7.8vw,7.7rem) 0 clamp(3rem,4.4vw,4rem);border-top:1px solid rgba(185,255,24,.72);background:transparent}
+                .outcome-credits-head{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,.36fr) minmax(0,.64fr);gap:clamp(2.5rem,6vw,6.5rem);align-items:end;padding-bottom:clamp(2rem,3vw,3.2rem);border-bottom:1px solid rgba(247,248,242,.22);animation:support-matrix-rise .72s cubic-bezier(.16,1,.3,1) both}
+                .outcome-credits-index{display:flex;min-width:0;flex-wrap:wrap;align-items:flex-end;gap:.35rem 1rem;padding-right:clamp(1.5rem,4vw,4rem);border-right:1px solid rgba(185,255,24,.4)}
+                .outcome-credits-index>span,.outcome-enterprise-stage header span,.outcome-support-network-intro>span{display:block;width:100%;color:var(--x-lime);font-size:.65rem;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
+                .outcome-credits-index>strong{color:var(--x-lime);font:300 clamp(8.8rem,13.5vw,13.2rem)/.68 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.09em;text-shadow:0 0 42px rgba(185,255,24,.12)}
+                .outcome-credits-index>small{margin-bottom:.3rem;color:rgba(247,248,242,.68);font-size:.72rem;font-weight:900;letter-spacing:.08em}
+                .outcome-credits-lead{min-width:0;padding-bottom:.2rem}
+                .outcome-credits-lead>div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.4rem;align-items:baseline}
+                .outcome-credits-lead>div>strong{color:var(--x-lime);font:300 clamp(3rem,4.2vw,4.15rem)/.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-credits-lead>div>strong::after{content:"/";display:inline-block;margin-left:.65rem;color:rgba(185,255,24,.45);font-size:.42em;vertical-align:.45em}
+                .outcome-credits-lead h3{margin:0;font-size:clamp(3.65rem,5.4vw,5.6rem);font-weight:950;line-height:.9;letter-spacing:-.055em}
+                .outcome-credits-lead>p:not(.outcome-credits-deck){max-width:740px;margin:1.3rem 0 0;color:rgba(247,248,242,.88);font-size:clamp(1.08rem,1.55vw,1.42rem);font-weight:850;line-height:1.4}
+                .outcome-credits-deck{max-width:45rem;margin:.8rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.75}
+                .outcome-enterprise-stage{position:relative;z-index:1;margin-top:clamp(1.9rem,2.8vw,2.7rem);padding:0;border:0;border-radius:0;background:transparent;animation:support-matrix-rise .78s .08s cubic-bezier(.16,1,.3,1) both}
+                .outcome-enterprise-stage>header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2rem;align-items:end}
+                .outcome-enterprise-stage h4{margin:.58rem 0 0;font-size:clamp(1.35rem,1.8vw,1.75rem);line-height:1.05;letter-spacing:-.03em}
+                .outcome-enterprise-stage>header>strong{color:var(--x-lime);font:300 clamp(2.5rem,3.6vw,3.55rem)/.78 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.06em}
+                .outcome-enterprise-logos{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:1.25rem;border-top:1px solid rgba(185,255,24,.4);border-left:1px solid rgba(247,248,242,.16);background:rgba(2,8,6,.36);backdrop-filter:blur(3px)}
+                .outcome-enterprise-logos>div{position:relative;display:flex;min-width:0;min-height:92px;align-items:center;justify-content:center;padding:1.25rem .8rem .85rem;border-right:1px solid rgba(247,248,242,.16);border-bottom:1px solid rgba(247,248,242,.16);background:linear-gradient(180deg,rgba(185,255,24,.035),rgba(2,8,6,.08));transition:background-color .25s ease,transform .25s ease}
+                .outcome-enterprise-logos>div:hover{z-index:1;transform:translateY(-3px);background:rgba(185,255,24,.075)}
+                .outcome-enterprise-logos>div>span{position:absolute;left:.55rem;top:.48rem;color:rgba(185,255,24,.7);font:850 .52rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .outcome-enterprise-logos img{display:block;max-width:82%;max-height:34px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(247,248,242,.08))}
                 .outcome-enterprise-logos strong{font-size:.82rem;text-align:center}
-                .outcome-support-network{order:4;display:grid;grid-template-columns:minmax(220px,.52fr) minmax(0,1.48fr);gap:clamp(1.5rem,4vw,4rem);margin-top:clamp(2rem,3vw,2.8rem)}
-                .outcome-support-network-intro{align-self:start;padding-top:1.2rem;border-top:1px solid rgba(247,248,242,.22)}
-                .outcome-support-network-intro h4{margin:.65rem 0 0;font-size:clamp(1.55rem,2.6vw,2.5rem);line-height:1.08;letter-spacing:-.03em}
-                .outcome-support-network-intro p{max-width:30rem;margin:1rem 0 0;color:var(--x-muted);font-size:.74rem;line-height:1.75}
-                .outcome-credits-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;border-top:1px solid rgba(247,248,242,.22)}
-                .outcome-credits-groups>section{min-width:0;padding:1.35rem 1.4rem 1.5rem 0;border-bottom:1px solid rgba(247,248,242,.16)}
+                .outcome-support-network{position:relative;z-index:1;display:grid;grid-template-columns:minmax(250px,.37fr) minmax(0,.63fr);gap:clamp(2rem,4.8vw,5rem);margin-top:clamp(2rem,3vw,3rem);animation:support-matrix-rise .82s .16s cubic-bezier(.16,1,.3,1) both}
+                .outcome-support-network-intro{align-self:stretch;padding:1.15rem clamp(1.5rem,3vw,3rem) 1.2rem 0;border-top:1px solid rgba(247,248,242,.24);border-bottom:1px solid rgba(247,248,242,.16)}
+                .outcome-support-network-intro h4{margin:.72rem 0 0;font-size:clamp(1.8rem,3vw,3.1rem);line-height:1.03;letter-spacing:-.045em}
+                .outcome-support-network-intro p{max-width:30rem;margin:1rem 0 0;color:var(--x-muted);font-size:.72rem;line-height:1.75}
+                .outcome-support-network-intro>strong{display:block;margin-top:1.15rem;color:rgba(247,248,242,.86);font-size:.66rem;font-weight:900;letter-spacing:.04em}
+                .outcome-credits-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;border-top:1px solid rgba(247,248,242,.24)}
+                .outcome-credits-groups>section{min-width:0;padding:1.25rem 1.4rem 1.25rem 0;border-bottom:1px solid rgba(247,248,242,.16)}
                 .outcome-credits-groups>section+section{padding-left:1.4rem;border-left:1px solid rgba(247,248,242,.16)}
                 .outcome-credits-groups header{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.75rem;align-items:start}
                 .outcome-credits-groups header>span,.outcome-credits-groups small{color:var(--x-lime);font:850 .65rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-credits-groups header p{margin:0;color:var(--x-muted);font-size:.58rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
-                .outcome-credits-groups h4{margin:.28rem 0 0;font-size:1rem;font-weight:950}
-                .outcome-credits-groups section>p{min-height:3.3em;margin:1rem 0 0;color:var(--x-muted);font-size:.68rem;line-height:1.65}
-                .outcome-credits-groups section>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1rem;margin-top:1rem}
-                .outcome-credits-groups section>div>span{display:grid;grid-template-columns:1.8rem minmax(0,1fr);gap:.5rem;align-items:baseline;padding:.55rem 0;border-bottom:1px solid rgba(247,248,242,.09)}
+                .outcome-credits-groups h4{margin:.28rem 0 0;font-size:1.05rem;font-weight:950}
+                .outcome-credits-groups section>p{min-height:3.3em;margin:.8rem 0 0;color:var(--x-muted);font-size:.66rem;line-height:1.65}
+                .outcome-credits-groups section>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1rem;margin-top:.75rem}
+                .outcome-credits-groups section>div>span{display:grid;grid-template-columns:1.8rem minmax(0,1fr);gap:.5rem;align-items:baseline;padding:.52rem 0;border-bottom:1px solid rgba(247,248,242,.11)}
                 .outcome-credits-groups section>div strong{font-size:clamp(.76rem,.9vw,.9rem);line-height:1.4}
+                @keyframes support-matrix-rise{from{transform:translateY(24px);clip-path:inset(0 0 100% 0)}to{transform:translateY(0);clip-path:inset(0)}}
                 .outcome-video-dialog{position:fixed;inset:0;z-index:180;display:grid;place-items:center;padding:1rem;background:rgba(0,0,0,.88);backdrop-filter:blur(12px)}
                 .outcome-video-dialog article{position:relative;width:min(1120px,100%);overflow:hidden;border:1px solid rgba(185,255,24,.36);border-radius:16px;background:#000}
                 .outcome-video-dialog video{display:block;width:100%;max-height:calc(100dvh - 2rem)}
@@ -857,9 +859,9 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-work-detail{padding-right:0;border-right:0}
                     .outcome-ranking{padding-left:0;border-left:0}
                     .outcome-work-detail:not(.is-compact){position:relative;top:auto}
-                    .outcome-credits-head{grid-template-columns:minmax(0,1.1fr) minmax(270px,.9fr)}
+                    .outcome-credits-head{grid-template-columns:minmax(190px,.3fr) minmax(0,.7fr);gap:2.5rem}
+                    .outcome-credits-index>strong{font-size:8.4rem}
                     .outcome-support-network{grid-template-columns:1fr}
-                    .outcome-enterprise-stage>header{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);align-items:end}
                     .outcome-enterprise-logos{grid-template-columns:repeat(3,minmax(0,1fr))}
                 }
                 @media(max-width:767px){
@@ -909,22 +911,28 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-podium strong{font-size:.8rem}.outcome-podium small{font-size:.61rem}
                     .outcome-ranking>div{max-height:none}.outcome-ranking-hint{display:none}.outcome-work-detail:not(.is-compact){display:none}.outcome-mobile-work{display:block}
                     .outcome-ranking button{grid-template-columns:76px 2rem minmax(0,1fr) 1rem;gap:.6rem;padding:.65rem 0}
-                    .outcome-credits{margin-top:4rem;padding:2.5rem 1rem 2rem;border-radius:0}
-                    .outcome-credits-head{grid-template-columns:1fr;gap:1.8rem}
-                    .outcome-credits-lead>div{gap:.8rem}
-                    .outcome-credits-lead>div>strong{font-size:4.2rem}
-                    .outcome-credits-lead h3{font-size:3.15rem}
-                    .outcome-credits-lead>p:not(.outcome-credits-deck){font-size:1.18rem}
-                    .outcome-credits-deck{font-size:.78rem}
-                    .outcome-credits-proof{grid-template-columns:auto minmax(0,1fr);gap:1rem;padding:1rem 0}
-                    .outcome-credits-proof>strong{font-size:4.3rem}
-                    .outcome-enterprise-stage{gap:1.4rem;margin-top:2.5rem;padding:1rem}
-                    .outcome-enterprise-stage>header{display:flex;flex-direction:column;align-items:stretch;gap:.85rem}
-                    .outcome-enterprise-stage h4{font-size:2rem}
+                    .outcome-credits{margin-top:4rem;padding:4.6rem 1rem 2.6rem;border-radius:0}
+                    .outcome-credits-head{grid-template-columns:5.6rem minmax(0,1fr);gap:1.25rem;align-items:start;padding-bottom:1.65rem}
+                    .outcome-credits-index{display:block;padding-right:1rem;border-right-color:rgba(185,255,24,.32)}
+                    .outcome-credits-index>span{font-size:.48rem;line-height:1.4;letter-spacing:.12em}
+                    .outcome-credits-index>strong{display:block;margin-top:.8rem;font-size:4.45rem;line-height:.72;letter-spacing:-.1em}
+                    .outcome-credits-index>small{display:block;margin-top:.85rem;font-size:.54rem;line-height:1.45}
+                    .outcome-credits-lead>div{display:block}
+                    .outcome-credits-lead>div>strong{font-size:1.25rem;line-height:1}
+                    .outcome-credits-lead>div>strong::after{margin-left:.35rem;font-size:.65em;vertical-align:.18em}
+                    .outcome-credits-lead h3{margin-top:.9rem;font-size:2.65rem;line-height:.93}
+                    .outcome-credits-lead>p:not(.outcome-credits-deck){margin-top:1rem;font-size:.94rem;line-height:1.5}
+                    .outcome-credits-deck{margin-top:.65rem;font-size:.68rem;line-height:1.65}
+                    .outcome-enterprise-stage{margin-top:1.8rem}
+                    .outcome-enterprise-stage>header{gap:1rem;align-items:end}
+                    .outcome-enterprise-stage h4{font-size:1.35rem}
+                    .outcome-enterprise-stage>header>strong{font-size:2.25rem}
                     .outcome-enterprise-logos{grid-template-columns:repeat(2,minmax(0,1fr))}
-                    .outcome-enterprise-logos>div{min-height:72px;padding:.8rem}
-                    .outcome-enterprise-logos img{max-width:86%;max-height:27px}
-                    .outcome-support-network{gap:1.5rem;margin-top:2.5rem}
+                    .outcome-enterprise-logos>div{min-height:76px;padding:1.2rem .6rem .7rem}
+                    .outcome-enterprise-logos img{max-width:86%;max-height:26px}
+                    .outcome-support-network{gap:1.35rem;margin-top:2.2rem}
+                    .outcome-support-network-intro{padding-right:0;padding-bottom:1.25rem}
+                    .outcome-support-network-intro h4{font-size:2.1rem}
                     .outcome-credits-groups{grid-template-columns:1fr}
                     .outcome-credits-groups>section{padding:1.2rem 0 1.4rem}
                     .outcome-credits-groups>section+section{padding-left:0;border-left:0}
@@ -945,7 +953,12 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-stat-grid{margin-top:2rem}
                     .outcome-primary-actions{margin-top:1.45rem}
                     .outcome-primary-actions button{min-height:54px}
+                    .outcome-credits{padding-top:6.3rem}
+                    .outcome-credits-index>strong{font-size:8.5rem}
+                    .outcome-credits-lead h3{font-size:4.25rem}
+                    .outcome-enterprise-logos>div{min-height:78px}
                 }
+                @media(prefers-reduced-motion:reduce){.outcome-credits-head,.outcome-enterprise-stage,.outcome-support-network{animation:none}.outcome-enterprise-logos>div{transition:none}}
                 @media(max-width:380px){.outcome-primary-actions{grid-template-columns:1fr}.outcome-section-topline>a,.outcome-section-topline>button{max-width:46%;font-size:.68rem}.outcome-stat-grid strong{font-size:1.22rem}}
                 @media(prefers-reduced-motion:reduce){.hackathon-outcome *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}}
             `}</style>
