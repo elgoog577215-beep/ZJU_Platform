@@ -169,23 +169,23 @@ const HackathonSeasonOne = () => {
         ? "border-[#b9ff18]/30 bg-[#020806]/80 text-white shadow-[0_18px_55px_rgba(0,0,0,0.42)]"
         : isDayMode
           ? "border-emerald-200/80 bg-white/78 text-slate-900 shadow-[0_14px_34px_rgba(15,118,110,0.13)]"
-          : "border-[#b9ff18]/24 bg-[#061008]/82 text-white shadow-[0_0_30px_rgba(185,255,24,0.10)]";
+          : "border-cyan-300/16 bg-[#061014]/72 text-white shadow-[0_0_30px_rgba(34,211,238,0.12)]";
     const titleClass = showcaseMode || !isDayMode ? "text-white" : "text-slate-950";
     const mutedClass = showcaseMode
         ? "text-[#d8e0d4]/58"
         : isDayMode
           ? "text-slate-500"
-          : "text-[#e8eee4]/62";
+          : "text-cyan-100/62";
     const activeTabClass = showcaseMode
         ? "bg-[#b9ff18] text-[#071006] shadow-[0_0_24px_rgba(185,255,24,0.22)]"
         : isDayMode
           ? "border border-emerald-200/80 bg-emerald-50 text-emerald-700 shadow-[0_8px_20px_rgba(16,185,129,0.15)]"
-          : "bg-[#b9ff18] text-[#071006] shadow-[0_0_20px_rgba(185,255,24,0.24)]";
+          : "bg-cyan-300 text-cyan-950 shadow-[0_0_20px_rgba(103,232,249,0.3)]";
     const idleTabClass = showcaseMode
         ? "text-[#e8eee4]/72 hover:bg-[#b9ff18]/10 hover:text-white"
         : isDayMode
           ? "text-emerald-900/75 hover:bg-emerald-50 hover:text-emerald-950"
-          : "text-[#e8eee4]/76 hover:bg-[#b9ff18]/10 hover:text-white";
+          : "text-cyan-100/76 hover:bg-white/8 hover:text-white";
     const disabledTabClass =
         isDayMode && !showcaseMode
             ? "cursor-not-allowed text-slate-400 opacity-55"

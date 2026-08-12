@@ -317,7 +317,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
               chip: "border-white/10 bg-white/[0.06] text-white/78",
               field: "border-white/12 bg-black/24 text-white placeholder:text-white/32 focus:border-cyan-300/70 focus:ring-cyan-300/12",
               primary:
-                  "bg-cyan-300 text-[#071006] shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
+                  "bg-cyan-300 text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
               secondary:
                   "border-white/14 bg-white/[0.04] text-white hover:border-cyan-300/50 hover:bg-cyan-300/10",
               accent: "text-cyan-300",
@@ -586,24 +586,8 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         <div
             ref={pageRef}
             data-registration-page
-            data-event-visual="acid"
             className={`hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
         >
-            {!isDayMode ? (
-                <style>{`
-                    [data-event-visual="acid"]{--event-acid:#b9ff18}
-                    [data-event-visual="acid"] .text-cyan-300,
-                    [data-event-visual="acid"] .text-cyan-200,
-                    [data-event-visual="acid"] .text-cyan-400{color:var(--event-acid)!important}
-                    [data-event-visual="acid"] .bg-cyan-300,
-                    [data-event-visual="acid"] .bg-cyan-400{background-color:var(--event-acid)!important}
-                    [data-event-visual="acid"] .border-cyan-300{border-color:color-mix(in srgb,var(--event-acid) 62%,transparent)!important}
-                    [data-event-visual="acid"] .hover\\:border-cyan-300\\/70:hover,
-                    [data-event-visual="acid"] .hover\\:border-cyan-300\\/50:hover{border-color:color-mix(in srgb,var(--event-acid) 70%,transparent)!important}
-                    [data-event-visual="acid"] .hover\\:bg-cyan-300\\/10:hover{background-color:color-mix(in srgb,var(--event-acid) 10%,transparent)!important}
-                    [data-event-visual="acid"] .hover\\:text-cyan-300:hover{color:var(--event-acid)!important}
-                `}</style>
-            ) : null}
             <SEO
                 title={t("hackathon.meta_title", { title: event.title })}
                 description={t("hackathon.meta_desc", {
@@ -1112,7 +1096,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                                 <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
                                                     <div className="flex items-center gap-3 sm:block">
                                                         <div
-                                                            className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-[#071006] sm:h-[88px] sm:w-[88px]`}
+                                                            className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
                                                         >
                                                             <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
                                                         </div>
@@ -1424,7 +1408,7 @@ const DynamicRegistrationField = ({
                                     selected
                                         ? isDayMode
                                             ? "border-cyan-600 bg-cyan-600 text-white"
-                                            : "border-cyan-300 bg-cyan-300 text-[#071006]"
+                                            : "border-cyan-300 bg-cyan-300 text-slate-950"
                                         : `${palette.chip} hover:border-cyan-400 hover:text-cyan-600`
                                 }`}
                             >
