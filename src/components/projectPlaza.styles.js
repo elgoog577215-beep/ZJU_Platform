@@ -21,8 +21,8 @@ export const PROJECT_PLAZA_CSS = `
   --p-idea:#7c8777;--p-dev:#477b24;--p-live:#0f8b5c;--p-pause:#b7791f;
   --sh-sm:0 8px 22px rgba(67,56,80,0.06),0 1px 2px rgba(67,56,80,0.04);--sh-lg:0 40px 90px rgba(67,56,80,0.16);
   --prog-bg:rgba(255,255,255,0.94);--prog-ink:#3a3346;--avborder:#fff;--r-card:8px;--r-control:8px;--r-chip:6px;color:var(--ink-2);}
-.ppp-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;}
-.ppp-root[data-variant="playful"] .ppp-backdrop{opacity:1;background:radial-gradient(1100px 520px at 88% -4%,rgba(71,123,36,0.10),transparent 60%),radial-gradient(900px 480px at -5% 6%,rgba(185,255,24,0.07),transparent 55%),#f4f6ef;}
+.ppp-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:#070807;}
+.ppp-root[data-variant="playful"] .ppp-backdrop{opacity:1;background:#f5f3ed;}
 .ppp-root[data-event="true"]{isolation:isolate;overflow:hidden;background:#020806;}
 .ppp-root[data-event="true"][data-variant="playful"]{background:#f4f6ef;}
 .ppp-x-field{display:none;position:absolute;z-index:0;inset:0 0 auto;height:980px;overflow:hidden;pointer-events:none;opacity:.72;}
@@ -65,7 +65,7 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-root[data-variant="cyber"] .ppp-chip.on{background:rgba(103,232,249,0.16);color:#cffafe;border-color:rgba(103,232,249,0.36);}
 .ppp-chip.call.on{background:var(--call-on);border-color:var(--call-on);color:#fff;}
 .ppp-cdot{width:7px;height:7px;border-radius:50%;}
-	.ppp-empty{min-height:260px;color:var(--muted);font-size:14px;padding:48px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;border:1px dashed var(--border);border-radius:var(--r-card);background:var(--surface);}
+.ppp-empty{min-height:260px;color:var(--muted);font-size:14px;padding:48px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:transparent;}
 .ppp-results{display:block;}
 	.ppp-results-main{min-width:0;}
 	.ppp-radar{position:sticky;top:88px;display:flex;flex-direction:column;gap:14px;align-items:stretch;margin:0;padding:15px;border:1px solid var(--border);border-radius:var(--r-card);background:linear-gradient(135deg,var(--surface-strong),var(--surface-soft));box-shadow:var(--sh-sm);}
