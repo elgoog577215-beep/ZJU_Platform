@@ -3868,7 +3868,7 @@
         "event": {
             "meta_title": "{{event}} Project Plaza",
             "kicker": "HACKATHON · LIVE PROJECTS",
-            "subtitle": "From field formation to work submission, every project keeps growing after the event.",
+            "subtitle": "Put the work on stage. Keep the project growing after the event.",
             "submit_action": "Submit Competition Project",
             "approved_count": "Selected Works",
             "journey_aria": "Related pages for this event",
@@ -3896,7 +3896,9 @@
             "aria": "Project filters",
             "all": "All",
             "progress": "Progress",
-            "needs": "Needs"
+            "needs": "Needs",
+            "more": "Filters",
+            "close": "Close"
         },
         "sort": {
             "aria": "Project sorting",

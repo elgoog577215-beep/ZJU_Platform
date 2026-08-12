@@ -11,6 +11,20 @@
 - **AND** 列表 MUST 只展示显式关联该赛事且项目为 `published` 的作品项目
 - **AND** 访问者 MUST 能回到全部项目而不进入另一套页面
 
+#### Scenario: Event surface keeps one dominant action
+
+- **WHEN** 访问者进入赛事现场模式
+- **THEN** 首屏 MUST 以“提交参赛项目”为唯一主行动
+- **AND** 创建长期项目 MUST 继续可从投稿流程或空状态进入
+- **AND** 赛事现场、影像档案和全部项目 MUST 作为轻量相关路径存在，不得与主行动同级竞争
+
+#### Scenario: Event discovery controls use progressive disclosure
+
+- **WHEN** 访问者浏览赛事作品墙
+- **THEN** 页面 MUST 默认提供搜索与排序
+- **AND** 进度、需求等进阶筛选 MUST 能按需展开和收起
+- **AND** 收起筛选不得清除用户已选择的条件
+
 #### Scenario: Unknown competition context
 
 - **WHEN** `competition` 参数无法匹配公开赛事

@@ -39,10 +39,6 @@ const normalizeVideo = (item, index) => ({
 
 const ArchiveRail = ({ archives, selectedSlug, onSelect, isDayMode, t }) => (
     <div className="media-event-rail" aria-label={t("media_archive.event_switcher_aria")}>
-        <div className="media-event-rail-label">
-            {t("media_archive.rail_label")}
-            <span>{t("media_archive.rail_label_en")}</span>
-        </div>
         <div className="media-event-rail-scroll">
             {archives.map((archive) => {
                 const selected = archive.slug === selectedSlug;
@@ -67,13 +63,7 @@ const ArchiveRail = ({ archives, selectedSlug, onSelect, isDayMode, t }) => (
 );
 
 const PhotoArchiveCard = ({ photo, index, onOpen, t }) => (
-    <motion.article
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.18 }}
-        transition={{ duration: 0.35, delay: Math.min(index, 6) * 0.035 }}
-        className={`media-archive-photo ${index === 0 ? "is-lead" : ""}`}
-    >
+    <article className={`media-archive-photo ${index === 0 ? "is-lead" : ""}`}>
         <button
             type="button"
             className="media-archive-photo-button"
@@ -96,7 +86,7 @@ const PhotoArchiveCard = ({ photo, index, onOpen, t }) => (
                 <p>{photo.category_name || t("media_archive.field_photo")}</p>
             </div>
         </div>
-    </motion.article>
+    </article>
 );
 
 const VideoArchiveCard = ({ video, index, onOpen, t }) => (
@@ -375,7 +365,7 @@ const MediaEventArchive = () => {
 
                 <header className="media-event-header">
                     <div>
-                        <p className="media-event-kicker">01 / {t("media_archive.event_record")}</p>
+                        <p className="media-event-kicker">{t("media_archive.event_record")}</p>
                         <h1>{selectedArchive?.title || t("media_archive.title")}</h1>
                         <p className="media-event-description">
                             {selectedArchive?.description || t("media_archive.description")}
@@ -408,12 +398,6 @@ const MediaEventArchive = () => {
                                     {t("media_archive.view_projects", "进入本场项目广场")}
                                     <ArrowRight className="h-4 w-4" />
                                 </a>
-                                <a
-                                    href={`/hackathon?view=showcase&competition=${encodeURIComponent(selectedArchive.slug)}#showcase-works`}
-                                >
-                                    {t("media_archive.view_works")}
-                                    <ArrowRight className="h-4 w-4" />
-                                </a>
                             </>
                         ) : null}
                     </div>
@@ -435,9 +419,7 @@ const MediaEventArchive = () => {
                         >
                             <div className="media-event-section-heading">
                                 <div>
-                                    <span>02</span>
                                     <div>
-                                        <p>{t("media_archive.photo_eyebrow")}</p>
                                         <h2 id="event-photo-heading">
                                             {t("media_archive.photo_title")}
                                         </h2>
@@ -467,9 +449,7 @@ const MediaEventArchive = () => {
                             >
                                 <div className="media-event-section-heading">
                                     <div>
-                                        <span>03</span>
                                         <div>
-                                            <p>{t("media_archive.video_eyebrow")}</p>
                                             <h2 id="event-video-heading">
                                                 {t("media_archive.video_title")}
                                             </h2>
@@ -532,33 +512,30 @@ const MediaEventArchive = () => {
                 .media-x-field{position:absolute;z-index:-1;inset:0 0 auto;height:880px;overflow:hidden;pointer-events:none;opacity:.72}
                 .media-x-field img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(1.05) contrast(1.08)}
                 .media-event-inner{width:min(1480px,calc(100% - 4rem));margin:0 auto}
-                .media-event-rail{overflow:hidden;border:1px solid rgba(185,255,24,.27);border-radius:13px;background:rgba(2,8,6,.62);backdrop-filter:blur(14px)}
-                .media-event-rail-label{padding:.72rem 1rem;border-bottom:1px solid rgba(247,248,242,.1);font-size:.68rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--x-lime)}
-                .media-event-rail-label span{margin-left:.55rem;color:rgba(247,248,242,.38)}
+                .media-event-rail{overflow:hidden;border-bottom:1px solid rgba(185,255,24,.28);background:transparent}
                 .media-event-rail-scroll{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none}.media-event-rail-scroll::-webkit-scrollbar{display:none}
-                .media-event-tab,.media-event-tab.is-day{min-width:290px;min-height:66px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1rem;padding:.85rem 1rem;border:0;border-right:1px solid rgba(247,248,242,.1);background:transparent;color:rgba(247,248,242,.56);text-align:left;transition:background-color .2s ease,color .2s ease,box-shadow .2s ease}
-                .media-event-tab:hover{color:#fff;background:rgba(185,255,24,.07)}
-                .media-event-tab.is-selected,.media-event-tab.is-day.is-selected{color:#fff;box-shadow:inset 0 -2px var(--x-lime);background:rgba(185,255,24,.08)}
+                .media-event-tab,.media-event-tab.is-day{min-width:290px;min-height:60px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1rem;padding:.75rem 0;margin-right:1.8rem;border:0;background:transparent;color:rgba(247,248,242,.56);text-align:left;transition:color .2s ease,box-shadow .2s ease}
+                .media-event-tab:hover{color:#fff}.media-event-tab.is-selected,.media-event-tab.is-day.is-selected{color:#fff;box-shadow:inset 0 -2px var(--x-lime)}
                 .media-event-date{font:900 1.35rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--x-lime)}
                 .media-event-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1rem;font-weight:900}
                 .media-event-count{font-size:.68rem;font-weight:800;letter-spacing:.04em;opacity:.58}
-                .media-event-header{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(310px,.65fr);gap:2.5rem;padding:clamp(3rem,6vw,6rem) 0 3.5rem}
+                .media-event-header{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(310px,.65fr);gap:2.5rem;padding:clamp(3rem,6vw,5.4rem) 0 2.8rem}
                 .media-event-kicker{color:var(--x-lime);font:900 .72rem/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}
                 .media-event-header h1{max-width:900px;margin:1rem 0 0;font-size:clamp(3rem,6.7vw,7rem);font-weight:950;line-height:.9;letter-spacing:-.065em;text-wrap:balance;text-shadow:0 10px 40px rgba(0,0,0,.38)}
                 .media-event-description{max-width:700px;margin:1.35rem 0 0;color:rgba(247,248,242,.7);font-size:.95rem;line-height:1.9}
-                .media-event-summary{align-self:end;display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid rgba(247,248,242,.15);background:rgba(2,8,6,.2)}
-                .media-event-summary div{position:relative;padding:1rem}
+                .media-event-summary{align-self:end;display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid rgba(247,248,242,.15)}
+                .media-event-summary div{position:relative;padding:1rem 1rem 1rem 0}
                 .media-event-summary div+div::before{content:"";position:absolute;left:0;top:24%;height:52%;width:1px;background:rgba(185,255,24,.36)}
                 .media-event-summary strong{display:block;color:var(--x-lime);font:900 1.75rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .media-event-summary span{display:block;margin-top:.55rem;font-size:.72rem;font-weight:800;color:var(--x-muted)}
-                .media-event-actions{grid-column:1/-1;display:flex;gap:.75rem}
-                .media-event-actions button,.media-event-actions a{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:.55rem;padding:.68rem 1.05rem;border:1px solid rgba(185,255,24,.5);border-radius:11px;background:rgba(2,8,6,.36);color:inherit;font-size:.78rem;font-weight:900;transition:transform .2s ease,background-color .2s ease}
+                .media-event-actions{grid-column:1/-1;display:flex;gap:1rem}
+                .media-event-actions button,.media-event-actions a{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:.55rem;padding:.68rem 1.05rem;border:0;border-bottom:1px solid rgba(185,255,24,.5);border-radius:0;background:transparent;color:inherit;font-size:.78rem;font-weight:900;transition:transform .2s ease,color .2s ease}
                 .media-event-actions button{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
-                .media-event-actions button:hover,.media-event-actions a:hover{transform:translateY(-2px);background:rgba(185,255,24,.13)}
+                .media-event-actions button:hover,.media-event-actions a:hover{transform:translateY(-2px);color:var(--x-lime)}
                 .media-event-actions button:hover{background:var(--x-lime-soft)}
                 .media-event-section{padding:3.5rem 0 1rem}
                 .media-event-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.28)}
-                .media-event-section-heading>div{display:flex;align-items:end;gap:1rem}.media-event-section-heading>div>span{color:var(--x-lime);font:300 clamp(3rem,7vw,6rem)/.7 ui-monospace,SFMono-Regular,Menlo,monospace}
+                .media-event-section-heading>div{display:flex;align-items:end;gap:1rem}
                 .media-event-section-heading p{margin:0 0 .35rem;color:var(--x-lime);font-size:.65rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
                 .media-event-section-heading h2{margin:0;font-size:clamp(1.45rem,2.5vw,2.35rem);font-weight:950;letter-spacing:-.035em}
                 .media-event-section-heading>strong{font-size:.72rem;letter-spacing:.08em;color:var(--x-muted)}
@@ -583,10 +560,10 @@ const MediaEventArchive = () => {
                 @media(max-width:900px){.media-event-inner{width:min(100% - 1.5rem,1480px)}.media-event-header{grid-template-columns:1fr;gap:1.5rem}.media-event-summary{width:min(100%,520px)}.media-archive-photo{grid-column:span 6}.media-archive-photo.is-lead{grid-column:span 12}.media-archive-video-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
                 @media(max-width:640px){
                     .media-event-archive{padding-top:4.5rem}.media-x-field{height:720px;opacity:.82}.media-x-field img{object-position:58% top}.media-event-inner{width:100%}
-                    .media-event-rail{margin-inline:.75rem;border-radius:11px}.media-event-rail-label{padding:.7rem 1rem}.media-event-tab,.media-event-tab.is-day{min-width:78vw;min-height:58px;padding:.7rem 1rem}.media-event-date{font-size:1.1rem}.media-event-name{font-size:.86rem}
+                    .media-event-rail{margin-inline:1rem}.media-event-tab,.media-event-tab.is-day{min-width:78vw;min-height:54px;padding:.65rem 0}.media-event-date{font-size:1.1rem}.media-event-name{font-size:.86rem}
                     .media-event-header{padding:2.4rem 1rem 1.8rem}.media-event-header h1{font-size:clamp(2.65rem,12vw,4rem);line-height:.9}.media-event-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-                    .media-event-summary{grid-template-columns:repeat(3,1fr)}.media-event-summary div{padding:.75rem}.media-event-summary strong{font-size:1.25rem}.media-event-actions{display:grid;grid-template-columns:1fr 1fr}.media-event-actions button{grid-column:1/-1}
-                    .media-event-section{padding:2.3rem 1rem .5rem}.media-event-section-heading{align-items:flex-end}.media-event-section-heading>div{gap:.6rem}.media-event-section-heading>div>span{font-size:3rem}.media-event-section-heading>strong{display:none}
+                    .media-event-summary{grid-template-columns:repeat(3,1fr)}.media-event-summary div{padding:.75rem .5rem .75rem 0}.media-event-summary strong{font-size:1.25rem}.media-event-actions{display:grid;grid-template-columns:1fr 1fr}.media-event-actions button{grid-column:auto}
+                    .media-event-section{padding:2.3rem 1rem .5rem}.media-event-section-heading{align-items:flex-end}.media-event-section-heading>div{gap:.6rem}.media-event-section-heading>strong{display:none}
                     .media-archive-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.media-archive-photo,.media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo.is-lead{grid-column:span 2}
                     .media-archive-photo-button,.media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:4/3;border-radius:12px}.media-archive-caption{grid-template-columns:1.55rem minmax(0,1fr);padding:.65rem 0 .9rem}.media-archive-caption h3{font-size:.76rem}
                     .media-archive-video-grid{grid-template-columns:1fr}.media-event-video-dialog{padding:0;place-items:end center}.media-event-video-panel{max-height:100dvh;height:100dvh;border:0;border-radius:0;display:flex;flex-direction:column;justify-content:center}.media-event-video-copy{padding:1rem}.media-event-count{display:none}

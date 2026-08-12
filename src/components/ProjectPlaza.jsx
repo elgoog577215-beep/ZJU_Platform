@@ -3,8 +3,6 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
     ArrowRight,
-    CalendarDays,
-    Camera,
     Eye,
     Flag,
     Github,
@@ -12,9 +10,9 @@ import {
     Lock,
     Mail,
     Plus,
-    Radar,
     Search,
     Share2,
+    SlidersHorizontal,
     Sparkles,
     Trophy,
     UploadCloud,
@@ -104,12 +102,6 @@ const buildProjectSharePayload = (project, t) => {
         imageUrl: getProjectShareCardUrl(project),
     };
 };
-const getRadarHeadline = (t, count) =>
-    t(
-        count === 1 ? "project_plaza.radar.headline_one" : "project_plaza.radar.headline_other",
-        "{{count}} 个项目正在找同伴",
-        { count }
-    );
 const projectScore = (p) =>
     (p.progress === "dev" ? 35 : p.progress === "live" ? 28 : p.progress === "idea" ? 20 : 8) +
     Math.min(Number(p.need_tags?.length || 0) * 9, 24) +
@@ -170,8 +162,8 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                 ) : (
                     <span className="ppp-art ppp-noart">{title.slice(0, 2)}</span>
                 )}
-                <ProgPill progress={p.progress} t={t} />
-                {p.images?.length > 1 && (
+                {!eventRecord ? <ProgPill progress={p.progress} t={t} /> : null}
+                {!eventRecord && p.images?.length > 1 && (
                     <span className="ppp-photos">
                         <Images size={12} />
                         {p.images.length}
@@ -200,7 +192,7 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                     <ArrowRight className="ppp-arrow" size={16} />
                 </div>
                 {p.intro && <p className="ppp-intro">{p.intro}</p>}
-                {p.need_tags?.length > 0 && (
+                {!eventRecord && p.need_tags?.length > 0 && (
                     <div className="ppp-needs">
                         {p.need_tags.slice(0, 3).map((n) => (
                             <span className="ppp-need" key={n}>
@@ -209,7 +201,7 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                         ))}
                     </div>
                 )}
-                {p.tech_tags?.length > 0 && (
+                {!eventRecord && p.tech_tags?.length > 0 && (
                     <div className="ppp-tech">
                         {p.tech_tags.slice(0, 3).map((tag) => (
                             <span className="ppp-tag" key={tag}>
@@ -228,10 +220,12 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                         </span>
                     </div>
                     <div className="ppp-favrow">
-                        <span className="ppp-views">
-                            <Eye size={14} />
-                            {p.views ?? 0}
-                        </span>
+                        {!eventRecord ? (
+                            <span className="ppp-views">
+                                <Eye size={14} />
+                                {p.views ?? 0}
+                            </span>
+                        ) : null}
                         <FavoriteButton
                             itemId={p.id}
                             itemType="project"
@@ -927,9 +921,9 @@ const ProjectPlaza = () => {
     const [creating, setCreating] = useState(false);
     const [submissionOpen, setSubmissionOpen] = useState(false);
     const [submissionProjectId, setSubmissionProjectId] = useState("");
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const [progFilter, setProgFilter] = useState("all");
     const [needFilter, setNeedFilter] = useState(null);
-    const [recruitingOnly, setRecruitingOnly] = useState(false);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("match");
     const fromFavoritesRef = useRef(
@@ -1076,42 +1070,13 @@ const ProjectPlaza = () => {
     const showAllProjects = () => navigate("/projects");
 
     const toggleNeedFilter = (need) => {
-        setRecruitingOnly(false);
         setNeedFilter(needFilter === need ? null : need);
     };
     const setProgressFilter = (key) => {
-        setRecruitingOnly(false);
         setProgFilter(key);
     };
-    const showRecruitingProjects = () => {
-        setProgFilter("all");
-        setNeedFilter(null);
-        setRecruitingOnly((value) => !value);
-    };
-    const showLiveProjects = () => {
-        setRecruitingOnly(false);
-        setNeedFilter(null);
-        setProgFilter("live");
-    };
-    const showTopNeedProjects = () => {
-        setRecruitingOnly(false);
-        setNeedFilter(topNeed);
-        setProgFilter("all");
-    };
-
-    const filteredItems = recruitingOnly
-        ? items.filter((item) => item.need_tags?.length > 0)
-        : items;
-    const visibleItems = sortProjects(filteredItems, sort);
-    const liveCount = items.filter((item) => item.progress === "live").length;
-    const recruitingCount = items.filter((item) => item.need_tags?.length > 0).length;
-    const topNeed =
-        NEEDS_ALL.map((need) => [
-            need,
-            items.filter((item) => item.need_tags?.includes(need)).length,
-        ])
-            .sort((a, b) => b[1] - a[1])
-            .find(([, count]) => count > 0)?.[0] || NEED_FILTERS[0];
+    const visibleItems = sortProjects(items, sort);
+    const activeFilterCount = Number(progFilter !== "all") + Number(Boolean(needFilter));
 
     return (
         <div
@@ -1171,10 +1136,9 @@ const ProjectPlaza = () => {
                                     </h1>
                                     <div className="ppp-sub">
                                         {competition
-                                            ? competition.description ||
-                                              t(
+                                            ? t(
                                                   "project_plaza.event.subtitle",
-                                                  "每一件作品都来自一个可持续生长的项目。"
+                                                  "让作品被看见，让项目在赛后继续生长。"
                                               )
                                             : t(
                                                   "project_plaza.subtitle",
@@ -1192,30 +1156,27 @@ const ProjectPlaza = () => {
                                             <Trophy size={18} />
                                             {t("project_plaza.event.submit_action", "提交本场作品")}
                                         </button>
-                                    ) : null}
-                                    <button
-                                        className={`ppp-newbtn ${competition ? "ghost" : ""}`}
-                                        type="button"
-                                        onClick={startCreate}
-                                    >
-                                        <Plus size={18} />
-                                        {t("project_plaza.actions.publish", "发布项目")}
-                                    </button>
+                                    ) : (
+                                        <button
+                                            className="ppp-newbtn"
+                                            type="button"
+                                            onClick={startCreate}
+                                        >
+                                            <Plus size={18} />
+                                            {t("project_plaza.actions.publish", "发布项目")}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
                             {competition ? (
-                                <div className="ppp-event-scoreboard">
-                                    <div>
-                                        <CalendarDays size={18} />
+                                <div className="ppp-event-line">
+                                    <div className="ppp-event-facts">
                                         <span>{competition.event_date || "—"}</span>
-                                    </div>
-                                    <div>
-                                        <Trophy size={18} />
-                                        <strong>
-                                            {competition.approved_project_count ?? total}
-                                        </strong>
                                         <span>
+                                            <strong>
+                                                {competition.approved_project_count ?? total}
+                                            </strong>{" "}
                                             {t("project_plaza.event.approved_count", "件入选作品")}
                                         </span>
                                     </div>
@@ -1228,24 +1189,21 @@ const ProjectPlaza = () => {
                                         <a
                                             href={`/hackathon?view=showcase&competition=${encodeURIComponent(competition.slug)}`}
                                         >
-                                            <Flag size={15} />
                                             {t("project_plaza.event.back_event", "赛事现场")}
                                         </a>
                                         <a
                                             href={`/media?event=${encodeURIComponent(competition.slug)}`}
                                         >
-                                            <Camera size={15} />
                                             {t("project_plaza.event.media", "影像档案")}
                                         </a>
                                         <button type="button" onClick={showAllProjects}>
                                             {t("project_plaza.event.all_projects", "全部项目")}
-                                            <ArrowRight size={15} />
                                         </button>
                                     </nav>
                                 </div>
                             ) : null}
 
-                            <div className="ppp-toolbar">
+                            <div className="ppp-discovery">
                                 <label className="ppp-search">
                                     <Search size={17} />
                                     <input
@@ -1272,11 +1230,28 @@ const ProjectPlaza = () => {
                                         </button>
                                     ))}
                                 </div>
+                                <button
+                                    type="button"
+                                    className={`ppp-filter-toggle ${
+                                        filtersOpen || activeFilterCount ? "on" : ""
+                                    }`}
+                                    aria-expanded={filtersOpen}
+                                    aria-controls="project-plaza-advanced-filters"
+                                    onClick={() => setFiltersOpen((value) => !value)}
+                                >
+                                    <SlidersHorizontal size={15} />
+                                    {filtersOpen
+                                        ? t("project_plaza.filters.close", "收起")
+                                        : t("project_plaza.filters.more", "筛选")}
+                                    {activeFilterCount ? <span>{activeFilterCount}</span> : null}
+                                </button>
                             </div>
 
                             <div
-                                className="ppp-filters"
+                                id="project-plaza-advanced-filters"
+                                className={`ppp-filters ${filtersOpen ? "is-open" : ""}`}
                                 aria-label={t("project_plaza.filters.aria", "项目筛选")}
+                                hidden={!filtersOpen}
                             >
                                 <div className="ppp-filter-group">
                                     <span className="ppp-flabel">
@@ -1390,59 +1365,6 @@ const ProjectPlaza = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {!competition ? (
-                                <section
-                                    className="ppp-radar"
-                                    aria-label={t("project_plaza.radar.aria", "项目机会雷达")}
-                                >
-                                    <div>
-                                        <span className="ppp-radar-k">
-                                            <Radar size={15} />
-                                            {t("project_plaza.radar.kicker", "机会雷达")}
-                                        </span>
-                                        <strong>{getRadarHeadline(t, recruitingCount)}</strong>
-                                        <p>
-                                            {t(
-                                                "project_plaza.radar.copy",
-                                                "按进度、需求和热度自动把更值得加入的项目排到前面。"
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div className="ppp-radar-stats">
-                                        <button
-                                            type="button"
-                                            className={recruitingOnly ? "on" : ""}
-                                            onClick={showRecruitingProjects}
-                                        >
-                                            <span>{recruitingCount}</span>
-                                            {t("project_plaza.radar.recruiting", "开放招募")}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={
-                                                !recruitingOnly && progFilter === "live" ? "on" : ""
-                                            }
-                                            onClick={showLiveProjects}
-                                        >
-                                            <span>{liveCount}</span>
-                                            {t("project_plaza.radar.live", "已上线")}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={
-                                                !recruitingOnly && needFilter === topNeed
-                                                    ? "on"
-                                                    : ""
-                                            }
-                                            onClick={showTopNeedProjects}
-                                        >
-                                            <span>{getNeedLabel(t, topNeed)}</span>
-                                            {t("project_plaza.radar.hot_need", "最热需求")}
-                                        </button>
-                                    </div>
-                                </section>
-                            ) : null}
                         </div>
                     </>
                 )}

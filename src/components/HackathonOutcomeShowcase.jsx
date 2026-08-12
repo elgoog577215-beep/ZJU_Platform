@@ -597,10 +597,6 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             title={t("hackathon.outcome_archive.works_title")}
                             id="works-heading"
                         />
-                        <Link to={`/projects?competition=${encodeURIComponent(competitionSlug)}`}>
-                            {t("hackathon.outcome_archive.browse_projects_short", "本场项目广场")}
-                            <ArrowRight className="h-4 w-4" />
-                        </Link>
                         <button type="button" onClick={() => setUploadType("work")}>
                             {t("hackathon.outcome_archive.submit_work")}
                             <Upload className="h-4 w-4" />

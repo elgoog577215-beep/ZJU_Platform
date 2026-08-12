@@ -3906,7 +3906,7 @@
         "event": {
             "meta_title": "{{event}}项目广场",
             "kicker": "HACKATHON · LIVE PROJECTS",
-            "subtitle": "从现场组队到作品提交，让每个项目在赛后继续生长。",
+            "subtitle": "让作品被看见，让项目在赛后继续生长。",
             "submit_action": "提交参赛项目",
             "approved_count": "件入选作品",
             "journey_aria": "本场赛事相关页面",
@@ -3934,7 +3934,9 @@
             "aria": "项目筛选",
             "all": "全部",
             "progress": "进度",
-            "needs": "在找"
+            "needs": "在找",
+            "more": "筛选",
+            "close": "收起"
         },
         "sort": {
             "aria": "项目排序",
