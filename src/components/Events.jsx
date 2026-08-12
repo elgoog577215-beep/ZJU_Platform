@@ -69,7 +69,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
+    "grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-7 xl:gap-y-14";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
@@ -184,6 +184,16 @@ const getStatusColor = (status, t, isDayMode = false) => {
     }
 };
 
+const getStatusTextColor = (status, t, isDayMode = false) => {
+    if (status === t("events.status.upcoming")) {
+        return isDayMode ? "text-emerald-700" : "text-emerald-300";
+    }
+    if (status === t("events.status.ongoing")) {
+        return isDayMode ? "text-blue-700" : "text-cyan-200";
+    }
+    return isDayMode ? "text-slate-500" : "text-slate-400";
+};
+
 const isSameDay = (d1, d2) => {
     if (!d1 || !d2) return false;
     // Compare only the date portion (first 10 chars: YYYY-MM-DD) to avoid timezone issues
@@ -211,7 +221,7 @@ const formatDateTime = (dateStr) => {
     return `${month}.${day}`;
 };
 
-const formatMobileEventSchedule = (dateStr, endDateStr) => {
+const formatMobileEventSchedule = (dateStr, endDateStr, language = "zh") => {
     if (!dateStr) return "";
     const datePart = dateStr.substring(0, 10);
     const [year, monthText, dayText] = datePart.split("-");
@@ -220,21 +230,27 @@ const formatMobileEventSchedule = (dateStr, endDateStr) => {
     if (!year || Number.isNaN(month) || Number.isNaN(day)) return formatDateTime(dateStr);
 
     let weekday = "";
+    const isEnglish = String(language).toLowerCase().startsWith("en");
     try {
         const date = new Date(datePart.replace(/-/g, "/"));
-        weekday = ["日", "一", "二", "三", "四", "五", "六"][date.getDay()] || "";
+        weekday = isEnglish
+            ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()] || ""
+            : ["日", "一", "二", "三", "四", "五", "六"][date.getDay()] || "";
     } catch {
         weekday = "";
     }
 
-    const startTime = dateStr.length > 10 ? dateStr.substring(11, 16) : "";
-    const endTime =
+    const rawStartTime = dateStr.length > 10 ? dateStr.substring(11, 16) : "";
+    const rawEndTime =
         endDateStr && isSameDay(dateStr, endDateStr) && endDateStr.length > 10
             ? endDateStr.substring(11, 16)
             : "";
-    const timeRange = startTime ? (endTime ? `${startTime}-${endTime}` : startTime) : "";
+    const startTime = rawStartTime === "00:00" ? "" : rawStartTime;
+    const endTime = rawEndTime === "00:00" ? "" : rawEndTime;
+    const timeRange = startTime ? (endTime ? `${startTime}–${endTime}` : startTime) : "";
+    const weekdayLabel = weekday ? (isEnglish ? ` · ${weekday}` : `（周${weekday}）`) : "";
 
-    return `${month}.${day}${weekday ? `（周${weekday}）` : ""}${timeRange ? `  ${timeRange}` : ""}`;
+    return `${month}.${day}${weekdayLabel}${timeRange ? `  ${timeRange}` : ""}`;
 };
 
 const EVENT_FALLBACK_COVER_URLS = {
@@ -401,257 +417,137 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
           };
 
     return (
-        <>
-            <motion.div
-                {...motionProps}
-                data-testid="event-card"
-                className={`group relative flex h-[176px] cursor-pointer overflow-hidden rounded-[4px] border p-2.5 md:hidden ${
-                    isDayMode
-                        ? "border-blue-100 bg-white shadow-[0_14px_32px_rgba(37,99,235,0.10)]"
-                        : "border-white/10 bg-[#070d1a]/94 shadow-[0_18px_42px_rgba(0,0,0,0.22)]"
-                }`}
-                onClick={() => onClick(event)}
-            >
-                <div className="relative h-full w-[126px] shrink-0 overflow-hidden rounded-[3px] bg-[#101827] min-[520px]:w-[150px]">
-                    <SmartImage
-                        src={getEventCoverUrl(event)}
-                        alt={event.title}
-                        type="event"
-                        iconSize={18}
-                        loading="lazy"
-                        priority={index === 0}
-                        className="absolute inset-0 h-full w-full"
-                        imageClassName="h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
-                    <span className="absolute left-2 top-2 rounded-[3px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
-                        {formatDateTime(event.date).split(" ")[0] || " -- "}
+        <motion.article
+            {...motionProps}
+            role="button"
+            tabIndex={0}
+            data-testid="event-card"
+            onClick={() => onClick(event)}
+            onKeyDown={(eventKey) => {
+                if (eventKey.key === "Enter" || eventKey.key === " ") {
+                    eventKey.preventDefault();
+                    onClick(event);
+                }
+            }}
+            className={`group hidden cursor-pointer border-b pb-6 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:block ${
+                isDayMode
+                    ? "border-slate-200/80 hover:border-blue-400/70"
+                    : "border-white/[0.08] hover:border-indigo-300/55"
+            }`}
+        >
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] bg-slate-900">
+                <SmartImage
+                    src={getThumbnailUrl(event.image)}
+                    alt={event.title}
+                    loading="lazy"
+                    priority={index === 0}
+                    className="absolute inset-0 h-full w-full"
+                    imageClassName="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                />
+                {!isDayMode && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/35 via-transparent to-transparent" />
+                )}
+            </div>
+
+            <div className="pt-4">
+                <div className="flex min-w-0 items-center justify-between gap-3 text-[11px] font-bold tracking-wide">
+                    <span className={`truncate ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
+                        {event.category
+                            ? formatEventCategory(event.category)
+                            : t("common.other", "其他")}
+                    </span>
+                    <span
+                        className={`inline-flex shrink-0 items-center gap-1.5 ${getStatusTextColor(status, t, isDayMode)}`}
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+                        {status}
                     </span>
                 </div>
 
-                <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-                    <div className="flex min-h-[32px] min-w-0 items-start">
-                        <h3
-                            className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
-                        >
-                            {event.title}
-                        </h3>
-                    </div>
+                <h3
+                    className={`mt-2 line-clamp-2 min-h-[3.25rem] text-[1.08rem] font-bold leading-[1.5] tracking-[-0.015em] ${isDayMode ? "text-slate-950" : "text-white"}`}
+                >
+                    {event.title}
+                </h3>
 
-                    <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
-                        {event.category && (
-                            <span
-                                className={`inline-flex min-h-[26px] max-w-[5.8rem] shrink-0 items-center rounded-[4px] border px-2.5 py-1 text-[13px] font-bold leading-[16px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/40 bg-indigo-500/20 text-indigo-100"}`}
-                            >
-                                <span className="block truncate leading-[16px]">
-                                    {formatEventCategory(event.category)}
-                                </span>
+                <div
+                    className={`mt-3 grid gap-1.5 text-[13px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                >
+                    <div className="flex min-w-0 items-center gap-2">
+                        <Calendar
+                            size={14}
+                            className={
+                                isDayMode ? "shrink-0 text-blue-600" : "shrink-0 text-indigo-300"
+                            }
+                        />
+                        <span
+                            className={`truncate font-medium ${isDayMode ? "text-slate-700" : "text-slate-200"}`}
+                        >
+                            {formatDateTime(event.date)}
+                            {event.end_date &&
+                                !isSameDay(event.date, event.end_date) &&
+                                ` – ${formatDateTime(event.end_date)}`}
+                        </span>
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                        <MapPin size={14} className="shrink-0" />
+                        <span className="truncate">
+                            {event.location || t("common.online", "线上")}
+                        </span>
+                    </div>
+                </div>
+
+                {(event.score || event.volunteer_time) && (
+                    <div
+                        className={`mt-3 flex min-w-0 items-center gap-3 text-xs font-semibold ${isDayMode ? "text-amber-700" : "text-amber-200"}`}
+                    >
+                        {event.score && (
+                            <span className="inline-flex min-w-0 items-center gap-1.5">
+                                <Award size={13} className="shrink-0" />
+                                <span className="truncate">{event.score}</span>
                             </span>
+                        )}
+                        {event.volunteer_time && (
+                            <span className="inline-flex min-w-0 items-center gap-1.5">
+                                <Clock size={13} className="shrink-0" />
+                                <span className="truncate">{event.volunteer_time}</span>
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {(isCollegeNoticeEvent(event) || event.target_audience) && (
+                    <div
+                        className={`mt-4 flex min-w-0 items-center gap-2 text-[11px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
+                        {isCollegeNoticeEvent(event) && (
+                            <span className="inline-flex shrink-0 items-center gap-1">
+                                <FileText size={11} />
+                                {t("events.college_notice.badge")}
+                            </span>
+                        )}
+                        {isCollegeNoticeEvent(event) && event.target_audience && (
+                            <span aria-hidden="true">·</span>
                         )}
                         {event.target_audience && (
-                            <span
-                                className={`inline-flex min-h-[26px] max-w-[7rem] shrink-0 items-center rounded-[4px] border px-2.5 py-1 text-[13px] font-bold leading-[16px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/25 bg-white/10 text-slate-100"}`}
-                            >
-                                <span className="block truncate leading-[16px]">
-                                    {formatEventAudience(event.target_audience)}
-                                </span>
-                            </span>
-                        )}
-                    </div>
-
-                    <div
-                        className={`mt-2 grid min-h-[48px] gap-1 text-[14px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
-                    >
-                        <div className="flex h-5 min-w-0 items-center gap-1.5">
-                            <Clock
-                                size={15}
-                                className={isDayMode ? "text-slate-500" : "text-slate-300"}
-                            />
                             <span className="truncate">
-                                {formatDateTime(event.date)}
-                                {event.end_date &&
-                                    !isSameDay(event.date, event.end_date) &&
-                                    ` - ${formatDateTime(event.end_date)}`}
+                                {formatEventAudience(event.target_audience)}
                             </span>
-                        </div>
-                        <div className="flex h-5 min-w-0 items-center gap-1.5">
-                            <MapPin
-                                size={15}
-                                className={isDayMode ? "text-slate-500" : "text-slate-300"}
-                            />
-                            <span className="truncate">
-                                {event.location || t("common.online", "线上")}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div
-                {...motionProps}
-                data-testid="event-card"
-                className={`group rect-media-card relative hidden h-[156px] cursor-pointer flex-row overflow-hidden md:flex md:h-[392px] md:flex-col xl:h-[404px] 2xl:h-[416px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow,transform] duration-200 ${isDayMode ? "border-blue-100/80 bg-white/92 hover:-translate-y-1 hover:border-blue-200/90 hover:bg-white" : "border-white/12 bg-[#050712]/78 backdrop-blur-md hover:-translate-y-1 hover:border-cyan-200/30 hover:bg-[#070914]/90"}`}
-                onClick={() => onClick(event)}
-            >
-                {/* Image Section */}
-                <div className="m-2 w-[104px] shrink-0 overflow-hidden rounded-[5px] relative z-10 aspect-square sm:w-1/3 md:m-0 md:h-40 md:w-full md:rounded-b-none md:rounded-t-[6px] 2xl:h-44">
-                    <SmartImage
-                        src={getThumbnailUrl(event.image)}
-                        alt={event.title}
-                        loading="lazy"
-                        priority={index === 0}
-                        className="absolute inset-0 w-full h-full"
-                        imageClassName="w-full h-full object-cover"
-                    />
-                    {!isDayMode && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-75" />
-                    )}
-
-                    {/* Status Badge - Adjusted for mobile */}
-                    <div
-                        className={`absolute top-2 right-2 md:top-3 md:right-3 px-2.5 py-1 rounded-[4px] text-[10px] md:text-[11px] font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t, isDayMode)}`}
-                    >
-                        {status === t("events.status.upcoming") && (
-                            <Clock size={12} className="md:w-3.5 md:h-3.5" />
                         )}
-                        {status === t("events.status.ongoing") && (
-                            <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />
-                        )}
-                        {status}
                     </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="p-2.5 md:p-4 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
-                    {/* Title */}
-                    <h3
-                        className={`mb-1.5 line-clamp-2 min-h-[2.55rem] text-[15px] font-bold leading-tight tracking-tight sm:text-base md:mb-2 md:line-clamp-3 md:min-h-[3.9rem] md:text-[1.08rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
-                    >
-                        {event.title}
-                    </h3>
-
-                    {/* Date & Location - Clean Text Row */}
-                    <div
-                        className={`mb-2 flex min-h-[2.45rem] flex-col gap-1 text-[11px] sm:text-xs md:mb-3 md:min-h-[3.85rem] md:gap-2 md:text-[15px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                        <div className="flex items-center gap-1.5 shrink-0 md:gap-2">
-                            <Calendar
-                                size={14}
-                                className={
-                                    isDayMode
-                                        ? "text-blue-600 md:h-[18px] md:w-[18px]"
-                                        : "text-indigo-400 md:h-[18px] md:w-[18px]"
-                                }
-                            />
-                            <span
-                                className={`whitespace-nowrap font-semibold leading-5 md:leading-6 ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
-                            >
-                                {formatDateTime(event.date)}
-                                {event.end_date &&
-                                    !isSameDay(event.date, event.end_date) &&
-                                    `-${formatDateTime(event.end_date)}`}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 min-w-0 md:gap-2">
-                            <MapPin
-                                size={14}
-                                className={
-                                    isDayMode
-                                        ? "shrink-0 text-slate-400 md:h-[18px] md:w-[18px]"
-                                        : "shrink-0 text-indigo-400 md:h-[18px] md:w-[18px]"
-                                }
-                            />
-                            <span className="line-clamp-1 min-w-0 leading-4 md:line-clamp-2 md:leading-6">
-                                {event.location || t("common.online", "线上")}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Description - Max 3 lines (Hidden on Mobile) */}
-                    {event.description && (
-                        <p
-                            className={`hidden text-[13px] mb-3 line-clamp-1 leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                            {event.description}
-                        </p>
-                    )}
-
-                    {/* Benefits Badges */}
-                    {(event.score || event.volunteer_time) && (
-                        <div className="mb-3 hidden h-[1.9rem] flex-nowrap gap-1.5 overflow-hidden md:flex">
-                            {event.score && (
-                                <span
-                                    className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
-                                >
-                                    <Award size={12} />
-                                    <span className="truncate">{event.score}</span>
-                                </span>
-                            )}
-                            {event.volunteer_time && (
-                                <span
-                                    className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-emerald-50 text-emerald-600 border-emerald-200/80" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"}`}
-                                >
-                                    <Clock size={12} />
-                                    <span className="truncate">{event.volunteer_time}</span>
-                                </span>
-                            )}
-                        </div>
-                    )}
-                    {!event.score && !event.volunteer_time && (
-                        <div className="mb-3 hidden h-[1.9rem] md:block" />
-                    )}
-
-                    {/* Footer: Category */}
-                    <div
-                        className={`mt-auto flex min-h-8 items-center border-t pt-1.5 md:min-h-[2.85rem] md:pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
-                    >
-                        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-                            {isCollegeNoticeEvent(event) && (
-                                <span
-                                    className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-blue-50 text-blue-700 border-blue-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
-                                >
-                                    <FileText size={10} className="md:w-3 md:h-3" />
-                                    <span className="truncate">
-                                        {t("events.college_notice.badge")}
-                                    </span>
-                                </span>
-                            )}
-                            {event.category && (
-                                <span
-                                    className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-blue-50 text-blue-700 border-blue-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
-                                >
-                                    <Tag size={10} className="md:w-3 md:h-3" />
-                                    <span className="truncate">
-                                        {formatEventCategory(event.category)}
-                                    </span>
-                                </span>
-                            )}
-                            {event.target_audience && (
-                                <span
-                                    className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-white text-slate-600 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"}`}
-                                >
-                                    <Users size={10} className="md:w-3 md:h-3" />
-                                    <span className="truncate">
-                                        {formatEventAudience(event.target_audience)}
-                                    </span>
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-        </>
+                )}
+            </div>
+        </motion.article>
     );
 });
 EventCard.displayName = "EventCard";
 
 const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const status = getEventLifecycle(event.date, event.end_date, t);
     const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
     const formatEventCategory = (value) => getEventCategoryLabel(value, eventLanguage);
     const formatEventAudience = (value) => getEventAudienceLabel(value, eventLanguage);
-    const primaryDate = formatDateTime(event.date).split(" ")[0] || "--";
     const motionProps = reduceMotion
         ? {}
         : {
@@ -673,13 +569,11 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
             {...motionProps}
             data-testid="event-card"
             onClick={() => onClick(event)}
-            className={`group relative grid min-h-[126px] cursor-pointer grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[4px] border px-2.5 py-2.5 text-left shadow-[0_18px_44px_rgba(0,0,0,0.22)] ${
-                isDayMode
-                    ? "border-blue-100 bg-white text-slate-950"
-                    : "border-white/[0.105] bg-[linear-gradient(145deg,rgba(9,18,33,0.96),rgba(4,11,22,0.94))] text-white"
+            className={`group relative grid min-h-[132px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                isDayMode ? "border-slate-200/80 text-slate-950" : "border-white/[0.08] text-white"
             }`}
         >
-            <div className="relative h-[106px] overflow-hidden rounded-[3px] bg-slate-900 min-[390px]:h-[110px] min-[390px]:w-[104px]">
+            <div className="relative h-[106px] overflow-hidden rounded-[2px] bg-slate-900 min-[390px]:h-[110px]">
                 <SmartImage
                     src={getEventCoverUrl(event)}
                     alt={event.title}
@@ -690,62 +584,65 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
                     className="absolute inset-0 h-full w-full"
                     imageClassName="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,20,0.12),rgba(3,8,20,0.05)_45%,rgba(3,8,20,0.2))]" />
-                <div className="absolute left-2 top-2 rounded-[3px] bg-[#18265f]/92 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_8px_18px_rgba(0,0,0,0.28)]">
-                    {primaryDate}
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
             </div>
 
             <div className="relative flex min-w-0 flex-col py-0.5">
-                <div className="flex min-w-0 items-start">
-                    <h3
-                        className={`line-clamp-1 min-w-0 flex-1 text-[17px] font-black leading-[22px] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                <div className="flex min-w-0 items-center gap-2 text-[10px] font-bold tracking-wide">
+                    <span className={`truncate ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
+                        {event.category
+                            ? formatEventCategory(event.category)
+                            : t("common.other", "其他")}
+                    </span>
+                    <span
+                        aria-hidden="true"
+                        className={isDayMode ? "text-slate-300" : "text-white/20"}
                     >
-                        {event.title}
-                    </h3>
+                        ·
+                    </span>
+                    <span
+                        className={`inline-flex shrink-0 items-center gap-1 ${getStatusTextColor(status, t, isDayMode)}`}
+                    >
+                        <span className="h-1 w-1 rounded-full bg-current" aria-hidden="true" />
+                        {status}
+                    </span>
                 </div>
 
-                <div className="mt-1.5 flex min-h-[22px] min-w-0 items-center gap-1.5 overflow-hidden">
-                    {event.category && (
-                        <span
-                            className={`inline-flex h-[22px] max-w-[5.4rem] shrink-0 items-center rounded-[3px] border px-2 text-[11px] font-bold leading-none ${
-                                isDayMode
-                                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                                    : "border-orange-300/35 bg-orange-400/10 text-orange-100"
-                            }`}
-                        >
-                            <span className="truncate">{formatEventCategory(event.category)}</span>
-                        </span>
-                    )}
-                    {event.target_audience && (
-                        <span
-                            className={`inline-flex h-[22px] max-w-[5.2rem] shrink-0 items-center rounded-[3px] border px-2 text-[11px] font-bold leading-none ${
-                                isDayMode
-                                    ? "border-slate-200 bg-slate-50 text-slate-700"
-                                    : "border-white/18 bg-white/[0.055] text-slate-100"
-                            }`}
-                        >
-                            <span className="truncate">
-                                {formatEventAudience(event.target_audience)}
-                            </span>
-                        </span>
-                    )}
-                </div>
+                <h3
+                    className={`mt-1.5 line-clamp-2 text-[16px] font-bold leading-[22px] tracking-[-0.01em] ${isDayMode ? "text-slate-950" : "text-white"}`}
+                >
+                    {event.title}
+                </h3>
 
                 <div
-                    className={`mt-2 grid gap-1.5 text-[13px] font-medium leading-[17px] ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
+                    className={`mt-2 grid gap-1 text-[12px] font-medium leading-[17px] ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
                 >
                     <div className="flex min-w-0 items-center gap-1.5">
-                        <Clock size={14} className="shrink-0 text-slate-200" />
+                        <Clock
+                            size={13}
+                            className={
+                                isDayMode ? "shrink-0 text-blue-600" : "shrink-0 text-indigo-300"
+                            }
+                        />
                         <span className="truncate">
-                            {formatMobileEventSchedule(event.date, event.end_date)}
+                            {formatMobileEventSchedule(event.date, event.end_date, eventLanguage)}
                         </span>
                     </div>
                     <div className="flex min-w-0 items-center gap-1.5">
-                        <MapPin size={14} className="shrink-0 text-slate-200" />
-                        <span className="truncate">{event.location || "线上活动"}</span>
+                        <MapPin size={13} className="shrink-0" />
+                        <span className="truncate">
+                            {event.location || t("common.online", "线上")}
+                        </span>
                     </div>
                 </div>
+
+                {event.target_audience && (
+                    <div
+                        className={`mt-auto truncate pt-2 text-[10px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
+                        {formatEventAudience(event.target_audience)}
+                    </div>
+                )}
             </div>
         </motion.article>
     );
@@ -789,13 +686,13 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                     onClick(event);
                 }
             }}
-            className={`group rect-media-card grid w-full cursor-pointer grid-cols-[132px_minmax(0,1fr)] items-stretch overflow-hidden text-left transition-[background-color,border-color,box-shadow,transform] duration-200 lg:grid-cols-[152px_minmax(0,1fr)_104px] ${
+            className={`group grid w-full cursor-pointer grid-cols-[152px_minmax(0,1fr)] items-stretch border-b py-5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:grid-cols-[176px_minmax(0,1fr)_104px] ${
                 isDayMode
-                    ? "border-slate-200/80 bg-white hover:border-blue-200/90"
-                    : "border-white/10 bg-[#050712]/78 backdrop-blur-md hover:border-cyan-200/30 hover:bg-[#070914]/90"
+                    ? "border-slate-200/80 hover:border-blue-400/70"
+                    : "border-white/[0.08] hover:border-indigo-300/55"
             }`}
         >
-            <div className="relative min-h-[132px] overflow-hidden">
+            <div className="relative min-h-[126px] overflow-hidden rounded-[2px]">
                 <SmartImage
                     src={getThumbnailUrl(event.image)}
                     alt={event.title}
@@ -809,7 +706,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                 )}
             </div>
 
-            <div className="flex min-w-0 flex-col px-4 py-3.5 lg:px-5">
+            <div className="flex min-w-0 flex-col px-5 py-0.5 lg:px-6">
                 <div className="flex min-w-0 items-start gap-3">
                     <h3
                         className={`line-clamp-2 min-w-0 flex-1 text-base font-bold leading-snug tracking-tight lg:text-lg ${
@@ -819,8 +716,9 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                         {event.title}
                     </h3>
                     <span
-                        className={`shrink-0 rounded-[4px] border px-2 py-1 text-[10px] font-bold uppercase tracking-wider lg:hidden ${getStatusColor(status, t, isDayMode)}`}
+                        className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-bold lg:hidden ${getStatusTextColor(status, t, isDayMode)}`}
                     >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
                         {status}
                     </span>
                 </div>
@@ -905,40 +803,26 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                     </p>
                 )}
 
-                <div className="mt-auto flex min-w-0 flex-wrap items-center gap-1.5 pt-3">
+                <div
+                    className={`mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pt-3 text-[11px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                >
                     {isCollegeNoticeEvent(event) && (
                         <span
-                            className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
-                                isDayMode
-                                    ? "bg-blue-50 text-blue-700 border-blue-100/80"
-                                    : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
-                            }`}
+                            className={`inline-flex max-w-[150px] items-center gap-1 font-medium ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}
                         >
                             <FileText size={11} className="shrink-0" />
                             <span className="truncate">{t("events.college_notice.badge")}</span>
                         </span>
                     )}
                     {event.category && (
-                        <span
-                            className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
-                                isDayMode
-                                    ? "bg-blue-50 text-blue-700 border-blue-100/80"
-                                    : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
-                            }`}
-                        >
-                            <Tag size={11} className="shrink-0" />
+                        <span className="inline-flex max-w-[150px] items-center gap-1 font-medium">
+                            <span aria-hidden="true">·</span>
                             <span className="truncate">{formatEventCategory(event.category)}</span>
                         </span>
                     )}
                     {event.target_audience && (
-                        <span
-                            className={`rect-chip inline-flex max-w-[180px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
-                                isDayMode
-                                    ? "bg-white text-slate-600 border-slate-200/80"
-                                    : "bg-white/5 text-gray-300 border-white/10"
-                            }`}
-                        >
-                            <Users size={11} className="shrink-0" />
+                        <span className="inline-flex max-w-[180px] items-center gap-1 font-medium">
+                            <span aria-hidden="true">·</span>
                             <span className="truncate">
                                 {formatEventAudience(event.target_audience)}
                             </span>
@@ -946,12 +830,9 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                     )}
                     {event.score && (
                         <span
-                            className={`rect-chip inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold ${
-                                isDayMode
-                                    ? "bg-amber-50 text-amber-700 border-amber-200/80"
-                                    : "bg-purple-500/10 text-purple-300 border-purple-500/20"
-                            }`}
+                            className={`inline-flex items-center gap-1 font-semibold ${isDayMode ? "text-amber-700" : "text-amber-200"}`}
                         >
+                            <span aria-hidden="true">·</span>
                             <Award size={11} />
                             {event.score}
                         </span>
@@ -959,14 +840,11 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                 </div>
             </div>
 
-            <div
-                className={`col-span-2 flex items-center justify-end gap-3 border-t px-4 py-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:border-t-0 lg:px-4 ${
-                    isDayMode ? "border-slate-200/80 bg-white" : "border-white/8 bg-white/[0.025]"
-                }`}
-            >
+            <div className="col-span-2 flex items-center justify-end gap-3 pt-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:pt-0">
                 <span
-                    className={`hidden rounded-[4px] border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider lg:inline-flex ${getStatusColor(status, t, isDayMode)}`}
+                    className={`hidden items-center gap-1.5 text-[11px] font-bold lg:inline-flex ${getStatusTextColor(status, t, isDayMode)}`}
                 >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
                     {status}
                 </span>
             </div>
@@ -1018,22 +896,18 @@ const CollegeNoticeRow = memo(({ event, index, onClick, reduceMotion, isDayMode 
                     onClick(event);
                 }
             }}
-            className={`group rect-media-card w-full cursor-pointer overflow-hidden border text-left transition-[background-color,border-color,box-shadow,transform] duration-200 ${
+            className={`group w-full cursor-pointer border-b py-5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                 isDayMode
-                    ? "border-blue-100/80 bg-white hover:border-blue-200/90"
-                    : "border-white/10 bg-[#050712]/78 backdrop-blur-md hover:border-cyan-200/30 hover:bg-[#070914]/90"
+                    ? "border-slate-200/80 hover:border-blue-400/70"
+                    : "border-white/[0.08] hover:border-indigo-300/55"
             }`}
         >
             <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_140px]">
-                <div className="min-w-0 px-4 py-4 md:px-5">
+                <div className="min-w-0 py-1 pr-5">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
                         {noticeSource && (
                             <span
-                                className={`rect-chip inline-flex min-w-0 max-w-[240px] items-center gap-1.5 px-2.5 py-1 text-[11px] font-black ${
-                                    isDayMode
-                                        ? "border-blue-200/80 bg-blue-50 text-blue-700"
-                                        : "border-indigo-400/25 bg-indigo-500/15 text-indigo-200"
-                                }`}
+                                className={`inline-flex min-w-0 max-w-[240px] items-center gap-1.5 text-[11px] font-black ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}
                             >
                                 <Building2 size={12} className="shrink-0" />
                                 <span className="min-w-0 truncate">
@@ -1044,13 +918,9 @@ const CollegeNoticeRow = memo(({ event, index, onClick, reduceMotion, isDayMode 
                         )}
                         {event.category && (
                             <span
-                                className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
-                                    isDayMode
-                                        ? "border-slate-200/80 bg-white text-slate-600"
-                                        : "border-white/10 bg-white/[0.045] text-slate-300"
-                                }`}
+                                className={`inline-flex max-w-[150px] items-center gap-1 text-[11px] font-medium ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
                             >
-                                <Tag size={11} className="shrink-0" />
+                                <span aria-hidden="true">·</span>
                                 <span className="truncate">
                                     {formatEventCategory(event.category)}
                                 </span>
@@ -1058,18 +928,16 @@ const CollegeNoticeRow = memo(({ event, index, onClick, reduceMotion, isDayMode 
                         )}
                         {noticeTypeLabel && (
                             <span
-                                className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
-                                    isDayMode
-                                        ? "border-sky-100/80 bg-sky-50 text-sky-700"
-                                        : "border-white/10 bg-white/[0.045] text-slate-300"
-                                }`}
+                                className={`inline-flex max-w-[150px] items-center gap-1 text-[11px] font-medium ${isDayMode ? "text-sky-700" : "text-slate-300"}`}
                             >
+                                <span aria-hidden="true">·</span>
                                 <span className="truncate">{noticeTypeLabel}</span>
                             </span>
                         )}
                         <span
-                            className={`rounded-[4px] border px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${getStatusColor(status, t, isDayMode)}`}
+                            className={`inline-flex items-center gap-1 text-[10px] font-bold ${getStatusTextColor(status, t, isDayMode)}`}
                         >
+                            <span className="h-1 w-1 rounded-full bg-current" aria-hidden="true" />
                             {status}
                         </span>
                     </div>
@@ -1133,13 +1001,7 @@ const CollegeNoticeRow = memo(({ event, index, onClick, reduceMotion, isDayMode 
                     )}
                 </div>
 
-                <div
-                    className={`flex items-center justify-end gap-3 border-t px-4 py-3 md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 ${
-                        isDayMode
-                            ? "border-blue-100/80 bg-blue-50/40"
-                            : "border-white/8 bg-white/[0.025]"
-                    }`}
-                >
+                <div className="flex items-center justify-end gap-3 pt-3 md:flex-col md:items-end md:justify-center md:pt-0">
                     {event.link ? (
                         <span
                             className={`inline-flex items-center gap-1.5 text-xs font-bold ${
@@ -1885,11 +1747,11 @@ END:VCALENDAR`;
                                     className={`inline-flex min-h-10 shrink-0 snap-start items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors ${
                                         active
                                             ? isDayMode
-                                                ? "border-blue-500 bg-blue-50/70 text-blue-700"
-                                                : "border-orange-300 bg-orange-400/10 text-orange-200"
+                                                ? "border-blue-500 text-blue-700"
+                                                : "border-indigo-300 text-indigo-100"
                                             : isDayMode
-                                              ? "border-transparent text-slate-600 hover:bg-slate-50/70 hover:text-blue-700"
-                                              : "border-transparent text-gray-300 hover:bg-white/8 hover:text-white"
+                                              ? "border-transparent text-slate-600 hover:text-blue-700"
+                                              : "border-transparent text-gray-300 hover:text-white"
                                     }`}
                                 >
                                     <Icon size={14} />
@@ -1978,11 +1840,7 @@ END:VCALENDAR`;
                             type="button"
                             data-testid="organization-partner-active-filter"
                             onClick={clearPartnerFilter}
-                            className={`inline-flex min-h-9 max-w-full items-center gap-2 rounded-[6px] border px-3 text-xs font-bold transition-colors ${
-                                isDayMode
-                                    ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-white"
-                                    : "border-indigo-400/25 bg-indigo-500/12 text-indigo-100 hover:bg-indigo-500/18"
-                            }`}
+                            className={`inline-flex min-h-9 max-w-full items-center gap-2 border-b border-transparent px-1 text-xs font-bold transition-colors ${isDayMode ? "text-slate-700 hover:border-blue-500/60 hover:text-blue-800" : "text-indigo-100 hover:border-indigo-300/70 hover:text-white"}`}
                         >
                             <Users size={14} />
                             <span className="truncate">
@@ -2352,7 +2210,7 @@ END:VCALENDAR`;
                     {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
                         <div
                             key={i}
-                            className={`rect-media-card relative flex h-[156px] flex-row overflow-hidden md:h-[392px] md:flex-col xl:h-[404px] 2xl:h-[416px] ${isDayMode ? "border-blue-100/80 bg-white/90" : "border-white/8 bg-[#050712]/58 backdrop-blur-sm"}`}
+                            className={`relative border-b pb-6 ${isDayMode ? "border-slate-200/80" : "border-white/[0.08]"}`}
                         >
                             {/* Shimmer Effect */}
                             {!isDayMode && (
@@ -2361,26 +2219,26 @@ END:VCALENDAR`;
 
                             {/* Image Skeleton */}
                             <div
-                                className={`m-2 aspect-square w-[104px] shrink-0 rounded-[5px] md:m-0 md:h-40 md:w-full md:rounded-none 2xl:h-44 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                                className={`aspect-[4/3] w-full rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                             />
                             {/* Content Skeleton */}
-                            <div className="flex flex-1 flex-col p-2.5 md:w-full md:p-4">
+                            <div className="flex flex-1 flex-col pt-4">
                                 <div
-                                    className={`h-5 rounded-[2px] w-3/4 mb-3 md:h-6 md:mb-4 ${isDayMode ? "bg-white" : "bg-white/10"}`}
+                                    className={`mb-3 h-5 w-3/4 rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
                                 />
                                 <div className="flex gap-2 mb-4">
                                     <div
-                                        className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                                        className={`h-4 w-20 rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                                     />
                                     <div
-                                        className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                                        className={`h-4 w-24 rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                                     />
                                 </div>
                                 <div
-                                    className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                                    className={`mb-2 h-4 w-full rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                                 />
                                 <div
-                                    className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                                    className={`h-4 w-2/3 rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                                 />
                             </div>
                         </div>
@@ -2439,31 +2297,25 @@ END:VCALENDAR`;
             )}
 
             {!loading && !error && displayEvents.length > 0 && !isPaginationEnabled && hasMore && (
-                <div className="flex items-center justify-center pt-10">
+                <div className="flex items-center justify-center pt-12">
                     <motion.button
                         whileHover={shouldReduceCardMotion ? undefined : { scale: 1.02 }}
                         whileTap={shouldReduceCardMotion ? undefined : { scale: 0.98 }}
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-blue-800 hover:border-blue-200/80 hover:bg-blue-50 hover:text-blue-900" : "text-white"}`}
+                        className={`inline-flex items-center gap-2 border-b border-transparent px-2 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:border-blue-500/60 hover:text-blue-950" : "text-slate-200 hover:border-indigo-300/70 hover:text-white"}`}
                     >
                         {t("common.load_more", "加载更多")}
+                        <ChevronDown size={16} />
                     </motion.button>
                 </div>
             )}
 
             {!loading && displayEvents.length === 0 && (
                 <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-20 text-center md:min-h-[48vh] md:py-32">
-                    <div
-                        className={`rect-panel p-8 mb-6 relative group ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/5 border-white/5"}`}
-                    >
-                        <div
-                            className={`absolute inset-x-6 bottom-0 h-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${isDayMode ? "bg-blue-200" : "bg-indigo-400/0 group-hover:bg-indigo-400/60"}`}
-                        />
-                        <Calendar
-                            size={64}
-                            className={`relative z-10 ${isDayMode ? "text-slate-400" : "text-white/40"}`}
-                        />
-                    </div>
+                    <Calendar
+                        size={54}
+                        className={`mb-6 ${isDayMode ? "text-slate-300" : "text-white/25"}`}
+                    />
                     <h3
                         className={`text-3xl font-bold mb-3 tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
