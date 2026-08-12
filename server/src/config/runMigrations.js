@@ -2258,6 +2258,7 @@ async function runMigrations(db) {
             "competition_works",
             {
                 competition_id: "INTEGER",
+                project_id: "INTEGER REFERENCES project_cards(id) ON DELETE SET NULL",
                 title: 'TEXT NOT NULL DEFAULT ""',
                 author: 'TEXT NOT NULL DEFAULT ""',
                 summary: 'TEXT NOT NULL DEFAULT ""',
@@ -2278,11 +2279,18 @@ async function runMigrations(db) {
                 reviewed_by: "INTEGER",
                 review_note: "TEXT",
                 reviewed_at: "TEXT",
-                created_at: "TEXT DEFAULT CURRENT_TIMESTAMP",
-                updated_at: "TEXT DEFAULT CURRENT_TIMESTAMP",
+                created_at: "TEXT",
+                updated_at: "TEXT",
                 deleted_at: "DATETIME",
             },
             "competition_works"
+        );
+
+        await db.run(
+            `UPDATE competition_works
+                SET created_at = COALESCE(created_at, datetime('now')),
+                    updated_at = COALESCE(updated_at, created_at, datetime('now'))
+              WHERE created_at IS NULL OR updated_at IS NULL`
         );
 
         await db.exec(`
@@ -2335,6 +2343,11 @@ async function runMigrations(db) {
         ON competition_works(status, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_competition_works_uploader_status
         ON competition_works(uploader_id, status, deleted_at, public_consent, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_competition_works_project
+        ON competition_works(project_id, status, competition_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_competition_works_comp_project_unique
+        ON competition_works(competition_id, project_id)
+        WHERE project_id IS NOT NULL AND deleted_at IS NULL;
       CREATE INDEX IF NOT EXISTS idx_competition_media_links_event
         ON competition_media_links(competition_id, resource_type, role, sort_order, resource_id);
       CREATE INDEX IF NOT EXISTS idx_competition_media_links_resource

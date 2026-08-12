@@ -123,7 +123,11 @@ const VideoArchiveCard = ({ video, index, onOpen, t }) => (
             <span>{String(index + 1).padStart(2, "0")}</span>
             <div>
                 <h3>{video.title}</h3>
-                <p>{video.role === "official_film" ? t("media_archive.official_film") : t("media_archive.event_video")}</p>
+                <p>
+                    {video.role === "official_film"
+                        ? t("media_archive.official_film")
+                        : t("media_archive.event_video")}
+                </p>
             </div>
         </div>
     </article>
@@ -160,7 +164,11 @@ const EventVideoDialog = ({ video, onClose, t }) => {
                         </button>
                     </div>
                     <div className="media-event-video-copy">
-                        <p>{video.role === "official_film" ? t("media_archive.official_film") : t("media_archive.event_video")}</p>
+                        <p>
+                            {video.role === "official_film"
+                                ? t("media_archive.official_film")
+                                : t("media_archive.event_video")}
+                        </p>
                         <h2>{video.title}</h2>
                     </div>
                 </motion.article>
@@ -352,10 +360,7 @@ const MediaEventArchive = () => {
             />
 
             <picture className="media-x-field" aria-hidden="true">
-                <source
-                    media="(max-width: 767px)"
-                    srcSet="/images/hackathon/x-field-mobile.webp"
-                />
+                <source media="(max-width: 767px)" srcSet="/images/hackathon/x-field-mobile.webp" />
                 <img src="/images/hackathon/x-field-desktop.webp" alt="" />
             </picture>
 
@@ -377,9 +382,18 @@ const MediaEventArchive = () => {
                         </p>
                     </div>
                     <div className="media-event-summary">
-                        <div><strong>{outcome?.stats?.stage_photos || 0}</strong><span>{t("media_archive.photos")}</span></div>
-                        <div><strong>{outcome?.stats?.promo_videos || 0}</strong><span>{t("media_archive.videos")}</span></div>
-                        <div><strong>{outcome?.stats?.works || 0}</strong><span>{t("media_archive.works")}</span></div>
+                        <div>
+                            <strong>{outcome?.stats?.stage_photos || 0}</strong>
+                            <span>{t("media_archive.photos")}</span>
+                        </div>
+                        <div>
+                            <strong>{outcome?.stats?.promo_videos || 0}</strong>
+                            <span>{t("media_archive.videos")}</span>
+                        </div>
+                        <div>
+                            <strong>{outcome?.stats?.works || 0}</strong>
+                            <span>{t("media_archive.works")}</span>
+                        </div>
                     </div>
                     <div className="media-event-actions">
                         <button type="button" onClick={() => setUploadType("stage_photo")}>
@@ -387,10 +401,20 @@ const MediaEventArchive = () => {
                             {t("media_archive.upload")}
                         </button>
                         {selectedArchive ? (
-                            <a href={`/hackathon?view=showcase&competition=${encodeURIComponent(selectedArchive.slug)}#showcase-works`}>
-                                {t("media_archive.view_works")}
-                                <ArrowRight className="h-4 w-4" />
-                            </a>
+                            <>
+                                <a
+                                    href={`/projects?competition=${encodeURIComponent(selectedArchive.slug)}`}
+                                >
+                                    {t("media_archive.view_projects", "进入本场项目广场")}
+                                    <ArrowRight className="h-4 w-4" />
+                                </a>
+                                <a
+                                    href={`/hackathon?view=showcase&competition=${encodeURIComponent(selectedArchive.slug)}#showcase-works`}
+                                >
+                                    {t("media_archive.view_works")}
+                                    <ArrowRight className="h-4 w-4" />
+                                </a>
+                            </>
                         ) : null}
                     </div>
                 </header>
@@ -405,16 +429,23 @@ const MediaEventArchive = () => {
                     </div>
                 ) : (
                     <>
-                        <section className="media-event-section" aria-labelledby="event-photo-heading">
+                        <section
+                            className="media-event-section"
+                            aria-labelledby="event-photo-heading"
+                        >
                             <div className="media-event-section-heading">
                                 <div>
                                     <span>02</span>
                                     <div>
                                         <p>{t("media_archive.photo_eyebrow")}</p>
-                                        <h2 id="event-photo-heading">{t("media_archive.photo_title")}</h2>
+                                        <h2 id="event-photo-heading">
+                                            {t("media_archive.photo_title")}
+                                        </h2>
                                     </div>
                                 </div>
-                                <strong>{t("media_archive.photo_count", { count: photos.length })}</strong>
+                                <strong>
+                                    {t("media_archive.photo_count", { count: photos.length })}
+                                </strong>
                             </div>
                             <div className="media-archive-photo-grid">
                                 {photos.map((photo, index) => (
@@ -430,13 +461,18 @@ const MediaEventArchive = () => {
                         </section>
 
                         {videos.length > 0 ? (
-                            <section className="media-event-section" aria-labelledby="event-video-heading">
+                            <section
+                                className="media-event-section"
+                                aria-labelledby="event-video-heading"
+                            >
                                 <div className="media-event-section-heading">
                                     <div>
                                         <span>03</span>
                                         <div>
                                             <p>{t("media_archive.video_eyebrow")}</p>
-                                            <h2 id="event-video-heading">{t("media_archive.video_title")}</h2>
+                                            <h2 id="event-video-heading">
+                                                {t("media_archive.video_title")}
+                                            </h2>
                                         </div>
                                     </div>
                                     <Film className="h-5 w-5" />
@@ -549,7 +585,7 @@ const MediaEventArchive = () => {
                     .media-event-archive{padding-top:4.5rem}.media-x-field{height:720px;opacity:.82}.media-x-field img{object-position:58% top}.media-event-inner{width:100%}
                     .media-event-rail{margin-inline:.75rem;border-radius:11px}.media-event-rail-label{padding:.7rem 1rem}.media-event-tab,.media-event-tab.is-day{min-width:78vw;min-height:58px;padding:.7rem 1rem}.media-event-date{font-size:1.1rem}.media-event-name{font-size:.86rem}
                     .media-event-header{padding:2.4rem 1rem 1.8rem}.media-event-header h1{font-size:clamp(2.65rem,12vw,4rem);line-height:.9}.media-event-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-                    .media-event-summary{grid-template-columns:repeat(3,1fr)}.media-event-summary div{padding:.75rem}.media-event-summary strong{font-size:1.25rem}.media-event-actions{display:grid;grid-template-columns:1fr 1fr}
+                    .media-event-summary{grid-template-columns:repeat(3,1fr)}.media-event-summary div{padding:.75rem}.media-event-summary strong{font-size:1.25rem}.media-event-actions{display:grid;grid-template-columns:1fr 1fr}.media-event-actions button{grid-column:1/-1}
                     .media-event-section{padding:2.3rem 1rem .5rem}.media-event-section-heading{align-items:flex-end}.media-event-section-heading>div{gap:.6rem}.media-event-section-heading>div>span{font-size:3rem}.media-event-section-heading>strong{display:none}
                     .media-archive-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.media-archive-photo,.media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo.is-lead{grid-column:span 2}
                     .media-archive-photo-button,.media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:4/3;border-radius:12px}.media-archive-caption{grid-template-columns:1.55rem minmax(0,1fr);padding:.65rem 0 .9rem}.media-archive-caption h3{font-size:.76rem}

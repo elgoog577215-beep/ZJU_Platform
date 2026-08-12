@@ -4,6 +4,14 @@ const { renderProjectShareCard } = require("../services/projectShareCardService"
 const PROGRESS = new Set(["idea", "dev", "live", "pause"]);
 const MAX_TAGS = 12;
 
+const normalizeCompetitionSlug = (value) =>
+    String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 120);
+
 const parseArr = (raw) => {
     try {
         const v = JSON.parse(raw || "[]");
@@ -51,6 +59,7 @@ const serialize = (row, { viewer, includeContact = true } = {}) => {
         views: row.views,
         created_at: row.created_at,
         updated_at: row.updated_at,
+        competitions: Array.isArray(row.competitions) ? row.competitions : [],
     };
     if (!includeContact) return base;
     // Contact only visible to logged-in viewers (privacy: anti-scrape).
@@ -60,6 +69,51 @@ const serialize = (row, { viewer, includeContact = true } = {}) => {
         contact_wechat: loggedIn ? row.contact_wechat || null : null,
         contact_email: loggedIn ? row.contact_email || null : null,
     };
+};
+
+const loadCompetitionSummaries = async (db, projectIds) => {
+    const ids = [...new Set(projectIds.map((id) => Number(id)).filter(Number.isFinite))];
+    if (ids.length === 0) return new Map();
+    const placeholders = ids.map(() => "?").join(",");
+    const rows = await db.all(
+        `SELECT cw.project_id,
+                cw.id AS work_id,
+                cw.award,
+                cw.rank,
+                c.slug,
+                c.title,
+                c.event_date
+           FROM competition_works cw
+           JOIN competitions c ON c.id = cw.competition_id
+          WHERE cw.project_id IN (${placeholders})
+            AND cw.status = 'approved'
+            AND COALESCE(cw.public_consent, 1) = 1
+            AND cw.deleted_at IS NULL
+            AND c.deleted_at IS NULL
+            AND c.status != 'draft'
+          ORDER BY COALESCE(c.event_date, c.created_at) DESC, cw.id DESC`,
+        ids
+    );
+    const grouped = new Map(ids.map((id) => [id, []]));
+    rows.forEach((row) => {
+        grouped.get(Number(row.project_id))?.push({
+            work_id: row.work_id,
+            slug: row.slug,
+            title: row.title,
+            event_date: row.event_date,
+            award: row.award || null,
+            rank: row.rank || null,
+        });
+    });
+    return grouped;
+};
+
+const attachCompetitionSummaries = async (db, rows) => {
+    const summaries = await loadCompetitionSummaries(
+        db,
+        rows.map((row) => row.id)
+    );
+    return rows.map((row) => ({ ...row, competitions: summaries.get(Number(row.id)) || [] }));
 };
 
 const validate = (body) => {
@@ -192,12 +246,49 @@ const listProjects = async (req, res, next) => {
     try {
         const db = await getDb();
         const { q, progress, need } = req.query;
+        const mine = req.query.mine === "1" || req.query.mine === "true";
+        if (mine && !req.user) return res.status(401).json({ error: "请先登录" });
+        const requestedCompetition = normalizeCompetitionSlug(req.query.competition);
+        const competition = requestedCompetition
+            ? await db.get(
+                  `SELECT c.id, c.slug, c.title, c.subtitle, c.description, c.event_date,
+                          c.cover_image, c.is_featured, c.status,
+                          (
+                              SELECT COUNT(DISTINCT cw.project_id)
+                                FROM competition_works cw
+                                JOIN project_cards linked_project ON linked_project.id = cw.project_id
+                               WHERE cw.competition_id = c.id
+                                 AND cw.status = 'approved'
+                                 AND COALESCE(cw.public_consent, 1) = 1
+                                 AND cw.deleted_at IS NULL
+                                 AND linked_project.status = 'published'
+                          ) AS approved_project_count
+                     FROM competitions c
+                    WHERE c.slug = ? AND c.status != 'draft' AND c.deleted_at IS NULL`,
+                  [requestedCompetition]
+              )
+            : null;
         const page = Math.max(1, parseInt(req.query.page) || 1);
         const limit = Math.min(48, Math.max(1, parseInt(req.query.limit) || 24));
         const offset = (page - 1) * limit;
 
-        const where = [`p.status = 'published'`];
+        const where = [mine ? "p.user_id = ? AND p.status != 'removed'" : "p.status = 'published'"];
         const params = [];
+        if (mine) params.push(req.user.id);
+        if (competition) {
+            where.push(
+                `EXISTS (
+                    SELECT 1
+                      FROM competition_works cw
+                     WHERE cw.project_id = p.id
+                       AND cw.competition_id = ?
+                       AND cw.status = 'approved'
+                       AND COALESCE(cw.public_consent, 1) = 1
+                       AND cw.deleted_at IS NULL
+                )`
+            );
+            params.push(competition.id);
+        }
         if (progress && PROGRESS.has(progress)) {
             where.push("p.progress = ?");
             params.push(progress);
@@ -227,12 +318,16 @@ const listProjects = async (req, res, next) => {
         LIMIT ? OFFSET ?`,
             [...params, limit, offset]
         );
+        const rowsWithCompetitions = await attachCompetitionSummaries(db, rows);
         res.json({
-            items: rows.map((r) => serialize(r, { includeContact: false })),
+            items: rowsWithCompetitions.map((r) => serialize(r, { includeContact: false })),
             page,
             limit,
             total: totalRow?.n || 0,
             totalPages: Math.max(1, Math.ceil((totalRow?.n || 0) / limit)),
+            competition: competition
+                ? { ...competition, is_featured: Boolean(competition.is_featured) }
+                : null,
         });
     } catch (error) {
         next(error);
@@ -334,7 +429,10 @@ const getProject = async (req, res, next) => {
             return res.status(404).json({ error: "项目不存在" });
         }
         await db.run("UPDATE project_cards SET views = views + 1 WHERE id = ?", [req.params.id]);
-        res.json(serialize({ ...row, views: row.views + 1 }, { viewer: req.user?.id }));
+        const [withCompetitions] = await attachCompetitionSummaries(db, [
+            { ...row, views: row.views + 1 },
+        ]);
+        res.json(serialize(withCompetitions, { viewer: req.user?.id }));
     } catch (error) {
         next(error);
     }
@@ -345,7 +443,27 @@ const getProjectShareCard = async (req, res, next) => {
     try {
         const db = await getDb();
         const row = await db.get(
-            `SELECT p.* FROM project_cards p WHERE p.id = ? AND p.status = 'published'`,
+            `SELECT p.*,
+                    c.title AS event_title,
+                    cw.award AS event_award,
+                    cw.rank AS event_rank
+               FROM project_cards p
+               LEFT JOIN competition_works cw
+                 ON cw.id = (
+                    SELECT work.id
+                      FROM competition_works work
+                      JOIN competitions event ON event.id = work.competition_id
+                     WHERE work.project_id = p.id
+                       AND work.status = 'approved'
+                       AND COALESCE(work.public_consent, 1) = 1
+                       AND work.deleted_at IS NULL
+                       AND event.deleted_at IS NULL
+                       AND event.status != 'draft'
+                     ORDER BY COALESCE(event.event_date, event.created_at) DESC, work.id DESC
+                     LIMIT 1
+                 )
+               LEFT JOIN competitions c ON c.id = cw.competition_id
+              WHERE p.id = ? AND p.status = 'published'`,
             [req.params.id]
         );
         if (!row) return res.status(404).json({ error: "项目不存在" });

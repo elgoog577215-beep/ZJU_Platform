@@ -127,6 +127,28 @@ async function ensureCoreSchema(db) {
       deleted_at DATETIME
     );
 
+    CREATE TABLE IF NOT EXISTS project_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      intro TEXT,
+      content TEXT,
+      progress TEXT DEFAULT 'idea',
+      need_tags TEXT DEFAULT '[]',
+      tech_tags TEXT DEFAULT '[]',
+      repo_url TEXT,
+      contact_wechat TEXT,
+      contact_email TEXT,
+      cover_url TEXT,
+      images_json TEXT DEFAULT '[]',
+      status TEXT DEFAULT 'published',
+      likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
     CREATE TABLE IF NOT EXISTS competitions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT UNIQUE,
@@ -180,6 +202,7 @@ async function ensureCoreSchema(db) {
     CREATE TABLE IF NOT EXISTS competition_works (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       competition_id INTEGER NOT NULL,
+      project_id INTEGER,
       title TEXT NOT NULL,
       author TEXT NOT NULL,
       summary TEXT NOT NULL,
@@ -204,10 +227,15 @@ async function ensureCoreSchema(db) {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME,
       FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE,
+      FOREIGN KEY (project_id) REFERENCES project_cards(id) ON DELETE SET NULL,
       FOREIGN KEY (uploader_id) REFERENCES users(id) ON DELETE SET NULL,
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE INDEX IF NOT EXISTS idx_project_cards_feed
+      ON project_cards(status, progress, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_project_cards_user
+      ON project_cards(user_id);
     CREATE INDEX IF NOT EXISTS idx_competition_media_links_event
       ON competition_media_links(competition_id, resource_type, role, sort_order, resource_id);
     CREATE INDEX IF NOT EXISTS idx_competition_media_links_resource

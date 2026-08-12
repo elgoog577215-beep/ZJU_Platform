@@ -3,7 +3,10 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
     ArrowRight,
+    CalendarDays,
+    Camera,
     Eye,
+    Flag,
     Github,
     Images,
     Lock,
@@ -13,6 +16,7 @@ import {
     Search,
     Share2,
     Sparkles,
+    Trophy,
     UploadCloud,
     UserRound,
     X,
@@ -25,6 +29,7 @@ import SEO from "./SEO";
 import api, { getProjects, getProject, createProjectCard } from "../services/api";
 import FavoriteButton from "./FavoriteButton";
 import ProjectSharePoster from "./ProjectSharePoster";
+import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import { getProjectShareCardUrl } from "../utils/projectShareCard";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
@@ -140,10 +145,11 @@ const ProgPill = ({ progress, t, className = "" }) => {
     );
 };
 
-const Card = ({ p, onOpen, onFav, t }) => {
+const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
     const fallbackInitial = t("project_plaza.initial_you", "你");
     const title = p.title || t("project_plaza.untitled", "未命名项目");
     const score = Math.round(projectScore(p));
+    const eventRecord = p.competitions?.find((item) => item.slug === competitionSlug);
     return (
         <article className="ppp-card">
             <button
@@ -171,10 +177,22 @@ const Card = ({ p, onOpen, onFav, t }) => {
                         {p.images.length}
                     </span>
                 )}
-                <span className="ppp-score">
-                    <Sparkles size={12} />
-                    {score}
-                </span>
+                {eventRecord ? (
+                    <span className="ppp-event-badge">
+                        <Trophy size={12} />
+                        {eventRecord.award ||
+                            (eventRecord.rank
+                                ? t("project_plaza.event.rank", "第 {{rank}} 名", {
+                                      rank: eventRecord.rank,
+                                  })
+                                : t("project_plaza.event.submitted", "本场作品"))}
+                    </span>
+                ) : (
+                    <span className="ppp-score">
+                        <Sparkles size={12} />
+                        {score}
+                    </span>
+                )}
             </div>
             <div className="ppp-body">
                 <div className="ppp-trow">
@@ -366,6 +384,60 @@ const DetailModal = ({
                                 </div>
                             </div>
                         )}
+                        {p.competitions?.length > 0 && (
+                            <div className="ppp-mblock ppp-event-history">
+                                <div className="ppp-bt">
+                                    {t("project_plaza.event.history", "赛事履历")}
+                                </div>
+                                <div className="ppp-event-history-list">
+                                    {p.competitions.map((event) => (
+                                        <article key={`${event.slug}-${event.work_id}`}>
+                                            <div>
+                                                <span>{event.event_date || "—"}</span>
+                                                <strong>{event.title}</strong>
+                                                <small>
+                                                    {event.award ||
+                                                        (event.rank
+                                                            ? t(
+                                                                  "project_plaza.event.rank",
+                                                                  "第 {{rank}} 名",
+                                                                  { rank: event.rank }
+                                                              )
+                                                            : t(
+                                                                  "project_plaza.event.approved",
+                                                                  "已入选本场作品"
+                                                              ))}
+                                                </small>
+                                            </div>
+                                            <nav
+                                                aria-label={t(
+                                                    "project_plaza.event.links_aria",
+                                                    "{{event}}相关页面",
+                                                    { event: event.title }
+                                                )}
+                                            >
+                                                <a
+                                                    href={`/hackathon?view=showcase&competition=${encodeURIComponent(event.slug)}&work=${encodeURIComponent(event.work_id)}#showcase-works`}
+                                                >
+                                                    {t(
+                                                        "project_plaza.event.view_outcome",
+                                                        "赛事作品"
+                                                    )}
+                                                </a>
+                                                <a
+                                                    href={`/media?event=${encodeURIComponent(event.slug)}`}
+                                                >
+                                                    {t(
+                                                        "project_plaza.event.view_media",
+                                                        "现场影像"
+                                                    )}
+                                                </a>
+                                            </nav>
+                                        </article>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         <div className="ppp-mcontact">
                             {p.repo_url ? (
                                 <a
@@ -462,7 +534,7 @@ const uploadImage = async (file) => {
     return data.fileUrl;
 };
 
-const CreateForm = ({ onClose, onCreated }) => {
+const CreateForm = ({ onClose, onCreated, competition }) => {
     const { t } = useTranslation();
     const [name, setName] = useState("");
     const [intro, setIntro] = useState("");
@@ -544,6 +616,14 @@ const CreateForm = ({ onClose, onCreated }) => {
                     {t("project_plaza.form.back", "返回广场")}
                 </button>
                 <div className="ppp-ctitle">{t("project_plaza.form.title", "发布项目名片")}</div>
+                {competition ? (
+                    <span className="ppp-create-event">
+                        <Flag size={14} />
+                        {t("project_plaza.event.create_for", "创建后提交到 {{event}}", {
+                            event: competition.title,
+                        })}
+                    </span>
+                ) : null}
                 <div className="ppp-cactions">
                     <button
                         className="ppp-cbtn ghost"
@@ -838,11 +918,15 @@ const ProjectPlaza = () => {
     const variant = uiMode === "day" ? "playful" : "cyber";
 
     const [items, setItems] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [competition, setCompetition] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
     const [posterProject, setPosterProject] = useState(null);
     const [showShareCoachmark, setShowShareCoachmark] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [submissionOpen, setSubmissionOpen] = useState(false);
+    const [submissionProjectId, setSubmissionProjectId] = useState("");
     const [progFilter, setProgFilter] = useState("all");
     const [needFilter, setNeedFilter] = useState(null);
     const [recruitingOnly, setRecruitingOnly] = useState(false);
@@ -853,6 +937,7 @@ const ProjectPlaza = () => {
     );
     const deepLinkOpenedRef = useRef(false);
     const shareCoachTimerRef = useRef(null);
+    const competitionSlug = String(searchParams.get("competition") || "").trim();
 
     const fetchList = useCallback(async () => {
         setLoading(true);
@@ -861,14 +946,17 @@ const ProjectPlaza = () => {
             if (progFilter !== "all") params.progress = progFilter;
             if (needFilter) params.need = needFilter;
             if (search.trim()) params.q = search.trim();
+            if (competitionSlug) params.competition = competitionSlug;
             const { data } = await getProjects(params);
             setItems(data.items || []);
+            setTotal(Number(data.total || 0));
+            setCompetition(data.competition || null);
         } catch {
             toast.error(t("project_plaza.toasts.load_failed", "加载失败"));
         } finally {
             setLoading(false);
         }
-    }, [progFilter, needFilter, search, t]);
+    }, [competitionSlug, progFilter, needFilter, search, t]);
 
     useEffect(() => {
         fetchList();
@@ -883,6 +971,12 @@ const ProjectPlaza = () => {
                 .catch(() => {});
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        if (!competition || !user) return;
+        if (searchParams.get("create") === "1") setCreating(true);
+        if (searchParams.get("submit") === "1") setSubmissionOpen(true);
+    }, [competition, searchParams, user]);
 
     const openDetail = async (project) => {
         try {
@@ -970,6 +1064,17 @@ const ProjectPlaza = () => {
         setCreating(true);
     };
 
+    const startCompetitionSubmit = () => {
+        if (!user) {
+            toast(t("project_plaza.toasts.login_to_submit", "请先登录后再提交参赛项目"));
+            return;
+        }
+        setSubmissionProjectId("");
+        setSubmissionOpen(true);
+    };
+
+    const showAllProjects = () => navigate("/projects");
+
     const toggleNeedFilter = (need) => {
         setRecruitingOnly(false);
         setNeedFilter(needFilter === need ? null : need);
@@ -1009,43 +1114,136 @@ const ProjectPlaza = () => {
             .find(([, count]) => count > 0)?.[0] || NEED_FILTERS[0];
 
     return (
-        <div className="ppp-root" data-variant={variant}>
+        <div
+            className="ppp-root"
+            data-variant={variant}
+            data-event={competition ? "true" : "false"}
+        >
             <SEO
-                title={t("project_plaza.meta_title", "项目广场")}
+                title={
+                    competition
+                        ? t("project_plaza.event.meta_title", "{{event}}项目广场", {
+                              event: competition.title,
+                          })
+                        : t("project_plaza.meta_title", "项目广场")
+                }
                 description={t("project_plaza.meta_desc", "把正在做的项目放上来，让对的人找到你。")}
             />
             <style>{PROJECT_PLAZA_CSS}</style>
             <div className="ppp-backdrop" />
+            <picture className="ppp-x-field" aria-hidden="true">
+                <source media="(max-width: 767px)" srcSet="/images/hackathon/x-field-mobile.webp" />
+                <img src="/images/hackathon/x-field-desktop.webp" alt="" />
+            </picture>
 
             <div className="ppp-wrap">
                 {creating ? (
                     <CreateForm
+                        competition={competition}
                         onClose={() => setCreating(false)}
-                        onCreated={() => {
+                        onCreated={(project) => {
                             setCreating(false);
                             fetchList();
+                            if (competition && project?.id && project.status === "published") {
+                                setSubmissionProjectId(String(project.id));
+                                setSubmissionOpen(true);
+                            }
                         }}
                     />
                 ) : (
                     <>
-                        <section className="ppp-shell" aria-labelledby="project-plaza-title">
+                        <section
+                            className={`ppp-shell ${competition ? "is-event" : ""}`}
+                            aria-labelledby="project-plaza-title"
+                        >
                             <div className="ppp-ph">
                                 <div className="ppp-headcopy">
                                     <span className="ppp-code">
-                                        {t("project_plaza.kicker", "BUILD · 项目广场")}
+                                        {competition
+                                            ? t(
+                                                  "project_plaza.event.kicker",
+                                                  "LIVE PROJECT FLOOR · 本场作品"
+                                              )
+                                            : t("project_plaza.kicker", "BUILD · 项目广场")}
                                     </span>
                                     <h1 id="project-plaza-title">
-                                        {t("project_plaza.title", "项目广场")}
+                                        {competition?.title || t("project_plaza.title", "项目广场")}
                                     </h1>
                                     <div className="ppp-sub">
-                                        {t("project_plaza.subtitle", "找项目、看进度、补队友。")}
+                                        {competition
+                                            ? competition.description ||
+                                              t(
+                                                  "project_plaza.event.subtitle",
+                                                  "每一件作品都来自一个可持续生长的项目。"
+                                              )
+                                            : t(
+                                                  "project_plaza.subtitle",
+                                                  "找项目、看进度、补队友。"
+                                              )}
                                     </div>
                                 </div>
-                                <button className="ppp-newbtn" type="button" onClick={startCreate}>
-                                    <Plus size={18} />
-                                    {t("project_plaza.actions.publish", "发布项目")}
-                                </button>
+                                <div className="ppp-head-actions">
+                                    {competition ? (
+                                        <button
+                                            className="ppp-newbtn"
+                                            type="button"
+                                            onClick={startCompetitionSubmit}
+                                        >
+                                            <Trophy size={18} />
+                                            {t("project_plaza.event.submit_action", "提交本场作品")}
+                                        </button>
+                                    ) : null}
+                                    <button
+                                        className={`ppp-newbtn ${competition ? "ghost" : ""}`}
+                                        type="button"
+                                        onClick={startCreate}
+                                    >
+                                        <Plus size={18} />
+                                        {t("project_plaza.actions.publish", "发布项目")}
+                                    </button>
+                                </div>
                             </div>
+
+                            {competition ? (
+                                <div className="ppp-event-scoreboard">
+                                    <div>
+                                        <CalendarDays size={18} />
+                                        <span>{competition.event_date || "—"}</span>
+                                    </div>
+                                    <div>
+                                        <Trophy size={18} />
+                                        <strong>
+                                            {competition.approved_project_count ?? total}
+                                        </strong>
+                                        <span>
+                                            {t("project_plaza.event.approved_count", "件入选作品")}
+                                        </span>
+                                    </div>
+                                    <nav
+                                        aria-label={t(
+                                            "project_plaza.event.journey_aria",
+                                            "赛事全流程"
+                                        )}
+                                    >
+                                        <a
+                                            href={`/hackathon?view=showcase&competition=${encodeURIComponent(competition.slug)}`}
+                                        >
+                                            <Flag size={15} />
+                                            {t("project_plaza.event.back_event", "赛事现场")}
+                                        </a>
+                                        <a
+                                            href={`/media?event=${encodeURIComponent(competition.slug)}`}
+                                        >
+                                            <Camera size={15} />
+                                            {t("project_plaza.event.media", "影像档案")}
+                                        </a>
+                                        <button type="button" onClick={showAllProjects}>
+                                            {t("project_plaza.event.all_projects", "全部项目")}
+                                            <ArrowRight size={15} />
+                                        </button>
+                                    </nav>
+                                </div>
+                            ) : null}
 
                             <div className="ppp-toolbar">
                                 <label className="ppp-search">
@@ -1119,7 +1317,7 @@ const ProjectPlaza = () => {
                             </div>
                         </section>
 
-                        <div className="ppp-results">
+                        <div className={`ppp-results ${competition ? "is-event" : ""}`}>
                             <div className="ppp-results-main">
                                 {loading ? (
                                     <div className="ppp-empty">
@@ -1129,24 +1327,48 @@ const ProjectPlaza = () => {
                                     <div className="ppp-empty">
                                         <UserRound size={34} />
                                         <strong>
-                                            {t("project_plaza.empty_title", "还没有匹配的项目名片")}
+                                            {competition
+                                                ? t(
+                                                      "project_plaza.event.empty_title",
+                                                      "本场作品正在集结"
+                                                  )
+                                                : t(
+                                                      "project_plaza.empty_title",
+                                                      "还没有匹配的项目名片"
+                                                  )}
                                         </strong>
                                         <span>
-                                            {t(
-                                                "project_plaza.empty_desc",
-                                                "换个关键词，或发布第一个项目。"
-                                            )}
+                                            {competition
+                                                ? t(
+                                                      "project_plaza.event.empty_desc",
+                                                      "提交你的项目，审核通过后会进入本场作品墙。"
+                                                  )
+                                                : t(
+                                                      "project_plaza.empty_desc",
+                                                      "换个关键词，或发布第一个项目。"
+                                                  )}
                                         </span>
                                         <button
                                             className="ppp-newbtn ppp-empty-action"
                                             type="button"
-                                            onClick={startCreate}
+                                            onClick={
+                                                competition ? startCompetitionSubmit : startCreate
+                                            }
                                         >
-                                            <Plus size={18} />
-                                            {t(
-                                                "project_plaza.actions.publish_first",
-                                                "发布第一个项目"
+                                            {competition ? (
+                                                <Trophy size={18} />
+                                            ) : (
+                                                <Plus size={18} />
                                             )}
+                                            {competition
+                                                ? t(
+                                                      "project_plaza.event.submit_action",
+                                                      "提交本场作品"
+                                                  )
+                                                : t(
+                                                      "project_plaza.actions.publish_first",
+                                                      "发布第一个项目"
+                                                  )}
                                         </button>
                                     </div>
                                 ) : (
@@ -1162,60 +1384,65 @@ const ProjectPlaza = () => {
                                                 onOpen={openDetail}
                                                 onFav={applyFav}
                                                 t={t}
+                                                competitionSlug={competition?.slug}
                                             />
                                         ))}
                                     </div>
                                 )}
                             </div>
 
-                            <section
-                                className="ppp-radar"
-                                aria-label={t("project_plaza.radar.aria", "项目机会雷达")}
-                            >
-                                <div>
-                                    <span className="ppp-radar-k">
-                                        <Radar size={15} />
-                                        {t("project_plaza.radar.kicker", "机会雷达")}
-                                    </span>
-                                    <strong>{getRadarHeadline(t, recruitingCount)}</strong>
-                                    <p>
-                                        {t(
-                                            "project_plaza.radar.copy",
-                                            "按进度、需求和热度自动把更值得加入的项目排到前面。"
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="ppp-radar-stats">
-                                    <button
-                                        type="button"
-                                        className={recruitingOnly ? "on" : ""}
-                                        onClick={showRecruitingProjects}
-                                    >
-                                        <span>{recruitingCount}</span>
-                                        {t("project_plaza.radar.recruiting", "开放招募")}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={
-                                            !recruitingOnly && progFilter === "live" ? "on" : ""
-                                        }
-                                        onClick={showLiveProjects}
-                                    >
-                                        <span>{liveCount}</span>
-                                        {t("project_plaza.radar.live", "已上线")}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={
-                                            !recruitingOnly && needFilter === topNeed ? "on" : ""
-                                        }
-                                        onClick={showTopNeedProjects}
-                                    >
-                                        <span>{getNeedLabel(t, topNeed)}</span>
-                                        {t("project_plaza.radar.hot_need", "最热需求")}
-                                    </button>
-                                </div>
-                            </section>
+                            {!competition ? (
+                                <section
+                                    className="ppp-radar"
+                                    aria-label={t("project_plaza.radar.aria", "项目机会雷达")}
+                                >
+                                    <div>
+                                        <span className="ppp-radar-k">
+                                            <Radar size={15} />
+                                            {t("project_plaza.radar.kicker", "机会雷达")}
+                                        </span>
+                                        <strong>{getRadarHeadline(t, recruitingCount)}</strong>
+                                        <p>
+                                            {t(
+                                                "project_plaza.radar.copy",
+                                                "按进度、需求和热度自动把更值得加入的项目排到前面。"
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="ppp-radar-stats">
+                                        <button
+                                            type="button"
+                                            className={recruitingOnly ? "on" : ""}
+                                            onClick={showRecruitingProjects}
+                                        >
+                                            <span>{recruitingCount}</span>
+                                            {t("project_plaza.radar.recruiting", "开放招募")}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={
+                                                !recruitingOnly && progFilter === "live" ? "on" : ""
+                                            }
+                                            onClick={showLiveProjects}
+                                        >
+                                            <span>{liveCount}</span>
+                                            {t("project_plaza.radar.live", "已上线")}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={
+                                                !recruitingOnly && needFilter === topNeed
+                                                    ? "on"
+                                                    : ""
+                                            }
+                                            onClick={showTopNeedProjects}
+                                        >
+                                            <span>{getNeedLabel(t, topNeed)}</span>
+                                            {t("project_plaza.radar.hot_need", "最热需求")}
+                                        </button>
+                                    </div>
+                                </section>
+                            ) : null}
                         </div>
                     </>
                 )}
@@ -1240,6 +1467,22 @@ const ProjectPlaza = () => {
                     variant={variant}
                 />
             )}
+            <CompetitionOutcomeUploadModal
+                open={submissionOpen}
+                onClose={() => {
+                    setSubmissionOpen(false);
+                    setSubmissionProjectId("");
+                }}
+                onSubmitted={() => {
+                    fetchList();
+                    setSubmissionOpen(false);
+                    setSubmissionProjectId("");
+                }}
+                initialType="work"
+                initialProjectId={submissionProjectId}
+                competitionSlug={competition?.slug}
+                competitionTitle={competition?.title}
+            />
         </div>
     );
 };

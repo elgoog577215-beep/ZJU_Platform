@@ -64,8 +64,8 @@ const resolveLocalCover = async (coverUrl) => {
 const buildCoverFallback = (title) =>
     Buffer.from(`
   <svg width="${WIDTH}" height="${COVER_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="#111827"/>
-    <text x="62" y="250" fill="#334155" font-size="190" font-weight="900"
+    <rect width="100%" height="100%" fill="#07100b"/>
+    <text x="62" y="250" fill="#b9ff18" fill-opacity=".34" font-size="190" font-weight="900"
       font-family="Arial, 'Microsoft YaHei', sans-serif">${escapeXml(clampText(title, 2))}</text>
   </svg>
 `);
@@ -74,6 +74,14 @@ const buildBodySvg = (project) => {
     const title = escapeXml(clampText(project.title, 18));
     const intro = escapeXml(clampText(project.intro || "一个正在生长的校园项目", 30));
     const status = escapeXml(progressLabel(project.progress));
+    const eventProof = project.event_title
+        ? escapeXml(
+              clampText(
+                  `${project.event_title} · ${project.event_award || (project.event_rank ? `第 ${project.event_rank} 名` : "入选作品")}`,
+                  34
+              )
+          )
+        : "";
     const tags = parseTags(project.need_tags);
     let tagX = 58;
     const tagSvg = tags
@@ -81,8 +89,8 @@ const buildBodySvg = (project) => {
             const label = escapeXml(clampText(tag, 8));
             const width = Math.max(92, Math.min(190, 52 + Array.from(label).length * 27));
             const svg = `<g transform="translate(${tagX},700)">
-      <rect width="${width}" height="54" rx="12" fill="#2a1b18" stroke="#fb923c" stroke-opacity=".58"/>
-      <text x="${width / 2}" y="35" text-anchor="middle" fill="#fed7aa" font-size="22" font-weight="800"
+      <rect width="${width}" height="54" rx="12" fill="#13200b" stroke="#b9ff18" stroke-opacity=".58"/>
+      <text x="${width / 2}" y="35" text-anchor="middle" fill="#e9ffb8" font-size="22" font-weight="800"
         font-family="Arial, 'Microsoft YaHei', sans-serif">${label}</text>
     </g>`;
             tagX += width + 16;
@@ -98,19 +106,19 @@ const buildBodySvg = (project) => {
           <stop offset="1" stop-color="#050b18"/>
         </linearGradient>
       </defs>
-      <rect y="${COVER_HEIGHT}" width="${WIDTH}" height="${HEIGHT - COVER_HEIGHT}" fill="#050b18"/>
+      <rect y="${COVER_HEIGHT}" width="${WIDTH}" height="${HEIGHT - COVER_HEIGHT}" fill="#020806"/>
       <rect y="342" width="${WIDTH}" height="94" fill="url(#fade)"/>
       <g transform="translate(770,38)">
-        <rect width="172" height="58" rx="12" fill="#071725" fill-opacity=".94" stroke="#67e8f9" stroke-opacity=".52"/>
-        <circle cx="28" cy="29" r="7" fill="#67e8f9"/>
-        <text x="50" y="38" fill="#cffafe" font-size="25" font-weight="900"
+        <rect width="172" height="58" rx="12" fill="#07100b" fill-opacity=".94" stroke="#b9ff18" stroke-opacity=".62"/>
+        <circle cx="28" cy="29" r="7" fill="#b9ff18"/>
+        <text x="50" y="38" fill="#e9ffb8" font-size="25" font-weight="900"
           font-family="Arial, 'Microsoft YaHei', sans-serif">${status}</text>
       </g>
-      <text x="58" y="500" fill="#67e8f9" font-size="20" font-weight="900"
-        font-family="Arial, 'Microsoft YaHei', sans-serif">项目广场 / PROJECT</text>
+      <text x="58" y="500" fill="#b9ff18" font-size="20" font-weight="900"
+        font-family="Arial, 'Microsoft YaHei', sans-serif">${eventProof || "项目广场 / PROJECT FLOOR"}</text>
       <text x="58" y="590" fill="#f8fafc" font-size="74" font-weight="900"
         font-family="Arial, 'Microsoft YaHei', sans-serif">${title}</text>
-      <text x="58" y="644" fill="#cbd5e1" font-size="29" font-weight="600"
+      <text x="58" y="644" fill="#c7d0c4" font-size="29" font-weight="600"
         font-family="Arial, 'Microsoft YaHei', sans-serif">${intro}</text>
       ${tagSvg}
       <text x="942" y="724" text-anchor="end" fill="#64748b" font-size="18" font-weight="800"

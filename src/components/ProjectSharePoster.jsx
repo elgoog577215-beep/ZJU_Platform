@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Copy, Download, Share2, X } from "lucide-react";
+import { Copy, Download, Share2, Trophy, X } from "lucide-react";
 import { toPng } from "html-to-image";
 import QRCode from "qrcode";
 import toast from "react-hot-toast";
@@ -67,6 +67,16 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     const progressLabel = t(`project_share_poster.progress.${project?.progress || "idea"}`, {
         defaultValue: t("project_share_poster.progress.idea", "构思中"),
     });
+    const eventRecord = Array.isArray(project?.competitions) ? project.competitions[0] : null;
+    const isEventPoster = Boolean(eventRecord);
+    const eventProof = eventRecord
+        ? eventRecord.award ||
+          (eventRecord.rank
+              ? t("project_share_poster.event_rank", "第 {{rank}} 名", {
+                    rank: eventRecord.rank,
+                })
+              : t("project_share_poster.event_selected", "入选作品"))
+        : "";
     const allTags = [
         ...needTags.map((value) => ({ value, tone: "need" })),
         ...techTags.map((value) => ({ value, tone: "tech" })),
@@ -79,7 +89,9 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
         QRCode.toDataURL(projectUrl, {
             width: 184,
             margin: 1,
-            color: { dark: "#22161a", light: "#fff8f1" },
+            color: isEventPoster
+                ? { dark: "#061006", light: "#f7f8f2" }
+                : { dark: "#22161a", light: "#fff8f1" },
         })
             .then((url) => {
                 if (alive) setQrDataUrl(url);
@@ -90,13 +102,13 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
         return () => {
             alive = false;
         };
-    }, [projectUrl, t]);
+    }, [isEventPoster, projectUrl, t]);
 
     const exportPoster = async () => {
         if (!posterRef.current) throw new Error("poster-not-ready");
         if (document.fonts?.ready) await document.fonts.ready;
         return toPng(posterRef.current, {
-            backgroundColor: "#fff8f1",
+            backgroundColor: isEventPoster ? "#07100b" : "#fff8f1",
             cacheBust: true,
             pixelRatio: 3,
         });
@@ -237,7 +249,12 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     if (!project || typeof document === "undefined") return null;
 
     return createPortal(
-        <div className="ppp-root ppp-poster-scrim" data-variant={variant} onClick={onClose}>
+        <div
+            className="ppp-root ppp-poster-scrim"
+            data-variant={variant}
+            data-event={isEventPoster ? "true" : "false"}
+            onClick={onClose}
+        >
             <div className="ppp-poster-modal" onClick={(e) => e.stopPropagation()}>
                 <button
                     className="ppp-poster-close"
@@ -281,9 +298,17 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
 
                         <div className="ppp-poster-main">
                             <section className="ppp-poster-title-block">
-                                <div className="ppp-poster-kicker">
-                                    {t("project_share_poster.kicker", "校园项目分享")}
-                                </div>
+                                {eventRecord ? (
+                                    <div className="ppp-poster-event">
+                                        <Trophy size={12} />
+                                        <span>{eventRecord.title}</span>
+                                        <strong>{eventProof}</strong>
+                                    </div>
+                                ) : (
+                                    <div className="ppp-poster-kicker">
+                                        {t("project_share_poster.kicker", "校园项目分享")}
+                                    </div>
+                                )}
                                 <h2 className="ppp-poster-title">{title}</h2>
                                 <p className="ppp-poster-intro">{intro}</p>
                             </section>

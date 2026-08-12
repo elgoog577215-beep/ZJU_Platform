@@ -179,6 +179,8 @@ const serializePublicWork = (row) => ({
     uploader_name: row.uploader_name,
     bound_identity_name: row.bound_identity_name,
     bound_identity_type: row.bound_identity_type,
+    project_id: row.public_project_id || null,
+    project_title: row.public_project_title || null,
 });
 
 const extractWorkStoryFields = (body, options = {}) => {
@@ -458,10 +460,13 @@ const getCurrentOutcome = async (req, res, next) => {
                 : Promise.resolve([]),
             db.all(
                 `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name,
+                CASE WHEN p.status = 'published' THEN p.id ELSE NULL END AS public_project_id,
+                CASE WHEN p.status = 'published' THEN p.title ELSE NULL END AS public_project_title,
                 GROUP_CONCAT(DISTINCT ic.display_name) AS bound_identity_name,
                 GROUP_CONCAT(DISTINCT ic.type) AS bound_identity_type
          FROM competition_works cw
          LEFT JOIN users u ON u.id = cw.uploader_id
+         LEFT JOIN project_cards p ON p.id = cw.project_id
          LEFT JOIN competition_work_identity_links l
            ON l.work_id = cw.id AND l.status = 'confirmed'
          LEFT JOIN user_identity_claims ic ON ic.id = l.claim_id
@@ -668,13 +673,50 @@ const submitCurrentWork = async (req, res, next) => {
             });
         }
 
-        const title = trimText(req.body.title, 140);
-        const author = trimText(req.body.author, 140);
-        const summary = trimText(req.body.summary, 1200);
-        const gitUrl = nullableText(req.body.git_url || req.body.gitUrl, 1000);
+        const projectId = toInteger(req.body.project_id || req.body.projectId, 0) || null;
+        if (!projectId && req.user?.role !== "admin") {
+            return sendBadRequest(res, "请先选择一个自己拥有的项目再提交参赛作品");
+        }
+
+        let project = null;
+        if (projectId) {
+            project = await db.get(
+                `SELECT p.*, COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name
+                 FROM project_cards p
+                 LEFT JOIN users u ON u.id = p.user_id
+                 WHERE p.id = ?`,
+                [projectId]
+            );
+            if (!project) return sendBadRequest(res, "所选项目不存在");
+            if (project.status === "removed")
+                return sendBadRequest(res, "所选项目已下架，无法参赛");
+            if (req.user?.role !== "admin" && String(project.user_id) !== String(req.user?.id)) {
+                return res.status(403).json({ error: "只能提交自己拥有的项目" });
+            }
+            const existing = await db.get(
+                `SELECT id FROM competition_works
+                 WHERE competition_id = ? AND project_id = ? AND deleted_at IS NULL`,
+                [competition.id, projectId]
+            );
+            if (existing) {
+                return res.status(409).json({
+                    error: "这个项目已经提交到本场赛事",
+                    code: "PROJECT_ALREADY_SUBMITTED",
+                    existing_work_id: existing.id,
+                });
+            }
+        }
+
+        const title = trimText(req.body.title || project?.title, 140);
+        const author = trimText(req.body.author || project?.owner_name, 140);
+        const summary = trimText(req.body.summary || project?.intro, 1200);
+        const gitUrl = nullableText(req.body.git_url || req.body.gitUrl || project?.repo_url, 1000);
         const award = nullableText(req.body.award, 140);
         const rank = nullableText(req.body.rank, 40);
-        const coverUrl = nullableText(req.body.cover_url || req.body.coverUrl, 1000);
+        const coverUrl = nullableText(
+            req.body.cover_url || req.body.coverUrl || project?.cover_url,
+            1000
+        );
         const story = extractWorkStoryFields(req.body);
 
         if (!title) return sendBadRequest(res, "请填写作品名称");
@@ -695,12 +737,13 @@ const submitCurrentWork = async (req, res, next) => {
 
         const result = await db.run(
             `INSERT INTO competition_works (
-        competition_id, title, author, summary, git_url, award, rank, cover_url,
+        competition_id, project_id, title, author, summary, git_url, award, rank, cover_url,
         honor_title, grade, major, highlight, experience, story_file_url, public_consent,
         sort_order, status, uploader_id, reviewed_by, reviewed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
             [
                 competition.id,
+                projectId,
                 title,
                 author,
                 summary,
