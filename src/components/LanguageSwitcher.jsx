@@ -9,12 +9,13 @@ const languages = [
     { code: "en", name: "English", dir: "ltr" },
 ];
 
-const LanguageSwitcher = () => {
+const LanguageSwitcher = ({ variant = "default" }) => {
     const { i18n } = useTranslation();
     const { uiMode } = useSettings();
     const [isOpen, setIsOpen] = React.useState(false);
     const menuRef = useRef(null);
     const isDayMode = uiMode === "day";
+    const isNavVariant = variant === "nav";
     const currentLanguageCode = (i18n.resolvedLanguage || i18n.language || "zh").split("-")[0];
 
     useEffect(() => {
@@ -58,7 +59,11 @@ const LanguageSwitcher = () => {
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
                 aria-controls="language-switcher-menu"
-                className={`flex items-center gap-2 rounded-lg p-2 transition-colors ${isDayMode ? "text-slate-500 hover:bg-white/90 hover:text-slate-900" : "text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                className={`flex items-center gap-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                    isNavVariant
+                        ? `h-9 border-b border-transparent px-1.5 ${isDayMode ? "text-slate-500 hover:border-violet-500/55 hover:text-slate-900" : "text-gray-300 hover:border-indigo-400/70 hover:text-white"}`
+                        : `rounded-lg p-2 ${isDayMode ? "text-slate-500 hover:bg-white/90 hover:text-slate-900" : "text-gray-300 hover:bg-white/10 hover:text-white"}`
+                }`}
             >
                 <Globe className="h-5 w-5" aria-hidden="true" />
                 <span className="text-sm font-medium uppercase">{currentLanguageCode}</span>

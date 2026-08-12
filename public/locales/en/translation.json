@@ -3513,6 +3513,7 @@
         "oldest": "Oldest First",
         "likes": "Most Liked",
         "title": "Choose Sort Order",
+        "title_option": "Title",
         "date_asc": "Date (Earliest)",
         "date_desc": "Date (Latest)"
     },

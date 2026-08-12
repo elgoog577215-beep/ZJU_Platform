@@ -88,6 +88,7 @@ const NotificationCenter = ({
     onUnreadCountChange = null,
     limit = 20,
     className = "",
+    triggerClassName = "",
     enabled = true,
 }) => {
     const { t, i18n } = useTranslation();
@@ -495,10 +496,13 @@ const NotificationCenter = ({
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
                 aria-controls={isOpen ? panelId : undefined}
-                className={`relative p-2 transition-colors rounded-full ${
-                    isDayMode
-                        ? "text-slate-500 hover:text-slate-900 hover:bg-white/90"
-                        : "text-gray-300 hover:text-white hover:bg-white/10"
+                className={`relative transition-colors ${
+                    triggerClassName ||
+                    `rounded-full p-2 ${
+                        isDayMode
+                            ? "text-slate-500 hover:bg-white/90 hover:text-slate-900"
+                            : "text-gray-300 hover:bg-white/10 hover:text-white"
+                    }`
                 }`}
             >
                 <motion.div

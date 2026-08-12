@@ -77,7 +77,7 @@ const Dropdown = ({
     className = "",
     buttonClassName = "",
     menuClassName = "",
-    variant = "default", // 'default' | 'sheet'
+    variant = "default", // 'default' | 'sheet' | 'ghost'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -103,6 +103,7 @@ const Dropdown = ({
 
     const selectedOption = options.find((opt) => opt.value === value);
     const isSheet = variant === "sheet";
+    const isGhost = variant === "ghost";
     const hasSelection = selectedOption && selectedOption.value !== "all";
     const focusClass = isDayMode
         ? "focus-visible:ring-2 focus-visible:ring-cyan-500/45 focus-visible:shadow-[0_0_0_4px_rgba(6,182,212,0.1)]"
@@ -123,7 +124,11 @@ const Dropdown = ({
                     if (event.key === "Escape") setIsOpen(false);
                 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-lg px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? "border-cyan-300/50 bg-cyan-500/10 text-slate-900" : "border-cyan-300/35 bg-cyan-300/10 text-white") : isOpen ? (isDayMode ? "border-cyan-300/60 bg-white text-slate-900" : "border-white/[0.16] bg-[#141926] text-white") : isDayMode ? "bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white" : "border-white/[0.11] text-slate-300 hover:bg-white/[0.06]") : isDayMode ? "bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-cyan-300/70 focus:border-cyan-400/60" : "bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]"} ${buttonClassName}`}
+                className={
+                    isGhost
+                        ? `group flex min-h-[44px] w-full items-center justify-between gap-2 border-b bg-transparent px-2 focus:outline-none focus-visible:outline-none ${focusClass} ${isDayMode ? "border-transparent text-slate-600 hover:border-blue-500/50 hover:text-blue-900" : "border-transparent text-slate-300 hover:border-indigo-300/60 hover:text-white"} ${buttonClassName}`
+                        : `group flex min-h-[44px] w-full items-center justify-between gap-2 rounded-lg border px-4 py-3.5 backdrop-blur-sm transition-all duration-300 focus:outline-none focus-visible:outline-none sm:min-h-0 sm:py-3 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? "border-cyan-300/50 bg-cyan-500/10 text-slate-900" : "border-cyan-300/35 bg-cyan-300/10 text-white") : isOpen ? (isDayMode ? "border-cyan-300/60 bg-white text-slate-900" : "border-white/[0.16] bg-[#141926] text-white") : isDayMode ? "border-slate-200/80 bg-white/82 text-slate-600 hover:bg-white" : "border-white/[0.11] text-slate-300 hover:bg-white/[0.06]") : isDayMode ? "border-slate-200/80 bg-white/82 text-slate-800 hover:border-cyan-300/70 hover:bg-white focus:border-cyan-400/60" : "border-white/[0.11] bg-[#171a26] text-white hover:border-white/[0.18] hover:bg-[#1d2130]"} ${buttonClassName}`
+                }
             >
                 <div className="flex items-center gap-3 min-w-0">
                     {Icon && (

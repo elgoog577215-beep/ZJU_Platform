@@ -1384,6 +1384,7 @@
         "oldest": "最早发布",
         "likes": "最多喜欢",
         "title": "选择排序方式",
+        "title_option": "标题排序",
         "date_asc": "日期 (最早)",
         "date_desc": "日期 (最晚)"
     },

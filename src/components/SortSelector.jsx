@@ -11,6 +11,7 @@ const SortSelector = ({
     options: customOptions,
     extraOptions = [],
     renderMode = "dropdown",
+    dropdownVariant = "default",
 }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
@@ -85,6 +86,7 @@ const SortSelector = ({
                 onChange={onSortChange}
                 options={options}
                 icon={ArrowUpDown}
+                variant={dropdownVariant}
                 buttonClassName={
                     buttonClassName ||
                     (isDayMode

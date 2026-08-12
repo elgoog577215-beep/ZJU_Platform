@@ -200,12 +200,21 @@ const Navbar = ({ miniProgramMode = false }) => {
     const navIndicatorClasses = isDayMode
         ? "absolute inset-x-3 -bottom-1 h-0.5 bg-violet-700"
         : "absolute inset-x-3 -bottom-1 h-0.5 bg-indigo-400";
-    const weatherButtonClasses = isDayMode
-        ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
-        : "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 cursor-pointer group";
-    const authButtonClasses = isDayMode
-        ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-violet-800"
-        : "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5";
+    const desktopUtilityButtonClasses = `motion-press relative inline-flex h-9 w-9 items-center justify-center border-b border-transparent bg-transparent transition-[border-color,color,opacity] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+        isDayMode
+            ? "text-slate-500 hover:border-violet-500/55 hover:text-slate-950"
+            : "text-slate-400 hover:border-indigo-400/70 hover:text-white"
+    }`;
+    const weatherButtonClasses = `motion-press group flex items-center gap-3 border-b border-transparent bg-transparent px-2 py-2 text-xs transition-[border-color,color] ${
+        isDayMode
+            ? "text-slate-500 hover:border-violet-500/55 hover:text-slate-950"
+            : "text-slate-400 hover:border-indigo-400/70 hover:text-white"
+    }`;
+    const authButtonClasses = `motion-press border-b border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+        isDayMode
+            ? "text-slate-600 hover:border-violet-500/55 hover:text-violet-800"
+            : "text-slate-300 hover:border-indigo-400/70 hover:text-white"
+    }`;
     const wallpaperModalClasses = isDayMode
         ? "theme-dialog text-slate-900"
         : "bg-[#08111f]/96 backdrop-blur-2xl border border-cyan-300/10 text-white";
@@ -310,7 +319,7 @@ const Navbar = ({ miniProgramMode = false }) => {
 
                 <button
                     onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                    className="btn-icon rect-icon-button"
+                    className={desktopUtilityButtonClasses}
                     title={t("nav.search_title")}
                     aria-label={t("nav.search_title", "搜索")}
                 >
@@ -361,7 +370,7 @@ const Navbar = ({ miniProgramMode = false }) => {
 
                 <button
                     onClick={() => changeUiMode(nextUiMode)}
-                    className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-violet-800" : "text-white hover:text-yellow-200"}`}
+                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-yellow-200"}`}
                     title={themeToggleTitle}
                     aria-label={t("nav.theme_settings", "主题设置")}
                 >
@@ -375,7 +384,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                 <button
                     type="button"
                     onClick={() => setIsThemeOpen(true)}
-                    className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-violet-800" : "text-cyan-100 hover:text-cyan-50"}`}
+                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-cyan-50"}`}
                     title={t("nav.wallpaper_title")}
                     aria-label={t("nav.wallpaper_aria")}
                 >
@@ -387,17 +396,18 @@ const Navbar = ({ miniProgramMode = false }) => {
                         <NotificationCenter
                             enabled
                             onUnreadCountChange={setUnreadNotificationCount}
+                            triggerClassName={desktopUtilityButtonClasses}
                         />
                     </Suspense>
                 )}
 
-                <LanguageSwitcher />
+                <LanguageSwitcher variant="nav" />
 
                 {user ? (
                     <div className="flex items-center gap-3">
                         <Link
                             to={`/user/${user.id}/center`}
-                            className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-violet-700" : "text-white"}`}
+                            className={`motion-press relative flex items-center gap-2 border-b border-transparent bg-transparent px-2 py-2 text-sm font-medium transition-[border-color,color] ${isDayMode ? "text-slate-700 hover:border-violet-500/55 hover:text-violet-700" : "text-slate-200 hover:border-indigo-400/70 hover:text-white"}`}
                             aria-label={t("nav.profile")}
                         >
                             <div
@@ -415,7 +425,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                         </Link>
                         <button
                             onClick={logout}
-                            className="btn-icon rect-icon-button"
+                            className={desktopUtilityButtonClasses}
                             title={t("auth.log_out")}
                             aria-label={t("auth.log_out", "退出登录")}
                         >

@@ -112,18 +112,18 @@ const EventFilterPanel = ({
     };
 
     const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
-    const glassClass = isDayMode
-        ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02),0_10px_24px_rgba(15,23,42,0.035)]"
-        : "border-white/[0.10] bg-white/[0.035] shadow-none";
     const subtleGlassClass = isDayMode
-        ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.028)]"
-        : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
+        ? "border-slate-200/80 bg-transparent shadow-none"
+        : "border-white/[0.12] bg-transparent shadow-none";
     const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
     const strongTextClass = isDayMode ? "text-slate-900" : "text-white";
     const nightControlClass =
         "border-white/[0.11] bg-[#101421]/62 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.18] hover:bg-[#171c2b]/74 hover:text-white";
     const nightControlActiveClass =
         "border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
+    const desktopGhostControlClass = isDayMode
+        ? "border-transparent bg-transparent text-slate-600 hover:border-blue-500/50 hover:text-blue-900"
+        : "border-transparent bg-transparent text-slate-300 hover:border-indigo-300/60 hover:text-white";
     const nightFocusClass = isDayMode
         ? "focus-visible:ring-blue-400/70"
         : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
@@ -131,11 +131,11 @@ const EventFilterPanel = ({
         `relative h-11 shrink-0 border-b-2 px-3.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
             active
                 ? isDayMode
-                    ? "border-blue-600 bg-white text-blue-900"
-                    : "border-indigo-300 bg-indigo-400/10 text-indigo-100"
+                    ? "border-blue-600 text-blue-900"
+                    : "border-indigo-300 text-indigo-100"
                 : isDayMode
-                  ? "border-transparent text-slate-500 hover:bg-white hover:text-blue-900"
-                  : "border-transparent text-slate-300 hover:bg-white/[0.055] hover:text-white"
+                  ? "border-transparent text-slate-500 hover:text-blue-900"
+                  : "border-transparent text-slate-300 hover:text-white"
         }`;
 
     const renderActivePill = () =>
@@ -344,11 +344,7 @@ const EventFilterPanel = ({
 
     return (
         <div className={shellClass}>
-            <div className={`relative overflow-visible border px-3 py-2 ${glassClass}`}>
-                {!isDayMode && (
-                    <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent" />
-                )}
-
+            <div className="relative overflow-visible pb-1">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div
                         className={`relative min-w-0 overflow-hidden border-b lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-slate-200/80" : "border-white/[0.09]"}`}
@@ -394,7 +390,7 @@ const EventFilterPanel = ({
                             type="button"
                             aria-expanded={isAudienceOpen}
                             onClick={() => setIsAudienceOpen((value) => !value)}
-                            className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-between gap-2 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${isDayMode ? "text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-900" : nightControlClass}`}
+                            className={`inline-flex min-h-[44px] items-center justify-between gap-2 border-b px-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${desktopGhostControlClass}`}
                         >
                             <span className="inline-flex min-w-0 items-center gap-2">
                                 <GraduationCap
@@ -416,7 +412,7 @@ const EventFilterPanel = ({
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-1.5 px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600" : nightControlClass}`}
+                                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 border-b border-transparent px-2 text-xs font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-400/60 hover:text-rose-600" : "text-slate-400 hover:border-rose-300/60 hover:text-rose-200"}`}
                             >
                                 <X size={13} />
                                 {t("common.clear_all", "重置")}
@@ -433,12 +429,11 @@ const EventFilterPanel = ({
                                     onSortChange={handleSortChange}
                                     className="w-full"
                                     buttonClassName={
-                                        isDayMode
-                                            ? "rect-button-secondary bg-white hover:bg-blue-50 hover:border-blue-200 w-full py-3 text-slate-700 transition-all hover:text-blue-900"
-                                            : `rect-button-secondary ${nightControlClass} w-full py-3 transition-all`
+                                        `w-full min-h-[44px] border-b bg-transparent px-2 py-3 text-sm font-bold transition-[border-color,color] ${desktopGhostControlClass}`
                                     }
                                     extraOptions={sortExtraOptions}
                                     renderMode={isSheetMode ? "list" : "dropdown"}
+                                    dropdownVariant="ghost"
                                 />
                             </div>
                         )}
@@ -453,7 +448,7 @@ const EventFilterPanel = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.16 }}
-                        className={`border p-3 ${subtleGlassClass}`}
+                        className={`border-y px-1 py-4 ${subtleGlassClass}`}
                     >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>

@@ -1814,10 +1814,10 @@ END:VCALENDAR`;
                         aria-label={t("nav.more", "更多")}
                         aria-haspopup="dialog"
                         onClick={() => window.dispatchEvent(new Event("open-mobile-more-menu"))}
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${
+                        className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${
                             isDayMode
-                                ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
-                                : "border-white/10 bg-white/[0.055] text-slate-200"
+                                ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950"
+                                : "text-slate-300 hover:border-indigo-400/70 hover:text-white"
                         }`}
                     >
                         <Menu size={18} />
@@ -1835,7 +1835,7 @@ END:VCALENDAR`;
                             type="button"
                             aria-label={t("search.placeholder", "搜索")}
                             onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
+                            className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950" : "text-slate-300 hover:border-indigo-400/70 hover:text-white"}`}
                         >
                             <Search size={18} />
                         </motion.button>
@@ -1851,7 +1851,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_8px_18px_rgba(37,99,235,0.08)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_16px_rgba(99,102,241,0.28)]"}`}
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] ${isDayMode ? "bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
                         >
                             <Plus size={19} strokeWidth={3} />
                         </motion.button>
@@ -1904,7 +1904,11 @@ END:VCALENDAR`;
                     />
                 </nav>
 
-                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] gap-2 md:hidden">
+                <div
+                    className={`mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] border-y md:hidden ${
+                        isDayMode ? "border-slate-200/80" : "border-white/10"
+                    }`}
+                >
                     <motion.button
                         {...mobileControlMotion}
                         type="button"
@@ -1912,7 +1916,7 @@ END:VCALENDAR`;
                             setIsMobileFilterOpen(false);
                             setIsMobileSortOpen(true);
                         }}
-                        className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+                        className={`inline-flex h-10 items-center justify-center gap-1.5 border-r text-[13px] font-semibold transition-colors ${isDayMode ? "border-slate-200/80 text-slate-600 hover:text-slate-950" : "border-white/10 text-slate-300 hover:text-white"}`}
                     >
                         <Clock size={16} />
                         <span className="truncate">{mobileSortLabel}</span>
@@ -1927,16 +1931,12 @@ END:VCALENDAR`;
                             setIsMobileSortOpen(false);
                             setIsMobileAssistantOpen(true);
                         }}
-                        className={`relative inline-flex h-9 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-[4px] border px-2 text-[12px] font-black transition-[background-color,border-color,box-shadow,transform] ${
+                        className={`relative inline-flex h-10 min-w-0 items-center justify-center gap-1.5 overflow-hidden px-2 text-[12px] font-black transition-colors ${
                             isDayMode
-                                ? "border-cyan-200 bg-[linear-gradient(180deg,#ffffff,#eefbff)] text-cyan-800 shadow-[0_8px_18px_rgba(8,145,178,0.10)] hover:border-cyan-300"
-                                : "border-cyan-300/24 bg-[linear-gradient(180deg,rgba(21,38,52,0.82),rgba(7,16,29,0.94))] text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_18px_rgba(34,211,238,0.10)] hover:border-cyan-200/36 hover:bg-[linear-gradient(180deg,rgba(26,49,67,0.88),rgba(8,20,34,0.96))]"
+                                ? "text-cyan-700 hover:text-cyan-900"
+                                : "text-cyan-200 hover:text-white"
                         }`}
                     >
-                        <span
-                            aria-hidden="true"
-                            className={`pointer-events-none absolute inset-x-2 top-0 h-px ${isDayMode ? "bg-cyan-200/80" : "bg-cyan-100/28"}`}
-                        />
                         <Sparkles
                             size={14}
                             className={
@@ -1953,7 +1953,7 @@ END:VCALENDAR`;
                             setIsMobileSortOpen(false);
                             setIsMobileFilterOpen(true);
                         }}
-                        className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+                        className={`inline-flex h-10 items-center justify-center gap-1.5 border-l text-[13px] font-semibold transition-colors ${isDayMode ? "border-slate-200/80 text-slate-600 hover:text-slate-950" : "border-white/10 text-slate-300 hover:text-white"}`}
                     >
                         <SlidersHorizontal size={17} />
                         <span className="truncate">{mobileAudienceLabel}</span>
@@ -2022,7 +2022,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`rect-button-secondary flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-bold transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:px-5 md:py-2.5 ${isDayMode ? "border-slate-200/80 bg-white/94 text-slate-700 shadow-[0_8px_24px_rgba(37,99,235,0.08)] hover:border-blue-200 hover:bg-white hover:text-blue-800" : "border-white/14 bg-[#0b1220]/68 text-white backdrop-blur-md hover:border-cyan-200/35 hover:bg-[#101b2d]/82"}`}
+                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-blue-800" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
                         >
                             <Upload size={18} className="md:w-5 md:h-5" />{" "}
                             {t("common.create_event")}
@@ -2061,10 +2061,8 @@ END:VCALENDAR`;
                     </div>
                     {!isCollegeNoticeFilter && (
                         <div
-                            className={`inline-flex rounded-[6px] border p-1 ${
-                                isDayMode
-                                    ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.028)]"
-                                    : "border-white/10 bg-white/[0.045]"
+                            className={`inline-flex items-center gap-1 border-b ${
+                                isDayMode ? "border-slate-200/80" : "border-white/10"
                             }`}
                             role="group"
                             aria-label={t("events.view_mode.aria")}
@@ -2079,14 +2077,14 @@ END:VCALENDAR`;
                                         aria-label={option.ariaLabel}
                                         aria-pressed={active}
                                         onClick={() => setViewMode(option.value)}
-                                        className={`inline-flex min-h-9 items-center gap-2 rounded-[4px] border border-transparent px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                        className={`inline-flex min-h-9 items-center gap-2 border-b-2 px-2.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                             active
                                                 ? isDayMode
-                                                    ? "border-blue-200/80 bg-white text-blue-700"
-                                                    : "border-white bg-white text-slate-950"
+                                                    ? "border-blue-600 text-blue-700"
+                                                    : "border-indigo-300 text-white"
                                                 : isDayMode
-                                                  ? "text-slate-500 hover:bg-white hover:text-slate-900"
-                                                  : "text-gray-400 hover:bg-white/10 hover:text-white"
+                                                  ? "border-transparent text-slate-500 hover:text-slate-900"
+                                                  : "border-transparent text-gray-400 hover:text-white"
                                         }`}
                                     >
                                         <Icon size={15} />

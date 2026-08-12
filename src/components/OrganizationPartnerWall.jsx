@@ -58,8 +58,8 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
     if (logoSrc) {
         return (
             <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border px-1 ${
-                    isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.06]"
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full px-1 ${
+                    isDayMode ? "bg-slate-100/70" : "bg-white/[0.05]"
                 }`}
             >
                 <img
@@ -75,10 +75,10 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
 
     return (
         <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
                 isDayMode
-                    ? "border-slate-200 bg-white text-slate-500"
-                    : "border-white/10 bg-white/[0.04] text-slate-400"
+                    ? "bg-slate-100/70 text-slate-500"
+                    : "bg-white/[0.05] text-slate-400"
             }`}
         >
             <Users size={17} aria-hidden="true" />
@@ -125,20 +125,18 @@ const OrganizationPartnerWall = ({
 
     const isAllActive = activePartnerId === null || activePartnerId === undefined;
     const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
-    const shellClass = isDayMode
-        ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
-        : "border-white/[0.105] bg-[rgba(8,18,34,0.58)] backdrop-blur-md";
+    const shellClass = isDayMode ? "border-slate-200/80" : "border-white/[0.105]";
     const buttonBase =
-        "relative flex w-12 shrink-0 flex-col items-center gap-0.5 rounded-[4px] border px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
+        "relative flex w-12 shrink-0 flex-col items-center gap-0.5 border-b-2 border-transparent px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
     const getButtonClass = (active) => {
         if (active) {
             return isDayMode
-                ? "border-blue-200 bg-blue-50 text-blue-800"
-                : "border-indigo-300/30 bg-indigo-400/14 text-indigo-100";
+                ? "border-blue-600 text-blue-800"
+                : "border-indigo-300 text-indigo-100";
         }
         return isDayMode
-            ? "border-transparent bg-transparent text-slate-700 hover:bg-slate-50 hover:text-blue-800"
-            : "border-transparent bg-transparent text-slate-100 hover:bg-white/[0.06]";
+            ? "text-slate-600 hover:text-blue-800"
+            : "text-slate-300 hover:text-white";
     };
     const partnerMotionProps = {
         whileHover: { opacity: 0.92 },
@@ -171,7 +169,7 @@ const OrganizationPartnerWall = ({
             data-testid="organization-partner-filter-bar"
         >
             <div
-                className={`relative overflow-hidden rounded-[4px] border md:rounded-none md:border-x-0 md:border-y ${shellClass}`}
+                className={`relative overflow-hidden border-y ${shellClass}`}
             >
                 <div
                     ref={scrollRef}
@@ -189,14 +187,14 @@ const OrganizationPartnerWall = ({
                         className={`${buttonBase} ${getButtonClass(isAllActive)}`}
                     >
                         <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center ${
                                 isAllActive
                                     ? isDayMode
-                                        ? "border-blue-100 bg-white text-blue-700"
-                                        : "border-indigo-300/25 bg-white/10 text-indigo-100"
+                                        ? "text-blue-700"
+                                        : "text-indigo-100"
                                     : isDayMode
-                                      ? "border-slate-200 bg-white text-slate-500"
-                                      : "border-white/10 bg-white/[0.04] text-slate-300"
+                                      ? "text-slate-500"
+                                      : "text-slate-300"
                             }`}
                         >
                             <LayoutGrid size={16} aria-hidden="true" />
@@ -235,14 +233,14 @@ const OrganizationPartnerWall = ({
                                     {partner.displayName}
                                 </span>
                                 <span
-                                    className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[9px] font-black leading-none ${
+                                    className={`absolute right-1 top-1 text-[9px] font-black leading-none ${
                                         active
                                             ? isDayMode
-                                                ? "bg-white text-blue-700"
-                                                : "bg-white/12 text-indigo-100"
+                                                ? "text-blue-700"
+                                                : "text-indigo-100"
                                             : isDayMode
-                                              ? "bg-slate-100 text-slate-500"
-                                              : "bg-white/10 text-slate-300"
+                                              ? "text-slate-400"
+                                              : "text-slate-500"
                                     }`}
                                 >
                                     {t("events.organizations.event_count_short", "{{count}} 场", {
@@ -255,11 +253,7 @@ const OrganizationPartnerWall = ({
                 </div>
                 <div
                     aria-hidden="true"
-                    className={`pointer-events-none absolute bottom-1 right-0 top-1 w-12 ${
-                        isDayMode
-                            ? "bg-gradient-to-l from-white to-transparent"
-                            : "bg-gradient-to-l from-[rgba(8,18,34,0.88)] to-transparent"
-                    }`}
+                    className="pointer-events-none absolute bottom-1 right-0 top-1 w-12 bg-gradient-to-l from-[var(--theme-bg)] to-transparent"
                 />
                 <span className={`sr-only ${mutedClass}`}>
                     {t("events.organizations.sorted_by_count", "社团已按活动数量从高到低排序")}
