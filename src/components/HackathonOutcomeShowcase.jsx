@@ -8,7 +8,7 @@ import { ArrowRight, ExternalLink, Github, Play, Upload, X } from "lucide-react"
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
 import SmartImage from "./SmartImage";
-import { normalizeHackathonTemplate, splitHackathonTitle } from "../data/hackathonTemplate";
+import { normalizeHackathonTemplate } from "../data/hackathonTemplate";
 import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
 import { getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
@@ -246,9 +246,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
     const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
-    const titleParts = useEnglishContent
-        ? [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")]
-        : splitHackathonTitle(event.title);
+    const titleParts = [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")];
     const eventDescription = useEnglishContent
         ? t("hackathon.hero.description")
         : event.description;
@@ -859,7 +857,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 }
                 .outcome-x-field{position:absolute;z-index:-1;inset:0 0 auto 0;height:min(1120px,100svh);pointer-events:none;overflow:hidden}
                 .outcome-x-field img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(1.08) contrast(1.05)}
-                .hackathon-outcome-inner{width:min(1480px,calc(100% - 5.75rem));margin:0 auto}
+                .hackathon-outcome-inner{width:min(1720px,calc(100% - 5.75rem));margin:0 auto}
                 .outcome-overview,.outcome-archive,.outcome-works{position:relative;isolation:isolate;padding:0 0 clamp(4rem,7vw,7rem)}
                 .outcome-section-field{position:absolute;z-index:-2;inset:0 calc((100vw - min(1480px,calc(100vw - 4rem)))/-2) auto;height:min(1080px,100svh);overflow:hidden;pointer-events:none;opacity:.58}
                 .outcome-section-field img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) contrast(1.04)}
@@ -868,11 +866,11 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-section-field.is-support{inset:0;z-index:-1;width:100%;height:100%;opacity:.52}.outcome-section-field.is-support img{object-position:72% top}
                 .outcome-archive,.outcome-works,.outcome-support{scroll-margin-top:5.25rem}
                 .outcome-overview{min-height:900px;display:flex;align-items:flex-start;padding-bottom:2rem}
-                .outcome-overview-grid{display:grid;width:100%;min-height:min(766px,calc(100svh - 8.15rem));grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(1.25rem,2.2vw,2.5rem);align-items:stretch}
+                .outcome-overview-grid{display:grid;width:100%;min-height:min(766px,calc(100svh - 8.15rem));grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);gap:clamp(1.25rem,2.2vw,2.75rem);align-items:stretch}
                 .outcome-hero-copy{position:relative;z-index:2;align-self:start;padding:2.75rem 0 0}
                 .outcome-date-line{margin:0;color:var(--x-lime);font-size:1rem;font-weight:900;letter-spacing:.045em}
                 .outcome-hero-copy h1{display:grid;row-gap:1.4rem;margin:0;font-size:clamp(6rem,8.65vw,8rem);font-weight:950;line-height:.84;letter-spacing:-.04em;text-shadow:0 10px 40px rgba(0,0,0,.32)}
-                .outcome-hero-copy h1>span{transform:scaleX(.963);transform-origin:left center;white-space:nowrap}
+                .outcome-hero-copy h1>span{display:block;width:max-content;max-width:none;transform:scaleX(.963);transform-origin:left center;white-space:nowrap}
                 .outcome-hero-copy h1 .is-accent{color:var(--x-lime)}
                 .outcome-title-rule{width:min(100%,46rem);height:1px;margin:3rem 0 1.05rem;background:rgba(185,255,24,.48)}
                 .outcome-overview-name{margin:1.45rem 0 0;color:var(--x-text);font-size:1.05rem;font-weight:900;letter-spacing:.03em}
@@ -889,7 +887,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-primary-actions button:first-child{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
                 .outcome-primary-actions button:hover,.outcome-primary-actions>a:hover,.outcome-section-topline>a:hover,.outcome-section-topline>button:hover,.outcome-work-detail-actions a:hover{transform:translateY(-2px);border-color:var(--x-lime);background:rgba(185,255,24,.12)}
                 .outcome-primary-actions button:first-child:hover{background:var(--x-lime-soft)}
-                .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 4.5vw);margin-right:calc((100vw - min(1480px,calc(100vw - 5.75rem)))/-2);margin-left:-.55vw;padding-bottom:0}
+                .outcome-film{position:relative;z-index:1;align-self:end;width:calc(100% + 5.5vw);margin-right:calc((100vw - min(1720px,calc(100vw - 5.75rem)))/-2);margin-left:-.8vw;padding-bottom:0}
                 .outcome-film-frame{width:100%;aspect-ratio:16/8.4;overflow:hidden;padding:1px;background:rgba(185,255,24,.72);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);filter:drop-shadow(0 26px 34px rgba(0,0,0,.5))}
                 .outcome-film button{position:relative;display:block;width:100%;height:100%;overflow:hidden;border:0;background:var(--x-surface);padding:0;clip-path:inherit}
                 @supports (clip-path:shape(from 0 0,line to 100% 0,line to 100% 100%,close)){
@@ -935,7 +933,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 .outcome-archive-feature figcaption span,.outcome-photo-strip figcaption span{color:var(--x-lime);font:800 .68rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .outcome-archive-feature figcaption strong,.outcome-photo-strip figcaption strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem}
                 .outcome-archive-feature figcaption,.outcome-photo-strip figcaption{display:none}
-                .outcome-photo-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:4rem 1.25rem 0}
+                .outcome-photo-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(.55rem,.72vw,.8rem);margin:4rem 0 0}
                 .outcome-photo-strip figure{min-width:0;margin:0}
                 .outcome-photo-strip figure>a{display:block;aspect-ratio:1.28/1;overflow:hidden;padding:1px;border-radius:14px 4px 14px 4px;background:rgba(185,255,24,.65);clip-path:polygon(7% 0,100% 0,100% 88%,93% 100%,0 100%,0 12%)}
                 .outcome-photo-strip img{transition:transform .55s ease}
@@ -1087,6 +1085,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                     .outcome-hero-copy{padding-top:.5rem}
                     .outcome-date-line{font-size:.82rem}
                     .outcome-hero-copy h1{row-gap:.2rem;font-size:clamp(3.15rem,14vw,4.1rem);line-height:.9;letter-spacing:-.04em}
+                    .outcome-hero-copy h1:lang(en){font-size:clamp(2.55rem,11.35vw,3rem);letter-spacing:-.055em}
                     .outcome-title-rule{margin:1.4rem 0 .8rem}.outcome-overview-name{margin-top:1rem;font-size:.92rem}
                     .outcome-description{display:-webkit-box;overflow:hidden;-webkit-line-clamp:4;-webkit-box-orient:vertical;font-size:.84rem;line-height:1.78}
                     .outcome-stat-grid{grid-template-columns:repeat(2,1fr);margin-top:1.7rem}

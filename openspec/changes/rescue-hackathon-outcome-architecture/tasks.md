@@ -80,3 +80,9 @@
 - [x] 10.2 Add an idempotent production migration for verified partner logos and the missing Getui core-partner record.
 - [x] 10.3 Render available school/community logos in the 04 support matrix while retaining text fallback for ambiguous identities.
 - [x] 10.4 Extend build, package, deploy, and HTTPS verification to require the partner assets and production API mappings.
+
+## 11. Wide-Screen Layout Reconciliation
+
+- [x] 11.1 Lock the Chinese and English hero to their two locale-owned title lines and reserve enough desktop width that neither line can reflow under font or zoom variance.
+- [x] 11.2 Extend the desktop showcase canvas, preserve the train-nose film scale, and open the 02 archive rail to the full content width with even compact gaps.
+- [x] 11.3 Re-verify `1980×1280`, `1487×1058`, `1366×768`, and `390×844` with side-by-side reference comparison, no document overflow, and unchanged shared Navbar / Logo.

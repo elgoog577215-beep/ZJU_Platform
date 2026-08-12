@@ -75,7 +75,23 @@
 - 继续复用真实 X-field 与黑绿 / 酸性荧光绿品牌语言，没有新增全屏遮罩、Logo 卡片墙或虚构图形资产。动画只用于整组阵列入场和 Logo 单元轻微位移，并在 `prefers-reduced-motion` 下关闭。
 - `1487×1058` 中文与英文桌面均完整容纳标题、企业矩阵和学校 / 社团阵列，`390×844` 手机改为两列 Logo 跑道与纵向支持网络；两端均实测 `scrollWidth === innerWidth`。
 
+## 十次校正：宽屏画布、标题安全区与照片轨道
+
+- 来源图：`/var/folders/5z/ysrw5tcd3fngb509jyxr533c0000gn/T/codex-clipboard-0640bbfe-d7d2-4748-8e9e-34c655448be6.png`，原始像素 `1980×1280`。实现页：`http://localhost:5190/hackathon?view=showcase&event=zhekesong-current`。宽屏验收使用 `1980×1280 @1x`，并补充 `1487×1058 @1x`、`1366×768 @1x`、`390×844 @1x`；状态均为中文黑夜模式、首场赛事、页面顶端，另测英文手机首屏。
+- 来源图暴露的 P1 是标题由容器和运行字体自然回流，导致“AI 全栈极速”中的“速”孤立到第三行。实现现在不再从动态赛事标题猜测分行，而是严格读取中英文 locale 的两条标题真源；两行各自使用不可回流的内容宽度。`1980px` 中文实测两行分别为 `AI 全栈极速`、`黑客松`，`390px` 仍是同样两行。
+- 同类边界检查发现英文 `Sprint Hackathon` 在 `390px` 下曾超出可视区约 `44px`。已单独收紧英文手机字级；复测第二行视觉右边界约 `332px`，小于内容右边界 `374px`，仍保持严格两行且没有裁切。
+- 来源图的 P2 是宽屏内容仍停留在窄画布，照片间留白偏大。桌面内容上限由 `1480px` 扩到 `1720px`，首屏左右列改为 `0.96 / 1.04`，保留右侧车头轮廓的出血比例；02 四张照片轨道取消两侧额外缩进并把间隙收敛到 `12.8px`。`1980px` 下四张卡片各约 `420.4px`，轨道从 `x=130` 连续铺到 `x=1850`。
+- 字体继续使用当前系统粗黑字栈，颜色继续复用 `--x-lime / --x-text / --x-ink`，背景继续使用真实 X-field 资产，照片继续使用真实赛事影像。未修改共享 Navbar、拓浙 AI 生态 Logo、顶部 tab 按钮和全局控制。
+- 全视图复核覆盖 01、02、03、04；03 作品详情 / 索引仍保持近等宽，04 企业与校园支持阵列没有因画布扩宽出现尺度失衡。四档中文文档均满足 `scrollWidth === innerWidth`；手机只允许 02 照片轨道自身横向滑动。
+- 比对历史：修复前有 1 个 P1 标题断行和 2 个 P2（宽屏利用率、照片轨道间距）；第一次复测后又发现 1 个英文手机 P1 裁切并完成校正。最终复测没有剩余 P0、P1、P2 视觉或交互问题。
+
 ## 对照证据
+
+- 本轮来源 / 最终全视图并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-wide-layout/reference-vs-final-1980x1280.jpg`
+- 本轮标题错误 / 最终两行局部并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-wide-layout/title-reference-vs-final.jpg`
+- 本轮中文四档：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-wide-layout/hero-final-1980x1280.png`、`hero-final-1487x1058.png`、`hero-final-1366x768.png`、`hero-final-390x844.png`
+- 本轮 02 / 03 / 04 宽屏：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-wide-layout/archive-final-1980x1280.png`、`works-final-1980x1280.png`、`support-final-1980x1280.png`
+- 本轮英文桌面 / 手机：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-wide-layout/hero-en-final-1487x1058.png`、`hero-en-final-390x844.png`
 
 - 本轮四屏最终拼图：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/four-screens-final-contact-sheet.jpg`
 - 01 概念图 / 最终实现同尺寸并排：`/Users/yq/.codex/visualizations/2026/08/12/hackathon-pixel-fidelity/01-reference-vs-final.jpg`
