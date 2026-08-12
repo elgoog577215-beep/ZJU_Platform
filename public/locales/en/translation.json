@@ -1479,6 +1479,7 @@
         "tabs": {
             "aria": "Zhekesong page switcher",
             "register": "Registration",
+            "register_short": "Register",
             "showcase": "Showcase",
             "showcase_short": "Results"
         },

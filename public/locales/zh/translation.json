@@ -1481,6 +1481,7 @@
         "tabs": {
             "aria": "浙客松页面切换",
             "register": "赛事报名",
+            "register_short": "报名",
             "showcase": "比赛成果",
             "showcase_short": "成果"
         },

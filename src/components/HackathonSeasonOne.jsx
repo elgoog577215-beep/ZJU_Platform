@@ -223,22 +223,36 @@ const HackathonSeasonOne = () => {
                 `}
             </style>
 
-            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] flex flex-col gap-1.5 sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] lg:flex-row lg:items-start lg:justify-between min-[1720px]:left-7 min-[1720px]:right-7">
-                {!showcaseMode ? (
+            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7">
+                <div
+                    data-hackathon-control-bar
+                    inert={pageTabsVisible ? undefined : ""}
+                    className={`pointer-events-auto relative mx-auto grid w-full max-w-[1480px] overflow-hidden rounded-[14px] border backdrop-blur-2xl transition-[opacity,transform] duration-300 ease-out lg:grid-cols-[minmax(0,1fr)_minmax(390px,420px)] ${
+                        pageTabsVisible
+                            ? "translate-y-0 opacity-100"
+                            : "pointer-events-none -translate-y-[150%] opacity-0"
+                    } ${shellClass}`}
+                >
+                    <span
+                        aria-hidden="true"
+                        className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-px ${
+                            showcaseMode
+                                ? "bg-[#b9ff18]/70"
+                                : isDayMode
+                                  ? "bg-cyan-500/60"
+                                  : "bg-cyan-300/70"
+                        }`}
+                    />
                     <div
                         data-hackathon-schedule-panel
-                        className={`pointer-events-auto mx-auto w-full max-w-[1480px] overflow-hidden rounded-[14px] border p-0 backdrop-blur-2xl transition-[opacity,transform] duration-300 ease-out lg:mx-0 lg:w-[520px] lg:min-w-0 lg:flex-none ${
-                            pageTabsVisible
-                                ? "max-lg:translate-y-0 max-lg:opacity-100"
-                                : "max-lg:pointer-events-none max-lg:-translate-y-[150%] max-lg:opacity-0"
-                        } ${shellClass}`}
+                        className="min-w-0 border-b border-current/10 lg:border-b-0 lg:border-r"
                         aria-label={t("hackathon.timeline_aria", "比赛日程时间轴")}
                     >
                         <div
                             ref={timelineScrollRef}
                             className="hackathon-timeline-scroll overflow-x-auto"
                         >
-                            <div className="flex min-w-full w-max items-stretch">
+                            <div className="flex min-w-full items-stretch">
                                 {schedule.events.map((item) => {
                                     const selected = item.event.key === activeEventKey;
                                     const eventEnd = item.event.endAt || item.event.startAt;
@@ -252,7 +266,7 @@ const HackathonSeasonOne = () => {
                                             type="button"
                                             onClick={() => switchEvent(item)}
                                             aria-current={selected ? "step" : undefined}
-                                            className={`group grid min-h-[58px] min-w-[280px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${showcaseMode ? "focus-visible:ring-[#b9ff18]/70" : "focus-visible:ring-cyan-400/60"} ${
+                                            className={`group grid min-h-[58px] min-w-[300px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition last:border-r-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${showcaseMode ? "focus-visible:ring-[#b9ff18]/70" : "focus-visible:ring-cyan-400/60"} ${
                                                 selected
                                                     ? showcaseMode
                                                         ? "border-[#b9ff18]/35 bg-[#b9ff18]/[0.08] text-white shadow-[inset_0_-2px_#b9ff18]"
@@ -292,13 +306,8 @@ const HackathonSeasonOne = () => {
                             </div>
                         </div>
                     </div>
-                ) : (
-                    <span className="hidden lg:block" aria-hidden="true" />
-                )}
-
-                {pageTabsVisible ? (
                     <div
-                        className={`pointer-events-auto flex w-full items-center gap-1 self-start rounded-[12px] border px-1.5 py-1 backdrop-blur-2xl sm:w-[min(420px,calc(100vw-2.5rem))] lg:w-[420px] lg:shrink-0 ${shellClass}`}
+                        className="flex min-h-[50px] w-full items-center gap-1 px-1.5 py-1 lg:min-h-[58px]"
                         role="tablist"
                         aria-label={t("hackathon.tabs.aria")}
                     >
@@ -356,7 +365,7 @@ const HackathonSeasonOne = () => {
                             })}
                         </div>
                     </div>
-                ) : null}
+                </div>
             </div>
 
             {activeView === "showcase" ? (
