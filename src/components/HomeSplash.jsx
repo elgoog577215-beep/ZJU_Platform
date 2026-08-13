@@ -9,7 +9,6 @@ import { useSettings } from "../context/SettingsContext";
 import { tapPress, useReducedMotion } from "../utils/animations";
 
 const SPLASH_SEEN_KEY = "site-splash:last-seen-date";
-const SPLASH_DURATION_MS = 3000;
 
 const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -22,7 +21,6 @@ const HomeSplash = () => {
     const shouldAnimate = !prefersReducedMotion;
     const isDayMode = uiMode === "day";
     const todayKey = useMemo(() => getTodayKey(), []);
-    const splashSeconds = Math.round(SPLASH_DURATION_MS / 1000);
 
     const enterPlatform = useCallback(() => {
         if (isRedirecting) return;
@@ -43,15 +41,13 @@ const HomeSplash = () => {
         try {
             if (window.localStorage.getItem(SPLASH_SEEN_KEY) === todayKey) {
                 navigate("/events", { replace: true });
-                return undefined;
             }
         } catch {
             // If storage is unavailable, show the splash once for this render.
         }
 
-        const timeoutId = window.setTimeout(enterPlatform, SPLASH_DURATION_MS);
-        return () => window.clearTimeout(timeoutId);
-    }, [enterPlatform, navigate, todayKey]);
+        return undefined;
+    }, [navigate, todayKey]);
 
     const pageClass = isDayMode
         ? "relative min-h-[100svh] overflow-hidden bg-white text-slate-950"
@@ -75,13 +71,13 @@ const HomeSplash = () => {
         : "pointer-events-auto flex w-full max-w-[640px] flex-col items-center gap-3 border border-white/15 bg-slate-950/42 px-4 py-3 text-center shadow-[0_18px_70px_rgba(2,6,23,0.36)] backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left";
     const labelClass = isDayMode
         ? "text-[10px] font-black uppercase tracking-[0.26em] text-violet-700"
-        : "text-[10px] font-black uppercase tracking-[0.26em] text-cyan-100/78";
+        : "text-[10px] font-black uppercase tracking-[0.26em] text-indigo-200/80";
     const copyClass = isDayMode
         ? "mt-1 text-xs font-semibold text-slate-600"
         : "mt-1 text-xs font-semibold text-white/72";
     const enterButtonClass = isDayMode
         ? "inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-violet-700 px-4 text-xs font-black text-white transition hover:bg-violet-800 focus:outline-none focus:ring-4 focus:ring-violet-300/35"
-        : "inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-cyan-300 px-4 text-xs font-black text-slate-950 transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-300/25";
+        : "inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-indigo-500 px-4 text-xs font-black text-white transition hover:bg-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/35";
 
     return (
         <section className={pageClass}>
@@ -114,9 +110,7 @@ const HomeSplash = () => {
             >
                 <div className={panelClass}>
                     <div className="min-w-0">
-                        <div className={labelClass}>
-                            {t("home.splash.auto_enter", { seconds: splashSeconds })}
-                        </div>
+                        <div className={labelClass}>{t("home.splash.welcome")}</div>
                         <div className={copyClass}>{t("home.splash.route_hint")}</div>
                     </div>
                     <motion.button

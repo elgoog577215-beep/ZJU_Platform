@@ -111,7 +111,7 @@ body {
 }
 
 :root {
-    --mobile-bottom-nav-height: 64px;
+    --mobile-bottom-nav-height: 72px;
     --mobile-content-bottom-padding: calc(
         var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 18px
     );

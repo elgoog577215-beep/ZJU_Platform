@@ -1217,7 +1217,7 @@
         "splash": {
             "meta_title": "TUOZHE AI ECOSYSTEM",
             "meta_desc": "The TUOZHE AI ECOSYSTEM connects campus opportunities, the AI Community, projects, Zhekesong outcomes, and industry collaboration.",
-            "auto_enter": "Opening Campus Opportunities in {{seconds}}s",
+            "welcome": "Welcome to the TUOZHE AI Ecosystem",
             "route_hint": "Start with one opportunity, then move into the community, projects, competitions, and outcome network.",
             "enter_now": "Enter now"
         }

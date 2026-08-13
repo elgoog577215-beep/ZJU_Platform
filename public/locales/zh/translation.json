@@ -1199,15 +1199,15 @@
         },
         "hero": {
             "kicker": "TUOZHE AI ECOSYSTEM",
-            "title_line_1": "浙江大学信息共享平台",
-            "title_line_2": "拓展AI生态：连接人才、技术与产业",
+            "title_line_1": "拓浙AI生态",
+            "title_line_2": "连接人才、技术与产业",
             "subtitle": "让机会发现、社区学习、项目实践和赛事验证持续形成下一次连接。",
             "badge": "机会发现 · 社区学习 · 项目实践 · 赛事验证"
         },
         "splash": {
             "meta_title": "拓浙AI生态",
             "meta_desc": "拓浙AI生态连接校园机会、AI 社区、实践项目、浙客松成果与产学协作。",
-            "auto_enter": "{{seconds}} 秒后进入校园机会",
+            "welcome": "欢迎来到拓浙AI生态",
             "route_hint": "先发现一个值得参与的机会，再进入社区、项目、赛事与成果网络。",
             "enter_now": "直接进入"
         }

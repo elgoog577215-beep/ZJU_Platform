@@ -217,7 +217,7 @@ const Navbar = ({ miniProgramMode = false }) => {
     }`;
     const wallpaperModalClasses = isDayMode
         ? "theme-dialog text-slate-900"
-        : "bg-[#08111f]/96 backdrop-blur-2xl border border-cyan-300/10 text-white";
+        : "bg-[#08111f]/96 backdrop-blur-2xl border border-indigo-400/10 text-white";
     const wallpaperHeaderClasses = isDayMode
         ? "text-slate-700 bg-white border border-slate-200/70"
         : "text-white/84 bg-[#08111f]/92 border border-white/10";
@@ -277,7 +277,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                             {t("nav.site_brand")}
                         </span>
                         <span
-                            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-pink-700" : "text-gray-400 group-hover:text-indigo-400"}`}
+                            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-violet-700" : "text-gray-400 group-hover:text-indigo-400"}`}
                         >
                             {t("nav.site_tagline")}
                         </span>
@@ -343,7 +343,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                             </span>
                         </div>
                         <div
-                            className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-pink-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+                            className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-violet-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
                             role="separator"
                             aria-hidden="true"
                         />
@@ -356,7 +356,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                             <span>{weather ? weatherTemperatureLabel : "..."}</span>
                         </div>
                         <div
-                            className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-pink-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+                            className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-violet-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
                             role="separator"
                             aria-hidden="true"
                         />
@@ -384,7 +384,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                 <button
                     type="button"
                     onClick={() => setIsThemeOpen(true)}
-                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-cyan-50"}`}
+                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-indigo-200"}`}
                     title={t("nav.wallpaper_title")}
                     aria-label={t("nav.wallpaper_aria")}
                 >
@@ -510,7 +510,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                 className={`rounded-t-lg md:rounded-lg w-full max-w-sm overflow-hidden p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:pb-6 relative z-10 ${weatherModalClasses}`}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50 pointer-events-none" />
+                                <div className="absolute inset-0 bg-indigo-500/5 opacity-50 pointer-events-none" />
 
                                 <div className="flex justify-between items-center mb-6 relative z-10">
                                     <h3
@@ -561,7 +561,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                     <button
                                         type="submit"
                                         disabled={isSearching}
-                                        className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-none" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
+                                        className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-none" : "bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-500/25"}`}
                                     >
                                         {isSearching
                                             ? t("weather.searching")
@@ -705,7 +705,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                             setIsMobileMoreOpen(false);
                                             setIsThemeOpen(true);
                                         }}
-                                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.1]"}`}
+                                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100 hover:bg-indigo-500/[0.16]"}`}
                                     >
                                         <Wallpaper size={18} aria-hidden="true" />
                                         <span className="text-sm font-semibold">
@@ -807,7 +807,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                     className={`mb-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
                                         isDayMode
                                             ? "border-violet-200/70 bg-white"
-                                            : "border-cyan-300/10 bg-cyan-300/[0.055]"
+                                            : "border-indigo-400/15 bg-indigo-500/[0.08]"
                                     }`}
                                 >
                                     <div>
@@ -815,7 +815,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                             className={`text-xs font-black uppercase tracking-[0.22em] ${
                                                 isDayMode
                                                     ? "text-violet-500/78"
-                                                    : "text-cyan-200/70"
+                                                    : "text-indigo-200/70"
                                             }`}
                                         >
                                             {t("nav.wallpaper_scope")}
@@ -858,7 +858,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                         const sceneDesc = t(`themes.${scene.id}.desc`, scene.desc);
                                         const sceneButtonClasses = isDayMode
                                             ? "border-violet-300/80 bg-white shadow-none"
-                                            : "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]";
+                                            : "border-indigo-400/50 bg-indigo-500/[0.14] shadow-[0_18px_44px_rgba(99,102,241,0.14)]";
 
                                         return (
                                             <button
@@ -887,7 +887,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                                                                 className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-black ${
                                                                     isDayMode
                                                                         ? "bg-violet-600 text-white"
-                                                                        : "bg-cyan-300 text-slate-950"
+                                                                        : "bg-indigo-500 text-white"
                                                                 }`}
                                                             >
                                                                 {t("nav.wallpaper_enabled")}
