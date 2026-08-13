@@ -69,9 +69,9 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-12 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-14";
-const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[82rem]";
-const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[82rem]";
+    "grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-7 xl:gap-y-14";
+const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
+const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
     all: LayoutGrid,
     [COLLEGE_NOTICE_CATEGORY_VALUE]: FileText,
@@ -1661,7 +1661,7 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="content-stage day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 

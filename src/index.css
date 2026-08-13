@@ -97,19 +97,6 @@ body {
     /* cursor: none; - Moved to CustomCursor component for toggle support */
 }
 
-/* Quiet content stage used by discovery and knowledge surfaces.
-   It intentionally stays page-scoped so immersive hackathon routes keep their own visual world. */
-.content-stage {
-    isolation: isolate;
-    background:
-        radial-gradient(900px 420px at 12% -8%, rgba(213, 255, 85, 0.045), transparent 62%), #070807;
-}
-
-:root[data-theme="day"] .content-stage {
-    background:
-        radial-gradient(900px 420px at 12% -8%, rgba(71, 123, 36, 0.055), transparent 62%), #f5f3ed;
-}
-
 #root {
     max-width: 100%;
     overflow-x: clip;
