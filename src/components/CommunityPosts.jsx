@@ -1027,7 +1027,7 @@ const LearningCard = ({ item, chapter, level, isDayMode, onOpen, t, language }) 
         <button
             type="button"
             onClick={() => onOpen(item)}
-            className={`ai-community-learning-card group border-t py-4 text-left transition-all md:rounded-lg md:border md:p-5 md:hover:-translate-y-0.5 ${
+            className={`group border-t py-4 text-left transition-all md:rounded-lg md:border md:p-5 md:hover:-translate-y-0.5 ${
                 isDayMode
                     ? "border-slate-200 bg-transparent md:border-slate-200/80 md:bg-white md:shadow-[0_8px_20px_rgba(15,23,42,0.04)] md:hover:border-violet-200 md:hover:shadow-[0_14px_32px_rgba(124,58,237,0.06)]"
                     : "border-white/10 bg-transparent md:bg-white/[0.045] md:hover:border-violet-400/20 md:hover:bg-white/[0.06]"
@@ -1089,7 +1089,7 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
         <button
             type="button"
             onClick={() => onOpen(item)}
-            className={`ai-community-featured-card group grid w-full gap-4 border-t py-4 text-left transition-all md:grid-cols-[minmax(0,1fr)_10rem] md:rounded-lg md:border md:p-5 md:hover:-translate-y-0.5 ${
+            className={`group grid w-full gap-4 border-t py-4 text-left transition-all md:grid-cols-[minmax(0,1fr)_10rem] md:rounded-lg md:border md:p-5 md:hover:-translate-y-0.5 ${
                 isDayMode
                     ? "border-slate-200 bg-transparent md:border-slate-200/80 md:bg-white md:shadow-[0_16px_42px_rgba(15,23,42,0.055)] md:hover:border-violet-200 md:hover:shadow-[0_22px_52px_rgba(124,58,237,0.07)]"
                     : "border-white/10 bg-transparent md:bg-white/[0.045] md:shadow-[0_18px_46px_rgba(0,0,0,0.24)] md:hover:border-orange-400/20 md:hover:bg-white/[0.06]"
@@ -1128,7 +1128,7 @@ const FeaturedLearningCard = ({ item, chapter, level, isDayMode, onOpen, t, lang
                 </p>
             </div>
             <div
-                className={`ai-community-featured-rail flex min-h-0 items-center justify-between gap-3 bg-transparent p-0 md:min-h-24 md:flex-col md:items-stretch md:rounded-md md:border md:p-3 ${
+                className={`flex min-h-0 items-center justify-between gap-3 bg-transparent p-0 md:min-h-24 md:flex-col md:items-stretch md:rounded-md md:border md:p-3 ${
                     isDayMode
                         ? "md:border-violet-100 md:bg-violet-50/60"
                         : "md:border-white/10 md:bg-white/[0.035]"
@@ -1344,7 +1344,7 @@ const LearningArea = ({ isDayMode }) => {
     );
 
     return (
-        <div className="ai-community-learning-layout grid min-w-0 gap-3 md:gap-5 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
+        <div className="grid min-w-0 gap-3 md:gap-5 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
             <div
                 className={`-mx-3 min-w-0 overflow-hidden border-y lg:hidden ${isDayMode ? "border-slate-200" : "border-white/10"}`}
             >
@@ -1386,7 +1386,7 @@ const LearningArea = ({ isDayMode }) => {
 
             <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
                 <nav
-                    className={`ai-community-path-nav max-h-[calc(100vh-7rem)] overflow-y-auto rounded-lg border p-2 ${isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.035]"}`}
+                    className={`max-h-[calc(100vh-7rem)] overflow-y-auto rounded-lg border p-2 ${isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.035]"}`}
                     aria-label={t("community_learning.curriculum_label", "AI LEARNING PATH")}
                 >
                     <div
@@ -1498,7 +1498,7 @@ const LearningArea = ({ isDayMode }) => {
                     isDayMode={isDayMode}
                 />
 
-                <div className="ai-community-learning-stream mt-5 space-y-5">
+                <div className="mt-5 space-y-5">
                     {articleResource.loading && visibleArticlesCount === 0 ? (
                         [0, 1, 2, 3].map((item) => (
                             <div
@@ -1771,7 +1771,7 @@ const CommunityPosts = () => {
     return (
         <div className="space-y-3 md:space-y-5">
             <nav
-                className={`ai-community-area-nav -mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
+                className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
                     isDayMode ? "border-slate-200" : "border-white/10"
                 }`}
                 aria-label={t("community_learning.area_nav_label", "学习社区分区")}

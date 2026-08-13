@@ -69,7 +69,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "events-results-grid grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-7 xl:gap-y-14";
+    "grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-7 xl:gap-y-14";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
@@ -435,7 +435,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     : "border-white/[0.08] hover:border-indigo-300/55"
             }`}
         >
-            <div className="relative aspect-[16/9] overflow-hidden rounded-[2px] bg-slate-900">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] bg-slate-900">
                 <SmartImage
                     src={getThumbnailUrl(event.image)}
                     alt={event.title}
@@ -1661,7 +1661,7 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="day-page-theme day-page-theme-events events-page-redesign relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
@@ -1854,7 +1854,7 @@ END:VCALENDAR`;
                 )}
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} events-page-heading mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
                 >
                     <div className="min-w-0">
                         <h2
@@ -1889,7 +1889,7 @@ END:VCALENDAR`;
                 </div>
 
                 {/* Desktop Filter Section */}
-                <div className={`${EVENT_FILTER_WIDTH_CLASS} events-filter-band mb-3 hidden md:block`}>
+                <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden md:block`}>
                     <EventFilterPanel
                         filters={filters}
                         onFiltersChange={setFilters}
@@ -1901,14 +1901,14 @@ END:VCALENDAR`;
                 <OrganizationPartnerWall
                     partners={eventOrganizationPartners}
                     isDayMode={isDayMode}
-                    className={`${EVENT_FILTER_WIDTH_CLASS} events-partner-band mb-3 hidden text-left md:block`}
+                    className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden text-left md:block`}
                     activePartnerId={partnerFilter?.id}
                     onApplyPartnerFilter={handleApplyPartnerFilter}
                     onClearPartnerFilter={clearPartnerFilter}
                 />
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} events-result-band hidden items-center justify-between gap-4 md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}
                 >
                     <div
                         className={`text-left text-sm font-medium ${
@@ -2219,7 +2219,7 @@ END:VCALENDAR`;
 
                             {/* Image Skeleton */}
                             <div
-                                className={`aspect-[16/9] w-full rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                                className={`aspect-[4/3] w-full rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                             />
                             {/* Content Skeleton */}
                             <div className="flex flex-1 flex-col pt-4">
