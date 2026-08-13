@@ -67,7 +67,7 @@ const AICommunity = () => {
 
     return (
         <section
-            className={`relative z-10 min-h-screen overflow-x-clip px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+64px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
+            className={`ai-community-page relative z-10 min-h-screen overflow-x-clip px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+64px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${
                 isDayMode ? "text-slate-950" : "text-white"
             }`}
         >
@@ -80,7 +80,19 @@ const AICommunity = () => {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,182,212,0.055),transparent)]" />
             </div>
 
-            <div className="relative z-10 mx-auto w-full max-w-[1680px]">
+            <div className="ai-community-frame relative z-10 mx-auto w-full max-w-[1680px]">
+                <header className="ai-community-page-heading mb-5 hidden items-end justify-between gap-8 border-b pb-5 text-left md:flex">
+                    <div>
+                        <h1 className="text-3xl font-black tracking-[-0.03em]">
+                            {t("community_learning.meta_title", "学习社区")}
+                        </h1>
+                        <p
+                            className={`mt-2 max-w-2xl text-sm leading-6 ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
+                        >
+                            {subtitle}
+                        </p>
+                    </div>
+                </header>
                 <CommunityPosts />
             </div>
         </section>

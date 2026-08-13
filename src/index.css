@@ -2818,6 +2818,107 @@ img.motion-image-zoom {
     text-underline-offset: 3px;
     text-decoration-thickness: 1.5px;
 }
+
+/* Concept-board inspired page rhythm. Scoped to the two redesigned surfaces so
+   the shared theme, navigation, and other product pages stay unchanged. */
+.events-page-redesign .events-page-heading {
+    border-bottom: 1px solid var(--theme-border);
+    padding-bottom: 1.1rem;
+}
+
+.events-page-redesign .events-filter-band {
+    margin-top: 0.2rem;
+}
+
+.events-page-redesign .events-partner-band {
+    margin-top: 0.15rem;
+}
+
+.events-page-redesign .events-result-band {
+    border-top: 1px solid var(--theme-border);
+    padding-top: 0.85rem;
+}
+
+.ai-community-page .ai-community-frame {
+    max-width: 84rem;
+}
+
+.ai-community-page .ai-community-area-nav {
+    border-radius: 0 !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    background: transparent !important;
+}
+
+.ai-community-page .ai-community-area-nav > button[aria-pressed="false"] {
+    background: transparent !important;
+}
+
+.ai-community-page .ai-community-area-nav > button {
+    border-radius: 0 !important;
+    background: transparent !important;
+    border-right-color: var(--theme-border) !important;
+}
+
+.ai-community-page .ai-community-area-nav > button[aria-pressed="true"] {
+    box-shadow: inset 0 -2px 0 currentColor;
+}
+
+.ai-community-page .ai-community-path-nav {
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
+    border-left-color: transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 1rem !important;
+}
+
+.ai-community-page .ai-community-path-nav button {
+    border-radius: 4px;
+}
+
+.ai-community-page [role="search"] {
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-top-color: transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.ai-community-page .ai-community-learning-stream > section > button {
+    border-radius: 6px;
+    box-shadow: none !important;
+}
+
+.ai-community-page .ai-community-learning-card,
+.ai-community-page .ai-community-featured-card {
+    border-radius: 0 !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.ai-community-page .ai-community-featured-rail {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 767px) {
+    .events-page-redesign .events-page-heading,
+    .events-page-redesign .events-filter-band,
+    .events-page-redesign .events-partner-band,
+    .events-page-redesign .events-result-band {
+        border-top-color: transparent;
+    }
+
+    .ai-community-page .ai-community-area-nav {
+        border-radius: 0 !important;
+    }
+}
 :root[data-theme="day"] .linkified-url {
     color: rgb(99, 102, 241); /* indigo-500 */
 }
