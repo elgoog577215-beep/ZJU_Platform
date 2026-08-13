@@ -1148,6 +1148,10 @@ const ProjectPlaza = () => {
                 <source media="(max-width: 767px)" srcSet="/images/hackathon/x-field-mobile.webp" />
                 <img src="/images/hackathon/x-field-desktop.webp" alt="" />
             </picture>
+            <div className="ppp-stage-grid" aria-hidden="true" />
+            <div className="ppp-stage-word" aria-hidden="true">
+                BUILD
+            </div>
 
             <div className="ppp-wrap">
                 {creating ? (
@@ -1177,6 +1181,12 @@ const ProjectPlaza = () => {
                                                   "LIVE PROJECT FLOOR · 本场作品"
                                               )
                                             : t("project_plaza.kicker", "BUILD · 项目广场")}
+                                    </span>
+                                    <span className="ppp-live-mark">
+                                        <span className="ppp-live-dot" />
+                                        {competition
+                                            ? t("project_plaza.event.live_mark", "现场作品")
+                                            : t("project_plaza.live_mark", "项目现场")}
                                     </span>
                                     <h1 id="project-plaza-title">
                                         {competition?.title || t("project_plaza.title", "项目广场")}
