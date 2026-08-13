@@ -227,6 +227,8 @@ const About = () => {
               panel: "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
               panelStrong:
                   "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
+              detailPanel:
+                  "border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.28)]",
               card: "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
               accent: "text-cyan-700",
               accentBg: "bg-cyan-500",
@@ -253,6 +255,8 @@ const About = () => {
               panel: "border-white/12 bg-[#121c1d]/90 shadow-[0_28px_90px_rgba(0,0,0,0.38),0_0_60px_rgba(34,211,238,0.08)]",
               panelStrong:
                   "border-cyan-200/30 bg-[#0b1718]/88 shadow-[0_36px_120px_rgba(0,0,0,0.52),0_0_86px_rgba(34,211,238,0.09)]",
+              detailPanel:
+                  "border-white/18 bg-[#081213] shadow-[0_36px_120px_rgba(0,0,0,0.68),0_0_86px_rgba(34,211,238,0.1)]",
               card: "border-white/12 bg-[linear-gradient(180deg,rgba(19,29,30,0.92),rgba(11,21,21,0.72))]",
               accent: "text-cyan-300",
               accentBg: "bg-cyan-300",
@@ -1068,7 +1072,9 @@ const About = () => {
                 <AnimatePresence>
                     {activeBusiness ? (
                         <motion.div
-                            className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/72 p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10"
+                            className={`fixed inset-0 z-[90] flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10 ${
+                                isDayMode ? "bg-slate-950/64" : "bg-black/84"
+                            }`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -1086,7 +1092,7 @@ const About = () => {
                                         ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
                                         : { duration: 0 }
                                 }
-                                className={`relative flex max-h-[min(820px,calc(100svh-1.5rem))] w-full max-w-5xl flex-col overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] shadow-[0_32px_120px_rgba(0,0,0,0.46)] sm:max-h-[min(820px,calc(100svh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.panelStrong} ${
+                                className={`relative flex max-h-[min(820px,calc(100svh-1.5rem))] w-full max-w-5xl flex-col overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:max-h-[min(820px,calc(100svh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.detailPanel} ${
                                     activeBusiness.tone === "amber"
                                         ? isDayMode
                                             ? "border-amber-400/70"
