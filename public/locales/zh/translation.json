@@ -921,8 +921,8 @@
                 "users": "平台注册用户",
                 "daily_views": "日均浏览量",
                 "events": "累计活动",
-                "community": "500 人群",
-                "hackathon": "首届浙客松报名 / 参赛"
+                "community": "AI 社区参与者",
+                "hackathon": "首届浙客松报名人数"
             },
             "brief": {
                 "watermark": "BRAND",
@@ -958,7 +958,7 @@
                 },
                 "enterprise_title": "企业合作",
                 "enterprise_headline": "真实命题与技术资源",
-                "enterprise_desc": "阿里云、MiniMax、魔搭社区、阶跃星辰、华为、通义千问办公等企业与开发工具伙伴，把真实问题、模型能力、云资源和人才通道带入校园。",
+                "enterprise_desc": "企业与开发工具伙伴把真实问题、模型能力、云资源和人才通道带入校园。",
                 "enterprise_items": {
                     "getui": "每日互动",
                     "aliyun": "阿里云",

@@ -279,24 +279,20 @@ const About = () => {
 
     const proofStats = [
         {
-            value: "4000",
+            value: "3800+",
             label: t("about.ecosystem.stats.users", "注册用户"),
         },
         {
-            value: "1000",
+            value: "1000+",
             label: t("about.ecosystem.stats.daily_views", "日均浏览"),
         },
         {
-            value: "1000",
+            value: "900+",
             label: t("about.ecosystem.stats.events", "累计活动"),
         },
         {
-            value: "3 个",
-            label: t("about.ecosystem.stats.community", "500 人群"),
-        },
-        {
-            value: "300 / 100",
-            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名 / 参赛"),
+            value: "300",
+            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名人数"),
         },
     ];
 
@@ -732,7 +728,7 @@ const About = () => {
 
                         <motion.div
                             {...heroReveal(shouldAnimate, 0.18)}
-                            className={`grid w-full grid-cols-3 gap-px overflow-hidden border sm:grid-cols-5 xl:col-span-2 ${
+                            className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-4 xl:col-span-2 ${
                                 isDayMode
                                     ? "border-cyan-500/18 bg-cyan-500/18"
                                     : "border-cyan-300/18 bg-cyan-300/18"
@@ -860,7 +856,7 @@ const About = () => {
                                             {group.index === "02" ? (
                                                 enterpriseLogoWall.length > 0 ? (
                                                     <div
-                                                        className={`mt-auto grid grid-cols-3 gap-2 border-t pt-5 ${palette.divider}`}
+                                                        className={`mt-auto grid grid-cols-4 gap-1.5 border-t pt-4 ${palette.divider}`}
                                                     >
                                                         {enterpriseLogoWall.map((logo) => {
                                                             const logoSrc = getPartnerLogoSrc(
@@ -872,7 +868,7 @@ const About = () => {
                                                             const tileSpan = logoKey.includes(
                                                                 "getui"
                                                             )
-                                                                ? "col-span-3"
+                                                                ? "col-span-2"
                                                                 : "";
                                                             return (
                                                                 <div
@@ -881,7 +877,7 @@ const About = () => {
                                                                         logo.src ||
                                                                         logo.name
                                                                     }
-                                                                    className={`flex min-h-[52px] items-center justify-center px-2.5 py-2 ${tileSpan} ${
+                                                                    className={`flex min-h-[34px] items-center justify-center px-1.5 py-1.5 ${tileSpan} ${
                                                                         isDayMode
                                                                             ? "bg-white/72"
                                                                             : "bg-white/[0.04]"
@@ -893,7 +889,7 @@ const About = () => {
                                                                             logo.alt ||
                                                                             `${logo.name || "合作方"} logo`
                                                                         }
-                                                                        className={`max-h-6 w-auto max-w-full object-contain sm:max-h-7 ${
+                                                                        className={`max-h-5 w-auto max-w-full object-contain sm:max-h-6 ${
                                                                             !isDayMode
                                                                                 ? logo.darkClassName ||
                                                                                   ""
@@ -981,7 +977,7 @@ const About = () => {
                             </p>
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-4 2xl:gap-6">
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(22rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-4 2xl:gap-6">
                             {businessLines.map((item) => {
                                 const Icon = item.icon;
                                 const isAmber = item.tone === "amber";
@@ -1050,7 +1046,7 @@ const About = () => {
                                         >
                                             {item.code}
                                         </div>
-                                        <div className="relative z-10 flex h-full flex-col">
+                                        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div
                                                     className={`font-mono text-sm font-black uppercase 2xl:text-base ${accentClass}`}
@@ -1069,13 +1065,8 @@ const About = () => {
                                             <p className={`mt-2 text-sm font-black ${accentClass}`}>
                                                 {item.short}
                                             </p>
-                                            <p
-                                                className={`mt-4 text-sm leading-6 lg:text-[13px] lg:leading-6 2xl:text-base 2xl:leading-7 ${palette.textSoft}`}
-                                            >
-                                                {item.description}
-                                            </p>
                                             <div
-                                                className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}
+                                                className={`mt-auto flex items-end justify-between gap-4 border-t pt-4 ${palette.divider}`}
                                             >
                                                 <div>
                                                     <div
@@ -1129,7 +1120,7 @@ const About = () => {
                                         ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
                                         : { duration: 0 }
                                 }
-                                className={`relative flex max-h-[min(820px,calc(100svh-1.5rem))] w-full max-w-5xl flex-col overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:max-h-[min(820px,calc(100svh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.detailPanel} ${
+                                className={`relative flex max-h-[min(820px,calc(100svh-1rem))] w-full max-w-5xl min-h-0 flex-col overscroll-contain overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:max-h-[min(820px,calc(100svh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.detailPanel} ${
                                     activeBusiness.tone === "amber"
                                         ? isDayMode
                                             ? "border-amber-400/70"

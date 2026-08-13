@@ -922,8 +922,8 @@
                 "users": "Platform Users",
                 "daily_views": "Daily Views",
                 "events": "Total Events",
-                "community": "500-Member Groups",
-                "hackathon": "First Zhekesong Sign-ups / Competitors"
+                "community": "AI Community Participants",
+                "hackathon": "First Zhekesong Registrations"
             },
             "brief": {
                 "watermark": "BRAND",
@@ -959,7 +959,7 @@
                 },
                 "enterprise_title": "Enterprise Partners",
                 "enterprise_headline": "Real briefs and technical resources",
-                "enterprise_desc": "Partners including Alibaba Cloud, MiniMax, ModelScope, StepFun, Huawei, and Tongyi Qianwen Office bring real problems, model capabilities, cloud resources, and talent pathways into campus.",
+                "enterprise_desc": "Enterprise and developer-tool partners bring real problems, model capabilities, cloud resources, and talent pathways into campus.",
                 "enterprise_items": {
                     "getui": "Getui",
                     "aliyun": "Alibaba Cloud",

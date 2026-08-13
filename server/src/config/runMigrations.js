@@ -45,6 +45,37 @@ const GETUI_PARTNER = Object.freeze({
     sortOrder: 5,
 });
 
+const FEATURED_ENTERPRISE_PARTNERS = Object.freeze([
+    {
+        name: "华为",
+        nameEn: "Huawei",
+        description: "提供数智化技术体系与产业实践支持。",
+        descriptionEn: "Provides digital intelligence capabilities and industry practice support.",
+        logoUrl: "/images/partner-logos/huawei.png",
+        darkLogoUrl: "/images/partner-logos/huawei.png",
+        sortOrder: 70,
+    },
+    {
+        name: "通义千问",
+        nameEn: "Qwen",
+        description: "提供模型能力与 AI 应用实践支持。",
+        descriptionEn: "Provides model capabilities and AI application practice support.",
+        logoUrl: "/images/partner-logos/qwen-official.png",
+        darkLogoUrl: "/images/partner-logos/qwen-official-dark.png",
+        sortOrder: 80,
+    },
+    {
+        name: "创非凡",
+        nameEn: "Chuang Feifan",
+        description: "提供软硬件结合的数智化场景与产业协作支持。",
+        descriptionEn:
+            "Provides integrated software-hardware scenarios and industry collaboration support.",
+        logoUrl: "/images/partner-logos/chuangfeifan.svg",
+        darkLogoUrl: "/images/partner-logos/chuangfeifan-dark.svg",
+        sortOrder: 90,
+    },
+]);
+
 async function runMigrations(db) {
     console.log("🔄 Running database migrations...");
     await ensureCoreSchema(db);
@@ -1971,6 +2002,62 @@ async function runMigrations(db) {
             );
         }
         console.log("✅ Getui ecosystem partner synced");
+
+        for (const partner of FEATURED_ENTERPRISE_PARTNERS) {
+            const existing = await db.get(
+                `SELECT id
+           FROM ecosystem_partners
+          WHERE category = ?
+            AND name = ?
+            AND deleted_at IS NULL
+          LIMIT 1`,
+                ["enterprise", partner.name]
+            );
+            if (existing) {
+                await db.run(
+                    `UPDATE ecosystem_partners
+                SET name_en = COALESCE(NULLIF(TRIM(name_en), ''), ?),
+                    description = COALESCE(NULLIF(TRIM(description), ''), ?),
+                    description_en = COALESCE(NULLIF(TRIM(description_en), ''), ?),
+                    logo_url = ?,
+                    dark_logo_url = ?,
+                    sort_order = ?,
+                    enabled = 1,
+                    featured = 1,
+                    partner_scope = 'core_partner',
+                    updated_at = datetime('now')
+              WHERE id = ?`,
+                    [
+                        partner.nameEn,
+                        partner.description,
+                        partner.descriptionEn,
+                        partner.logoUrl,
+                        partner.darkLogoUrl,
+                        partner.sortOrder,
+                        existing.id,
+                    ]
+                );
+                continue;
+            }
+            await db.run(
+                `INSERT INTO ecosystem_partners (
+              category, name, name_en, description, description_en,
+              logo_url, dark_logo_url, link_url, sort_order, enabled, featured, partner_scope,
+              created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, 1, 1, 'core_partner', datetime('now'), datetime('now'))`,
+                [
+                    "enterprise",
+                    partner.name,
+                    partner.nameEn,
+                    partner.description,
+                    partner.descriptionEn,
+                    partner.logoUrl,
+                    partner.darkLogoUrl,
+                    partner.sortOrder,
+                ]
+            );
+        }
+        console.log("✅ Featured enterprise partners synced");
 
         for (const [name, logoConfig] of Object.entries(ORGANIZATION_PARTNER_LOGOS)) {
             const category = typeof logoConfig === "string" ? "organization" : logoConfig.category;
