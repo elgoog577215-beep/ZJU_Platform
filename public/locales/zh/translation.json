@@ -500,7 +500,7 @@
         "projects": "项目广场",
         "about": "生态介绍",
         "contact": "联系",
-        "events": "校园机会",
+        "events": "活动集合",
         "hackathon": "浙客松",
         "future_learning": "未来学习中心",
         "admin": "管理",
@@ -522,7 +522,7 @@
         "cursor_disable": "禁用自定义光标",
         "language_switcher": "切换语言",
         "mobile_more_title": "更多",
-        "mobile_events": "活动",
+        "mobile_events": "活动集合",
         "mobile_community": "社区",
         "mobile_projects": "项目",
         "mobile_hackathon": "浙客松",
@@ -905,7 +905,7 @@
         "projects": "个完成项目",
         "ecosystem": {
             "meta_title": "拓浙AI生态",
-            "meta_desc": "了解拓浙AI生态如何连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让参与持续形成作品、人才与合作。",
+            "meta_desc": "了解拓浙AI生态如何以信息共享平台连接活动、AI 学习、真实项目、浙客松赛事与产业协作，让信息被看见、人才被连接、成果持续沉淀。",
             "pagination_aria": "关于页面分页",
             "hero": {
                 "brand": "拓浙AI生态",
@@ -913,15 +913,15 @@
                 "title_2": "AI生态",
                 "title_3": "TUOZHE AI ECOSYSTEM",
                 "strong": "海纳百川，永不设限。",
-                "desc": "从浙江大学出发，连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让每次参与都形成可复用的作品、人才与合作。",
-                "primary_cta": "发现生态机会",
+                "desc": "浙江大学信息共享平台，汇聚活动、AI 学习、真实项目、浙客松赛事与产学协作，让信息被看见、让人才被连接、让成果持续沉淀。",
+                "primary_cta": "浏览活动集合",
                 "secondary_cta": "了解运行方式"
             },
             "stats": {
                 "users": "平台注册用户",
                 "daily_views": "日均浏览量",
-                "events": "累计校园活动",
-                "community": "AI 生态交流群满额",
+                "events": "累计活动",
+                "community": "500 人群",
                 "hackathon": "首届浙客松报名 / 参赛"
             },
             "brief": {
@@ -930,12 +930,12 @@
                 "status": "源自浙大",
                 "title_1": "海纳百川，",
                 "title_2": "永不设限。",
-                "desc": "AI 生态是母系统：拓途浙享负责触达、连接与记录，AI 社区负责学习、资源与人才沉淀，浙客松负责真实问题、实战选拔与成果展示。",
+                "desc": "拓途浙享是拓浙 AI 生态的信息共享平台，负责触达、连接与记录；AI 社区承接学习与人才沉淀，浙客松把真实问题带入实战。",
                 "signature": "人才连接 / 项目实践 / 产业转化"
             },
             "loop": {
                 "discover": "触达与连接",
-                "discover_desc": "拓途浙享把校园机会、主体、项目、赛事与成果放进同一公共入口",
+                "discover_desc": "拓途浙享把活动、主体、项目、赛事与成果放进同一信息共享平台",
                 "learn": "学习与组队",
                 "learn_desc": "AI 社区与智能体协会承接学习、训练、组队和项目执行",
                 "build": "实战与验证",
@@ -991,9 +991,9 @@
                 "title_1": "三项生态机制，",
                 "title_2": "让人才、真实需求与成果持续流动。",
                 "desc": "拓途浙享负责触达与记录，AI 社区负责学习与组队，浙客松负责实战验证与人才识别；真实需求进入校园，成果再回到学校、企业与下一轮合作。",
-                "info_title": "数字底座与机会入口",
-                "info_short": "发现机会 / 连接主体 / 沉淀记录",
-                "info_desc": "拓途浙享是拓浙 AI 生态的数字底座，把校园机会、AI 社区、项目、赛事、个人与组织身份放进同一套可发现、可参与、可沉淀的公共入口。",
+                "info_title": "信息共享平台与内容入口",
+                "info_short": "发现内容 / 连接主体 / 沉淀记录",
+                "info_desc": "拓途浙享是拓浙 AI 生态的信息共享平台，把活动、AI 社区、项目、赛事、个人与组织身份放进同一套可发现、可参与、可沉淀的公共入口。",
                 "info_metric": "触达 · 连接 · 记录",
                 "info_cta": "查看活动",
                 "grow_title": "AI 社区与项目协作",
@@ -1012,11 +1012,11 @@
                 "title_2": "AI生态",
                 "desc": "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从机会、社区、项目、浙客松或合作入口进入这套生态。",
                 "download_cta": "下载 App",
-                "platform_cta": "发现校园机会",
+                "platform_cta": "浏览活动集合",
                 "contact_cta": "联系合作",
                 "student_title": "学生",
-                "student_desc": "发现校园机会，加入 AI 社区，参与项目与浙客松，把学习转化为作品和可验证经历。",
-                "student_cta": "发现校园机会",
+                "student_desc": "浏览活动集合，加入 AI 社区，参与项目与浙客松，把学习转化为作品和可验证经历。",
+                "student_cta": "浏览活动集合",
                 "org_title": "组织与社团",
                 "org_desc": "维护组织主页，发布活动与项目招募，让成员、内容与成果持续归属到同一主体。",
                 "org_cta": "查看组织目录",
@@ -1069,7 +1069,7 @@
     },
     "home": {
         "meta_title": "拓浙AI生态",
-        "meta_desc": "连接校园机会、AI 学习、项目实践、浙客松成果与产学协作。",
+        "meta_desc": "以信息共享平台连接活动集合、AI 学习、项目实践、浙客松成果与产学协作。",
         "discover": "发现",
         "featured_event": "精选活动",
         "selected_works": "精选作品",
@@ -1206,7 +1206,7 @@
         },
         "splash": {
             "meta_title": "拓浙AI生态",
-            "meta_desc": "拓浙AI生态连接校园机会、AI 社区、实践项目、浙客松成果与产学协作。",
+            "meta_desc": "拓浙AI生态以信息共享平台连接活动、AI 社区、实践项目、浙客松成果与产学协作。",
             "welcome": "欢迎来到拓浙AI生态",
             "route_hint": "先发现一个值得参与的机会，再进入社区、项目、赛事与成果网络。",
             "enter_now": "直接进入"
@@ -1972,10 +1972,10 @@
         }
     },
     "events": {
-        "meta_title": "校园机会",
-        "meta_desc": "发现浙江大学及相关创新网络中的讲座、竞赛、志愿、项目招募与合作机会。",
-        "title": "发现校园机会",
-        "subtitle": "从讲座、竞赛和志愿活动，到项目招募与 AI 实践，找到下一次行动。",
+        "meta_title": "信息共享平台",
+        "meta_desc": "汇聚浙江大学及相关创新网络中的讲座、竞赛、志愿、项目招募与合作信息。",
+        "title": "活动集合",
+        "subtitle": "从讲座、竞赛和志愿活动，到项目招募与 AI 实践，在信息共享平台找到下一次行动。",
         "organizations": {
             "aria": "社团活动筛选",
             "kicker": "合作社团",
@@ -3849,7 +3849,7 @@
         "meta_desc": "下载拓浙AI生态 Android App。",
         "kicker": "Android App",
         "title": "下载拓浙AI生态 App",
-        "subtitle": "安装后直接进入校园机会、AI 社区、项目与浙客松。",
+        "subtitle": "安装后直接进入信息共享平台、AI 社区、项目与浙客松。",
         "primary_action": "下载 Android App",
         "browse_web": "继续使用网页版",
         "file_note": "v{{version}} · {{date}} 更新",
@@ -3863,9 +3863,9 @@
     "seo": {
         "site_name": "拓浙AI生态",
         "site_alt_name": "TUOZHE AI ECOSYSTEM",
-        "default_desc": "拓浙AI生态连接学生、学院、企业与真实 AI 需求，让机会、学习、项目、赛事和成果持续形成下一次合作。",
+        "default_desc": "拓浙AI生态以信息共享平台连接学生、学院、企业与真实 AI 需求，让活动、学习、项目、赛事和成果持续形成下一次合作。",
         "author": "拓浙AI生态",
-        "keywords": "拓浙AI生态, 浙江大学, AI社区, 校园机会, 项目实践, 浙客松, 产学协作"
+        "keywords": "拓浙AI生态, 浙江大学, 信息共享平台, 活动集合, AI社区, 项目实践, 浙客松, 产学协作"
     },
     "community_learning": {
         "meta_title": "学习社区",

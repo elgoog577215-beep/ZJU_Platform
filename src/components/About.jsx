@@ -241,20 +241,20 @@ const About = () => {
 
     const proofStats = [
         {
-            value: "2300+",
+            value: "4000",
             label: t("about.ecosystem.stats.users", "注册用户"),
         },
         {
-            value: "900+",
+            value: "1000",
             label: t("about.ecosystem.stats.daily_views", "日均浏览"),
         },
         {
-            value: "700+",
-            label: t("about.ecosystem.stats.events", "校园活动收录"),
+            value: "1000",
+            label: t("about.ecosystem.stats.events", "累计活动"),
         },
         {
-            value: "500",
-            label: t("about.ecosystem.stats.community", "AI 生态交流群满额"),
+            value: "3 个",
+            label: t("about.ecosystem.stats.community", "500 人群"),
         },
         {
             value: "300 / 100",
@@ -328,11 +328,11 @@ const About = () => {
         {
             index: "01",
             code: "PLATFORM",
-            title: t("about.ecosystem.business.info_title", "数字底座与机会入口"),
-            short: t("about.ecosystem.business.info_short", "发现机会 / 连接主体 / 沉淀记录"),
+            title: t("about.ecosystem.business.info_title", "信息共享平台与内容入口"),
+            short: t("about.ecosystem.business.info_short", "发现内容 / 连接主体 / 沉淀记录"),
             description: t(
                 "about.ecosystem.business.info_desc",
-                "把校园机会、AI 社区、项目、赛事、个人与组织身份放进同一套可发现、可参与、可沉淀的公共入口。"
+                "把活动、AI 社区、项目、赛事、个人与组织身份放进同一套可发现、可参与、可沉淀的信息共享平台。"
             ),
             metric: t("about.ecosystem.business.info_metric", "触达 · 连接 · 记录"),
             route: "/events",
@@ -377,9 +377,9 @@ const About = () => {
             title: t("about.ecosystem.join.student_title", "学生"),
             description: t(
                 "about.ecosystem.join.student_desc",
-                "发现校园机会，加入 AI 社区，参与项目与黑客松，把学习转化成作品。"
+                "浏览活动集合，加入 AI 社区，参与项目与黑客松，把学习转化成作品。"
             ),
-            action: t("about.ecosystem.join.student_cta", "发现校园机会"),
+            action: t("about.ecosystem.join.student_cta", "浏览活动集合"),
             route: "/events",
             icon: Users,
         },
@@ -428,7 +428,7 @@ const About = () => {
                 title={t("about.ecosystem.meta_title", "拓浙AI生态")}
                 description={t(
                     "about.ecosystem.meta_desc",
-                    "了解拓浙AI生态如何连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让参与持续形成作品、人才与合作。"
+                    "了解拓浙AI生态如何以信息共享平台连接活动、AI 学习、真实项目、浙客松赛事与产业协作，让信息被看见、人才被连接、成果持续沉淀。"
                 )}
             />
 
@@ -515,7 +515,7 @@ const About = () => {
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
-                                    "从浙江大学出发，连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让每次参与都形成可复用的作品、人才与合作。"
+                                    "浙江大学信息共享平台，汇聚活动、AI 学习、真实项目、浙客松赛事与产学协作，让信息被看见、让人才被连接、让成果持续沉淀。"
                                 )}
                             </p>
 
@@ -567,7 +567,7 @@ const About = () => {
                                     >
                                         {t(
                                             "about.ecosystem.brief.desc",
-                                            "AI 生态是母系统：拓途浙享负责触达、连接与记录，AI 社区负责学习、资源与人才沉淀，浙客松负责真实问题、实战选拔与成果展示。"
+                                            "拓途浙享是拓浙 AI 生态的信息共享平台，负责触达、连接与记录；AI 社区承接学习与人才沉淀，浙客松把真实问题带入实战。"
                                         )}
                                     </p>
                                 </div>
@@ -978,7 +978,7 @@ const About = () => {
                                     className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
                                 >
                                     <Smartphone className="h-4 w-4" />
-                                    {t("about.ecosystem.join.platform_cta", "发现校园机会")}
+                                    {t("about.ecosystem.join.platform_cta", "浏览活动集合")}
                                 </Link>
                                 <Link
                                     to="/future-learning"

@@ -501,7 +501,7 @@
         "projects": "Project Plaza",
         "about": "Ecosystem",
         "contact": "Contact",
-        "events": "Opportunities",
+        "events": "Event Collection",
         "hackathon": "Hackathon",
         "future_learning": "Future Learning",
         "admin": "Admin",
@@ -523,7 +523,7 @@
         "cursor_disable": "Disable Custom Cursor",
         "language_switcher": "Switch language",
         "mobile_more_title": "More",
-        "mobile_events": "Events",
+        "mobile_events": "Event Collection",
         "mobile_community": "Community",
         "mobile_projects": "Projects",
         "mobile_hackathon": "Hackathon",
@@ -906,7 +906,7 @@
         "projects": "Projects",
         "ecosystem": {
             "meta_title": "TUOZHE AI ECOSYSTEM",
-            "meta_desc": "See how the TUOZHE AI ECOSYSTEM connects campus opportunities, AI learning, real projects, Zhekesong competitions, and industry collaboration to produce reusable work, talent, and partnerships.",
+            "meta_desc": "See how the TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect events, AI learning, real projects, Zhekesong competitions, and industry collaboration.",
             "pagination_aria": "About page sections",
             "hero": {
                 "brand": "TUOZHE AI ECOSYSTEM",
@@ -914,15 +914,15 @@
                 "title_2": "AI Ecosystem",
                 "title_3": "FROM ZJU TO THE REAL WORLD",
                 "strong": "Open to all streams. Built without limits.",
-                "desc": "Starting from Zhejiang University, we connect campus opportunities, AI learning, real projects, Zhekesong competitions, and industry collaboration so every participation can produce reusable work, talent, and partnerships.",
-                "primary_cta": "Explore Opportunities",
+                "desc": "The Zhejiang University information-sharing platform brings together events, AI learning, real projects, Zhekesong competitions, and industry collaboration so information is visible, talent is connected, and outcomes keep accumulating.",
+                "primary_cta": "Browse Event Collection",
                 "secondary_cta": "See How It Works"
             },
             "stats": {
                 "users": "Platform Users",
                 "daily_views": "Daily Views",
-                "events": "Campus Events",
-                "community": "AI Ecosystem Group Capacity",
+                "events": "Total Events",
+                "community": "500-Member Groups",
                 "hackathon": "First Zhekesong Sign-ups / Competitors"
             },
             "brief": {
@@ -931,12 +931,12 @@
                 "status": "ZJU Origin",
                 "title_1": "Open to all streams.",
                 "title_2": "Built without limits.",
-                "desc": "The AI ecosystem is the parent system: Tuotuo Zhexin handles reach, connection, and records; the AI Community handles learning, resources, and talent retention; Zhekesong handles real problems, practice-based selection, and outcome showcases.",
+                "desc": "Tuotuo Zhexin is the information-sharing platform of the TUOZHE AI ECOSYSTEM, handling reach, connection, and records; the AI Community carries learning and talent retention, while Zhekesong brings real problems into practice.",
                 "signature": "Talent connection / Project practice / Industry conversion"
             },
             "loop": {
                 "discover": "Reach & Connect",
-                "discover_desc": "Tuotuo Zhexin puts campus opportunities, profiles, projects, competitions, and outcomes into one public entry",
+                "discover_desc": "Tuotuo Zhexin puts events, profiles, projects, competitions, and outcomes into one information-sharing platform",
                 "learn": "Learn & Team Up",
                 "learn_desc": "The AI Community and agent association carry learning, training, team formation, and project execution",
                 "build": "Practice & Validate",
@@ -992,11 +992,11 @@
                 "title_1": "Three ecosystem mechanisms",
                 "title_2": "keep talent, real needs, and outcomes moving.",
                 "desc": "Tuotuo Zhexin handles reach and records, the AI Community handles learning and team formation, and Zhekesong validates work and talent. Real needs enter campus, and outcomes return to schools, companies, and the next collaboration.",
-                "info_title": "Digital Base & Opportunity Entry",
-                "info_short": "Discover opportunities / Connect profiles / Record outcomes",
-                "info_desc": "Tuotuo Zhexin is the digital base of the TUOZHE AI ECOSYSTEM, giving campus opportunities, the AI Community, projects, competitions, people, and organizations one public entry for discovery, participation, and durable records.",
+                "info_title": "Information-Sharing Platform & Content Entry",
+                "info_short": "Discover content / Connect profiles / Record outcomes",
+                "info_desc": "Tuotuo Zhexin is the information-sharing platform of the TUOZHE AI ECOSYSTEM, giving events, the AI Community, projects, competitions, people, and organizations one public entry for discovery, participation, and durable records.",
                 "info_metric": "Reach · Connect · Record",
-                "info_cta": "Explore Opportunities",
+                "info_cta": "Browse Event Collection",
                 "grow_title": "AI Community & Project Collaboration",
                 "grow_short": "Shared learning / Team practice / Project delivery",
                 "grow_desc": "The AI Community retains knowledge, tools, and questions, while the agent association carries learning and project execution from entry-level training into real collaboration and delivery.",
@@ -1011,13 +1011,13 @@
             "join": {
                 "title_1": "Join the TUOZHE",
                 "title_2": "AI Ecosystem",
-                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, enter the ecosystem through an opportunity, community, project, Zhekesong event, or collaboration path.",
+                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, enter the ecosystem through the information-sharing platform, AI Community, projects, Zhekesong, or a collaboration path.",
                 "download_cta": "Download App",
-                "platform_cta": "Explore Opportunities",
+                "platform_cta": "Browse Event Collection",
                 "contact_cta": "Contact for Collaboration",
                 "student_title": "Students",
-                "student_desc": "Discover campus opportunities, join the AI Community, and turn projects and Zhekesong participation into work and verifiable experience.",
-                "student_cta": "Explore Opportunities",
+                "student_desc": "Browse the event collection, join the AI Community, and turn projects and Zhekesong participation into work and verifiable experience.",
+                "student_cta": "Browse Event Collection",
                 "org_title": "Organizations",
                 "org_desc": "Maintain an organization profile, publish events and project calls, and keep members, content, and outcomes tied to the same public identity.",
                 "org_cta": "View Directory",
@@ -1077,7 +1077,7 @@
     },
     "home": {
         "meta_title": "TUOZHE AI ECOSYSTEM",
-        "meta_desc": "Connect campus opportunities, AI learning, project practice, Zhekesong outcomes, and industry collaboration.",
+            "meta_desc": "Connect event collection, AI learning, project practice, Zhekesong outcomes, and industry collaboration through an information-sharing platform.",
         "featured_premiere": "Featured Premiere",
         "cinematic_journey": "Cinematic Journey",
         "now_playing": "Now Playing",
@@ -1216,7 +1216,7 @@
         },
         "splash": {
             "meta_title": "TUOZHE AI ECOSYSTEM",
-            "meta_desc": "The TUOZHE AI ECOSYSTEM connects campus opportunities, the AI Community, projects, Zhekesong outcomes, and industry collaboration.",
+            "meta_desc": "The TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect events, the AI Community, projects, Zhekesong outcomes, and industry collaboration.",
             "welcome": "Welcome to the TUOZHE AI Ecosystem",
             "route_hint": "Start with one opportunity, then move into the community, projects, competitions, and outcome network.",
             "enter_now": "Enter now"
@@ -1969,10 +1969,10 @@
         }
     },
     "events": {
-        "meta_title": "Campus Opportunities",
-        "meta_desc": "Discover talks, competitions, volunteering, project calls, and collaboration opportunities across Zhejiang University and its innovation network.",
-        "title": "Discover Campus Opportunities",
-        "subtitle": "Find your next action across talks, competitions, volunteering, project calls, and AI practice.",
+        "meta_title": "Information-Sharing Platform",
+        "meta_desc": "Explore talks, competitions, volunteering, project calls, and collaboration information across Zhejiang University and its innovation network.",
+        "title": "Event Collection",
+        "subtitle": "Find your next action across talks, competitions, volunteering, project calls, and AI practice on the information-sharing platform.",
         "organizations": {
             "aria": "Organization event filter",
             "kicker": "Partner organizations",
@@ -3812,7 +3812,7 @@
         "meta_desc": "Download the TUOZHE AI ECOSYSTEM Android app.",
         "kicker": "Android App",
         "title": "Download the TUOZHE AI ECOSYSTEM App",
-        "subtitle": "Open campus opportunities, the AI Community, projects, and Zhekesong directly after installation.",
+        "subtitle": "Open the information-sharing platform, AI Community, projects, and Zhekesong directly after installation.",
         "primary_action": "Download Android App",
         "browse_web": "Continue on web",
         "file_note": "v{{version}} · Updated {{date}}",
@@ -3826,9 +3826,9 @@
     "seo": {
         "site_name": "TUOZHE AI ECOSYSTEM",
         "site_alt_name": "拓浙AI生态",
-        "default_desc": "The TUOZHE AI ECOSYSTEM connects students, colleges, companies, and real AI needs so opportunities, learning, projects, competitions, and outcomes keep producing the next collaboration.",
+        "default_desc": "The TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect students, colleges, companies, real AI needs, events, projects, competitions, and outcomes.",
         "author": "TUOZHE AI ECOSYSTEM",
-        "keywords": "TUOZHE AI ECOSYSTEM, Zhejiang University, AI community, campus opportunities, project practice, Zhekesong, industry collaboration"
+        "keywords": "TUOZHE AI ECOSYSTEM, Zhejiang University, information-sharing platform, event collection, AI community, project practice, Zhekesong, industry collaboration"
     },
     "community_learning": {
         "meta_title": "Learning Community",
