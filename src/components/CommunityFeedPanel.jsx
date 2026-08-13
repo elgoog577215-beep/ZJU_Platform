@@ -356,7 +356,7 @@ const CommunityFeedPanel = ({
                         }`}
                     >
                         <div
-                            className={`${isLearningSurface ? "mb-3 p-4" : "mb-4 p-6 md:mb-6 md:p-8"} rounded-lg border bg-gradient-to-br ${gradientFrom} ${isDayMode ? "shadow-none" : "backdrop-blur-xl shadow-xl"} ${emptyBorder}`}
+                            className={`${isLearningSurface ? "mb-3 p-2" : "mb-4 p-6 md:mb-6 md:p-8"} ${isLearningSurface ? "border-0 bg-transparent" : `rounded-lg border bg-gradient-to-br ${gradientFrom} ${isDayMode ? "shadow-none" : "backdrop-blur-xl shadow-xl"} ${emptyBorder}`}`}
                         >
                             {EmptyIcon && (
                                 <EmptyIcon

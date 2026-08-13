@@ -1786,7 +1786,7 @@ const CommunityPosts = () => {
                             type="button"
                             aria-pressed={active}
                             onClick={() => handleAreaChange(area.key)}
-                            className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:min-h-[62px] md:flex-1 md:justify-start md:gap-3 md:rounded-none md:border-0 md:border-r md:px-4 md:py-2 md:text-left md:last:border-r-0 ${
+                            className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-sm font-bold transition-all md:min-h-[62px] md:flex-1 md:justify-start md:gap-3 md:rounded-none md:border-0 md:border-r md:px-4 md:py-2 md:text-left md:text-base md:last:border-r-0 ${
                                 active
                                     ? isDayMode
                                         ? tone.card

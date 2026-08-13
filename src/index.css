@@ -613,6 +613,25 @@ img {
         box-shadow: 0 14px 34px rgba(2, 6, 23, 0.22);
     }
 
+    /* Keep the original event grid and image ratio, while giving dark cards a stable surface. */
+    .events-card-surface {
+        background: color-mix(in srgb, var(--theme-surface-strong) 72%, transparent);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 14px 34px rgba(2, 6, 23, 0.14);
+    }
+
+    :root[data-theme="day"] .events-card-surface {
+        background: transparent;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: none;
+    }
+
+    .ai-community-page .rounded-lg {
+        border-radius: 5px !important;
+    }
+
     .rect-field {
         border: 1px solid var(--theme-border);
         border-radius: 5px !important;
