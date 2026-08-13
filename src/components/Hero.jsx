@@ -83,8 +83,8 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
         ? "opacity-95 saturate-[1.08] contrast-[1.03] brightness-[1.03]"
         : "opacity-52 saturate-[1.18] contrast-[1.08]";
     const titleClass = isDayMode
-        ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(3.25rem,5.6vw,6rem)]"
-        : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(3.25rem,5.6vw,6rem)]";
+        ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:text-[clamp(3.25rem,5.6vw,6rem)]"
+        : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:text-[clamp(3.25rem,5.6vw,6rem)]";
     const subtitleClass = isDayMode
         ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 sm:px-4 sm:text-xl md:text-[1.7rem]"
         : "mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide text-white/[0.92] drop-shadow-[0_6px_24px_rgba(2,6,23,0.84)] sm:px-4 sm:text-xl md:text-[1.7rem]";
