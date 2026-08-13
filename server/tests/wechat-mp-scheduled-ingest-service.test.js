@@ -410,6 +410,52 @@ test("WeChat MP ingest prefers localized covers and repairs linked events", asyn
     }
 });
 
+test("WeChat MP ingest localizes a list cover when article content has no local cover", async () => {
+    const db = await createDb();
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, { name: "人民日报", fakeid: "people-daily" });
+        const localized = [];
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi: {
+                async fetchArticles() {
+                    return {
+                        articles: [{
+                            title: "人民日报测试文章",
+                            link: "https://mp.weixin.qq.com/s/people-daily-test",
+                            cover: "https://mmbiz.qpic.cn/list-cover.jpg",
+                        }],
+                    };
+                },
+                async fetchArticleContent() {
+                    return {
+                        contentText: "测试正文",
+                        contentHtml: "<p>测试正文</p>",
+                        coverImage: "https://mmbiz.qpic.cn/content-cover.jpg",
+                        images: [],
+                        content_status: "fetched",
+                    };
+                },
+            },
+            localizeImages: async (body) => {
+                localized.push(body.coverImage);
+                return { ...body, coverImage: "/uploads/covers/people-daily-test.jpg" };
+            },
+        });
+        assert.equal(result.status, "completed");
+        const stored = (await service.listIngestArticles(db))[0];
+        assert.equal(stored.cover, "/uploads/covers/people-daily-test.jpg");
+        assert.deepEqual(localized, ["https://mmbiz.qpic.cn/list-cover.jpg"]);
+    } finally {
+        await db.close();
+    }
+});
+
 test("WeChat MP automatic extraction retries failures and can be disabled", async () => {
     const db = await createDb();
     let parseCalls = 0;

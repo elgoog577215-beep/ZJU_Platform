@@ -151,6 +151,27 @@ const resolveIngestCover = ({ article = {}, content = {}, existingCover = "" } =
     return candidates.find(isLocalUploadUrl) || candidates[0] || "";
 };
 
+const localizeIngestCover = async (cover, localizeImages) => {
+    const normalizedCover = String(cover || "").trim();
+    if (!normalizedCover || isLocalUploadUrl(normalizedCover)) return normalizedCover;
+    const localize = localizeImages || wechatMpAdminService.localizeWechatArticleImages;
+    if (typeof localize !== "function") return normalizedCover;
+    try {
+        const localized = await localize({
+            coverImage: normalizedCover,
+            contentText: "",
+            contentHtml: "",
+            images: [],
+        });
+        return String(localized?.coverImage || "").trim() || normalizedCover;
+    } catch (error) {
+        console.warn(
+            `[WeChat MP Ingest] cover localization failed: ${error?.message || String(error)}`
+        );
+        return normalizedCover;
+    }
+};
+
 const syncEventCover = async (db, eventId, cover) => {
     if (!eventId || !isLocalUploadUrl(cover)) return;
 
@@ -1259,6 +1280,7 @@ const executeIngestRun = async (
         runtime,
         wechatApi = wechatMpAdminService,
         parser = null,
+        localizeImages = null,
         audit = recordWechatParseRun,
         governanceTrigger = triggerEventGovernance,
     } = {}
@@ -1361,6 +1383,20 @@ const executeIngestRun = async (
                     } catch (error) {
                         failedCount += 1;
                         content = { content_status: error.message || "fetch_failed" };
+                    }
+                }
+                const contentCover = String(content?.coverImage || content?.cover || "").trim();
+                const listCover = String(article.cover || "").trim();
+                if (listCover && !isLocalUploadUrl(contentCover || listCover)) {
+                    const localizedCover = await localizeIngestCover(listCover, localizeImages);
+                    if (localizedCover && localizedCover !== listCover) {
+                        content = {
+                            ...(content || {}),
+                            coverImage: localizedCover,
+                            images: Array.isArray(content?.images)
+                                ? content.images
+                                : [localizedCover],
+                        };
                     }
                 }
                 await updateRunProgress(db, createdRunId, {
@@ -1661,6 +1697,7 @@ module.exports = {
     listIngestAccounts,
     listIngestArticles,
     listIngestRuns,
+    localizeIngestCover,
     normalizeAccountPayload,
     normalizeSettings,
     parseAccountListContent,
