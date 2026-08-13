@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
     ArrowRight,
@@ -17,6 +17,7 @@ import {
     Smartphone,
     Trophy,
     Users,
+    X,
 } from "lucide-react";
 import { getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
@@ -126,8 +127,42 @@ const About = () => {
     const shouldAnimate = !reduceMotion;
     const isDayMode = uiMode === "day";
     const isEnglish = i18n.resolvedLanguage?.startsWith("en") || i18n.language?.startsWith("en");
+    const [activeBusinessCode, setActiveBusinessCode] = useState(null);
+    const detailCloseButtonRef = useRef(null);
+    const businessTriggerRefs = useRef({});
     const enterpriseLogoWall = enterpriseLogos.filter((logo) => getPartnerLogoSrc(logo, isDayMode));
     const [heroStageRef, heroStageFrame] = useAboutHeroScale();
+
+    const openBusinessDetails = (code) => setActiveBusinessCode(code);
+    const closeBusinessDetails = () => {
+        const code = activeBusinessCode;
+        setActiveBusinessCode(null);
+        window.requestAnimationFrame(() => businessTriggerRefs.current[code]?.focus());
+    };
+
+    useEffect(() => {
+        if (!activeBusinessCode || typeof document === "undefined") return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") closeBusinessDetails();
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [activeBusinessCode]);
+
+    useEffect(() => {
+        if (!activeBusinessCode) return undefined;
+
+        const frameId = window.requestAnimationFrame(() => detailCloseButtonRef.current?.focus());
+        return () => window.cancelAnimationFrame(frameId);
+    }, [activeBusinessCode]);
 
     useEffect(() => {
         if (typeof window === "undefined") return undefined;
@@ -339,6 +374,20 @@ const About = () => {
             cta: t("about.ecosystem.business.info_cta", "查看活动"),
             icon: CalendarDays,
             tone: "cyan",
+            detailEyebrow: t("about.ecosystem.business.info_detail_eyebrow", "公共入口"),
+            detailDesc: t(
+                "about.ecosystem.business.info_detail_desc",
+                "拓途浙享是拓浙 AI 生态的信息共享平台，把分散的活动、内容、项目、赛事和主体关系组织成可发现、可参与、可沉淀的公共入口。"
+            ),
+            detailItems: [
+                t("about.ecosystem.business.info_detail_item_1", "活动集合：发现校园机会与生态活动"),
+                t("about.ecosystem.business.info_detail_item_2", "AI 社区：阅读、提问、分享与组队"),
+                t("about.ecosystem.business.info_detail_item_3", "项目与赛事：查看需求、作品与成果记录"),
+            ],
+            detailResult: t(
+                "about.ecosystem.business.info_detail_result",
+                "让信息先被看见，再进入真实参与和后续连接。"
+            ),
         },
         {
             index: "02",
@@ -354,9 +403,52 @@ const About = () => {
             cta: t("about.ecosystem.business.grow_cta", "进入 AI 社区"),
             icon: GraduationCap,
             tone: "emerald",
+            detailEyebrow: t("about.ecosystem.business.grow_detail_eyebrow", "学习与组织"),
+            detailDesc: t(
+                "about.ecosystem.business.grow_detail_desc",
+                "AI 社区负责知识沉淀与公开交流，智能体协会负责训练、分层、调度和执行，让参与者从入门学习逐步进入真实项目。"
+            ),
+            detailItems: [
+                t("about.ecosystem.business.grow_detail_item_1", "新手训练：工具、案例与最低必要技术训练"),
+                t("about.ecosystem.business.grow_detail_item_2", "技术实践：围绕真实问题形成协作小组"),
+                t("about.ecosystem.business.grow_detail_item_3", "组织承接：把成员、项目和成果持续连接起来"),
+            ],
+            detailResult: t(
+                "about.ecosystem.business.grow_detail_result",
+                "让学习不止停在内容消费，而是走向协作、作品和可验证经历。"
+            ),
         },
         {
             index: "03",
+            code: "PROJECTS",
+            title: t("about.ecosystem.business.project_title", "项目实践与产业协作"),
+            short: t("about.ecosystem.business.project_short", "真实需求 / 团队交付 / 后续转化"),
+            description: t(
+                "about.ecosystem.business.project_desc",
+                "项目广场承接企业、政府、教授、学院和学生的真实需求，帮助团队完成从招募、协作到交付的完整实践。"
+            ),
+            metric: t("about.ecosystem.business.project_metric", "需求 → 交付 → 转化"),
+            route: "/projects",
+            cta: t("about.ecosystem.business.project_cta", "查看项目"),
+            icon: Building2,
+            tone: "violet",
+            detailEyebrow: t("about.ecosystem.business.project_detail_eyebrow", "真实项目"),
+            detailDesc: t(
+                "about.ecosystem.business.project_detail_desc",
+                "项目实践把生态中的真实问题变成可执行的任务，让学生团队获得清晰的目标、协作过程和成果证据，也让合作方看见可靠的交付能力。"
+            ),
+            detailItems: [
+                t("about.ecosystem.business.project_detail_item_1", "需求进入：企业、政府、教授与学院提出真实课题"),
+                t("about.ecosystem.business.project_detail_item_2", "团队实践：招募成员、推进进度并记录项目过程"),
+                t("about.ecosystem.business.project_detail_item_3", "成果承接：连接认证、实习、就业或项目孵化"),
+            ],
+            detailResult: t(
+                "about.ecosystem.business.project_detail_result",
+                "让一次项目合作沉淀为可复用的人才、作品和合作关系。"
+            ),
+        },
+        {
+            index: "04",
             code: "HACKATHON",
             title: t("about.ecosystem.business.hackathon_title", "浙客松系列黑客松"),
             short: t("about.ecosystem.business.hackathon_short", "交叉赛事 / 人才选拔 / 成果认证"),
@@ -369,8 +461,24 @@ const About = () => {
             cta: t("about.ecosystem.business.hackathon_cta", "查看浙客松"),
             icon: Trophy,
             tone: "amber",
+            detailEyebrow: t("about.ecosystem.business.hackathon_detail_eyebrow", "赛事与成果"),
+            detailDesc: t(
+                "about.ecosystem.business.hackathon_detail_desc",
+                "浙客松把学习、真实命题和公开展示放进同一场实战，既验证作品，也帮助学校与企业识别能够解决问题的人才。"
+            ),
+            detailItems: [
+                t("about.ecosystem.business.hackathon_detail_item_1", "主题赛事：围绕真实场景进行跨学科开发"),
+                t("about.ecosystem.business.hackathon_detail_item_2", "过程验证：通过训练、开发、展示和评审形成证据"),
+                t("about.ecosystem.business.hackathon_detail_item_3", "赛后承接：优秀作品进入成果展示与后续机会"),
+            ],
+            detailResult: t(
+                "about.ecosystem.business.hackathon_detail_result",
+                "首届浙客松约 300 人报名、100 人正式参赛，赛事成果继续回到生态项目与人才连接。"
+            ),
         },
     ];
+
+    const activeBusiness = businessLines.find((item) => item.code === activeBusinessCode);
 
     const joinCards = [
         {
@@ -572,7 +680,7 @@ const About = () => {
                                     </p>
                                 </div>
                                 <div
-                                    className={`border-l-4 py-5 pl-5 text-sm font-black uppercase tracking-normal 2xl:text-base ${
+                                    className={`border-l-2 py-5 pl-5 text-sm font-black uppercase tracking-normal 2xl:text-base ${
                                         isDayMode
                                             ? "border-cyan-500 text-slate-500"
                                             : "border-cyan-300 text-white/52"
@@ -837,39 +945,69 @@ const About = () => {
                             </p>
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-1 lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7">
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-4 2xl:gap-6">
                             {businessLines.map((item) => {
                                 const Icon = item.icon;
                                 const isAmber = item.tone === "amber";
                                 const isEmerald = item.tone === "emerald";
+                                const isViolet = item.tone === "violet";
                                 const accentClass = isAmber
                                     ? palette.altAccent
                                     : isEmerald
                                       ? isDayMode
                                           ? "text-emerald-700"
                                           : "text-emerald-200"
+                                      : isViolet
+                                        ? isDayMode
+                                            ? "text-violet-700"
+                                            : "text-violet-200"
                                       : palette.accent;
                                 const iconBgClass = isAmber
                                     ? palette.altAccentBg
                                     : isEmerald
                                       ? "bg-emerald-400"
+                                      : isViolet
+                                        ? "bg-violet-300"
                                       : palette.accentBg;
+                                const borderClass = isAmber
+                                    ? isDayMode
+                                        ? "border-amber-400/70"
+                                        : "border-amber-300/70"
+                                    : isEmerald
+                                      ? "border-emerald-400/65"
+                                      : isViolet
+                                        ? isDayMode
+                                            ? "border-violet-500/70"
+                                            : "border-violet-300/70"
+                                        : isDayMode
+                                          ? "border-cyan-500/70"
+                                          : "border-cyan-300/70";
+
+                                if (activeBusinessCode === item.code) {
+                                    return (
+                                        <div
+                                            key={item.code}
+                                            aria-hidden="true"
+                                            className="min-h-[280px] border border-transparent sm:min-h-[300px] lg:min-h-0"
+                                        />
+                                    );
+                                }
 
                                 return (
-                                    <Link
+                                    <motion.button
                                         key={item.code}
-                                        to={item.route}
-                                        className={`group relative flex min-h-[280px] flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
-                                            isAmber
-                                                ? isDayMode
-                                                    ? "border-l-amber-400"
-                                                    : "border-l-amber-300"
-                                                : isEmerald
-                                                  ? "border-l-emerald-400"
-                                                  : isDayMode
-                                                    ? "border-l-cyan-500"
-                                                    : "border-l-cyan-300"
-                                        } ${palette.card}`}
+                                        type="button"
+                                        layoutId={`business-card-${item.code}`}
+                                        ref={(node) => {
+                                            businessTriggerRefs.current[item.code] = node;
+                                        }}
+                                        onClick={() => openBusinessDetails(item.code)}
+                                        transition={
+                                            shouldAnimate
+                                                ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
+                                                : { duration: 0 }
+                                        }
+                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
                                     >
                                         <div
                                             className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
@@ -889,14 +1027,14 @@ const About = () => {
                                                     <Icon className="h-6 w-6" />
                                                 </div>
                                             </div>
-                                            <h3 className="mt-6 text-3xl font-black leading-tight sm:text-4xl lg:text-4xl">
+                                            <h3 className="mt-5 text-2xl font-black leading-tight sm:text-3xl lg:text-2xl 2xl:text-4xl">
                                                 {item.title}
                                             </h3>
                                             <p className={`mt-2 text-sm font-black ${accentClass}`}>
                                                 {item.short}
                                             </p>
                                             <p
-                                                className={`mt-5 text-sm leading-7 lg:text-base ${palette.textSoft}`}
+                                                className={`mt-4 text-sm leading-6 lg:text-[13px] lg:leading-6 2xl:text-base 2xl:leading-7 ${palette.textSoft}`}
                                             >
                                                 {item.description}
                                             </p>
@@ -904,10 +1042,8 @@ const About = () => {
                                                 className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}
                                             >
                                                 <div>
-                                                    <div
-                                                        className={`text-[11px] font-black uppercase ${palette.textMuted}`}
-                                                    >
-                                                        Focus
+                                                    <div className={`text-[11px] font-black uppercase ${palette.textMuted}`}>
+                                                        {t("about.ecosystem.business.detail_trigger", "展开了解")}
                                                     </div>
                                                     <div
                                                         className={`mt-2 text-lg font-black ${accentClass}`}
@@ -918,17 +1054,145 @@ const About = () => {
                                                 <div
                                                     className={`inline-flex items-center gap-2 text-sm font-black ${accentClass}`}
                                                 >
-                                                    {item.cta}
                                                     <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </motion.button>
                                 );
                             })}
                         </div>
                     </div>
                 </motion.section>
+
+                <AnimatePresence>
+                    {activeBusiness ? (
+                        <motion.div
+                            className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/72 p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={shouldAnimate ? { duration: 0.28 } : { duration: 0 }}
+                            onClick={closeBusinessDetails}
+                        >
+                            <motion.div
+                                layoutId={`business-card-${activeBusiness.code}`}
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby={`business-detail-title-${activeBusiness.code}`}
+                                onClick={(event) => event.stopPropagation()}
+                                transition={
+                                    shouldAnimate
+                                        ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
+                                        : { duration: 0 }
+                                }
+                                className={`relative flex max-h-[min(820px,calc(100svh-1.5rem))] w-full max-w-5xl flex-col overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] shadow-[0_32px_120px_rgba(0,0,0,0.46)] sm:max-h-[min(820px,calc(100svh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.panelStrong} ${
+                                    activeBusiness.tone === "amber"
+                                        ? isDayMode
+                                            ? "border-amber-400/70"
+                                            : "border-amber-300/70"
+                                        : activeBusiness.tone === "emerald"
+                                          ? "border-emerald-400/65"
+                                          : activeBusiness.tone === "violet"
+                                            ? isDayMode
+                                                ? "border-violet-500/70"
+                                                : "border-violet-300/70"
+                                            : isDayMode
+                                              ? "border-cyan-500/70"
+                                              : "border-cyan-300/70"
+                                }`}
+                            >
+                                <div className="flex items-start justify-between gap-5">
+                                    <div>
+                                        <div
+                                            className={`font-mono text-sm font-black uppercase ${
+                                                activeBusiness.tone === "amber"
+                                                    ? palette.altAccent
+                                                    : activeBusiness.tone === "emerald"
+                                                      ? isDayMode
+                                                          ? "text-emerald-700"
+                                                          : "text-emerald-200"
+                                                      : activeBusiness.tone === "violet"
+                                                        ? isDayMode
+                                                            ? "text-violet-700"
+                                                            : "text-violet-200"
+                                                        : palette.accent
+                                            }`}
+                                        >
+                                            {activeBusiness.index} / {activeBusiness.code}
+                                        </div>
+                                        <p className={`mt-4 text-sm font-black uppercase ${palette.label}`}>
+                                            {activeBusiness.detailEyebrow}
+                                        </p>
+                                        <h2
+                                            id={`business-detail-title-${activeBusiness.code}`}
+                                            className="mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl"
+                                        >
+                                            {activeBusiness.title}
+                                        </h2>
+                                    </div>
+                                    <button
+                                        ref={detailCloseButtonRef}
+                                        type="button"
+                                        onClick={closeBusinessDetails}
+                                        aria-label={t("about.ecosystem.business.close_detail", "关闭详情")}
+                                        className={`flex h-11 w-11 shrink-0 items-center justify-center border transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.secondary}`}
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
+
+                                <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.68fr)] lg:gap-12">
+                                    <div>
+                                        <p className={`max-w-3xl text-base leading-8 sm:text-lg sm:leading-9 ${palette.textSoft}`}>
+                                            {activeBusiness.detailDesc}
+                                        </p>
+                                        <div className={`mt-8 border-t pt-6 ${palette.divider}`}>
+                                            <p className={`text-xs font-black uppercase ${palette.textMuted}`}>
+                                                {t("about.ecosystem.business.detail_structure", "生态中的作用")}
+                                            </p>
+                                            <div className="mt-4 grid gap-3">
+                                                {activeBusiness.detailItems.map((detailItem, index) => (
+                                                    <div
+                                                        key={detailItem}
+                                                        className={`flex gap-4 border p-4 sm:p-5 ${
+                                                            isDayMode
+                                                                ? "border-slate-200 bg-white/70"
+                                                                : "border-white/10 bg-white/[0.04]"
+                                                        }`}
+                                                    >
+                                                        <span className={`font-mono text-sm font-black ${palette.accent}`}>
+                                                            0{index + 1}
+                                                        </span>
+                                                        <span className="text-sm font-bold leading-6 sm:text-base sm:leading-7">
+                                                            {detailItem}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={`border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 ${palette.divider}`}>
+                                        <p className={`text-xs font-black uppercase ${palette.textMuted}`}>
+                                            {t("about.ecosystem.business.detail_result_label", "形成的结果")}
+                                        </p>
+                                        <p className={`mt-4 text-xl font-black leading-8 ${palette.accent}`}>
+                                            {activeBusiness.detailResult}
+                                        </p>
+                                        <Link
+                                            to={activeBusiness.route}
+                                            onClick={closeBusinessDetails}
+                                            className={`mt-8 inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.primary}`}
+                                        >
+                                            {activeBusiness.cta}
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
 
                 <motion.section
                     id="join-ecosystem"
