@@ -214,7 +214,7 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false, discussionMode = 
                 discussionMode
                     ? t(
                           "community_learning.discuss_empty_desc",
-                          "当前没有符合条件的讨论。"
+                          "发起第一个讨论，把问题、经验或学习卡点放到这里。"
                       )
                     : t("community.help_empty_desc", "成为第一个发帖的人吧！")
             }

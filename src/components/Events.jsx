@@ -432,7 +432,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
             className={`group hidden cursor-pointer border-b pb-6 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:block ${
                 isDayMode
                     ? "border-slate-200/80 hover:border-blue-400/70"
-                    : "events-card-surface border-white/[0.08] hover:border-indigo-300/55"
+                    : "border-white/[0.08] hover:border-indigo-300/55"
             }`}
         >
             <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] bg-slate-900">
@@ -471,7 +471,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                 </h3>
 
                 <div
-                    className={`mt-3 grid gap-1.5 text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
+                    className={`mt-3 grid gap-1.5 text-[13px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
                 >
                     <div className="flex min-w-0 items-center gap-2">
                         <Calendar
@@ -570,7 +570,7 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
             data-testid="event-card"
             onClick={() => onClick(event)}
             className={`group relative grid min-h-[132px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                isDayMode ? "border-slate-200/80 text-slate-950" : "events-card-surface border-white/[0.08] text-white"
+                isDayMode ? "border-slate-200/80 text-slate-950" : "border-white/[0.08] text-white"
             }`}
         >
             <div className="relative h-[106px] overflow-hidden rounded-[2px] bg-slate-900 min-[390px]:h-[110px]">
@@ -615,7 +615,7 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
                 </h3>
 
                 <div
-                    className={`mt-2 grid gap-1 text-[13px] font-medium leading-[18px] ${isDayMode ? "text-slate-600" : "text-slate-200"}`}
+                    className={`mt-2 grid gap-1 text-[12px] font-medium leading-[17px] ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
                 >
                     <div className="flex min-w-0 items-center gap-1.5">
                         <Clock

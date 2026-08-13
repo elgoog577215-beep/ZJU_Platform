@@ -419,10 +419,10 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
                               `community.materials_empty_${selectedMaterialType}_desc`,
                               t(
                                   "community.materials_empty_desc",
-                                  "审核通过的资源会显示在这里。"
+                                  "上传第一份资源，帮后来者少走弯路。"
                               )
                           )
-                        : t("community.materials_empty_desc", "审核通过的资源会显示在这里。")
+                        : t("community.materials_empty_desc", "上传第一份资源，帮后来者少走弯路。")
                 }
                 accentColor="blue"
                 extraControls={controls}
