@@ -169,9 +169,8 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
                     >
                         {defaultTitleSegments ? (
                             <>
-                                {defaultTitleSegments.map((segment, index) => (
-                                    <span key={segment} className="block lg:inline">
-                                        {index > 0 ? " " : ""}
+                                {defaultTitleSegments.map((segment) => (
+                                    <span key={segment} className="block">
                                         {segment}
                                     </span>
                                 ))}
