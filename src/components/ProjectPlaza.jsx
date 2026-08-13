@@ -932,13 +932,14 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
 
 const ProjectPlaza = () => {
     const { t } = useTranslation();
-    const { settings, uiMode } = useSettings();
+    const { settings } = useSettings();
     const { schedule } = useHackathonSchedule(settings);
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams();
-    const variant = uiMode === "day" ? "playful" : "cyber";
+    // 与影像库一致：现场类页面始终使用赛博深色变体，白天模式不给背景加蒙版
+    const variant = "cyber";
 
     const [items, setItems] = useState([]);
     const [total, setTotal] = useState(0);
