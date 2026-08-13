@@ -1149,6 +1149,8 @@ const ProjectPlaza = () => {
                 <img src="/images/hackathon/x-field-desktop.webp" alt="" />
             </picture>
             <div className="ppp-stage-grid" aria-hidden="true" />
+            <div className="ppp-stage-plane" aria-hidden="true" />
+            <div className="ppp-stage-horizon" aria-hidden="true" />
             <div className="ppp-stage-word" aria-hidden="true">
                 BUILD
             </div>
