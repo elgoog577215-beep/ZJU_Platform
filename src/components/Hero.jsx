@@ -46,12 +46,13 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
     const isDefaultHeroTitle = rawHeroTitle === DEFAULT_HERO_TITLE;
     const isDefaultHeroSubtitle = rawHeroSubtitle === DEFAULT_HERO_SUBTITLE;
     const heroTitle = isDefaultHeroTitle
-        ? `${t("home.hero.title_line_1")} ${t("home.hero.title_line_2")}`
+        ? [t("home.hero.title_line_1"), t("home.hero.title_line_2")].filter(Boolean).join(" ")
         : rawHeroTitle;
     const defaultTitleSegments = isDefaultHeroTitle
-        ? [t("home.hero.title_line_1"), t("home.hero.title_line_2")]
+        ? [t("home.hero.title_line_1"), t("home.hero.title_line_2")].filter(Boolean)
         : null;
     const heroSubtitle = isDefaultHeroSubtitle ? t("home.hero.subtitle") : rawHeroSubtitle;
+    const heroBadge = t("home.hero.badge");
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -168,21 +169,29 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
                     >
                         {defaultTitleSegments ? (
                             <>
-                                <span className="block lg:inline">{defaultTitleSegments[0]}</span>
-                                <span className="block lg:inline">{defaultTitleSegments[1]}</span>
+                                {defaultTitleSegments.map((segment, index) => (
+                                    <span key={segment} className="block lg:inline">
+                                        {index > 0 ? " " : ""}
+                                        {segment}
+                                    </span>
+                                ))}
                             </>
                         ) : (
                             heroTitle
                         )}
                     </motion.h1>
 
-                    <motion.p variants={heroReveal} className={subtitleClass}>
-                        {heroSubtitle}
-                    </motion.p>
+                    {heroSubtitle ? (
+                        <motion.p variants={heroReveal} className={subtitleClass}>
+                            {heroSubtitle}
+                        </motion.p>
+                    ) : null}
 
-                    <motion.div variants={heroReveal} className={badgeClass}>
-                        {t("home.hero.badge")}
-                    </motion.div>
+                    {heroBadge ? (
+                        <motion.div variants={heroReveal} className={badgeClass}>
+                            {heroBadge}
+                        </motion.div>
+                    ) : null}
                 </div>
             </motion.div>
 
