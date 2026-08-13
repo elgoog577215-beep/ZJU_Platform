@@ -4057,6 +4057,15 @@
             "preview_title": "Project Name",
             "preview_summary": "The one-line summary appears here",
             "preview_hint": "People see this compact card first, then open it for the full intro."
+        },
+        "facts": {
+            "total": "projects in the plaza",
+            "recruiting": "recruiting teammates"
+        },
+        "live_event": {
+            "live": "Live now",
+            "upcoming": "Starting soon",
+            "cta": "Enter the event"
         }
     },
     "profiles": {

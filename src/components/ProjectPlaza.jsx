@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -1117,6 +1117,20 @@ const ProjectPlaza = () => {
 
     const showAllProjects = () => navigate("/projects");
 
+    const spotlightEvent = useMemo(() => {
+        const events = schedule?.events || [];
+        const live = events.find((item) => getCompetitionPhase(item.event) === "live");
+        if (live) return { item: live, phase: "live" };
+        const upcoming = events
+            .filter((item) => getCompetitionPhase(item.event) === "upcoming")
+            .sort(
+                (a, b) =>
+                    Date.parse(a.event?.event_start_at || a.event?.startAt || "") -
+                    Date.parse(b.event?.event_start_at || b.event?.startAt || "")
+            )[0];
+        return upcoming ? { item: upcoming, phase: "upcoming" } : null;
+    }, [schedule]);
+
     const toggleNeedFilter = (need) => {
         setNeedFilter(needFilter === need ? null : need);
     };
@@ -1241,6 +1255,42 @@ const ProjectPlaza = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {!competition && spotlightEvent ? (
+                                <a
+                                    className="ppp-live-event"
+                                    href={`/hackathon?event=${encodeURIComponent(spotlightEvent.item.event.key)}`}
+                                >
+                                    <span className="ppp-live-dot" />
+                                    <span className="ppp-live-event-name">
+                                        {spotlightEvent.item.event.title}
+                                    </span>
+                                    <span className="ppp-live-event-phase">
+                                        {spotlightEvent.phase === "live"
+                                            ? t("project_plaza.live_event.live", "比赛进行中")
+                                            : t("project_plaza.live_event.upcoming", "即将开赛")}
+                                    </span>
+                                    <span className="ppp-live-event-cta">
+                                        {t("project_plaza.live_event.cta", "进入赛事现场")}
+                                        <ArrowRight size={13} />
+                                    </span>
+                                </a>
+                            ) : null}
+
+                            {!competition && total > 0 ? (
+                                <div className="ppp-facts">
+                                    <span>
+                                        <strong>{total}</strong>{" "}
+                                        {t("project_plaza.facts.total", "个项目在册")}
+                                    </span>
+                                    <span>
+                                        <strong>
+                                            {items.filter((p) => p.need_tags?.length > 0).length}
+                                        </strong>{" "}
+                                        {t("project_plaza.facts.recruiting", "个正在招募队友")}
+                                    </span>
+                                </div>
+                            ) : null}
 
                             {competition ? (
                                 <div className="ppp-event-line">

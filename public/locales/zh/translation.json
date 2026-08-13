@@ -3066,7 +3066,6 @@
             "sorted_by_views": "按访问量排序",
             "no_hot_events": "暂无活动统计数据",
             "active": "活跃",
-            "pending": "待审核",
             "deleted": "已删除",
             "uptime_days": "天",
             "uptime_hours": "小时",
@@ -4095,6 +4094,15 @@
             "preview_title": "项目名称",
             "preview_summary": "一句话简介会显示在这里",
             "preview_hint": "别人会先看到这张紧凑名片，点开再读完整介绍。"
+        },
+        "facts": {
+            "total": "个项目在册",
+            "recruiting": "个正在招募队友"
+        },
+        "live_event": {
+            "live": "比赛进行中",
+            "upcoming": "即将开赛",
+            "cta": "进入赛事现场"
         }
     },
     "profiles": {
