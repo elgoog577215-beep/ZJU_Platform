@@ -87,8 +87,8 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
         ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:text-[clamp(3.25rem,5.6vw,6rem)]"
         : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:text-[clamp(3.25rem,5.6vw,6rem)]";
     const subtitleClass = isDayMode
-        ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 sm:px-4 sm:text-xl md:text-[1.7rem]"
-        : "mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide text-white/[0.92] drop-shadow-[0_6px_24px_rgba(2,6,23,0.84)] sm:px-4 sm:text-xl md:text-[1.7rem]";
+        ? "hero-day-ink mx-auto max-w-2xl px-2 text-sm font-medium tracking-[0.28em] indent-[0.28em] opacity-75 sm:text-base md:text-lg"
+        : "mx-auto max-w-2xl px-2 text-sm font-medium tracking-[0.28em] indent-[0.28em] text-white/70 drop-shadow-[0_4px_18px_rgba(2,6,23,0.8)] sm:text-base md:text-lg";
     const badgeClass = isDayMode
         ? "hero-day-badge mt-7 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-white/35 bg-slate-950/18 px-5 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.22em] shadow-[0_18px_42px_rgba(16,32,51,0.18)] backdrop-blur-md sm:text-xs"
         : "mt-7 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-slate-950/22 px-5 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.22em] text-indigo-50/92 shadow-[0_0_42px_rgba(129,140,248,0.14)] backdrop-blur-md sm:text-xs";
