@@ -227,8 +227,7 @@ const About = () => {
               panel: "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
               panelStrong:
                   "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
-              detailPanel:
-                  "border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.28)]",
+              detailPanel: "border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.28)]",
               card: "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
               accent: "text-cyan-700",
               accentBg: "bg-cyan-500",
@@ -384,9 +383,15 @@ const About = () => {
                 "拓途浙享是拓浙 AI 生态的信息共享平台，把分散的活动、内容、项目、赛事和主体关系组织成可发现、可参与、可沉淀的公共入口。"
             ),
             detailItems: [
-                t("about.ecosystem.business.info_detail_item_1", "活动集合：发现校园机会与生态活动"),
+                t(
+                    "about.ecosystem.business.info_detail_item_1",
+                    "活动集合：发现校园机会与生态活动"
+                ),
                 t("about.ecosystem.business.info_detail_item_2", "AI 社区：阅读、提问、分享与组队"),
-                t("about.ecosystem.business.info_detail_item_3", "项目与赛事：查看需求、作品与成果记录"),
+                t(
+                    "about.ecosystem.business.info_detail_item_3",
+                    "项目与赛事：查看需求、作品与成果记录"
+                ),
             ],
             detailResult: t(
                 "about.ecosystem.business.info_detail_result",
@@ -413,9 +418,18 @@ const About = () => {
                 "AI 社区负责知识沉淀与公开交流，智能体协会负责训练、分层、调度和执行，让参与者从入门学习逐步进入真实项目。"
             ),
             detailItems: [
-                t("about.ecosystem.business.grow_detail_item_1", "新手训练：工具、案例与最低必要技术训练"),
-                t("about.ecosystem.business.grow_detail_item_2", "技术实践：围绕真实问题形成协作小组"),
-                t("about.ecosystem.business.grow_detail_item_3", "组织承接：把成员、项目和成果持续连接起来"),
+                t(
+                    "about.ecosystem.business.grow_detail_item_1",
+                    "新手训练：工具、案例与最低必要技术训练"
+                ),
+                t(
+                    "about.ecosystem.business.grow_detail_item_2",
+                    "技术实践：围绕真实问题形成协作小组"
+                ),
+                t(
+                    "about.ecosystem.business.grow_detail_item_3",
+                    "组织承接：把成员、项目和成果持续连接起来"
+                ),
             ],
             detailResult: t(
                 "about.ecosystem.business.grow_detail_result",
@@ -442,9 +456,18 @@ const About = () => {
                 "项目实践把生态中的真实问题变成可执行的任务，让学生团队获得清晰的目标、协作过程和成果证据，也让合作方看见可靠的交付能力。"
             ),
             detailItems: [
-                t("about.ecosystem.business.project_detail_item_1", "需求进入：企业、政府、教授与学院提出真实课题"),
-                t("about.ecosystem.business.project_detail_item_2", "团队实践：招募成员、推进进度并记录项目过程"),
-                t("about.ecosystem.business.project_detail_item_3", "成果承接：连接认证、实习、就业或项目孵化"),
+                t(
+                    "about.ecosystem.business.project_detail_item_1",
+                    "需求进入：企业、政府、教授与学院提出真实课题"
+                ),
+                t(
+                    "about.ecosystem.business.project_detail_item_2",
+                    "团队实践：招募成员、推进进度并记录项目过程"
+                ),
+                t(
+                    "about.ecosystem.business.project_detail_item_3",
+                    "成果承接：连接认证、实习、就业或项目孵化"
+                ),
             ],
             detailResult: t(
                 "about.ecosystem.business.project_detail_result",
@@ -471,9 +494,18 @@ const About = () => {
                 "浙客松把学习、真实命题和公开展示放进同一场实战，既验证作品，也帮助学校与企业识别能够解决问题的人才。"
             ),
             detailItems: [
-                t("about.ecosystem.business.hackathon_detail_item_1", "主题赛事：围绕真实场景进行跨学科开发"),
-                t("about.ecosystem.business.hackathon_detail_item_2", "过程验证：通过训练、开发、展示和评审形成证据"),
-                t("about.ecosystem.business.hackathon_detail_item_3", "赛后承接：优秀作品进入成果展示与后续机会"),
+                t(
+                    "about.ecosystem.business.hackathon_detail_item_1",
+                    "主题赛事：围绕真实场景进行跨学科开发"
+                ),
+                t(
+                    "about.ecosystem.business.hackathon_detail_item_2",
+                    "过程验证：通过训练、开发、展示和评审形成证据"
+                ),
+                t(
+                    "about.ecosystem.business.hackathon_detail_item_3",
+                    "赛后承接：优秀作品进入成果展示与后续机会"
+                ),
             ],
             detailResult: t(
                 "about.ecosystem.business.hackathon_detail_result",
@@ -965,14 +997,14 @@ const About = () => {
                                         ? isDayMode
                                             ? "text-violet-700"
                                             : "text-violet-200"
-                                      : palette.accent;
+                                        : palette.accent;
                                 const iconBgClass = isAmber
                                     ? palette.altAccentBg
                                     : isEmerald
                                       ? "bg-emerald-400"
                                       : isViolet
                                         ? "bg-violet-300"
-                                      : palette.accentBg;
+                                        : palette.accentBg;
                                 const borderClass = isAmber
                                     ? isDayMode
                                         ? "border-amber-400/70"
@@ -1046,8 +1078,13 @@ const About = () => {
                                                 className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}
                                             >
                                                 <div>
-                                                    <div className={`text-[11px] font-black uppercase ${palette.textMuted}`}>
-                                                        {t("about.ecosystem.business.detail_trigger", "展开了解")}
+                                                    <div
+                                                        className={`text-[11px] font-black uppercase ${palette.textMuted}`}
+                                                    >
+                                                        {t(
+                                                            "about.ecosystem.business.detail_trigger",
+                                                            "展开了解"
+                                                        )}
                                                     </div>
                                                     <div
                                                         className={`mt-2 text-lg font-black ${accentClass}`}
@@ -1127,7 +1164,9 @@ const About = () => {
                                         >
                                             {activeBusiness.index} / {activeBusiness.code}
                                         </div>
-                                        <p className={`mt-4 text-sm font-black uppercase ${palette.label}`}>
+                                        <p
+                                            className={`mt-4 text-sm font-black uppercase ${palette.label}`}
+                                        >
                                             {activeBusiness.detailEyebrow}
                                         </p>
                                         <h2
@@ -1141,7 +1180,10 @@ const About = () => {
                                         ref={detailCloseButtonRef}
                                         type="button"
                                         onClick={closeBusinessDetails}
-                                        aria-label={t("about.ecosystem.business.close_detail", "关闭详情")}
+                                        aria-label={t(
+                                            "about.ecosystem.business.close_detail",
+                                            "关闭详情"
+                                        )}
                                         className={`flex h-11 w-11 shrink-0 items-center justify-center border transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.secondary}`}
                                     >
                                         <X className="h-5 w-5" />
@@ -1150,39 +1192,59 @@ const About = () => {
 
                                 <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.68fr)] lg:gap-12">
                                     <div>
-                                        <p className={`max-w-3xl text-base leading-8 sm:text-lg sm:leading-9 ${palette.textSoft}`}>
+                                        <p
+                                            className={`max-w-3xl text-base leading-8 sm:text-lg sm:leading-9 ${palette.textSoft}`}
+                                        >
                                             {activeBusiness.detailDesc}
                                         </p>
                                         <div className={`mt-8 border-t pt-6 ${palette.divider}`}>
-                                            <p className={`text-xs font-black uppercase ${palette.textMuted}`}>
-                                                {t("about.ecosystem.business.detail_structure", "生态中的作用")}
+                                            <p
+                                                className={`text-xs font-black uppercase ${palette.textMuted}`}
+                                            >
+                                                {t(
+                                                    "about.ecosystem.business.detail_structure",
+                                                    "生态中的作用"
+                                                )}
                                             </p>
                                             <div className="mt-4 grid gap-3">
-                                                {activeBusiness.detailItems.map((detailItem, index) => (
-                                                    <div
-                                                        key={detailItem}
-                                                        className={`flex gap-4 border p-4 sm:p-5 ${
-                                                            isDayMode
-                                                                ? "border-slate-200 bg-white/70"
-                                                                : "border-white/10 bg-white/[0.04]"
-                                                        }`}
-                                                    >
-                                                        <span className={`font-mono text-sm font-black ${palette.accent}`}>
-                                                            0{index + 1}
-                                                        </span>
-                                                        <span className="text-sm font-bold leading-6 sm:text-base sm:leading-7">
-                                                            {detailItem}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                {activeBusiness.detailItems.map(
+                                                    (detailItem, index) => (
+                                                        <div
+                                                            key={detailItem}
+                                                            className={`flex gap-4 border p-4 sm:p-5 ${
+                                                                isDayMode
+                                                                    ? "border-slate-200 bg-white/70"
+                                                                    : "border-white/10 bg-white/[0.04]"
+                                                            }`}
+                                                        >
+                                                            <span
+                                                                className={`font-mono text-sm font-black ${palette.accent}`}
+                                                            >
+                                                                0{index + 1}
+                                                            </span>
+                                                            <span className="text-sm font-bold leading-6 sm:text-base sm:leading-7">
+                                                                {detailItem}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className={`border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 ${palette.divider}`}>
-                                        <p className={`text-xs font-black uppercase ${palette.textMuted}`}>
-                                            {t("about.ecosystem.business.detail_result_label", "形成的结果")}
+                                    <div
+                                        className={`border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 ${palette.divider}`}
+                                    >
+                                        <p
+                                            className={`text-xs font-black uppercase ${palette.textMuted}`}
+                                        >
+                                            {t(
+                                                "about.ecosystem.business.detail_result_label",
+                                                "形成的结果"
+                                            )}
                                         </p>
-                                        <p className={`mt-4 text-xl font-black leading-8 ${palette.accent}`}>
+                                        <p
+                                            className={`mt-4 text-xl font-black leading-8 ${palette.accent}`}
+                                        >
                                             {activeBusiness.detailResult}
                                         </p>
                                         <Link
