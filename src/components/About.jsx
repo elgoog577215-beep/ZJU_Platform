@@ -254,11 +254,11 @@ const About = () => {
         },
         {
             value: "500",
-            label: t("about.ecosystem.stats.community", "AI 社区参与者"),
+            label: t("about.ecosystem.stats.community", "AI 生态交流群满额"),
         },
         {
-            value: "300",
-            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名"),
+            value: "300 / 100",
+            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名 / 参赛"),
         },
     ];
 
@@ -298,7 +298,7 @@ const About = () => {
             headline: t("about.ecosystem.support.capital_headline", "孵化与成长连接"),
             description: t(
                 "about.ecosystem.support.capital_desc",
-                "资本与产业资源为优秀项目提供更长期的成长视野，让校园成果有机会继续孵化。"
+                "产业与孵化资源为优秀项目提供后续连接，让校园成果有机会走向交付、实习、就业或项目孵化。"
             ),
             icon: Handshake,
             items: [t("about.ecosystem.support.capital_items.five_source", "五源资本")],
@@ -428,7 +428,7 @@ const About = () => {
                 title={t("about.ecosystem.meta_title", "拓浙AI生态")}
                 description={t(
                     "about.ecosystem.meta_desc",
-                    "了解拓浙AI生态如何连接学生、学院、企业与真实 AI 需求，让学习、项目、赛事和产业协作持续形成成果。"
+                    "了解拓浙AI生态如何连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让参与持续形成作品、人才与合作。"
                 )}
             />
 
@@ -515,7 +515,7 @@ const About = () => {
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
-                                    "从浙大出发，连接学生、学院、企业与真实 AI 需求，让学习、赛事、项目实践和产业协作持续形成成果。"
+                                    "从浙江大学出发，连接校园机会、AI 学习、真实项目、浙客松赛事与产业协作，让每次参与都形成可复用的作品、人才与合作。"
                                 )}
                             </p>
 
@@ -567,7 +567,7 @@ const About = () => {
                                     >
                                         {t(
                                             "about.ecosystem.brief.desc",
-                                            "从浙大出发，连接学生、学院、企业与真实 AI 需求，让每次参与都能留下可复用的成果与关系。"
+                                            "AI 生态是母系统：拓途浙享负责触达、连接与记录，AI 社区负责学习、资源与人才沉淀，浙客松负责真实问题、实战选拔与成果展示。"
                                         )}
                                     </p>
                                 </div>
@@ -580,7 +580,7 @@ const About = () => {
                                 >
                                     {t(
                                         "about.ecosystem.brief.signature",
-                                        "Resource aggregation / Talent network / AI-centered education"
+                                        "Talent connection / Project practice / Industry conversion"
                                     )}
                                 </div>
                             </div>
@@ -655,7 +655,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.support.desc",
-                                    "学校提供场景与机制，企业带来真实课题与技术资源，资本连接项目孵化，学生组织承接社群、活动和执行力量。"
+                                    "学校提供场景与机制，企业带来真实课题与技术资源，学生组织承接学习、社群和执行，产业资源帮助优秀成果继续转化。"
                                 )}
                             </p>
                         </div>
@@ -832,7 +832,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "数字底座负责触达与记录，AI 社区负责学习与协作，浙客松负责实战验证和人才识别；三者共同把资源送入真实项目与产业连接。"
+                                    "拓途浙享负责触达与记录，AI 社区负责学习与组队，浙客松负责实战验证与人才识别；真实需求进入校园，成果再回到学校、企业与下一轮合作。"
                                 )}
                             </p>
                         </div>

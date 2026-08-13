@@ -906,7 +906,7 @@
         "projects": "Projects",
         "ecosystem": {
             "meta_title": "TUOZHE AI ECOSYSTEM",
-            "meta_desc": "See how the TUOZHE AI ECOSYSTEM connects students, colleges, companies, and real AI needs so learning, projects, competitions, and industry collaboration keep producing outcomes.",
+            "meta_desc": "See how the TUOZHE AI ECOSYSTEM connects campus opportunities, AI learning, real projects, Zhekesong competitions, and industry collaboration to produce reusable work, talent, and partnerships.",
             "pagination_aria": "About page sections",
             "hero": {
                 "brand": "TUOZHE AI ECOSYSTEM",
@@ -914,16 +914,16 @@
                 "title_2": "AI Ecosystem",
                 "title_3": "FROM ZJU TO THE REAL WORLD",
                 "strong": "Open to all streams. Built without limits.",
-                "desc": "Starting from ZJU, we connect students, colleges, companies, and real AI needs so learning, competitions, projects, and industry collaboration keep producing outcomes.",
+                "desc": "Starting from Zhejiang University, we connect campus opportunities, AI learning, real projects, Zhekesong competitions, and industry collaboration so every participation can produce reusable work, talent, and partnerships.",
                 "primary_cta": "Explore Opportunities",
                 "secondary_cta": "See How It Works"
             },
             "stats": {
-                "users": "Registered Users",
+                "users": "Platform Users",
                 "daily_views": "Daily Views",
-                "events": "Campus Events Collected",
-                "community": "AI Community Participants",
-                "hackathon": "First ZJUHack Sign-ups"
+                "events": "Campus Events",
+                "community": "AI Ecosystem Group Capacity",
+                "hackathon": "First Zhekesong Sign-ups / Competitors"
             },
             "brief": {
                 "watermark": "BRAND",
@@ -931,23 +931,23 @@
                 "status": "ZJU Origin",
                 "title_1": "Open to all streams.",
                 "title_2": "Built without limits.",
-                "desc": "Starting from ZJU, we connect people and real AI needs so every participation can leave reusable outcomes and relationships.",
-                "signature": "Talent connection / Project practice / Industry collaboration"
+                "desc": "The AI ecosystem is the parent system: Tuotuo Zhexin handles reach, connection, and records; the AI Community handles learning, resources, and talent retention; Zhekesong handles real problems, practice-based selection, and outcome showcases.",
+                "signature": "Talent connection / Project practice / Industry conversion"
             },
             "loop": {
-                "discover": "Digital Base",
-                "discover_desc": "The public entry connects campus opportunities, profiles, projects, competitions, and outcomes",
-                "learn": "Community Connection",
-                "learn_desc": "The AI Community and agent association carry learning, team formation, and project collaboration",
-                "build": "Projects & Talent Selection",
-                "build_desc": "Real projects and Zhekesong turn learning into work, delivery, and talent signals",
-                "recognize": "Industry Connection",
-                "recognize_desc": "College and enterprise needs enter; outcomes return to talent, organizations, and the next collaboration"
+                "discover": "Reach & Connect",
+                "discover_desc": "Tuotuo Zhexin puts campus opportunities, profiles, projects, competitions, and outcomes into one public entry",
+                "learn": "Learn & Team Up",
+                "learn_desc": "The AI Community and agent association carry learning, training, team formation, and project execution",
+                "build": "Practice & Validate",
+                "build_desc": "Real projects and Zhekesong turn learning into work, delivery, and verifiable talent signals",
+                "recognize": "Carry Forward",
+                "recognize_desc": "Schools and companies recognize outcomes, while strong projects continue into internships, jobs, incubation, and new collaboration"
             },
             "support": {
                 "title_1": "Resources are not decoration.",
                 "title_2": "They are the base of the ecosystem.",
-                "desc": "Campus units provide scenarios and mechanisms, companies bring real briefs and technical resources, capital connects incubation, and student organizations carry community, events, and execution.",
+                "desc": "Campus units provide scenarios and mechanisms, companies bring real briefs and technical resources, student organizations carry learning and execution, and industry resources help strong outcomes move forward.",
                 "school_title": "Campus Support",
                 "school_headline": "Scenarios, spaces, and mechanisms",
                 "school_desc": "The Future Learning Center and campus innovation platforms provide industry-education scenarios so real briefs can steadily enter campus practice.",
@@ -959,7 +959,7 @@
                 },
                 "enterprise_title": "Enterprise Partners",
                 "enterprise_headline": "Real briefs and technical resources",
-                "enterprise_desc": "AI companies, developer tools, and industry partners bring real problems, model capabilities, cloud resources, and talent pathways into campus.",
+                "enterprise_desc": "Partners including Alibaba Cloud, MiniMax, ModelScope, StepFun, Huawei, and Tongyi Qianwen Office bring real problems, model capabilities, cloud resources, and talent pathways into campus.",
                 "enterprise_items": {
                     "getui": "Getui",
                     "aliyun": "Alibaba Cloud",
@@ -971,7 +971,7 @@
                 },
                 "capital_title": "Capital Partners",
                 "capital_headline": "Incubation and growth connection",
-                "capital_desc": "Capital and industry resources give strong projects a longer growth horizon, helping campus outcomes move toward incubation.",
+                "capital_desc": "Industry and incubation resources give strong projects a path toward delivery, internships, jobs, or further incubation.",
                 "capital_items": {
                     "five_source": "5Y Capital"
                 },
@@ -991,27 +991,27 @@
                 "eyebrow": "Ecosystem Engine",
                 "title_1": "Three ecosystem mechanisms",
                 "title_2": "keep talent, real needs, and outcomes moving.",
-                "desc": "The digital base handles reach and records, the AI Community carries learning and collaboration, and Zhekesong validates work and talent. Together, they move resources into real projects and industry connections.",
+                "desc": "Tuotuo Zhexin handles reach and records, the AI Community handles learning and team formation, and Zhekesong validates work and talent. Real needs enter campus, and outcomes return to schools, companies, and the next collaboration.",
                 "info_title": "Digital Base & Opportunity Entry",
                 "info_short": "Discover opportunities / Connect profiles / Record outcomes",
-                "info_desc": "Campus opportunities, the AI Community, projects, competitions, people, and organizations share one public entry that supports discovery, participation, and durable records.",
+                "info_desc": "Tuotuo Zhexin is the digital base of the TUOZHE AI ECOSYSTEM, giving campus opportunities, the AI Community, projects, competitions, people, and organizations one public entry for discovery, participation, and durable records.",
                 "info_metric": "Reach · Connect · Record",
                 "info_cta": "Explore Opportunities",
                 "grow_title": "AI Community & Project Collaboration",
                 "grow_short": "Shared learning / Team practice / Project delivery",
-                "grow_desc": "The AI Community retains knowledge and questions, the agent association organizes learning and execution, and real projects move participants from discussion into collaboration and delivery.",
+                "grow_desc": "The AI Community retains knowledge, tools, and questions, while the agent association carries learning and project execution from entry-level training into real collaboration and delivery.",
                 "grow_metric": "Learn → Team Up → Deliver",
                 "grow_cta": "Enter AI Community",
                 "hackathon_title": "Zhekesong Hackathon Series",
                 "hackathon_short": "Interdisciplinary competitions / Talent selection / Outcome recognition",
-                "hackathon_desc": "Interdisciplinary sprints around real college and enterprise briefs turn learning into work, delivery, and verifiable talent signals.",
+                "hackathon_desc": "Zhekesong is a themed, school-enterprise co-built competition series. Interdisciplinary sprints around real scenarios turn learning into work, recognition, and next-step opportunities.",
                 "hackathon_metric": "Practice → Work → Talent Signal",
                 "hackathon_cta": "View Zhekesong"
             },
             "join": {
                 "title_1": "Join the TUOZHE",
                 "title_2": "AI Ecosystem",
-                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, start with a concrete opportunity, community, project, competition, or collaboration path.",
+                "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, enter the ecosystem through an opportunity, community, project, Zhekesong event, or collaboration path.",
                 "download_cta": "Download App",
                 "platform_cta": "Explore Opportunities",
                 "contact_cta": "Contact for Collaboration",
