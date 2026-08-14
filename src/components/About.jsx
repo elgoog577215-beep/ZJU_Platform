@@ -400,8 +400,8 @@ const About = () => {
         {
             index: "02",
             code: "COMMUNITY",
-            title: t("about.ecosystem.business.grow_title", "AI 学习培养体系"),
-            short: t("about.ecosystem.business.grow_short", "基础学习 / 项目训练 / 进入实践"),
+            title: t("about.ecosystem.business.grow_title", "智能体协会与 AI 社区"),
+            short: t("about.ecosystem.business.grow_short", "学习、训练与组队"),
             description: t(
                 "about.ecosystem.business.grow_desc",
                 "AI 社区面向不同专业的学生提供入门内容、项目陪跑和技术交流，帮助成员从第一次使用 AI 走到第一个作品。"
@@ -437,53 +437,15 @@ const About = () => {
         },
         {
             index: "03",
-            code: "PROJECTS",
-            title: t("about.ecosystem.business.project_title", "产业实践与技术转化"),
-            short: t("about.ecosystem.business.project_short", "需求澄清 / 团队交付 / 场景验证"),
-            description: t(
-                "about.ecosystem.business.project_desc",
-                "项目广场承接企业、政府、教授、学院和学生提出的真实需求，记录招募、协作、交付和后续承接。"
-            ),
-            metric: t("about.ecosystem.business.project_metric", "需求 → 交付 → 验证"),
-            route: "/projects",
-            cta: t("about.ecosystem.business.project_cta", "查看项目"),
-            icon: Building2,
-            tone: "violet",
-            detailEyebrow: t("about.ecosystem.business.project_detail_eyebrow", "真实项目"),
-            detailDesc: t(
-                "about.ecosystem.business.project_detail_desc",
-                "项目从需求澄清开始，经过团队招募、方案设计、开发和测试，最后回到场景方验收。项目过程和结果都会留下记录。"
-            ),
-            detailItems: [
-                t(
-                    "about.ecosystem.business.project_detail_item_1",
-                    "需求进入：企业、政府、教授与学院提出真实课题"
-                ),
-                t(
-                    "about.ecosystem.business.project_detail_item_2",
-                    "团队实践：招募成员、推进进度并记录项目过程"
-                ),
-                t(
-                    "about.ecosystem.business.project_detail_item_3",
-                    "成果承接：连接认证、实习、就业或项目孵化"
-                ),
-            ],
-            detailResult: t(
-                "about.ecosystem.business.project_detail_result",
-                "把一次需求合作做成可验收的作品，也为下一次项目留下依据。"
-            ),
-        },
-        {
-            index: "04",
             code: "HACKATHON",
-            title: t("about.ecosystem.business.hackathon_title", "浙客松系列黑客松"),
-            short: t(
-                "about.ecosystem.business.hackathon_short",
-                "跨学科开发 / 商业化验证 / 成果展示"
-            ),
+            title: t("about.ecosystem.business.hackathon_title", "浙客松"),
             description: t(
                 "about.ecosystem.business.hackathon_desc",
                 "浙客松以真实问题为起点，组织跨学科团队完成开发、验证和公开展示。"
+            ),
+            short: t(
+                "about.ecosystem.business.hackathon_short",
+                "跨学科开发 / 商业化验证 / 成果展示"
             ),
             metric: t("about.ecosystem.business.hackathon_metric", "开发 → 验证 → 展示"),
             route: "/hackathon",
@@ -512,6 +474,44 @@ const About = () => {
             detailResult: t(
                 "about.ecosystem.business.hackathon_detail_result",
                 "首届浙客松约 300 人报名、100 人正式参赛；后续赛事按实际合作状态推进。"
+            ),
+        },
+        {
+            index: "04",
+            code: "PROJECTS",
+            title: t("about.ecosystem.business.project_title", "启音科技"),
+            short: t("about.ecosystem.business.project_short", "产业实践与技术转化"),
+            description: t(
+                "about.ecosystem.business.project_desc",
+                "启音科技承接企业、政府、教授、学院和学生提出的真实需求，推动团队完成交付、场景验证和后续转化。"
+            ),
+            metric: t("about.ecosystem.business.project_metric", "需求 → 交付 → 验证"),
+            route: "/projects",
+            cta: t("about.ecosystem.business.project_cta", "查看项目"),
+            icon: Building2,
+            tone: "violet",
+            detailEyebrow: t("about.ecosystem.business.project_detail_eyebrow", "真实项目"),
+            detailDesc: t(
+                "about.ecosystem.business.project_detail_desc",
+                "项目从需求澄清开始，经过团队招募、方案设计、开发和测试，最后回到场景方验收。项目过程和结果都会留下记录。"
+            ),
+            detailItems: [
+                t(
+                    "about.ecosystem.business.project_detail_item_1",
+                    "需求进入：企业、政府、教授与学院提出真实课题"
+                ),
+                t(
+                    "about.ecosystem.business.project_detail_item_2",
+                    "团队实践：招募成员、推进进度并记录项目过程"
+                ),
+                t(
+                    "about.ecosystem.business.project_detail_item_3",
+                    "成果承接：连接认证、实习、就业或项目孵化"
+                ),
+            ],
+            detailResult: t(
+                "about.ecosystem.business.project_detail_result",
+                "把一次需求合作做成可验收的作品，也为下一次项目留下依据。"
             ),
         },
     ];
@@ -971,7 +971,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "信息平台负责发布和记录，AI 社区负责学习与组队，浙客松负责比赛与成果检验，产业实践负责把成熟项目带入真实场景。"
+                                    "信息平台负责发布和记录，智能体协会与 AI 社区负责学习与组队，浙客松负责比赛与成果检验，启音科技负责把成熟项目带入真实场景。"
                                 )}
                             </p>
                         </div>
