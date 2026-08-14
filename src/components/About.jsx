@@ -479,11 +479,11 @@ const About = () => {
         {
             index: "04",
             code: "PROJECTS",
-            title: t("about.ecosystem.business.project_title", "启音科技"),
+            title: t("about.ecosystem.business.project_title", "奇鹰科技"),
             short: t("about.ecosystem.business.project_short", "产业实践与技术转化"),
             description: t(
                 "about.ecosystem.business.project_desc",
-                "启音科技承接企业、政府、教授、学院和学生提出的真实需求，推动团队完成交付、场景验证和后续转化。"
+                "奇鹰科技承接企业、政府、教授、学院和学生提出的真实需求，推动团队完成交付、场景验证和后续转化。"
             ),
             metric: t("about.ecosystem.business.project_metric", "需求 → 交付 → 验证"),
             route: "/projects",
@@ -971,7 +971,7 @@ const About = () => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "信息平台负责发布和记录，智能体协会与 AI 社区负责学习与组队，浙客松负责比赛与成果检验，启音科技负责把成熟项目带入真实场景。"
+                                    "信息平台负责发布和记录，智能体协会与 AI 社区负责学习与组队，浙客松负责比赛与成果检验，奇鹰科技负责把成熟项目带入真实场景。"
                                 )}
                             </p>
                         </div>
