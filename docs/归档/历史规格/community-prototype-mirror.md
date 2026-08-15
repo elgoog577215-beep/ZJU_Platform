@@ -47,7 +47,7 @@
 ## 联调与构建
 
 - 本地全栈：`npm run dev`（或 `dev:full`），前端端口见 `package.json`/`vite.config`；社区路径 **`/community/help`** 等。
-- 原根级 `COMMUNITY_DEV.md` 已退役；当前启动、API 与验证入口分别查看 [README](../../../README.md) 和[系统架构](../../系统架构.md)。
+- 原根级 `COMMUNITY_DEV.md` 已退役；当前启动、API 与验证入口分别查看 [README](../../../README.md) 和[技术架构](../../技术架构.md)。
 
 ## 后续可选项（未列入本次必做）
 

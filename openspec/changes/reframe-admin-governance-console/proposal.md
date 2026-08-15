@@ -52,7 +52,7 @@
     - AI 能力状态继续复用 `unifiedAiAssistantService`、`aiAgentRegistryService` 和搜索索引服务。
 - 文档：
     - `docs/产品状态.md`
-    - `docs/系统架构.md`
+    - `docs/技术架构.md`
     - `docs/开发禁区.md`
 - i18n：
     - `public/locales/zh/translation.json`

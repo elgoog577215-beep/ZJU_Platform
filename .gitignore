@@ -57,7 +57,8 @@ pkcs11.txt
 AGENTS.backup-*.md
 AGENTS.compact-*.md
 docs/ai-memory/
-docs/经验/
+docs/事实.md
+docs/经验.md
 docs/archive/session-summaries/
 docs/归档/session-summaries/
 docs/归档/会话摘要/
