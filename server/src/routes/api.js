@@ -917,6 +917,16 @@ router.put(
     authenticateToken,
     eventAssistantController.updateEventAssistantPreferences
 );
+router.get(
+    "/events/assistant/profile",
+    authenticateToken,
+    eventAssistantController.getEventAssistantProfile
+);
+router.delete(
+    "/events/assistant/profile",
+    authenticateToken,
+    eventAssistantController.resetEventAssistantProfile
+);
 router.get("/events/distinct-options", resourceController.getEventDistinctOptions);
 router.post("/events/:id/register", authenticateToken, eventController.registerEvent);
 router.get("/events/:id/registration", authenticateToken, eventController.getRegistrationStatus);

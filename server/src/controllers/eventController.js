@@ -1,4 +1,5 @@
 const { getDb } = require("../config/db");
+const { enqueueProfileRefresh } = require("../services/userEventAiProfileService");
 
 const registerEvent = async (req, res, next) => {
     try {
@@ -25,6 +26,11 @@ const registerEvent = async (req, res, next) => {
         if (existing) {
             // Unregister (Toggle)
             await db.run("DELETE FROM event_registrations WHERE id = ?", [existing.id]);
+            await enqueueProfileRefresh(db, userId, {
+                reason: "unregister",
+                priority: 90,
+                delaySeconds: 10,
+            });
             return res.json({ registered: false, message: "Registration cancelled" });
         } else {
             // Register
@@ -32,6 +38,11 @@ const registerEvent = async (req, res, next) => {
                 id,
                 userId,
             ]);
+            await enqueueProfileRefresh(db, userId, {
+                reason: "register",
+                priority: 95,
+                delaySeconds: 5,
+            });
             return res.json({ registered: true, message: "Successfully registered" });
         }
     } catch (error) {

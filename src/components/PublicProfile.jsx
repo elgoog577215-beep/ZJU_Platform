@@ -30,6 +30,7 @@ import {
     Clock3,
     MessageCircle,
     ShieldCheck,
+    RotateCcw,
 } from "lucide-react";
 import api, {
     createIdentityClaim,
@@ -562,6 +563,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const [eventPreferenceLoading, setEventPreferenceLoading] = useState(false);
     const [eventPreferenceSaving, setEventPreferenceSaving] = useState(false);
     const [eventPreferenceLoaded, setEventPreferenceLoaded] = useState(false);
+    const [eventAiProfile, setEventAiProfile] = useState(null);
+    const [eventAiProfileResetting, setEventAiProfileResetting] = useState(false);
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -789,9 +792,13 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         const loadEventPreference = async () => {
             setEventPreferenceLoading(true);
             try {
-                const response = await api.get("/events/assistant/preferences");
+                const [response, profileResponse] = await Promise.all([
+                    api.get("/events/assistant/preferences"),
+                    api.get("/events/assistant/profile").catch(() => ({ data: null })),
+                ]);
                 if (cancelled) return;
                 const data = response.data || {};
+                setEventAiProfile(profileResponse.data || null);
                 setEventPreferenceForm({
                     college: data.college || "",
                     division: data.division || "",
@@ -1146,6 +1153,22 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             );
         } finally {
             setEventPreferenceSaving(false);
+        }
+    };
+
+    const handleEventAiProfileReset = async () => {
+        if (!window.confirm(t("user_profile.center.activity_profile.ai_profile.reset_confirm"))) {
+            return;
+        }
+        setEventAiProfileResetting(true);
+        try {
+            const response = await api.delete("/events/assistant/profile");
+            setEventAiProfile(response.data || null);
+            toast.success(t("user_profile.center.activity_profile.ai_profile.reset_success"));
+        } catch {
+            toast.error(t("user_profile.center.activity_profile.ai_profile.reset_failed"));
+        } finally {
+            setEventAiProfileResetting(false);
         }
     };
 
@@ -2704,6 +2727,100 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                         </div>
                                     ) : (
                                         <div className="space-y-6">
+                                            <section
+                                                className={`border-y py-5 ${isDayMode ? "border-slate-200/80" : "border-white/10"}`}
+                                            >
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                    <div>
+                                                        <h4
+                                                            className={`text-sm font-bold ${isDayMode ? "text-slate-800" : "text-white"}`}
+                                                        >
+                                                            {t(
+                                                                "user_profile.center.activity_profile.ai_profile.title"
+                                                            )}
+                                                        </h4>
+                                                        <p
+                                                            className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                        >
+                                                            {eventAiProfile?.updatedAt
+                                                                ? `${t("user_profile.center.activity_profile.ai_profile.updated_at")} ${new Date(eventAiProfile.updatedAt).toLocaleString()}`
+                                                                : t(
+                                                                      "user_profile.center.activity_profile.ai_profile.pending"
+                                                                  )}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleEventAiProfileReset}
+                                                        disabled={eventAiProfileResetting}
+                                                        className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-bold transition-colors disabled:opacity-50 ${isDayMode ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-rose-400/20 text-rose-200 hover:bg-rose-400/10"}`}
+                                                    >
+                                                        {eventAiProfileResetting ? (
+                                                            <Loader2
+                                                                size={14}
+                                                                className="animate-spin"
+                                                            />
+                                                        ) : (
+                                                            <RotateCcw size={14} />
+                                                        )}
+                                                        {t(
+                                                            "user_profile.center.activity_profile.ai_profile.reset"
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                                    {[
+                                                        [
+                                                            "longTermPreferences",
+                                                            "user_profile.center.activity_profile.ai_profile.long_term",
+                                                        ],
+                                                        [
+                                                            "shortTermInterests",
+                                                            "user_profile.center.activity_profile.ai_profile.short_term",
+                                                        ],
+                                                        [
+                                                            "dislikes",
+                                                            "user_profile.center.activity_profile.ai_profile.dislikes",
+                                                        ],
+                                                        [
+                                                            "decisionFactors",
+                                                            "user_profile.center.activity_profile.ai_profile.factors",
+                                                        ],
+                                                    ].map(([key, label]) => (
+                                                        <div key={key}>
+                                                            <div
+                                                                className={`mb-2 text-xs font-bold ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                                            >
+                                                                {t(label)}
+                                                            </div>
+                                                            <div className="flex min-h-7 flex-wrap gap-1.5">
+                                                                {(eventAiProfile?.[key] || [])
+                                                                    .length ? (
+                                                                    eventAiProfile[key].map(
+                                                                        (item) => (
+                                                                            <span
+                                                                                key={item}
+                                                                                className={`rounded-md px-2 py-1 text-xs ${isDayMode ? "bg-slate-100 text-slate-700" : "bg-white/10 text-gray-200"}`}
+                                                                            >
+                                                                                {item}
+                                                                            </span>
+                                                                        )
+                                                                    )
+                                                                ) : (
+                                                                    <span
+                                                                        className={`text-xs ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                                                    >
+                                                                        {t(
+                                                                            "user_profile.center.activity_profile.ai_profile.empty"
+                                                                        )}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+
                                             <div className="grid gap-4 md:grid-cols-2">
                                                 {[
                                                     [

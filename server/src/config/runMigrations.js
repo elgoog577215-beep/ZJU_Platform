@@ -2505,6 +2505,7 @@ async function runMigrations(db) {
         provider TEXT DEFAULT 'openai-compatible',
         base_url TEXT NOT NULL,
         model TEXT NOT NULL,
+        role TEXT DEFAULT 'general',
         encrypted_api_key TEXT NOT NULL,
         priority INTEGER DEFAULT 100,
         enabled INTEGER DEFAULT 1,
@@ -2644,6 +2645,10 @@ async function runMigrations(db) {
         last_error TEXT,
         model_name TEXT,
         model_provider TEXT,
+        embedding_vector TEXT,
+        embedding_model TEXT,
+        embedding_dimensions INTEGER DEFAULT 0,
+        embedded_at DATETIME,
         refreshed_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -2656,6 +2661,53 @@ async function runMigrations(db) {
         ON event_ai_profiles(category);
       CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_source_hash
         ON event_ai_profiles(source_hash);
+
+      CREATE TABLE IF NOT EXISTS user_event_ai_profiles (
+        user_id INTEGER PRIMARY KEY,
+        profile_version INTEGER DEFAULT 1,
+        profile_json TEXT NOT NULL DEFAULT '{}',
+        long_term_preferences TEXT NOT NULL DEFAULT '[]',
+        short_term_interests TEXT NOT NULL DEFAULT '[]',
+        dislikes TEXT NOT NULL DEFAULT '[]',
+        decision_factors TEXT NOT NULL DEFAULT '[]',
+        evidence_json TEXT NOT NULL DEFAULT '[]',
+        confidence REAL DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        source_hash TEXT,
+        model_name TEXT,
+        model_provider TEXT,
+        last_error TEXT,
+        personalization_reset_at DATETIME,
+        generated_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_event_ai_profiles_status
+        ON user_event_ai_profiles(status, updated_at DESC);
+
+      CREATE TABLE IF NOT EXISTS user_ai_profile_jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        reason TEXT NOT NULL DEFAULT 'behavior',
+        priority INTEGER DEFAULT 50,
+        status TEXT DEFAULT 'pending',
+        attempts INTEGER DEFAULT 0,
+        available_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        locked_at DATETIME,
+        locked_by TEXT,
+        last_error TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_ai_profile_jobs_ready
+        ON user_ai_profile_jobs(status, available_at, priority DESC, id ASC);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_ai_profile_jobs_active_user
+        ON user_ai_profile_jobs(user_id)
+        WHERE status IN ('pending', 'processing');
 
       CREATE TABLE IF NOT EXISTS resource_search_index (
         resource_type TEXT NOT NULL,
@@ -2699,6 +2751,25 @@ async function runMigrations(db) {
         );
         await ensureColumns(
             db,
+            "ai_model_configs",
+            {
+                role: "TEXT DEFAULT 'general'",
+            },
+            "ai_model_configs"
+        );
+        await ensureColumns(
+            db,
+            "event_ai_profiles",
+            {
+                embedding_vector: "TEXT",
+                embedding_model: "TEXT",
+                embedding_dimensions: "INTEGER DEFAULT 0",
+                embedded_at: "DATETIME",
+            },
+            "event_ai_profiles"
+        );
+        await ensureColumns(
+            db,
             "resource_search_index",
             {
                 image_url: "TEXT",
@@ -2709,6 +2780,23 @@ async function runMigrations(db) {
             },
             "resource_search_index"
         );
+        try {
+            await db.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS event_ai_search_fts USING fts5(
+          event_id UNINDEXED,
+          title,
+          summary,
+          topics,
+          organizer,
+          campus,
+          audience,
+          benefits,
+          tokenize = 'unicode61'
+        );
+      `);
+        } catch (ftsError) {
+            console.warn("Migration warning (event assistant FTS unavailable):", ftsError.message);
+        }
         console.log("AI assistant tables ready");
     } catch (err) {
         if (!err.message.includes("already exists")) {

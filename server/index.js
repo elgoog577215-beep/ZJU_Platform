@@ -18,6 +18,10 @@ const {
     stopWechatMpIngestScheduler,
     stopWechatMpTokenHealthScheduler,
 } = require("./src/services/wechatMpScheduledIngestService");
+const {
+    startUserEventAiProfileScheduler,
+    stopUserEventAiProfileScheduler,
+} = require("./src/services/userEventAiProfileService");
 const apiRoutes = require("./src/routes/api");
 const errorHandler = require("./src/middleware/errorHandler");
 const {
@@ -404,6 +408,7 @@ const startServer = async () => {
         await runMigrations(db);
         startWechatMpTokenHealthScheduler({ getDb });
         startWechatMpIngestScheduler({ getDb });
+        startUserEventAiProfileScheduler({ getDb });
 
         // 尝试启动服务器，如果端口被占用则尝试下一个端口
         const startOnPort = (port) => {
@@ -474,6 +479,7 @@ process.on("SIGTERM", async () => {
     console.log("👋 SIGTERM received, shutting down gracefully");
     stopWechatMpTokenHealthScheduler();
     stopWechatMpIngestScheduler();
+    stopUserEventAiProfileScheduler();
     await pool.close();
     process.exit(0);
 });
@@ -482,6 +488,7 @@ process.on("SIGINT", async () => {
     console.log("👋 SIGINT received, shutting down gracefully");
     stopWechatMpTokenHealthScheduler();
     stopWechatMpIngestScheduler();
+    stopUserEventAiProfileScheduler();
     await pool.close();
     process.exit(0);
 });

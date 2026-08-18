@@ -276,8 +276,8 @@ const runMainFlowCheck = async () => {
         assert(moduleIds.has(id), `Overview should expose registered AI agent module: ${id}`);
     });
     assert(
-        overview.agentSystem?.summary?.agentCount === 6,
-        "Overview should expose agent system summary."
+        overview.agentSystem?.summary?.agentCount === overview.agentSystem?.modules?.length,
+        "Overview should expose a complete agent system summary."
     );
     assert(
         overview.agentSystem.summary.averageMaturity > 0.7,

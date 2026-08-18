@@ -20,9 +20,21 @@ const emptyForm = {
     base_url: "https://api-inference.modelscope.cn/v1",
     model: "ZhipuAI/GLM-5.1",
     api_key: "",
+    role: "general",
     priority: 100,
     enabled: true,
 };
+
+const MODEL_ROLE_OPTIONS = [
+    { value: "general", label: "通用回退" },
+    { value: "fast", label: "快速理解" },
+    { value: "reasoning", label: "推理排序" },
+    { value: "embedding", label: "向量检索" },
+];
+
+const modelRoleLabel = Object.fromEntries(
+    MODEL_ROLE_OPTIONS.map((option) => [option.value, option.label])
+);
 
 const statusLabel = {
     ok: "可用",
@@ -83,6 +95,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                 name: config.name || "",
                 base_url: config.base_url || "",
                 model: config.model || "",
+                role: config.role || "general",
                 priority: config.priority || 100,
                 api_key: "",
             },
@@ -151,6 +164,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
             name: draft.name.trim(),
             base_url: draft.base_url.trim(),
             model: draft.model.trim(),
+            role: draft.role,
             priority: Number(draft.priority) || 100,
         };
 
@@ -279,6 +293,9 @@ const AiModelConfigManager = ({ embedded = false }) => {
                                                     地址 {config.base_url}
                                                 </div>
                                                 <div>Key {config.masked_api_key || "未显示"}</div>
+                                                <div>
+                                                    角色 {modelRoleLabel[config.role] || "通用回退"}
+                                                </div>
                                                 <div>优先级 {config.priority}</div>
                                                 {config.last_error ? (
                                                     <div className="text-rose-500">
@@ -289,7 +306,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
 
                                             {editDraft ? (
                                                 <div className="mt-4 grid gap-3 rounded-2xl border border-[rgba(128,146,167,0.16)] p-3">
-                                                    <div className="grid gap-3 md:grid-cols-2">
+                                                    <div className="grid gap-3 md:grid-cols-3">
                                                         <label className="grid gap-2 text-sm font-medium">
                                                             <span className={mutedTextClass}>
                                                                 显示名称
@@ -321,6 +338,33 @@ const AiModelConfigManager = ({ embedded = false }) => {
                                                                     )
                                                                 }
                                                             />
+                                                        </label>
+                                                        <label className="grid gap-2 text-sm font-medium">
+                                                            <span className={mutedTextClass}>
+                                                                模型角色
+                                                            </span>
+                                                            <select
+                                                                className={fieldClass}
+                                                                value={editDraft.role}
+                                                                onChange={(event) =>
+                                                                    updateEdit(
+                                                                        config.id,
+                                                                        "role",
+                                                                        event.target.value
+                                                                    )
+                                                                }
+                                                            >
+                                                                {MODEL_ROLE_OPTIONS.map(
+                                                                    (option) => (
+                                                                        <option
+                                                                            key={option.value}
+                                                                            value={option.value}
+                                                                        >
+                                                                            {option.label}
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
                                                         </label>
                                                     </div>
 
@@ -467,7 +511,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
             {showCreateForm || configs.length === 0 ? (
                 <AdminPanel title="添加 Key">
                     <form onSubmit={handleCreate} className="grid gap-4">
-                        <div className="grid gap-3 md:grid-cols-2">
+                        <div className="grid gap-3 md:grid-cols-3">
                             <label className="grid gap-2 text-sm font-medium">
                                 <span className={mutedTextClass}>显示名称</span>
                                 <input
@@ -485,6 +529,20 @@ const AiModelConfigManager = ({ embedded = false }) => {
                                     onChange={(event) => updateForm("model", event.target.value)}
                                     placeholder="ZhipuAI/GLM-5.1"
                                 />
+                            </label>
+                            <label className="grid gap-2 text-sm font-medium">
+                                <span className={mutedTextClass}>模型角色</span>
+                                <select
+                                    className={fieldClass}
+                                    value={form.role}
+                                    onChange={(event) => updateForm("role", event.target.value)}
+                                >
+                                    {MODEL_ROLE_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </label>
                         </div>
 

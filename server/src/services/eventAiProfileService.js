@@ -7,6 +7,7 @@ const {
     normalizeEventCategory,
 } = require("./eventIntelligenceService");
 const aiRuntime = require("./unifiedAiRuntimeService");
+const { callEmbeddingWithFailover } = require("./aiModelConfigService");
 
 const PROFILE_VERSION = 1;
 const MAX_PROFILE_EVENTS_PER_TURN = 24;
@@ -207,6 +208,77 @@ const buildProfileRow = (event, profile, meta = {}) => {
     };
 };
 
+const buildEmbeddingText = (event, profile) =>
+    [
+        event.title,
+        profile.summary,
+        `类型:${profile.category}`,
+        `主题:${profile.topics.join("、")}`,
+        `校区:${profile.campuses.join("、")}`,
+        `对象:${profile.audiences.join("、")}`,
+        `收益:${profile.benefits.join("、")}`,
+        `主办方:${profile.organizers.join("、")}`,
+        `时间特征:${profile.time_preference_terms.join("、")}`,
+    ]
+        .filter(Boolean)
+        .join("\n")
+        .slice(0, 4000);
+
+const upsertFtsRow = async (db, event, profile) => {
+    try {
+        await db.run("DELETE FROM event_ai_search_fts WHERE event_id = ?", [String(event.id)]);
+        await db.run(
+            `
+        INSERT INTO event_ai_search_fts (
+          event_id, title, summary, topics, organizer, campus, audience, benefits
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+            [
+                String(event.id),
+                toText(event.title, 240),
+                profile.summary,
+                profile.topics.join(" "),
+                profile.organizers.join(" "),
+                profile.campuses.join(" "),
+                profile.audiences.join(" "),
+                profile.benefits.join(" "),
+            ]
+        );
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+const refreshSearchArtifacts = async (db, event, profileRow, options = {}) => {
+    const profile = normalizeProfile(profileRow.raw || profileRow, event);
+    const ftsIndexed = await upsertFtsRow(db, event, profile);
+    if (options.embedding === false) return { ftsIndexed, embedded: false };
+
+    try {
+        const result = await callEmbeddingWithFailover(db, buildEmbeddingText(event, profile), {
+            timeout: options.embeddingTimeout || 8000,
+        });
+        await db.run(
+            `
+        UPDATE event_ai_profiles
+        SET embedding_vector = ?, embedding_model = ?, embedding_dimensions = ?,
+            embedded_at = datetime('now'), updated_at = datetime('now')
+        WHERE event_id = ?
+      `,
+            [
+                JSON.stringify(result.vector),
+                result.config?.model || "",
+                result.vector.length,
+                event.id,
+            ]
+        );
+        return { ftsIndexed, embedded: true, dimensions: result.vector.length };
+    } catch (error) {
+        return { ftsIndexed, embedded: false, error };
+    }
+};
+
 const upsertProfile = async (db, event, profile, meta = {}) => {
     const sourceHash = buildSourceHash(event);
     const row = buildProfileRow(event, profile, { sourceHash, ...meta });
@@ -298,6 +370,10 @@ const serializeProfileRow = (row) => {
         refreshedAt: row.refreshed_at || null,
         modelName: row.model_name || "",
         modelProvider: row.model_provider || "",
+        embedding: parseJsonArrayText(row.embedding_vector).map(Number).filter(Number.isFinite),
+        embeddingModel: row.embedding_model || "",
+        embeddingDimensions: Number(row.embedding_dimensions || 0),
+        embeddedAt: row.embedded_at || null,
         raw: profile,
     };
 };
@@ -315,9 +391,17 @@ const ensureEventProfile = async (db, event, options = {}) => {
             (options.useModel === false && existing.status === "fallback")) &&
         !options.force
     ) {
+        const serialized = serializeProfileRow(existing);
+        const searchArtifacts = options.buildSearchIndex
+            ? await refreshSearchArtifacts(db, event, serialized, {
+                  embedding: options.embedding !== false && !serialized.embeddedAt,
+                  embeddingTimeout: options.embeddingTimeout,
+              })
+            : null;
         return {
-            profile: serializeProfileRow(existing),
+            profile: serialized,
             created: false,
+            searchArtifacts,
             modelStatus: { used: false, task: "event_profile_cache" },
         };
     }
@@ -345,9 +429,17 @@ const ensureEventProfile = async (db, event, options = {}) => {
             status: "fallback",
             lastError: "Skipped synchronous profile model call for request latency.",
         });
+        const serialized = serializeProfileRow(saved);
+        const searchArtifacts = options.buildSearchIndex
+            ? await refreshSearchArtifacts(db, event, serialized, {
+                  embedding: options.embedding !== false,
+                  embeddingTimeout: options.embeddingTimeout,
+              })
+            : null;
         return {
-            profile: serializeProfileRow(saved),
+            profile: serialized,
             created: true,
+            searchArtifacts,
             modelStatus: {
                 used: false,
                 task: "event_profile_fast_fallback",
@@ -368,9 +460,17 @@ const ensureEventProfile = async (db, event, options = {}) => {
             modelName: result.config?.model || "",
             modelProvider: result.config?.name || result.config?.provider || "",
         });
+        const serialized = serializeProfileRow(saved);
+        const searchArtifacts = options.buildSearchIndex
+            ? await refreshSearchArtifacts(db, event, serialized, {
+                  embedding: options.embedding !== false,
+                  embeddingTimeout: options.embeddingTimeout,
+              })
+            : null;
         return {
-            profile: serializeProfileRow(saved),
+            profile: serialized,
             created: true,
+            searchArtifacts,
             modelStatus: result.modelStatus,
         };
     } catch (error) {
@@ -379,9 +479,17 @@ const ensureEventProfile = async (db, event, options = {}) => {
             status: "fallback",
             lastError: error.message,
         });
+        const serialized = serializeProfileRow(saved);
+        const searchArtifacts = options.buildSearchIndex
+            ? await refreshSearchArtifacts(db, event, serialized, {
+                  embedding: options.embedding !== false,
+                  embeddingTimeout: options.embeddingTimeout,
+              })
+            : null;
         return {
-            profile: serializeProfileRow(saved),
+            profile: serialized,
             created: true,
+            searchArtifacts,
             error,
             modelStatus: {
                 used: false,
@@ -585,6 +693,9 @@ const refreshEventProfileIndex = async (db, options = {}) => {
         force,
         modelRunner: options.modelRunner,
         timeout: options.timeout,
+        embeddingTimeout: options.embeddingTimeout,
+        buildSearchIndex: true,
+        embedding: options.embedding !== false,
         limit,
     });
     const coverage = await getProfileCoverage(db);
@@ -619,4 +730,5 @@ module.exports = {
     refreshEventProfileIndex,
     recordProfileRefreshRun,
     serializeProfileRow,
+    refreshSearchArtifacts,
 };

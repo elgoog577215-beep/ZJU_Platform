@@ -7,13 +7,13 @@ const TASK_RUNTIME_POLICIES = {
     event_recommendation_intent: {
         temperature: 0.15,
         maxTokens: 520,
-        timeout: 35000,
+        timeout: 1500,
         streamFirst: false,
     },
     event_recommendation_rerank: {
         temperature: 0.2,
         maxTokens: 760,
-        timeout: 45000,
+        timeout: 3000,
         streamFirst: false,
     },
     event_profile: {
@@ -41,6 +41,15 @@ const TASK_RUNTIME_POLICIES = {
         streamFirst: false,
     },
 };
+
+const TASK_MODEL_ROLES = {
+    event_recommendation_intent: "fast",
+    event_profile: "fast",
+    event_recommendation_rerank: "reasoning",
+    user_event_profile: "reasoning",
+};
+
+const resolveTaskModelRole = (task) => TASK_MODEL_ROLES[task] || "general";
 
 const resolveTaskRuntimePolicy = (task, overrides = {}) => {
     const defaults = TASK_RUNTIME_POLICIES[task] || {};
@@ -382,13 +391,14 @@ const normalizeRunnerOutput = (output) => {
     return { parsed, rawContent, jsonText };
 };
 
-const callModelStreamFirst = async (db, payload, timeout) => {
+const callModelStreamFirst = async (db, payload, timeout, role = "general") => {
     try {
         return {
             result: await callChatCompletionWithFailover(db, payload, {
                 timeout,
                 stream: true,
                 includeEnvFallback: false,
+                role,
             }),
             mode: "stream",
         };
@@ -397,6 +407,7 @@ const callModelStreamFirst = async (db, payload, timeout) => {
             const result = await callChatCompletionWithFailover(db, payload, {
                 timeout,
                 includeEnvFallback: false,
+                role,
             });
             result.attempts = mergeAttemptLists(
                 streamError.attempts,
@@ -425,12 +436,13 @@ const callModelStreamFirst = async (db, payload, timeout) => {
     }
 };
 
-const callModelNonStreamFirst = async (db, payload, timeout) => {
+const callModelNonStreamFirst = async (db, payload, timeout, role = "general") => {
     try {
         return {
             result: await callChatCompletionWithFailover(db, payload, {
                 timeout,
                 includeEnvFallback: false,
+                role,
             }),
             mode: "non_stream",
         };
@@ -440,6 +452,7 @@ const callModelNonStreamFirst = async (db, payload, timeout) => {
                 timeout,
                 stream: true,
                 includeEnvFallback: false,
+                role,
             });
             result.attempts = mergeAttemptLists(
                 nonStreamError.attempts,
@@ -549,6 +562,7 @@ const callJson = async (db, { task, messages, temperature, maxTokens, timeout, m
     }
 
     const startedAt = Date.now();
+    const modelRole = resolveTaskModelRole(task);
     const modelPayload = {
         messages: qualityMessages,
         temperature: runtimePolicy.temperature,
@@ -556,8 +570,8 @@ const callJson = async (db, { task, messages, temperature, maxTokens, timeout, m
     };
     const initialCall =
         runtimePolicy.streamFirst === false
-            ? await callModelNonStreamFirst(db, modelPayload, runtimePolicy.timeout)
-            : await callModelStreamFirst(db, modelPayload, runtimePolicy.timeout);
+            ? await callModelNonStreamFirst(db, modelPayload, runtimePolicy.timeout, modelRole)
+            : await callModelStreamFirst(db, modelPayload, runtimePolicy.timeout, modelRole);
     let result = initialCall.result;
     let resultMode = initialCall.mode;
     let responseData = result.data;
@@ -577,6 +591,7 @@ const callJson = async (db, { task, messages, temperature, maxTokens, timeout, m
                     timeout: Math.min(runtimePolicy.timeout, 20000),
                     stream: retryWithStream,
                     includeEnvFallback: false,
+                    role: modelRole,
                 });
                 normalized = parseJsonFromModelResult(alternateResult);
                 responseData = alternateResult.data;
@@ -648,7 +663,8 @@ const callJson = async (db, { task, messages, temperature, maxTokens, timeout, m
                 temperature: 0,
                 max_tokens: Math.min(Math.max(runtimePolicy.maxTokens, 400), 1200),
             },
-            Math.min(runtimePolicy.timeout, 30000)
+            Math.min(runtimePolicy.timeout, 30000),
+            modelRole
         );
         const repair = repairCall.result;
 
@@ -695,6 +711,7 @@ const callJson = async (db, { task, messages, temperature, maxTokens, timeout, m
 
 module.exports = {
     TASK_RUNTIME_POLICIES,
+    TASK_MODEL_ROLES,
     callJson,
     extractJsonObject,
     getChatMessageText,

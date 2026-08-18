@@ -1,5 +1,6 @@
 const { getDb } = require("../config/db");
 const userProfileService = require("../services/userProfileService");
+const userEventAiProfileService = require("../services/userEventAiProfileService");
 const {
     MAX_QUERY_LENGTH,
     MAX_CLARIFICATION_LENGTH,
@@ -119,6 +120,12 @@ const handleEventAssistantFeedback = async (req, res) => {
             source: req.body?.source,
         });
 
+        await userEventAiProfileService.enqueueProfileRefresh(db, req.user?.id, {
+            reason: req.body?.feedback === "down" ? "feedback_down" : "feedback_up",
+            priority: 95,
+            delaySeconds: 5,
+        });
+
         res.json(result);
     } catch (error) {
         const statusCode = error.statusCode || 500;
@@ -146,6 +153,15 @@ const handleEventAssistantAction = async (req, res) => {
             recommendationRank: req.body?.recommendationRank,
             metadata: req.body?.metadata,
         });
+
+        if (req.user?.id) {
+            const actionType = req.body?.actionType || req.body?.action;
+            await userEventAiProfileService.enqueueProfileRefresh(db, req.user.id, {
+                reason: `assistant_${sanitizeText(actionType, 40) || "action"}`,
+                priority: actionType === "view_detail" ? 30 : 80,
+                delaySeconds: actionType === "view_detail" ? 600 : 10,
+            });
+        }
 
         res.json(result);
     } catch (error) {
@@ -194,11 +210,40 @@ const updateEventAssistantPreferences = async (req, res) => {
             req.user.id,
             preference
         );
+        await userEventAiProfileService.enqueueProfileRefresh(db, req.user.id, {
+            reason: "explicit_preference",
+            priority: 100,
+            delaySeconds: 5,
+        });
         res.json(savedPreference);
     } catch (error) {
         res.status(500).json({
             error: "EVENT_ASSISTANT_PREFERENCES_FAILED",
             message: "Failed to update assistant preferences.",
+        });
+    }
+};
+
+const getEventAssistantProfile = async (req, res) => {
+    try {
+        const db = await getDb();
+        res.json(await userEventAiProfileService.getUserProfile(db, req.user.id));
+    } catch {
+        res.status(500).json({
+            error: "EVENT_ASSISTANT_PROFILE_FAILED",
+            message: "Failed to load AI interest profile.",
+        });
+    }
+};
+
+const resetEventAssistantProfile = async (req, res) => {
+    try {
+        const db = await getDb();
+        res.json(await userEventAiProfileService.resetUserProfile(db, req.user.id));
+    } catch {
+        res.status(500).json({
+            error: "EVENT_ASSISTANT_PROFILE_RESET_FAILED",
+            message: "Failed to reset AI interest profile.",
         });
     }
 };
@@ -209,4 +254,6 @@ module.exports = {
     handleEventAssistantAction,
     getEventAssistantPreferences,
     updateEventAssistantPreferences,
+    getEventAssistantProfile,
+    resetEventAssistantProfile,
 };

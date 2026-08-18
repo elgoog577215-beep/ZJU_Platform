@@ -1,5 +1,6 @@
 const { getDb } = require("../config/db");
 const { createNotification } = require("./notificationController");
+const { enqueueProfileRefresh } = require("../services/userEventAiProfileService");
 
 // FIX: O2 — Extract shared tableMap to module level (was duplicated in toggleFavorite and getFavorites)
 const FAVORITE_TABLE_MAP = {
@@ -69,6 +70,14 @@ const toggleFavorite = async (req, res, next) => {
                 newLikes = item && typeof item.likes === "number" ? item.likes : 0;
             }
 
+            if (itemType === "event") {
+                await enqueueProfileRefresh(db, userId, {
+                    reason: "unfavorite",
+                    priority: 85,
+                    delaySeconds: 10,
+                });
+            }
+
             res.json({ favorited: false, likes: newLikes });
         } else {
             // Add
@@ -100,6 +109,14 @@ const toggleFavorite = async (req, res, next) => {
                     itemId,
                     itemType
                 );
+            }
+
+            if (itemType === "event") {
+                await enqueueProfileRefresh(db, userId, {
+                    reason: "favorite",
+                    priority: 90,
+                    delaySeconds: 5,
+                });
             }
 
             res.json({ favorited: true, likes: newLikes });

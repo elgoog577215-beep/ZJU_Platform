@@ -1,5 +1,7 @@
+const crypto = require("crypto");
 const aiRuntime = require("../services/unifiedAiRuntimeService");
 const { ensureEventProfiles } = require("../services/eventAiProfileService");
+const { callEmbeddingWithFailover } = require("../services/aiModelConfigService");
 const { createEventRecommendationServices } = require("../services/eventRecommendation");
 const userProfileService = require("../services/userProfileService");
 const {
@@ -16,7 +18,7 @@ const {
 } = require("../services/eventIntelligenceService");
 
 const MAX_CANDIDATES = 80;
-const MAX_MODEL_CANDIDATES = 8;
+const MAX_MODEL_CANDIDATES = 20;
 const MAX_RECOMMENDATIONS = 5;
 const IDEAL_MIN_RECOMMENDATIONS = 3;
 const MAX_QUERY_LENGTH = 500;
@@ -38,7 +40,7 @@ const EVENT_ASSISTANT_PUBLIC_FIELDS = [
 ];
 
 const AUDIENCE_ALIASES = EVENT_AUDIENCE_ALIASES;
-const AI_RECALL_LIMIT = 24;
+const AI_RECALL_LIMIT = 50;
 const BENEFIT_ALIASES = {
     score: [
         "综测",
@@ -1119,6 +1121,16 @@ const RECOMMENDATION_ACTION_WEIGHTS = {
     feedback_down: -2,
 };
 
+const getBehaviorTimeDecay = (value) => {
+    const timestamp = new Date(value || 0).getTime();
+    if (!Number.isFinite(timestamp)) return 0.1;
+    const ageDays = Math.max(0, (Date.now() - timestamp) / (24 * 60 * 60 * 1000));
+    if (ageDays <= 7) return 1;
+    if (ageDays <= 30) return 0.7;
+    if (ageDays <= 90) return 0.35;
+    return 0.1;
+};
+
 const incrementActionTypeCount = (counts, actionType) => {
     const key = sanitizeText(actionType, 40);
     if (!key) return;
@@ -1148,27 +1160,29 @@ const buildActionEvidence = (
     for (const row of historyRows) {
         const eventId = Number(row.id || row.event_id);
         const category = inferEventCategory(row);
+        const decay = getBehaviorTimeDecay(row.action_created_at || row.created_at);
         if (row.action_type === "registration") {
             if (Number.isInteger(eventId)) registeredEventIds.push(eventId);
-            addWeightedCount(positiveCategoryCounts, category, 2);
+            addWeightedCount(positiveCategoryCounts, category, 2 * decay);
         } else {
             if (Number.isInteger(eventId)) favoriteEventIds.push(eventId);
-            addWeightedCount(positiveCategoryCounts, category, 1);
+            addWeightedCount(positiveCategoryCounts, category, 1.2 * decay);
         }
     }
 
     for (const row of feedbackRows) {
         const eventId = Number(row.event_id);
         const category = inferEventCategory(row);
+        const decay = getBehaviorTimeDecay(row.feedback_created_at || row.created_at);
         if (row.feedback === "up") {
             if (Number.isInteger(eventId)) positiveFeedbackEventIds.push(eventId);
-            addWeightedCount(positiveCategoryCounts, category, 1.5);
+            addWeightedCount(positiveCategoryCounts, category, 1.5 * decay);
         } else if (row.feedback === "down") {
             if (Number.isInteger(eventId)) negativeEventIds.push(eventId);
-            addWeightedCount(negativeCategoryCounts, category, 2);
+            addWeightedCount(negativeCategoryCounts, category, 2 * decay);
             const reasonValue = normalizeFeedbackReason(row.reason);
             if (reasonValue) {
-                addWeightedCount(negativeReasonCounts, reasonValue, 2);
+                addWeightedCount(negativeReasonCounts, reasonValue, 2 * decay);
                 if (Number.isInteger(eventId)) negativeReasonByEventId[eventId] = reasonValue;
             }
         }
@@ -1185,7 +1199,9 @@ const buildActionEvidence = (
         incrementActionTypeCount(actionTypeCounts, actionType);
 
         const category = inferEventCategory(row);
-        const weight = Number(RECOMMENDATION_ACTION_WEIGHTS[actionType] || 0);
+        const weight =
+            Number(RECOMMENDATION_ACTION_WEIGHTS[actionType] || 0) *
+            getBehaviorTimeDecay(row.action_created_at || row.created_at);
 
         if (actionType === "view_detail") {
             viewedEventIds.push(eventId);
@@ -1232,7 +1248,7 @@ const buildActionEvidence = (
     };
 };
 
-const loadRecommendationActionRows = async (db, userId, visitorKey = "") => {
+const loadRecommendationActionRows = async (db, userId, visitorKey = "", resetAt = null) => {
     const normalizedVisitorKey = sanitizeText(visitorKey, 120);
     const filters = [];
     const params = [];
@@ -1268,10 +1284,11 @@ const loadRecommendationActionRows = async (db, userId, visitorKey = "") => {
         LEFT JOIN events e ON e.id = a.event_id
         WHERE ${filters.join(" OR ")}
           AND a.created_at >= datetime('now', '-60 days')
+          AND (? IS NULL OR a.created_at >= ?)
         ORDER BY a.created_at DESC, a.id DESC
         LIMIT 80
       `,
-            params
+            [...params, resetAt, resetAt]
         );
     } catch {
         return [];
@@ -1279,8 +1296,8 @@ const loadRecommendationActionRows = async (db, userId, visitorKey = "") => {
 };
 
 const loadUserEventProfile = async (db, userId, visitorKey = "") => {
-    const recommendationActionRows = await loadRecommendationActionRows(db, userId, visitorKey);
     if (!userId) {
+        const recommendationActionRows = await loadRecommendationActionRows(db, userId, visitorKey);
         const actionEvidence = buildActionEvidence([], [], recommendationActionRows);
         return {
             isAnonymous: true,
@@ -1291,6 +1308,17 @@ const loadUserEventProfile = async (db, userId, visitorKey = "") => {
             actionEvidence,
         };
     }
+
+    const semanticRow = await db
+        .get("SELECT * FROM user_event_ai_profiles WHERE user_id = ?", [userId])
+        .catch(() => null);
+    const resetAt = semanticRow?.personalization_reset_at || null;
+    const recommendationActionRows = await loadRecommendationActionRows(
+        db,
+        userId,
+        visitorKey,
+        resetAt
+    );
 
     const profileFoundation = await userProfileService.loadRecommendationProfileFoundation(
         db,
@@ -1309,10 +1337,11 @@ const loadUserEventProfile = async (db, userId, visitorKey = "") => {
       FROM assistant_memory
       WHERE user_id = ?
         AND source = 'event_assistant'
+        AND (? IS NULL OR updated_at >= ?)
       ORDER BY updated_at DESC, id DESC
       LIMIT 12
     `,
-        [userId]
+        [userId, resetAt, resetAt]
     );
     const historyRows = await db.all(
         `
@@ -1324,10 +1353,11 @@ const loadUserEventProfile = async (db, userId, visitorKey = "") => {
         SELECT event_id, 'registration' AS action_type, created_at FROM event_registrations WHERE user_id = ?
       ) h ON h.event_id = e.id
       WHERE e.deleted_at IS NULL
+        AND (? IS NULL OR h.created_at >= ?)
       ORDER BY h.created_at DESC
       LIMIT 30
     `,
-        [userId, userId]
+        [userId, userId, resetAt, resetAt]
     );
     const feedbackRows = await db.all(
         `
@@ -1347,13 +1377,20 @@ const loadUserEventProfile = async (db, userId, visitorKey = "") => {
       FROM event_recommendation_feedback f
       LEFT JOIN events e ON e.id = f.event_id
       WHERE f.user_id = ?
+        AND (? IS NULL OR f.created_at >= ?)
       ORDER BY f.created_at DESC
       LIMIT 40
     `,
-        [userId]
+        [userId, resetAt, resetAt]
     );
     const learnedCategories = summarizeCounts(historyRows.map(inferEventCategory));
     const actionEvidence = buildActionEvidence(historyRows, feedbackRows, recommendationActionRows);
+    const parseSemanticArray = (value) => {
+        const parsed = safeJsonParse(value, []);
+        return Array.isArray(parsed)
+            ? parsed.map((item) => sanitizeText(String(item), 80)).filter(Boolean)
+            : [];
+    };
 
     return {
         isAnonymous: false,
@@ -1373,6 +1410,19 @@ const loadUserEventProfile = async (db, userId, visitorKey = "") => {
         learned: {
             categories: learnedCategories,
         },
+        semantic: semanticRow
+            ? {
+                  version: Number(semanticRow.profile_version || 1),
+                  status: semanticRow.status || "pending",
+                  longTermPreferences: parseSemanticArray(semanticRow.long_term_preferences),
+                  shortTermInterests: parseSemanticArray(semanticRow.short_term_interests),
+                  dislikes: parseSemanticArray(semanticRow.dislikes),
+                  decisionFactors: parseSemanticArray(semanticRow.decision_factors),
+                  confidence: Number(semanticRow.confidence || 0),
+                  updatedAt: semanticRow.generated_at || semanticRow.updated_at || null,
+                  personalizationResetAt: resetAt,
+              }
+            : null,
         memory: memoryRows.map((row) => ({
             type: row.memory_type,
             content: row.content,
@@ -1409,6 +1459,14 @@ const buildProfileSummary = (profile) => {
                 .map((item) => CATEGORY_LABELS[item] || item)
                 .join("、")}`
         );
+    if (profile.semantic?.longTermPreferences?.length)
+        signals.push(`长期画像：${profile.semantic.longTermPreferences.slice(0, 3).join("、")}`);
+    if (profile.semantic?.shortTermInterests?.length)
+        signals.push(`近期关注：${profile.semantic.shortTermInterests.slice(0, 3).join("、")}`);
+    if (profile.semantic?.dislikes?.length)
+        signals.push(`不偏好：${profile.semantic.dislikes.slice(0, 2).join("、")}`);
+    if (profile.semantic?.decisionFactors?.length)
+        signals.push(`决策因素：${profile.semantic.decisionFactors.slice(0, 2).join("、")}`);
     if (profile.actionEvidence?.positiveCategories?.length) {
         signals.push(
             `行动证据偏好：${profile.actionEvidence.positiveCategories
@@ -2045,6 +2103,110 @@ const getHardConstraintScore = (item, intent = {}, now = new Date()) => {
     };
 };
 
+const cosineSimilarity = (left = [], right = []) => {
+    if (
+        !Array.isArray(left) ||
+        !Array.isArray(right) ||
+        left.length !== right.length ||
+        !left.length
+    )
+        return 0;
+    let dot = 0;
+    let leftNorm = 0;
+    let rightNorm = 0;
+    for (let index = 0; index < left.length; index += 1) {
+        const leftValue = Number(left[index]) || 0;
+        const rightValue = Number(right[index]) || 0;
+        dot += leftValue * rightValue;
+        leftNorm += leftValue * leftValue;
+        rightNorm += rightValue * rightValue;
+    }
+    if (!leftNorm || !rightNorm) return 0;
+    return dot / (Math.sqrt(leftNorm) * Math.sqrt(rightNorm));
+};
+
+const buildFtsQuery = (intent) =>
+    unique([
+        ...(intent.topics || []),
+        ...(intent.campuses || []),
+        ...(intent.audiences || []),
+        ...(intent.categories || []).map((item) => CATEGORY_LABELS[item] || item),
+        ...(intent.benefits || []).map(getBenefitLabel),
+    ])
+        .map((term) => sanitizeText(String(term), 40).replace(/["']/g, ""))
+        .filter((term) => term.length >= 2)
+        .slice(0, 8)
+        .map((term) => `"${term}"`)
+        .join(" OR ");
+
+const loadFtsScores = async (db, intent) => {
+    const query = buildFtsQuery(intent);
+    if (!query) return new Map();
+    try {
+        const rows = await db.all(
+            `
+        SELECT event_id, bm25(event_ai_search_fts) AS rank
+        FROM event_ai_search_fts
+        WHERE event_ai_search_fts MATCH ?
+        ORDER BY rank ASC
+        LIMIT ?
+      `,
+            [query, AI_RECALL_LIMIT]
+        );
+        return new Map(
+            rows.map((row, index) => [Number(row.event_id), Math.max(1, 12 - index * 0.3)])
+        );
+    } catch {
+        return new Map();
+    }
+};
+
+const loadQueryEmbedding = async (db, intent) => {
+    const input = sanitizeText(
+        [
+            intent.query,
+            ...(intent.topics || []),
+            ...(intent.categories || []).map((item) => CATEGORY_LABELS[item] || item),
+            ...(intent.campuses || []),
+            ...(intent.audiences || []),
+            ...(intent.benefits || []).map(getBenefitLabel),
+        ]
+            .filter(Boolean)
+            .join("；"),
+        1200
+    );
+    if (!input) return [];
+    try {
+        const result = await callEmbeddingWithFailover(db, input, { timeout: 1200 });
+        return result.vector;
+    } catch {
+        return [];
+    }
+};
+
+const loadVectorScores = async (db, queryEmbedding, allowedEventIds) => {
+    if (!queryEmbedding.length || !allowedEventIds.size) return new Map();
+    try {
+        const rows = await db.all(`
+      SELECT event_id, embedding_vector
+      FROM event_ai_profiles
+      WHERE embedding_vector IS NOT NULL
+        AND embedding_dimensions > 0
+    `);
+        return new Map(
+            rows
+                .filter((row) => allowedEventIds.has(Number(row.event_id)))
+                .map((row) => {
+                    const vector = safeJsonParse(row.embedding_vector, []);
+                    return [Number(row.event_id), cosineSimilarity(queryEmbedding, vector)];
+                })
+                .filter(([, score]) => score > 0)
+        );
+    } catch {
+        return new Map();
+    }
+};
+
 const buildAiCandidatePool = async ({
     db,
     grouped,
@@ -2055,6 +2217,7 @@ const buildAiCandidatePool = async ({
     now,
     modelRunner,
     useProfileModel = true,
+    useEmbedding = true,
 }) => {
     const futureEvents = [...grouped.ongoing, ...grouped.upcoming];
     let scopedEvents = futureEvents;
@@ -2086,18 +2249,39 @@ const buildAiCandidatePool = async ({
         };
     }
 
-    const preRanked = [
-        ...rankCandidates(
-            scopedEvents,
-            intent,
-            profile,
-            scope === "past" ? "past" : "upcoming",
-            now
-        ),
-    ]
+    const ruleRanked = rankCandidates(
+        scopedEvents,
+        intent,
+        profile,
+        scope === "past" ? "past" : "upcoming",
+        now
+    ).sort(
+        (left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event)
+    );
+    const [ftsScores, queryEmbedding] = await Promise.all([
+        loadFtsScores(db, intent),
+        useEmbedding ? loadQueryEmbedding(db, intent) : Promise.resolve([]),
+    ]);
+    const allowedEventIds = new Set(scopedEvents.map((event) => Number(event.id)));
+    const vectorScores = await loadVectorScores(db, queryEmbedding, allowedEventIds);
+    const ruleById = new Map(ruleRanked.map((item) => [Number(item.event.id), item]));
+    const recallIds = unique([
+        ...ruleRanked.slice(0, AI_RECALL_LIMIT).map((item) => Number(item.event.id)),
+        ...ftsScores.keys(),
+        ...[...vectorScores.entries()]
+            .sort((left, right) => right[1] - left[1])
+            .slice(0, AI_RECALL_LIMIT)
+            .map(([eventId]) => eventId),
+    ]).filter((eventId) => allowedEventIds.has(Number(eventId)));
+    const preRanked = recallIds
+        .map((eventId) => ruleById.get(Number(eventId)))
+        .filter(Boolean)
         .sort(
             (left, right) =>
-                right.score - left.score || compareByAscendingDate(left.event, right.event)
+                right.score +
+                    (ftsScores.get(Number(right.event.id)) || 0) -
+                    (left.score + (ftsScores.get(Number(left.event.id)) || 0)) ||
+                compareByAscendingDate(left.event, right.event)
         )
         .slice(0, AI_RECALL_LIMIT);
 
@@ -2122,13 +2306,26 @@ const buildAiCandidatePool = async ({
         )
         .map((item) => {
             const hardConstraint = getHardConstraintScore(item, intent, now);
+            const eventId = Number(item.event.id);
+            const ftsScore = ftsScores.get(eventId) || 0;
+            const vectorScore = vectorScores.get(eventId) || 0;
             return {
                 ...item,
                 hardConstraint,
-                aiScore: item.aiScore + Math.round(hardConstraint.score * 1.2),
+                retrieval: {
+                    ftsScore: Number(ftsScore.toFixed(3)),
+                    vectorScore: Number(vectorScore.toFixed(4)),
+                },
+                aiScore:
+                    item.aiScore +
+                    Math.round(hardConstraint.score * 1.2) +
+                    Math.round(ftsScore) +
+                    Math.round(Math.max(vectorScore, 0) * 18),
                 signals: unique([
                     ...item.signals.filter(isPersonalizationSignal),
                     ...hardConstraint.signals,
+                    ...(ftsScore ? ["全文语义匹配"] : []),
+                    ...(vectorScore >= 0.45 ? ["向量语义匹配"] : []),
                     ...item.signals,
                 ]).slice(0, 8),
             };
@@ -3134,6 +3331,12 @@ const buildAiRecommendationResponse = ({
             candidate: item.candidate || candidateMap.get(Number(item.id)),
         }))
         .filter((item) => item.candidate);
+    completedSelected.sort(
+        (left, right) =>
+            (right.candidate?.hardConstraint?.score || 0) -
+                (left.candidate?.hardConstraint?.score || 0) ||
+            Number(left.rank || 999) - Number(right.rank || 999)
+    );
     const baseRecommendations = completedSelected.map((item, index) => ({
         id: item.candidate.event.id,
         rank: index + 1,
@@ -3568,8 +3771,21 @@ const runUnifiedEventAssistantTurn = async ({
 }) => {
     const turnStartedAt = Date.now();
     const timings = {};
+    let activeProfile = null;
     const withPerformance = (response) =>
-        attachEventAssistantPerformance(response, timings, turnStartedAt);
+        attachEventAssistantPerformance(
+            {
+                ...response,
+                pipelineVersion: "v2",
+                profileContext: {
+                    used: Boolean(activeProfile?.semantic?.status === "ready"),
+                    version: Number(activeProfile?.semantic?.version || 0),
+                    updatedAt: activeProfile?.semantic?.updatedAt || null,
+                },
+            },
+            timings,
+            turnStartedAt
+        );
     const services = createEventRecommendationServices({
         parseAssistantIntent,
         parseAssistantIntentWithModel,
@@ -3600,6 +3816,7 @@ const runUnifiedEventAssistantTurn = async ({
             services.retrieval.loadAll(db, now)
         ),
     ]);
+    activeProfile = profile;
     const coverage = services.retrieval.summarizeCoverage(grouped);
     const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
     let intentModelStatus = null;
@@ -3956,8 +4173,179 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     }
 };
 
+const normalizeRecommendationMode = (value) => {
+    const mode = String(value || "").toLowerCase();
+    return ["legacy", "shadow", "v2"].includes(mode) ? mode : "v2";
+};
+
+const isV2Cohort = ({ userId, visitorKey = "" }) => {
+    const percentage = Math.min(
+        100,
+        Math.max(0, Number(process.env.AI_EVENT_RECOMMENDATION_ROLLOUT_PERCENT ?? 100))
+    );
+    if (percentage >= 100) return true;
+    const identity = userId
+        ? `user:${userId}`
+        : `visitor:${sanitizeText(visitorKey, 120) || "anonymous"}`;
+    const bucket =
+        Number.parseInt(
+            crypto.createHash("sha256").update(identity).digest("hex").slice(0, 8),
+            16
+        ) % 100;
+    return bucket < percentage;
+};
+
+const runLegacyLocalEventAssistantTurn = async (options = {}) => {
+    const {
+        db,
+        query,
+        clarificationAnswer,
+        clarificationUsed = false,
+        allowScopeExpansion = false,
+        allowHistoricalFallback = true,
+        rememberPreference = false,
+        userId = null,
+        visitorKey = "",
+        now = new Date(),
+    } = options;
+    const [profile, grouped] = await Promise.all([
+        loadUserEventProfile(db, userId, visitorKey),
+        loadAllCandidates(db, now),
+    ]);
+    const intent = parseAssistantIntent({ query, clarificationAnswer });
+    const coverage = buildCoverageSummary(grouped);
+    const remembered = await maybeRememberPreference(db, userId, intent, rememberPreference);
+    if ((intent.needsClarification || intent.shouldClarify) && !clarificationUsed) {
+        return buildClarificationResponse({
+            intent,
+            profile,
+            grouped,
+            coverage,
+            remembered,
+            now,
+            modelStatus: { used: false, fallbackUsed: true, task: "legacy_local_intent" },
+        });
+    }
+    const pool = await buildAiCandidatePool({
+        db,
+        grouped,
+        intent,
+        profile,
+        allowScopeExpansion,
+        allowHistoricalFallback,
+        now,
+        useProfileModel: false,
+        useEmbedding: false,
+    });
+    if (!pool.candidates.length) {
+        return {
+            type: "empty",
+            scope: pool.scope,
+            emptyReason: "no_matches",
+            canExpandScope: pool.canExpandScope,
+            recommendationMode: "empty",
+            coverage,
+            understoodIntent: buildIntentSummary(intent, profile),
+            remembered,
+            modelStatus: { used: false, fallbackUsed: true, task: "legacy_local_ranking" },
+        };
+    }
+    return buildAiRecommendationResponse({
+        rerank: buildFallbackRerank(pool.candidates, intent, "已按明确条件和本地画像完成排序。"),
+        candidates: pool.candidates,
+        intent,
+        profile,
+        scope: pool.scope,
+        canExpandScope: pool.canExpandScope,
+        usedHistoricalFallback: pool.usedHistoricalFallback,
+        remembered,
+        coverage,
+        profileStats: pool.profileStats,
+        modelStatuses: [],
+    });
+};
+
+const recordShadowComparison = async (db, legacy, v2, userId) => {
+    try {
+        const ids = (response) =>
+            (response?.recommendations || []).slice(0, 5).map((item) => Number(item.id));
+        const legacyIds = ids(legacy);
+        const v2Ids = ids(v2);
+        await db.run(
+            `INSERT INTO ai_assistant_runs (module, action, status, requested_by, summary_json)
+             VALUES ('event_recommendation', 'shadow_compare', 'completed', ?, ?)`,
+            [
+                userId || null,
+                JSON.stringify({
+                    legacyType: legacy?.type || null,
+                    v2Type: v2?.type || null,
+                    legacyEventIds: legacyIds,
+                    v2EventIds: v2Ids,
+                    topEventChanged: legacyIds[0] !== v2Ids[0],
+                    overlapCount: legacyIds.filter((id) => v2Ids.includes(id)).length,
+                    v2DurationMs: Number(v2?.modelStatus?.performance?.durationMs || 0),
+                }),
+            ]
+        );
+    } catch {}
+};
+
+const runV2WithDeadline = async (options) => {
+    let timer;
+    try {
+        return await Promise.race([
+            runUnifiedEventAssistantTurn(options),
+            new Promise((resolve, reject) => {
+                timer = setTimeout(() => {
+                    const error = new Error(
+                        "Event recommendation v2 exceeded the 5.5 second deadline."
+                    );
+                    error.code = "EVENT_ASSISTANT_DEADLINE";
+                    reject(error);
+                }, 5500);
+            }),
+        ]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+};
+
 const runObservedEventAssistantTurn = async (options = {}) => {
-    const response = await runUnifiedEventAssistantTurn(options);
+    const configuredMode = normalizeRecommendationMode(process.env.AI_EVENT_RECOMMENDATION_MODE);
+    const effectiveMode =
+        configuredMode === "v2" && !isV2Cohort(options) ? "legacy" : configuredMode;
+    let response;
+    if (effectiveMode === "legacy") {
+        response = await runLegacyLocalEventAssistantTurn(options);
+    } else if (effectiveMode === "shadow") {
+        response = await runLegacyLocalEventAssistantTurn(options);
+        setImmediate(() => {
+            runV2WithDeadline(options)
+                .then((v2Response) =>
+                    recordShadowComparison(options.db, response, v2Response, options.userId)
+                )
+                .catch(() => {});
+        });
+    } else {
+        try {
+            response = await runV2WithDeadline(options);
+        } catch (error) {
+            if (error.code !== "EVENT_ASSISTANT_DEADLINE") throw error;
+            response = await runLegacyLocalEventAssistantTurn(options);
+            response.modelStatus = {
+                ...(response.modelStatus || {}),
+                fallbackUsed: true,
+                deadlineExceeded: true,
+                message: "大模型响应超时，已切换到本地混合召回结果。",
+            };
+        }
+    }
+    response = {
+        ...response,
+        pipelineVersion: effectiveMode === "v2" ? "v2" : "legacy",
+        deploymentMode: configuredMode,
+        profileContext: response.profileContext || { used: false, version: 0, updatedAt: null },
+    };
     const assistantRunId = await recordEventAssistantRun(options.db, response, options.userId);
     return assistantRunId ? { ...response, assistantRunId } : response;
 };
@@ -4173,13 +4561,7 @@ const recordEventAssistantFeedback = async ({
       INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason)
       VALUES (?, ?, ?, ?, ?)
     `,
-        [
-            userId,
-            normalizedEventId,
-            normalizedFeedback,
-            sanitizeText(query, MAX_QUERY_LENGTH),
-            sanitizeText(reason, 240),
-        ]
+        [userId, normalizedEventId, normalizedFeedback, null, sanitizeText(reason, 240)]
     );
 
     await recordEventAssistantDecisionAction({

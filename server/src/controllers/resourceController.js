@@ -14,7 +14,32 @@ const profileService = require("../services/profileService");
 const { canBypassReview } = require("../utils/userPermissions");
 const { normalizeEventWorkflowStatus } = require("../utils/resourceWorkflowStatus");
 const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
+const { ensureEventProfile } = require("../services/eventAiProfileService");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
+
+const refreshEventAiIndex = (db, eventId) => {
+    setImmediate(async () => {
+        try {
+            const event = await db.get("SELECT * FROM events WHERE id = ?", [eventId]);
+            if (!event || event.deleted_at || event.status !== "approved") {
+                await db.run("DELETE FROM event_ai_search_fts WHERE event_id = ?", [eventId]);
+                return;
+            }
+            await ensureEventProfile(db, event, {
+                force: true,
+                useModel: true,
+                buildSearchIndex: true,
+                embedding: true,
+                timeout: 3000,
+                embeddingTimeout: 8000,
+            });
+        } catch (error) {
+            if (process.env.NODE_ENV === "development") {
+                console.warn("[EventAiIndex]", error.message);
+            }
+        }
+    });
+};
 
 const qualifyColumn = (field) =>
     String(field || "")
@@ -387,11 +412,14 @@ const createHandler = (table, fields) => async (req, res, next) => {
                 source: "automatic_resource_create",
             });
         }
+        if (table === "events") refreshEventAiIndex(db, result.lastID);
 
         // Process tags to ensure they exist in the centralized tags table
         if (req.body.tags) {
             await processTags(req.body.tags);
         }
+
+        if (table === "events") refreshEventAiIndex(db, id);
 
         // Fan-out new-content notifications to the author's followers.
         // Only for the 5 user-facing resource tables. Community posts are excluded
@@ -540,6 +568,7 @@ const deleteHandler = (table) => async (req, res, next) => {
 
         // Soft delete: Update deleted_at timestamp
         await db.run(`UPDATE ${table} SET deleted_at = datetime('now') WHERE id = ?`, id);
+        if (table === "events") refreshEventAiIndex(db, id);
 
         // Audit Log for Admins
         if (req.user.role === "admin") {
@@ -1109,6 +1138,7 @@ const updateStatus = (table) => async (req, res, next) => {
 
         // Get resource details to find uploader
         const resource = await db.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+        if (table === "events") refreshEventAiIndex(db, id);
 
         // Add audit log
         if (adminId) {

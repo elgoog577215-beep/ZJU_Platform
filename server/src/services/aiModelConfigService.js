@@ -7,6 +7,7 @@ const DEFAULT_MODEL = process.env.LLM_MODEL || "ZhipuAI/GLM-5.1";
 const TEST_TIMEOUT_MS = 15000;
 const CALL_TIMEOUT_MS = 30000;
 const PROVIDER_STOP_STATUSES = new Set([401, 403, 429]);
+const MODEL_ROLES = new Set(["general", "fast", "reasoning", "embedding"]);
 
 const toText = (value, maxLength = 500) => {
     if (typeof value !== "string") return "";
@@ -16,6 +17,11 @@ const toText = (value, maxLength = 500) => {
 const normalizeBaseUrl = (value) => {
     const trimmed = toText(value, 300).replace(/\/+$/, "");
     return trimmed || DEFAULT_BASE_URL;
+};
+
+const normalizeRole = (value) => {
+    const role = toText(value, 24).toLowerCase();
+    return MODEL_ROLES.has(role) ? role : "general";
 };
 
 const getEncryptionKey = () => {
@@ -85,6 +91,7 @@ const serializeConfig = (row) => ({
     provider: row.provider || DEFAULT_PROVIDER,
     base_url: row.base_url,
     model: row.model,
+    role: normalizeRole(row.role),
     priority: Number(row.priority || 100),
     enabled: Boolean(row.enabled),
     masked_api_key: maskApiKey(row.encrypted_api_key),
@@ -116,6 +123,7 @@ const createConfig = async (db, payload, userId) => {
     const provider = toText(payload.provider, 80) || DEFAULT_PROVIDER;
     const baseUrl = normalizeBaseUrl(payload.base_url);
     const model = toText(payload.model, 120) || DEFAULT_MODEL;
+    const role = normalizeRole(payload.role);
     const priority = Number.isInteger(Number(payload.priority)) ? Number(payload.priority) : 100;
     const enabled = payload.enabled === false ? 0 : 1;
     const encryptedApiKey = encryptApiKey(payload.api_key);
@@ -127,14 +135,15 @@ const createConfig = async (db, payload, userId) => {
         provider,
         base_url,
         model,
+        role,
         encrypted_api_key,
         priority,
         enabled,
         created_by,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `,
-        [name, provider, baseUrl, model, encryptedApiKey, priority, enabled, userId || null]
+        [name, provider, baseUrl, model, role, encryptedApiKey, priority, enabled, userId || null]
     );
 
     return serializeConfig(await getConfigById(db, result.lastID));
@@ -162,6 +171,8 @@ const updateConfig = async (db, id, payload) => {
             payload.model !== undefined
                 ? toText(payload.model, 120) || existing.model
                 : existing.model,
+        role:
+            payload.role !== undefined ? normalizeRole(payload.role) : normalizeRole(existing.role),
         priority:
             payload.priority !== undefined && Number.isInteger(Number(payload.priority))
                 ? Number(payload.priority)
@@ -179,6 +190,7 @@ const updateConfig = async (db, id, payload) => {
           provider = ?,
           base_url = ?,
           model = ?,
+          role = ?,
           encrypted_api_key = ?,
           priority = ?,
           enabled = ?,
@@ -190,6 +202,7 @@ const updateConfig = async (db, id, payload) => {
             next.provider,
             next.base_url,
             next.model,
+            next.role,
             next.encrypted_api_key,
             next.priority,
             next.enabled,
@@ -222,6 +235,7 @@ const buildEnvConfig = () => {
         provider: DEFAULT_PROVIDER,
         base_url: DEFAULT_BASE_URL,
         model: DEFAULT_MODEL,
+        role: "general",
         encrypted_api_key: encryptApiKey(process.env.LLM_API_KEY),
         priority: 9999,
         enabled: 1,
@@ -229,7 +243,7 @@ const buildEnvConfig = () => {
     };
 };
 
-const getEnabledConfigs = async (db, includeEnvFallback = true) => {
+const getEnabledConfigs = async (db, includeEnvFallback = true, role = "general") => {
     const rows = await db.all(`
     SELECT *
     FROM ai_model_configs
@@ -237,7 +251,13 @@ const getEnabledConfigs = async (db, includeEnvFallback = true) => {
     ORDER BY priority ASC, id ASC
   `);
 
-    const configs = [...rows];
+    const requestedRole = normalizeRole(role);
+    const roleMatches = rows.filter((row) => normalizeRole(row.role) === requestedRole);
+    const generalMatches =
+        requestedRole === "general"
+            ? []
+            : rows.filter((row) => normalizeRole(row.role) === "general");
+    const configs = [...roleMatches, ...generalMatches];
     const envConfig = includeEnvFallback ? buildEnvConfig() : null;
     if (envConfig) configs.push(envConfig);
     return configs;
@@ -411,7 +431,11 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
 };
 
 const callChatCompletionWithFailover = async (db, payload, options = {}) => {
-    const configs = await getEnabledConfigs(db, options.includeEnvFallback !== false);
+    const configs = await getEnabledConfigs(
+        db,
+        options.includeEnvFallback !== false,
+        options.role || "general"
+    );
     const primaryConfigs =
         options.skipEnvWhenDbConfigs !== false && configs.some((config) => !config.fromEnv)
             ? configs.filter((config) => !config.fromEnv)
@@ -458,6 +482,69 @@ const callChatCompletionWithFailover = async (db, payload, options = {}) => {
     throw error;
 };
 
+const callEmbedding = async (config, input, timeout = CALL_TIMEOUT_MS) => {
+    const apiKey = decryptApiKey(config.encrypted_api_key);
+    if (!apiKey) {
+        const error = new Error("API key cannot be decrypted.");
+        error.code = "AI_MODEL_KEY_DECRYPT_FAILED";
+        throw error;
+    }
+
+    const response = await axios.post(
+        `${normalizeBaseUrl(config.base_url)}/embeddings`,
+        { model: config.model, input },
+        {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            },
+            timeout,
+        }
+    );
+    const vector = response.data?.data?.[0]?.embedding;
+    if (!Array.isArray(vector) || vector.length === 0) {
+        const error = new Error("Embedding model returned no vector.");
+        error.code = "AI_EMBEDDING_EMPTY";
+        throw error;
+    }
+    return { data: response.data, vector: vector.map((value) => Number(value) || 0) };
+};
+
+const callEmbeddingWithFailover = async (db, input, options = {}) => {
+    const configs = await getEnabledConfigs(db, options.includeEnvFallback !== false, "embedding");
+    const primaryConfigs =
+        options.skipEnvWhenDbConfigs !== false && configs.some((config) => !config.fromEnv)
+            ? configs.filter((config) => !config.fromEnv)
+            : configs;
+    const attempts = [];
+
+    for (const config of primaryConfigs) {
+        try {
+            const result = await callEmbedding(config, input, options.timeout || CALL_TIMEOUT_MS);
+            await updateStatus(db, config, "ok", "");
+            return { ...result, config: serializeConfig(config), attempts };
+        } catch (error) {
+            const status = error.response?.status;
+            const message =
+                error.response?.data?.error?.message || error.message || "Embedding call failed.";
+            attempts.push({
+                id: config.id,
+                name: config.name,
+                status,
+                message: toText(message, 240),
+            });
+            await updateStatus(db, config, "failed", message);
+            if (PROVIDER_STOP_STATUSES.has(Number(status))) break;
+        }
+    }
+
+    const error = new Error("No available embedding model config succeeded.");
+    error.code = "AI_EMBEDDING_ALL_FAILED";
+    error.statusCode = 503;
+    error.attempts = attempts;
+    throw error;
+};
+
 const testConfig = async (db, id) => {
     const config = await getConfigById(db, id);
     if (!config) {
@@ -468,6 +555,12 @@ const testConfig = async (db, id) => {
     }
 
     try {
+        if (normalizeRole(config.role) === "embedding") {
+            await callEmbedding(config, "test embedding", TEST_TIMEOUT_MS);
+            await updateStatus(db, config, "ok", "");
+            return serializeConfig(await getConfigById(db, id));
+        }
+
         const testPayload = {
             messages: [
                 { role: "system", content: "Reply with a short JSON object only." },
@@ -524,6 +617,8 @@ module.exports = {
     testConfig,
     getEnabledConfigs,
     callChatCompletionWithFailover,
+    callEmbeddingWithFailover,
+    MODEL_ROLES,
     encryptApiKey,
     decryptApiKey,
 };

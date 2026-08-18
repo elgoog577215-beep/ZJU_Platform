@@ -415,6 +415,20 @@
                 "save": "Save Activity Profile",
                 "preferred_categories": "Preferred Event Types",
                 "preferred_benefits": "Preferred Benefits",
+                "ai_profile": {
+                    "title": "AI Interest Profile",
+                    "updated_at": "Updated",
+                    "pending": "The profile updates after preference or high-value behavior changes",
+                    "long_term": "Long-term Preferences",
+                    "short_term": "Recent Interests",
+                    "dislikes": "Dislikes",
+                    "factors": "Decision Factors",
+                    "empty": "No inference yet",
+                    "reset": "Reset Profile",
+                    "reset_confirm": "Reset the AI interest profile and assistant memory? Favorites and registrations will remain.",
+                    "reset_success": "AI interest profile reset",
+                    "reset_failed": "Failed to reset AI interest profile"
+                },
                 "fields": {
                     "college": "College / Organization",
                     "division": "Field / Major",
