@@ -1679,6 +1679,11 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
     score += topicMatch.total;
     signals.push(...topicMatch.signals.slice(0, 2));
 
+    if (hasComputerTechIntent(intent) && includesAnyPhrase(text, AI_TOPIC_ALIASES)) {
+        score += 24;
+        signals.push("计算机学习方向优先匹配 AI 技术活动");
+    }
+
     const campusMatch = scoreTextMatch(text, intent.campuses, 14, (value) => `地点贴近 ${value}`);
     score += campusMatch.total;
     signals.push(...campusMatch.signals.slice(0, 2));
@@ -1995,6 +2000,11 @@ const getFallbackIntentBoost = (item, intent = {}) => {
     if (hasComputerTechIntent(intent) && includesTermOrAlias(text, "计算机技术")) {
         boost += 56;
         signals.push("备用排序：计算机技术主题强匹配");
+    }
+
+    if (hasComputerTechIntent(intent) && includesAnyPhrase(text, AI_TOPIC_ALIASES)) {
+        boost += 40;
+        signals.push("备用排序：优先 AI 技术学习活动");
     }
 
     const topicMatch = scoreTextMatch(

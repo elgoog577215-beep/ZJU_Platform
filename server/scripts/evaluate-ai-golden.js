@@ -285,6 +285,21 @@ const seedData = async (db) => {
             category: "",
             tags: "",
         },
+        {
+            title: "Computer Science College Exchange Selection",
+            date: daysFromNow(8, 9),
+            endDate: daysFromNow(8, 10),
+            location: "Zijingang",
+            description:
+                "Administrative selection notice for an overseas semester exchange program.",
+            content: "<p>Application eligibility, transcript review and nomination process.</p>",
+            score: "",
+            audience: "All students",
+            organizer: "College of Computer Science",
+            volunteerTime: "",
+            category: "exchange",
+            tags: "exchange",
+        },
     ];
 
     for (const event of events) {
@@ -1479,10 +1494,27 @@ const evaluateComputerTechConversation = async (db) => {
         "Top technical recommendation should satisfy the topic constraint."
     );
 
+    const fallbackTurn = await runEventAssistantTurn({
+        db,
+        query: "我想学习计算机",
+        clarificationAnswer: "技术相关",
+        clarificationUsed: true,
+        allowHistoricalFallback: false,
+        modelRunner: async () => {
+            throw new Error("Simulated recommendation model timeout.");
+        },
+        now: new Date(),
+    });
+    assert(
+        /AI|Agent|Hackathon/i.test(fallbackTurn.recommendations?.[0]?.event?.title || ""),
+        "Fallback ranking should prefer an AI learning activity over a college exchange notice."
+    );
+
     return {
         firstType: firstTurn.type,
         firstTop: firstTurn.recommendations[0].event.title,
         secondTop: secondTurn.recommendations[0].event.title,
+        fallbackTop: fallbackTurn.recommendations[0].event.title,
     };
 };
 
