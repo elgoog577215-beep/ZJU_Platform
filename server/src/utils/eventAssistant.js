@@ -103,6 +103,26 @@ const AI_TOPIC_ALIASES = [
     "prompt",
     "提示词",
 ];
+const COMPUTER_TECH_TOPIC_ALIASES = [
+    "计算机",
+    "计算机科学",
+    "计算机技术",
+    "信息技术",
+    "编程",
+    "代码",
+    "开发",
+    "软件",
+    "算法",
+    "技术",
+    "技术相关",
+    "computer",
+    "computer science",
+    "programming",
+    "coding",
+    "software",
+    "algorithm",
+    "technology",
+];
 const SEARCH_TERM_ALIASES = {
     紫金港: ["zijingang"],
     玉泉: ["yuquan"],
@@ -114,6 +134,7 @@ const SEARCH_TERM_ALIASES = {
     计算机科学与技术学院: ["college of computer science", "computer science college", "计算机学院"],
     创新创业学院: ["innovation college", "college of innovation and entrepreneurship"],
     青年志愿者协会: ["youth volunteer association"],
+    计算机技术: [...COMPUTER_TECH_TOPIC_ALIASES, ...AI_TOPIC_ALIASES],
 };
 const OPPORTUNITY_MATCH_STAGE = "trusted_decision_loop_v1";
 const FEEDBACK_REASON_DEFINITIONS = [
@@ -428,6 +449,10 @@ const detectSemanticTopics = (text) => {
         }
     }
 
+    if (includesAnyPhrase(lowered, COMPUTER_TECH_TOPIC_ALIASES)) {
+        topics.push("计算机技术");
+    }
+
     if (includesAny(lowered, ["创业", "创新创业", "项目路演"])) topics.push("创新创业");
     if (includesAny(lowered, ["科研", "论文", "实验室"])) topics.push("科研");
     if (includesAny(lowered, ["就业", "实习", "招聘", "简历", "offer"])) topics.push("就业实习");
@@ -435,6 +460,19 @@ const detectSemanticTopics = (text) => {
 
     return unique(topics);
 };
+
+const hasActionableIntentSignal = (intent = {}) =>
+    Boolean(
+        intent.categories?.length ||
+        intent.semanticTopics?.length ||
+        intent.benefits?.length ||
+        intent.campuses?.length ||
+        intent.organizers?.length ||
+        intent.audiences?.length ||
+        intent.dateConstraints?.length ||
+        intent.timePreference ||
+        intent.format
+    );
 
 const cleanTopicTerms = (topics, { campuses = [], audiences = [] } = {}) => {
     const blocked = new Set(
@@ -538,6 +576,7 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
         campuses,
         organizers,
         audiences,
+        semanticTopics,
         topics: cleanedTopics,
         wantsMemory,
         shouldClarify:
@@ -545,7 +584,10 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
             categories.length === 0 &&
             benefits.length === 0 &&
             campuses.length === 0 &&
+            organizers.length === 0 &&
             audiences.length === 0 &&
+            semanticTopics.length === 0 &&
+            !timePreference &&
             !format,
     };
 };
@@ -692,6 +734,9 @@ const getBenefitLabel = (benefit) => BENEFIT_LABELS[benefit] || sanitizeText(ben
 
 const deriveHardConstraintsFromIntent = (intent = {}) => {
     const constraints = [];
+    if (intent.semanticTopics?.length) {
+        constraints.push(...intent.semanticTopics.map((item) => `主题：${item}`));
+    }
     if (intent.dateConstraints?.length) {
         constraints.push(...intent.dateConstraints.map((item) => `时间：${item}`));
     }
@@ -803,6 +848,10 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
                 ],
             }
         ).slice(0, 12),
+        semanticTopics: unique([
+            ...(fallbackIntent.semanticTopics || []),
+            ...detectSemanticTopics(uniqueTextArray(rawIntent.topics, 12).join(" ")),
+        ]).slice(0, 8),
         benefits: benefits.length ? benefits : fallbackIntent.benefits,
         format,
         campuses: unique([
@@ -845,6 +894,8 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
         normalized.hardConstraints,
         deriveHardConstraintsFromIntent(normalized)
     ).slice(0, 10);
+    normalized.needsClarification =
+        normalized.needsClarification && !hasActionableIntentSignal(normalized);
     return normalized;
 };
 
@@ -1924,6 +1975,13 @@ const getIntentAiTopicStrength = (intent = {}) => {
     return 1;
 };
 
+const hasComputerTechIntent = (intent = {}) =>
+    (intent.semanticTopics || []).includes("计算机技术") ||
+    includesAnyPhrase(
+        normalizeSearchText(intent.raw, intent.query, ...(intent.topics || [])),
+        COMPUTER_TECH_TOPIC_ALIASES
+    );
+
 const getFallbackIntentBoost = (item, intent = {}) => {
     const text = buildCandidateSemanticText(item);
     let boost = 0;
@@ -1932,6 +1990,11 @@ const getFallbackIntentBoost = (item, intent = {}) => {
     if (getIntentAiTopicStrength(intent) > 0 && includesAnyPhrase(text, AI_TOPIC_ALIASES)) {
         boost += 64;
         signals.push("备用排序：AI 主题强匹配");
+    }
+
+    if (hasComputerTechIntent(intent) && includesTermOrAlias(text, "计算机技术")) {
+        boost += 56;
+        signals.push("备用排序：计算机技术主题强匹配");
     }
 
     const topicMatch = scoreTextMatch(
@@ -2062,6 +2125,7 @@ const getHardConstraintScore = (item, intent = {}, now = new Date()) => {
     };
 
     addGroup("主办方/学院", intent.organizers, 36);
+    addGroup("主题", intent.semanticTopics, 28);
     addGroup("校区/地点", intent.campuses, 18);
     addGroup("面向对象", intent.audiences, 12);
 
@@ -2645,6 +2709,7 @@ const attachOpportunityMatches = ({ recommendations, reasoningTrace }) =>
 
 const buildIntentSummary = (intent, profile) => {
     const parts = [];
+    if (intent.semanticTopics?.length) parts.push(`主题：${intent.semanticTopics.join("、")}`);
     if (intent.categories.length)
         parts.push(
             `类型：${intent.categories.map((item) => CATEGORY_LABELS[item] || item).join("、")}`

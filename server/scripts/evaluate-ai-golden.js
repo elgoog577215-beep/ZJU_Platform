@@ -3,6 +3,7 @@ const { open } = require("sqlite");
 
 const {
     runEventAssistantTurn,
+    parseAssistantIntent,
     recordEventAssistantDecisionAction,
     recordEventAssistantFeedback,
 } = require("../src/utils/eventAssistant");
@@ -1427,6 +1428,64 @@ const evaluateSmartClarification = async (db) => {
     };
 };
 
+const evaluateComputerTechConversation = async (db) => {
+    const localIntent = parseAssistantIntent({
+        query: "我想学习计算机",
+        clarificationAnswer: "",
+    });
+    assert(
+        localIntent.semanticTopics.includes("计算机技术"),
+        "Computer-learning query should map to the computer technology topic."
+    );
+    assert(
+        localIntent.shouldClarify === false,
+        "A clear computer-learning topic should not trigger clarification."
+    );
+
+    const firstTurn = await runEventAssistantTurn({
+        db,
+        userId: 1,
+        query: "我想学习计算机",
+        allowHistoricalFallback: false,
+        modelRunner: goldenModelRunner,
+        now: new Date(),
+    });
+    assert(firstTurn.type === "recommend", "Computer-learning query should recommend directly.");
+    assert(
+        /AI|Agent|Hackathon/i.test(firstTurn.recommendations?.[0]?.event?.title || ""),
+        "Computer-learning query should rank a technical AI event first."
+    );
+
+    const secondTurn = await runEventAssistantTurn({
+        db,
+        userId: 1,
+        query: "我想学习计算机",
+        clarificationAnswer: "技术相关",
+        clarificationUsed: true,
+        allowHistoricalFallback: false,
+        modelRunner: goldenModelRunner,
+        now: new Date(),
+    });
+    assert(
+        secondTurn.type === "recommend",
+        "Technical clarification should return recommendations."
+    );
+    assert(
+        /AI|Agent|Hackathon/i.test(secondTurn.recommendations?.[0]?.event?.title || ""),
+        "Technical clarification should keep a technical AI event first."
+    );
+    assert(
+        secondTurn.recommendations[0].diagnostics?.hardConstraintMisses?.includes("主题") === false,
+        "Top technical recommendation should satisfy the topic constraint."
+    );
+
+    return {
+        firstType: firstTurn.type,
+        firstTop: firstTurn.recommendations[0].event.title,
+        secondTop: secondTurn.recommendations[0].event.title,
+    };
+};
+
 const evaluateRecommendationActionEvidenceRanking = async (db) => {
     await db.run(
         "INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason) VALUES (?, ?, ?, ?, ?)",
@@ -1831,6 +1890,7 @@ const main = async () => {
     try {
         const eventRecommendation = await evaluateEventRecommendation(db);
         const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
+        const computerTechConversation = await evaluateComputerTechConversation(db);
         const intentLocalConstraintRetention = await evaluateIntentLocalConstraintRetention(db);
         const localBenefitAliasBoundaries = await evaluateLocalBenefitAliasBoundaries(db);
         const rerankBackendCompletionAndGuardrail =
@@ -1869,6 +1929,7 @@ const main = async () => {
                     goldenSuites: {
                         eventRecommendation,
                         eventRecommendationQueryMatrix,
+                        computerTechConversation,
                         intentLocalConstraintRetention,
                         localBenefitAliasBoundaries,
                         rerankBackendCompletionAndGuardrail,
