@@ -1,0 +1,176 @@
+{
+    "schemaVersion": 2,
+    "generatedAt": "2026-08-19T13:50:00+08:00",
+    "title": "Design System: 拓浙AI生态",
+    "extensions": {
+        "colorMeta": {
+            "night-bg": {
+                "role": "neutral",
+                "displayName": "深夜底色",
+                "canonical": "#020617",
+                "tonalRamp": [
+                    "#01030c",
+                    "#020617",
+                    "#07112c",
+                    "#142044",
+                    "#334155",
+                    "#64748b",
+                    "#cbd5e1",
+                    "#f8fafc"
+                ]
+            },
+            "ecosystem-indigo": {
+                "role": "primary",
+                "displayName": "生态靛蓝",
+                "canonical": "#6366f1",
+                "tonalRamp": [
+                    "#1e1b4b",
+                    "#312e81",
+                    "#3730a3",
+                    "#4f46e5",
+                    "#6366f1",
+                    "#818cf8",
+                    "#c7d2fe",
+                    "#eef2ff"
+                ]
+            },
+            "hackathon-lime": {
+                "role": "secondary",
+                "displayName": "黑客松青柠",
+                "canonical": "#b9ff18",
+                "tonalRamp": [
+                    "#172600",
+                    "#2d4a00",
+                    "#4f7600",
+                    "#78a900",
+                    "#9bd900",
+                    "#b9ff18",
+                    "#dcff72",
+                    "#f4ffd2"
+                ]
+            }
+        },
+        "typographyMeta": {
+            "display": {
+                "displayName": "现场标题",
+                "purpose": "品牌和活动主标题"
+            },
+            "body": {
+                "displayName": "操作正文",
+                "purpose": "内容、说明和控件"
+            }
+        },
+        "shadows": [
+            {
+                "name": "ambient-small",
+                "value": "0 14px 32px rgba(2, 6, 23, 0.18)",
+                "purpose": "轻量浮层和交互抬升"
+            },
+            {
+                "name": "overlay",
+                "value": "0 38px 90px rgba(2, 6, 23, 0.46)",
+                "purpose": "对话框和分享预览"
+            }
+        ],
+        "motion": [
+            {
+                "name": "fast",
+                "value": "180ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+                "purpose": "控件 hover 与选中状态"
+            },
+            {
+                "name": "base",
+                "value": "240ms cubic-bezier(0.16, 1, 0.3, 1)",
+                "purpose": "面板与内容状态切换"
+            }
+        ],
+        "breakpoints": [
+            { "name": "mobile", "value": "820px" },
+            { "name": "compact", "value": "980px" }
+        ]
+    },
+    "components": [
+        {
+            "name": "Primary Button",
+            "kind": "button",
+            "refersTo": "button-primary",
+            "description": "全局主要行动",
+            "html": "<button class=\"ds-btn-primary\">继续</button>",
+            "css": ".ds-btn-primary{min-height:44px;padding:0 18px;border:0;border-radius:10px;background:#6366f1;color:#fff;font:800 14px/1 Inter,system-ui,sans-serif;cursor:pointer;transition:background .18s,transform .18s}.ds-btn-primary:hover{background:#4f46e5;transform:translateY(-1px)}.ds-btn-primary:focus-visible{outline:3px solid rgba(129,140,248,.5);outline-offset:2px}"
+        },
+        {
+            "name": "Hackathon Primary Button",
+            "kind": "button",
+            "refersTo": "hackathon-button-primary",
+            "description": "黑客松表面的主要行动",
+            "html": "<button class=\"ds-btn-hackathon\">提交参赛项目</button>",
+            "css": ".ds-btn-hackathon{min-height:44px;padding:0 18px;border:1px solid #b9ff18;border-radius:10px;background:#b9ff18;color:#061006;font:900 14px/1 Inter,system-ui,sans-serif;cursor:pointer;transition:filter .18s,transform .18s}.ds-btn-hackathon:hover{filter:brightness(1.06);transform:translateY(-1px)}.ds-btn-hackathon:focus-visible{outline:3px solid rgba(185,255,24,.4);outline-offset:2px}"
+        },
+        {
+            "name": "Ghost Button",
+            "kind": "button",
+            "refersTo": "button-ghost",
+            "description": "次级和返回行动",
+            "html": "<button class=\"ds-btn-ghost\">全部项目</button>",
+            "css": ".ds-btn-ghost{min-height:42px;padding:0 16px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(15,23,42,.82);color:#fff;font:800 14px/1 Inter,system-ui,sans-serif;cursor:pointer}.ds-btn-ghost:hover{background:rgba(255,255,255,.1)}.ds-btn-ghost:focus-visible{outline:3px solid rgba(129,140,248,.45);outline-offset:2px}"
+        },
+        {
+            "name": "Search Field",
+            "kind": "input",
+            "refersTo": "input",
+            "description": "任务工具栏中的搜索字段",
+            "html": "<input class=\"ds-input-search\" aria-label=\"搜索项目\" placeholder=\"搜索项目、技术栈、发起人…\">",
+            "css": ".ds-input-search{width:280px;height:44px;padding:0 12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(15,23,42,.82);color:#fff;font:400 16px/1.5 Inter,system-ui,sans-serif}.ds-input-search::placeholder{color:#94a3b8}.ds-input-search:focus-visible{outline:0;border-color:#b9ff18;box-shadow:0 0 0 3px rgba(185,255,24,.16)}"
+        },
+        {
+            "name": "Scope Chip",
+            "kind": "chip",
+            "refersTo": "scope-chip",
+            "description": "赛事范围选择与当前状态",
+            "html": "<button class=\"ds-scope-chip\" aria-current=\"true\">全部项目 <span>24</span></button>",
+            "css": ".ds-scope-chip{min-height:38px;padding:0 12px;border:1px solid rgba(185,255,24,.44);border-radius:8px;background:rgba(185,255,24,.12);color:#fff;font:800 13px/1 Inter,system-ui,sans-serif}.ds-scope-chip span{margin-left:8px;color:#b9ff18}.ds-scope-chip:focus-visible{outline:3px solid rgba(185,255,24,.35);outline-offset:2px}"
+        },
+        {
+            "name": "Project Card",
+            "kind": "card",
+            "refersTo": "project-card",
+            "description": "项目和赛事归档的统一目录对象",
+            "html": "<article class=\"ds-project-card\"><strong>项目名称</strong><p>一句话说明项目正在解决什么。</p><span>作者 · 专业</span></article>",
+            "css": ".ds-project-card{width:280px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(15,23,42,.82);color:#fff;font-family:Inter,system-ui,sans-serif}.ds-project-card strong{display:block;font-size:18px}.ds-project-card p{color:#cbd5e1;line-height:1.55}.ds-project-card span{color:#94a3b8;font-size:12px}.ds-project-card:hover{border-color:rgba(185,255,24,.44)}"
+        }
+    ],
+    "narrative": {
+        "northStar": "公共实验场",
+        "overview": "真实机会、参与者、项目和结果处于同一套可导航系统中。活动现场可以鲜明，但操作表面必须清楚、克制和可信。",
+        "keyCharacteristics": [
+            "真实内容和当前状态优先于装饰。",
+            "一个表面只使用一个主要强调色。",
+            "操作层稳定，活动主题通过背景、图像和少量标记表达。",
+            "桌面与移动端共享信息顺序，响应式改变结构而不是缩小字体。"
+        ],
+        "rules": [
+            {
+                "name": "The One Accent Rule",
+                "body": "同一任务表面只有一个领域强调色；它表达行动和状态，不作为无意义装饰散落。",
+                "section": "colors"
+            },
+            {
+                "name": "The Flat-By-Default Rule",
+                "body": "常规内容在静止状态依靠层次和边界，不为每个容器同时叠加边框与阴影。",
+                "section": "elevation"
+            }
+        ],
+        "dos": [
+            "Do 让当前对象、当前状态和下一步行动在五秒内可见。",
+            "Do 让切换范围只更新从属内容，保留导航与撤销路径。",
+            "Do 使用现有主题 token、全局导航和真实品牌资产。",
+            "Do 为 hover、focus、disabled、loading、error 和 empty 提供完整状态。"
+        ],
+        "donts": [
+            "Don't 为同一任务维护两套互斥页面骨架。",
+            "Don't 用随机卡片尺寸、重复面板和装饰徽章替代信息层级。",
+            "Don't 在公开界面编造合作、所有权、部署或效果证据。",
+            "Don't 用只在桌面成立的间距和工具栏结构挤压移动端。"
+        ]
+    }
+}

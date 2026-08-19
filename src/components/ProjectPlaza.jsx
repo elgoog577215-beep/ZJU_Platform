@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -10,14 +10,10 @@ import {
     Images,
     Lock,
     Mail,
-    Plus,
-    Search,
     Share2,
-    SlidersHorizontal,
     Sparkles,
     Trophy,
     UploadCloud,
-    UserRound,
     X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -37,6 +33,7 @@ import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
+import { ProjectPlazaWorkspace } from "../features/projects/ProjectPlazaSurface";
 
 const PROGRESS_META = {
     idea: { labelKey: "project_plaza.progress.idea", fallback: "构思中", c: "var(--p-idea)" },
@@ -222,13 +219,25 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                     <div className="ppp-archive-meta">
                         <span>{t("project_plaza.archive.label", "赛事归档")}</span>
                         {p.major ? <span>{p.major}</span> : null}
-                        <span>
-                            {p.deployment_url
-                                ? t("project_plaza.archive.deployed", "可在线体验")
-                                : t("project_plaza.archive.deployment_pending", "部署待补充")}
-                        </span>
                     </div>
                 ) : null}
+                <div
+                    className="ppp-card-evidence"
+                    aria-label={t("project_plaza.workspace.evidence_aria", "项目公开证据")}
+                >
+                    <span className={p.repo_url ? "is-ready" : "is-pending"}>
+                        <Github size={12} aria-hidden="true" />
+                        {p.repo_url
+                            ? t("project_plaza.workspace.repo_ready", "GitHub")
+                            : t("project_plaza.workspace.repo_pending", "仓库待补充")}
+                    </span>
+                    <span className={p.deployment_url ? "is-ready" : "is-pending"}>
+                        <ExternalLink size={12} aria-hidden="true" />
+                        {p.deployment_url
+                            ? t("project_plaza.archive.deployed", "可在线体验")
+                            : t("project_plaza.archive.deployment_pending", "部署待补充")}
+                    </span>
+                </div>
                 {!eventRecord && p.need_tags?.length > 0 && (
                     <div className="ppp-needs">
                         {p.need_tags.slice(0, 3).map((n) => (
@@ -1020,6 +1029,7 @@ const ProjectPlaza = () => {
 
     const [items, setItems] = useState([]);
     const [total, setTotal] = useState(0);
+    const [allProjectTotal, setAllProjectTotal] = useState(0);
     const [competition, setCompetition] = useState(null);
     const [competitions, setCompetitions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1059,6 +1069,9 @@ const ProjectPlaza = () => {
             setItems(data.items || []);
             setTotal(Number(data.total || 0));
             setCompetition(data.competition || null);
+            if (!competitionSlug && progFilter === "all" && !needFilter && !search.trim()) {
+                setAllProjectTotal(Number(data.total || 0));
+            }
         } catch {
             toast.error(t("project_plaza.toasts.load_failed", "加载失败"));
         } finally {
@@ -1083,6 +1096,26 @@ const ProjectPlaza = () => {
             alive = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (!competitionSlug || allProjectTotal > 0) return undefined;
+        let alive = true;
+        getProjects({ limit: 1 })
+            .then(({ data }) => {
+                if (alive) setAllProjectTotal(Number(data.total || 0));
+            })
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [allProjectTotal, competitionSlug]);
+
+    useEffect(() => {
+        if (!competitionSlug) return;
+        setProgFilter("all");
+        setNeedFilter(null);
+        setFiltersOpen(false);
+    }, [competitionSlug]);
 
     useEffect(() => {
         const id = searchParams.get("id");
@@ -1208,23 +1241,21 @@ const ProjectPlaza = () => {
         setSubmissionOpen(true);
     };
 
-    const showAllProjects = () => navigate("/projects");
-    const selectCompetition = (slug) =>
+    const selectCompetition = (slug) => {
+        if (slug) {
+            setProgFilter("all");
+            setNeedFilter(null);
+            setFiltersOpen(false);
+        }
         navigate(slug ? `/projects?competition=${encodeURIComponent(slug)}` : "/projects");
+    };
 
-    const spotlightEvent = useMemo(() => {
-        const events = schedule?.events || [];
-        const live = events.find((item) => getCompetitionPhase(item.event) === "live");
-        if (live) return { item: live, phase: "live" };
-        const upcoming = events
-            .filter((item) => getCompetitionPhase(item.event) === "upcoming")
-            .sort(
-                (a, b) =>
-                    Date.parse(a.event?.event_start_at || a.event?.startAt || "") -
-                    Date.parse(b.event?.event_start_at || b.event?.startAt || "")
-            )[0];
-        return upcoming ? { item: upcoming, phase: "upcoming" } : null;
-    }, [schedule]);
+    const clearDiscoveryConditions = () => {
+        setSearch("");
+        setProgFilter("all");
+        setNeedFilter(null);
+        setFiltersOpen(false);
+    };
 
     const toggleNeedFilter = (need) => {
         setNeedFilter(needFilter === need ? null : need);
@@ -1234,23 +1265,26 @@ const ProjectPlaza = () => {
     };
     const visibleItems = sortProjects(items, sort, competition?.slug);
     const activeFilterCount = Number(progFilter !== "all") + Number(Boolean(needFilter));
+    const hasDiscoveryConditions = Boolean(search.trim()) || activeFilterCount > 0;
     const featuredCompetition =
         competitions.find((item) => item.is_featured) ||
         competitions.find((item) => item.status === "active") ||
         competitions[0] ||
         null;
+    const activeCompetition =
+        competition || competitions.find((item) => item.slug === competitionSlug) || null;
 
     return (
         <div
             className="ppp-root"
             data-variant={variant}
-            data-event={competition ? "true" : "false"}
+            data-event={competitionSlug ? "true" : "false"}
         >
             <SEO
                 title={
-                    competition
+                    activeCompetition
                         ? t("project_plaza.event.meta_title", "{{event}}项目广场", {
-                              event: competition.title,
+                              event: activeCompetition.title,
                           })
                         : t("project_plaza.meta_title", "黑客松项目中心")
                 }
@@ -1286,391 +1320,99 @@ const ProjectPlaza = () => {
                         }}
                     />
                 ) : (
-                    <>
-                        <section
-                            className={`ppp-shell ${competition ? "is-event" : ""}`}
-                            aria-labelledby="project-plaza-title"
-                        >
-                            <div className="ppp-ph">
-                                <div className="ppp-headcopy">
-                                    <span className="ppp-code">
-                                        {competition
-                                            ? t(
-                                                  "project_plaza.event.kicker",
-                                                  "LIVE PROJECT FLOOR · 本场作品"
-                                              )
-                                            : t("project_plaza.kicker", "HACKATHON · PROJECT HUB")}
-                                    </span>
-                                    <span className="ppp-live-mark">
-                                        <span className="ppp-live-dot" />
-                                        {competition
-                                            ? t("project_plaza.event.live_mark", "现场作品")
-                                            : t("project_plaza.live_mark", "历届项目持续生长")}
-                                    </span>
-                                    <h1 id="project-plaza-title">
-                                        {competition?.title ||
-                                            t("project_plaza.title", "黑客松项目中心")}
-                                    </h1>
-                                    <div className="ppp-sub">
-                                        {competition
-                                            ? t(
-                                                  "project_plaza.event.subtitle",
-                                                  "让作品被看见，让项目在赛后继续生长。"
-                                              )
-                                            : t(
-                                                  "project_plaza.subtitle",
-                                                  "从参赛提交到历届成果，再到赛后继续迭代。"
-                                              )}
-                                    </div>
-                                </div>
-                                <div className="ppp-head-actions">
-                                    {competition ? (
-                                        <button
-                                            className="ppp-newbtn"
-                                            type="button"
-                                            onClick={startCompetitionSubmit}
-                                            disabled={!competitionSubmissionAvailable}
-                                        >
-                                            <Trophy size={18} />
-                                            {competitionSubmissionAvailable
-                                                ? t(
-                                                      "project_plaza.event.submit_action",
-                                                      "提交本场作品"
-                                                  )
-                                                : competitionPhase === "upcoming"
-                                                  ? t(
-                                                        "project_plaza.event.submission_upcoming_short",
-                                                        "等待开赛"
-                                                    )
-                                                  : t(
-                                                        "project_plaza.event.submission_closed_short",
-                                                        "提交已结束"
-                                                    )}
-                                        </button>
-                                    ) : (
-                                        <>
-                                            {featuredCompetition ? (
+                    <ProjectPlazaWorkspace
+                        t={t}
+                        allProjectTotal={allProjectTotal || (!competitionSlug ? total : 0)}
+                        competitions={competitions}
+                        competition={activeCompetition}
+                        currentCompetitionSlug={competitionSlug}
+                        featuredCompetition={featuredCompetition}
+                        submissionAvailable={competitionSubmissionAvailable}
+                        competitionPhase={competitionPhase}
+                        onSelectCompetition={selectCompetition}
+                        onSubmitCompetition={startCompetitionSubmit}
+                        onCreateProject={startCreate}
+                        search={search}
+                        onSearch={setSearch}
+                        sort={sort}
+                        sortOptions={SORT_OPTIONS}
+                        onSort={setSort}
+                        filtersOpen={filtersOpen}
+                        activeFilterCount={activeFilterCount}
+                        onToggleFilters={() => setFiltersOpen((value) => !value)}
+                        filterPanel={
+                            !competitionSlug && filtersOpen ? (
+                                <div
+                                    id="project-plaza-advanced-filters"
+                                    className="ppp-filters is-open"
+                                    aria-label={t("project_plaza.filters.aria", "项目筛选")}
+                                >
+                                    <div className="ppp-filter-group">
+                                        <span className="ppp-flabel">
+                                            {t("project_plaza.filters.progress", "进度")}
+                                        </span>
+                                        {PROGRESS_FILTERS.map(
+                                            ({ key, labelKey, fallback, color }) => (
                                                 <button
-                                                    className="ppp-newbtn"
+                                                    key={key}
                                                     type="button"
-                                                    onClick={() =>
-                                                        selectCompetition(featuredCompetition.slug)
+                                                    className={
+                                                        "ppp-chip" +
+                                                        (progFilter === key ? " on" : "")
                                                     }
+                                                    aria-pressed={progFilter === key}
+                                                    onClick={() => setProgressFilter(key)}
                                                 >
-                                                    <Trophy size={18} />
-                                                    {t(
-                                                        "project_plaza.actions.enter_submission",
-                                                        "进入赛事投稿"
-                                                    )}
+                                                    {color ? (
+                                                        <span
+                                                            className="ppp-cdot"
+                                                            style={{ background: color }}
+                                                            aria-hidden="true"
+                                                        />
+                                                    ) : null}
+                                                    {t(labelKey, fallback)}
                                                 </button>
-                                            ) : null}
+                                            )
+                                        )}
+                                    </div>
+                                    <div className="ppp-filter-group">
+                                        <span className="ppp-flabel">
+                                            {t("project_plaza.filters.needs", "在找")}
+                                        </span>
+                                        {NEED_FILTERS.map((need) => (
                                             <button
-                                                className={`ppp-newbtn ${featuredCompetition ? "ghost" : ""}`}
+                                                key={need}
                                                 type="button"
-                                                onClick={startCreate}
+                                                className={
+                                                    "ppp-chip call" +
+                                                    (needFilter === need ? " on" : "")
+                                                }
+                                                aria-pressed={needFilter === need}
+                                                onClick={() => toggleNeedFilter(need)}
                                             >
-                                                <Plus size={18} />
-                                                {t(
-                                                    "project_plaza.actions.publish_long_term",
-                                                    "发布长期项目"
-                                                )}
+                                                {getNeedLabel(t, need)}
                                             </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {!competition && spotlightEvent ? (
-                                <a
-                                    className="ppp-live-event"
-                                    href={`/hackathon?event=${encodeURIComponent(spotlightEvent.item.event.key)}`}
-                                >
-                                    <span className="ppp-live-dot" />
-                                    <span className="ppp-live-event-name">
-                                        {spotlightEvent.item.event.title}
-                                    </span>
-                                    <span className="ppp-live-event-phase">
-                                        {spotlightEvent.phase === "live"
-                                            ? t("project_plaza.live_event.live", "比赛进行中")
-                                            : t("project_plaza.live_event.upcoming", "即将开赛")}
-                                    </span>
-                                    <span className="ppp-live-event-cta">
-                                        {t("project_plaza.live_event.cta", "进入赛事现场")}
-                                        <ArrowRight size={13} />
-                                    </span>
-                                </a>
-                            ) : null}
-
-                            {!competition ? (
-                                <div
-                                    className="ppp-hub-flow"
-                                    aria-label={t("project_plaza.hub.aria", "黑客松项目流程")}
-                                >
-                                    <span>
-                                        <strong>01</strong>
-                                        {t("project_plaza.hub.submit", "参赛提交")}
-                                    </span>
-                                    <span>
-                                        <strong>02</strong>
-                                        {t("project_plaza.hub.archive", "成果归档")}
-                                    </span>
-                                    <span>
-                                        <strong>03</strong>
-                                        {t("project_plaza.hub.grow", "赛后生长")}
-                                    </span>
-                                </div>
-                            ) : null}
-
-                            {!competition && total > 0 ? (
-                                <div className="ppp-facts">
-                                    <span>
-                                        <strong>{total}</strong>{" "}
-                                        {t("project_plaza.facts.total", "个项目在册")}
-                                    </span>
-                                    <span>
-                                        <strong>
-                                            {items.filter((p) => p.need_tags?.length > 0).length}
-                                        </strong>{" "}
-                                        {t("project_plaza.facts.recruiting", "个正在招募队友")}
-                                    </span>
-                                </div>
-                            ) : null}
-
-                            {competition ? (
-                                <div className="ppp-event-line">
-                                    <div className="ppp-event-facts">
-                                        <span>{competition.event_date || "—"}</span>
-                                        <span>
-                                            <strong>
-                                                {competition.approved_project_count ?? total}
-                                            </strong>{" "}
-                                            {t("project_plaza.event.approved_count", "件入选作品")}
-                                        </span>
-                                    </div>
-                                    <nav
-                                        aria-label={t(
-                                            "project_plaza.event.journey_aria",
-                                            "赛事全流程"
-                                        )}
-                                    >
-                                        <a
-                                            href={`/hackathon?view=showcase&competition=${encodeURIComponent(competition.slug)}`}
-                                        >
-                                            {t("project_plaza.event.back_event", "赛事现场")}
-                                        </a>
-                                        <a
-                                            href={`/media?event=${encodeURIComponent(competition.slug)}`}
-                                        >
-                                            {t("project_plaza.event.media", "影像档案")}
-                                        </a>
-                                        <button type="button" onClick={showAllProjects}>
-                                            {t("project_plaza.event.all_projects", "全部项目")}
-                                        </button>
-                                    </nav>
-                                </div>
-                            ) : null}
-
-                            {!competition && competitions.length > 0 ? (
-                                <nav
-                                    className="ppp-event-switcher"
-                                    aria-label={t(
-                                        "project_plaza.filters.competition",
-                                        "按赛事查看项目"
-                                    )}
-                                >
-                                    <button
-                                        type="button"
-                                        className="on"
-                                        onClick={() => selectCompetition("")}
-                                    >
-                                        {t("project_plaza.filters.all_events", "全部赛事")}
-                                        <small>{total}</small>
-                                    </button>
-                                    {competitions.map((item) => (
-                                        <button
-                                            type="button"
-                                            key={item.slug}
-                                            onClick={() => selectCompetition(item.slug)}
-                                        >
-                                            {item.title}
-                                            <small>{item.works_count || 0}</small>
-                                        </button>
-                                    ))}
-                                </nav>
-                            ) : null}
-
-                            <div className="ppp-discovery">
-                                <label className="ppp-search">
-                                    <Search size={17} />
-                                    <input
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        placeholder={t(
-                                            "project_plaza.search_placeholder",
-                                            "搜索项目、技术栈、发起人..."
-                                        )}
-                                    />
-                                </label>
-                                <div
-                                    className="ppp-sort"
-                                    aria-label={t("project_plaza.sort.aria", "项目排序")}
-                                >
-                                    {SORT_OPTIONS.map(({ key, labelKey, fallback }) => (
-                                        <button
-                                            key={key}
-                                            type="button"
-                                            className={sort === key ? "on" : ""}
-                                            onClick={() => setSort(key)}
-                                        >
-                                            {t(labelKey, fallback)}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    type="button"
-                                    className={`ppp-filter-toggle ${
-                                        filtersOpen || activeFilterCount ? "on" : ""
-                                    }`}
-                                    aria-expanded={filtersOpen}
-                                    aria-controls="project-plaza-advanced-filters"
-                                    onClick={() => setFiltersOpen((value) => !value)}
-                                >
-                                    <SlidersHorizontal size={15} />
-                                    {filtersOpen
-                                        ? t("project_plaza.filters.close", "收起")
-                                        : t("project_plaza.filters.more", "筛选")}
-                                    {activeFilterCount ? <span>{activeFilterCount}</span> : null}
-                                </button>
-                            </div>
-
-                            <div
-                                id="project-plaza-advanced-filters"
-                                className={`ppp-filters ${filtersOpen ? "is-open" : ""}`}
-                                aria-label={t("project_plaza.filters.aria", "项目筛选")}
-                                hidden={!filtersOpen}
-                            >
-                                <div className="ppp-filter-group">
-                                    <span className="ppp-flabel">
-                                        {t("project_plaza.filters.progress", "进度")}
-                                    </span>
-                                    {PROGRESS_FILTERS.map(({ key, labelKey, fallback, color }) => (
-                                        <button
-                                            key={key}
-                                            type="button"
-                                            className={`ppp-chip ${progFilter === key ? "on" : ""}`}
-                                            onClick={() => setProgressFilter(key)}
-                                        >
-                                            {color && (
-                                                <span
-                                                    className="ppp-cdot"
-                                                    style={{ background: color }}
-                                                />
-                                            )}
-                                            {t(labelKey, fallback)}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="ppp-filter-group">
-                                    <span className="ppp-flabel">
-                                        {t("project_plaza.filters.needs", "在找")}
-                                    </span>
-                                    {NEED_FILTERS.map((need) => (
-                                        <button
-                                            key={need}
-                                            type="button"
-                                            className={`ppp-chip call ${needFilter === need ? "on" : ""}`}
-                                            onClick={() => toggleNeedFilter(need)}
-                                        >
-                                            {getNeedLabel(t, need)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
-
-                        <div className={`ppp-results ${competition ? "is-event" : ""}`}>
-                            <div className="ppp-results-main">
-                                {loading ? (
-                                    <div className="ppp-empty">
-                                        {t("project_plaza.loading", "加载中...")}
-                                    </div>
-                                ) : visibleItems.length === 0 ? (
-                                    <div className="ppp-empty">
-                                        <UserRound size={34} />
-                                        <strong>
-                                            {competition
-                                                ? t(
-                                                      "project_plaza.event.empty_title",
-                                                      "本场作品正在集结"
-                                                  )
-                                                : t(
-                                                      "project_plaza.empty_title",
-                                                      "还没有匹配的项目名片"
-                                                  )}
-                                        </strong>
-                                        <span>
-                                            {competition
-                                                ? t(
-                                                      "project_plaza.event.empty_desc",
-                                                      "提交你的项目，审核通过后会进入本场作品墙。"
-                                                  )
-                                                : t(
-                                                      "project_plaza.empty_desc",
-                                                      "换个关键词，或发布第一个项目。"
-                                                  )}
-                                        </span>
-                                        <button
-                                            className="ppp-newbtn ppp-empty-action"
-                                            type="button"
-                                            onClick={
-                                                competition ? startCompetitionSubmit : startCreate
-                                            }
-                                            disabled={
-                                                competition && !competitionSubmissionAvailable
-                                            }
-                                        >
-                                            {competition ? (
-                                                <Trophy size={18} />
-                                            ) : (
-                                                <Plus size={18} />
-                                            )}
-                                            {competition
-                                                ? competitionSubmissionAvailable
-                                                    ? t(
-                                                          "project_plaza.event.submit_action",
-                                                          "提交本场作品"
-                                                      )
-                                                    : t(
-                                                          "project_plaza.event.submission_closed_short",
-                                                          "提交已结束"
-                                                      )
-                                                : t(
-                                                      "project_plaza.actions.publish_first",
-                                                      "发布第一个项目"
-                                                  )}
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={`ppp-grid ${
-                                            visibleItems.length === 1 ? "is-sparse" : ""
-                                        }`}
-                                    >
-                                        {visibleItems.map((project) => (
-                                            <Card
-                                                p={project}
-                                                key={project.id}
-                                                onOpen={openDetail}
-                                                onFav={applyFav}
-                                                t={t}
-                                                competitionSlug={competition?.slug}
-                                            />
                                         ))}
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                    </>
+                                </div>
+                            ) : null
+                        }
+                        resultTotal={total}
+                        hasConditions={hasDiscoveryConditions}
+                        onClearConditions={clearDiscoveryConditions}
+                        loading={loading}
+                        items={visibleItems}
+                        renderProject={(project) => (
+                            <Card
+                                p={project}
+                                key={project.id}
+                                onOpen={openDetail}
+                                onFav={applyFav}
+                                t={t}
+                                competitionSlug={competition?.slug}
+                            />
+                        )}
+                    />
                 )}
             </div>
 
