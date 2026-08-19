@@ -3674,7 +3674,9 @@
             "work_title": "作品名称",
             "author": "作者",
             "author_hint": "填写获奖者、团队或社团名称后，相关用户可在个人主页中确认认领。",
-            "git_url": "Git 链接",
+            "git_url": "GitHub 仓库链接",
+            "deployment_url": "魔搭社区部署链接（可选）",
+            "deployment_hint": "用于在线体验，与 GitHub 源码仓库分开保存。",
             "summary": "简介",
             "award": "奖项",
             "rank": "排序",
@@ -3702,11 +3704,14 @@
             "project_required": "请先选择参赛项目",
             "work_title_required": "作品名称不能为空",
             "author_required": "作者不能为空",
+            "major_required": "专业不能为空",
             "summary_required": "作品简介不能为空",
             "git_required": "Git 链接不能为空",
             "consent_required": "请确认同意公开展示作品与经验分享",
             "git_protocol": "Git 链接必须以 http:// 或 https:// 开头",
             "git_format": "Git 链接格式不正确，例如 https://github.com/user/project",
+            "deployment_protocol": "魔搭部署链接必须以 https:// 开头",
+            "deployment_format": "请输入有效的魔搭社区部署链接",
             "title_required": "标题不能为空",
             "video_required": "请上传赛事宣传片文件",
             "photo_required": "请上传赛场照片文件"
@@ -3735,13 +3740,15 @@
     },
     "event_project_submit": {
         "title": "提交参赛作品",
-        "description": "一张封面、一个简介和可访问的项目链接，就能完成本场提交。",
+        "description": "填写作品、参赛者、专业、GitHub 仓库，并可补充魔搭社区在线体验链接。",
         "cover": "上传作品封面",
         "cover_hint": "建议使用现场截图或产品主视觉",
         "name": "作品名称",
         "summary": "作品简介",
         "author": "参赛者 / 团队",
-        "url": "项目 / Demo / 代码链接",
+        "major": "专业",
+        "git_url": "GitHub 仓库链接",
+        "deployment_url": "魔搭社区部署链接（可选）",
         "action": "提交本场作品",
         "submitting": "正在提交",
         "success": "作品已提交，审核通过后会进入本场项目广场",
@@ -3753,7 +3760,9 @@
             "title": "请填写作品名称",
             "summary": "请填写作品简介",
             "author": "请填写参赛者或团队名称",
-            "url": "请填写有效的项目、Demo 或代码链接"
+            "major": "请填写专业",
+            "git_url": "请填写有效的 HTTPS GitHub 仓库链接",
+            "deployment_url": "请填写有效的 HTTPS 魔搭社区部署链接"
         }
     },
     "media_archive": {
@@ -4003,12 +4012,12 @@
         "progression_missing": "暂无对应篇"
     },
     "project_plaza": {
-        "meta_title": "项目广场",
-        "meta_desc": "把正在做的项目放上来，让对的人找到你。",
-        "kicker": "BUILD · 项目广场",
-        "title": "项目广场",
-        "subtitle": "找项目、看进度、补队友。",
-        "live_mark": "项目现场",
+        "meta_title": "黑客松项目中心",
+        "meta_desc": "提交黑客松作品，查看历届项目，让比赛成果在赛后继续生长。",
+        "kicker": "HACKATHON · PROJECT HUB",
+        "title": "黑客松项目中心",
+        "subtitle": "从参赛提交到历届成果，再到赛后继续迭代。",
+        "live_mark": "历届项目持续生长",
         "search_placeholder": "搜索项目、技术栈、发起人...",
         "loading": "加载中...",
         "empty_title": "暂时没找到合适的项目名片",
@@ -4021,6 +4030,19 @@
         "detail_intro": "项目介绍",
         "detail_needs": "在找",
         "detail_tags": "特点 / 技术栈",
+        "hub": {
+            "aria": "黑客松项目流程",
+            "submit": "参赛提交",
+            "archive": "成果归档",
+            "grow": "赛后生长"
+        },
+        "archive": {
+            "label": "赛事归档",
+            "deployed": "可在线体验",
+            "deployment_pending": "部署待补充",
+            "detail_kicker": "黑客松赛事归档",
+            "author_prefix": "参赛者"
+        },
         "event": {
             "meta_title": "{{event}}项目广场",
             "kicker": "HACKATHON · LIVE PROJECTS",
@@ -4058,6 +4080,8 @@
             "all": "全部",
             "progress": "进度",
             "needs": "在找",
+            "competition": "按赛事查看项目",
+            "all_events": "全部项目",
             "more": "筛选",
             "close": "收起"
         },
@@ -4090,10 +4114,14 @@
             "saves": "{{count}} 收藏"
         },
         "actions": {
-            "publish": "发布项目",
+            "publish": "提交 / 发布项目",
+            "enter_submission": "进入赛事投稿",
+            "publish_long_term": "发布长期项目",
             "publish_first": "发布第一个项目",
-            "repo": "看仓库",
-            "no_repo": "无仓库",
+            "repo": "查看 GitHub",
+            "no_repo": "暂无 GitHub",
+            "open_deployment": "在线体验",
+            "deployment_pending": "部署链接待补充",
             "project_link": "打开项目",
             "no_project_link": "暂无项目链接"
         },
@@ -4110,6 +4138,7 @@
             "upload_failed": "图片上传失败",
             "name_required": "请填写项目名称",
             "repo_https": "仓库链接需为 https",
+            "deployment_https": "魔搭部署链接需为 https",
             "draft_saved": "已存草稿",
             "published": "已发布到广场",
             "publish_failed": "发布失败"
@@ -4137,7 +4166,9 @@
             "needs_hint": "可多选",
             "tags": "技术栈 / 特点标签",
             "tag_placeholder": "输入后回车",
-            "repo": "仓库链接",
+            "repo": "GitHub 仓库链接",
+            "deployment": "魔搭社区部署链接",
+            "deployment_hint": "可选；用于在线体验，与 GitHub 仓库分开保存",
             "contact": "联系方式",
             "contact_hint": "仅登录用户可见",
             "contact_placeholder": "微信号 / 邮箱",

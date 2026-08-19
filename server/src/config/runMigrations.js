@@ -2350,6 +2350,8 @@ async function runMigrations(db) {
                 author: 'TEXT NOT NULL DEFAULT ""',
                 summary: 'TEXT NOT NULL DEFAULT ""',
                 git_url: "TEXT",
+                deployment_provider: "TEXT",
+                deployment_url: "TEXT",
                 award: "TEXT",
                 rank: "TEXT",
                 cover_url: "TEXT",
@@ -2817,6 +2819,8 @@ async function runMigrations(db) {
         need_tags TEXT DEFAULT '[]',
         tech_tags TEXT DEFAULT '[]',
         repo_url TEXT,
+        deployment_provider TEXT,
+        deployment_url TEXT,
         contact_wechat TEXT,
         contact_email TEXT,
         cover_url TEXT,
@@ -2839,6 +2843,15 @@ async function runMigrations(db) {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+        await ensureColumns(
+            db,
+            "project_cards",
+            {
+                deployment_provider: "TEXT",
+                deployment_url: "TEXT",
+            },
+            "project_cards"
+        );
         console.log("Project cards tables ready");
     } catch (err) {
         if (!err.message.includes("already exists")) {

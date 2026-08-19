@@ -6,6 +6,7 @@ const { canBypassReview } = require("../utils/userPermissions");
 const MEDIA_TYPES = new Set(["promo_video", "stage_photo"]);
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 const COMPETITION_STATUSES = new Set(["active", "draft", "archived"]);
+const DEPLOYMENT_PROVIDERS = new Set(["modelscope", "other"]);
 const LEGACY_OUTCOME_SLUG = "ai-full-stack-hackathon-outcome";
 
 const MEDIA_LABELS = {
@@ -78,6 +79,29 @@ const isHttpUrl = (value) => {
         return parsed.protocol === "http:" || parsed.protocol === "https:";
     } catch {
         return false;
+    }
+};
+
+const isHttpsUrl = (value) => {
+    const url = trimText(value, 1000);
+    if (!url) return false;
+    try {
+        return new URL(url).protocol === "https:";
+    } catch {
+        return false;
+    }
+};
+
+const normalizeDeploymentProvider = (value, deploymentUrl) => {
+    if (!deploymentUrl) return null;
+    const normalized = trimText(value, 40).toLowerCase();
+    if (DEPLOYMENT_PROVIDERS.has(normalized)) return normalized;
+    try {
+        return /(^|\.)modelscope\.cn$/i.test(new URL(deploymentUrl).hostname)
+            ? "modelscope"
+            : "other";
+    } catch {
+        return "other";
     }
 };
 
@@ -193,6 +217,8 @@ const serializePublicWork = (row) => ({
     author: row.author,
     summary: row.summary,
     git_url: row.git_url,
+    deployment_provider: row.deployment_provider || null,
+    deployment_url: row.deployment_url || null,
     award: row.award,
     rank: row.rank,
     cover_url: row.cover_url,
@@ -749,6 +775,16 @@ const submitCurrentWork = async (req, res, next) => {
         const author = trimText(req.body.author || project?.owner_name, 140);
         const summary = trimText(req.body.summary || project?.intro, 1200);
         const gitUrl = nullableText(req.body.git_url || req.body.gitUrl || project?.repo_url, 1000);
+        const deploymentUrl = nullableText(
+            req.body.deployment_url || req.body.deploymentUrl || project?.deployment_url,
+            1000
+        );
+        const deploymentProvider = normalizeDeploymentProvider(
+            req.body.deployment_provider ||
+                req.body.deploymentProvider ||
+                project?.deployment_provider,
+            deploymentUrl
+        );
         const award = nullableText(req.body.award, 140);
         const rank = nullableText(req.body.rank, 40);
         const coverUrl = nullableText(
@@ -759,8 +795,11 @@ const submitCurrentWork = async (req, res, next) => {
 
         if (!title) return sendBadRequest(res, "请填写作品名称");
         if (!author) return sendBadRequest(res, "请填写作者");
+        if (req.user?.role !== "admin" && !story.major) return sendBadRequest(res, "请填写专业");
         if (!summary) return sendBadRequest(res, "请填写作品简介");
         if (!gitUrl || !isHttpUrl(gitUrl)) return sendBadRequest(res, "请填写有效的项目链接");
+        if (deploymentUrl && !isHttpsUrl(deploymentUrl))
+            return sendBadRequest(res, "部署链接需为 https 链接");
         if (coverUrl && !isSafeAssetUrl(coverUrl)) return sendBadRequest(res, "封面地址无效");
 
         const requestedStatus = normalizeStatus(req.body.status, "approved");
@@ -775,10 +814,11 @@ const submitCurrentWork = async (req, res, next) => {
 
         const result = await db.run(
             `INSERT INTO competition_works (
-        competition_id, project_id, title, author, summary, git_url, award, rank, cover_url,
-        honor_title, grade, major, highlight, experience, story_file_url, public_consent,
-        sort_order, status, uploader_id, reviewed_by, reviewed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        competition_id, project_id, title, author, summary, git_url,
+        deployment_provider, deployment_url, award, rank, cover_url, honor_title, grade,
+        major, highlight, experience, story_file_url, public_consent, sort_order, status,
+        uploader_id, reviewed_by, reviewed_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
             [
                 competition.id,
                 projectId,
@@ -786,6 +826,8 @@ const submitCurrentWork = async (req, res, next) => {
                 author,
                 summary,
                 gitUrl,
+                deploymentProvider,
+                deploymentUrl,
                 award,
                 rank,
                 coverUrl,
@@ -1470,6 +1512,11 @@ const createAdminWork = async (req, res, next) => {
         const author = trimText(req.body.author, 140);
         const summary = trimText(req.body.summary, 1200);
         const gitUrl = nullableText(req.body.git_url || req.body.gitUrl, 1000);
+        const deploymentUrl = nullableText(req.body.deployment_url || req.body.deploymentUrl, 1000);
+        const deploymentProvider = normalizeDeploymentProvider(
+            req.body.deployment_provider || req.body.deploymentProvider,
+            deploymentUrl
+        );
         const coverUrl = nullableText(req.body.cover_url || req.body.coverUrl, 1000);
         const status = normalizeStatus(req.body.status, "approved");
         const story = extractWorkStoryFields(req.body, { allowExternalStoryFile: true });
@@ -1478,6 +1525,8 @@ const createAdminWork = async (req, res, next) => {
         if (!author) return sendBadRequest(res, "请填写作者");
         if (!summary) return sendBadRequest(res, "请填写作品简介");
         if (!gitUrl || !isHttpUrl(gitUrl)) return sendBadRequest(res, "请填写有效的 Git 链接");
+        if (deploymentUrl && !isHttpsUrl(deploymentUrl))
+            return sendBadRequest(res, "部署链接需为 https 链接");
         if (coverUrl && !isSafeAssetUrl(coverUrl, { allowExternal: true }))
             return sendBadRequest(res, "封面地址无效");
 
@@ -1485,16 +1534,19 @@ const createAdminWork = async (req, res, next) => {
         const reviewedAt = reviewedBy ? new Date().toISOString() : null;
         const result = await db.run(
             `INSERT INTO competition_works (
-        competition_id, title, author, summary, git_url, award, rank, cover_url,
-        honor_title, grade, major, highlight, experience, story_file_url, public_consent,
-        sort_order, status, uploader_id, reviewed_by, reviewed_at, review_note, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        competition_id, title, author, summary, git_url, deployment_provider, deployment_url,
+        award, rank, cover_url, honor_title, grade, major, highlight, experience,
+        story_file_url, public_consent, sort_order, status, uploader_id, reviewed_by,
+        reviewed_at, review_note, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
             [
                 competitionId,
                 title,
                 author,
                 summary,
                 gitUrl,
+                deploymentProvider,
+                deploymentUrl,
                 nullableText(req.body.award, 140),
                 nullableText(req.body.rank, 40),
                 coverUrl,
@@ -1552,6 +1604,16 @@ const updateAdminWork = async (req, res, next) => {
             req.body.git_url !== undefined || req.body.gitUrl !== undefined
                 ? nullableText(req.body.git_url || req.body.gitUrl, 1000)
                 : existing.git_url;
+        const deploymentUrl =
+            req.body.deployment_url !== undefined || req.body.deploymentUrl !== undefined
+                ? nullableText(req.body.deployment_url || req.body.deploymentUrl, 1000)
+                : existing.deployment_url;
+        const deploymentProvider = normalizeDeploymentProvider(
+            req.body.deployment_provider !== undefined || req.body.deploymentProvider !== undefined
+                ? req.body.deployment_provider || req.body.deploymentProvider
+                : existing.deployment_provider,
+            deploymentUrl
+        );
         const coverUrl =
             req.body.cover_url !== undefined || req.body.coverUrl !== undefined
                 ? nullableText(req.body.cover_url || req.body.coverUrl, 1000)
@@ -1566,6 +1628,8 @@ const updateAdminWork = async (req, res, next) => {
         if (!author) return sendBadRequest(res, "请填写作者");
         if (!summary) return sendBadRequest(res, "请填写作品简介");
         if (!gitUrl || !isHttpUrl(gitUrl)) return sendBadRequest(res, "请填写有效的 Git 链接");
+        if (deploymentUrl && !isHttpsUrl(deploymentUrl))
+            return sendBadRequest(res, "部署链接需为 https 链接");
         if (coverUrl && !isSafeAssetUrl(coverUrl, { allowExternal: true }))
             return sendBadRequest(res, "封面地址无效");
 
@@ -1585,6 +1649,8 @@ const updateAdminWork = async (req, res, next) => {
            author = ?,
            summary = ?,
            git_url = ?,
+           deployment_provider = ?,
+           deployment_url = ?,
            award = ?,
            rank = ?,
            cover_url = ?,
@@ -1608,6 +1674,8 @@ const updateAdminWork = async (req, res, next) => {
                 author,
                 summary,
                 gitUrl,
+                deploymentProvider,
+                deploymentUrl,
                 req.body.award !== undefined ? nullableText(req.body.award, 140) : existing.award,
                 req.body.rank !== undefined ? nullableText(req.body.rank, 40) : existing.rank,
                 coverUrl,

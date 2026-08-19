@@ -64,13 +64,29 @@ test("hackathon work submissions bind owned projects without leaking removed pro
             `INSERT INTO competitions (slug, title, event_date, status)
              VALUES ('event-b', '赛事 B', '2026-09-12', 'active')`
         );
-        const project = await db.run(
-            `INSERT INTO project_cards
-                (user_id, title, intro, repo_url, cover_url, status)
-             VALUES (?, '长期项目', '项目长期简介', 'https://example.com/project',
-                     '/uploads/project.jpg', 'published')`,
-            [owner.lastID]
-        );
+        const invalidProject = await runController(projectController.createProject, {
+            body: {
+                title: "无效部署项目",
+                deployment_url: "https://",
+            },
+            user: { id: owner.lastID, role: "user" },
+        });
+        assert.equal(invalidProject.statusCode, 400);
+
+        const createdProject = await runController(projectController.createProject, {
+            body: {
+                title: "长期项目",
+                intro: "项目长期简介",
+                repo_url: "https://example.com/project",
+                deployment_url: "https://modelscope.cn/studios/owner/project",
+                images: ["/uploads/project.jpg"],
+                status: "published",
+            },
+            user: { id: owner.lastID, role: "user" },
+        });
+        assert.equal(createdProject.statusCode, 201);
+        assert.equal(createdProject.body.deployment_provider, "modelscope");
+        const project = { lastID: createdProject.body.id };
         const removedProject = await db.run(
             `INSERT INTO project_cards (user_id, title, intro, repo_url, status)
              VALUES (?, '下架项目', '不可参赛', 'https://example.com/removed', 'removed')`,
@@ -89,7 +105,11 @@ test("hackathon work submissions bind owned projects without leaking removed pro
 
         const baseRequest = {
             query: {},
-            body: { project_id: project.lastID, public_consent: true },
+            body: {
+                project_id: project.lastID,
+                major: "计算机科学与技术",
+                public_consent: true,
+            },
             user: { id: owner.lastID, role: "user", review_permission: "normal" },
         };
         const firstSubmit = await runController(competitionController.submitCurrentWork, {
@@ -100,6 +120,12 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         assert.equal(firstSubmit.body.project_id, project.lastID);
         assert.equal(firstSubmit.body.title, "长期项目");
         assert.equal(firstSubmit.body.status, "pending");
+        assert.equal(firstSubmit.body.major, "计算机科学与技术");
+        assert.equal(firstSubmit.body.deployment_provider, "modelscope");
+        assert.equal(
+            firstSubmit.body.deployment_url,
+            "https://modelscope.cn/studios/owner/project"
+        );
 
         const duplicate = await runController(competitionController.submitCurrentWork, {
             ...baseRequest,
@@ -111,7 +137,7 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         const nonOwner = await runController(competitionController.submitCurrentWork, {
             params: { competitionSlug: "event-a" },
             query: {},
-            body: { project_id: project.lastID },
+            body: { project_id: project.lastID, major: "计算机科学与技术" },
             user: { id: other.lastID, role: "user", review_permission: "normal" },
         });
         assert.equal(nonOwner.statusCode, 403);
@@ -119,7 +145,7 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         const removed = await runController(competitionController.submitCurrentWork, {
             params: { competitionSlug: "event-a" },
             query: {},
-            body: { project_id: removedProject.lastID },
+            body: { project_id: removedProject.lastID, major: "计算机科学与技术" },
             user: { id: owner.lastID, role: "user", review_permission: "normal" },
         });
         assert.equal(removed.statusCode, 400);
@@ -139,13 +165,34 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         );
         const legacyWork = await db.run(
             `INSERT INTO competition_works
-                (competition_id, title, author, summary, git_url, cover_url,
-                 award, rank, status, uploader_id, public_consent)
-             VALUES (?, '历史赛事快照', '历史团队', '未绑定长期项目的历史作品',
-                     'https://example.com/legacy-work', '/uploads/legacy-work.jpg',
-                     '优秀奖', '2', 'approved', ?, 1)`,
+                (competition_id, title, author, summary, git_url, deployment_provider,
+                 deployment_url, cover_url, major, award, rank, status, uploader_id,
+                 public_consent)
+             VALUES (?, '历史赛事快照-01', '历史团队-01', '未绑定长期项目的历史作品',
+                     'https://github.com/example/legacy-work-01', 'modelscope',
+                     'https://modelscope.cn/studios/example/legacy-work-01',
+                     '/uploads/legacy-work.jpg', '计算机科学与技术', '优秀奖', '2',
+                     'approved', ?, 1)`,
             [eventA.lastID, owner.lastID]
         );
+        for (let index = 2; index <= 20; index += 1) {
+            const suffix = String(index).padStart(2, "0");
+            await db.run(
+                `INSERT INTO competition_works
+                    (competition_id, title, author, summary, git_url, major, award, rank,
+                     status, uploader_id, public_consent)
+                 VALUES (?, ?, ?, '未绑定长期项目的历史作品', ?, '软件工程', 'Top 20', ?,
+                         'approved', ?, 1)`,
+                [
+                    eventA.lastID,
+                    `历史赛事快照-${suffix}`,
+                    `历史团队-${suffix}`,
+                    `https://github.com/example/legacy-work-${suffix}`,
+                    String(index),
+                    owner.lastID,
+                ]
+            );
+        }
 
         const eventProjects = await runController(projectController.listProjects, {
             query: { competition: "event-a" },
@@ -153,19 +200,66 @@ test("hackathon work submissions bind owned projects without leaking removed pro
         });
         assert.equal(eventProjects.statusCode, 200);
         assert.equal(eventProjects.body.competition.slug, "event-a");
-        assert.equal(eventProjects.body.competition.approved_project_count, 2);
-        assert.equal(eventProjects.body.total, 2);
-        assert.deepEqual(
-            eventProjects.body.items.map((item) => item.title).sort(),
-            ["长期项目", "历史赛事快照"].sort()
+        assert.equal(eventProjects.body.competition.approved_project_count, 21);
+        assert.equal(eventProjects.body.total, 21);
+        assert.equal(eventProjects.body.items.length, 21);
+        assert.equal(
+            eventProjects.body.items.filter((item) => item.source_type === "competition_work")
+                .length,
+            20
         );
         const linkedItem = eventProjects.body.items.find((item) => item.title === "长期项目");
-        const legacyItem = eventProjects.body.items.find((item) => item.title === "历史赛事快照");
+        const legacyItem = eventProjects.body.items.find(
+            (item) => item.title === "历史赛事快照-01"
+        );
         assert.equal(linkedItem.competitions[0].award, "最佳现场奖");
         assert.equal(legacyItem.id, `competition-work-${legacyWork.lastID}`);
         assert.equal(legacyItem.source_type, "competition_work");
-        assert.equal(legacyItem.repo_url, "https://example.com/legacy-work");
+        assert.equal(legacyItem.user_id, null);
+        assert.equal(legacyItem.owner_name, "历史团队-01");
+        assert.equal(legacyItem.major, "计算机科学与技术");
+        assert.equal(legacyItem.repo_url, "https://github.com/example/legacy-work-01");
+        assert.equal(legacyItem.deployment_provider, "modelscope");
+        assert.equal(
+            legacyItem.deployment_url,
+            "https://modelscope.cn/studios/example/legacy-work-01"
+        );
         assert.equal(legacyItem.competitions[0].rank, "2");
+
+        const defaultHub = await runController(projectController.listProjects, {
+            query: {},
+            user: null,
+        });
+        assert.equal(defaultHub.statusCode, 200);
+        assert.equal(defaultHub.body.total, 22);
+        assert.equal(defaultHub.body.items.length, 22);
+        assert.equal(
+            defaultHub.body.items.filter((item) => item.source_type === "competition_work").length,
+            20
+        );
+        const defaultLongTermProject = defaultHub.body.items.find(
+            (item) => item.title === "长期项目"
+        );
+        assert.equal(defaultLongTermProject.deployment_provider, "modelscope");
+        assert.equal(
+            defaultLongTermProject.deployment_url,
+            "https://modelscope.cn/studios/owner/project"
+        );
+
+        const pagedHub = await runController(projectController.listProjects, {
+            query: { limit: "5", page: "2" },
+            user: null,
+        });
+        assert.equal(pagedHub.body.total, 22);
+        assert.equal(pagedHub.body.items.length, 5);
+        assert.equal(new Set(pagedHub.body.items.map((item) => item.id)).size, 5);
+
+        const searchedHub = await runController(projectController.listProjects, {
+            query: { q: "历史赛事快照-19" },
+            user: null,
+        });
+        assert.equal(searchedHub.body.total, 1);
+        assert.equal(searchedHub.body.items[0].title, "历史赛事快照-19");
 
         const mine = await runController(projectController.listProjects, {
             query: { mine: "1" },
@@ -185,9 +279,12 @@ test("hackathon work submissions bind owned projects without leaking removed pro
             query: {},
             body: {},
         });
-        assert.equal(publicOutcome.body.works[0].project_id, project.lastID);
-        assert.equal(publicOutcome.body.works[0].project_title, "长期项目");
-        assert.equal("contact_wechat" in publicOutcome.body.works[0], false);
+        const publicLinkedWork = publicOutcome.body.works.find(
+            (item) => item.id === firstSubmit.body.id
+        );
+        assert.equal(publicLinkedWork.project_id, project.lastID);
+        assert.equal(publicLinkedWork.project_title, "长期项目");
+        assert.equal("contact_wechat" in publicLinkedWork, false);
 
         await db.run("UPDATE project_cards SET status = 'removed' WHERE id = ?", [project.lastID]);
         const hiddenProjectLink = await runController(competitionController.getCurrentOutcome, {
@@ -195,17 +292,20 @@ test("hackathon work submissions bind owned projects without leaking removed pro
             query: {},
             body: {},
         });
-        assert.equal(hiddenProjectLink.body.works[0].title, "长期项目");
-        assert.equal(hiddenProjectLink.body.works[0].project_id, null);
-        assert.equal(hiddenProjectLink.body.works[0].project_title, null);
+        const hiddenLinkedWork = hiddenProjectLink.body.works.find(
+            (item) => item.id === firstSubmit.body.id
+        );
+        assert.equal(hiddenLinkedWork.title, "长期项目");
+        assert.equal(hiddenLinkedWork.project_id, null);
+        assert.equal(hiddenLinkedWork.project_title, null);
 
         const unknownEvent = await runController(projectController.listProjects, {
             query: { competition: "missing-event" },
             user: null,
         });
         assert.equal(unknownEvent.body.competition, null);
-        assert.equal(unknownEvent.body.total, 1);
-        assert.equal(unknownEvent.body.items[0].title, "他人项目");
+        assert.equal(unknownEvent.body.total, 22);
+        assert.equal(unknownEvent.body.items.length, 22);
 
         const storedRelation = await db.get(
             "SELECT competition_id, project_id FROM competition_works WHERE id = ?",

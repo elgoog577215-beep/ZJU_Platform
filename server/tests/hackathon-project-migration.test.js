@@ -30,6 +30,12 @@ test("project relation migration preserves legacy competition works and is idemp
         `);
 
         await runMigrations(db);
+        await db.run(
+            `UPDATE competition_works
+                SET deployment_provider = 'modelscope',
+                    deployment_url = 'https://modelscope.cn/studios/example/demo'
+              WHERE title = '历史作品'`
+        );
         await runMigrations(db);
 
         const columns = await db.all("PRAGMA table_info(competition_works)");
@@ -37,10 +43,30 @@ test("project relation migration preserves legacy competition works and is idemp
             columns.some((column) => column.name === "project_id"),
             true
         );
+        assert.equal(
+            columns.some((column) => column.name === "deployment_provider"),
+            true
+        );
+        assert.equal(
+            columns.some((column) => column.name === "deployment_url"),
+            true
+        );
+
+        const projectColumns = await db.all("PRAGMA table_info(project_cards)");
+        assert.equal(
+            projectColumns.some((column) => column.name === "deployment_provider"),
+            true
+        );
+        assert.equal(
+            projectColumns.some((column) => column.name === "deployment_url"),
+            true
+        );
 
         const legacy = await db.get("SELECT * FROM competition_works WHERE title = '历史作品'");
         assert.equal(legacy.author, "旧作者");
         assert.equal(legacy.project_id, null);
+        assert.equal(legacy.deployment_provider, "modelscope");
+        assert.equal(legacy.deployment_url, "https://modelscope.cn/studios/example/demo");
 
         const indexes = await db.all("PRAGMA index_list(competition_works)");
         assert.equal(

@@ -165,7 +165,9 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
     const fallbackInitial = t("project_plaza.initial_you", "你");
     const title = p.title || t("project_plaza.untitled", "未命名项目");
     const score = Math.round(projectScore(p));
-    const eventRecord = p.competitions?.find((item) => item.slug === competitionSlug);
+    const eventRecord =
+        p.competitions?.find((item) => item.slug === competitionSlug) || p.competitions?.[0];
+    const isArchive = p.source_type === "competition_work";
     return (
         <article className="ppp-card">
             <button
@@ -216,6 +218,17 @@ const Card = ({ p, onOpen, onFav, t, competitionSlug }) => {
                     <ArrowRight className="ppp-arrow" size={16} />
                 </div>
                 {p.intro && <p className="ppp-intro">{p.intro}</p>}
+                {isArchive ? (
+                    <div className="ppp-archive-meta">
+                        <span>{t("project_plaza.archive.label", "赛事归档")}</span>
+                        {p.major ? <span>{p.major}</span> : null}
+                        <span>
+                            {p.deployment_url
+                                ? t("project_plaza.archive.deployed", "可在线体验")
+                                : t("project_plaza.archive.deployment_pending", "部署待补充")}
+                        </span>
+                    </div>
+                ) : null}
                 {!eventRecord && p.need_tags?.length > 0 && (
                     <div className="ppp-needs">
                         {p.need_tags.slice(0, 3).map((n) => (
@@ -286,6 +299,7 @@ const DetailModal = ({
     const paras = (p.content || "").split(/\n+/).filter(Boolean);
     const title = p.title || t("project_plaza.untitled", "未命名项目");
     const ownerName = p.owner_name || t("project_plaza.anonymous", "匿名");
+    const isArchive = p.source_type === "competition_work";
     return (
         <BodyPortal>
             <div className="ppp-root ppp-scrim" data-variant={variant} onClick={onClose}>
@@ -335,7 +349,9 @@ const DetailModal = ({
                     </div>
                     <div className="ppp-mbody">
                         <span className="ppp-kicker">
-                            {t("project_plaza.detail_kicker", "项目名片")}
+                            {isArchive
+                                ? t("project_plaza.archive.detail_kicker", "黑客松赛事归档")
+                                : t("project_plaza.detail_kicker", "项目名片")}
                         </span>
                         <div className="ppp-mhead">
                             <h2 className="ppp-mtitle">{title}</h2>
@@ -348,21 +364,39 @@ const DetailModal = ({
                                 />
                             </div>
                             <span className="ppp-lbl">
-                                {t("project_plaza.owner_prefix", "发起人")} {ownerName}
+                                {isArchive
+                                    ? t("project_plaza.archive.author_prefix", "参赛者")
+                                    : t("project_plaza.owner_prefix", "发起人")}{" "}
+                                {ownerName}
                             </span>
                         </div>
-                        <div className="ppp-mstrip">
-                            <span>
-                                <Eye size={14} />
-                                {p.views ?? 0}
-                            </span>
-                            <span>
-                                {t("project_plaza.stats.saves", "{{count}} 收藏", {
-                                    count: p.likes ?? 0,
-                                })}
-                            </span>
-                            <span>{getProgressLabel(t, p.progress)}</span>
-                        </div>
+                        {isArchive ? (
+                            <div className="ppp-mstrip">
+                                <span>{t("project_plaza.archive.label", "赛事归档")}</span>
+                                {p.major ? <span>{p.major}</span> : null}
+                                <span>
+                                    {p.deployment_url
+                                        ? t("project_plaza.archive.deployed", "可在线体验")
+                                        : t(
+                                              "project_plaza.archive.deployment_pending",
+                                              "部署待补充"
+                                          )}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="ppp-mstrip">
+                                <span>
+                                    <Eye size={14} />
+                                    {p.views ?? 0}
+                                </span>
+                                <span>
+                                    {t("project_plaza.stats.saves", "{{count}} 收藏", {
+                                        count: p.likes ?? 0,
+                                    })}
+                                </span>
+                                <span>{getProgressLabel(t, p.progress)}</span>
+                            </div>
+                        )}
                         {p.intro && <p className="ppp-msummary">{p.intro}</p>}
                         {paras.length > 0 && (
                             <div className="ppp-mblock">
@@ -464,19 +498,38 @@ const DetailModal = ({
                                     className={`ppp-cbtn ${inMiniProgram ? "ghost" : "primary"}`}
                                     href={p.repo_url}
                                     target="_blank"
-                                    rel="noreferrer"
+                                    rel="noopener noreferrer"
                                 >
-                                    <ExternalLink size={16} />
-                                    {t("project_plaza.actions.project_link", "打开项目")}
+                                    <Github size={16} />
+                                    {t("project_plaza.actions.repo", "查看 GitHub")}
                                 </a>
                             ) : (
                                 <span
                                     className={`ppp-cbtn ${inMiniProgram ? "ghost" : "primary"} ppp-disabled`}
                                 >
-                                    <ExternalLink size={16} />
-                                    {t("project_plaza.actions.no_project_link", "暂无项目链接")}
+                                    <Github size={16} />
+                                    {t("project_plaza.actions.no_repo", "暂无 GitHub")}
                                 </span>
                             )}
+                            {p.deployment_url ? (
+                                <a
+                                    className="ppp-cbtn primary"
+                                    href={p.deployment_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <ExternalLink size={16} />
+                                    {t("project_plaza.actions.open_deployment", "在线体验")}
+                                </a>
+                            ) : isArchive ? (
+                                <span className="ppp-cbtn ghost ppp-disabled">
+                                    <ExternalLink size={16} />
+                                    {t(
+                                        "project_plaza.actions.deployment_pending",
+                                        "部署链接待补充"
+                                    )}
+                                </span>
+                            ) : null}
                             <button
                                 className={`ppp-cbtn ${inMiniProgram ? "primary ppp-share-trigger" : "ghost"}`}
                                 type="button"
@@ -566,6 +619,7 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
     const [tags, setTags] = useState([]);
     const [tagDraft, setTagDraft] = useState("");
     const [repo, setRepo] = useState("");
+    const [deploymentUrl, setDeploymentUrl] = useState("");
     const [wechat, setWechat] = useState("");
     const [images, setImages] = useState([]);
     const [busy, setBusy] = useState(false);
@@ -602,6 +656,10 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
             toast.error(t("project_plaza.toasts.repo_https", "仓库链接需为 https"));
             return;
         }
+        if (deploymentUrl && !/^https:\/\//i.test(deploymentUrl)) {
+            toast.error(t("project_plaza.toasts.deployment_https", "魔搭部署链接需为 https"));
+            return;
+        }
         setBusy(true);
         try {
             const { data } = await createProjectCard({
@@ -612,6 +670,8 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
                 need_tags: needs,
                 tech_tags: tags,
                 repo_url: repo || null,
+                deployment_provider: deploymentUrl ? "modelscope" : null,
+                deployment_url: deploymentUrl || null,
                 contact_wechat: wechat || null,
                 images,
                 status,
@@ -847,6 +907,23 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
                             />
                         </div>
                     </div>
+                    <div className="ppp-fsec">
+                        <label className="ppp-flab">
+                            {t("project_plaza.form.deployment", "魔搭社区部署链接")}
+                            <span>
+                                {t(
+                                    "project_plaza.form.deployment_hint",
+                                    "可选；用于在线体验，与 GitHub 仓库分开保存"
+                                )}
+                            </span>
+                        </label>
+                        <input
+                            className="ppp-finput"
+                            value={deploymentUrl}
+                            onChange={(e) => setDeploymentUrl(e.target.value)}
+                            placeholder="https://modelscope.cn/studios/..."
+                        />
+                    </div>
                 </div>
 
                 <div className="ppp-preview">
@@ -944,6 +1021,7 @@ const ProjectPlaza = () => {
     const [items, setItems] = useState([]);
     const [total, setTotal] = useState(0);
     const [competition, setCompetition] = useState(null);
+    const [competitions, setCompetitions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
     const [posterProject, setPosterProject] = useState(null);
@@ -991,6 +1069,20 @@ const ProjectPlaza = () => {
     useEffect(() => {
         fetchList();
     }, [fetchList]);
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/competitions")
+            .then(({ data }) => {
+                if (alive) setCompetitions(Array.isArray(data) ? data : []);
+            })
+            .catch(() => {
+                if (alive) setCompetitions([]);
+            });
+        return () => {
+            alive = false;
+        };
+    }, []);
 
     useEffect(() => {
         const id = searchParams.get("id");
@@ -1117,6 +1209,8 @@ const ProjectPlaza = () => {
     };
 
     const showAllProjects = () => navigate("/projects");
+    const selectCompetition = (slug) =>
+        navigate(slug ? `/projects?competition=${encodeURIComponent(slug)}` : "/projects");
 
     const spotlightEvent = useMemo(() => {
         const events = schedule?.events || [];
@@ -1140,6 +1234,11 @@ const ProjectPlaza = () => {
     };
     const visibleItems = sortProjects(items, sort, competition?.slug);
     const activeFilterCount = Number(progFilter !== "all") + Number(Boolean(needFilter));
+    const featuredCompetition =
+        competitions.find((item) => item.is_featured) ||
+        competitions.find((item) => item.status === "active") ||
+        competitions[0] ||
+        null;
 
     return (
         <div
@@ -1153,9 +1252,12 @@ const ProjectPlaza = () => {
                         ? t("project_plaza.event.meta_title", "{{event}}项目广场", {
                               event: competition.title,
                           })
-                        : t("project_plaza.meta_title", "项目广场")
+                        : t("project_plaza.meta_title", "黑客松项目中心")
                 }
-                description={t("project_plaza.meta_desc", "把正在做的项目放上来，让对的人找到你。")}
+                description={t(
+                    "project_plaza.meta_desc",
+                    "提交黑客松作品，查看历届项目，让比赛成果在赛后继续生长。"
+                )}
             />
             <style>{PROJECT_PLAZA_CSS}</style>
             <div className="ppp-backdrop" />
@@ -1167,7 +1269,7 @@ const ProjectPlaza = () => {
             <div className="ppp-stage-plane" aria-hidden="true" />
             <div className="ppp-stage-horizon" aria-hidden="true" />
             <div className="ppp-stage-word" aria-hidden="true">
-                BUILD
+                SHIP
             </div>
 
             <div className="ppp-wrap">
@@ -1197,16 +1299,17 @@ const ProjectPlaza = () => {
                                                   "project_plaza.event.kicker",
                                                   "LIVE PROJECT FLOOR · 本场作品"
                                               )
-                                            : t("project_plaza.kicker", "BUILD · 项目广场")}
+                                            : t("project_plaza.kicker", "HACKATHON · PROJECT HUB")}
                                     </span>
                                     <span className="ppp-live-mark">
                                         <span className="ppp-live-dot" />
                                         {competition
                                             ? t("project_plaza.event.live_mark", "现场作品")
-                                            : t("project_plaza.live_mark", "项目现场")}
+                                            : t("project_plaza.live_mark", "历届项目持续生长")}
                                     </span>
                                     <h1 id="project-plaza-title">
-                                        {competition?.title || t("project_plaza.title", "项目广场")}
+                                        {competition?.title ||
+                                            t("project_plaza.title", "黑客松项目中心")}
                                     </h1>
                                     <div className="ppp-sub">
                                         {competition
@@ -1216,7 +1319,7 @@ const ProjectPlaza = () => {
                                               )
                                             : t(
                                                   "project_plaza.subtitle",
-                                                  "找项目、看进度、补队友。"
+                                                  "从参赛提交到历届成果，再到赛后继续迭代。"
                                               )}
                                     </div>
                                 </div>
@@ -1245,14 +1348,34 @@ const ProjectPlaza = () => {
                                                     )}
                                         </button>
                                     ) : (
-                                        <button
-                                            className="ppp-newbtn"
-                                            type="button"
-                                            onClick={startCreate}
-                                        >
-                                            <Plus size={18} />
-                                            {t("project_plaza.actions.publish", "发布项目")}
-                                        </button>
+                                        <>
+                                            {featuredCompetition ? (
+                                                <button
+                                                    className="ppp-newbtn"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        selectCompetition(featuredCompetition.slug)
+                                                    }
+                                                >
+                                                    <Trophy size={18} />
+                                                    {t(
+                                                        "project_plaza.actions.enter_submission",
+                                                        "进入赛事投稿"
+                                                    )}
+                                                </button>
+                                            ) : null}
+                                            <button
+                                                className={`ppp-newbtn ${featuredCompetition ? "ghost" : ""}`}
+                                                type="button"
+                                                onClick={startCreate}
+                                            >
+                                                <Plus size={18} />
+                                                {t(
+                                                    "project_plaza.actions.publish_long_term",
+                                                    "发布长期项目"
+                                                )}
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -1276,6 +1399,26 @@ const ProjectPlaza = () => {
                                         <ArrowRight size={13} />
                                     </span>
                                 </a>
+                            ) : null}
+
+                            {!competition ? (
+                                <div
+                                    className="ppp-hub-flow"
+                                    aria-label={t("project_plaza.hub.aria", "黑客松项目流程")}
+                                >
+                                    <span>
+                                        <strong>01</strong>
+                                        {t("project_plaza.hub.submit", "参赛提交")}
+                                    </span>
+                                    <span>
+                                        <strong>02</strong>
+                                        {t("project_plaza.hub.archive", "成果归档")}
+                                    </span>
+                                    <span>
+                                        <strong>03</strong>
+                                        {t("project_plaza.hub.grow", "赛后生长")}
+                                    </span>
+                                </div>
                             ) : null}
 
                             {!competition && total > 0 ? (
@@ -1325,6 +1468,35 @@ const ProjectPlaza = () => {
                                         </button>
                                     </nav>
                                 </div>
+                            ) : null}
+
+                            {!competition && competitions.length > 0 ? (
+                                <nav
+                                    className="ppp-event-switcher"
+                                    aria-label={t(
+                                        "project_plaza.filters.competition",
+                                        "按赛事查看项目"
+                                    )}
+                                >
+                                    <button
+                                        type="button"
+                                        className="on"
+                                        onClick={() => selectCompetition("")}
+                                    >
+                                        {t("project_plaza.filters.all_events", "全部赛事")}
+                                        <small>{total}</small>
+                                    </button>
+                                    {competitions.map((item) => (
+                                        <button
+                                            type="button"
+                                            key={item.slug}
+                                            onClick={() => selectCompetition(item.slug)}
+                                        >
+                                            {item.title}
+                                            <small>{item.works_count || 0}</small>
+                                        </button>
+                                    ))}
+                                </nav>
                             ) : null}
 
                             <div className="ppp-discovery">

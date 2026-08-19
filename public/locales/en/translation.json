@@ -3637,7 +3637,9 @@
             "work_title": "Work Name",
             "author": "Builder / Team",
             "author_hint": "Add the winner, team, or club name so related users can claim it from their profile.",
-            "git_url": "Git URL",
+            "git_url": "GitHub Repository",
+            "deployment_url": "ModelScope Deployment (optional)",
+            "deployment_hint": "Used for the live demo and stored separately from the GitHub source repository.",
             "summary": "Summary",
             "award": "Award",
             "rank": "Rank",
@@ -3665,11 +3667,14 @@
             "project_required": "Select a project first",
             "work_title_required": "Work name is required",
             "author_required": "Builder or team is required",
+            "major_required": "Major is required",
             "summary_required": "Work summary is required",
             "git_required": "Git URL is required",
             "consent_required": "Confirm public display consent",
             "git_protocol": "Git URL must begin with http:// or https://",
             "git_format": "Enter a valid Git URL, for example https://github.com/user/project",
+            "deployment_protocol": "The ModelScope deployment URL must begin with https://",
+            "deployment_format": "Enter a valid ModelScope deployment URL",
             "title_required": "Title is required",
             "video_required": "Upload an event film file",
             "photo_required": "Upload a field photo file"
@@ -3698,13 +3703,15 @@
     },
     "event_project_submit": {
         "title": "Submit Competition Project",
-        "description": "One cover, a short summary, and an accessible project link complete your entry.",
+        "description": "Add the work, builder, major, GitHub repository, and an optional ModelScope live demo.",
         "cover": "Upload Project Cover",
         "cover_hint": "Use a product screen or a strong project visual",
         "name": "Project Name",
         "summary": "Project Summary",
         "author": "Builder / Team",
-        "url": "Project / Demo / Code Link",
+        "major": "Major",
+        "git_url": "GitHub Repository",
+        "deployment_url": "ModelScope Deployment (optional)",
         "action": "Submit This Project",
         "submitting": "Submitting",
         "success": "Project submitted. It will enter the event plaza after review.",
@@ -3716,7 +3723,9 @@
             "title": "Enter a project name",
             "summary": "Enter a project summary",
             "author": "Enter a builder or team name",
-            "url": "Enter a valid project, demo, or code link"
+            "major": "Enter a major",
+            "git_url": "Enter a valid HTTPS GitHub repository URL",
+            "deployment_url": "Enter a valid HTTPS ModelScope deployment URL"
         }
     },
     "media_archive": {
@@ -3966,12 +3975,12 @@
         "progression_missing": "No matching article yet"
     },
     "project_plaza": {
-        "meta_title": "Project Plaza",
-        "meta_desc": "Share active projects and help the right collaborators find you.",
-        "kicker": "BUILD · Project Plaza",
-        "title": "Project Plaza",
-        "subtitle": "Find projects, scan progress, join the right team.",
-        "live_mark": "Project Floor",
+        "meta_title": "Hackathon Project Hub",
+        "meta_desc": "Submit hackathon entries, explore past work, and keep projects growing after the event.",
+        "kicker": "HACKATHON · PROJECT HUB",
+        "title": "Hackathon Project Hub",
+        "subtitle": "From competition submission and archives to post-event iteration.",
+        "live_mark": "Projects Keep Growing",
         "search_placeholder": "Search projects, stacks, initiators...",
         "loading": "Loading...",
         "empty_title": "No fitting project cards yet",
@@ -3984,6 +3993,19 @@
         "detail_intro": "Project Intro",
         "detail_needs": "Looking For",
         "detail_tags": "Traits / Stack",
+        "hub": {
+            "aria": "Hackathon project lifecycle",
+            "submit": "Submit",
+            "archive": "Archive",
+            "grow": "Keep Building"
+        },
+        "archive": {
+            "label": "Event Archive",
+            "deployed": "Live Demo",
+            "deployment_pending": "Deployment Pending",
+            "detail_kicker": "Hackathon Event Archive",
+            "author_prefix": "Builder"
+        },
         "event": {
             "meta_title": "{{event}} Project Plaza",
             "kicker": "HACKATHON · LIVE PROJECTS",
@@ -4021,6 +4043,8 @@
             "all": "All",
             "progress": "Progress",
             "needs": "Needs",
+            "competition": "Filter projects by event",
+            "all_events": "All Projects",
             "more": "Filters",
             "close": "Close"
         },
@@ -4053,10 +4077,14 @@
             "saves": "{{count}} saves"
         },
         "actions": {
-            "publish": "Publish Project",
+            "publish": "Submit / Publish",
+            "enter_submission": "Enter Event Submission",
+            "publish_long_term": "Publish Long-term Project",
             "publish_first": "Publish First Project",
-            "repo": "View Repo",
-            "no_repo": "No Repo",
+            "repo": "View GitHub",
+            "no_repo": "No GitHub",
+            "open_deployment": "Open Live Demo",
+            "deployment_pending": "Deployment Pending",
             "project_link": "Open Project",
             "no_project_link": "No Project Link"
         },
@@ -4073,6 +4101,7 @@
             "upload_failed": "Image upload failed",
             "name_required": "Please enter a project name",
             "repo_https": "Repository link must use https",
+            "deployment_https": "ModelScope deployment URL must use https",
             "draft_saved": "Draft saved",
             "published": "Published to the plaza",
             "publish_failed": "Publish failed"
@@ -4100,7 +4129,9 @@
             "needs_hint": "Multiple choices allowed",
             "tags": "Stack / Traits",
             "tag_placeholder": "Type and press Enter",
-            "repo": "Repository Link",
+            "repo": "GitHub Repository",
+            "deployment": "ModelScope Deployment",
+            "deployment_hint": "Optional; stored separately from the GitHub repository for live demos",
             "contact": "Contact",
             "contact_hint": "Visible to logged-in users only",
             "contact_placeholder": "WeChat ID / email",

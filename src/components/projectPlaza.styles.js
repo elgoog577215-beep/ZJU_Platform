@@ -75,9 +75,16 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-live-event-phase{flex:none;color:var(--brand);font-size:10.5px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;}
 .ppp-live-event-cta{flex:none;margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;font-weight:900;white-space:nowrap;}
 .ppp-live-event:hover .ppp-live-event-cta{color:var(--brand);}
+.ppp-hub-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;max-width:720px;margin-top:18px;border:1px solid var(--border-strong);border-radius:var(--r-control);overflow:hidden;background:var(--border);box-shadow:var(--sh-sm);}
+.ppp-hub-flow span{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 14px;background:var(--surface-strong);color:var(--ink-2);font-size:12.5px;font-weight:900;}
+.ppp-hub-flow strong{color:var(--brand);font:950 11px/1 var(--mono);letter-spacing:.08em;}
 .ppp-facts{display:flex;align-items:center;gap:1.2rem;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:850;}
 .ppp-facts span+span{padding-left:1.2rem;border-left:1px solid var(--border);}
 .ppp-facts strong{color:var(--brand);font:950 1.15rem/1 var(--mono);margin-right:2px;}
+.ppp-event-switcher{display:flex;align-items:center;gap:7px;margin-top:18px;max-width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin;}
+.ppp-event-switcher button{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 11px;border:1px solid var(--border);border-radius:var(--r-control);background:var(--surface);color:var(--muted);font:850 12px/1 var(--body);cursor:pointer;white-space:nowrap;}
+.ppp-event-switcher button:hover,.ppp-event-switcher button.on{border-color:var(--border-strong);color:var(--ink);background:var(--surface-2);}
+.ppp-event-switcher small{display:grid;min-width:20px;height:20px;place-items:center;padding:0 5px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font:950 10px/1 var(--mono);}
 
 /* ===== 工具栏：浮动控制条 ===== */
 .ppp-discovery{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:8px;align-items:center;margin:20px 0 0;padding:8px;border:1px solid var(--border);border-radius:calc(var(--r-control) + 6px);background:var(--surface-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh-sm);}
@@ -149,6 +156,9 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-arrow{flex:none;margin-top:2px;color:var(--soft);transition:transform .18s var(--ease),color .18s var(--ease);}
 .ppp-card:hover .ppp-arrow{transform:translateX(2px);color:var(--brand);}
 .ppp-intro{font-size:13px;color:var(--muted);margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;min-height:3em;}
+.ppp-archive-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.ppp-archive-meta span{display:inline-flex;align-items:center;min-height:24px;padding:3px 7px;border:1px solid var(--border);border-radius:var(--r-chip);background:var(--surface-soft);color:var(--muted);font-size:10.5px;font-weight:850;}
+.ppp-archive-meta span:first-child{border-color:var(--border-strong);background:var(--brand-soft);color:var(--brand);}
 .ppp-needs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .ppp-need{font-size:11.5px;font-weight:900;color:var(--call-ink);background:var(--call-soft);border:1px solid var(--call-border);padding:4px 8px;border-radius:var(--r-chip);}
 .ppp-tech{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
@@ -297,10 +307,13 @@ export const PROJECT_PLAZA_CSS = `
   .ppp-facts span+span{padding-left:.8rem;}
   .ppp-live-event{max-width:none;}
   .ppp-live-event-cta{display:none;}
+  .ppp-hub-flow{grid-template-columns:1fr;margin-top:14px;}
+  .ppp-hub-flow span{min-height:42px;padding:8px 11px;}
   .ppp-event-line{display:block;margin-top:1.2rem;padding-top:.85rem;}
   .ppp-event-facts{justify-content:space-between;}
   .ppp-event-line nav{justify-content:flex-start;gap:1.2rem;margin-top:.9rem;overflow-x:auto;}
   .ppp-event-line a,.ppp-event-line button{white-space:nowrap;}
+  .ppp-event-switcher{margin-top:14px;margin-right:-14px;padding-right:14px;}
   .ppp-discovery{grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:14px;padding:6px;}
   .ppp-search{grid-column:1/-1;width:100%;min-width:0;height:42px;}
   .ppp-sort{min-width:0;overflow-x:auto;}
