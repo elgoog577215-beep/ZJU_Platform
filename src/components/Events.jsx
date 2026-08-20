@@ -432,7 +432,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
             className={`event-card-shell group hidden h-full cursor-pointer overflow-hidden rounded-[14px] border text-left outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:flex md:flex-col ${
                 isDayMode
                     ? "border-slate-200/80 hover:border-blue-300/80"
-                    : "border-white/[0.12] hover:border-indigo-300/45"
+                    : "border-white/[0.15] hover:border-indigo-300/50"
             }`}
         >
             <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-900">
@@ -2210,7 +2210,7 @@ END:VCALENDAR`;
                     {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
                         <div
                             key={i}
-                            className={`event-card-shell relative h-full overflow-hidden rounded-[14px] border ${isDayMode ? "border-slate-200/80" : "border-white/[0.12]"}`}
+                            className={`event-card-shell relative h-full overflow-hidden rounded-[14px] border ${isDayMode ? "border-slate-200/80" : "border-white/[0.15]"}`}
                         >
                             {/* Shimmer Effect */}
                             {!isDayMode && (
