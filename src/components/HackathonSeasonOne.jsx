@@ -271,7 +271,6 @@ const HackathonSeasonOne = () => {
                     aria-label={t("hackathon.workspace.events_aria", "历届赛事")}
                 >
                     <div className="hws-event-rail-head">
-                        <span>{t("hackathon.workspace.archive", "赛事档案")}</span>
                         <strong>{t("hackathon.workspace.archive_title", "历届浙客松")}</strong>
                         <small>
                             {t("hackathon.workspace.archive_count", "{{count}} 场赛事", {
@@ -283,6 +282,7 @@ const HackathonSeasonOne = () => {
                         {orderedEvents.map(({ item, originalIndex, phase }) => (
                             <EventCard
                                 key={item.event.key}
+                                variant="rail"
                                 template={item}
                                 edition={originalIndex + 1}
                                 selected={item.event.key === activeEventKey}
@@ -403,6 +403,7 @@ const HackathonSeasonOne = () => {
                                 {orderedEvents.map(({ item, originalIndex, phase }) => (
                                     <EventCard
                                         key={item.event.key}
+                                        variant="drawer"
                                         template={item}
                                         edition={originalIndex + 1}
                                         selected={item.event.key === activeEventKey}
@@ -422,10 +423,20 @@ const HackathonSeasonOne = () => {
     );
 };
 
-const EventCard = ({ template, edition, selected, phase, phaseLabel, locale, t, onSelect }) => (
+const EventCard = ({
+    template,
+    edition,
+    selected,
+    phase,
+    phaseLabel,
+    locale,
+    t,
+    onSelect,
+    variant = "rail",
+}) => (
     <button
         type="button"
-        className={`hws-event-card ${selected ? "is-current" : ""}`}
+        className={`hws-event-card is-${variant} ${selected ? "is-current" : ""}`}
         aria-current={selected ? "page" : undefined}
         onClick={onSelect}
     >
@@ -451,30 +462,31 @@ const WorkspaceLoading = ({ t }) => (
 const WORKSPACE_CSS = `
 .hackathon-workspace{--hws-bg:#050809;--hws-panel:#0b1718;--hws-panel-2:#121c1d;--hws-text:#fff;--hws-muted:rgba(255,255,255,.56);--hws-line:rgba(255,255,255,.12);--hws-line-strong:rgba(103,232,249,.42);--hws-lime:#67e8f9;--hws-lime-ink:#082024;position:relative;min-height:100svh;overflow-x:clip;background:linear-gradient(135deg,#050809 0%,#0a1919 54%,#040707 100%);color:var(--hws-text);font-family:"HarmonyOS Sans SC","MiSans","PingFang SC",system-ui,sans-serif;isolation:isolate;}
 .hackathon-workspace.is-day{--hws-bg:#f6f8fb;--hws-panel:#fff;--hws-panel-2:#eef8fb;--hws-text:#0f172a;--hws-muted:#64748b;--hws-line:rgba(15,23,42,.12);--hws-line-strong:rgba(6,182,212,.38);--hws-lime:#0891b2;--hws-lime-ink:#fff;background:linear-gradient(135deg,#fff 0%,#eef8fb 52%,#f8fafc 100%);}
-.hackathon-workspace::before{content:"";position:fixed;z-index:-1;inset:64px 0 0 272px;pointer-events:none;background:radial-gradient(circle at 74% 0%,rgba(34,211,238,.1),transparent 26%),linear-gradient(rgba(103,232,249,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(103,232,249,.035) 1px,transparent 1px);background-size:auto,52px 52px,52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 62%);}
-.hws-grid{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100svh;padding-top:calc(env(safe-area-inset-top) + 64px);}
-.hws-event-rail{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:31;align-self:start;height:calc(100svh - env(safe-area-inset-top) - 64px);overflow:hidden;border-right:1px solid var(--hws-line);background:linear-gradient(180deg,rgba(18,28,29,.94),rgba(7,15,16,.9)),var(--hws-panel);box-shadow:20px 0 70px rgba(0,0,0,.24),0 0 56px rgba(34,211,238,.045);backdrop-filter:blur(20px);}
-.hws-event-rail::after{content:"";position:absolute;right:-1px;top:0;width:1px;height:28%;background:linear-gradient(var(--hws-lime),transparent);box-shadow:0 0 18px var(--hws-lime);}
-.hws-event-rail-head{position:relative;display:grid;gap:8px;padding:32px 26px 28px;border-bottom:1px solid var(--hws-line);}
-.hws-event-rail-head::after{content:"";position:absolute;left:26px;bottom:-1px;width:58px;height:2px;background:var(--hws-lime);box-shadow:0 0 14px color-mix(in srgb,var(--hws-lime) 65%,transparent);}
-.hws-event-rail-head span{color:var(--hws-lime);font-size:10px;font-weight:950;letter-spacing:.14em;text-transform:uppercase;}
-.hws-event-rail-head strong{font-size:21px;line-height:1.2;font-weight:950;letter-spacing:-.035em;}
-.hws-event-rail-head small{color:var(--hws-muted);font-size:11px;font-weight:750;}
-.hws-event-list{position:relative;display:grid;gap:14px;max-height:calc(100% - 132px);overflow-y:auto;padding:24px 18px 24px 32px;overscroll-behavior:contain;scrollbar-width:thin;}
-.hws-event-list::before{content:"";position:absolute;left:22px;top:0;bottom:0;width:1px;background:linear-gradient(transparent,var(--hws-line-strong) 8%,var(--hws-line) 84%,transparent);}
-.hws-event-card{position:relative;display:grid;gap:12px;width:100%;min-height:132px;padding:18px 18px 17px 22px;border:1px solid var(--hws-line);border-radius:2px;background:linear-gradient(180deg,rgba(19,29,30,.82),rgba(11,21,21,.68));color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:background .2s ease,border-color .2s ease,color .2s ease,transform .2s ease,box-shadow .2s ease;}
-.hws-event-card::before{content:"";position:absolute;left:-13px;top:24px;width:8px;height:8px;border:1px solid var(--hws-line-strong);background:var(--hws-panel);transform:rotate(45deg);box-shadow:0 0 0 4px var(--hws-panel);}
-.hws-event-card::after{content:"";position:absolute;left:20px;right:20px;bottom:0;height:1px;background:linear-gradient(90deg,var(--hws-lime),transparent);opacity:0;}
-.hws-event-card:hover{border-color:var(--hws-line-strong);background:linear-gradient(180deg,rgba(24,42,43,.9),rgba(11,22,23,.74));color:var(--hws-text);transform:translateY(-2px);}
-.hws-event-card.is-current{border-color:var(--hws-lime);background:linear-gradient(180deg,color-mix(in srgb,var(--hws-lime) 11%,#121c1d),rgba(11,23,24,.92));color:var(--hws-text);box-shadow:0 24px 64px rgba(0,0,0,.34),0 0 48px color-mix(in srgb,var(--hws-lime) 8%,transparent);}
-.hws-event-card.is-current::after{opacity:1;}
-.hws-event-card.is-current::before{border-color:var(--hws-lime);background:var(--hws-lime);box-shadow:0 0 0 4px var(--hws-panel),0 0 16px var(--hws-lime);}
+.hackathon-workspace::before{content:"";position:fixed;z-index:-1;inset:64px 0 0 232px;pointer-events:none;background:radial-gradient(circle at 74% 0%,rgba(34,211,238,.1),transparent 26%),linear-gradient(rgba(103,232,249,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(103,232,249,.035) 1px,transparent 1px);background-size:auto,52px 52px,52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 62%);}
+.hws-grid{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100svh;padding-top:calc(env(safe-area-inset-top) + 64px);}
+.hws-event-rail{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:31;align-self:start;height:calc(100svh - env(safe-area-inset-top) - 64px);overflow:hidden;border-right:1px solid var(--hws-line);background:rgba(7,15,16,.96);}
+.hws-event-rail-head{display:grid;gap:5px;padding:24px 20px 18px;border-bottom:1px solid var(--hws-line);}
+.hws-event-rail-head strong{font-size:18px;line-height:1.2;font-weight:900;letter-spacing:-.025em;}
+.hws-event-rail-head small{color:var(--hws-muted);font-size:10.5px;font-weight:750;}
+.hws-event-list{display:block;max-height:calc(100% - 84px);overflow-y:auto;padding:8px 20px 16px;overscroll-behavior:contain;scrollbar-width:thin;}
+.hws-event-card{position:relative;display:grid;gap:8px;width:100%;min-height:0;padding:16px 0 15px 14px;border:0;border-bottom:1px solid var(--hws-line);border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:color .18s ease;}
+.hws-event-card::before{content:"";position:absolute;left:0;top:21px;width:6px;height:6px;border-radius:50%;background:transparent;}
+.hws-event-card:hover{color:var(--hws-text);}
+.hws-event-card.is-current{color:var(--hws-text);}
+.hws-event-card.is-current::before{background:var(--hws-lime);}
 .hws-event-card:focus-visible,.hws-stage-tabs button:focus-visible,.hws-mobile-event-button:focus-visible,.hws-event-drawer header button:focus-visible{outline:3px solid color-mix(in srgb,var(--hws-lime) 42%,transparent);outline-offset:2px;}
-.hws-event-edition{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--hws-lime);font:950 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;}
+.hws-event-edition{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--hws-muted);font-size:10px;font-weight:900;line-height:1.2;}
+.hws-event-card.is-current .hws-event-edition{color:var(--hws-lime);}
 .hws-event-edition i{font-style:normal;color:var(--hws-muted);font-size:10px;font-weight:850;}
 .hws-event-edition i.is-live{color:var(--hws-lime);}
-.hws-event-card strong{font-size:15px;line-height:1.35;font-weight:950;letter-spacing:-.015em;}
-.hws-event-card small{color:var(--hws-muted);font-size:11px;line-height:1.5;font-weight:700;}
+.hws-event-card strong{font-size:14px;line-height:1.4;font-weight:900;letter-spacing:-.01em;}
+.hws-event-card small{color:var(--hws-muted);font-size:10.5px;line-height:1.5;font-weight:700;}
+.hws-event-card.is-drawer{gap:12px;min-height:124px;padding:16px 16px 15px 20px;border:1px solid var(--hws-line);border-radius:2px;background:linear-gradient(180deg,rgba(19,29,30,.82),rgba(11,21,21,.68));}
+.hws-event-card.is-drawer::before{display:none;}
+.hws-event-card.is-drawer.is-current{border-color:var(--hws-lime);background:linear-gradient(180deg,color-mix(in srgb,var(--hws-lime) 11%,#121c1d),rgba(11,23,24,.92));box-shadow:0 20px 52px rgba(0,0,0,.3);}
+.hws-event-card.is-drawer .hws-event-edition{color:var(--hws-lime);}
+.hws-event-card.is-drawer strong{font-size:15px;}
+.hws-event-card.is-drawer small{font-size:11px;}
 .hws-main{min-width:0;}
 .hws-context-bar{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:30;overflow:hidden;border-bottom:1px solid var(--hws-line);background:rgba(8,19,20,.94);box-shadow:0 12px 36px rgba(0,0,0,.18);backdrop-filter:blur(18px);}
 .hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.9);}
