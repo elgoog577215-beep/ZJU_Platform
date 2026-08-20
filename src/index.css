@@ -1595,30 +1595,46 @@ img {
 
     .events-refined-view-switch {
         border: 1px solid var(--events-border);
-        border-radius: 11px;
+        border-radius: 10px;
         background: var(--events-surface);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        padding: 3px 10px 0;
     }
 
     .events-refined-view-button {
-        border: 1px solid transparent;
-        border-radius: 7px;
+        position: relative;
+        border: 0;
+        border-radius: 0;
         color: var(--events-text-muted);
-        transition:
-            border-color 160ms ease,
-            background-color 160ms ease,
-            color 160ms ease;
+        padding: 0 11px 3px;
+        transition: color 160ms ease;
     }
 
     .events-refined-view-button:hover {
-        color: var(--events-text);
+        color: var(--events-text-secondary);
+    }
+
+    .events-refined-view-button::after {
+        position: absolute;
+        right: 8px;
+        bottom: -1px;
+        left: 8px;
+        height: 3px;
+        background: var(--events-accent);
+        content: "";
+        opacity: 0;
+        transform: scaleX(0.7);
+        transition:
+            opacity 160ms ease,
+            transform 160ms ease;
     }
 
     .events-refined-view-button.is-active {
-        border-color: var(--events-border-strong);
-        background: var(--events-surface-raised);
         color: var(--events-text);
-        box-shadow: 0 1px 2px rgba(2, 6, 23, 0.2);
+    }
+
+    .events-refined-view-button.is-active::after {
+        opacity: 1;
+        transform: scaleX(1);
     }
 
     .event-card-shell,
@@ -1700,7 +1716,6 @@ img {
     }
 
     :root[data-theme="day"] .events-refined-partners,
-    :root[data-theme="day"] .events-refined-view-switch,
     :root[data-theme="day"] .event-card-shell,
     :root[data-theme="day"] .events-refined-list-row,
     :root[data-theme="day"] .events-refined-mobile-card,

@@ -1920,7 +1920,7 @@ END:VCALENDAR`;
                     </div>
                     {!isCollegeNoticeFilter && (
                         <div
-                            className="events-refined-view-switch inline-flex items-center gap-1 p-1"
+                            className="events-refined-view-switch inline-flex items-center"
                             role="group"
                             aria-label={t("events.view_mode.aria")}
                         >
@@ -1934,7 +1934,7 @@ END:VCALENDAR`;
                                         aria-label={option.ariaLabel}
                                         aria-pressed={active}
                                         onClick={() => setViewMode(option.value)}
-                                        className={`events-refined-view-button ${active ? "is-active" : ""} inline-flex min-h-10 items-center gap-2 px-3 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
+                                        className={`events-refined-view-button ${active ? "is-active" : ""} inline-flex min-h-10 items-center gap-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
                                     >
                                         <Icon size={15} />
                                         {option.label}
