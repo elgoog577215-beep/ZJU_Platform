@@ -924,10 +924,10 @@
             "pagination_aria": "About page sections",
             "hero": {
                 "brand": "TUOZHE AI ECOSYSTEM",
-                "title_1": "TUOZHE",
-                "title_2": "AI Ecosystem",
-                "title_3": "FROM ZJU TO THE REAL WORLD",
-                "strong": "Open to all streams. Built without limits.",
+                "title_1": "Open to all streams.",
+                "title_2": "Built without limits.",
+                "title_3": "TUOZHE AI ECOSYSTEM",
+                "strong": "Connecting learning, practice, and industry.",
                 "desc": "Starting at Zhejiang University, TUOZHE serves AI beginners and advanced builders through information sharing, AI+X learning, Zhekesong practice, and real industry projects.",
                 "primary_cta": "Browse Event Collection",
                 "secondary_cta": "See How It Works"
@@ -940,11 +940,11 @@
                 "hackathon": "First Zhekesong Registrations"
             },
             "brief": {
-                "watermark": "BRAND",
-                "eyebrow": "Brand Motto",
+                "watermark": "ORIGIN",
+                "eyebrow": "Where it starts",
                 "status": "ZJU Origin",
-                "title_1": "Open to all streams.",
-                "title_2": "Built without limits.",
+                "title_1": "From ZJU,",
+                "title_2": "into the real world.",
                 "desc": "The platform closes information gaps, the AI Community organizes learning and project practice, Zhekesong tests ability with real briefs, and industry projects carry talent and technology into real settings.",
                 "signature": "Break Boundaries / Co-create / Emerge"
             },
@@ -959,8 +959,8 @@
                 "recognize_desc": "Strong work and talent continue into joint recognition, internships, startup incubation, and industry collaboration"
             },
             "support": {
-                "title_1": "What do schools, companies,",
-                "title_2": "and organizations bring?",
+                "title_1": "Bring resources together.",
+                "title_2": "Support real-world practice.",
                 "desc": "Schools provide spaces and real settings. Companies provide briefs and technology. Student organizations handle recruitment and execution. Industry and capital partners help projects continue.",
                 "school_title": "Campus Support",
                 "school_headline": "Courses, research, and settings",
@@ -1006,8 +1006,8 @@
             },
             "business": {
                 "eyebrow": "Four business lines",
-                "title_1": "From campus information",
-                "title_2": "to real projects.",
+                "title_1": "From information sharing",
+                "title_2": "to industry transfer.",
                 "desc": "Tuotuo Zhexin closes information gaps. The Agent Association and AI Community develop talent. Zhekesong tests capability through competition. Qiying Technology carries industry practice and technology transfer.",
                 "info_title": "Information-Sharing Platform",
                 "info_short": "Events / Learning / Competitions",
@@ -1060,8 +1060,8 @@
             },
             "join": {
                 "eyebrow": "How to participate",
-                "title_1": "Join the TUOZHE",
-                "title_2": "AI Ecosystem",
+                "title_1": "Find your entry point.",
+                "title_2": "Start building together.",
                 "desc": "Students can find opportunities, learn AI, and build projects. Organizations can publish events and recruit. Companies and schools can submit real problems or co-build courses and competitions.",
                 "download_cta": "Download App",
                 "platform_cta": "Browse Event Collection",

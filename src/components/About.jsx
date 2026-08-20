@@ -555,7 +555,7 @@ const About = () => {
     ];
 
     const sectionBaseClass =
-        "relative flex scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+        "relative flex scroll-mt-14 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:scroll-mt-16 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:scroll-mt-0 lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
     const heroStageShellStyle = heroStageFrame.height
         ? { height: `${heroStageFrame.height}px` }
         : undefined;
@@ -646,10 +646,10 @@ const About = () => {
                                 }`}
                             >
                                 <span className="block">
-                                    {t("about.ecosystem.hero.title_1", "拓浙")}
+                                    {t("about.ecosystem.hero.title_1", "海纳百川，")}
                                 </span>
                                 <span className="block">
-                                    {t("about.ecosystem.hero.title_2", "AI 生态")}
+                                    {t("about.ecosystem.hero.title_2", "永不设限。")}
                                 </span>
                                 <span className={`block ${palette.accent}`}>
                                     {t("about.ecosystem.hero.title_3", "TUOZHE AI ECOSYSTEM")}
@@ -660,7 +660,7 @@ const About = () => {
                                 className={`mt-4 max-w-4xl text-[15px] font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
                             >
                                 <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                                    {t("about.ecosystem.hero.strong", "海纳百川，永不设限。")}
+                                    {t("about.ecosystem.hero.strong", "连接学习、实践与产业。")}
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
@@ -693,22 +693,22 @@ const About = () => {
                             <div
                                 className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}
                             >
-                                {t("about.ecosystem.brief.watermark", "BRAND")}
+                                {t("about.ecosystem.brief.watermark", "ORIGIN")}
                             </div>
                             <div className="relative z-10 flex min-h-[506px] flex-col justify-between 2xl:min-h-[586px]">
                                 <div
                                     className={`flex items-center justify-between text-xs font-black uppercase 2xl:text-sm ${palette.label}`}
                                 >
-                                    <span>{t("about.ecosystem.brief.eyebrow", "Brand Motto")}</span>
+                                    <span>{t("about.ecosystem.brief.eyebrow", "生态起点")}</span>
                                     <span>{t("about.ecosystem.brief.status", "ZJU Origin")}</span>
                                 </div>
                                 <div className="py-8">
                                     <p className="max-w-3xl text-5xl font-black leading-[0.98] 2xl:text-7xl">
                                         <span className={`block ${palette.accent}`}>
-                                            {t("about.ecosystem.brief.title_1", "海纳百川，")}
+                                            {t("about.ecosystem.brief.title_1", "从浙大出发，")}
                                         </span>
                                         <span className="block">
-                                            {t("about.ecosystem.brief.title_2", "永不设限。")}
+                                            {t("about.ecosystem.brief.title_2", "走向真实世界。")}
                                         </span>
                                     </p>
                                     <p
@@ -786,10 +786,10 @@ const About = () => {
                                 </p>
                                 <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                     <span className="block">
-                                        {t("about.ecosystem.support.title_1", "学校、企业和组织，")}
+                                        {t("about.ecosystem.support.title_1", "汇聚多方资源，")}
                                     </span>
                                     <span className="block">
-                                        {t("about.ecosystem.support.title_2", "分别把什么带进来？")}
+                                        {t("about.ecosystem.support.title_2", "支撑真实实践。")}
                                     </span>
                                 </h2>
                             </div>
@@ -960,10 +960,10 @@ const About = () => {
                             </p>
                             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_1", "从校园信息，")}
+                                    {t("about.ecosystem.business.title_1", "从信息共享，")}
                                 </span>
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_2", "到真实项目。")}
+                                    {t("about.ecosystem.business.title_2", "到产业转化。")}
                                 </span>
                             </h2>
                             <p
@@ -1277,10 +1277,10 @@ const About = () => {
                             </p>
                             <h2 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-7xl">
                                 <span className="block">
-                                    {t("about.ecosystem.join.title_1", "加入拓浙")}
+                                    {t("about.ecosystem.join.title_1", "找到参与入口，")}
                                 </span>
                                 <span className={`block ${palette.accent}`}>
-                                    {t("about.ecosystem.join.title_2", "AI 生态")}
+                                    {t("about.ecosystem.join.title_2", "开始共建生态。")}
                                 </span>
                             </h2>
                             <p
