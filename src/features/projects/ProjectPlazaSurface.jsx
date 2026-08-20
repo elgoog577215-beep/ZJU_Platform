@@ -30,29 +30,46 @@ export const ProjectHubHeader = ({
     onSelectCompetition,
     onSubmitCompetition,
     onCreateProject,
+    embedded = false,
 }) => (
-    <header className="ppx-hero" aria-labelledby="project-plaza-title">
+    <header
+        className={`ppx-hero ${embedded ? "is-embedded" : ""}`}
+        aria-labelledby="project-plaza-title"
+    >
         <div className="ppx-hero-copy">
             <span className="ppx-kicker">
-                {t("project_plaza.kicker", "HACKATHON · PROJECT HUB")}
+                {embedded
+                    ? t("project_plaza.workspace.stage_kicker", "当前赛事 · 项目作品")
+                    : t("project_plaza.kicker", "HACKATHON · PROJECT HUB")}
             </span>
-            <h1 id="project-plaza-title">{t("project_plaza.title", "黑客松项目中心")}</h1>
+            <h1 id="project-plaza-title">
+                {embedded
+                    ? t("project_plaza.workspace.stage_title", "提交作品，也看见所有作品")
+                    : t("project_plaza.title", "黑客松项目中心")}
+            </h1>
             <p>
-                {t(
-                    "project_plaza.workspace.subtitle",
-                    "浏览每一届比赛的真实作品，也让项目在赛后继续被发现、协作和迭代。"
-                )}
+                {embedded
+                    ? t(
+                          "project_plaza.workspace.stage_subtitle",
+                          "这里保存本场比赛的作品提交、公开项目和赛后迭代记录。"
+                      )
+                    : t(
+                          "project_plaza.workspace.subtitle",
+                          "浏览每一届比赛的真实作品，也让项目在赛后继续被发现、协作和迭代。"
+                      )}
             </p>
-            <div
-                className="ppx-lifecycle"
-                aria-label={t("project_plaza.hub.aria", "黑客松项目流程")}
-            >
-                <span>{t("project_plaza.hub.submit", "参赛提交")}</span>
-                <ArrowRight size={14} aria-hidden="true" />
-                <span>{t("project_plaza.hub.archive", "成果归档")}</span>
-                <ArrowRight size={14} aria-hidden="true" />
-                <span>{t("project_plaza.hub.grow", "赛后生长")}</span>
-            </div>
+            {!embedded ? (
+                <div
+                    className="ppx-lifecycle"
+                    aria-label={t("project_plaza.hub.aria", "黑客松项目流程")}
+                >
+                    <span>{t("project_plaza.hub.submit", "参赛提交")}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                    <span>{t("project_plaza.hub.archive", "成果归档")}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                    <span>{t("project_plaza.hub.grow", "赛后生长")}</span>
+                </div>
+            ) : null}
         </div>
 
         <div className="ppx-hero-side">
@@ -441,6 +458,7 @@ export const ProjectPlazaWorkspace = ({
     loading,
     items,
     renderProject,
+    embedded = false,
 }) => (
     <>
         <ProjectHubHeader
@@ -454,21 +472,26 @@ export const ProjectPlazaWorkspace = ({
             onSelectCompetition={onSelectCompetition}
             onSubmitCompetition={onSubmitCompetition}
             onCreateProject={onCreateProject}
+            embedded={embedded}
         />
-        <ProjectScopeNavigator
-            t={t}
-            competitions={competitions}
-            currentSlug={currentCompetitionSlug}
-            allProjectTotal={allProjectTotal}
-            onSelect={onSelectCompetition}
-        />
-        <CompetitionContext
-            t={t}
-            competition={competition}
-            total={resultTotal}
-            submissionAvailable={submissionAvailable}
-            competitionPhase={competitionPhase}
-        />
+        {!embedded ? (
+            <ProjectScopeNavigator
+                t={t}
+                competitions={competitions}
+                currentSlug={currentCompetitionSlug}
+                allProjectTotal={allProjectTotal}
+                onSelect={onSelectCompetition}
+            />
+        ) : null}
+        {!embedded ? (
+            <CompetitionContext
+                t={t}
+                competition={competition}
+                total={resultTotal}
+                submissionAvailable={submissionAvailable}
+                competitionPhase={competitionPhase}
+            />
+        ) : null}
         <section className="ppx-workspace" aria-labelledby="project-results-title">
             <ProjectDiscoveryToolbar
                 t={t}

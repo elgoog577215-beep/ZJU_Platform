@@ -16,7 +16,6 @@ import {
     Plus,
     Menu,
     Image as ImageIcon,
-    Film,
     Info,
     Shield,
     Smartphone,
@@ -122,18 +121,16 @@ const Navbar = ({ miniProgramMode = false }) => {
 
     const navLinks = [
         { key: "events", path: "/events" },
-        { key: "hackathon", path: "/hackathon" },
         { key: "articles", path: "/articles" },
-        { key: "projects", path: "/projects" },
-        { key: "media", path: "/media" },
+        { key: "hackathon", path: "/hackathon" },
         { key: "about", path: "/about" },
-        ...(!miniProgramMode ? [{ key: "download", path: "/download" }] : []),
         ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin" }] : []),
     ];
     const isNavItemActive = (path) => {
-        if (path === "/hackathon") return location.pathname.startsWith("/hackathon");
-        if (path === "/media") {
+        if (path === "/hackathon") {
             return (
+                location.pathname.startsWith("/hackathon") ||
+                location.pathname.startsWith("/projects") ||
                 location.pathname.startsWith("/media") ||
                 location.pathname.startsWith("/gallery") ||
                 location.pathname.startsWith("/videos")
@@ -151,6 +148,7 @@ const Navbar = ({ miniProgramMode = false }) => {
         if (pathname.startsWith("/gallery")) return t("nav.gallery");
         if (pathname.startsWith("/videos")) return t("nav.videos");
         if (pathname.startsWith("/media")) return t("nav.media");
+        if (pathname.startsWith("/projects")) return t("nav.projects");
         if (pathname.startsWith("/download")) return t("nav.download");
         if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
             return t("nav.me");
@@ -228,7 +226,6 @@ const Navbar = ({ miniProgramMode = false }) => {
     const showMobileSearchAction =
         !location.pathname.startsWith("/me") && !location.pathname.startsWith("/user/");
     const secondaryMobileLinks = [
-        { key: "media", path: "/media", icon: Film },
         { key: "about", path: "/about", icon: Info },
         ...(!miniProgramMode ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
         ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
@@ -325,6 +322,21 @@ const Navbar = ({ miniProgramMode = false }) => {
                 >
                     <Search size={18} aria-hidden="true" />
                 </button>
+
+                {!miniProgramMode ? (
+                    <Link
+                        to="/download"
+                        className={`motion-press ml-1 inline-flex min-h-9 items-center gap-1.5 rounded-[9px] px-3 text-xs font-black transition-[background,color,transform] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                            isDayMode
+                                ? "bg-violet-700 text-white hover:bg-violet-800"
+                                : "bg-indigo-400 text-slate-950 hover:bg-indigo-300"
+                        }`}
+                        aria-label={t("nav.download")}
+                    >
+                        <Smartphone size={15} aria-hidden="true" />
+                        <span>{t("nav.download")}</span>
+                    </Link>
+                ) : null}
 
                 {showWeatherWidget && (
                     <button

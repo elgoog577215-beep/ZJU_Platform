@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Rocket, Sparkles, Trees, UserCircle } from "lucide-react";
+import { Calendar, Sparkles, Trees, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -83,13 +83,6 @@ const MobileNavbar = () => {
             ariaLabel: t("nav.community"),
         },
         {
-            key: "projects",
-            path: "/projects",
-            icon: Rocket,
-            label: t("nav.mobile_projects"),
-            ariaLabel: t("nav.projects"),
-        },
-        {
             key: "hackathon",
             path: "/hackathon",
             icon: Sparkles,
@@ -109,11 +102,16 @@ const MobileNavbar = () => {
         if (key === "me") {
             return location.pathname.startsWith("/user/");
         }
-        if (key === "hackathon") return location.pathname.startsWith("/hackathon");
+        if (key === "hackathon") {
+            return (
+                location.pathname.startsWith("/hackathon") ||
+                location.pathname.startsWith("/projects") ||
+                location.pathname.startsWith("/media")
+            );
+        }
         if (key === "articles") {
             return location.pathname.startsWith("/articles");
         }
-        if (key === "projects") return location.pathname.startsWith("/projects");
         return location.pathname === path;
     };
 
@@ -126,7 +124,7 @@ const MobileNavbar = () => {
             aria-label={t("nav.mobile_tabbar")}
         >
             <div className="pb-[env(safe-area-inset-bottom)]">
-                <div className="grid h-[72px] grid-cols-5 px-1.5">
+                <div className="grid h-[72px] grid-cols-4 px-1.5">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = isItemActive(item.path, item.key);
