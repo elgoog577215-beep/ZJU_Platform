@@ -138,7 +138,12 @@ const getLocalizedRegistrationField = (field, t, isEnglish) => {
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
-const registrationSectionIds = ["hackathon-hero", "event-brief", "registration-form"];
+const registrationSectionIds = [
+    "hackathon-hero",
+    "event-brief",
+    "partner-network",
+    "registration-form",
+];
 
 const HackathonRegistration = ({ template, onSectionChange }) => {
     const { i18n, t } = useTranslation();
@@ -172,8 +177,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                 : resolvedTemplate.form,
         [isEnglish, resolvedTemplate.form, t]
     );
-    const { groups: ecosystemPartnerGroups, enterpriseLogoRows } = useEcosystemPartners();
-    const enterpriseLogos = useMemo(() => enterpriseLogoRows.flat(), [enterpriseLogoRows]);
+    const { groups: ecosystemPartnerGroups } = useEcosystemPartners();
     const pageRef = useRef(null);
     const [activeSection, setActiveSection] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -389,11 +393,20 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         }));
 
     const ecosystemGroups = ecosystemPartnerGroups.map((group) => ({
-        label: t(`hackathon.partners.group_${group.id}`, group.shortLabel),
-        partners: group.partners.map((partner) =>
-            getLocalizedPartnerDisplayName(partner, language)
-        ),
+        id: group.id,
+        label: t(`hackathon.cooperation.groups.${group.id}.label`, group.label),
+        role: t(`hackathon.cooperation.groups.${group.id}.role`, ""),
+        partners: group.partners.map((partner) => ({
+            ...partner,
+            displayName: getLocalizedPartnerDisplayName(partner, language),
+        })),
     }));
+    const communityPartnerGroups = ecosystemGroups.filter((group) => group.id !== "enterprise");
+    const enterprisePartnerGroup = ecosystemGroups.find((group) => group.id === "enterprise");
+    const ecosystemPartnerCount = ecosystemGroups.reduce(
+        (total, group) => total + group.partners.length,
+        0
+    );
 
     const heroStats = event.highlights.slice(0, 3);
     const titleLines = splitHackathonTitle(event.title);
@@ -413,10 +426,16 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         { id: "hackathon-hero", label: t("hackathon.nav.home", "主页"), icon: Sparkles, index: 0 },
         { id: "event-brief", label: t("hackathon.nav.rules", "赛制"), icon: Trophy, index: 1 },
         {
+            id: "partner-network",
+            label: t("hackathon.nav.cooperation", "合作"),
+            icon: Users,
+            index: 2,
+        },
+        {
             id: "registration-form",
             label: t("hackathon.nav.register", "报名"),
             icon: Send,
-            index: 2,
+            index: 3,
         },
     ];
 
@@ -707,68 +726,6 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                     />
                 </div>
 
-                {enterpriseLogos.length > 0 ? (
-                    <div
-                        data-registration-logo-panel
-                        className={`relative z-20 mx-auto mb-6 w-full max-w-[calc(100vw-2rem)] border p-2 backdrop-blur-2xl sm:mb-8 sm:max-w-[720px] lg:absolute lg:right-8 lg:top-[calc(env(safe-area-inset-top)+82px)] lg:mb-0 lg:w-[min(38vw,560px)] lg:max-w-none xl:right-10 xl:top-[calc(env(safe-area-inset-top)+78px)] 2xl:right-16 2xl:w-[min(34vw,640px)] ${
-                            isDayMode
-                                ? "border-slate-200/80 bg-white/76 shadow-[0_18px_58px_rgba(15,23,42,0.10)]"
-                                : "border-cyan-300/16 bg-black/18 shadow-[0_0_44px_rgba(34,211,238,0.10)]"
-                        }`}
-                        aria-label={t("hackathon.partners.enterprise_logos", "企业 logo")}
-                    >
-                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:gap-1.5">
-                            {enterpriseLogos.map((logo) => {
-                                const logoSrc = getPartnerLogoSrc(logo, isDayMode);
-                                const logoLabel = getLocalizedPartnerDisplayName(logo, language);
-                                const showLogoImage = logoSrc && !String(language).startsWith("en");
-                                return (
-                                    <span
-                                        key={logo.id || logo.src || logo.name}
-                                        className={`group flex min-h-12 min-w-0 items-center justify-center gap-1.5 border px-2 py-2 transition duration-300 hover:-translate-y-0.5 sm:min-h-14 sm:px-3 lg:min-h-10 lg:px-2 lg:py-1.5 ${
-                                            isDayMode
-                                                ? "border-slate-200/80 bg-white/70"
-                                                : "border-white/10 bg-white/[0.045]"
-                                        }`}
-                                    >
-                                        {showLogoImage ? (
-                                            <img
-                                                src={logoSrc}
-                                                alt={logo.alt || logoLabel}
-                                                className={`max-h-7 max-w-full object-contain transition duration-300 group-hover:scale-[1.035] sm:max-h-8 lg:max-h-7 ${
-                                                    logo.size || ""
-                                                } ${
-                                                    isDayMode
-                                                        ? ""
-                                                        : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
-                                                }`}
-                                                loading="eager"
-                                            />
-                                        ) : (
-                                            <span
-                                                className={`truncate text-center text-xs font-black leading-tight sm:text-sm ${
-                                                    isDayMode ? "text-slate-950" : "text-white"
-                                                }`}
-                                            >
-                                                {logoLabel}
-                                            </span>
-                                        )}
-                                        {logo.text && showLogoImage ? (
-                                            <span
-                                                className={`truncate text-xs font-black leading-none tracking-normal sm:text-sm ${
-                                                    isDayMode ? "text-slate-950" : "text-white"
-                                                }`}
-                                            >
-                                                {logo.text}
-                                            </span>
-                                        ) : null}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : null}
-
                 <div className="relative mx-auto grid min-h-[calc(100svh-132px)] min-w-0 w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(0,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(0,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(0,860px)] min-[1920px]:gap-28">
                     <MotionDiv
                         {...(shouldAnimate
@@ -975,13 +932,6 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                 {t("hackathon.cta.register_now", "立即报名")}
                                 <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                             </button>
-                            <Link
-                                to="/about"
-                                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-7 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.secondary}`}
-                            >
-                                {t("hackathon.cta.learn_ecosystem", "了解生态团队")}
-                                <ArrowRight className="h-4 w-4" />
-                            </Link>
                         </div>
                     </MotionDiv>
 
@@ -1010,8 +960,8 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                             SHIP
                         </div>
 
-                        <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-stretch xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
-                            <div className="order-1 flex flex-col xl:min-h-[620px]">
+                        <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-center xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
+                            <div className="order-1 flex flex-col justify-center">
                                 <p
                                     className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}
                                 >
@@ -1030,48 +980,14 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                     {event.description}
                                 </p>
 
-                                <div className={`mt-10 border-t pt-7 xl:mt-auto ${palette.line}`}>
-                                    <p
-                                        className={`text-sm font-bold uppercase tracking-[0.24em] ${palette.accent}`}
-                                    >
-                                        Ecosystem
-                                    </p>
-                                    <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl xl:text-[44px]">
-                                        {t("hackathon.board.support_lineup", "支持阵容")}
-                                    </h3>
-
-                                    <div className="mt-7 grid gap-3 min-[1536px]:grid-cols-3 min-[1536px]:items-stretch">
-                                        {ecosystemGroups.map((group) => (
-                                            <div
-                                                key={group.label}
-                                                className={`grid gap-4 border-l-2 px-5 py-3.5 sm:grid-cols-[104px_1fr] sm:items-center xl:px-5 xl:py-4 min-[1536px]:grid-cols-1 min-[1536px]:content-start ${
-                                                    isDayMode
-                                                        ? "border-cyan-600 bg-white/60"
-                                                        : "border-cyan-300 bg-cyan-300/[0.035]"
-                                                }`}
-                                            >
-                                                <div
-                                                    className={`flex items-center gap-2 text-base font-black ${palette.accent}`}
-                                                >
-                                                    <span
-                                                        className={`h-2.5 w-2.5 ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`}
-                                                    />
-                                                    {group.label}
-                                                </div>
-                                                <div className="flex flex-wrap gap-2.5">
-                                                    {group.partners.map((partner) => (
-                                                        <span
-                                                            key={partner}
-                                                            className={`border px-3 py-2 text-sm font-black min-[1720px]:text-base ${palette.chip}`}
-                                                        >
-                                                            {partner}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => smoothScrollTo("partner-network")}
+                                    className={`mt-10 inline-flex min-h-12 w-fit items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
+                                >
+                                    {t("hackathon.cooperation.view_network", "查看赛事合作网络")}
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
                             </div>
 
                             <div className="order-2 flex">
@@ -1123,6 +1039,228 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </MotionSection>
+
+            <MotionSection
+                id="partner-network"
+                {...sectionMotion}
+                className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-24 sm:pt-24 lg:px-10 lg:py-24 xl:items-center min-[1536px]:px-14 2xl:px-20"
+            >
+                <div
+                    className={`pointer-events-none absolute inset-0 ${
+                        isDayMode
+                            ? "bg-[radial-gradient(circle_at_14%_18%,rgba(6,182,212,0.12),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#ecfeff_48%,#f8fafc_100%)]"
+                            : "bg-[radial-gradient(circle_at_15%_18%,rgba(103,232,249,0.15),transparent_28%),radial-gradient(circle_at_84%_78%,rgba(14,116,144,0.14),transparent_30%),linear-gradient(135deg,#030506_0%,#071113_52%,#030506_100%)]"
+                    }`}
+                />
+                <div className="pointer-events-none absolute right-[-5%] top-[4%] max-w-full overflow-hidden text-[18vw] font-black uppercase leading-none tracking-normal text-white/[0.035]">
+                    CO-BUILD
+                </div>
+
+                <div className="relative mx-auto grid min-w-0 w-full max-w-[1880px] gap-10 xl:grid-cols-[minmax(320px,0.68fr)_minmax(0,1.32fr)] xl:items-stretch xl:gap-14 min-[1536px]:gap-20">
+                    <div className="flex min-w-0 flex-col justify-between">
+                        <div>
+                            <p className={`text-sm font-black ${palette.accent}`}>
+                                {t("hackathon.cooperation.eyebrow", "03 / 赛事合作")}
+                            </p>
+                            <h2 className="mt-5 max-w-[740px] text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.5rem]">
+                                {t("hackathon.cooperation.title_line_1", "共同把真实问题")}
+                                <span className={`block ${palette.accent}`}>
+                                    {t("hackathon.cooperation.title_line_2", "带到现场")}
+                                </span>
+                            </h2>
+                            <p
+                                className={`mt-6 max-w-[68ch] text-base leading-8 sm:text-lg xl:max-w-xl ${palette.textSoft}`}
+                            >
+                                {t(
+                                    "hackathon.cooperation.description",
+                                    "这里展示拓浙AI生态现有的赛事支持网络。学校提供场景与机制，社团承接组织与传播，企业提供技术与产业资源。"
+                                )}
+                            </p>
+                        </div>
+
+                        <div className="mt-8 xl:mt-12">
+                            <div className={`grid grid-cols-2 border-y ${palette.line}`}>
+                                <div className={`border-r px-4 py-5 sm:px-6 ${palette.line}`}>
+                                    <strong className={`text-4xl font-black ${palette.accent}`}>
+                                        {ecosystemGroups.length}
+                                    </strong>
+                                    <span
+                                        className={`mt-2 block text-sm font-bold ${palette.textMuted}`}
+                                    >
+                                        {t("hackathon.cooperation.group_count", "支持类别")}
+                                    </span>
+                                </div>
+                                <div className="px-4 py-5 sm:px-6">
+                                    <strong className={`text-4xl font-black ${palette.accent}`}>
+                                        {ecosystemPartnerCount}
+                                    </strong>
+                                    <span
+                                        className={`mt-2 block text-sm font-bold ${palette.textMuted}`}
+                                    >
+                                        {t("hackathon.cooperation.partner_count", "合作伙伴")}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                                <button
+                                    type="button"
+                                    onClick={scrollToForm}
+                                    className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.primary}`}
+                                >
+                                    {t("hackathon.cooperation.continue_registration", "继续报名")}
+                                    <Send className="h-4 w-4" />
+                                </button>
+                                <Link
+                                    to="/future-learning"
+                                    className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
+                                >
+                                    {t("hackathon.cooperation.contact", "联系赛事合作")}
+                                    <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={`min-w-0 border-y ${palette.line}`}>
+                        {ecosystemGroups.length > 0 ? (
+                            <>
+                                <div
+                                    className={`grid divide-y md:grid-cols-2 md:divide-x md:divide-y-0 ${
+                                        isDayMode ? "divide-slate-200" : "divide-white/10"
+                                    }`}
+                                >
+                                    {communityPartnerGroups.map((group, groupIndex) => (
+                                        <section
+                                            key={group.id}
+                                            className="min-w-0 px-0 py-6 md:px-7 lg:px-8 xl:min-h-[280px] xl:py-8"
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p
+                                                        className={`text-xs font-black ${palette.accent}`}
+                                                    >
+                                                        {String(groupIndex + 1).padStart(2, "0")}
+                                                    </p>
+                                                    <h3 className="mt-3 text-2xl font-black sm:text-3xl">
+                                                        {group.label}
+                                                    </h3>
+                                                </div>
+                                                <span
+                                                    className={`text-sm font-black ${palette.textMuted}`}
+                                                >
+                                                    {group.partners.length}{" "}
+                                                    {t(
+                                                        "hackathon.cooperation.partner_unit",
+                                                        "伙伴"
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <p
+                                                className={`mt-4 max-w-[56ch] text-sm leading-7 ${palette.textSoft}`}
+                                            >
+                                                {group.role}
+                                            </p>
+                                            <div className="mt-6 flex flex-wrap gap-2">
+                                                {group.partners.map((partner) => (
+                                                    <span
+                                                        key={partner.id || partner.displayName}
+                                                        className={`inline-flex min-h-10 items-center border px-3 py-2 text-sm font-black ${palette.chip}`}
+                                                    >
+                                                        {partner.displayName}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    ))}
+                                </div>
+
+                                {enterprisePartnerGroup ? (
+                                    <section
+                                        className={`border-t py-6 md:px-7 lg:px-8 xl:py-8 ${palette.line}`}
+                                    >
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                            <div>
+                                                <p
+                                                    className={`text-xs font-black ${palette.accent}`}
+                                                >
+                                                    03
+                                                </p>
+                                                <h3 className="mt-3 text-2xl font-black sm:text-3xl">
+                                                    {enterprisePartnerGroup.label}
+                                                </h3>
+                                                <p
+                                                    className={`mt-3 max-w-[70ch] text-sm leading-7 ${palette.textSoft}`}
+                                                >
+                                                    {enterprisePartnerGroup.role}
+                                                </p>
+                                            </div>
+                                            <span
+                                                className={`text-sm font-black ${palette.textMuted}`}
+                                            >
+                                                {enterprisePartnerGroup.partners.length}{" "}
+                                                {t("hackathon.cooperation.partner_unit", "伙伴")}
+                                            </span>
+                                        </div>
+
+                                        <div
+                                            className="mt-6 grid grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-4"
+                                            aria-label={t(
+                                                "hackathon.cooperation.enterprise_logos",
+                                                "技术与产业合作伙伴"
+                                            )}
+                                        >
+                                            {enterprisePartnerGroup.partners.map((partner) => {
+                                                const logoSrc = getPartnerLogoSrc(
+                                                    partner,
+                                                    isDayMode
+                                                );
+                                                return (
+                                                    <div
+                                                        key={partner.id || partner.displayName}
+                                                        className={`flex min-h-16 min-w-0 items-center justify-center border px-3 py-3 sm:min-h-20 ${
+                                                            isDayMode
+                                                                ? "border-slate-200 bg-white/72"
+                                                                : "border-white/10 bg-white/[0.045]"
+                                                        }`}
+                                                    >
+                                                        {logoSrc ? (
+                                                            <img
+                                                                src={logoSrc}
+                                                                alt={`${partner.displayName} logo`}
+                                                                className={`max-h-9 max-w-full object-contain ${
+                                                                    isDayMode
+                                                                        ? ""
+                                                                        : partner.darkClassName ||
+                                                                          ""
+                                                                }`}
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <span className="truncate text-center text-sm font-black">
+                                                                {partner.displayName}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+                                ) : null}
+                            </>
+                        ) : (
+                            <div className="flex min-h-[360px] items-center justify-center px-6 py-16 text-center">
+                                <p className={`max-w-md text-base leading-8 ${palette.textSoft}`}>
+                                    {t(
+                                        "hackathon.cooperation.empty",
+                                        "合作网络正在整理，确认后的支持信息会在这里公开。"
+                                    )}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </MotionSection>
