@@ -304,7 +304,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                         exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                         onClick={() => setIsOpen(false)}
                         className={`absolute inset-0 backdrop-blur-[12px] ${
-                            isDayMode ? "bg-slate-950/35" : "bg-[#010708]/60"
+                            isDayMode ? "bg-slate-950/35" : "bg-[#02030a]/65"
                         }`}
                     />
 
@@ -318,7 +318,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                         className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 backdrop-blur-[28px] backdrop-saturate-150 md:h-auto md:max-w-3xl md:rounded-[16px] md:border ${
                             isDayMode
                                 ? "bg-white/[0.84] text-slate-950 shadow-[0_26px_80px_rgba(15,23,42,0.24)] md:border-white/70 md:bg-white/[0.74]"
-                                : "bg-[#061011]/[0.88] text-white shadow-[0_30px_90px_rgba(0,0,0,0.48)] md:border-white/[0.13] md:bg-[#061011]/[0.76]"
+                                : "bg-[#0b0d16]/[0.90] text-white shadow-[0_30px_90px_rgba(0,0,0,0.48)] md:border-white/[0.13] md:bg-[#0b0d16]/[0.82]"
                         }`}
                     >
                         <div
