@@ -32,7 +32,7 @@ const MediaEventArchive = lazy(() => import("./MediaEventArchive"));
 THESIS: 浙客松是一座跨届赛事工作台，拒绝把赛事和阶段挤进会消失的双层横向导航。
 OWN-WORLD: 延续生态介绍页的深色玻璃、青蓝网格和克制高光；单届赛事视觉只进入正文。
 STORY: 用户先确认哪一届，再在报名、作品、影像和成果之间连续工作。
-FIRST VIEWPORT: 左侧是紧凑历届卡，右侧同一标题带呈现当前赛事与四阶段，正文从其下展开。
+FIRST VIEWPORT: 左侧是紧凑历届卡，右侧只保留四阶段导航，正文从其下展开。
 FORM: 垂直档案架加水平阶段轴；赛事选择和阶段选择在空间上正交，移动端收为抽屉。
 */
 
@@ -80,8 +80,6 @@ const HackathonSeasonOne = () => {
     const competitionSlug = template.results.competitionSlug;
     const defaultView = getDefaultHackathonView(template);
     const activeView = getHackathonViewFromLocation(location, defaultView);
-    const activePhase = getEventPhase(template);
-
     const orderedEvents = useMemo(
         () =>
             schedule.events
@@ -312,24 +310,6 @@ const HackathonSeasonOne = () => {
                             <ChevronDown aria-hidden="true" />
                         </button>
 
-                        <div className="hws-event-context">
-                            <h1>{template.event.title}</h1>
-                            <div>
-                                <span className={`hws-phase is-${activePhase}`}>
-                                    <i aria-hidden="true" />
-                                    {phaseLabel(activePhase)}
-                                </span>
-                                <p>
-                                    {formatEventDate(
-                                        template.event.startAt,
-                                        locale,
-                                        t("common.tba", "待定")
-                                    )}
-                                    {template.event.location ? ` · ${template.event.location}` : ""}
-                                </p>
-                            </div>
-                        </div>
-
                         <nav
                             className="hws-stage-tabs"
                             role="tablist"
@@ -494,15 +474,7 @@ const WORKSPACE_CSS = `
 .hws-main{min-width:0;}
 .hws-context-bar{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:30;overflow:hidden;border-bottom:1px solid var(--hws-line);background:rgba(8,19,20,.94);box-shadow:0 12px 36px rgba(0,0,0,.18);backdrop-filter:blur(18px);}
 .hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.92);box-shadow:0 8px 28px rgba(15,23,42,.06);}
-.hws-event-context{position:relative;display:flex;min-height:58px;align-items:center;justify-content:space-between;gap:28px;padding:0 clamp(28px,4vw,64px);}
-.hws-event-context>div{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0;}
-.hws-event-context p{margin:0;color:var(--hws-muted);font-size:11px;font-weight:750;white-space:nowrap;}
-.hws-event-context h1{max-width:30ch;margin:0;color:var(--hws-text);font-size:clamp(1.05rem,1.4vw,1.35rem);line-height:1.15;font-weight:900;letter-spacing:-.025em;text-align:left;text-wrap:balance;}
-.hws-phase{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:0;color:var(--hws-muted);font-size:10px;font-weight:900;white-space:nowrap;}
-.hws-phase i{width:6px;height:6px;border-radius:50%;background:currentColor;}
-.hws-phase.is-live{color:var(--hws-lime);}
 .hws-stage-tabs{position:relative;display:flex;min-height:48px;align-items:stretch;gap:clamp(24px,3vw,44px);padding:0 clamp(28px,4vw,64px);}
-.hws-stage-tabs::before{content:"";position:absolute;left:clamp(28px,4vw,64px);right:clamp(28px,4vw,64px);top:0;height:1px;background:linear-gradient(90deg,var(--hws-line),var(--hws-line-strong),var(--hws-line));}
 .hws-stage-tabs button{position:relative;display:flex;min-width:0;min-height:48px;align-items:center;gap:8px;padding:0;border:0;border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:color .18s ease;}
 .hws-stage-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent;transition:background .18s ease;}
 .hws-stage-tabs button:hover{color:var(--hws-text);}
@@ -512,10 +484,10 @@ const WORKSPACE_CSS = `
 .hws-stage-symbol svg{width:16px;height:16px;color:currentColor;}
 .hws-stage-tabs button.is-current .hws-stage-symbol{color:var(--hws-lime);}
 .hws-stage-tabs strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:950;}
-.hws-stage{position:relative;min-width:0;min-height:calc(100svh - 170px);background:var(--hws-bg);}
+.hws-stage{position:relative;min-width:0;min-height:calc(100svh - 112px);background:var(--hws-bg);}
 .hws-stage.is-projects,.hws-stage.is-media{background:#020806;color:#fff;}
 .hws-stage-focus-target{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
-.hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 170px)!important;min-height:560px;}
+.hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 112px)!important;min-height:560px;}
 .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:48px!important;}
 .hws-stage.is-register [data-registration-page] #partner-network{min-height:100%!important;}
 .hws-stage.is-showcase .showcase-gate-frame{padding-top:42px!important;}
@@ -552,18 +524,17 @@ const WORKSPACE_CSS = `
   .hws-mobile-event-button span{display:grid;gap:3px;min-width:0;color:var(--hws-lime);font:900 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
   .hws-mobile-event-button strong{max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hws-text);font-size:13px;font-weight:950}
   .hws-mobile-event-button svg{width:18px;height:18px;color:var(--hws-lime)}
-  .hws-event-context{display:none}
   .hws-stage-tabs{display:flex;max-width:100%;min-height:52px;gap:4px;overflow-x:auto;padding:0 8px;scrollbar-width:none;scroll-snap-type:x proximity}
-  .hws-stage-tabs::before{left:0;right:0}
   .hws-stage-tabs::-webkit-scrollbar{display:none}
   .hws-stage-tabs button{flex:0 0 auto;min-width:104px;min-height:52px;padding:0 12px;scroll-snap-align:start}
   .hws-stage-tabs button::after{left:10px;right:10px}
   .hws-stage-symbol{width:18px;height:18px}
   .hws-stage-symbol svg{width:15px;height:15px}
+  .hws-stage{min-height:calc(100svh - 176px)}
   .hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 176px)!important;min-height:520px}
   .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:36px!important}
 }
-@media(max-width:560px){.hws-stage-tabs button{min-width:100px}.hws-stage-tabs strong{font-size:12px}.hws-stage{min-height:calc(100svh - 176px)}}
+@media(max-width:560px){.hws-stage-tabs button{min-width:100px}.hws-stage-tabs strong{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.hws-event-card,.hws-stage-tabs button{transition:none}.hws-event-card:hover{transform:none}.hws-loading span{animation:none}}
 `;
 
