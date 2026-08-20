@@ -122,8 +122,8 @@ const Navbar = ({ miniProgramMode = false }) => {
 
     const navLinks = [
         { key: "events", path: "/events" },
-        { key: "hackathon", path: "/hackathon" },
         { key: "articles", path: "/articles" },
+        { key: "hackathon", path: "/hackathon" },
         { key: "projects", path: "/projects" },
         { key: "media", path: "/media" },
         { key: "about", path: "/about" },
