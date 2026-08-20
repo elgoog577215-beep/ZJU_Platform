@@ -1563,6 +1563,7 @@
         "nav": {
             "home": "主页",
             "rules": "赛制",
+            "cooperation": "合作",
             "register": "报名",
             "jump_to": "跳转到{{label}}"
         },
@@ -1610,6 +1611,34 @@
             "group_organization": "社团",
             "group_enterprise": "企业",
             "enterprise_logos": "企业 logo"
+        },
+        "cooperation": {
+            "eyebrow": "03 / 赛事合作",
+            "title_line_1": "共同把真实问题",
+            "title_line_2": "带到现场",
+            "description": "这里展示拓浙AI生态现有的赛事支持网络。学校提供场景与机制，社团承接组织与传播，企业提供技术与产业资源。",
+            "view_network": "查看赛事合作网络",
+            "group_count": "支持类别",
+            "partner_count": "合作伙伴",
+            "partner_unit": "伙伴",
+            "continue_registration": "继续报名",
+            "contact": "联系赛事合作",
+            "enterprise_logos": "技术与产业合作伙伴",
+            "empty": "合作网络正在整理，确认后的支持信息会在这里公开。",
+            "groups": {
+                "school": {
+                    "label": "学校支持",
+                    "role": "提供场地资源、导师评审、校园传播与长期机制支持。"
+                },
+                "organization": {
+                    "label": "社团协作",
+                    "role": "承接选手招募、志愿执行、现场协同与赛后社群连接。"
+                },
+                "enterprise": {
+                    "label": "技术与产业支持",
+                    "role": "提供模型、云资源、AI 工具、技术支持与产业视角。"
+                }
+            }
         },
         "rules": {
             "ai_native_title": "AI 原生开发",

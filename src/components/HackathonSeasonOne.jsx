@@ -517,7 +517,7 @@ const WORKSPACE_CSS = `
 .hws-stage-focus-target{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
 .hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 170px)!important;min-height:560px;}
 .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:48px!important;}
-.hws-stage.is-register [data-registration-page] [data-registration-logo-panel]{top:48px!important;}
+.hws-stage.is-register [data-registration-page] #partner-network{min-height:100%!important;}
 .hws-stage.is-showcase .showcase-gate-frame{padding-top:42px!important;}
 .hws-unavailable,.hws-loading{display:grid;min-height:58vh;place-items:center;align-content:center;gap:12px;padding:48px 20px;text-align:center;color:var(--hws-muted);}
 .hws-unavailable svg{width:34px;height:34px;color:var(--hws-lime);}
@@ -562,7 +562,6 @@ const WORKSPACE_CSS = `
   .hws-stage-symbol svg{width:15px;height:15px}
   .hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 176px)!important;min-height:520px}
   .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:36px!important}
-  .hws-stage.is-register [data-registration-page] [data-registration-logo-panel]{top:36px!important}
 }
 @media(max-width:560px){.hws-stage-tabs button{min-width:100px}.hws-stage-tabs strong{font-size:12px}.hws-stage{min-height:calc(100svh - 176px)}}
 @media(prefers-reduced-motion:reduce){.hws-event-card,.hws-stage-tabs button{transition:none}.hws-event-card:hover{transform:none}.hws-loading span{animation:none}}

@@ -1560,6 +1560,7 @@
         "nav": {
             "home": "Home",
             "rules": "Rules",
+            "cooperation": "Partners",
             "register": "Register",
             "jump_to": "Jump to {{label}}"
         },
@@ -1607,6 +1608,34 @@
             "group_organization": "Clubs",
             "group_enterprise": "Enterprise",
             "enterprise_logos": "Enterprise logos"
+        },
+        "cooperation": {
+            "eyebrow": "03 / Event Partners",
+            "title_line_1": "Bring real problems",
+            "title_line_2": "into the arena",
+            "description": "This is the current event support network of the Tuozhe AI Ecosystem. Campus partners provide settings and long-term mechanisms, student groups lead organization and outreach, and enterprise partners contribute technology and industry resources.",
+            "view_network": "View the event partner network",
+            "group_count": "Support groups",
+            "partner_count": "Partners",
+            "partner_unit": "partners",
+            "continue_registration": "Continue to registration",
+            "contact": "Discuss event partnership",
+            "enterprise_logos": "Technology and industry partners",
+            "empty": "The partner network is being organized. Confirmed support information will appear here.",
+            "groups": {
+                "school": {
+                    "label": "Campus Support",
+                    "role": "Provides venues, mentor review, campus communication, and long-term institutional support."
+                },
+                "organization": {
+                    "label": "Community Collaboration",
+                    "role": "Leads participant recruitment, volunteer operations, on-site coordination, and post-event community connection."
+                },
+                "enterprise": {
+                    "label": "Technology & Industry Support",
+                    "role": "Provides models, cloud resources, AI tools, technical support, and industry perspective."
+                }
+            }
         },
         "rules": {
             "ai_native_title": "AI-Native Development",
