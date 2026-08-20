@@ -191,13 +191,36 @@ const Navbar = ({ miniProgramMode = false }) => {
     const shellClasses = isDayMode
         ? "bg-white/94 border-slate-900/[0.08] shadow-none"
         : "bg-black/72 border-white/10 shadow-none";
-    const desktopPillClasses = "rounded-none bg-transparent border-transparent shadow-none";
-    const navLinkClasses = isDayMode
-        ? "motion-link relative group whitespace-nowrap rounded-none px-2.5 py-2 text-xs font-semibold text-slate-500 hover:bg-transparent hover:text-slate-950 xl:px-4 xl:text-sm"
-        : "motion-link relative group whitespace-nowrap rounded-none px-2.5 py-2 text-xs font-semibold text-gray-400 hover:bg-transparent hover:text-white xl:px-4 xl:text-sm";
+    const desktopNavTrackClasses = `flex shrink-0 items-center gap-0.5 rounded-[12px] border p-1 ${
+        isDayMode
+            ? "border-slate-200/80 bg-slate-950/[0.025]"
+            : "border-white/[0.08] bg-white/[0.035]"
+    }`;
+    const navLinkClasses = (active) =>
+        `motion-link relative group inline-flex min-h-8 items-center whitespace-nowrap rounded-[8px] px-2.5 py-1.5 text-xs font-semibold transition-[background,color,box-shadow] xl:px-3.5 xl:text-sm ${
+            isDayMode
+                ? active
+                    ? "bg-white text-slate-950 shadow-[0_2px_8px_rgba(15,23,42,0.07)]"
+                    : "text-slate-500 hover:bg-white/70 hover:text-slate-950"
+                : active
+                  ? "bg-white/[0.075] text-white shadow-[0_2px_10px_rgba(0,0,0,0.16)]"
+                  : "text-slate-400 hover:bg-white/[0.045] hover:text-white"
+        }`;
     const navIndicatorClasses = isDayMode
-        ? "absolute inset-x-3 -bottom-1 h-0.5 bg-violet-700"
-        : "absolute inset-x-3 -bottom-1 h-0.5 bg-indigo-400";
+        ? "absolute inset-x-3 bottom-0 h-0.5 rounded-t-full bg-violet-700"
+        : "absolute inset-x-3 bottom-0 h-0.5 rounded-t-full bg-indigo-400";
+    const desktopActionButtonBaseClasses =
+        "motion-press inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] border px-3 text-xs font-extrabold transition-[background,border-color,color,transform,box-shadow] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70";
+    const desktopSearchButtonClasses = `${desktopActionButtonBaseClasses} ${
+        isDayMode
+            ? "border-slate-200/90 bg-white text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
+            : "border-white/[0.12] bg-white/[0.055] text-slate-200 hover:border-indigo-400/40 hover:bg-indigo-400/10 hover:text-white"
+    }`;
+    const desktopDownloadButtonClasses = `${desktopActionButtonBaseClasses} border-transparent ${
+        isDayMode
+            ? "bg-violet-700 text-white hover:bg-violet-800"
+            : "bg-indigo-400 text-slate-950 hover:bg-indigo-300"
+    }`;
     const desktopUtilityButtonClasses = `motion-press relative inline-flex h-9 w-9 items-center justify-center border-b border-transparent bg-transparent transition-[border-color,color,opacity] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
         isDayMode
             ? "text-slate-500 hover:border-violet-500/55 hover:text-slate-950"
@@ -255,7 +278,7 @@ const Navbar = ({ miniProgramMode = false }) => {
         >
             <Link
                 to="/"
-                className="hidden lg:flex items-center gap-3 text-white group z-50"
+                className="group z-50 hidden items-center gap-0 text-white lg:flex xl:gap-3"
                 aria-label={t("nav.home_aria")}
             >
                 <>
@@ -267,7 +290,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                             className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                         />
                     </div>
-                    <div className="flex flex-col items-start leading-none">
+                    <div className="hidden flex-col items-start leading-none xl:flex">
                         <span
                             className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-violet-800" : "text-white group-hover:text-indigo-200"}`}
                         >
@@ -282,61 +305,65 @@ const Navbar = ({ miniProgramMode = false }) => {
                 </>
             </Link>
 
-            <div
-                className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 lg:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
-                role="menubar"
-                aria-label={t("nav.menu_aria")}
-            >
-                {navLinks.map((item) => (
-                    <Link
-                        key={item.key}
-                        to={item.path}
-                        className={navLinkClasses}
-                        role="menuitem"
-                        aria-current={isNavItemActive(item.path) ? "page" : undefined}
+            <div className="hidden min-w-0 items-center gap-1.5 lg:flex xl:gap-2">
+                <div
+                    className={desktopNavTrackClasses}
+                    role="menubar"
+                    aria-label={t("nav.menu_aria")}
+                >
+                    {navLinks.map((item) => (
+                        <Link
+                            key={item.key}
+                            to={item.path}
+                            className={navLinkClasses(isNavItemActive(item.path))}
+                            role="menuitem"
+                            aria-current={isNavItemActive(item.path) ? "page" : undefined}
+                        >
+                            <span className="relative z-10">
+                                {item.label || t(`nav.${item.key}`)}
+                            </span>
+                            {isNavItemActive(item.path) &&
+                                (prefersReducedMotion ? (
+                                    <div className={navIndicatorClasses} />
+                                ) : (
+                                    <motion.div
+                                        layoutId="navbar-indicator"
+                                        className={navIndicatorClasses}
+                                        transition={motionTokens.spring.tab}
+                                    />
+                                ))}
+                        </Link>
+                    ))}
+                </div>
+
+                <div className="ml-1 flex shrink-0 items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
+                        className={desktopSearchButtonClasses}
+                        title={t("nav.ai_search", "AI 搜索")}
+                        aria-label={t("nav.ai_search", "AI 搜索")}
                     >
-                        <span className="relative z-10">{item.label || t(`nav.${item.key}`)}</span>
-                        {isNavItemActive(item.path) &&
-                            (prefersReducedMotion ? (
-                                <div className={navIndicatorClasses} />
-                            ) : (
-                                <motion.div
-                                    layoutId="navbar-indicator"
-                                    className={navIndicatorClasses}
-                                    transition={motionTokens.spring.tab}
-                                />
-                            ))}
-                    </Link>
-                ))}
+                        <Search size={15} aria-hidden="true" />
+                        <span>{t("nav.ai_search", "AI 搜索")}</span>
+                    </button>
+
+                    {!miniProgramMode ? (
+                        <Link
+                            to="/download"
+                            className={desktopDownloadButtonClasses}
+                            aria-label={t("nav.download")}
+                        >
+                            <Smartphone size={15} aria-hidden="true" />
+                            <span>{t("nav.download")}</span>
+                        </Link>
+                    ) : null}
+                </div>
 
                 <div
-                    className={`w-px h-5 mx-2 ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`}
+                    className={`mx-1.5 h-5 w-px ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`}
                     role="separator"
                 />
-
-                <button
-                    onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                    className={desktopUtilityButtonClasses}
-                    title={t("nav.search_title")}
-                    aria-label={t("nav.search_title", "搜索")}
-                >
-                    <Search size={18} aria-hidden="true" />
-                </button>
-
-                {!miniProgramMode ? (
-                    <Link
-                        to="/download"
-                        className={`motion-press ml-1 inline-flex min-h-9 items-center gap-1.5 rounded-[9px] px-3 text-xs font-black transition-[background,color,transform] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                            isDayMode
-                                ? "bg-violet-700 text-white hover:bg-violet-800"
-                                : "bg-indigo-400 text-slate-950 hover:bg-indigo-300"
-                        }`}
-                        aria-label={t("nav.download")}
-                    >
-                        <Smartphone size={15} aria-hidden="true" />
-                        <span>{t("nav.download")}</span>
-                    </Link>
-                ) : null}
 
                 {showWeatherWidget && (
                     <button
