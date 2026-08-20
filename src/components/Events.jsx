@@ -69,7 +69,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-start gap-y-0 md:grid-cols-2 md:gap-x-6 md:gap-y-12 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-7 xl:gap-y-14";
+    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
@@ -429,13 +429,13 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     onClick(event);
                 }
             }}
-            className={`group hidden cursor-pointer border-b pb-6 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:block ${
+            className={`event-card-shell group hidden h-full cursor-pointer overflow-hidden rounded-[14px] border text-left outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:flex md:flex-col ${
                 isDayMode
-                    ? "border-slate-200/80 hover:border-blue-400/70"
-                    : "border-white/[0.08] hover:border-indigo-300/55"
+                    ? "border-slate-200/80 hover:border-blue-300/80"
+                    : "border-white/[0.12] hover:border-indigo-300/45"
             }`}
         >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] bg-slate-900">
+            <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-900">
                 <SmartImage
                     src={getThumbnailUrl(event.image)}
                     alt={event.title}
@@ -449,7 +449,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                 )}
             </div>
 
-            <div className="pt-4">
+            <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
                 <div className="flex min-w-0 items-center justify-between gap-3 text-[11px] font-bold tracking-wide">
                     <span className={`truncate ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
                         {event.category
@@ -569,11 +569,11 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
             {...motionProps}
             data-testid="event-card"
             onClick={() => onClick(event)}
-            className={`group relative grid min-h-[132px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+            className={`event-mobile-row group relative grid min-h-[140px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                 isDayMode ? "border-slate-200/80 text-slate-950" : "border-white/[0.08] text-white"
             }`}
         >
-            <div className="relative h-[106px] overflow-hidden rounded-[2px] bg-slate-900 min-[390px]:h-[110px]">
+            <div className="relative h-[106px] overflow-hidden rounded-[12px] bg-slate-900 min-[390px]:h-[110px]">
                 <SmartImage
                     src={getEventCoverUrl(event)}
                     alt={event.title}
@@ -1661,7 +1661,7 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
@@ -2210,7 +2210,7 @@ END:VCALENDAR`;
                     {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
                         <div
                             key={i}
-                            className={`relative border-b pb-6 ${isDayMode ? "border-slate-200/80" : "border-white/[0.08]"}`}
+                            className={`event-card-shell relative h-full overflow-hidden rounded-[14px] border ${isDayMode ? "border-slate-200/80" : "border-white/[0.12]"}`}
                         >
                             {/* Shimmer Effect */}
                             {!isDayMode && (
@@ -2219,10 +2219,10 @@ END:VCALENDAR`;
 
                             {/* Image Skeleton */}
                             <div
-                                className={`aspect-[4/3] w-full rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                                className={`aspect-[4/3] w-full ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                             />
                             {/* Content Skeleton */}
-                            <div className="flex flex-1 flex-col pt-4">
+                            <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
                                 <div
                                     className={`mb-3 h-5 w-3/4 rounded-[2px] ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
                                 />
