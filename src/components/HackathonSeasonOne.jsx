@@ -378,9 +378,12 @@ const HackathonSeasonOne = () => {
 
             {eventPickerOpen ? (
                 <BodyPortal>
-                    <div className="hws-drawer-scrim" onMouseDown={() => setEventPickerOpen(false)}>
+                    <div
+                        className={`hws-drawer-scrim ${isDayMode ? "is-day" : "is-dark"}`}
+                        onMouseDown={() => setEventPickerOpen(false)}
+                    >
                         <section
-                            className="hws-event-drawer"
+                            className={`hws-event-drawer ${isDayMode ? "is-day" : "is-dark"}`}
                             role="dialog"
                             aria-modal="true"
                             aria-label={t("hackathon.workspace.choose_event", "选择赛事")}
@@ -465,6 +468,7 @@ const WORKSPACE_CSS = `
 .hackathon-workspace::before{content:"";position:fixed;z-index:-1;inset:64px 0 0 232px;pointer-events:none;background:radial-gradient(circle at 74% 0%,rgba(34,211,238,.1),transparent 26%),linear-gradient(rgba(103,232,249,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(103,232,249,.035) 1px,transparent 1px);background-size:auto,52px 52px,52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 62%);}
 .hws-grid{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100svh;padding-top:calc(env(safe-area-inset-top) + 64px);}
 .hws-event-rail{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:31;align-self:start;height:calc(100svh - env(safe-area-inset-top) - 64px);overflow:hidden;border-right:1px solid var(--hws-line);background:rgba(7,15,16,.96);}
+.hackathon-workspace.is-day .hws-event-rail{background:rgba(255,255,255,.96);}
 .hws-event-rail-head{display:grid;gap:5px;padding:24px 20px 18px;border-bottom:1px solid var(--hws-line);}
 .hws-event-rail-head strong{font-size:18px;line-height:1.2;font-weight:900;letter-spacing:-.025em;}
 .hws-event-rail-head small{color:var(--hws-muted);font-size:10.5px;font-weight:750;}
@@ -489,7 +493,7 @@ const WORKSPACE_CSS = `
 .hws-event-card.is-drawer small{font-size:11px;}
 .hws-main{min-width:0;}
 .hws-context-bar{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:30;overflow:hidden;border-bottom:1px solid var(--hws-line);background:rgba(8,19,20,.94);box-shadow:0 12px 36px rgba(0,0,0,.18);backdrop-filter:blur(18px);}
-.hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.9);}
+.hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.92);box-shadow:0 8px 28px rgba(15,23,42,.06);}
 .hws-event-context{position:relative;display:flex;min-height:58px;align-items:center;justify-content:space-between;gap:28px;padding:0 clamp(28px,4vw,64px);}
 .hws-event-context>div{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0;}
 .hws-event-context p{margin:0;color:var(--hws-muted);font-size:11px;font-weight:750;white-space:nowrap;}
@@ -524,11 +528,18 @@ const WORKSPACE_CSS = `
 @keyframes hws-pulse{50%{opacity:.3;transform:scale(.72)}}
 .hws-mobile-event-button{display:none;}
 .hws-drawer-scrim{position:fixed;inset:0;z-index:180;display:flex;align-items:flex-end;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);}
+.hws-drawer-scrim.is-day{background:rgba(15,23,42,.38);backdrop-filter:blur(8px);}
 .hws-event-drawer{--hws-panel:#0b1718;--hws-text:#fff;--hws-muted:rgba(255,255,255,.56);--hws-line:rgba(255,255,255,.12);--hws-line-strong:rgba(103,232,249,.36);--hws-lime:#67e8f9;width:100%;max-height:min(78dvh,720px);overflow:hidden;border-top:1px solid rgba(103,232,249,.38);border-radius:16px 16px 0 0;background:linear-gradient(180deg,#0b1718,#071011);color:#fff;box-shadow:0 -22px 80px rgba(0,0,0,.56),0 0 70px rgba(34,211,238,.08);}
 .hws-event-drawer header{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 14px;border-bottom:1px solid rgba(247,248,242,.12);}
 .hws-event-drawer header span{color:#b9ff18;font-size:10px;font-weight:900;}
 .hws-event-drawer header h2{margin:4px 0 0;font-size:20px;font-weight:950;}
 .hws-event-drawer header button{display:grid;width:44px;height:44px;place-items:center;border:1px solid rgba(247,248,242,.14);border-radius:10px;background:transparent;color:#f7f8f2;}
+.hws-event-drawer.is-day{--hws-panel:#fff;--hws-text:#0f172a;--hws-muted:#64748b;--hws-line:rgba(15,23,42,.12);--hws-line-strong:rgba(8,145,178,.3);--hws-lime:#0891b2;border-top-color:rgba(8,145,178,.28);background:#fff;color:#0f172a;box-shadow:0 -22px 70px rgba(15,23,42,.18);}
+.hws-event-drawer.is-day header{border-bottom-color:rgba(15,23,42,.1);}
+.hws-event-drawer.is-day header span{color:var(--hws-lime);}
+.hws-event-drawer.is-day header button{border-color:rgba(15,23,42,.14);background:#f8fafc;color:var(--hws-text);}
+.hws-event-drawer.is-day .hws-event-card.is-drawer{background:#fff;}
+.hws-event-drawer.is-day .hws-event-card.is-drawer.is-current{border-color:rgba(8,145,178,.38);background:rgba(8,145,178,.07);box-shadow:none;}
 .hws-drawer-list{display:grid;gap:9px;max-height:calc(min(78dvh,720px) - 78px);overflow-y:auto;padding:14px 14px calc(env(safe-area-inset-bottom) + 18px);}
 @media(max-width:1180px){
   .hws-grid{display:block;padding-top:calc(env(safe-area-inset-top) + 64px)}
@@ -537,6 +548,7 @@ const WORKSPACE_CSS = `
   .hws-context-bar{top:calc(env(safe-area-inset-top) + 64px)}
   .hws-mobile-event-button{position:relative;display:flex;width:100%;min-height:60px;align-items:center;justify-content:space-between;gap:14px;overflow:hidden;padding:10px 16px 10px 20px;border:0;border-bottom:1px solid var(--hws-line);background:linear-gradient(100deg,color-mix(in srgb,var(--hws-lime) 8%,var(--hws-panel)),var(--hws-panel) 58%);color:var(--hws-text);font:inherit;text-align:left}
   .hws-mobile-event-button::before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;background:var(--hws-lime);box-shadow:0 0 14px var(--hws-lime)}
+  .hackathon-workspace.is-day .hws-mobile-event-button::before{box-shadow:none}
   .hws-mobile-event-button span{display:grid;gap:3px;min-width:0;color:var(--hws-lime);font:900 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
   .hws-mobile-event-button strong{max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hws-text);font-size:13px;font-weight:950}
   .hws-mobile-event-button svg{width:18px;height:18px;color:var(--hws-lime)}
