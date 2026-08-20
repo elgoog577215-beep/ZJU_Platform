@@ -76,7 +76,9 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
     return (
         <span
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                isDayMode ? "bg-slate-100/70 text-slate-500" : "bg-white/[0.05] text-slate-400"
+                isDayMode
+                    ? "bg-slate-100/70 text-slate-500"
+                    : "bg-white/[0.05] text-slate-400"
             }`}
         >
             <Users size={17} aria-hidden="true" />
@@ -123,13 +125,18 @@ const OrganizationPartnerWall = ({
 
     const isAllActive = activePartnerId === null || activePartnerId === undefined;
     const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
+    const shellClass = isDayMode ? "border-slate-200/80" : "border-white/[0.105]";
     const buttonBase =
-        "events-refined-partner-button relative flex w-14 shrink-0 flex-col items-center gap-0.5 px-1 py-1.5 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[5.2rem] md:gap-1 md:px-1.5 md:py-2";
+        "relative flex w-12 shrink-0 flex-col items-center gap-0.5 border-b-2 border-transparent px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
     const getButtonClass = (active) => {
         if (active) {
-            return "is-active";
+            return isDayMode
+                ? "border-blue-600 text-blue-800"
+                : "border-indigo-300 text-indigo-100";
         }
-        return "";
+        return isDayMode
+            ? "text-slate-600 hover:text-blue-800"
+            : "text-slate-300 hover:text-white";
     };
     const partnerMotionProps = {
         whileHover: { opacity: 0.92 },
@@ -161,11 +168,13 @@ const OrganizationPartnerWall = ({
             aria-label={t("events.organizations.aria", "社团活动筛选")}
             data-testid="organization-partner-filter-bar"
         >
-            <div className="events-refined-partners relative overflow-hidden">
+            <div
+                className={`relative overflow-hidden border-y ${shellClass}`}
+            >
                 <div
                     ref={scrollRef}
                     {...dragScrollProps}
-                    className="scrollbar-none flex cursor-grab select-none gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-2.5 py-2.5 pr-10 touch-pan-x active:cursor-grabbing md:gap-2"
+                    className="scrollbar-none flex cursor-grab select-none gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 pr-10 touch-pan-x active:cursor-grabbing md:gap-2"
                     role="group"
                     aria-label={t("events.organizations.filter_group", "按社团筛选活动")}
                 >

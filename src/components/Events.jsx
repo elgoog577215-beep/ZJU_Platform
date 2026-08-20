@@ -69,7 +69,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-stretch gap-y-3 md:grid-cols-2 md:gap-x-6 md:gap-y-8 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-9 2xl:grid-cols-4 2xl:gap-x-7 2xl:gap-y-9";
+    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
@@ -429,7 +429,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     onClick(event);
                 }
             }}
-            className={`event-card-shell events-refined-card group hidden h-full cursor-pointer overflow-hidden border text-left outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:flex md:flex-col ${
+            className={`event-card-shell group hidden h-full cursor-pointer overflow-hidden rounded-[14px] border text-left outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:flex md:flex-col ${
                 isDayMode
                     ? "border-slate-200/80 hover:border-blue-300/80"
                     : "border-white/[0.15] hover:border-indigo-300/50"
@@ -569,7 +569,7 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
             {...motionProps}
             data-testid="event-card"
             onClick={() => onClick(event)}
-            className={`event-mobile-row events-refined-mobile-card group relative grid min-h-[140px] cursor-pointer grid-cols-[102px_minmax(0,1fr)] gap-3.5 border p-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+            className={`event-mobile-row group relative grid min-h-[140px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                 isDayMode ? "border-slate-200/80 text-slate-950" : "border-white/[0.08] text-white"
             }`}
         >
@@ -686,7 +686,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                     onClick(event);
                 }
             }}
-            className={`events-refined-list-row group grid w-full cursor-pointer grid-cols-[152px_minmax(0,1fr)] items-stretch border p-3 text-left outline-none transition-[transform,border-color,background-color,box-shadow] focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:grid-cols-[176px_minmax(0,1fr)_104px] ${
+            className={`group grid w-full cursor-pointer grid-cols-[152px_minmax(0,1fr)] items-stretch border-b py-5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:grid-cols-[176px_minmax(0,1fr)_104px] ${
                 isDayMode
                     ? "border-slate-200/80 hover:border-blue-400/70"
                     : "border-white/[0.08] hover:border-indigo-300/55"
@@ -1661,7 +1661,7 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="events-refined-shell events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
@@ -1676,7 +1676,7 @@ END:VCALENDAR`;
                         aria-label={t("nav.more", "更多")}
                         aria-haspopup="dialog"
                         onClick={() => window.dispatchEvent(new Event("open-mobile-more-menu"))}
-                        className={`events-refined-icon-button inline-flex h-9 w-9 items-center justify-center transition-[border-color,color,background-color] ${
+                        className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${
                             isDayMode
                                 ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950"
                                 : "text-slate-300 hover:border-indigo-400/70 hover:text-white"
@@ -1697,7 +1697,7 @@ END:VCALENDAR`;
                             type="button"
                             aria-label={t("search.placeholder", "搜索")}
                             onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                            className={`events-refined-icon-button inline-flex h-9 w-9 items-center justify-center transition-[border-color,color,background-color] ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
+                            className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950" : "text-slate-300 hover:border-indigo-400/70 hover:text-white"}`}
                         >
                             <Search size={18} />
                         </motion.button>
@@ -1713,7 +1713,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className="events-refined-primary-icon inline-flex h-9 w-9 items-center justify-center"
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] ${isDayMode ? "bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
                         >
                             <Plus size={19} strokeWidth={3} />
                         </motion.button>
@@ -1722,7 +1722,7 @@ END:VCALENDAR`;
 
                 <nav
                     aria-label={t("events.category_label", "活动分类")}
-                    className={`events-refined-mobile-tabs relative -mx-3 mb-3 border-b md:hidden ${
+                    className={`relative -mx-3 mb-3 border-b md:hidden ${
                         isDayMode ? "border-slate-200/80" : "border-white/10"
                     }`}
                 >
@@ -1744,7 +1744,7 @@ END:VCALENDAR`;
                                     aria-selected={active}
                                     aria-pressed={active}
                                     onClick={() => handleMobileCategoryChange(tab.value)}
-                                    className={`events-refined-mobile-tab ${active ? "is-active" : ""} inline-flex min-h-10 shrink-0 snap-start items-center justify-center gap-1.5 px-2.5 text-xs font-bold transition-colors ${
+                                    className={`inline-flex min-h-10 shrink-0 snap-start items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors ${
                                         active
                                             ? isDayMode
                                                 ? "border-blue-500 text-blue-700"
@@ -1767,7 +1767,7 @@ END:VCALENDAR`;
                 </nav>
 
                 <div
-                    className={`events-refined-mobile-toolbar mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] md:hidden ${
+                    className={`mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] border-y md:hidden ${
                         isDayMode ? "border-slate-200/80" : "border-white/10"
                     }`}
                 >
@@ -1840,7 +1840,7 @@ END:VCALENDAR`;
                             type="button"
                             data-testid="organization-partner-active-filter"
                             onClick={clearPartnerFilter}
-                            className="events-refined-active-filter inline-flex min-h-9 max-w-full items-center gap-2 px-3 text-xs font-bold"
+                            className={`inline-flex min-h-9 max-w-full items-center gap-2 border-b border-transparent px-1 text-xs font-bold transition-colors ${isDayMode ? "text-slate-700 hover:border-blue-500/60 hover:text-blue-800" : "text-indigo-100 hover:border-indigo-300/70 hover:text-white"}`}
                         >
                             <Users size={14} />
                             <span className="truncate">
@@ -1854,11 +1854,11 @@ END:VCALENDAR`;
                 )}
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} events-refined-heading mb-5 hidden items-end justify-between gap-8 text-left md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
                 >
                     <div className="min-w-0">
                         <h2
-                            className={`text-balance text-3xl font-black leading-tight tracking-[-0.035em] md:text-[2.65rem] ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            className={`text-balance font-serif text-3xl font-bold leading-tight md:text-4xl ${isDayMode ? "text-slate-950" : "text-white"}`}
                         >
                             {t("events.title")}
                         </h2>
@@ -1880,7 +1880,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className="events-refined-action group flex min-h-[42px] shrink-0 items-center gap-2 px-4 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
+                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-blue-800" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
                         >
                             <Upload size={18} className="md:w-5 md:h-5" />{" "}
                             {t("common.create_event")}
@@ -1891,7 +1891,6 @@ END:VCALENDAR`;
                 {/* Desktop Filter Section */}
                 <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden md:block`}>
                     <EventFilterPanel
-                        className="text-left"
                         filters={filters}
                         onFiltersChange={setFilters}
                         sort={sort}
@@ -1909,7 +1908,7 @@ END:VCALENDAR`;
                 />
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} events-refined-resultbar hidden items-center justify-between gap-4 md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}
                 >
                     <div
                         className={`text-left text-sm font-medium ${
@@ -1920,7 +1919,9 @@ END:VCALENDAR`;
                     </div>
                     {!isCollegeNoticeFilter && (
                         <div
-                            className="events-refined-view-switch inline-flex items-center"
+                            className={`inline-flex items-center gap-1 border-b ${
+                                isDayMode ? "border-slate-200/80" : "border-white/10"
+                            }`}
                             role="group"
                             aria-label={t("events.view_mode.aria")}
                         >
@@ -1934,7 +1935,15 @@ END:VCALENDAR`;
                                         aria-label={option.ariaLabel}
                                         aria-pressed={active}
                                         onClick={() => setViewMode(option.value)}
-                                        className={`events-refined-view-button ${active ? "is-active" : ""} inline-flex min-h-10 items-center gap-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
+                                        className={`inline-flex min-h-9 items-center gap-2 border-b-2 px-2.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                            active
+                                                ? isDayMode
+                                                    ? "border-blue-600 text-blue-700"
+                                                    : "border-indigo-300 text-white"
+                                                : isDayMode
+                                                  ? "border-transparent text-slate-500 hover:text-slate-900"
+                                                  : "border-transparent text-gray-400 hover:text-white"
+                                        }`}
                                     >
                                         <Icon size={15} />
                                         {option.label}
@@ -2201,7 +2210,7 @@ END:VCALENDAR`;
                     {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
                         <div
                             key={i}
-                            className={`event-card-shell events-refined-card relative h-full overflow-hidden border ${isDayMode ? "border-slate-200/80" : "border-white/[0.15]"}`}
+                            className={`event-card-shell relative h-full overflow-hidden rounded-[14px] border ${isDayMode ? "border-slate-200/80" : "border-white/[0.15]"}`}
                         >
                             {/* Shimmer Effect */}
                             {!isDayMode && (
