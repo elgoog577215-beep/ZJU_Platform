@@ -303,7 +303,9 @@ const SearchPalette = ({ initialOpen = false }) => {
                         animate={prefersReducedMotion ? undefined : { opacity: 1 }}
                         exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                         onClick={() => setIsOpen(false)}
-                        className={`absolute inset-0 ${isDayMode ? "bg-slate-950/42" : "bg-black/72"}`}
+                        className={`absolute inset-0 backdrop-blur-[12px] ${
+                            isDayMode ? "bg-slate-950/35" : "bg-[#010708]/60"
+                        }`}
                     />
 
                     <motion.div
@@ -313,32 +315,62 @@ const SearchPalette = ({ initialOpen = false }) => {
                             prefersReducedMotion ? undefined : { opacity: 0, scale: 0.98, y: -12 }
                         }
                         transition={prefersReducedMotion ? undefined : { duration: 0.16 }}
-                        className={`relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 shadow-[0_20px_48px_rgba(0,0,0,0.36)] md:h-auto md:max-w-2xl md:rounded-[7px] md:border ${isDayMode ? "bg-white text-slate-950 md:border-slate-200" : "bg-[#0a0a0a] text-white md:border-white/10"}`}
+                        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 backdrop-blur-[28px] backdrop-saturate-150 md:h-auto md:max-w-3xl md:rounded-[16px] md:border ${
+                            isDayMode
+                                ? "bg-white/[0.84] text-slate-950 shadow-[0_26px_80px_rgba(15,23,42,0.24)] md:border-white/70 md:bg-white/[0.74]"
+                                : "bg-[#061011]/[0.88] text-white shadow-[0_30px_90px_rgba(0,0,0,0.48)] md:border-white/[0.13] md:bg-[#061011]/[0.76]"
+                        }`}
                     >
                         <div
-                            className={`mt-[env(safe-area-inset-top)] flex shrink-0 items-center gap-3 border-b px-4 py-4 md:mt-0 ${isDayMode ? "theme-divider" : "border-white/10"}`}
+                            aria-hidden="true"
+                            className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-px ${
+                                isDayMode ? "bg-white/90" : "bg-white/25"
+                            }`}
+                        />
+                        <div
+                            className={`mt-[env(safe-area-inset-top)] flex shrink-0 items-center gap-2 border-b px-3 py-3 md:mt-0 md:gap-3 md:px-4 md:py-4 ${
+                                isDayMode
+                                    ? "border-slate-900/[0.09] bg-white/30"
+                                    : "border-white/10 bg-black/10"
+                            }`}
                         >
-                            <Search
-                                aria-hidden="true"
-                                className={isDayMode ? "text-slate-400" : "text-gray-400"}
-                                size={20}
-                            />
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                role="combobox"
-                                aria-expanded={results.length > 0}
-                                aria-controls={results.length > 0 ? listboxId : undefined}
-                                aria-autocomplete="list"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={handleInputKeyDown}
-                                placeholder={t("search.placeholder")}
-                                className={`flex-1 bg-transparent text-lg placeholder-gray-500 focus:outline-none ${isDayMode ? "text-slate-900" : "text-white"}`}
-                            />
+                            <div
+                                className={`flex min-w-0 flex-1 items-center gap-3 rounded-[12px] border px-3 py-2.5 transition-[background,border-color] ${
+                                    isDayMode
+                                        ? "border-white/80 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] focus-within:border-violet-300 focus-within:bg-white/70"
+                                        : "border-white/10 bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] focus-within:border-indigo-400/40 focus-within:bg-white/[0.075]"
+                                }`}
+                            >
+                                <Search
+                                    aria-hidden="true"
+                                    className={isDayMode ? "text-slate-500" : "text-slate-300"}
+                                    size={20}
+                                />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    role="combobox"
+                                    aria-expanded={results.length > 0}
+                                    aria-controls={results.length > 0 ? listboxId : undefined}
+                                    aria-autocomplete="list"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    onKeyDown={handleInputKeyDown}
+                                    placeholder={t("search.placeholder")}
+                                    className={`min-w-0 flex-1 bg-transparent text-lg focus:outline-none ${
+                                        isDayMode
+                                            ? "text-slate-900 placeholder:text-slate-500"
+                                            : "text-white placeholder:text-slate-400"
+                                    }`}
+                                />
+                            </div>
                             <div className="flex items-center gap-2">
                                 <kbd
-                                    className={`hidden md:inline-flex items-center gap-1 rounded-[4px] px-2 py-1 text-xs font-mono ${isDayMode ? "theme-kbd" : "bg-white/5 text-gray-400 border border-white/10"}`}
+                                    className={`hidden items-center gap-1 rounded-[8px] border px-2 py-1 text-xs font-mono md:inline-flex ${
+                                        isDayMode
+                                            ? "border-white/80 bg-white/45 text-slate-500"
+                                            : "border-white/10 bg-white/[0.05] text-slate-400"
+                                    }`}
                                 >
                                     <span className="text-xs">ESC</span>
                                 </kbd>
@@ -346,14 +378,18 @@ const SearchPalette = ({ initialOpen = false }) => {
                                     type="button"
                                     aria-label={t("common.close", "关闭")}
                                     onClick={() => setIsOpen(false)}
-                                    className={`rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-400 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                                    className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border p-2 transition-[background,border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                        isDayMode
+                                            ? "border-white/80 bg-white/45 text-slate-500 hover:border-violet-200 hover:bg-white/70 hover:text-slate-900"
+                                            : "border-white/10 bg-white/[0.05] text-slate-300 hover:border-indigo-400/35 hover:bg-white/[0.08] hover:text-white"
+                                    }`}
                                 >
                                     <X size={20} aria-hidden="true" />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 pb-[env(safe-area-inset-bottom)]">
+                        <div className="custom-scrollbar flex-1 overflow-y-auto p-3 pb-[env(safe-area-inset-bottom)]">
                             {loading ? (
                                 <div
                                     className={`p-8 text-center ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
@@ -411,26 +447,30 @@ const SearchPalette = ({ initialOpen = false }) => {
                                 </div>
                             ) : (
                                 <div
-                                    className={`p-12 text-center flex flex-col items-center ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                                    className={`flex flex-col items-center p-12 text-center ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
                                 >
                                     <div
-                                        className={`mb-6 flex h-20 w-20 items-center justify-center border animate-pulse ${isDayMode ? "border-slate-200 bg-slate-100" : "border-white/10 bg-white/5"}`}
+                                        className={`mb-6 flex h-20 w-20 items-center justify-center rounded-[16px] border ${
+                                            isDayMode
+                                                ? "border-white/80 bg-white/45"
+                                                : "border-white/10 bg-white/[0.045]"
+                                        }`}
                                     >
                                         <Command
                                             aria-hidden="true"
                                             className={
-                                                isDayMode ? "text-slate-300" : "text-white/20"
+                                                isDayMode ? "text-slate-400" : "text-white/45"
                                             }
                                             size={40}
                                         />
                                     </div>
                                     <p
-                                        className={`text-lg font-medium ${isDayMode ? "text-slate-400" : "text-white/40"}`}
+                                        className={`text-lg font-medium ${isDayMode ? "text-slate-600" : "text-white/75"}`}
                                     >
                                         {t("search.empty_hint")}
                                     </p>
                                     <p
-                                        className={`text-xs mt-2 ${isDayMode ? "text-slate-300" : "text-white/20"}`}
+                                        className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-white/50"}`}
                                     >
                                         {t("search.min_chars")}
                                     </p>
@@ -439,7 +479,11 @@ const SearchPalette = ({ initialOpen = false }) => {
                         </div>
 
                         <div
-                            className={`flex justify-between border-t px-4 py-2 text-xs ${isDayMode ? "theme-surface-muted theme-divider text-slate-500" : "bg-black/20 border-white/5 text-gray-500"}`}
+                            className={`flex justify-between border-t px-4 py-2 text-xs ${
+                                isDayMode
+                                    ? "border-slate-900/[0.08] bg-white/28 text-slate-600"
+                                    : "border-white/10 bg-black/10 text-slate-400"
+                            }`}
                         >
                             <span>{t("search.footer_hint")}</span>
                             <span>{t("search.brand_search")}</span>
