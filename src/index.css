@@ -1456,11 +1456,19 @@ img {
     }
 
     .event-card-shell {
-        background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(5, 10, 24, 0.9));
+        background-color: #0a1425;
+        background-image: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.026),
+            rgba(99, 102, 241, 0.012) 46%,
+            transparent
+        );
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
     }
 
     .event-card-shell:hover {
-        box-shadow: 0 18px 44px rgba(2, 6, 23, 0.34);
+        background-color: #0e1a2d;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.065);
     }
 
     :root[data-theme="day"] .events-page-atmosphere {
@@ -1479,6 +1487,7 @@ img {
 
     :root[data-theme="day"] .event-card-shell {
         background: rgba(255, 255, 255, 0.94);
+        box-shadow: none;
     }
 
     :root[data-theme="day"] .event-card-shell:hover {
