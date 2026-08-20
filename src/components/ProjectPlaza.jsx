@@ -300,6 +300,7 @@ const DetailModal = ({
     variant,
     showShareCoachmark,
     onDismissShareCoachmark,
+    competitionEventKeys = {},
 }) => {
     const { t } = useTranslation();
     const inMiniProgram = isMiniProgramWebView();
@@ -480,7 +481,11 @@ const DetailModal = ({
                                                 )}
                                             >
                                                 <a
-                                                    href={`/hackathon?view=showcase&competition=${encodeURIComponent(event.slug)}&work=${encodeURIComponent(event.work_id)}#showcase-works`}
+                                                    href={
+                                                        competitionEventKeys[event.slug]
+                                                            ? `/hackathon?event=${encodeURIComponent(competitionEventKeys[event.slug])}&view=showcase&work=${encodeURIComponent(event.work_id)}#showcase-works`
+                                                            : `/hackathon?view=showcase&competition=${encodeURIComponent(event.slug)}&work=${encodeURIComponent(event.work_id)}#showcase-works`
+                                                    }
                                                 >
                                                     {t(
                                                         "project_plaza.event.view_outcome",
@@ -488,7 +493,11 @@ const DetailModal = ({
                                                     )}
                                                 </a>
                                                 <a
-                                                    href={`/media?event=${encodeURIComponent(event.slug)}`}
+                                                    href={
+                                                        competitionEventKeys[event.slug]
+                                                            ? `/hackathon?event=${encodeURIComponent(competitionEventKeys[event.slug])}&view=media`
+                                                            : `/media?event=${encodeURIComponent(event.slug)}`
+                                                    }
                                                 >
                                                     {t(
                                                         "project_plaza.event.view_media",
@@ -1016,7 +1025,7 @@ const CreateForm = ({ onClose, onCreated, competition }) => {
     );
 };
 
-const ProjectPlaza = () => {
+const ProjectPlaza = ({ embedded = false, competitionSlug: controlledCompetitionSlug = "" }) => {
     const { t } = useTranslation();
     const { settings } = useSettings();
     const { schedule } = useHackathonSchedule(settings);
@@ -1049,7 +1058,9 @@ const ProjectPlaza = () => {
     );
     const deepLinkOpenedRef = useRef(false);
     const shareCoachTimerRef = useRef(null);
-    const competitionSlug = String(searchParams.get("competition") || "").trim();
+    const competitionSlug = String(
+        embedded ? controlledCompetitionSlug : searchParams.get("competition") || ""
+    ).trim();
     const scheduledCompetition = schedule.events.find(
         (item) => item.results.competitionSlug === competitionSlug
     );
@@ -1242,6 +1253,7 @@ const ProjectPlaza = () => {
     };
 
     const selectCompetition = (slug) => {
+        if (embedded) return;
         if (slug) {
             setProgFilter("all");
             setNeedFilter(null);
@@ -1273,12 +1285,16 @@ const ProjectPlaza = () => {
         null;
     const activeCompetition =
         competition || competitions.find((item) => item.slug === competitionSlug) || null;
+    const competitionEventKeys = Object.fromEntries(
+        schedule.events.map((item) => [item.results.competitionSlug, item.event.key])
+    );
 
     return (
         <div
             className="ppp-root"
             data-variant={variant}
             data-event={competitionSlug ? "true" : "false"}
+            data-embedded={embedded ? "true" : "false"}
         >
             <SEO
                 title={
@@ -1322,7 +1338,9 @@ const ProjectPlaza = () => {
                 ) : (
                     <ProjectPlazaWorkspace
                         t={t}
-                        allProjectTotal={allProjectTotal || (!competitionSlug ? total : 0)}
+                        allProjectTotal={
+                            embedded ? total : allProjectTotal || (!competitionSlug ? total : 0)
+                        }
                         competitions={competitions}
                         competition={activeCompetition}
                         currentCompetitionSlug={competitionSlug}
@@ -1412,6 +1430,7 @@ const ProjectPlaza = () => {
                                 competitionSlug={competition?.slug}
                             />
                         )}
+                        embedded={embedded}
                     />
                 )}
             </div>
@@ -1425,6 +1444,7 @@ const ProjectPlaza = () => {
                     onOpenPoster={openPoster}
                     showShareCoachmark={showShareCoachmark}
                     onDismissShareCoachmark={() => setShowShareCoachmark(false)}
+                    competitionEventKeys={competitionEventKeys}
                     variant={variant}
                 />
             )}
