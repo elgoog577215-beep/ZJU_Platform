@@ -76,9 +76,7 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
     return (
         <span
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                isDayMode
-                    ? "bg-slate-100/70 text-slate-500"
-                    : "bg-white/[0.05] text-slate-400"
+                isDayMode ? "bg-slate-100/70 text-slate-500" : "bg-white/[0.05] text-slate-400"
             }`}
         >
             <Users size={17} aria-hidden="true" />
@@ -134,9 +132,7 @@ const OrganizationPartnerWall = ({
                 ? "border-blue-600 text-blue-800"
                 : "border-indigo-300 text-indigo-100";
         }
-        return isDayMode
-            ? "text-slate-600 hover:text-blue-800"
-            : "text-slate-300 hover:text-white";
+        return isDayMode ? "text-slate-600 hover:text-blue-800" : "text-slate-300 hover:text-white";
     };
     const partnerMotionProps = {
         whileHover: { opacity: 0.92 },
@@ -168,9 +164,7 @@ const OrganizationPartnerWall = ({
             aria-label={t("events.organizations.aria", "社团活动筛选")}
             data-testid="organization-partner-filter-bar"
         >
-            <div
-                className={`relative overflow-hidden border-y ${shellClass}`}
-            >
+            <div className={`relative overflow-hidden border-y ${shellClass}`}>
                 <div
                     ref={scrollRef}
                     {...dragScrollProps}

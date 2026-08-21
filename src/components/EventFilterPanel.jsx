@@ -428,9 +428,7 @@ const EventFilterPanel = ({
                                     sort={sort}
                                     onSortChange={handleSortChange}
                                     className="w-full"
-                                    buttonClassName={
-                                        `w-full min-h-[44px] border-b bg-transparent px-2 py-3 text-sm font-bold transition-[border-color,color] ${desktopGhostControlClass}`
-                                    }
+                                    buttonClassName={`w-full min-h-[44px] border-b bg-transparent px-2 py-3 text-sm font-bold transition-[border-color,color] ${desktopGhostControlClass}`}
                                     extraOptions={sortExtraOptions}
                                     renderMode={isSheetMode ? "list" : "dropdown"}
                                     dropdownVariant="ghost"
