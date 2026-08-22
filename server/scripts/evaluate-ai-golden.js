@@ -257,6 +257,20 @@ const seedData = async (db) => {
             tags: "music",
         },
         {
+            title: "Campus Top Ten Singer Competition",
+            date: daysFromNow(5, 19),
+            endDate: daysFromNow(5, 21),
+            location: "Zijingang Theater",
+            description: "Campus vocal singing contest for student singers and bands.",
+            content: "<p>Solo singing, choir performance and a final stage competition.</p>",
+            score: "",
+            audience: "Freshmen",
+            organizer: "Student Art Center",
+            volunteerTime: "",
+            category: "culture_sports",
+            tags: "singing,vocal,music",
+        },
+        {
             title: "Future Campus Life Sharing",
             date: daysFromNow(6, 15),
             endDate: daysFromNow(6, 17),
@@ -409,14 +423,19 @@ const goldenModelRunner = async ({ task, messages }) => {
             };
         }
 
-        if (/音乐|文体|艺术|\bmusic\b|\bart\b|放松|社交/i.test(query)) {
+        if (
+            /唱歌|歌唱|声乐|歌手|音乐|文体|艺术|\bsinging\b|\bmusic\b|\bart\b|放松|社交/i.test(
+                query
+            )
+        ) {
+            const vocalQuery = /唱歌|歌唱|声乐|歌手|singing/i.test(query);
             return {
                 query_summary: "用户想找音乐、艺术或轻社交类校园活动。",
                 topics: ["音乐", "艺术", "社交"],
                 campuses: /玉泉|yuquan/i.test(query) ? ["Yuquan"] : [],
-                organizers: ["Art Club"],
-                audiences: ["All students"],
-                benefits: ["social"],
+                organizers: vocalQuery ? [] : ["Art Club"],
+                audiences: vocalQuery ? [] : ["All students"],
+                benefits: vocalQuery ? [] : ["social"],
                 categories: ["culture_sports"],
                 date_constraints: /周末|weekend/i.test(query) ? ["weekend"] : [],
                 format: "offline",
@@ -470,6 +489,7 @@ const goldenModelRunner = async ({ task, messages }) => {
         const isHackathon = /hackathon|challenge|competition|pitch/i.test(text);
         const isAi = /AI|agent|LLM|demo/i.test(text);
         const isVolunteer = /volunteer|public service|hour/i.test(text);
+        const isVocal = /sing|singer|vocal|choir/i.test(text);
         const isMusic = /music|art/i.test(text);
         return {
             summary: isHackathon
@@ -488,7 +508,13 @@ const goldenModelRunner = async ({ task, messages }) => {
                     : isMusic
                       ? "culture_sports"
                       : "other",
-            topics: isAi ? ["AI", "agent", "demo"] : [event.title || "campus event"],
+            topics: isAi
+                ? ["AI", "agent", "demo"]
+                : isVocal
+                  ? ["声乐歌唱", "音乐"]
+                  : isMusic
+                    ? ["音乐", "艺术"]
+                    : [event.title || "campus event"],
             campuses: String(event.location || "").includes("Zijingang") ? ["Zijingang"] : [],
             organizers: event.organizer ? [event.organizer] : [],
             audiences: event.target_audience ? [event.target_audience] : [],
@@ -511,6 +537,7 @@ const goldenModelRunner = async ({ task, messages }) => {
     if (task === "event_recommendation_rerank") {
         const payload = extractPayload(messages);
         const candidates = payload.candidates || [];
+        const wantsVocal = JSON.stringify(payload.userIntent || {}).includes("声乐歌唱");
         assert(
             candidates.some(
                 (candidate) =>
@@ -533,6 +560,7 @@ const goldenModelRunner = async ({ task, messages }) => {
                 const isHackathon = /hackathon|challenge|competition/i.test(text);
                 const isWorkshop = /AI Agent|workshop|agent/i.test(text);
                 const isVolunteer = /volunteer|service|hour/i.test(text);
+                const isVocal = /sing|singer|vocal|choir/i.test(text);
                 const isMusic = /music|art|sharing/i.test(text);
                 const isFreshman = /freshmen|freshman/i.test(text);
                 const hasScore = /score/i.test(text);
@@ -544,6 +572,7 @@ const goldenModelRunner = async ({ task, messages }) => {
                         (isHackathon ? 10 : 0) +
                         (isWorkshop ? 8 : 0) +
                         (isVolunteer ? 14 : 0) +
+                        (isVocal && wantsVocal ? 18 : 0) +
                         (isMusic ? 12 : 0) +
                         (isFreshman ? 5 : 0) +
                         (hasScore ? 4 : 0) +
@@ -1105,9 +1134,10 @@ const evaluateEventRecommendationQueryMatrix = async (db) => {
         },
         { query: "有没有音乐分享类校园活动？", expected: /Classical Music Sharing Session/i },
         { query: "我想参加艺术社相关活动。", expected: /Classical Music Sharing Session/i },
+        { query: "想找唱歌或者歌唱比赛。", expected: /Campus Top Ten Singer Competition/i },
         {
             query: "推荐适合新生参加的线下活动，最好在紫金港。",
-            expected: /AI Hackathon|Future Campus|AI Agent/i,
+            expected: /AI Hackathon|Future Campus|AI Agent|Campus Top Ten Singer/i,
         },
     ];
 
@@ -1518,6 +1548,75 @@ const evaluateComputerTechConversation = async (db) => {
     };
 };
 
+const evaluateVocalSearchFallback = async (db) => {
+    const result = await runEventAssistantTurn({
+        db,
+        query: "唱歌",
+        allowHistoricalFallback: false,
+        modelRunner: async () => {
+            throw new Error("Simulated model outage for vocal search.");
+        },
+        now: new Date(),
+    });
+
+    assert(result.type === "recommend", "Vocal search should recommend without clarification.");
+    assert(
+        /Campus Top Ten Singer Competition/i.test(result.recommendations?.[0]?.event?.title || ""),
+        "Vocal search fallback should rank the singer competition first."
+    );
+    assert(
+        result.recommendations[0].diagnostics?.hardConstraintMisses?.includes("主题") === false,
+        "Vocal search result should satisfy the canonical topic constraint."
+    );
+
+    return {
+        topEvent: result.recommendations[0].event.title,
+        modelFallback: Boolean(result.modelStatus?.fallbackUsed),
+    };
+};
+
+const evaluateHistoricalVocalExpansion = async (db) => {
+    const singer = await db.get(
+        "SELECT id, date, end_date FROM events WHERE title = ?",
+        "Campus Top Ten Singer Competition"
+    );
+    await db.run("UPDATE events SET date = ?, end_date = ? WHERE id = ?", [
+        "2025-04-19T19:00",
+        "2025-04-19T21:00",
+        singer.id,
+    ]);
+
+    try {
+        const result = await runEventAssistantTurn({
+            db,
+            query: "唱歌",
+            allowHistoricalFallback: true,
+            modelRunner: async () => {
+                throw new Error("Simulated model outage for historical vocal search.");
+            },
+            now: new Date(),
+        });
+        assert(result.type === "recommend", "Historical vocal expansion should recommend.");
+        assert(
+            /Campus Top Ten Singer Competition/i.test(
+                result.recommendations?.[0]?.event?.title || ""
+            ),
+            "Historical expansion should find the relevant singer event before unrelated future events."
+        );
+        assert(
+            result.recommendations[0].isHistorical === true,
+            "Expanded vocal recommendation should be marked historical."
+        );
+        return { topEvent: result.recommendations[0].event.title };
+    } finally {
+        await db.run("UPDATE events SET date = ?, end_date = ? WHERE id = ?", [
+            singer.date,
+            singer.end_date,
+            singer.id,
+        ]);
+    }
+};
+
 const evaluateRecommendationActionEvidenceRanking = async (db) => {
     await db.run(
         "INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason) VALUES (?, ?, ?, ?, ?)",
@@ -1923,6 +2022,8 @@ const main = async () => {
         const eventRecommendation = await evaluateEventRecommendation(db);
         const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
         const computerTechConversation = await evaluateComputerTechConversation(db);
+        const vocalSearchFallback = await evaluateVocalSearchFallback(db);
+        const historicalVocalExpansion = await evaluateHistoricalVocalExpansion(db);
         const intentLocalConstraintRetention = await evaluateIntentLocalConstraintRetention(db);
         const localBenefitAliasBoundaries = await evaluateLocalBenefitAliasBoundaries(db);
         const rerankBackendCompletionAndGuardrail =
@@ -1962,6 +2063,8 @@ const main = async () => {
                         eventRecommendation,
                         eventRecommendationQueryMatrix,
                         computerTechConversation,
+                        vocalSearchFallback,
+                        historicalVocalExpansion,
                         intentLocalConstraintRetention,
                         localBenefitAliasBoundaries,
                         rerankBackendCompletionAndGuardrail,

@@ -371,10 +371,22 @@ jobs:
                       done
 
                       if [ "$healthy" -ne 1 ]; then
-                        pm2 logs zju-server --lines 80 --nostream || true
-                        cat "$health_file" 2>/dev/null || true
-                        exit 1
+                          pm2 logs zju-server --lines 80 --nostream || true
+                          cat "$health_file" 2>/dev/null || true
+                          exit 1
                       fi
+
+                      (
+                        cd "$app_root/server"
+                        node scripts/refresh-event-ai-profiles.js \
+                          --all \
+                          --limit=200 \
+                          --max-batches=100 \
+                          --force \
+                          --no-model \
+                          --local-embedding
+                      )
+                      echo "Event AI search index refreshed"
 
                       rm -f "$health_file"
                       find "$deployment_root" -mindepth 1 -maxdepth 1 -type d -exec rm -rf -- {} +

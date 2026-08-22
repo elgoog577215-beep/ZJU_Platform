@@ -13,17 +13,31 @@ const hasFlag = (name) => process.argv.includes(`--${name}`);
 const main = async () => {
     const db = await getDb();
     try {
-        const result = await refreshEventProfileIndex(db, {
-            limit: Number(readFlag("limit", 40)),
-            force: hasFlag("force"),
-            useModel: !hasFlag("no-model"),
-        });
+        const refreshAll = hasFlag("all");
+        const maxBatches = refreshAll ? Number(readFlag("max-batches", 100)) : 1;
+        let result = null;
+        let batchCount = 0;
+
+        do {
+            result = await refreshEventProfileIndex(db, {
+                limit: Number(readFlag("limit", 40)),
+                force: hasFlag("force"),
+                useModel: !hasFlag("no-model"),
+                localEmbeddingOnly: hasFlag("local-embedding"),
+            });
+            batchCount += 1;
+        } while (
+            refreshAll &&
+            batchCount < maxBatches &&
+            (result.coverage.missingCount > 0 || result.coverage.staleCount > 0)
+        );
 
         console.log(
             JSON.stringify(
                 {
                     ok: true,
                     runId: result.runId,
+                    batchCount,
                     summary: result.summary,
                     coverage: result.coverage,
                 },
