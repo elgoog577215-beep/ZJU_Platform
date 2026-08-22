@@ -15,7 +15,7 @@
 | 仓库、领域真源和运行链怎样组织 | [技术架构](./docs/技术架构.md)             |
 | AI 应遵守哪些项目规则          | [项目规则](./AGENTS.md)                    |
 | 当前高影响功能怎样设计和实施   | [`openspec/changes/`](./openspec/changes/) |
-| 专项发布、采集与移动端操作     | [`docs/指南/`](./docs/指南/)               |
+| 专项发布、采集与移动端操作     | [`docs/操作手册/`](./docs/操作手册/)       |
 | 历史设计和决策依据             | [`docs/归档/`](./docs/归档/)               |
 
 AI Agent 的正式执行规则位于 [AGENTS.md](./AGENTS.md)。它主要面向 AI，不替代本文的人类上手说明。
@@ -118,7 +118,7 @@ wechat-miniprogram/   微信小程序 WebView 壳与原生桥接
 android-twa/          Android TWA/WebView 包装工程
 ios/                  iOS Capacitor 工程
 e2e/                  Playwright 浏览器回归
-docs/                 当前中文文档、操作指南和历史归档
+docs/                 当前中文文档、操作手册和历史归档
 openspec/             正式规格、活动变更与归档
 ```
 

@@ -37,7 +37,7 @@
 - 可能新增文件：
     - `capacitor.config.*`
     - `ios/`
-    - `docs/指南/iOS应用开发与验收指南.md`
+    - `docs/操作手册/iOS应用开发与验收.md`
     - `package.json` 中的 Capacitor 依赖和脚本
 - 可能调整文件：
     - `src/utils/displayMode.js`

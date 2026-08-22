@@ -1,4 +1,4 @@
-# iOS Capacitor App 开发与验收说明
+# iOS Capacitor App 开发与验收操作手册
 
 ## 目标
 

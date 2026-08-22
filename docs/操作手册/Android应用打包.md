@@ -1,4 +1,4 @@
-# Android APK 开发与打包说明
+# Android App 开发与打包操作手册
 
 ## 目标
 

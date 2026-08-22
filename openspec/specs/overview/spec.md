@@ -39,7 +39,7 @@
 
 ### Requirement: 历史材料不得覆盖当前事实
 
-历史决策、专项指南、旧计划、归档 OpenSpec 和本地 `docs/事实.md` SHALL 只提供追溯、专项操作或执行证据。
+历史决策、操作手册、旧计划、归档 OpenSpec 和本地 `docs/事实.md` SHALL 只提供追溯、专项操作或执行证据。
 
 #### Scenario: 历史文档与当前代码冲突
 
