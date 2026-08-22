@@ -425,7 +425,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
     const existing = await getProfileRow(db, event.id);
     if (
         existing &&
-        existing.source_hash === sourceHash &&
+        (options.trustIndexedProfile || existing.source_hash === sourceHash) &&
         (existing.status === "ready" ||
             (options.useModel === false && existing.status === "fallback")) &&
         !options.force
