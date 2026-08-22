@@ -22,6 +22,10 @@ const {
     startUserEventAiProfileScheduler,
     stopUserEventAiProfileScheduler,
 } = require("./src/services/userEventAiProfileService");
+const {
+    getProfileCoverage,
+    refreshEventProfileIndex,
+} = require("./src/services/eventAiProfileService");
 const apiRoutes = require("./src/routes/api");
 const errorHandler = require("./src/middleware/errorHandler");
 const {
@@ -401,6 +405,26 @@ app.use(errorHandler);
 // ====================
 // Database Initialization & Server Start
 // ====================
+const refreshEventAiSearchIndex = async (db) => {
+    const maxBatches = 100;
+    let coverage = await getProfileCoverage(db);
+    let batchCount = 0;
+
+    while (batchCount < maxBatches && (coverage.missingCount > 0 || coverage.staleCount > 0)) {
+        const result = await refreshEventProfileIndex(db, {
+            limit: 200,
+            useModel: false,
+            localEmbeddingOnly: true,
+        });
+        coverage = result.coverage;
+        batchCount += 1;
+    }
+
+    console.log(
+        `[EventAssistant] Search index ready: ${coverage.profileCount}/${coverage.eventCount} profiles, ${coverage.staleCount} stale (${batchCount} batches).`
+    );
+};
+
 const startServer = async () => {
     try {
         // Initialize database
@@ -454,6 +478,13 @@ const startServer = async () => {
                 throw err;
             }
         }
+
+        refreshEventAiSearchIndex(db).catch((error) => {
+            console.error(
+                "[EventAssistant] Background search index refresh failed:",
+                error.message
+            );
+        });
     } catch (error) {
         console.error("❌ Failed to start server:", error);
         process.exit(1);

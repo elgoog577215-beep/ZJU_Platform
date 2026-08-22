@@ -2,6 +2,14 @@ const crypto = require("crypto");
 const aiRuntime = require("../services/unifiedAiRuntimeService");
 const { ensureEventProfiles } = require("../services/eventAiProfileService");
 const { callEmbeddingWithFailover } = require("../services/aiModelConfigService");
+const {
+    EVENT_SEMANTIC_TOPICS,
+    LOCAL_SEMANTIC_MODEL,
+    buildLocalSemanticVector,
+    detectSemanticCategories,
+    detectSemanticTopics: detectTaxonomyTopics,
+    expandSemanticTerms,
+} = require("../services/eventSemanticSearchService");
 const { createEventRecommendationServices } = require("../services/eventRecommendation");
 const userProfileService = require("../services/userProfileService");
 const {
@@ -124,6 +132,7 @@ const COMPUTER_TECH_TOPIC_ALIASES = [
     "technology",
 ];
 const SEARCH_TERM_ALIASES = {
+    ...Object.fromEntries(EVENT_SEMANTIC_TOPICS.map((topic) => [topic.value, topic.aliases])),
     紫金港: ["zijingang"],
     玉泉: ["yuquan"],
     西溪: ["xixi"],
@@ -437,7 +446,7 @@ const normalizeBenefitValue = (value) => {
 
 const detectSemanticTopics = (text) => {
     const lowered = normalizeSearchText(text);
-    const topics = [];
+    const topics = [...detectTaxonomyTopics(text)];
 
     if (includesAnyPhrase(lowered, AI_TOPIC_ALIASES)) {
         topics.push("AI", "人工智能");
@@ -540,7 +549,10 @@ const detectTimePreference = (text) => {
 const parseAssistantIntent = ({ query, clarificationAnswer }) => {
     const combined = buildAssistantIntent({ query, clarificationAnswer });
     const lowered = combined.toLowerCase();
-    const categories = detectCategories(combined);
+    const categories = unique([
+        ...detectCategories(combined),
+        ...detectSemanticCategories(combined),
+    ]);
     const benefits = detectBenefits(combined);
     const format = detectFormat(combined);
     const timePreference = detectTimePreference(combined);
@@ -2200,16 +2212,19 @@ const cosineSimilarity = (left = [], right = []) => {
 };
 
 const buildFtsQuery = (intent) =>
-    unique([
-        ...(intent.topics || []),
-        ...(intent.campuses || []),
-        ...(intent.audiences || []),
-        ...(intent.categories || []).map((item) => CATEGORY_LABELS[item] || item),
-        ...(intent.benefits || []).map(getBenefitLabel),
-    ])
+    unique(
+        expandSemanticTerms([
+            ...(intent.semanticTopics || []),
+            ...(intent.topics || []),
+            ...(intent.campuses || []),
+            ...(intent.audiences || []),
+            ...(intent.categories || []).map((item) => CATEGORY_LABELS[item] || item),
+            ...(intent.benefits || []).map(getBenefitLabel),
+        ])
+    )
         .map((term) => sanitizeText(String(term), 40).replace(/["']/g, ""))
         .filter((term) => term.length >= 2)
-        .slice(0, 8)
+        .slice(0, 24)
         .map((term) => `"${term}"`)
         .join(" OR ");
 
@@ -2235,7 +2250,7 @@ const loadFtsScores = async (db, intent) => {
     }
 };
 
-const loadQueryEmbedding = async (db, intent) => {
+const loadQueryEmbeddings = async (db, intent) => {
     const input = sanitizeText(
         [
             intent.query,
@@ -2250,19 +2265,29 @@ const loadQueryEmbedding = async (db, intent) => {
         1200
     );
     if (!input) return [];
+    const localEmbedding = {
+        model: LOCAL_SEMANTIC_MODEL,
+        vector: buildLocalSemanticVector(input),
+    };
     try {
         const result = await callEmbeddingWithFailover(db, input, { timeout: 1200 });
-        return result.vector;
+        return [
+            {
+                model: result.config?.model || "",
+                vector: result.vector,
+            },
+            localEmbedding,
+        ];
     } catch {
-        return [];
+        return [localEmbedding];
     }
 };
 
-const loadVectorScores = async (db, queryEmbedding, allowedEventIds) => {
-    if (!queryEmbedding.length || !allowedEventIds.size) return new Map();
+const loadVectorScores = async (db, queryEmbeddings, allowedEventIds) => {
+    if (!queryEmbeddings.length || !allowedEventIds.size) return new Map();
     try {
         const rows = await db.all(`
-      SELECT event_id, embedding_vector
+      SELECT event_id, embedding_vector, embedding_model, embedding_dimensions
       FROM event_ai_profiles
       WHERE embedding_vector IS NOT NULL
         AND embedding_dimensions > 0
@@ -2272,7 +2297,17 @@ const loadVectorScores = async (db, queryEmbedding, allowedEventIds) => {
                 .filter((row) => allowedEventIds.has(Number(row.event_id)))
                 .map((row) => {
                     const vector = safeJsonParse(row.embedding_vector, []);
-                    return [Number(row.event_id), cosineSimilarity(queryEmbedding, vector)];
+                    const matchingQuery =
+                        queryEmbeddings.find(
+                            (item) => item.model && item.model === row.embedding_model
+                        ) ||
+                        queryEmbeddings.find(
+                            (item) => item.vector.length === Number(row.embedding_dimensions)
+                        );
+                    return [
+                        Number(row.event_id),
+                        cosineSimilarity(matchingQuery?.vector || [], vector),
+                    ];
                 })
                 .filter(([, score]) => score > 0)
         );
@@ -2332,12 +2367,12 @@ const buildAiCandidatePool = async ({
     ).sort(
         (left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event)
     );
-    const [ftsScores, queryEmbedding] = await Promise.all([
+    const [ftsScores, queryEmbeddings] = await Promise.all([
         loadFtsScores(db, intent),
-        useEmbedding ? loadQueryEmbedding(db, intent) : Promise.resolve([]),
+        useEmbedding ? loadQueryEmbeddings(db, intent) : Promise.resolve([]),
     ]);
     const allowedEventIds = new Set(scopedEvents.map((event) => Number(event.id)));
-    const vectorScores = await loadVectorScores(db, queryEmbedding, allowedEventIds);
+    const vectorScores = await loadVectorScores(db, queryEmbeddings, allowedEventIds);
     const ruleById = new Map(ruleRanked.map((item) => [Number(item.event.id), item]));
     const recallIds = unique([
         ...ruleRanked.slice(0, AI_RECALL_LIMIT).map((item) => Number(item.event.id)),
@@ -2370,7 +2405,7 @@ const buildAiCandidatePool = async ({
         }
     );
 
-    const candidates = preRanked
+    const scoredCandidates = preRanked
         .map((item) =>
             scoreAiProfileCandidate(
                 item,
@@ -2403,6 +2438,18 @@ const buildAiCandidatePool = async ({
                     ...item.signals,
                 ]).slice(0, 8),
             };
+        });
+    const candidates = scoredCandidates
+        .filter((item) => {
+            if (!intent.semanticTopics?.length) return true;
+            const topicMatched = item.hardConstraint?.signals?.some((signal) =>
+                String(signal).startsWith("主题匹配：")
+            );
+            return (
+                topicMatched ||
+                Number(item.retrieval?.ftsScore || 0) > 0 ||
+                Number(item.retrieval?.vectorScore || 0) >= 0.45
+            );
         })
         .sort(
             (left, right) =>
@@ -2411,6 +2458,26 @@ const buildAiCandidatePool = async ({
                 compareByAscendingDate(left.event, right.event)
         )
         .slice(0, MAX_MODEL_CANDIDATES);
+
+    if (
+        candidates.length === 0 &&
+        !usedHistoricalFallback &&
+        grouped.past.length > 0 &&
+        (allowHistoricalFallback || allowScopeExpansion || intent.allowHistorical)
+    ) {
+        return buildAiCandidatePool({
+            db,
+            grouped: { ongoing: [], upcoming: [], past: grouped.past },
+            intent,
+            profile,
+            allowScopeExpansion: false,
+            allowHistoricalFallback: true,
+            now,
+            modelRunner,
+            useProfileModel,
+            useEmbedding,
+        });
+    }
 
     return {
         scope,
@@ -4009,7 +4076,10 @@ const runUnifiedEventAssistantTurn = async ({
         return withPerformance({
             type: "empty",
             scope: pool.scope,
-            emptyReason: futurePool.length === 0 ? "no_upcoming" : "no_matches",
+            emptyReason:
+                futurePool.length === 0 && !pool.usedHistoricalFallback
+                    ? "no_upcoming"
+                    : "no_matches",
             canExpandScope: pool.canExpandScope,
             recommendationMode: "empty",
             coverage,
@@ -4017,7 +4087,8 @@ const runUnifiedEventAssistantTurn = async ({
             remembered,
             modelStatus: {
                 ...intentModelStatus,
-                used: true,
+                used: Boolean(intentModelStatus?.used),
+                fallbackUsed: !intentModelStatus?.used,
                 tasks: ["event_recommendation_intent"],
                 profileStats: pool.profileStats,
                 message:

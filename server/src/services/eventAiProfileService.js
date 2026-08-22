@@ -8,8 +8,13 @@ const {
 } = require("./eventIntelligenceService");
 const aiRuntime = require("./unifiedAiRuntimeService");
 const { callEmbeddingWithFailover } = require("./aiModelConfigService");
+const {
+    LOCAL_SEMANTIC_MODEL,
+    buildLocalSemanticVector,
+    detectSemanticTopics,
+} = require("./eventSemanticSearchService");
 
-const PROFILE_VERSION = 1;
+const PROFILE_VERSION = 2;
 const MAX_PROFILE_EVENTS_PER_TURN = 24;
 const DEFAULT_PROFILE_CONCURRENCY = 4;
 
@@ -120,6 +125,7 @@ const normalizeProfile = (profile = {}, event = {}) => {
 
 const buildRuleProfile = (event = {}) => {
     const text = buildEventSourceText(event);
+    const semanticTopics = detectSemanticTopics(text);
     const campusTerms = detectCampusTerms(text);
     const audienceTerms = detectAudienceTerms(text);
     const benefitTerms = [
@@ -135,7 +141,10 @@ const buildRuleProfile = (event = {}) => {
         {
             summary: event.description || event.title,
             category: event.category,
-            topics: uniqueTextArray([event.category, event.title, event.organizer], 8),
+            topics: uniqueTextArray(
+                [...semanticTopics, event.category, event.title, event.organizer],
+                12
+            ),
             campuses: campusTerms,
             organizers: uniqueTextArray(event.organizer, 4),
             audiences: audienceTerms,
@@ -250,10 +259,33 @@ const upsertFtsRow = async (db, event, profile) => {
     }
 };
 
+const persistLocalSemanticVector = async (db, event, profile) => {
+    const vector = buildLocalSemanticVector(buildEmbeddingText(event, profile));
+    await db.run(
+        `
+      UPDATE event_ai_profiles
+      SET embedding_vector = ?, embedding_model = ?, embedding_dimensions = ?,
+          embedded_at = datetime('now'), updated_at = datetime('now')
+      WHERE event_id = ?
+    `,
+        [JSON.stringify(vector), LOCAL_SEMANTIC_MODEL, vector.length, event.id]
+    );
+    return vector;
+};
+
 const refreshSearchArtifacts = async (db, event, profileRow, options = {}) => {
     const profile = normalizeProfile(profileRow.raw || profileRow, event);
     const ftsIndexed = await upsertFtsRow(db, event, profile);
     if (options.embedding === false) return { ftsIndexed, embedded: false };
+    if (options.localEmbeddingOnly) {
+        const vector = await persistLocalSemanticVector(db, event, profile);
+        return {
+            ftsIndexed,
+            embedded: true,
+            fallback: true,
+            dimensions: vector.length,
+        };
+    }
 
     try {
         const result = await callEmbeddingWithFailover(db, buildEmbeddingText(event, profile), {
@@ -275,7 +307,14 @@ const refreshSearchArtifacts = async (db, event, profileRow, options = {}) => {
         );
         return { ftsIndexed, embedded: true, dimensions: result.vector.length };
     } catch (error) {
-        return { ftsIndexed, embedded: false, error };
+        const vector = await persistLocalSemanticVector(db, event, profile);
+        return {
+            ftsIndexed,
+            embedded: true,
+            fallback: true,
+            dimensions: vector.length,
+            error,
+        };
     }
 };
 
@@ -396,6 +435,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
             ? await refreshSearchArtifacts(db, event, serialized, {
                   embedding: options.embedding !== false && !serialized.embeddedAt,
                   embeddingTimeout: options.embeddingTimeout,
+                  localEmbeddingOnly: options.localEmbeddingOnly,
               })
             : null;
         return {
@@ -434,6 +474,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
             ? await refreshSearchArtifacts(db, event, serialized, {
                   embedding: options.embedding !== false,
                   embeddingTimeout: options.embeddingTimeout,
+                  localEmbeddingOnly: options.localEmbeddingOnly,
               })
             : null;
         return {
@@ -465,6 +506,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
             ? await refreshSearchArtifacts(db, event, serialized, {
                   embedding: options.embedding !== false,
                   embeddingTimeout: options.embeddingTimeout,
+                  localEmbeddingOnly: options.localEmbeddingOnly,
               })
             : null;
         return {
@@ -484,6 +526,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
             ? await refreshSearchArtifacts(db, event, serialized, {
                   embedding: options.embedding !== false,
                   embeddingTimeout: options.embeddingTimeout,
+                  localEmbeddingOnly: options.localEmbeddingOnly,
               })
             : null;
         return {
@@ -696,6 +739,7 @@ const refreshEventProfileIndex = async (db, options = {}) => {
         embeddingTimeout: options.embeddingTimeout,
         buildSearchIndex: true,
         embedding: options.embedding !== false,
+        localEmbeddingOnly: options.localEmbeddingOnly,
         limit,
     });
     const coverage = await getProfileCoverage(db);
