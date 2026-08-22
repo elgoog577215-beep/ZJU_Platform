@@ -2402,6 +2402,7 @@ const buildAiCandidatePool = async ({
             modelRunner,
             useModel: useProfileModel,
             persistFallback: useProfileModel,
+            trustIndexedProfile: true,
         }
     );
 
