@@ -189,8 +189,8 @@ const Navbar = ({ miniProgramMode = false }) => {
     }, []);
 
     const shellClasses = isDayMode
-        ? "bg-white border-slate-900/[0.08] shadow-none"
-        : "bg-black/[0.92] border-white/10 shadow-none";
+        ? "bg-white/[0.82] border-slate-900/[0.08] shadow-none"
+        : "bg-black/[0.78] border-white/10 shadow-none";
     const desktopNavTrackClasses = `flex shrink-0 items-center gap-0.5 rounded-[12px] border p-1 ${
         isDayMode
             ? "border-slate-200/80 bg-slate-950/[0.025]"
@@ -272,7 +272,7 @@ const Navbar = ({ miniProgramMode = false }) => {
             variants={navEntrance}
             initial={prefersReducedMotion ? false : "initial"}
             animate={prefersReducedMotion ? undefined : "animate"}
-            className={`motion-gpu fixed top-0 left-0 right-0 z-50 items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b ${hideMobileTopBar ? "hidden md:flex" : "flex"} ${isDayMode ? "" : "backdrop-blur-xl"} ${shellClasses}`}
+            className={`motion-gpu fixed top-0 left-0 right-0 z-50 items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b ${hideMobileTopBar ? "hidden md:flex" : "flex"} backdrop-blur-xl ${shellClasses}`}
             role="navigation"
             aria-label={t("nav.main_aria")}
         >
