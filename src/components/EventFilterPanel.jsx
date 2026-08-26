@@ -39,7 +39,6 @@ const EventFilterPanel = ({
 
     const selectedCategory = filters?.category || null;
     const selectedAudience = filters?.target_audience || null;
-    const hasActiveFilters = Boolean(selectedCategory || selectedAudience);
     const sortExtraOptions = [
         { value: "date_asc", label: t("sort_filter.date_asc", "日期（最早）") },
         { value: "date_desc", label: t("sort_filter.date_desc", "日期（最晚）") },
@@ -97,13 +96,6 @@ const EventFilterPanel = ({
             setAudienceSearch("");
             setIsAudienceOpen(false);
         }
-    };
-
-    const clearAll = () => {
-        onFiltersChange({ category: null, target_audience: null });
-        setAudienceSearch("");
-        setShowAllAudiences(false);
-        setIsAudienceOpen(false);
     };
 
     const handleSortChange = (nextSort) => {
@@ -422,17 +414,6 @@ const EventFilterPanel = ({
                                 className={`shrink-0 transition-transform ${isAudienceOpen ? "rotate-180" : ""}`}
                             />
                         </button>
-
-                        {hasActiveFilters && (
-                            <button
-                                type="button"
-                                onClick={clearAll}
-                                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 border-b border-transparent px-2 text-xs font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-400/60 hover:text-rose-600" : "text-slate-400 hover:border-rose-300/60 hover:text-rose-200"}`}
-                            >
-                                <X size={13} />
-                                {t("common.clear_all", "重置")}
-                            </button>
-                        )}
 
                         {!hideSort && (
                             <div
