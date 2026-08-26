@@ -59,7 +59,7 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
         return (
             <span
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] px-1.5 ${
-                    isDayMode ? "bg-slate-100" : "bg-white/90"
+                    isDayMode ? "bg-white/75" : "bg-white/85"
                 }`}
             >
                 <img
@@ -124,18 +124,18 @@ const OrganizationPartnerWall = ({
     const isAllActive = activePartnerId === null || activePartnerId === undefined;
     const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
     const shellClass = isDayMode
-        ? "border-slate-200/80 bg-[var(--theme-bg)]"
-        : "border-white/[0.105] bg-[var(--theme-bg)]";
+        ? "border-white/55 bg-white/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-md"
+        : "border-white/[0.09] bg-slate-950/[0.28] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] backdrop-blur-md";
     const buttonBase =
-        "relative flex w-[3.25rem] shrink-0 snap-start flex-col items-center gap-1 px-0.5 py-1 text-center transition-[background-color,border-color,color] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-full after:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:h-14 md:flex-row md:gap-2.5 md:rounded-[10px] md:border md:border-transparent md:px-2.5 md:py-2 md:text-left md:after:hidden";
+        "relative flex w-[3.25rem] shrink-0 snap-start flex-col items-center gap-1 px-0.5 py-1 text-center transition-[background-color,border-color,color,box-shadow] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-full after:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:h-14 md:flex-row md:gap-2.5 md:rounded-[10px] md:border md:border-transparent md:px-2.5 md:py-2 md:text-left md:after:hidden";
     const getButtonClass = (active) => {
         if (active) {
             return isDayMode
-                ? "text-blue-800 after:bg-blue-600 md:border-blue-200 md:bg-blue-50"
-                : "text-indigo-100 after:bg-indigo-300 md:border-indigo-300/25 md:bg-indigo-400/[0.12]";
+                ? "text-blue-800 after:bg-blue-600 md:border-blue-200/80 md:bg-white/80 md:shadow-[0_8px_22px_rgba(37,99,235,0.08)]"
+                : "text-white after:bg-indigo-300 md:border-indigo-300/30 md:bg-indigo-300/[0.12] md:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
         }
         return isDayMode
-            ? "text-slate-600 hover:text-blue-800 md:hover:border-slate-200 md:hover:bg-slate-50"
+            ? "text-slate-600 hover:text-blue-800 md:hover:border-white/70 md:hover:bg-white/55"
             : "text-slate-300 hover:text-white md:hover:border-white/10 md:hover:bg-white/[0.055]";
     };
     const partnerMotionProps = {
@@ -171,7 +171,7 @@ const OrganizationPartnerWall = ({
                 <div
                     ref={scrollRef}
                     {...dragScrollProps}
-                    className="scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 pr-10 touch-pan-x active:cursor-grabbing md:gap-2 md:py-2.5 md:pr-14"
+                    className="scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 touch-pan-x active:cursor-grabbing md:gap-2 md:py-2.5"
                     role="group"
                     aria-label={t("events.organizations.filter_group", "按社团筛选活动")}
                 >
@@ -254,10 +254,6 @@ const OrganizationPartnerWall = ({
                         );
                     })}
                 </div>
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute bottom-1 right-0 top-1 w-12 bg-gradient-to-l from-[var(--theme-bg)] to-transparent"
-                />
                 <span className={`sr-only ${mutedClass}`}>
                     {t("events.organizations.sorted_by_count", "社团已按活动数量从高到低排序")}
                 </span>

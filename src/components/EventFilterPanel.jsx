@@ -356,7 +356,7 @@ const EventFilterPanel = ({
                                 : "border-white/[0.10] bg-white/[0.035]"
                         }`}
                     >
-                        <div className="scrollbar-none flex min-w-0 items-center gap-0.5 overflow-x-auto pr-10 md:pr-0">
+                        <div className="scrollbar-none flex min-w-0 items-center gap-0.5 overflow-x-auto pr-2">
                             <button
                                 type="button"
                                 aria-pressed={!selectedCategory}
@@ -387,9 +387,6 @@ const EventFilterPanel = ({
                                 );
                             })}
                         </div>
-                        {!isDayMode && (
-                            <div className="pointer-events-none absolute inset-y-1 right-1 w-10 bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent" />
-                        )}
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:ml-auto lg:justify-end">

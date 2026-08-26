@@ -338,6 +338,7 @@ const AppContent = () => {
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
+    const isEventsRoute = location.pathname === "/events";
     const isImmersiveRoute =
         isHomeRoute ||
         isAboutRoute ||
@@ -358,6 +359,7 @@ const AppContent = () => {
     const shouldRenderDynamicBackground =
         !isAdminRoute &&
         !isImmersiveRoute &&
+        !isEventsRoute &&
         hasDesktopPointer &&
         !prefersReducedMotion &&
         !isLowPowerDevice &&
@@ -498,7 +500,7 @@ const AppContent = () => {
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
                 shouldRenderDynamicBackground ? "dynamic-background-active" : ""
-            }`}
+            } ${isEventsRoute ? "events-fullscreen-shell" : ""}`}
         >
             <ResourceHints />
             <MiniProgramAuthReturn />
