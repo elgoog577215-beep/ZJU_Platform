@@ -189,8 +189,8 @@ const Navbar = ({ miniProgramMode = false }) => {
     }, []);
 
     const shellClasses = isDayMode
-        ? "bg-white/94 border-slate-900/[0.08] shadow-none"
-        : "bg-black/72 border-white/10 shadow-none";
+        ? "bg-white border-slate-900/[0.08] shadow-none"
+        : "bg-black/[0.92] border-white/10 shadow-none";
     const desktopNavTrackClasses = `flex shrink-0 items-center gap-0.5 rounded-[12px] border p-1 ${
         isDayMode
             ? "border-slate-200/80 bg-slate-950/[0.025]"
