@@ -116,6 +116,7 @@ Thumbs.db
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+*.sqlite.bak.*
 *.db
 server/data/
 server/uploads/
