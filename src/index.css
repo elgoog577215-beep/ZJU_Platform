@@ -1441,18 +1441,14 @@ img {
     }
 
     .events-page-atmosphere {
+        background-color: #020617;
         background-image:
-            radial-gradient(
-                ellipse 48rem 34rem at 12% 9%,
-                rgba(99, 102, 241, 0.18),
-                transparent 72%
-            ),
-            radial-gradient(
-                ellipse 54rem 38rem at 90% 38%,
-                rgba(59, 130, 246, 0.14),
-                transparent 74%
-            );
+            linear-gradient(180deg, rgba(2, 6, 23, 0.08), rgba(2, 6, 23, 0.28)),
+            url("/images/backgrounds/events-topology-dark-v1.webp");
+        background-attachment: fixed;
+        background-position: center top;
         background-repeat: no-repeat;
+        background-size: 100vw auto;
     }
 
     .event-card-shell {
@@ -1464,17 +1460,18 @@ img {
     }
 
     :root[data-theme="day"] .events-page-atmosphere {
+        background-color: #f8fafc;
         background-image:
-            radial-gradient(
-                ellipse 48rem 34rem at 12% 9%,
-                rgba(99, 102, 241, 0.065),
-                transparent 72%
-            ),
-            radial-gradient(
-                ellipse 54rem 38rem at 90% 38%,
-                rgba(59, 130, 246, 0.055),
-                transparent 74%
-            );
+            linear-gradient(180deg, rgba(248, 250, 252, 0.03), rgba(248, 250, 252, 0.2)),
+            url("/images/backgrounds/events-topology-day-v1.webp");
+    }
+
+    @media (max-width: 767px) {
+        .events-page-atmosphere {
+            background-attachment: scroll;
+            background-position: 30% top;
+            background-size: auto 54rem;
+        }
     }
 
     :root[data-theme="day"] .event-card-shell {
