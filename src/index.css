@@ -1443,12 +1443,14 @@ img {
     .events-page-atmosphere {
         background-color: #020617;
         background-image:
-            linear-gradient(180deg, rgba(2, 6, 23, 0.08), rgba(2, 6, 23, 0.28)),
+            linear-gradient(180deg, rgba(2, 6, 23, 0.04), rgba(2, 6, 23, 0.12)),
+            url("/images/backgrounds/events-topology-dark-v1.webp"),
             url("/images/backgrounds/events-topology-dark-v1.webp");
         background-attachment: fixed;
+        background-blend-mode: normal, screen, normal;
         background-position: center top;
         background-repeat: no-repeat;
-        background-size: 100vw auto;
+        background-size: 90vw auto;
     }
 
     .event-card-shell {
@@ -1461,9 +1463,8 @@ img {
 
     :root[data-theme="day"] .events-page-atmosphere {
         background-color: #f8fafc;
-        background-image:
-            linear-gradient(180deg, rgba(248, 250, 252, 0.03), rgba(248, 250, 252, 0.2)),
-            url("/images/backgrounds/events-topology-day-v1.webp");
+        background-image: url("/images/backgrounds/events-topology-day-v1.webp");
+        background-blend-mode: normal;
     }
 
     @media (max-width: 767px) {
