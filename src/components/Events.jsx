@@ -1832,27 +1832,6 @@ END:VCALENDAR`;
                         onClearPartnerFilter={clearPartnerFilter}
                     />
                 </div>
-                {partnerFilter && (
-                    <div
-                        className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden justify-start md:flex`}
-                    >
-                        <button
-                            type="button"
-                            data-testid="organization-partner-active-filter"
-                            onClick={clearPartnerFilter}
-                            className={`inline-flex min-h-9 max-w-full items-center gap-2 border-b border-transparent px-1 text-xs font-bold transition-colors ${isDayMode ? "text-slate-700 hover:border-blue-500/60 hover:text-blue-800" : "text-indigo-100 hover:border-indigo-300/70 hover:text-white"}`}
-                        >
-                            <Users size={14} />
-                            <span className="truncate">
-                                {t("events.organizations.active_filter", "社团：{{name}}", {
-                                    name: partnerFilter.name,
-                                })}
-                            </span>
-                            <X size={14} />
-                        </button>
-                    </div>
-                )}
-
                 <div
                     className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
                 >

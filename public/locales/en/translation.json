@@ -2100,8 +2100,7 @@
             "loading_related": "Loading related events...",
             "no_related": "No related events matched yet",
             "filter_by_partner": "Filter events from {{name}}",
-            "clear_partner_filter": "Clear {{name}} filter",
-            "active_filter": "Organization: {{name}}"
+            "clear_partner_filter": "Clear {{name}} filter"
         },
         "no_upcoming_desc": "No upcoming events for now. Please check back later.",
         "no_events": "No matching events found",

@@ -138,9 +138,11 @@ test.describe("events organization partner filter", () => {
             .poll(() => eventRequests.some((item) => item.organizerAny?.includes("浙江大学学生会")))
             .toBe(true);
         await expect(page).toHaveURL(/\/events/);
-        await expect(page.getByTestId("organization-partner-active-filter")).toContainText(
-            "浙江大学学生会"
+        await expect(filterBar.getByTestId("organization-partner-button-901")).toHaveAttribute(
+            "aria-pressed",
+            "true"
         );
+        await expect(page.getByText("社团：浙江大学学生会", { exact: true })).toHaveCount(0);
         await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
 
