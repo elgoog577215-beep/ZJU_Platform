@@ -96,6 +96,8 @@ test("WeChat MP account list parser accepts JSON, CSV, TSV, and simple lines", (
                 name: "浙江大学",
                 alias: "",
                 fakeid: "fake-1",
+                source_type: "wechat_mp",
+                rss_feed_id: "",
                 keywords: ["活动", "讲座"],
                 enabled: true,
                 fetch_content: true,
@@ -425,11 +427,13 @@ test("WeChat MP ingest localizes a list cover when article content has no local 
             wechatApi: {
                 async fetchArticles() {
                     return {
-                        articles: [{
-                            title: "人民日报测试文章",
-                            link: "https://mp.weixin.qq.com/s/people-daily-test",
-                            cover: "https://mmbiz.qpic.cn/list-cover.jpg",
-                        }],
+                        articles: [
+                            {
+                                title: "人民日报测试文章",
+                                link: "https://mp.weixin.qq.com/s/people-daily-test",
+                                cover: "https://mmbiz.qpic.cn/list-cover.jpg",
+                            },
+                        ],
                     };
                 },
                 async fetchArticleContent() {
@@ -736,6 +740,138 @@ test("WeChat MP ingest recovers stale running jobs without touching active jobs"
         assert.equal(staleRun.progress_percent, 42);
         assert.equal(staleRun.error, "采集任务因服务重启或长时间无响应而中止");
         assert.equal(activeRun.status, "running");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS sources reuse the existing ingest article pipeline without MP login", async () => {
+    const db = await createDb();
+    const rssCalls = [];
+    let directWechatCalls = 0;
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [1, 1],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "RSS 测试公众号",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_TEST",
+            count_per_page: 5,
+            max_pages: 2,
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles(options) {
+                    rssCalls.push(options);
+                    return {
+                        articles: [
+                            {
+                                title: "RSS 公众号活动通知",
+                                link: "https://mp.weixin.qq.com/s/rss-pipeline",
+                                author: "RSS 测试公众号",
+                                cover: "/uploads/covers/rss-pipeline.jpg",
+                                content_text: "活动正文内容",
+                                content_html: "<p>活动正文内容</p>",
+                                images: ["https://mmbiz.qpic.cn/rss-body.jpg"],
+                                content_status: "fetched",
+                            },
+                        ],
+                    };
+                },
+            },
+            wechatApi: {
+                async fetchArticles() {
+                    directWechatCalls += 1;
+                    throw new Error("RSS source must not call direct WeChat API");
+                },
+                async fetchArticleContent() {
+                    directWechatCalls += 1;
+                    throw new Error("RSS source must not fetch original article body");
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.total_articles, 1);
+        assert.equal(result.new_articles, 1);
+        assert.equal(result.fetched_contents, 1);
+        assert.equal(directWechatCalls, 0);
+        assert.equal(rssCalls.length, 1);
+        assert.deepEqual(rssCalls[0], {
+            feedId: "MP_WXS_TEST",
+            count: 5,
+            maxPages: 2,
+            mode: "fulltext",
+            pacing: { page_pause_seconds: 1 },
+            runtime: undefined,
+        });
+
+        const accounts = await service.listIngestAccounts(db);
+        const articles = await service.listIngestArticles(db);
+        assert.equal(accounts[0].source_type, "wewe_rss");
+        assert.equal(accounts[0].rss_feed_id, "MP_WXS_TEST");
+        assert.equal(articles[0].content_text, "活动正文内容");
+        assert.equal(articles[0].content_status, "fetched");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS source failures are recorded while later sources continue", async () => {
+    const db = await createDb();
+    const calls = [];
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [1, 1],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "失败 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_FAIL",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "成功 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_OK",
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles({ feedId }) {
+                    calls.push(feedId);
+                    if (feedId === "RSS_FAIL") throw new Error("feed timeout");
+                    return {
+                        articles: [
+                            {
+                                title: "成功来源文章",
+                                link: "https://mp.weixin.qq.com/s/rss-ok",
+                                content_text: "成功来源正文",
+                                content_status: "fetched",
+                            },
+                        ],
+                    };
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.processed_accounts, 2);
+        assert.equal(result.failed_count, 1);
+        assert.equal(result.new_articles, 1);
+        assert.match(result.error, /失败 RSS 来源: feed timeout/);
+        assert.deepEqual(calls.sort(), ["RSS_FAIL", "RSS_OK"]);
     } finally {
         await db.close();
     }

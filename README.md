@@ -69,6 +69,7 @@ npm run dev:client
 - `DATABASE_FILE`、`UPLOAD_DIR`：SQLite 与上传存储。
 - `CORS_ALLOWED_ORIGINS`：生产跨域白名单。
 - `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`：微信文章解析等可选 AI 能力。
+- `WEWE_RSS_BASE_URL`：微信读书 RSS 公众号来源的受信任 HTTPS 基地址，默认使用 `https://rss.tuotuzju.com`。
 - `WECHAT_MINIAPP_APPID`、`WECHAT_MINIAPP_SECRET`：微信小程序登录。
 
 不要提交 `server/.env`、数据库、上传文件、真实平台凭据或日志。

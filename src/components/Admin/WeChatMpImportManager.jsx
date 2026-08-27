@@ -98,6 +98,8 @@ const initialIngestOverview = {
 const initialIngestAccountForm = {
     name: "",
     fakeid: "",
+    source_type: "wechat_mp",
+    rss_feed_id: "",
     alias: "",
     keywords: "",
     enabled: true,
@@ -213,6 +215,10 @@ const WeChatMpImportManager = () => {
     const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
     const ingestAccounts = ingestOverview.accounts || [];
     const enabledIngestAccountCount = ingestAccounts.filter((account) => account.enabled).length;
+    const hasEnabledRssSource = ingestAccounts.some(
+        (account) => account.enabled && account.source_type === "wewe_rss"
+    );
+    const ingestReady = credentialsReady || hasEnabledRssSource;
     const ingestRuns = ingestOverview.runs || [];
     const ingestArticles = ingestOverview.articles || [];
     const latestRun = ingestRuns[0] || null;
@@ -600,7 +606,15 @@ const WeChatMpImportManager = () => {
     };
 
     const saveIngestAccount = async () => {
-        if (!ingestAccountForm.name.trim() && !ingestAccountForm.fakeid.trim()) {
+        if (ingestAccountForm.source_type === "wewe_rss" && !ingestAccountForm.rss_feed_id.trim()) {
+            toast.error(t("admin.wechat_mp.toasts.rss_feed_required"));
+            return;
+        }
+        if (
+            ingestAccountForm.source_type !== "wewe_rss" &&
+            !ingestAccountForm.name.trim() &&
+            !ingestAccountForm.fakeid.trim()
+        ) {
             toast.error(t("admin.wechat_mp.toasts.account_required"));
             return;
         }
@@ -710,8 +724,8 @@ const WeChatMpImportManager = () => {
     };
 
     const runIngestNow = async () => {
-        if (!credentialsReady) {
-            toast.error(t("admin.wechat_mp.toasts.login_required"));
+        if (!ingestReady) {
+            toast.error(t("admin.wechat_mp.toasts.source_required"));
             return;
         }
         setIngestRunning(true);
@@ -756,24 +770,29 @@ const WeChatMpImportManager = () => {
         }
     };
 
-    const runtimeNoteTone = runtimeReady
-        ? credentialHealthStatus === "expired"
-            ? "warning"
-            : credentialsReady
-              ? "success"
-              : "warning"
-        : "danger";
-    const runtimeNoteText = runtimeReady
-        ? credentialHealthStatus === "expired"
-            ? credentialHealth.reason === "check_failed"
-                ? t("admin.wechat_mp.notes.token_check_failed")
-                : t("admin.wechat_mp.notes.token_expired")
-            : credentialHealthStatus === "checking"
-              ? t("admin.wechat_mp.notes.token_checking")
+    const runtimeNoteTone = hasEnabledRssSource
+        ? "success"
+        : runtimeReady
+          ? credentialHealthStatus === "expired"
+              ? "warning"
               : credentialsReady
-                ? t("admin.wechat_mp.notes.ready")
-                : t("admin.wechat_mp.notes.need_login")
-        : t("admin.wechat_mp.notes.runtime_missing");
+                ? "success"
+                : "warning"
+          : "danger";
+    const runtimeNoteText =
+        hasEnabledRssSource && !credentialsReady
+            ? t("admin.wechat_mp.notes.rss_ready")
+            : runtimeReady
+              ? credentialHealthStatus === "expired"
+                  ? credentialHealth.reason === "check_failed"
+                      ? t("admin.wechat_mp.notes.token_check_failed")
+                      : t("admin.wechat_mp.notes.token_expired")
+                  : credentialHealthStatus === "checking"
+                    ? t("admin.wechat_mp.notes.token_checking")
+                    : credentialsReady
+                      ? t("admin.wechat_mp.notes.ready")
+                      : t("admin.wechat_mp.notes.need_login")
+              : t("admin.wechat_mp.notes.runtime_missing");
     const simpleLoginStatus = loginStatusKey(login.stage, credentialsReady, credentialHealthStatus);
     const paragraphs = textParagraphs(content?.contentText);
 
@@ -792,23 +811,21 @@ const WeChatMpImportManager = () => {
                     </AdminButton>
                     <AdminButton
                         tone="primary"
-                        onClick={
-                            credentialsReady ? runIngestNow : () => setActiveWorkspace("advanced")
-                        }
+                        onClick={ingestReady ? runIngestNow : () => setActiveWorkspace("advanced")}
                         disabled={
-                            credentialsReady
+                            ingestReady
                                 ? ingestRunning
                                 : loginStarting || loginActive || !runtimeReady
                         }
                     >
                         {loginStarting || ingestRunning ? (
                             <Loader2 size={16} className="animate-spin" />
-                        ) : credentialsReady ? (
+                        ) : ingestReady ? (
                             <Play size={16} />
                         ) : (
                             <LogIn size={16} />
                         )}
-                        {credentialsReady
+                        {ingestReady
                             ? t("admin.wechat_mp.actions.run_ingest")
                             : t("admin.wechat_mp.workspace.connect_wechat", "连接微信采集")}
                     </AdminButton>
@@ -857,9 +874,12 @@ const WeChatMpImportManager = () => {
                                 <span className={mutedTextClass}>|</span>
                                 <span className={headingTextClass}>
                                     {t("admin.wechat_mp.workspace.login_status", {
-                                        status: t(
-                                            `admin.wechat_mp.simple_status.${simpleLoginStatus}`
-                                        ),
+                                        status:
+                                            hasEnabledRssSource && !credentialsReady
+                                                ? t("admin.wechat_mp.workspace.rss_status")
+                                                : t(
+                                                      `admin.wechat_mp.simple_status.${simpleLoginStatus}`
+                                                  ),
                                         defaultValue: `微信连接 ${t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}`,
                                     })}
                                 </span>
@@ -1464,7 +1484,7 @@ const WeChatMpImportManager = () => {
                                 <AdminButton
                                     tone="primary"
                                     onClick={runIngestNow}
-                                    disabled={ingestRunning || !credentialsReady}
+                                    disabled={ingestRunning || !ingestReady}
                                 >
                                     {ingestRunning ? (
                                         <Loader2 size={16} className="animate-spin" />
@@ -2075,6 +2095,24 @@ const WeChatMpImportManager = () => {
 
                             <div className="space-y-3">
                                 <div className="grid gap-2 sm:grid-cols-2">
+                                    <select
+                                        value={ingestAccountForm.source_type}
+                                        onChange={(event) =>
+                                            updateIngestAccountForm(
+                                                "source_type",
+                                                event.target.value
+                                            )
+                                        }
+                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
+                                        aria-label={t("admin.wechat_mp.ingest.fields.source_type")}
+                                    >
+                                        <option value="wechat_mp">
+                                            {t("admin.wechat_mp.ingest.source_types.wechat_mp")}
+                                        </option>
+                                        <option value="wewe_rss">
+                                            {t("admin.wechat_mp.ingest.source_types.wewe_rss")}
+                                        </option>
+                                    </select>
                                     <input
                                         value={ingestAccountForm.name}
                                         onChange={(event) =>
@@ -2082,27 +2120,62 @@ const WeChatMpImportManager = () => {
                                         }
                                         className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
                                         placeholder={t(
-                                            "admin.wechat_mp.ingest.placeholders.account_name"
+                                            ingestAccountForm.source_type === "wewe_rss"
+                                                ? "admin.wechat_mp.ingest.placeholders.rss_name"
+                                                : "admin.wechat_mp.ingest.placeholders.account_name"
                                         )}
                                     />
-                                    <input
-                                        value={ingestAccountForm.fakeid}
-                                        onChange={(event) =>
-                                            updateIngestAccountForm("fakeid", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                                        placeholder={t("admin.wechat_mp.placeholders.fakeid")}
-                                    />
-                                    <input
-                                        value={ingestAccountForm.keywords}
-                                        onChange={(event) =>
-                                            updateIngestAccountForm("keywords", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
-                                        placeholder={t(
-                                            "admin.wechat_mp.ingest.placeholders.keywords"
-                                        )}
-                                    />
+                                    {ingestAccountForm.source_type === "wewe_rss" ? (
+                                        <input
+                                            value={ingestAccountForm.rss_feed_id}
+                                            onChange={(event) =>
+                                                updateIngestAccountForm(
+                                                    "rss_feed_id",
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                                            placeholder={t(
+                                                "admin.wechat_mp.ingest.placeholders.rss_feed_id"
+                                            )}
+                                        />
+                                    ) : (
+                                        <input
+                                            value={ingestAccountForm.fakeid}
+                                            onChange={(event) =>
+                                                updateIngestAccountForm(
+                                                    "fakeid",
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                                            placeholder={t("admin.wechat_mp.placeholders.fakeid")}
+                                        />
+                                    )}
+                                    {ingestAccountForm.source_type === "wewe_rss" ? (
+                                        <div
+                                            className={clsx(
+                                                "text-xs leading-5 sm:col-span-2",
+                                                mutedTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.ingest.rss_source_note")}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            value={ingestAccountForm.keywords}
+                                            onChange={(event) =>
+                                                updateIngestAccountForm(
+                                                    "keywords",
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
+                                            placeholder={t(
+                                                "admin.wechat_mp.ingest.placeholders.keywords"
+                                            )}
+                                        />
+                                    )}
                                 </div>
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <label
@@ -2216,8 +2289,10 @@ const WeChatMpImportManager = () => {
                                                             mutedTextClass
                                                         )}
                                                     >
-                                                        {account.fakeid ||
-                                                            t("admin.wechat_mp.status.none")}
+                                                        {account.source_type === "wewe_rss"
+                                                            ? `${t("admin.wechat_mp.ingest.source_types.wewe_rss")} · ${account.rss_feed_id}`
+                                                            : account.fakeid ||
+                                                              t("admin.wechat_mp.status.none")}
                                                     </div>
                                                 </div>
                                                 <div className="flex shrink-0 items-center justify-end gap-2">

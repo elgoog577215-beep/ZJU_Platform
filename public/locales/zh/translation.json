@@ -3402,6 +3402,7 @@
                 "connect_wechat": "连接微信采集",
                 "sources_status": "采集源 {{enabled}}/{{total}}",
                 "login_status": "微信连接 {{status}}",
+                "rss_status": "RSS 已就绪",
                 "schedule_status": "每日 {{time}}",
                 "schedule_disabled": "定时采集未启用",
                 "new_articles_status": "本轮新增 {{count}}",
@@ -3430,6 +3431,7 @@
             "notes": {
                 "ready": "微信连接有效。",
                 "need_login": "微信连接未登录。",
+                "rss_ready": "已配置微信读书 RSS 来源，无需扫码即可执行采集。",
                 "token_checking": "正在检查微信公众平台登录态……",
                 "token_expired": "微信公众平台登录态不可用，请重新扫码登录。",
                 "token_check_failed": "暂时无法确认微信公众平台登录态，可以重试或重新扫码登录。",
@@ -3493,7 +3495,7 @@
             },
             "ingest": {
                 "title": "每日增量采集",
-                "description": "维护公众号列表，按固定时间自动获取新文章和正文。",
+                "description": "维护公众号来源，可通过微信读书 RSS 或直连微信 MP 获取新文章和正文。",
                 "pacing_note": "注意！如果你不知道这些参数的作用，请保持默认不要随意变更！",
                 "confirm_delete_account": "确认删除“{{name}}”？",
                 "account_summary": "已启用 {{enabled}} / 共 {{total}} 个",
@@ -3526,6 +3528,7 @@
                     }
                 },
                 "fields": {
+                    "source_type": "来源类型",
                     "enabled": "定时任务",
                     "daily_run_time": "每日开始时间",
                     "timezone": "时区",
@@ -3538,8 +3541,13 @@
                     "content_delay": "正文间隔",
                     "fetch_content": "自动抓取正文",
                     "auto_parse": "自动提取活动信息",
-                    "account_enabled": "启用该公众号"
+                    "account_enabled": "启用该来源"
                 },
+                "source_types": {
+                    "wechat_mp": "直连微信 MP（需要扫码）",
+                    "wewe_rss": "微信读书 RSS（无需扫码）"
+                },
+                "rss_source_note": "请先在 WeWe RSS 后台添加公众号；这里只填写 feed ID，采集使用受信任的 rss.tuotuzju.com 服务。",
                 "token_health_note": "服务启动后立即检查，之后按设定周期自动检查。",
                 "content_status": {
                     "not_fetched": "正文未抓取",
@@ -3560,6 +3568,8 @@
                 },
                 "placeholders": {
                     "account_name": "公众号名称",
+                    "rss_name": "公众号名称（可选）",
+                    "rss_feed_id": "WeWe RSS feed ID，例如 MP_WXS_123",
                     "keywords": "关键词，可用逗号分隔"
                 },
                 "run_status": {
@@ -3628,6 +3638,8 @@
                 "login_cancelled": "登录已取消",
                 "cancel_failed": "取消登录失败",
                 "account_required": "请填写公众号名称或 fakeid",
+                "rss_feed_required": "请填写合法的 WeWe RSS feed ID",
+                "source_required": "请先添加并启用至少一个采集源",
                 "account_search_failed": "搜索公众号失败",
                 "login_required": "请先完成扫码登录",
                 "articles_failed": "获取文章列表失败",

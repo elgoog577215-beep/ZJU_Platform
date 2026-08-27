@@ -3346,6 +3346,7 @@
                 "connect_wechat": "Connect WeChat Collection",
                 "sources_status": "Sources {{enabled}}/{{total}}",
                 "login_status": "WeChat {{status}}",
+                "rss_status": "RSS ready",
                 "schedule_status": "Daily at {{time}}",
                 "schedule_disabled": "Scheduled collection is off",
                 "new_articles_status": "New this run {{count}}",
@@ -3374,6 +3375,7 @@
             "notes": {
                 "ready": "The WeChat connection is active.",
                 "need_login": "The WeChat connection is not signed in.",
+                "rss_ready": "A WeRead RSS source is configured; scan login is not required for ingest.",
                 "token_checking": "Checking the WeChat MP login session...",
                 "token_expired": "The WeChat MP login session is unavailable. Please scan to log in again.",
                 "token_check_failed": "The WeChat MP login session could not be confirmed. You can retry or scan to log in again.",
@@ -3437,7 +3439,7 @@
             },
             "ingest": {
                 "title": "Daily Incremental Ingest",
-                "description": "Maintain official accounts and automatically fetch new articles and bodies every day.",
+                "description": "Maintain official-account sources and fetch new articles through WeRead RSS or direct WeChat MP access.",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually.",
                 "confirm_delete_account": "Delete “{{name}}”?",
                 "account_summary": "{{enabled}} enabled / {{total}} total",
@@ -3470,6 +3472,7 @@
                     }
                 },
                 "fields": {
+                    "source_type": "Source Type",
                     "enabled": "Scheduled Job",
                     "daily_run_time": "Daily Start",
                     "timezone": "Timezone",
@@ -3482,8 +3485,13 @@
                     "content_delay": "Body interval",
                     "fetch_content": "Fetch article bodies",
                     "auto_parse": "Extract event information automatically",
-                    "account_enabled": "Enable this account"
+                    "account_enabled": "Enable this source"
                 },
+                "source_types": {
+                    "wechat_mp": "Direct WeChat MP (scan required)",
+                    "wewe_rss": "WeRead RSS (no scan required)"
+                },
+                "rss_source_note": "Add the official account in WeWe RSS first. Enter only its feed ID; ingest uses the trusted rss.tuotuzju.com service.",
                 "token_health_note": "Runs immediately after startup, then at the configured interval.",
                 "content_status": {
                     "not_fetched": "Body not fetched",
@@ -3504,6 +3512,8 @@
                 },
                 "placeholders": {
                     "account_name": "Official account name",
+                    "rss_name": "Official account name (optional)",
+                    "rss_feed_id": "WeWe RSS feed ID, for example MP_WXS_123",
                     "keywords": "Keywords, comma separated"
                 },
                 "run_status": {
@@ -3572,6 +3582,8 @@
                 "login_cancelled": "Login cancelled",
                 "cancel_failed": "Failed to cancel login",
                 "account_required": "Enter an account name or fakeid",
+                "rss_feed_required": "Enter a valid WeWe RSS feed ID",
+                "source_required": "Add and enable at least one collection source first",
                 "account_search_failed": "Failed to search accounts",
                 "login_required": "Complete scan login first",
                 "articles_failed": "Failed to fetch article list",

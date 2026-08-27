@@ -1,6 +1,7 @@
 const fs = require("fs");
 
 const wechatMpAdminService = require("./wechatMpAdminService");
+const wechatReadRssService = require("./wechatReadRssService");
 const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
@@ -24,6 +25,7 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 const INGEST_STALE_AFTER_MINUTES = 30;
 const STALE_RUN_ERROR = "采集任务因服务重启或长时间无响应而中止";
+const INGEST_SOURCE_TYPES = new Set(["wechat_mp", wechatReadRssService.SOURCE_TYPE]);
 let activeRun = null;
 let activeRunId = null;
 let schedulerTimer = null;
@@ -307,6 +309,8 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       name TEXT NOT NULL,
       alias TEXT DEFAULT '',
       fakeid TEXT DEFAULT '',
+      source_type TEXT DEFAULT 'wechat_mp',
+      rss_feed_id TEXT DEFAULT '',
       keywords TEXT DEFAULT '[]',
       enabled INTEGER DEFAULT 1,
       fetch_content INTEGER DEFAULT 1,
@@ -428,6 +432,24 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
           END
     `);
     }
+    const accountColumns = await db.all("PRAGMA table_info(wechat_mp_ingest_accounts)");
+    const accountColumnNames = new Set(accountColumns.map((column) => column.name));
+    if (!accountColumnNames.has("source_type")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_accounts ADD COLUMN source_type TEXT DEFAULT 'wechat_mp'"
+        );
+    }
+    if (!accountColumnNames.has("rss_feed_id")) {
+        await db.exec(
+            "ALTER TABLE wechat_mp_ingest_accounts ADD COLUMN rss_feed_id TEXT DEFAULT ''"
+        );
+    }
+    await db.exec(
+        "CREATE INDEX IF NOT EXISTS idx_wechat_mp_ingest_accounts_source_type ON wechat_mp_ingest_accounts(source_type)"
+    );
+    await db.run(
+        "UPDATE wechat_mp_ingest_accounts SET source_type = 'wechat_mp' WHERE source_type IS NULL OR source_type = ''"
+    );
     await db.run(`
     UPDATE wechat_mp_ingest_settings
     SET query_delay_range = '[95,125]'
@@ -600,6 +622,8 @@ const serializeAccount = (row) => ({
     name: row.name || "",
     alias: row.alias || "",
     fakeid: row.fakeid || "",
+    source_type: row.source_type || "wechat_mp",
+    rss_feed_id: row.rss_feed_id || "",
     keywords: normalizeKeywords(row.keywords),
     enabled: Boolean(row.enabled),
     fetch_content: Boolean(row.fetch_content),
@@ -614,6 +638,12 @@ const normalizeAccountPayload = (payload = {}) => ({
     name: String(payload.name || payload.account_name || payload.nickname || "").trim(),
     alias: String(payload.alias || "").trim(),
     fakeid: String(payload.fakeid || "").trim(),
+    source_type: String(payload.source_type || payload.sourceType || "wechat_mp")
+        .trim()
+        .toLowerCase(),
+    rss_feed_id: String(
+        payload.rss_feed_id || payload.rssFeedId || payload.feed_id || payload.feedId || ""
+    ).trim(),
     keywords: normalizeKeywords(payload.keywords || payload.keyword || ""),
     enabled: toBool(payload.enabled, true),
     fetch_content: toBool(payload.fetch_content ?? payload.fetchContent, true),
@@ -640,18 +670,33 @@ const listIngestAccounts = async (db, { includeDisabled = true } = {}) => {
 const upsertIngestAccount = async (db, payload = {}) => {
     await ensureWechatMpScheduledIngestSchema(db);
     const account = normalizeAccountPayload(payload);
-    if (!account.name && !account.fakeid) {
+    if (!INGEST_SOURCE_TYPES.has(account.source_type)) {
+        const error = new Error("公众号来源类型无效");
+        error.status = 400;
+        throw error;
+    }
+    if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
+        account.rss_feed_id = wechatReadRssService.normalizeFeedId(account.rss_feed_id);
+    }
+    if (
+        account.source_type === wechatReadRssService.SOURCE_TYPE &&
+        !account.name &&
+        account.rss_feed_id
+    ) {
+        account.name = account.rss_feed_id;
+    }
+    if (account.source_type === "wechat_mp" && !account.name && !account.fakeid) {
         const error = new Error("公众号名称或 fakeid 不能为空");
         error.status = 400;
         throw error;
     }
-    if (!account.name) account.name = account.fakeid;
+    if (!account.name) account.name = account.fakeid || account.rss_feed_id;
     const id = Number.parseInt(payload.id, 10);
     if (Number.isFinite(id) && id > 0) {
         await db.run(
             `
       UPDATE wechat_mp_ingest_accounts
-      SET name = ?, alias = ?, fakeid = ?, keywords = ?, enabled = ?,
+      SET name = ?, alias = ?, fakeid = ?, source_type = ?, rss_feed_id = ?, keywords = ?, enabled = ?,
           fetch_content = ?, count_per_page = ?, max_pages = ?, updated_at = datetime('now')
       WHERE id = ?
     `,
@@ -659,6 +704,8 @@ const upsertIngestAccount = async (db, payload = {}) => {
                 account.name,
                 account.alias,
                 account.fakeid,
+                account.source_type,
+                account.rss_feed_id,
                 stringifyArray(account.keywords),
                 account.enabled ? 1 : 0,
                 account.fetch_content ? 1 : 0,
@@ -675,11 +722,25 @@ const upsertIngestAccount = async (db, payload = {}) => {
         `
     SELECT *
     FROM wechat_mp_ingest_accounts
-    WHERE name = ? OR (fakeid != '' AND fakeid = ?)
-    ORDER BY CASE WHEN fakeid != '' AND fakeid = ? THEN 0 ELSE 1 END
+    WHERE name = ?
+       OR (source_type = ? AND rss_feed_id != '' AND rss_feed_id = ?)
+       OR (source_type = 'wechat_mp' AND fakeid != '' AND fakeid = ?)
+    ORDER BY CASE
+        WHEN source_type = ? AND rss_feed_id != '' AND rss_feed_id = ? THEN 0
+        WHEN source_type = 'wechat_mp' AND fakeid != '' AND fakeid = ? THEN 1
+        ELSE 2
+    END
     LIMIT 1
   `,
-        [account.name, account.fakeid, account.fakeid]
+        [
+            account.name,
+            account.source_type,
+            account.rss_feed_id,
+            account.fakeid,
+            account.source_type,
+            account.rss_feed_id,
+            account.fakeid,
+        ]
     );
     if (existing) {
         return upsertIngestAccount(db, { ...account, id: existing.id });
@@ -688,14 +749,16 @@ const upsertIngestAccount = async (db, payload = {}) => {
     const result = await db.run(
         `
     INSERT INTO wechat_mp_ingest_accounts (
-      name, alias, fakeid, keywords, enabled, fetch_content,
+      name, alias, fakeid, source_type, rss_feed_id, keywords, enabled, fetch_content,
       count_per_page, max_pages, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `,
         [
             account.name,
             account.alias,
             account.fakeid,
+            account.source_type,
+            account.rss_feed_id,
             stringifyArray(account.keywords),
             account.enabled ? 1 : 0,
             account.fetch_content ? 1 : 0,
@@ -795,9 +858,20 @@ const parseAccountListContent = (content, fileName = "") => {
     if (!lines.length) return [];
     const firstCells = parseCsvLine(lines[0]).map((cell) => cell.toLowerCase());
     const hasHeader = firstCells.some((cell) =>
-        ["name", "account_name", "公众号", "公众号名称", "fakeid", "alias", "keywords"].includes(
-            cell
-        )
+        [
+            "name",
+            "account_name",
+            "公众号",
+            "公众号名称",
+            "fakeid",
+            "alias",
+            "keywords",
+            "source_type",
+            "source",
+            "rss_feed_id",
+            "feed_id",
+            "来源类型",
+        ].includes(cell)
     );
     const header = hasHeader ? firstCells : [];
     const dataLines = hasHeader ? lines.slice(1) : lines;
@@ -815,6 +889,9 @@ const parseAccountListContent = (content, fileName = "") => {
                     fakeid: row.fakeid,
                     alias: row.alias || row["别名"],
                     keywords: row.keywords || row.keyword || row["关键词"],
+                    source_type: row.source_type || row.source || row["来源类型"],
+                    rss_feed_id:
+                        row.rss_feed_id || row.feed_id || row["rss feed id"] || row["RSS Feed ID"],
                     enabled: row.enabled || row["启用"],
                 });
             }
@@ -891,7 +968,10 @@ const listIngestArticles = async (db, { limit = 50 } = {}) => {
     await ensureWechatMpScheduledIngestSchema(db);
     const rows = await db.all(
         `
-    SELECT a.*, acc.name AS account_name
+    SELECT a.*,
+           acc.name AS account_name,
+           acc.source_type AS account_source_type,
+           acc.rss_feed_id AS account_rss_feed_id
     FROM wechat_mp_ingest_articles a
     LEFT JOIN wechat_mp_ingest_accounts acc ON acc.id = a.account_id
     ORDER BY a.first_seen_at DESC, a.id DESC
@@ -1279,6 +1359,7 @@ const executeIngestRun = async (
         settings,
         runtime,
         wechatApi = wechatMpAdminService,
+        rssApi = wechatReadRssService,
         parser = null,
         localizeImages = null,
         audit = recordWechatParseRun,
@@ -1294,6 +1375,7 @@ const executeIngestRun = async (
     let extractedArticles = 0;
     let failedCount = 0;
     let extractionFailedCount = 0;
+    const sourceErrors = [];
     let processedAccounts = 0;
     let processedArticles = 0;
     const createdRunId =
@@ -1323,21 +1405,56 @@ const executeIngestRun = async (
                     runtime
                 );
             }
-            const listResult = await wechatApi.fetchArticles({
-                accountName: account.name,
-                fakeid: account.fakeid,
-                keyword: account.keywords[0] || "",
-                count: account.count_per_page || effectiveSettings.count_per_page,
-                maxPages: account.max_pages || effectiveSettings.max_pages,
-                allowFirst: false,
-                pacing: {
-                    page_pause_seconds: effectiveSettings.page_pause_seconds,
-                    page_pause_range: effectiveSettings.page_pause_range,
-                    query_delay_range: effectiveSettings.query_delay_range,
-                    content_delay_range: effectiveSettings.content_delay_range,
-                },
-                runtime,
-            });
+            let listResult;
+            try {
+                if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
+                    listResult = await rssApi.fetchArticles({
+                        feedId: account.rss_feed_id,
+                        count: account.count_per_page || effectiveSettings.count_per_page,
+                        maxPages: account.max_pages || effectiveSettings.max_pages,
+                        mode: effectiveSettings.fetch_content ? "fulltext" : "",
+                        pacing: {
+                            page_pause_seconds: effectiveSettings.page_pause_seconds,
+                        },
+                        runtime,
+                    });
+                } else {
+                    listResult = await wechatApi.fetchArticles({
+                        accountName: account.name,
+                        fakeid: account.fakeid,
+                        keyword: account.keywords[0] || "",
+                        count: account.count_per_page || effectiveSettings.count_per_page,
+                        maxPages: account.max_pages || effectiveSettings.max_pages,
+                        allowFirst: false,
+                        pacing: {
+                            page_pause_seconds: effectiveSettings.page_pause_seconds,
+                            page_pause_range: effectiveSettings.page_pause_range,
+                            query_delay_range: effectiveSettings.query_delay_range,
+                            content_delay_range: effectiveSettings.content_delay_range,
+                        },
+                        runtime,
+                    });
+                }
+            } catch (error) {
+                if (account.source_type !== wechatReadRssService.SOURCE_TYPE) throw error;
+                failedCount += 1;
+                sourceErrors.push(`${account.name}: ${error?.message || String(error)}`);
+                await db.run(
+                    "UPDATE wechat_mp_ingest_accounts SET last_checked_at = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                    [account.id]
+                );
+                processedAccounts = index + 1;
+                await updateRunProgress(db, createdRunId, {
+                    stage: processedAccounts < accounts.length ? "fetching_accounts" : "finalizing",
+                    totalAccounts: accounts.length,
+                    processedAccounts,
+                    totalArticles,
+                    processedArticles,
+                    currentAccount: "",
+                    currentArticle: "",
+                });
+                continue;
+            }
             const articles = listResult.articles || [];
             totalArticles += articles.length;
             await updateRunProgress(db, createdRunId, {
@@ -1372,17 +1489,29 @@ const executeIngestRun = async (
                     effectiveSettings.fetch_content &&
                     (!existing || !existing.content_text || !isLocalUploadUrl(existing.cover));
                 if (shouldFetchContent && article.link) {
-                    if (articleIndex > 0)
-                        await wechatMpAdminService.waitDelayRange(
-                            effectiveSettings.content_delay_range,
-                            runtime
-                        );
-                    try {
-                        content = await wechatApi.fetchArticleContent({ url: article.link });
-                        if (content?.contentText) fetchedContents += 1;
-                    } catch (error) {
-                        failedCount += 1;
-                        content = { content_status: error.message || "fetch_failed" };
+                    if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
+                        content = {
+                            contentText: article.content_text || "",
+                            contentHtml: article.content_html || "",
+                            images: Array.isArray(article.images) ? article.images : [],
+                            coverImage: article.cover || "",
+                            author: article.author || "",
+                            content_status: article.content_status || "empty",
+                        };
+                        if (content.contentText) fetchedContents += 1;
+                    } else {
+                        if (articleIndex > 0)
+                            await wechatMpAdminService.waitDelayRange(
+                                effectiveSettings.content_delay_range,
+                                runtime
+                            );
+                        try {
+                            content = await wechatApi.fetchArticleContent({ url: article.link });
+                            if (content?.contentText) fetchedContents += 1;
+                        } catch (error) {
+                            failedCount += 1;
+                            content = { content_status: error.message || "fetch_failed" };
+                        }
                     }
                 }
                 const contentCover = String(content?.coverImage || content?.cover || "").trim();
@@ -1492,7 +1621,8 @@ const executeIngestRun = async (
           fetched_contents = ?,
           extracted_articles = ?,
           failed_count = ?,
-          extraction_failed_count = ?
+          extraction_failed_count = ?,
+          error = ?
       WHERE id = ?
     `,
             [
@@ -1505,6 +1635,7 @@ const executeIngestRun = async (
                 extractedArticles,
                 failedCount,
                 extractionFailedCount,
+                sourceErrors.join("\n").slice(0, 2000),
                 createdRunId,
             ]
         );
@@ -1536,7 +1667,7 @@ const executeIngestRun = async (
                 extractedArticles,
                 failedCount + 1,
                 extractionFailedCount,
-                error.message || String(error),
+                [...sourceErrors, error.message || String(error)].join("\n").slice(0, 2000),
                 createdRunId,
             ]
         );
