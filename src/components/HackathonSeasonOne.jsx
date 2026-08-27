@@ -1,24 +1,53 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, Film, LockKeyhole, Trophy } from "lucide-react";
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+    CalendarDays,
+    ChevronDown,
+    FolderKanban,
+    Image as ImageIcon,
+    LockKeyhole,
+    Trophy,
+    X,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSettings } from "../context/SettingsContext";
-import {
-    getFirstAvailableHackathonView,
-    getHackathonScheduleEvent,
-} from "../data/hackathonTemplate";
+import { getHackathonScheduleEvent } from "../data/hackathonTemplate";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
-import { getHackathonViewFromLocation } from "../utils/hackathonRoute";
+import BodyPortal from "../shared/ui/BodyPortal";
+import { getCompetitionPhase } from "../utils/competitionPhase";
+import {
+    getDefaultHackathonView,
+    getHackathonViewFromLocation,
+    isHackathonWorkspaceView,
+} from "../utils/hackathonRoute";
 import HackathonRegistration from "./HackathonRegistration";
 import HackathonShowcase from "./HackathonOutcomeShowcase";
 
-const formatTimelineDate = (value, fallback = "待定") => {
-    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return match ? `${match[2]}.${match[3]}` : fallback;
+const ProjectPlaza = lazy(() => import("./ProjectPlaza"));
+const MediaEventArchive = lazy(() => import("./MediaEventArchive"));
+
+/*
+THESIS: 浙客松是一座跨届赛事工作台，拒绝把赛事和阶段挤进会消失的双层横向导航。
+OWN-WORLD: 延续生态介绍页的深色玻璃、青蓝网格和克制高光；单届赛事视觉只进入正文。
+STORY: 用户先确认哪一届，再在报名、作品、影像和成果之间连续工作。
+FIRST VIEWPORT: 左侧是紧凑历届卡，右侧只保留四阶段导航，正文从其下展开。
+FORM: 垂直档案架加水平阶段轴；赛事选择和阶段选择在空间上正交，移动端收为抽屉。
+*/
+
+const formatEventDate = (value, locale, fallback) => {
+    const timestamp = Date.parse(value || "");
+    if (!Number.isFinite(timestamp)) return fallback;
+    return new Intl.DateTimeFormat(locale, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(new Date(timestamp));
 };
 
-const hasCjkText = (value) => typeof value === "string" && /[\u3400-\u9fff]/.test(value);
+const getEventPhase = (template) => getCompetitionPhase(template?.event);
+const phaseRank = { live: 0, upcoming: 1, ended: 2, archive: 2 };
 
 const HackathonSeasonOne = () => {
     const { t, i18n } = useTranslation();
@@ -28,14 +57,14 @@ const HackathonSeasonOne = () => {
     const { schedule, loading: scheduleLoading } = useHackathonSchedule(settings);
     const isDayMode = uiMode === "day";
     const isEnglish = String(i18n.resolvedLanguage || i18n.language || "zh").startsWith("en");
-    const shellRef = useRef(null);
-    const timelineScrollRef = useRef(null);
-    const activeNodeRef = useRef(null);
-    const [pageTabsVisible, setPageTabsVisible] = useState(true);
+    const locale = isEnglish ? "en" : "zh-CN";
+    const stageHeadingRef = useRef(null);
+    const [eventPickerOpen, setEventPickerOpen] = useState(false);
+
     const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const requestedEventKey = params.get("event");
     const requestedCompetitionSlug = params.get("competition");
-    const requestedView = getHackathonViewFromLocation(location);
+    const explicitView = params.get("view");
     const template = useMemo(() => {
         const competitionEvent = requestedCompetitionSlug
             ? schedule.events.find(
@@ -48,37 +77,91 @@ const HackathonSeasonOne = () => {
         );
     }, [requestedCompetitionSlug, requestedEventKey, schedule]);
     const activeEventKey = template.event.key;
-    const activeView = getFirstAvailableHackathonView(template, requestedView);
-    const showcaseMode = activeView === "showcase";
+    const competitionSlug = template.results.competitionSlug;
+    const defaultView = getDefaultHackathonView(template);
+    const activeView = getHackathonViewFromLocation(location, defaultView);
+    const orderedEvents = useMemo(
+        () =>
+            schedule.events
+                .map((item, originalIndex) => ({ item, originalIndex, phase: getEventPhase(item) }))
+                .sort((left, right) => {
+                    const rank = phaseRank[left.phase] - phaseRank[right.phase];
+                    if (rank !== 0) return rank;
+                    return (
+                        Date.parse(right.item.event.startAt || "") -
+                        Date.parse(left.item.event.startAt || "")
+                    );
+                }),
+        [schedule.events]
+    );
+
+    const views = useMemo(
+        () => [
+            {
+                id: "register",
+                label: t("hackathon.workspace.register", "赛事报名"),
+                description: t("hackathon.workspace.register_desc", "介绍、赛制与报名"),
+                icon: CalendarDays,
+            },
+            {
+                id: "projects",
+                label: t("hackathon.workspace.projects", "项目作品"),
+                description: t("hackathon.workspace.projects_desc", "提交与浏览参赛作品"),
+                icon: FolderKanban,
+            },
+            {
+                id: "media",
+                label: t("hackathon.workspace.media", "赛事影像"),
+                description: t("hackathon.workspace.media_desc", "图片直播与精选"),
+                icon: ImageIcon,
+            },
+            {
+                id: "showcase",
+                label: t("hackathon.workspace.showcase", "成果展示"),
+                description: t("hackathon.workspace.showcase_desc", "获奖作品与赛事总结"),
+                icon: Trophy,
+            },
+        ],
+        [t]
+    );
+
+    const phaseLabel = (phase) => {
+        if (phase === "live") return t("hackathon.workspace.phase_live", "进行中");
+        if (phase === "upcoming") return t("hackathon.workspace.phase_upcoming", "即将开始");
+        return t("hackathon.workspace.phase_archive", "往届");
+    };
+
+    useBackClose(eventPickerOpen, () => setEventPickerOpen(false));
+    useBodyScrollLock(eventPickerOpen);
 
     useEffect(() => {
         if (scheduleLoading) return;
+        const pathNeedsSync = location.pathname !== "/hackathon";
         const eventNeedsSync = requestedEventKey !== activeEventKey;
-        const viewNeedsSync = Boolean(activeView && requestedView !== activeView);
-        if (!eventNeedsSync && !viewNeedsSync) return;
+        const viewNeedsSync =
+            !isHackathonWorkspaceView(explicitView) || explicitView !== activeView;
+        if (!pathNeedsSync && !eventNeedsSync && !viewNeedsSync) return;
 
         const nextParams = new URLSearchParams(location.search);
         nextParams.set("event", activeEventKey);
-        if (activeView) nextParams.set("view", activeView);
+        nextParams.set("view", activeView);
+        nextParams.delete("competition");
         navigate(`/hackathon?${nextParams.toString()}${location.hash || ""}`, { replace: true });
     }, [
         activeEventKey,
         activeView,
+        explicitView,
         location.hash,
+        location.pathname,
         location.search,
         navigate,
         requestedEventKey,
-        requestedView,
         scheduleLoading,
     ]);
 
     useEffect(() => {
         if (!location.hash.startsWith("#showcase-")) return undefined;
         const animationFrame = window.requestAnimationFrame(() => {
-            if (location.hash === "#showcase-overview") {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-                return;
-            }
             document
                 .querySelector(location.hash)
                 ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -87,248 +170,151 @@ const HackathonSeasonOne = () => {
     }, [activeEventKey, activeView, location.hash]);
 
     useEffect(() => {
-        const container = timelineScrollRef.current;
-        const node = activeNodeRef.current;
-        if (!container || !node) return;
-        const targetLeft = node.offsetLeft - (container.clientWidth - node.offsetWidth) / 2;
-        container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
-    }, [activeEventKey]);
-
-    useEffect(() => {
-        const shell = shellRef.current;
-        if (!shell) return undefined;
-
-        const pageScroller = shell.querySelector("[data-registration-page], [data-showcase-page]");
-        if (!pageScroller) return undefined;
-
-        const usesWindowScroll = pageScroller.classList.contains("showcase-compact-flow");
-        const scrollTarget = usesWindowScroll ? window : pageScroller;
-        let animationFrame = 0;
-
-        const updatePageTabs = () => {
-            window.cancelAnimationFrame(animationFrame);
-            animationFrame = window.requestAnimationFrame(() => {
-                const scrollOffset = usesWindowScroll
-                    ? Math.max(0, -shell.getBoundingClientRect().top)
-                    : pageScroller.scrollTop;
-                setPageTabsVisible(scrollOffset < 96);
+        let secondFrame = 0;
+        const firstFrame = window.requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+            secondFrame = window.requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: "auto" });
             });
-        };
-
-        updatePageTabs();
-        scrollTarget.addEventListener("scroll", updatePageTabs, { passive: true });
-        window.addEventListener("resize", updatePageTabs, { passive: true });
-
+        });
         return () => {
-            window.cancelAnimationFrame(animationFrame);
-            scrollTarget.removeEventListener("scroll", updatePageTabs);
-            window.removeEventListener("resize", updatePageTabs);
+            window.cancelAnimationFrame(firstFrame);
+            window.cancelAnimationFrame(secondFrame);
         };
     }, [activeEventKey, activeView]);
 
-    const views = useMemo(
-        () => [
-            {
-                id: "register",
-                label: t("hackathon.tabs.register", "赛事报名"),
-                shortLabel: t("hackathon.tabs.register_short", "报名"),
-                icon: CalendarDays,
-                available: template.navigation.registrationVisible,
-            },
-            {
-                id: "showcase",
-                label: t("hackathon.tabs.showcase", "比赛成果"),
-                shortLabel: t("hackathon.tabs.showcase_short", "成果"),
-                icon: Film,
-                available: template.navigation.resultsVisible,
-            },
-        ],
-        [t, template.navigation.registrationVisible, template.navigation.resultsVisible]
-    );
-
-    const navigateTo = (eventKey, view) => {
+    const buildWorkspaceUrl = (eventKey, view) => {
         const nextParams = new URLSearchParams(location.search);
         nextParams.set("event", eventKey);
-        if (view) nextParams.set("view", view);
-        else nextParams.delete("view");
-        navigate(`/hackathon?${nextParams.toString()}`);
+        nextParams.set("view", view);
+        nextParams.delete("competition");
+        ["mediaView", "photo", "work", "id", "create", "submit"].forEach((key) =>
+            nextParams.delete(key)
+        );
+        return `/hackathon?${nextParams.toString()}`;
+    };
+
+    const resetStagePosition = () => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        window.requestAnimationFrame(() => stageHeadingRef.current?.focus({ preventScroll: true }));
     };
 
     const switchEvent = (nextTemplate) => {
-        if (nextTemplate.event.key === activeEventKey) return;
-        const nextView = getFirstAvailableHackathonView(nextTemplate, activeView || requestedView);
-        navigateTo(nextTemplate.event.key, nextView);
+        if (nextTemplate.event.key !== activeEventKey) {
+            navigate(buildWorkspaceUrl(nextTemplate.event.key, activeView));
+            resetStagePosition();
+        }
+        setEventPickerOpen(false);
     };
 
     const switchView = (view) => {
-        if (!view.available || view.id === activeView) return;
-        navigateTo(activeEventKey, view.id);
+        if (view.id === activeView) return;
+        navigate(buildWorkspaceUrl(activeEventKey, view.id));
+        resetStagePosition();
     };
 
-    const shellClass = showcaseMode
-        ? "border-[#b9ff18]/30 bg-[#020806]/80 text-white shadow-[0_18px_55px_rgba(0,0,0,0.42)]"
-        : isDayMode
-          ? "border-emerald-200/80 bg-white/78 text-slate-900 shadow-[0_14px_34px_rgba(15,118,110,0.13)]"
-          : "border-cyan-300/16 bg-[#061014]/72 text-white shadow-[0_0_30px_rgba(34,211,238,0.12)]";
-    const titleClass = showcaseMode || !isDayMode ? "text-white" : "text-slate-950";
-    const mutedClass = showcaseMode
-        ? "text-[#d8e0d4]/58"
-        : isDayMode
-          ? "text-slate-500"
-          : "text-cyan-100/62";
-    const activeTabClass = showcaseMode
-        ? "bg-[#b9ff18] text-[#071006] shadow-[0_0_24px_rgba(185,255,24,0.22)]"
-        : isDayMode
-          ? "border border-emerald-200/80 bg-emerald-50 text-emerald-700 shadow-[0_8px_20px_rgba(16,185,129,0.15)]"
-          : "bg-cyan-300 text-cyan-950 shadow-[0_0_20px_rgba(103,232,249,0.3)]";
-    const idleTabClass = showcaseMode
-        ? "text-[#e8eee4]/72 hover:bg-[#b9ff18]/10 hover:text-white"
-        : isDayMode
-          ? "text-emerald-900/75 hover:bg-emerald-50 hover:text-emerald-950"
-          : "text-cyan-100/76 hover:bg-white/8 hover:text-white";
-    const disabledTabClass =
-        isDayMode && !showcaseMode
-            ? "cursor-not-allowed text-slate-400 opacity-55"
-            : "cursor-not-allowed text-white/30 opacity-60";
+    const renderStage = () => {
+        if (activeView === "register") {
+            return <HackathonRegistration key={activeEventKey} template={template} />;
+        }
+        if (activeView === "projects") {
+            return (
+                <Suspense fallback={<WorkspaceLoading t={t} />}>
+                    <ProjectPlaza
+                        key={`${activeEventKey}-projects`}
+                        embedded
+                        competitionSlug={competitionSlug}
+                    />
+                </Suspense>
+            );
+        }
+        if (activeView === "media") {
+            return (
+                <Suspense fallback={<WorkspaceLoading t={t} />}>
+                    <MediaEventArchive
+                        key={`${activeEventKey}-media`}
+                        embedded
+                        eventKey={activeEventKey}
+                        eventSlug={competitionSlug}
+                    />
+                </Suspense>
+            );
+        }
+        if (activeView === "showcase" && template.navigation.resultsVisible) {
+            return <HackathonShowcase key={activeEventKey} template={template} />;
+        }
+        return (
+            <div className="hws-unavailable">
+                <LockKeyhole aria-hidden="true" />
+                <h2>{t("hackathon.workspace.results_pending", "本场成果尚未发布")}</h2>
+                <p>
+                    {t(
+                        "hackathon.workspace.results_pending_desc",
+                        "赛事环节保持在这里，正式成果发布后会直接出现在同一位置。"
+                    )}
+                </p>
+            </div>
+        );
+    };
 
     return (
         <div
-            ref={shellRef}
-            className="hackathon-schedule-shell day-page-theme day-page-theme-tech relative min-h-[100svh] max-w-full overflow-x-hidden"
+            className={`hackathon-workspace ${isDayMode ? "is-day" : "is-dark"}`}
+            data-view={activeView}
         >
-            <style>
-                {`
-                    .hackathon-schedule-shell {
-                        --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 11.5rem);
-                    }
-                    .hackathon-schedule-shell [data-registration-page] #hackathon-hero {
-                        padding-top: var(--hackathon-schedule-clearance) !important;
-                    }
-                    .hackathon-schedule-shell [data-showcase-page] .showcase-gate-frame {
-                        padding-top: var(--hackathon-schedule-clearance) !important;
-                    }
-                    @media (min-width: 640px) {
-                        .hackathon-schedule-shell {
-                            --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 12rem);
-                        }
-                    }
-                    @media (min-width: 1024px) {
-                        .hackathon-schedule-shell {
-                            --hackathon-schedule-clearance: calc(env(safe-area-inset-top) + 9.75rem);
-                        }
-                        .hackathon-schedule-shell [data-registration-logo-panel] {
-                            top: var(--hackathon-schedule-clearance) !important;
-                        }
-                    }
-                `}
-            </style>
-
-            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+66px)] z-[45] sm:left-5 sm:right-5 sm:top-[calc(env(safe-area-inset-top)+72px)] min-[1720px]:left-7 min-[1720px]:right-7">
-                <div
-                    data-hackathon-control-bar
-                    inert={pageTabsVisible ? undefined : ""}
-                    className={`pointer-events-auto relative mx-auto grid w-full max-w-[1480px] overflow-hidden rounded-[14px] border backdrop-blur-2xl transition-[opacity,transform] duration-300 ease-out lg:grid-cols-[minmax(0,1fr)_minmax(390px,420px)] ${
-                        pageTabsVisible
-                            ? "translate-y-0 opacity-100"
-                            : "pointer-events-none -translate-y-[150%] opacity-0"
-                    } ${shellClass}`}
+            <style>{WORKSPACE_CSS}</style>
+            <div className="hws-grid">
+                <aside
+                    className="hws-event-rail"
+                    aria-label={t("hackathon.workspace.events_aria", "历届赛事")}
                 >
-                    <span
-                        aria-hidden="true"
-                        className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-px ${
-                            showcaseMode
-                                ? "bg-[#b9ff18]/70"
-                                : isDayMode
-                                  ? "bg-cyan-500/60"
-                                  : "bg-cyan-300/70"
-                        }`}
-                    />
-                    <div
-                        data-hackathon-schedule-panel
-                        className="min-w-0 border-b border-current/10 lg:border-b-0 lg:border-r"
-                        aria-label={t("hackathon.timeline_aria", "比赛日程时间轴")}
-                    >
-                        <div
-                            ref={timelineScrollRef}
-                            className="hackathon-timeline-scroll overflow-x-auto"
-                        >
-                            <div className="flex min-w-full items-stretch">
-                                {schedule.events.map((item) => {
-                                    const selected = item.event.key === activeEventKey;
-                                    const eventEnd = item.event.endAt || item.event.startAt;
-                                    const isArchived = eventEnd
-                                        ? Date.parse(eventEnd) < Date.now()
-                                        : !item.event.registrationOpen;
-                                    return (
-                                        <button
-                                            key={item.event.key}
-                                            ref={selected ? activeNodeRef : null}
-                                            type="button"
-                                            onClick={() => switchEvent(item)}
-                                            aria-current={selected ? "step" : undefined}
-                                            className={`group grid min-h-[58px] min-w-[300px] flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-r px-4 text-left transition last:border-r-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset ${showcaseMode ? "focus-visible:ring-[#b9ff18]/70" : "focus-visible:ring-cyan-400/60"} ${
-                                                selected
-                                                    ? showcaseMode
-                                                        ? "border-[#b9ff18]/35 bg-[#b9ff18]/[0.08] text-white shadow-[inset_0_-2px_#b9ff18]"
-                                                        : isDayMode
-                                                          ? "border-cyan-600 bg-cyan-50 text-cyan-950 shadow-[inset_0_-2px_#0891b2]"
-                                                          : "border-cyan-300/30 bg-cyan-300/[0.06] text-white shadow-[inset_0_-2px_#67e8f9]"
-                                                    : showcaseMode
-                                                      ? "border-white/10 text-white/50 hover:bg-[#b9ff18]/[0.05] hover:text-white"
-                                                      : isDayMode
-                                                        ? "border-slate-200 text-cyan-950/60 hover:bg-cyan-50 hover:text-cyan-950"
-                                                        : "border-white/10 text-cyan-100/48 hover:bg-white/[0.04] hover:text-white"
-                                            }`}
-                                        >
-                                            <span
-                                                className={`font-mono text-lg font-black tabular-nums ${selected ? (showcaseMode ? "text-[#b9ff18]" : isDayMode ? "text-cyan-700" : "text-cyan-300") : "opacity-60"}`}
-                                            >
-                                                {formatTimelineDate(
-                                                    item.event.startAt,
-                                                    t("common.tba", "待定")
-                                                )}
-                                            </span>
-                                            <span className="truncate text-sm font-black">
-                                                {isEnglish && hasCjkText(item.event.title)
-                                                    ? t("hackathon.hero.full_title")
-                                                    : item.event.title}
-                                            </span>
-                                            <span className="border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] opacity-60">
-                                                {isArchived
-                                                    ? t("hackathon.outcome_archive.archived")
-                                                    : t(
-                                                          "hackathon.outcome_archive.open_for_registration"
-                                                      )}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                    <div className="hws-event-rail-head">
+                        <strong>{t("hackathon.workspace.archive_title", "历届浙客松")}</strong>
+                        <small>
+                            {t("hackathon.workspace.archive_count", "{{count}} 场赛事", {
+                                count: schedule.events.length,
+                            })}
+                        </small>
                     </div>
-                    <div
-                        className="flex min-h-[50px] w-full items-center gap-1 px-1.5 py-1 lg:min-h-[58px]"
-                        role="tablist"
-                        aria-label={t("hackathon.tabs.aria")}
-                    >
-                        <div className="hidden min-w-[104px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
-                            <Trophy
-                                className={`h-3.5 w-3.5 shrink-0 ${showcaseMode ? "text-[#b9ff18]" : isDayMode ? "text-emerald-500" : "text-cyan-400"}`}
+                    <div className="hws-event-list">
+                        {orderedEvents.map(({ item, originalIndex, phase }) => (
+                            <EventCard
+                                key={item.event.key}
+                                variant="rail"
+                                template={item}
+                                edition={originalIndex + 1}
+                                selected={item.event.key === activeEventKey}
+                                phase={phase}
+                                phaseLabel={phaseLabel(phase)}
+                                locale={locale}
+                                t={t}
+                                onSelect={() => switchEvent(item)}
                             />
-                            <div className="min-w-0">
-                                <p
-                                    className={`truncate text-xs font-black leading-none ${titleClass}`}
-                                >
-                                    {t("hackathon.brand", "浙客松")}
-                                </p>
-                                <p
-                                    className={`text-[10px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}
-                                >
-                                    ZHEKESONG
-                                </p>
-                            </div>
-                        </div>
-                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">
+                        ))}
+                    </div>
+                </aside>
+
+                <div className="hws-main">
+                    <header className="hws-context-bar">
+                        <button
+                            type="button"
+                            className="hws-mobile-event-button"
+                            aria-haspopup="dialog"
+                            aria-expanded={eventPickerOpen}
+                            onClick={() => setEventPickerOpen(true)}
+                        >
+                            <span>
+                                {t("hackathon.workspace.current_event", "当前赛事")}
+                                <strong>{template.event.title}</strong>
+                            </span>
+                            <ChevronDown aria-hidden="true" />
+                        </button>
+
+                        <nav
+                            className="hws-stage-tabs"
+                            role="tablist"
+                            aria-label={t("hackathon.workspace.stages_aria", "赛事环节")}
+                        >
                             {views.map((view) => {
                                 const Icon = view.icon;
                                 const selected = activeView === view.id;
@@ -338,57 +324,218 @@ const HackathonSeasonOne = () => {
                                         type="button"
                                         role="tab"
                                         aria-selected={selected}
-                                        aria-disabled={!view.available}
-                                        disabled={!view.available}
+                                        aria-controls="hackathon-workspace-stage"
+                                        className={selected ? "is-current" : ""}
                                         onClick={() => switchView(view)}
-                                        className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[9px] px-3 text-xs font-black transition duration-200 focus:outline-none focus:ring-4 ${showcaseMode ? "focus:ring-[#b9ff18]/20" : "focus:ring-cyan-300/20"} ${
-                                            !view.available
-                                                ? disabledTabClass
-                                                : selected
-                                                  ? activeTabClass
-                                                  : idleTabClass
-                                        }`}
-                                        title={view.available ? view.label : `${view.label}已隐藏`}
                                     >
-                                        {view.available ? (
-                                            <Icon className="h-4 w-4" />
-                                        ) : (
-                                            <LockKeyhole className="h-4 w-4" />
-                                        )}
-                                        <span className="hidden sm:inline">{view.label}</span>
-                                        <span className="sm:hidden">{view.shortLabel}</span>
-                                        {!view.available ? (
-                                            <span className="text-[9px] font-bold">未开放</span>
-                                        ) : null}
+                                        <span className="hws-stage-symbol" aria-hidden="true">
+                                            <Icon />
+                                        </span>
+                                        <strong>{view.label}</strong>
                                     </button>
                                 );
                             })}
-                        </div>
-                    </div>
+                        </nav>
+                    </header>
+
+                    <section
+                        id="hackathon-workspace-stage"
+                        className={`hws-stage is-${activeView}`}
+                        role="tabpanel"
+                        aria-label={views.find((view) => view.id === activeView)?.label}
+                    >
+                        <span
+                            ref={stageHeadingRef}
+                            className="hws-stage-focus-target"
+                            tabIndex={-1}
+                        >
+                            {views.find((view) => view.id === activeView)?.label}
+                        </span>
+                        {renderStage()}
+                    </section>
                 </div>
             </div>
 
-            {activeView === "showcase" ? (
-                <HackathonShowcase key={activeEventKey} template={template} />
-            ) : activeView === "register" ? (
-                <HackathonRegistration key={activeEventKey} template={template} />
-            ) : (
-                <div
-                    className={`flex min-h-[100svh] items-center justify-center px-6 pt-64 text-center ${
-                        isDayMode ? "bg-slate-50 text-slate-900" : "bg-[#040506] text-white"
-                    }`}
-                >
-                    <div>
-                        <LockKeyhole className="mx-auto h-8 w-8 opacity-40" />
-                        <h1 className="mt-4 text-xl font-black">该赛事页面暂未开放</h1>
-                        <p className={`mt-2 text-sm font-semibold ${mutedClass}`}>
-                            可以继续通过上方时间轴查看其他比赛日程。
-                        </p>
+            {eventPickerOpen ? (
+                <BodyPortal>
+                    <div
+                        className={`hws-drawer-scrim ${isDayMode ? "is-day" : "is-dark"}`}
+                        onMouseDown={() => setEventPickerOpen(false)}
+                    >
+                        <section
+                            className={`hws-event-drawer ${isDayMode ? "is-day" : "is-dark"}`}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label={t("hackathon.workspace.choose_event", "选择赛事")}
+                            onMouseDown={(event) => event.stopPropagation()}
+                        >
+                            <header>
+                                <div>
+                                    <span>{t("hackathon.workspace.archive", "赛事档案")}</span>
+                                    <h2>{t("hackathon.workspace.choose_event", "选择赛事")}</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    aria-label={t("common.close", "关闭")}
+                                    onClick={() => setEventPickerOpen(false)}
+                                >
+                                    <X aria-hidden="true" />
+                                </button>
+                            </header>
+                            <div className="hws-drawer-list">
+                                {orderedEvents.map(({ item, originalIndex, phase }) => (
+                                    <EventCard
+                                        key={item.event.key}
+                                        variant="drawer"
+                                        template={item}
+                                        edition={originalIndex + 1}
+                                        selected={item.event.key === activeEventKey}
+                                        phase={phase}
+                                        phaseLabel={phaseLabel(phase)}
+                                        locale={locale}
+                                        t={t}
+                                        onSelect={() => switchEvent(item)}
+                                    />
+                                ))}
+                            </div>
+                        </section>
                     </div>
-                </div>
-            )}
+                </BodyPortal>
+            ) : null}
         </div>
     );
 };
+
+const EventCard = ({
+    template,
+    edition,
+    selected,
+    phase,
+    phaseLabel,
+    locale,
+    t,
+    onSelect,
+    variant = "rail",
+}) => (
+    <button
+        type="button"
+        className={`hws-event-card is-${variant} ${selected ? "is-current" : ""}`}
+        aria-current={selected ? "page" : undefined}
+        onClick={onSelect}
+    >
+        <span className="hws-event-edition">
+            {t("hackathon.workspace.edition", "第 {{count}} 届", { count: edition })}
+            <i className={`is-${phase}`}>{phaseLabel}</i>
+        </span>
+        <strong>{template.event.title}</strong>
+        <small>
+            {formatEventDate(template.event.startAt, locale, t("common.tba", "待定"))}
+            {template.event.location ? ` · ${template.event.location}` : ""}
+        </small>
+    </button>
+);
+
+const WorkspaceLoading = ({ t }) => (
+    <div className="hws-loading" role="status">
+        <span aria-hidden="true" />
+        {t("common.loading", "加载中…")}
+    </div>
+);
+
+const WORKSPACE_CSS = `
+.hackathon-workspace{--hws-bg:#050809;--hws-panel:#0b1718;--hws-panel-2:#121c1d;--hws-text:#fff;--hws-muted:rgba(255,255,255,.56);--hws-line:rgba(255,255,255,.12);--hws-line-strong:rgba(103,232,249,.42);--hws-lime:#67e8f9;--hws-lime-ink:#082024;position:relative;min-height:100svh;overflow-x:clip;background:linear-gradient(135deg,#050809 0%,#0a1919 54%,#040707 100%);color:var(--hws-text);font-family:"HarmonyOS Sans SC","MiSans","PingFang SC",system-ui,sans-serif;isolation:isolate;}
+.hackathon-workspace.is-day{--hws-bg:#f6f8fb;--hws-panel:#fff;--hws-panel-2:#eef8fb;--hws-text:#0f172a;--hws-muted:#64748b;--hws-line:rgba(15,23,42,.12);--hws-line-strong:rgba(6,182,212,.38);--hws-lime:#0891b2;--hws-lime-ink:#fff;background:linear-gradient(135deg,#fff 0%,#eef8fb 52%,#f8fafc 100%);}
+.hackathon-workspace::before{content:"";position:fixed;z-index:-1;inset:64px 0 0 232px;pointer-events:none;background:radial-gradient(circle at 74% 0%,rgba(34,211,238,.1),transparent 26%),linear-gradient(rgba(103,232,249,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(103,232,249,.035) 1px,transparent 1px);background-size:auto,52px 52px,52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 62%);}
+.hws-grid{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100svh;padding-top:calc(env(safe-area-inset-top) + 64px);}
+.hws-event-rail{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:31;align-self:start;height:calc(100svh - env(safe-area-inset-top) - 64px);overflow:hidden;border-right:1px solid var(--hws-line);background:rgba(7,15,16,.96);}
+.hackathon-workspace.is-day .hws-event-rail{background:rgba(255,255,255,.96);}
+.hws-event-rail-head{display:grid;gap:5px;padding:24px 20px 18px;border-bottom:1px solid var(--hws-line);}
+.hws-event-rail-head strong{font-size:18px;line-height:1.2;font-weight:900;letter-spacing:-.025em;}
+.hws-event-rail-head small{color:var(--hws-muted);font-size:10.5px;font-weight:750;}
+.hws-event-list{display:block;max-height:calc(100% - 84px);overflow-y:auto;padding:8px 20px 16px;overscroll-behavior:contain;scrollbar-width:thin;}
+.hws-event-card{position:relative;display:grid;gap:8px;width:100%;min-height:0;padding:16px 0 15px 14px;border:0;border-bottom:1px solid var(--hws-line);border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:color .18s ease;}
+.hws-event-card::before{content:"";position:absolute;left:0;top:21px;width:6px;height:6px;border-radius:50%;background:transparent;}
+.hws-event-card:hover{color:var(--hws-text);}
+.hws-event-card.is-current{color:var(--hws-text);}
+.hws-event-card.is-current::before{background:var(--hws-lime);}
+.hws-event-card:focus-visible,.hws-stage-tabs button:focus-visible,.hws-mobile-event-button:focus-visible,.hws-event-drawer header button:focus-visible{outline:3px solid color-mix(in srgb,var(--hws-lime) 42%,transparent);outline-offset:2px;}
+.hws-event-edition{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--hws-muted);font-size:10px;font-weight:900;line-height:1.2;}
+.hws-event-card.is-current .hws-event-edition{color:var(--hws-lime);}
+.hws-event-edition i{font-style:normal;color:var(--hws-muted);font-size:10px;font-weight:850;}
+.hws-event-edition i.is-live{color:var(--hws-lime);}
+.hws-event-card strong{font-size:14px;line-height:1.4;font-weight:900;letter-spacing:-.01em;}
+.hws-event-card small{color:var(--hws-muted);font-size:10.5px;line-height:1.5;font-weight:700;}
+.hws-event-card.is-drawer{gap:12px;min-height:124px;padding:16px 16px 15px 20px;border:1px solid var(--hws-line);border-radius:2px;background:linear-gradient(180deg,rgba(19,29,30,.82),rgba(11,21,21,.68));}
+.hws-event-card.is-drawer::before{display:none;}
+.hws-event-card.is-drawer.is-current{border-color:var(--hws-lime);background:linear-gradient(180deg,color-mix(in srgb,var(--hws-lime) 11%,#121c1d),rgba(11,23,24,.92));box-shadow:0 20px 52px rgba(0,0,0,.3);}
+.hws-event-card.is-drawer .hws-event-edition{color:var(--hws-lime);}
+.hws-event-card.is-drawer strong{font-size:15px;}
+.hws-event-card.is-drawer small{font-size:11px;}
+.hws-main{min-width:0;}
+.hws-context-bar{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:30;overflow:hidden;border-bottom:1px solid var(--hws-line);background:rgba(8,19,20,.94);box-shadow:0 12px 36px rgba(0,0,0,.18);backdrop-filter:blur(18px);}
+.hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.92);box-shadow:0 8px 28px rgba(15,23,42,.06);}
+.hws-stage-tabs{position:relative;display:flex;min-height:48px;align-items:stretch;gap:clamp(24px,3vw,44px);padding:0 clamp(28px,4vw,64px);}
+.hws-stage-tabs button{position:relative;display:flex;min-width:0;min-height:48px;align-items:center;gap:8px;padding:0;border:0;border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:color .18s ease;}
+.hws-stage-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent;transition:background .18s ease;}
+.hws-stage-tabs button:hover{color:var(--hws-text);}
+.hws-stage-tabs button.is-current{color:var(--hws-text);}
+.hws-stage-tabs button.is-current::after{background:var(--hws-lime);}
+.hws-stage-symbol{display:grid;width:18px;height:18px;flex:none;place-items:center;}
+.hws-stage-symbol svg{width:16px;height:16px;color:currentColor;}
+.hws-stage-tabs button.is-current .hws-stage-symbol{color:var(--hws-lime);}
+.hws-stage-tabs strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:950;}
+.hws-stage{position:relative;min-width:0;min-height:calc(100svh - 112px);background:var(--hws-bg);}
+.hws-stage.is-projects,.hws-stage.is-media{background:#020806;color:#fff;}
+.hws-stage-focus-target{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
+.hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 112px)!important;min-height:560px;}
+.hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:48px!important;}
+.hws-stage.is-register [data-registration-page] #partner-network{min-height:100%!important;}
+.hws-stage.is-showcase .showcase-gate-frame{padding-top:42px!important;}
+.hws-unavailable,.hws-loading{display:grid;min-height:58vh;place-items:center;align-content:center;gap:12px;padding:48px 20px;text-align:center;color:var(--hws-muted);}
+.hws-unavailable svg{width:34px;height:34px;color:var(--hws-lime);}
+.hws-unavailable h2{margin:4px 0 0;color:var(--hws-text);font-size:24px;font-weight:950;}
+.hws-unavailable p{max-width:52ch;margin:0;line-height:1.7;}
+.hws-loading{grid-template-columns:auto auto;min-height:50vh;font-size:13px;font-weight:800;}
+.hws-loading span{width:9px;height:9px;border-radius:50%;background:var(--hws-lime);animation:hws-pulse 1.2s ease-out infinite;}
+@keyframes hws-pulse{50%{opacity:.3;transform:scale(.72)}}
+.hws-mobile-event-button{display:none;}
+.hws-drawer-scrim{position:fixed;inset:0;z-index:180;display:flex;align-items:flex-end;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);}
+.hws-drawer-scrim.is-day{background:rgba(15,23,42,.38);backdrop-filter:blur(8px);}
+.hws-event-drawer{--hws-panel:#0b1718;--hws-text:#fff;--hws-muted:rgba(255,255,255,.56);--hws-line:rgba(255,255,255,.12);--hws-line-strong:rgba(103,232,249,.36);--hws-lime:#67e8f9;width:100%;max-height:min(78dvh,720px);overflow:hidden;border-top:1px solid rgba(103,232,249,.38);border-radius:16px 16px 0 0;background:linear-gradient(180deg,#0b1718,#071011);color:#fff;box-shadow:0 -22px 80px rgba(0,0,0,.56),0 0 70px rgba(34,211,238,.08);}
+.hws-event-drawer header{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 14px;border-bottom:1px solid rgba(247,248,242,.12);}
+.hws-event-drawer header span{color:#b9ff18;font-size:10px;font-weight:900;}
+.hws-event-drawer header h2{margin:4px 0 0;font-size:20px;font-weight:950;}
+.hws-event-drawer header button{display:grid;width:44px;height:44px;place-items:center;border:1px solid rgba(247,248,242,.14);border-radius:10px;background:transparent;color:#f7f8f2;}
+.hws-event-drawer.is-day{--hws-panel:#fff;--hws-text:#0f172a;--hws-muted:#64748b;--hws-line:rgba(15,23,42,.12);--hws-line-strong:rgba(8,145,178,.3);--hws-lime:#0891b2;border-top-color:rgba(8,145,178,.28);background:#fff;color:#0f172a;box-shadow:0 -22px 70px rgba(15,23,42,.18);}
+.hws-event-drawer.is-day header{border-bottom-color:rgba(15,23,42,.1);}
+.hws-event-drawer.is-day header span{color:var(--hws-lime);}
+.hws-event-drawer.is-day header button{border-color:rgba(15,23,42,.14);background:#f8fafc;color:var(--hws-text);}
+.hws-event-drawer.is-day .hws-event-card.is-drawer{background:#fff;}
+.hws-event-drawer.is-day .hws-event-card.is-drawer.is-current{border-color:rgba(8,145,178,.38);background:rgba(8,145,178,.07);box-shadow:none;}
+.hws-drawer-list{display:grid;gap:9px;max-height:calc(min(78dvh,720px) - 78px);overflow-y:auto;padding:14px 14px calc(env(safe-area-inset-bottom) + 18px);}
+@media(max-width:1180px){
+  .hws-grid{display:block;padding-top:calc(env(safe-area-inset-top) + 64px)}
+  .hackathon-workspace::before{inset:64px 0 0}
+  .hws-event-rail{display:none}
+  .hws-context-bar{top:calc(env(safe-area-inset-top) + 64px)}
+  .hws-mobile-event-button{position:relative;display:flex;width:100%;min-height:60px;align-items:center;justify-content:space-between;gap:14px;overflow:hidden;padding:10px 16px 10px 20px;border:0;border-bottom:1px solid var(--hws-line);background:linear-gradient(100deg,color-mix(in srgb,var(--hws-lime) 8%,var(--hws-panel)),var(--hws-panel) 58%);color:var(--hws-text);font:inherit;text-align:left}
+  .hws-mobile-event-button::before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;background:var(--hws-lime);box-shadow:0 0 14px var(--hws-lime)}
+  .hackathon-workspace.is-day .hws-mobile-event-button::before{box-shadow:none}
+  .hws-mobile-event-button span{display:grid;gap:3px;min-width:0;color:var(--hws-lime);font:900 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
+  .hws-mobile-event-button strong{max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hws-text);font-size:13px;font-weight:950}
+  .hws-mobile-event-button svg{width:18px;height:18px;color:var(--hws-lime)}
+  .hws-stage-tabs{display:flex;max-width:100%;min-height:52px;gap:4px;overflow-x:auto;padding:0 8px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .hws-stage-tabs::-webkit-scrollbar{display:none}
+  .hws-stage-tabs button{flex:0 0 auto;min-width:104px;min-height:52px;padding:0 12px;scroll-snap-align:start}
+  .hws-stage-tabs button::after{left:10px;right:10px}
+  .hws-stage-symbol{width:18px;height:18px}
+  .hws-stage-symbol svg{width:15px;height:15px}
+  .hws-stage{min-height:calc(100svh - 176px)}
+  .hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 176px)!important;min-height:520px}
+  .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:36px!important}
+}
+@media(max-width:560px){.hws-stage-tabs button{min-width:100px}.hws-stage-tabs strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.hws-event-card,.hws-stage-tabs button{transition:none}.hws-event-card:hover{transform:none}.hws-loading span{animation:none}}
+`;
 
 export default HackathonSeasonOne;

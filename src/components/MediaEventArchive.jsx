@@ -178,14 +178,20 @@ const EventVideoDialog = ({ video, onClose, t }) => {
     );
 };
 
-const MediaEventArchive = () => {
+const MediaEventArchive = ({
+    embedded = false,
+    eventSlug: controlledEventSlug = "",
+    eventKey = "",
+}) => {
     const { t } = useTranslation();
     const { settings, uiMode } = useSettings();
     const { schedule } = useHackathonSchedule(settings);
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
-    const requestedSlug = String(searchParams.get("event") || "").trim();
-    const requestedView = String(searchParams.get("view") || "").trim();
+    const requestedSlug = String(
+        embedded ? controlledEventSlug : searchParams.get("event") || ""
+    ).trim();
+    const requestedView = String(searchParams.get(embedded ? "mediaView" : "view") || "").trim();
     const [archives, setArchives] = useState([]);
     const [outcome, setOutcome] = useState(null);
     const [loadingArchives, setLoadingArchives] = useState(true);
@@ -217,14 +223,29 @@ const MediaEventArchive = () => {
         [archives, schedule.events]
     );
 
-    const selectedArchive = useMemo(
-        () =>
-            displayedArchives.find((archive) => archive.slug === requestedSlug) ||
-            displayedArchives.find((archive) => archive.is_featured) ||
-            displayedArchives[0] ||
-            null,
-        [displayedArchives, requestedSlug]
-    );
+    const selectedArchive = useMemo(() => {
+        const exactArchive = displayedArchives.find((archive) => archive.slug === requestedSlug);
+        if (exactArchive) return exactArchive;
+        if (embedded && requestedSlug) {
+            const scheduled = schedule.events.find(
+                (item) => item.results.competitionSlug === requestedSlug
+            );
+            return scheduled
+                ? {
+                      slug: requestedSlug,
+                      title: scheduled.event.title,
+                      description: scheduled.event.description,
+                      event_date: scheduled.event.startAt,
+                      event_start_at: scheduled.event.startAt,
+                      event_end_at: scheduled.event.endAt,
+                      registration_open: scheduled.event.registrationOpen,
+                  }
+                : { slug: requestedSlug };
+        }
+        return (
+            displayedArchives.find((archive) => archive.is_featured) || displayedArchives[0] || null
+        );
+    }, [displayedArchives, embedded, requestedSlug, schedule.events]);
 
     const loadArchives = useCallback(async () => {
         setLoadingArchives(true);
@@ -262,14 +283,14 @@ const MediaEventArchive = () => {
 
     useEffect(() => {
         if (!selectedArchive) return;
-        if (requestedSlug !== selectedArchive.slug) {
+        if (!embedded && requestedSlug !== selectedArchive.slug) {
             const next = new URLSearchParams(searchParams);
             next.set("event", selectedArchive.slug);
             setSearchParams(next, { replace: true });
             return;
         }
         loadOutcome(selectedArchive.slug);
-    }, [loadOutcome, requestedSlug, searchParams, selectedArchive, setSearchParams]);
+    }, [embedded, loadOutcome, requestedSlug, searchParams, selectedArchive, setSearchParams]);
 
     useEffect(() => {
         setSelectedPhotoIndex(null);
@@ -335,6 +356,7 @@ const MediaEventArchive = () => {
     }, [eventPhase, loadOutcome, photoView, selectedArchive?.slug]);
 
     const selectArchive = (slug) => {
+        if (embedded) return;
         const next = new URLSearchParams(searchParams);
         next.set("event", slug);
         next.delete("photo");
@@ -344,7 +366,7 @@ const MediaEventArchive = () => {
 
     const selectPhotoView = (view) => {
         const next = new URLSearchParams(searchParams);
-        next.set("view", view);
+        next.set(embedded ? "mediaView" : "view", view);
         next.delete("photo");
         setSelectedPhotoIndex(null);
         setSearchParams(next);
@@ -389,10 +411,17 @@ const MediaEventArchive = () => {
         if (selectedArchive?.slug) loadOutcome(selectedArchive.slug);
     };
 
-    const empty = !loadingOutcome && livePhotos.length === 0 && videos.length === 0;
+    const empty =
+        !loadingOutcome &&
+        livePhotos.length === 0 &&
+        featuredPhotos.length === 0 &&
+        videos.length === 0;
 
     return (
-        <section className={`media-event-archive ${isDayMode ? "is-day" : "is-dark"}`}>
+        <section
+            className={`media-event-archive ${isDayMode ? "is-day" : "is-dark"}`}
+            data-embedded={embedded ? "true" : "false"}
+        >
             <SEO
                 title={t("media_archive.meta_title")}
                 description={t("media_archive.meta_desc")}
@@ -405,18 +434,28 @@ const MediaEventArchive = () => {
             </picture>
 
             <div className="media-event-inner">
-                <ArchiveRail
-                    archives={displayedArchives}
-                    selectedSlug={selectedArchive?.slug}
-                    onSelect={selectArchive}
-                    isDayMode={isDayMode}
-                    t={t}
-                />
+                {!embedded ? (
+                    <ArchiveRail
+                        archives={displayedArchives}
+                        selectedSlug={selectedArchive?.slug}
+                        onSelect={selectArchive}
+                        isDayMode={isDayMode}
+                        t={t}
+                    />
+                ) : null}
 
                 <header className="media-event-header">
                     <div>
-                        <p className="media-event-kicker">{t("media_archive.event_record")}</p>
-                        <h1>{selectedArchive?.title || t("media_archive.title")}</h1>
+                        <p className="media-event-kicker">
+                            {embedded
+                                ? t("media_archive.workspace_kicker", "当前赛事 · 赛事影像")
+                                : t("media_archive.event_record")}
+                        </p>
+                        <h1>
+                            {embedded
+                                ? t("media_archive.workspace_title", "图片直播与精选影像")
+                                : selectedArchive?.title || t("media_archive.title")}
+                        </h1>
                         <p className="media-event-description">
                             {selectedArchive?.description || t("media_archive.description")}
                         </p>
@@ -443,7 +482,11 @@ const MediaEventArchive = () => {
                         {selectedArchive ? (
                             <>
                                 <a
-                                    href={`/projects?competition=${encodeURIComponent(selectedArchive.slug)}`}
+                                    href={
+                                        embedded && eventKey
+                                            ? `/hackathon?event=${encodeURIComponent(eventKey)}&view=projects`
+                                            : `/projects?competition=${encodeURIComponent(selectedArchive.slug)}`
+                                    }
                                 >
                                     {t("media_archive.view_projects", "进入本场项目广场")}
                                     <ArrowRight className="h-4 w-4" />
@@ -611,7 +654,13 @@ const MediaEventArchive = () => {
                 .media-x-field{position:absolute;z-index:-1;inset:0 0 auto;height:880px;overflow:hidden;pointer-events:none;opacity:.72}
                 .media-x-field img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(1.05) contrast(1.08)}
                 .media-event-inner{width:min(1480px,calc(100% - 4rem));margin:0 auto}
-                .media-event-rail{overflow:hidden;border-bottom:1px solid rgba(185,255,24,.28);background:transparent}
+                .media-event-archive[data-embedded="true"]{min-height:0;overflow:hidden;padding:0 0 calc(var(--mobile-content-bottom-padding,0px) + 4rem);background:var(--x-ink)}
+                .media-event-archive[data-embedded="true"] .media-x-field{display:block;height:760px;opacity:.62}
+                .media-event-archive[data-embedded="true"] .media-event-inner{width:100%;margin:0}
+                .media-event-archive[data-embedded="true"] .media-event-header{padding:clamp(3.2rem,5vw,5rem) clamp(1.5rem,4vw,4rem) 3.2rem}
+                .media-event-archive[data-embedded="true"] .media-event-header h1{max-width:14ch;font-size:clamp(2.35rem,5vw,5.4rem);letter-spacing:-.04em}
+                .media-event-archive[data-embedded="true"] .media-event-section{padding-inline:clamp(1.5rem,4vw,4rem)}
+                .media-event-rail{overflow:hidden;border-bottom:1px solid color-mix(in srgb,var(--x-lime) 28%,transparent);background:transparent}
                 .media-event-rail-scroll{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none}.media-event-rail-scroll::-webkit-scrollbar{display:none}
                 .media-event-tab,.media-event-tab.is-day{min-width:290px;min-height:60px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1rem;padding:.75rem 0;margin-right:1.8rem;border:0;background:transparent;color:rgba(247,248,242,.56);text-align:left;transition:color .2s ease,box-shadow .2s ease}
                 .media-event-tab:hover{color:#fff}.media-event-tab.is-selected,.media-event-tab.is-day.is-selected{color:#fff;box-shadow:inset 0 -2px var(--x-lime)}
@@ -624,17 +673,17 @@ const MediaEventArchive = () => {
                 .media-event-description{max-width:700px;margin:1.35rem 0 0;color:rgba(247,248,242,.7);font-size:.95rem;line-height:1.9}
                 .media-event-summary{align-self:end;display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid rgba(247,248,242,.15)}
                 .media-event-summary div{position:relative;padding:1rem 1rem 1rem 0}
-                .media-event-summary div+div::before{content:"";position:absolute;left:0;top:24%;height:52%;width:1px;background:rgba(185,255,24,.36)}
+                .media-event-summary div+div::before{content:"";position:absolute;left:0;top:24%;height:52%;width:1px;background:color-mix(in srgb,var(--x-lime) 36%,transparent)}
                 .media-event-summary strong{display:block;color:var(--x-lime);font:900 1.75rem/1 ui-monospace,SFMono-Regular,Menlo,monospace}
                 .media-event-summary span{display:block;margin-top:.55rem;font-size:.72rem;font-weight:800;color:var(--x-muted)}
                 .media-event-actions{grid-column:1/-1;display:flex;gap:1rem}
-                .media-event-actions button,.media-event-actions a{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:.55rem;padding:.68rem 1.05rem;border:0;border-bottom:1px solid rgba(185,255,24,.5);border-radius:0;background:transparent;color:inherit;font-size:.78rem;font-weight:900;transition:transform .2s ease,color .2s ease}
+                .media-event-actions button,.media-event-actions a{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:.55rem;padding:.68rem 1.05rem;border:0;border-bottom:1px solid color-mix(in srgb,var(--x-lime) 50%,transparent);border-radius:0;background:transparent;color:inherit;font-size:.78rem;font-weight:900;transition:transform .2s ease,color .2s ease}
                 .media-event-actions button{border-color:var(--x-lime);background:var(--x-lime);color:#071006}
                 .media-event-actions button:hover,.media-event-actions a:hover{transform:translateY(-2px);color:var(--x-lime)}
                 .media-event-actions button:hover{background:var(--x-lime-soft)}
                 .media-event-section{padding:3.5rem 0 1rem}
-                .media-photo-modebar{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1.35rem}.media-photo-modes{display:flex;gap:1.35rem}.media-photo-modes button{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--x-muted);font-size:.78rem;font-weight:900}.media-photo-modes button.is-selected{border-color:var(--x-lime);color:var(--x-text)}.media-photo-modes button>span{font:800 .68rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;opacity:.58}.media-photo-status{display:flex;align-items:center;gap:.45rem;margin:0;color:var(--x-muted);font-size:.7rem;font-weight:800}.media-photo-status.is-live>span{width:7px;height:7px;border-radius:50%;background:var(--x-lime);box-shadow:0 0 0 5px rgba(185,255,24,.12);animation:media-live-pulse 1.8s ease-out infinite}@keyframes media-live-pulse{50%{box-shadow:0 0 0 9px rgba(185,255,24,0)}}
-                .media-event-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid rgba(185,255,24,.28)}
+                .media-photo-modebar{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1.35rem}.media-photo-modes{display:flex;gap:1.35rem}.media-photo-modes button{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--x-muted);font-size:.78rem;font-weight:900}.media-photo-modes button.is-selected{border-color:var(--x-lime);color:var(--x-text)}.media-photo-modes button>span{font:800 .68rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;opacity:.58}.media-photo-status{display:flex;align-items:center;gap:.45rem;margin:0;color:var(--x-muted);font-size:.7rem;font-weight:800}.media-photo-status.is-live>span{width:7px;height:7px;border-radius:50%;background:var(--x-lime);box-shadow:0 0 0 5px color-mix(in srgb,var(--x-lime) 12%,transparent);animation:media-live-pulse 1.8s ease-out infinite}@keyframes media-live-pulse{50%{box-shadow:0 0 0 9px transparent}}
+                .media-event-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid color-mix(in srgb,var(--x-lime) 28%,transparent)}
                 .media-event-section-heading>div{display:flex;align-items:end;gap:1rem}
                 .media-event-section-heading p{margin:0 0 .35rem;color:var(--x-lime);font-size:.65rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
                 .media-event-section-heading h2{margin:0;font-size:clamp(1.45rem,2.5vw,2.35rem);font-weight:950;letter-spacing:-.035em}
@@ -655,7 +704,7 @@ const MediaEventArchive = () => {
                 .media-event-loading,.media-event-empty{min-height:42vh;display:grid;place-items:center;text-align:center;border-top:1px solid rgba(247,248,242,.12);font-weight:800;opacity:.62}.media-event-empty{align-content:center;gap:.75rem}.media-event-empty h2,.media-event-empty p{margin:0}
                 .media-photo-view-empty{min-height:32vh;display:grid;place-items:center;align-content:center;gap:.65rem;text-align:center;border-block:1px solid rgba(247,248,242,.12);color:var(--x-muted)}.media-photo-view-empty strong{color:var(--x-text);font-size:1.1rem}.media-photo-view-empty button{margin-top:.45rem;padding:.55rem 0;border:0;border-bottom:1px solid var(--x-lime);background:transparent;color:var(--x-lime);font-weight:900}
                 .media-event-video-dialog{position:fixed;inset:0;z-index:170;display:grid;place-items:center;padding:1rem;background:rgba(0,0,0,.86);backdrop-filter:blur(12px)}
-                .media-event-video-panel{width:min(1120px,100%);max-height:calc(100dvh - 2rem);overflow:auto;border:1px solid rgba(185,255,24,.3);border-radius:16px;background:#030806;color:#fff}
+                .media-event-video-panel{width:min(1120px,100%);max-height:calc(100dvh - 2rem);overflow:auto;border:1px solid color-mix(in srgb,var(--x-lime) 30%,transparent);border-radius:16px;background:#030806;color:#fff}
                 .media-event-video-frame{position:relative;aspect-ratio:16/9;background:#000}.media-event-video-frame video{width:100%;height:100%;display:block}
                 .media-event-video-frame button{position:absolute;right:1rem;top:1rem;display:grid;width:42px;height:42px;place-items:center;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(0,0,0,.65);color:#fff}
                 .media-event-video-copy{padding:1.25rem}.media-event-video-copy p{margin:0;color:var(--x-lime);font-size:.66rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.media-event-video-copy h2{margin:.45rem 0 0;font-size:clamp(1.4rem,3vw,2.4rem)}
@@ -670,6 +719,7 @@ const MediaEventArchive = () => {
                     .media-archive-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.media-archive-photo,.media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo.is-lead{grid-column:span 2}
                     .media-photo-stream.is-live .media-archive-photo,.media-photo-stream.is-live .media-archive-photo.is-lead{grid-column:span 1}.media-archive-photo-button,.media-archive-photo.is-lead .media-archive-photo-button,.media-photo-stream.is-live .media-archive-photo.is-lead .media-archive-photo-button{aspect-ratio:4/3;border-radius:12px}.media-archive-caption{grid-template-columns:1.55rem minmax(0,1fr);padding:.65rem 0 .9rem}.media-archive-caption h3{font-size:.76rem}
                     .media-archive-video-grid{grid-template-columns:1fr}.media-event-video-dialog{padding:0;place-items:end center}.media-event-video-panel{max-height:100dvh;height:100dvh;border:0;border-radius:0;display:flex;flex-direction:column;justify-content:center}.media-event-video-copy{padding:1rem}.media-event-count{display:none}
+                    .media-event-archive[data-embedded="true"]{padding-top:0}.media-event-archive[data-embedded="true"] .media-event-header{padding:2.4rem 1rem 2rem}.media-event-archive[data-embedded="true"] .media-event-header h1{font-size:clamp(2.35rem,11vw,3.6rem)}
                 }
                 @media(prefers-reduced-motion:reduce){.media-event-archive *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}}
             `}</style>

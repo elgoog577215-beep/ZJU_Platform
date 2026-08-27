@@ -2,6 +2,7 @@ const { getDb } = require("../config/db");
 const { renderProjectShareCard } = require("../services/projectShareCardService");
 
 const PROGRESS = new Set(["idea", "dev", "live", "pause"]);
+const DEPLOYMENT_PROVIDERS = new Set(["modelscope", "other"]);
 const MAX_TAGS = 12;
 
 const normalizeCompetitionSlug = (value) =>
@@ -37,6 +38,28 @@ const cleanImages = (input) => {
         .slice(0, 9);
 };
 
+const isHttpsUrl = (value) => {
+    if (!value) return false;
+    try {
+        return new URL(String(value).trim()).protocol === "https:";
+    } catch {
+        return false;
+    }
+};
+
+const normalizeDeploymentProvider = (value, url) => {
+    if (!url) return null;
+    const normalized = String(value || "")
+        .trim()
+        .toLowerCase();
+    if (DEPLOYMENT_PROVIDERS.has(normalized)) return normalized;
+    try {
+        return /(^|\.)modelscope\.cn$/i.test(new URL(url).hostname) ? "modelscope" : "other";
+    } catch {
+        return "other";
+    }
+};
+
 // Serialize a row for API output. Contact fields are login-gated.
 const serialize = (row, { viewer, includeContact = true } = {}) => {
     const loggedIn = Boolean(viewer);
@@ -52,6 +75,8 @@ const serialize = (row, { viewer, includeContact = true } = {}) => {
         need_tags: parseArr(row.need_tags),
         tech_tags: parseArr(row.tech_tags),
         repo_url: row.repo_url,
+        deployment_provider: row.deployment_provider || null,
+        deployment_url: row.deployment_url || null,
         cover_url: row.cover_url,
         images: parseArr(row.images_json),
         status: row.status,
@@ -120,7 +145,7 @@ const serializeLegacyCompetitionWork = (row) => ({
     id: `competition-work-${row.id}`,
     source_type: "competition_work",
     work_id: row.id,
-    user_id: row.uploader_id || null,
+    user_id: null,
     owner_name: row.author || row.uploader_name || null,
     owner_avatar: null,
     title: row.title,
@@ -130,6 +155,11 @@ const serializeLegacyCompetitionWork = (row) => ({
     need_tags: [],
     tech_tags: [],
     repo_url: row.git_url || null,
+    deployment_provider: row.deployment_provider || null,
+    deployment_url: row.deployment_url || null,
+    author: row.author || null,
+    major: row.major || null,
+    archive_label: "competition_archive",
     cover_url: row.cover_url || null,
     images: row.cover_url ? [row.cover_url] : [],
     status: "published",
@@ -153,13 +183,14 @@ const validate = (body) => {
     if (!body.title || !String(body.title).trim()) return "项目名称必填";
     if (String(body.title).trim().length > 40) return "项目名称过长";
     if (body.progress && !PROGRESS.has(body.progress)) return "进度取值非法";
-    if (body.repo_url && !/^https:\/\//i.test(String(body.repo_url)))
-        return "仓库链接需为 https 链接";
+    if (body.repo_url && !isHttpsUrl(body.repo_url)) return "仓库链接需为 https 链接";
+    if (body.deployment_url && !isHttpsUrl(body.deployment_url)) return "部署链接需为 https 链接";
     return null;
 };
 
 const buildWriteFields = (body) => {
     const images = cleanImages(body.images);
+    const deploymentUrl = body.deployment_url ? String(body.deployment_url).trim() : null;
     return {
         title: String(body.title).trim(),
         intro: body.intro ? String(body.intro).trim().slice(0, 80) : null,
@@ -168,6 +199,8 @@ const buildWriteFields = (body) => {
         need_tags: JSON.stringify(cleanTags(body.need_tags)),
         tech_tags: JSON.stringify(cleanTags(body.tech_tags)),
         repo_url: body.repo_url ? String(body.repo_url).trim() : null,
+        deployment_provider: normalizeDeploymentProvider(body.deployment_provider, deploymentUrl),
+        deployment_url: deploymentUrl,
         contact_wechat: body.contact_wechat
             ? String(body.contact_wechat).trim().slice(0, 60)
             : null,
@@ -188,8 +221,9 @@ const createProject = async (req, res, next) => {
         const result = await db.run(
             `INSERT INTO project_cards
         (user_id, title, intro, content, progress, need_tags, tech_tags, repo_url,
-         contact_wechat, contact_email, cover_url, images_json, status)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         deployment_provider, deployment_url, contact_wechat, contact_email, cover_url,
+         images_json, status)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 req.user.id,
                 f.title,
@@ -199,6 +233,8 @@ const createProject = async (req, res, next) => {
                 f.need_tags,
                 f.tech_tags,
                 f.repo_url,
+                f.deployment_provider,
+                f.deployment_url,
                 f.contact_wechat,
                 f.contact_email,
                 f.cover_url,
@@ -232,7 +268,8 @@ const updateProject = async (req, res, next) => {
         await db.run(
             `UPDATE project_cards SET
         title=?, intro=?, content=?, progress=?, need_tags=?, tech_tags=?, repo_url=?,
-        contact_wechat=?, contact_email=?, cover_url=?, images_json=?, status=?,
+        deployment_provider=?, deployment_url=?, contact_wechat=?, contact_email=?,
+        cover_url=?, images_json=?, status=?,
         updated_at=CURRENT_TIMESTAMP
        WHERE id=?`,
             [
@@ -243,6 +280,8 @@ const updateProject = async (req, res, next) => {
                 f.need_tags,
                 f.tech_tags,
                 f.repo_url,
+                f.deployment_provider,
+                f.deployment_url,
                 f.contact_wechat,
                 f.contact_email,
                 f.cover_url,
@@ -341,60 +380,68 @@ const listProjects = async (req, res, next) => {
             `SELECT COUNT(*) AS n FROM project_cards p LEFT JOIN users u ON u.id = p.user_id WHERE ${whereSql}`,
             params
         );
-        const fetchLimit = competition && !mine ? limit + offset : limit;
+        const fetchLimit = !mine ? limit + offset : limit;
         const rows = await db.all(
             `SELECT p.*, COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name, u.avatar AS owner_avatar
          FROM project_cards p LEFT JOIN users u ON u.id = p.user_id
         WHERE ${whereSql}
         ORDER BY p.created_at DESC
         LIMIT ? OFFSET ?`,
-            [...params, fetchLimit, competition && !mine ? 0 : offset]
+            [...params, fetchLimit, !mine ? 0 : offset]
         );
         const rowsWithCompetitions = await attachCompetitionSummaries(db, rows);
-        const legacyWorkRows =
-            competition && !mine && !need && (!progress || progress === "live")
-                ? await db.all(
-                      `SELECT cw.*, COUNT(*) OVER() AS legacy_total,
-                              c.slug AS competition_slug, c.title AS competition_title,
-                              c.event_date, COALESCE(u.nickname, u.username) AS uploader_name
-                         FROM competition_works cw
-                         JOIN competitions c ON c.id = cw.competition_id
-                         LEFT JOIN users u ON u.id = cw.uploader_id
-                        WHERE cw.competition_id = ?
-                          AND cw.status = 'approved'
-                          AND COALESCE(cw.public_consent, 1) = 1
-                          AND cw.deleted_at IS NULL
-                          AND NOT EXISTS (
-                              SELECT 1 FROM project_cards p
-                               WHERE p.id = cw.project_id AND p.status = 'published'
-                          )
-                          AND (? = '' OR cw.title LIKE ? OR cw.author LIKE ? OR cw.summary LIKE ?)
-                        ORDER BY cw.created_at DESC, cw.id DESC
-                        LIMIT ?`,
-                      [
-                          competition.id,
-                          String(q || "").trim(),
-                          `%${String(q || "").trim()}%`,
-                          `%${String(q || "").trim()}%`,
-                          `%${String(q || "").trim()}%`,
-                          fetchLimit,
-                      ]
-                  )
-                : [];
+        const legacyWorkRows = [];
+        if (!mine && !need && (!progress || progress === "live")) {
+            const legacyWhere = [
+                "cw.status = 'approved'",
+                "COALESCE(cw.public_consent, 1) = 1",
+                "cw.deleted_at IS NULL",
+                "c.deleted_at IS NULL",
+                "c.status != 'draft'",
+                `NOT EXISTS (
+                    SELECT 1 FROM project_cards linked_project
+                     WHERE linked_project.id = cw.project_id
+                       AND linked_project.status = 'published'
+                )`,
+            ];
+            const legacyParams = [];
+            if (competition) {
+                legacyWhere.push("cw.competition_id = ?");
+                legacyParams.push(competition.id);
+            }
+            const normalizedQuery = String(q || "").trim();
+            if (normalizedQuery) {
+                const like = `%${normalizedQuery}%`;
+                legacyWhere.push(
+                    "(cw.title LIKE ? OR cw.author LIKE ? OR cw.summary LIKE ? OR cw.major LIKE ? OR c.title LIKE ?)"
+                );
+                legacyParams.push(like, like, like, like, like);
+            }
+            legacyWorkRows.push(
+                ...(await db.all(
+                    `SELECT cw.*, COUNT(*) OVER() AS legacy_total,
+                            c.slug AS competition_slug, c.title AS competition_title,
+                            c.event_date
+                       FROM competition_works cw
+                       JOIN competitions c ON c.id = cw.competition_id
+                      WHERE ${legacyWhere.join(" AND ")}
+                      ORDER BY cw.created_at DESC, cw.id DESC
+                      LIMIT ?`,
+                    [...legacyParams, fetchLimit]
+                ))
+            );
+        }
         const publicItems = [
             ...rowsWithCompetitions.map((row) => serialize(row, { includeContact: false })),
             ...legacyWorkRows.map(serializeLegacyCompetitionWork),
         ];
-        const pagedItems =
-            competition && !mine
-                ? publicItems
-                      .sort((left, right) =>
-                          String(right.created_at || "").localeCompare(
-                              String(left.created_at || "")
-                          )
-                      )
-                      .slice(offset, offset + limit)
-                : publicItems;
+        const pagedItems = !mine
+            ? publicItems
+                  .sort((left, right) =>
+                      String(right.created_at || "").localeCompare(String(left.created_at || ""))
+                  )
+                  .slice(offset, offset + limit)
+            : publicItems;
         const legacyTotal = Number(legacyWorkRows[0]?.legacy_total || 0);
         const total = Number(totalRow?.n || 0) + legacyTotal;
         res.json({

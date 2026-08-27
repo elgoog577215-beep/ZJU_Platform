@@ -245,6 +245,8 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     );
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
+    const workspaceProjectsHref = `/hackathon?event=${encodeURIComponent(event.key)}&view=projects`;
+    const workspaceMediaHref = `/hackathon?event=${encodeURIComponent(event.key)}&view=media`;
     const competitionIsLive = getCompetitionPhase(event) === "live";
     const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
     const titleParts = [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")];
@@ -434,9 +436,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             </div>
                             <div className="outcome-primary-actions">
                                 {competitionIsLive ? (
-                                    <Link
-                                        to={`/projects?competition=${encodeURIComponent(competitionSlug)}&submit=1`}
-                                    >
+                                    <Link to={`${workspaceProjectsHref}&submit=1`}>
                                         <Upload className="h-4 w-4" />
                                         {t(
                                             "hackathon.outcome_archive.submit_project",
@@ -444,9 +444,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                         )}
                                     </Link>
                                 ) : null}
-                                <Link
-                                    to={`/projects?competition=${encodeURIComponent(competitionSlug)}`}
-                                >
+                                <Link to={workspaceProjectsHref}>
                                     {t(
                                         "hackathon.outcome_archive.browse_projects",
                                         "进入本场项目广场"
@@ -492,7 +490,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             <span aria-hidden="true">02</span>
                             <strong>{t("hackathon.outcome_archive.archive_title")}</strong>
                         </div>
-                        <Link to={`/media?event=${encodeURIComponent(competitionSlug)}`}>
+                        <Link to={workspaceMediaHref}>
                             {t("hackathon.outcome_archive.view_all_photos", {
                                 count: outcome?.stats?.stage_photos || photos.length,
                             })}
@@ -517,9 +515,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                         title={t("hackathon.outcome_archive.archive_title")}
                                         id="archive-heading"
                                     />
-                                    <Link
-                                        to={`/media?event=${encodeURIComponent(competitionSlug)}`}
-                                    >
+                                    <Link to={workspaceMediaHref}>
                                         {t("hackathon.outcome_archive.view_all_photos", {
                                             count: outcome?.stats?.stage_photos || photos.length,
                                         })}
@@ -528,7 +524,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                 </div>
                                 <figure className="outcome-archive-feature">
                                     <Link
-                                        to={`/media?event=${encodeURIComponent(competitionSlug)}&photo=${photos[0].source_id || photos[0].id}`}
+                                        to={`${workspaceMediaHref}&photo=${photos[0].source_id || photos[0].id}`}
                                     >
                                         <SmartImage
                                             src={normalizeExternalImageUrl(
@@ -551,7 +547,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                                 {photos.slice(1).map((photo, index) => (
                                     <figure key={photo.id || `${photo.url}-${index}`}>
                                         <Link
-                                            to={`/media?event=${encodeURIComponent(competitionSlug)}&photo=${photo.source_id || photo.id}`}
+                                            to={`${workspaceMediaHref}&photo=${photo.source_id || photo.id}`}
                                         >
                                             <SmartImage
                                                 src={normalizeExternalImageUrl(
@@ -605,7 +601,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             id="works-heading"
                         />
                         <Link
-                            to={`/projects?competition=${encodeURIComponent(competitionSlug)}${competitionIsLive ? "&submit=1" : ""}`}
+                            to={`${workspaceProjectsHref}${competitionIsLive ? "&submit=1" : ""}`}
                         >
                             {competitionIsLive
                                 ? t("hackathon.outcome_archive.submit_work")

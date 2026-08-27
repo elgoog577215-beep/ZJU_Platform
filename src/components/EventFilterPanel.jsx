@@ -39,7 +39,6 @@ const EventFilterPanel = ({
 
     const selectedCategory = filters?.category || null;
     const selectedAudience = filters?.target_audience || null;
-    const hasActiveFilters = Boolean(selectedCategory || selectedAudience);
     const sortExtraOptions = [
         { value: "date_asc", label: t("sort_filter.date_asc", "日期（最早）") },
         { value: "date_desc", label: t("sort_filter.date_desc", "日期（最晚）") },
@@ -99,13 +98,6 @@ const EventFilterPanel = ({
         }
     };
 
-    const clearAll = () => {
-        onFiltersChange({ category: null, target_audience: null });
-        setAudienceSearch("");
-        setShowAllAudiences(false);
-        setIsAudienceOpen(false);
-    };
-
     const handleSortChange = (nextSort) => {
         setIsAudienceOpen(false);
         onSortChange(nextSort);
@@ -113,30 +105,41 @@ const EventFilterPanel = ({
 
     const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
     const subtleGlassClass = isDayMode
-        ? "border-slate-200/80 bg-transparent shadow-none"
-        : "border-white/[0.12] bg-transparent shadow-none";
+        ? "border-slate-200/80 bg-white/[0.72] shadow-[0_8px_22px_rgba(15,23,42,0.04)]"
+        : "border-white/[0.10] bg-white/[0.025] shadow-[0_10px_28px_rgba(0,0,0,0.18)]";
     const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
     const strongTextClass = isDayMode ? "text-slate-900" : "text-white";
     const nightControlClass =
         "border-white/[0.11] bg-[#101421]/62 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.18] hover:bg-[#171c2b]/74 hover:text-white";
     const nightControlActiveClass =
         "border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
-    const desktopGhostControlClass = isDayMode
-        ? "border-transparent bg-transparent text-slate-600 hover:border-blue-500/50 hover:text-blue-900"
-        : "border-transparent bg-transparent text-slate-300 hover:border-indigo-300/60 hover:text-white";
+    const desktopControlClass = isDayMode
+        ? "border-slate-200/90 bg-white/[0.82] text-blue-950/70 shadow-[0_2px_8px_rgba(15,23,42,0.05)] hover:border-blue-300/90 hover:bg-blue-50/70 hover:text-blue-950"
+        : "border-white/[0.10] bg-white/[0.035] text-indigo-100/90 shadow-[0_3px_12px_rgba(0,0,0,0.16)] hover:border-indigo-300/35 hover:bg-indigo-300/[0.07] hover:text-white";
     const nightFocusClass = isDayMode
         ? "focus-visible:ring-blue-400/70"
         : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
     const channelButtonClass = (active) =>
-        `relative h-11 shrink-0 border-b-2 px-3.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+        `relative h-10 shrink-0 rounded-[8px] px-3.5 text-sm font-bold transition-[background-color,color,box-shadow] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
             active
                 ? isDayMode
-                    ? "border-blue-600 text-blue-900"
-                    : "border-indigo-300 text-indigo-100"
+                    ? "bg-white text-blue-900 shadow-[0_2px_8px_rgba(15,23,42,0.07)]"
+                    : "bg-white/[0.075] text-indigo-50 shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
                 : isDayMode
-                  ? "border-transparent text-slate-500 hover:text-blue-900"
-                  : "border-transparent text-slate-300 hover:text-white"
+                  ? "text-slate-500 hover:bg-white/70 hover:text-blue-900"
+                  : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
         }`;
+
+    const renderChannelIndicator = () => (
+        <span
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-x-3 bottom-0 h-0.5 rounded-t-full ${
+                isDayMode
+                    ? "bg-blue-600"
+                    : "bg-indigo-300 shadow-[0_-1px_8px_rgba(165,180,252,0.55)]"
+            }`}
+        />
+    );
 
     const renderActivePill = () =>
         isSheetMode ? (
@@ -345,18 +348,22 @@ const EventFilterPanel = ({
     return (
         <div className={shellClass}>
             <div className="relative overflow-visible pb-1">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-5">
                     <div
-                        className={`relative min-w-0 overflow-hidden border-b lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-slate-200/80" : "border-white/[0.09]"}`}
+                        className={`relative w-fit max-w-full min-w-0 overflow-hidden rounded-[12px] border p-1 ${
+                            isDayMode
+                                ? "border-slate-200/80 bg-slate-950/[0.025]"
+                                : "border-white/[0.10] bg-white/[0.035]"
+                        }`}
                     >
-                        <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto pr-10 md:pr-1">
+                        <div className="scrollbar-none flex min-w-0 items-center gap-0.5 overflow-x-auto pr-2">
                             <button
                                 type="button"
                                 aria-pressed={!selectedCategory}
                                 onClick={() => setCategory(null)}
                                 className={channelButtonClass(!selectedCategory)}
                             >
-                                {!selectedCategory && renderActivePill()}
+                                {!selectedCategory && renderChannelIndicator()}
                                 <span className="relative z-10 whitespace-nowrap">
                                     {t("common.all", "全部")}
                                 </span>
@@ -372,7 +379,7 @@ const EventFilterPanel = ({
                                         onClick={() => setCategory(category.value)}
                                         className={channelButtonClass(active)}
                                     >
-                                        {active && renderActivePill()}
+                                        {active && renderChannelIndicator()}
                                         <span className="relative z-10 whitespace-nowrap">
                                             {categoryLabel(category.value)}
                                         </span>
@@ -380,17 +387,14 @@ const EventFilterPanel = ({
                                 );
                             })}
                         </div>
-                        {!isDayMode && (
-                            <div className="pointer-events-none absolute inset-y-1 right-1 w-10 bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent" />
-                        )}
                     </div>
 
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:ml-auto lg:justify-end">
                         <button
                             type="button"
                             aria-expanded={isAudienceOpen}
                             onClick={() => setIsAudienceOpen((value) => !value)}
-                            className={`inline-flex min-h-[44px] items-center justify-between gap-2 border-b px-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${desktopGhostControlClass}`}
+                            className={`inline-flex min-h-[44px] items-center justify-between gap-2 rounded-[10px] border px-3 text-sm font-bold transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${desktopControlClass}`}
                         >
                             <span className="inline-flex min-w-0 items-center gap-2">
                                 <GraduationCap
@@ -408,17 +412,6 @@ const EventFilterPanel = ({
                             />
                         </button>
 
-                        {hasActiveFilters && (
-                            <button
-                                type="button"
-                                onClick={clearAll}
-                                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 border-b border-transparent px-2 text-xs font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-400/60 hover:text-rose-600" : "text-slate-400 hover:border-rose-300/60 hover:text-rose-200"}`}
-                            >
-                                <X size={13} />
-                                {t("common.clear_all", "重置")}
-                            </button>
-                        )}
-
                         {!hideSort && (
                             <div
                                 className="sm:w-44"
@@ -428,9 +421,7 @@ const EventFilterPanel = ({
                                     sort={sort}
                                     onSortChange={handleSortChange}
                                     className="w-full"
-                                    buttonClassName={
-                                        `w-full min-h-[44px] border-b bg-transparent px-2 py-3 text-sm font-bold transition-[border-color,color] ${desktopGhostControlClass}`
-                                    }
+                                    buttonClassName={`w-full min-h-[44px] rounded-[10px] border px-3 py-3 text-sm font-bold transition-[background-color,border-color,color,box-shadow] ${desktopControlClass}`}
                                     extraOptions={sortExtraOptions}
                                     renderMode={isSheetMode ? "list" : "dropdown"}
                                     dropdownVariant="ghost"
@@ -448,7 +439,7 @@ const EventFilterPanel = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.16 }}
-                        className={`border-y px-1 py-4 ${subtleGlassClass}`}
+                        className={`rounded-[12px] border px-4 py-4 ${subtleGlassClass}`}
                     >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>

@@ -9,7 +9,15 @@ import { useSettings } from "../context/SettingsContext";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import api, { createProjectCard } from "../services/api";
 
-const initialForm = () => ({ title: "", summary: "", author: "", projectUrl: "", cover: null });
+const initialForm = () => ({
+    title: "",
+    summary: "",
+    author: "",
+    major: "",
+    gitUrl: "",
+    deploymentUrl: "",
+    cover: null,
+});
 
 const uploadCover = async (file) => {
     if (!file) return null;
@@ -62,11 +70,20 @@ const EventProjectSubmissionModal = ({ open, onClose, onSubmitted, competition }
         if (!form.title.trim()) return t("event_project_submit.validation.title");
         if (!form.summary.trim()) return t("event_project_submit.validation.summary");
         if (!form.author.trim()) return t("event_project_submit.validation.author");
+        if (!form.major.trim()) return t("event_project_submit.validation.major");
         try {
-            const url = new URL(form.projectUrl.trim());
+            const url = new URL(form.gitUrl.trim());
             if (url.protocol !== "https:") throw new Error("protocol");
         } catch {
-            return t("event_project_submit.validation.url");
+            return t("event_project_submit.validation.git_url");
+        }
+        if (form.deploymentUrl.trim()) {
+            try {
+                const url = new URL(form.deploymentUrl.trim());
+                if (url.protocol !== "https:") throw new Error("protocol");
+            } catch {
+                return t("event_project_submit.validation.deployment_url");
+            }
         }
         return null;
     };
@@ -91,7 +108,9 @@ const EventProjectSubmissionModal = ({ open, onClose, onSubmitted, competition }
                     progress: "live",
                     need_tags: [],
                     tech_tags: [],
-                    repo_url: form.projectUrl.trim(),
+                    repo_url: form.gitUrl.trim(),
+                    deployment_provider: form.deploymentUrl.trim() ? "modelscope" : null,
+                    deployment_url: form.deploymentUrl.trim() || null,
                     images: coverUrl ? [coverUrl] : [],
                     status: "published",
                 });
@@ -103,7 +122,10 @@ const EventProjectSubmissionModal = ({ open, onClose, onSubmitted, competition }
                 title: form.title.trim(),
                 author: form.author.trim(),
                 summary: form.summary.trim(),
-                git_url: form.projectUrl.trim(),
+                major: form.major.trim(),
+                git_url: form.gitUrl.trim(),
+                deployment_provider: form.deploymentUrl.trim() ? "modelscope" : null,
+                deployment_url: form.deploymentUrl.trim() || null,
                 public_consent: true,
                 cover_url: coverUrl,
             });
@@ -191,12 +213,31 @@ const EventProjectSubmissionModal = ({ open, onClose, onSubmitted, competition }
                             />
                         </label>
                         <label>
-                            {t("event_project_submit.url")}
+                            {t("event_project_submit.major")}
+                            <input
+                                value={form.major}
+                                onChange={(event) => update("major", event.target.value)}
+                                maxLength={160}
+                            />
+                        </label>
+                    </div>
+                    <div className="event-project-fields">
+                        <label>
+                            {t("event_project_submit.git_url")}
                             <input
                                 type="url"
-                                value={form.projectUrl}
-                                onChange={(event) => update("projectUrl", event.target.value)}
-                                placeholder="https://"
+                                value={form.gitUrl}
+                                onChange={(event) => update("gitUrl", event.target.value)}
+                                placeholder="https://github.com/..."
+                            />
+                        </label>
+                        <label>
+                            {t("event_project_submit.deployment_url")}
+                            <input
+                                type="url"
+                                value={form.deploymentUrl}
+                                onChange={(event) => update("deploymentUrl", event.target.value)}
+                                placeholder="https://modelscope.cn/studios/..."
                             />
                         </label>
                     </div>

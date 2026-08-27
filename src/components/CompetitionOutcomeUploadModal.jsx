@@ -31,6 +31,7 @@ const createInitialForm = (type = "stage_photo", projectId = "") => ({
     author: "",
     summary: "",
     gitUrl: "",
+    deploymentUrl: "",
     award: "",
     rank: "",
     honorTitle: "",
@@ -169,6 +170,7 @@ const CompetitionOutcomeUploadModal = ({
                         workTitle: previous.workTitle || selected.title || "",
                         summary: previous.summary || selected.intro || "",
                         gitUrl: previous.gitUrl || selected.repo_url || "",
+                        deploymentUrl: previous.deploymentUrl || selected.deployment_url || "",
                         author:
                             previous.author ||
                             selected.owner_name ||
@@ -205,6 +207,7 @@ const CompetitionOutcomeUploadModal = ({
             workTitle: selected?.title || previous.workTitle,
             summary: selected?.intro || previous.summary,
             gitUrl: selected?.repo_url || previous.gitUrl,
+            deploymentUrl: selected?.deployment_url || previous.deploymentUrl,
             author: selected?.owner_name || user?.nickname || user?.username || previous.author,
         }));
     };
@@ -217,6 +220,8 @@ const CompetitionOutcomeUploadModal = ({
                 return t("outcome_upload.validation.work_title_required", "作品名称不能为空");
             if (!form.author.trim())
                 return t("outcome_upload.validation.author_required", "作者不能为空");
+            if (!form.major.trim())
+                return t("outcome_upload.validation.major_required", "专业不能为空");
             if (!form.summary.trim())
                 return t("outcome_upload.validation.summary_required", "作品简介不能为空");
             if (!form.gitUrl.trim())
@@ -239,6 +244,22 @@ const CompetitionOutcomeUploadModal = ({
                     "outcome_upload.validation.git_format",
                     "Git 链接格式不正确，例如 https://github.com/user/project"
                 );
+            }
+            if (form.deploymentUrl.trim()) {
+                try {
+                    const parsed = new URL(form.deploymentUrl.trim());
+                    if (parsed.protocol !== "https:") {
+                        return t(
+                            "outcome_upload.validation.deployment_protocol",
+                            "魔搭部署链接必须以 https:// 开头"
+                        );
+                    }
+                } catch {
+                    return t(
+                        "outcome_upload.validation.deployment_format",
+                        "请输入有效的魔搭社区部署链接"
+                    );
+                }
             }
             return null;
         }
@@ -282,6 +303,8 @@ const CompetitionOutcomeUploadModal = ({
                     author: form.author,
                     summary: form.summary,
                     git_url: form.gitUrl,
+                    deployment_provider: form.deploymentUrl.trim() ? "modelscope" : null,
+                    deployment_url: form.deploymentUrl.trim() || null,
                     award: form.award,
                     rank: form.rank,
                     honor_title: form.honorTitle,
@@ -572,6 +595,27 @@ const CompetitionOutcomeUploadModal = ({
                                     </label>
                                 </div>
                                 <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                    {t(
+                                        "outcome_upload.fields.deployment_url",
+                                        "魔搭社区部署链接（可选）"
+                                    )}
+                                    <input
+                                        type="url"
+                                        value={form.deploymentUrl}
+                                        onChange={(event) =>
+                                            updateField("deploymentUrl", event.target.value)
+                                        }
+                                        placeholder="https://modelscope.cn/studios/..."
+                                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                    />
+                                    <span className="outcome-upload-field-hint text-xs font-medium opacity-70">
+                                        {t(
+                                            "outcome_upload.fields.deployment_hint",
+                                            "用于在线体验，与 GitHub 源码仓库分开保存。"
+                                        )}
+                                    </span>
+                                </label>
+                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                                     {t("outcome_upload.fields.summary", "简介")}
                                     <textarea
                                         required
@@ -651,6 +695,7 @@ const CompetitionOutcomeUploadModal = ({
                                     <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                                         {t("outcome_upload.fields.major", "专业")}
                                         <input
+                                            required
                                             value={form.major}
                                             onChange={(event) =>
                                                 updateField("major", event.target.value)

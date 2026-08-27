@@ -58,14 +58,14 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
     if (logoSrc) {
         return (
             <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full px-1 ${
-                    isDayMode ? "bg-slate-100/70" : "bg-white/[0.05]"
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] px-1.5 ${
+                    isDayMode ? "bg-white/75" : "bg-white/85"
                 }`}
             >
                 <img
                     src={logoSrc}
                     alt={`${name} logo`}
-                    className="max-h-[70%] max-w-full object-contain"
+                    className="max-h-[76%] max-w-full object-contain"
                     loading="lazy"
                     decoding="async"
                 />
@@ -75,10 +75,8 @@ const PartnerLogo = ({ partner, name, isDayMode }) => {
 
     return (
         <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                isDayMode
-                    ? "bg-slate-100/70 text-slate-500"
-                    : "bg-white/[0.05] text-slate-400"
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] ${
+                isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/[0.07] text-slate-400"
             }`}
         >
             <Users size={17} aria-hidden="true" />
@@ -125,23 +123,24 @@ const OrganizationPartnerWall = ({
 
     const isAllActive = activePartnerId === null || activePartnerId === undefined;
     const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
-    const shellClass = isDayMode ? "border-slate-200/80" : "border-white/[0.105]";
+    const shellClass = isDayMode
+        ? "border-white/55 bg-white/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-md"
+        : "border-white/[0.09] bg-slate-950/[0.28] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] backdrop-blur-md";
     const buttonBase =
-        "relative flex w-12 shrink-0 flex-col items-center gap-0.5 border-b-2 border-transparent px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
+        "relative flex w-[3.25rem] shrink-0 snap-start flex-col items-center gap-1 px-0.5 py-1 text-center transition-[background-color,border-color,color,box-shadow] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:rounded-full after:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:h-14 md:flex-row md:gap-2.5 md:rounded-[10px] md:border md:border-transparent md:px-2.5 md:py-2 md:text-left md:after:hidden";
     const getButtonClass = (active) => {
         if (active) {
             return isDayMode
-                ? "border-blue-600 text-blue-800"
-                : "border-indigo-300 text-indigo-100";
+                ? "text-blue-800 after:bg-blue-600 md:border-blue-200/80 md:bg-white/80 md:shadow-[0_8px_22px_rgba(37,99,235,0.08)]"
+                : "text-white after:bg-indigo-300 md:border-indigo-300/30 md:bg-indigo-300/[0.12] md:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
         }
         return isDayMode
-            ? "text-slate-600 hover:text-blue-800"
-            : "text-slate-300 hover:text-white";
+            ? "text-slate-600 hover:text-blue-800 md:hover:border-white/70 md:hover:bg-white/55"
+            : "text-slate-300 hover:text-white md:hover:border-white/10 md:hover:bg-white/[0.055]";
     };
     const partnerMotionProps = {
-        whileHover: { opacity: 0.92 },
-        whileTap: { opacity: 0.72 },
-        transition: { type: "spring", stiffness: 520, damping: 34 },
+        whileTap: { scale: 0.98 },
+        transition: { duration: 0.14, ease: "easeOut" },
     };
 
     const applyPartnerFilter = (partner) => {
@@ -168,13 +167,11 @@ const OrganizationPartnerWall = ({
             aria-label={t("events.organizations.aria", "社团活动筛选")}
             data-testid="organization-partner-filter-bar"
         >
-            <div
-                className={`relative overflow-hidden border-y ${shellClass}`}
-            >
+            <div className={`relative overflow-hidden border-y ${shellClass}`}>
                 <div
                     ref={scrollRef}
                     {...dragScrollProps}
-                    className="scrollbar-none flex cursor-grab select-none gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 pr-10 touch-pan-x active:cursor-grabbing md:gap-2"
+                    className="scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 touch-pan-x active:cursor-grabbing md:gap-2 md:py-2.5"
                     role="group"
                     aria-label={t("events.organizations.filter_group", "按社团筛选活动")}
                 >
@@ -184,22 +181,22 @@ const OrganizationPartnerWall = ({
                         data-drag-scroll-ignore
                         aria-pressed={isAllActive}
                         onClick={() => onClearPartnerFilter?.()}
-                        className={`${buttonBase} ${getButtonClass(isAllActive)}`}
+                        className={`${buttonBase} md:w-24 ${getButtonClass(isAllActive)}`}
                     >
                         <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center ${
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] ${
                                 isAllActive
                                     ? isDayMode
-                                        ? "text-blue-700"
-                                        : "text-indigo-100"
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-indigo-300/15 text-indigo-100"
                                     : isDayMode
-                                      ? "text-slate-500"
-                                      : "text-slate-300"
+                                      ? "bg-slate-100 text-slate-500"
+                                      : "bg-white/[0.07] text-slate-300"
                             }`}
                         >
                             <LayoutGrid size={16} aria-hidden="true" />
                         </span>
-                        <span className="line-clamp-1 max-w-full text-[11px] font-bold leading-3">
+                        <span className="line-clamp-1 max-w-full text-xs font-bold leading-3 md:leading-4">
                             {t("common.all", "全部")}
                         </span>
                     </motion.button>
@@ -222,39 +219,41 @@ const OrganizationPartnerWall = ({
                                 aria-pressed={active}
                                 data-testid={`organization-partner-button-${partner.id}`}
                                 onClick={() => applyPartnerFilter(partner)}
-                                className={`${buttonBase} ${getButtonClass(active)}`}
+                                className={`${buttonBase} md:w-40 ${getButtonClass(active)}`}
                             >
                                 <PartnerLogo
                                     partner={partner}
                                     name={partner.displayName}
                                     isDayMode={isDayMode}
                                 />
-                                <span className="line-clamp-1 max-w-full text-[11px] font-bold leading-3 md:line-clamp-2">
-                                    {partner.displayName}
-                                </span>
-                                <span
-                                    className={`absolute right-1 top-1 text-[9px] font-black leading-none ${
-                                        active
-                                            ? isDayMode
-                                                ? "text-blue-700"
-                                                : "text-indigo-100"
-                                            : isDayMode
-                                              ? "text-slate-400"
-                                              : "text-slate-500"
-                                    }`}
-                                >
-                                    {t("events.organizations.event_count_short", "{{count}} 场", {
-                                        count: partner.eventCount,
-                                    })}
+                                <span className="min-w-0 max-w-full md:flex-1">
+                                    <span className="line-clamp-1 max-w-full text-xs font-bold leading-3 md:block md:truncate md:leading-4">
+                                        {partner.displayName}
+                                    </span>
+                                    <span
+                                        className={`mt-0.5 hidden text-xs font-semibold leading-4 md:block ${
+                                            active
+                                                ? isDayMode
+                                                    ? "text-blue-600"
+                                                    : "text-indigo-200"
+                                                : isDayMode
+                                                  ? "text-slate-400"
+                                                  : "text-slate-500"
+                                        }`}
+                                    >
+                                        {t(
+                                            "events.organizations.event_count_short",
+                                            "{{count}} 场",
+                                            {
+                                                count: partner.eventCount,
+                                            }
+                                        )}
+                                    </span>
                                 </span>
                             </motion.button>
                         );
                     })}
                 </div>
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute bottom-1 right-0 top-1 w-12 bg-gradient-to-l from-[var(--theme-bg)] to-transparent"
-                />
                 <span className={`sr-only ${mutedClass}`}>
                     {t("events.organizations.sorted_by_count", "社团已按活动数量从高到低排序")}
                 </span>
