@@ -1440,11 +1440,11 @@ img {
         isolation: isolate;
     }
 
-    .events-fullscreen-shell {
+    .ecosystem-landscape-shell {
         background-color: #020617;
     }
 
-    .events-fullscreen-shell::before {
+    .ecosystem-landscape-shell::before {
         position: fixed;
         z-index: 0;
         inset: 0;
@@ -1475,7 +1475,7 @@ img {
         pointer-events: none;
     }
 
-    .events-fullscreen-shell nav[aria-label] {
+    .ecosystem-landscape-shell nav[aria-label] {
         border-bottom-color: rgba(255, 255, 255, 0.12);
         background-color: rgba(0, 0, 0, 0.14);
         -webkit-backdrop-filter: blur(10px);
@@ -1494,11 +1494,11 @@ img {
         box-shadow: 0 18px 44px rgba(2, 6, 23, 0.34);
     }
 
-    :root[data-theme="day"] .events-fullscreen-shell {
+    :root[data-theme="day"] .ecosystem-landscape-shell {
         background-color: #f8fafc;
     }
 
-    :root[data-theme="day"] .events-fullscreen-shell::before {
+    :root[data-theme="day"] .ecosystem-landscape-shell::before {
         background-color: #f8fafc;
         background-image:
             linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(248, 250, 252, 0.82)),
@@ -1507,13 +1507,13 @@ img {
         background-size: cover;
     }
 
-    :root[data-theme="day"] .events-fullscreen-shell nav[aria-label] {
+    :root[data-theme="day"] .ecosystem-landscape-shell nav[aria-label] {
         border-bottom-color: rgba(255, 255, 255, 0.42);
         background-color: rgba(255, 255, 255, 0.22);
     }
 
     @media (max-width: 767px) {
-        .events-fullscreen-shell::before {
+        .ecosystem-landscape-shell::before {
             background-image:
                 linear-gradient(180deg, rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.94)),
                 url("/images/hero-landscape-night.jpg");
@@ -1522,7 +1522,7 @@ img {
             background-size: cover;
         }
 
-        :root[data-theme="day"] .events-fullscreen-shell::before {
+        :root[data-theme="day"] .ecosystem-landscape-shell::before {
             background-image:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(248, 250, 252, 0.88)),
                 url("/images/hero-landscape-day-4k.jpg");
