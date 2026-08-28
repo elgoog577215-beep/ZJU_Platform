@@ -34,6 +34,13 @@ const payload = (name, role, priority) => ({
 test("model configs persist roles and support role-specific fallback", async (t) => {
     const db = await createDb();
     t.after(() => db.close());
+    const previousApiKey = process.env.LLM_API_KEY;
+    process.env.LLM_API_KEY = "test-env-key";
+    t.after(() => {
+        if (previousApiKey === undefined) delete process.env.LLM_API_KEY;
+        else process.env.LLM_API_KEY = previousApiKey;
+    });
+
     const general = await modelService.createConfig(db, payload("general", "general", 50), 1);
     const fast = await modelService.createConfig(db, payload("fast", "fast", 10), 1);
     assert.equal(fast.role, "fast");
@@ -45,10 +52,31 @@ test("model configs persist roles and support role-specific fallback", async (t)
         (await modelService.getEnabledConfigs(db, false, "reasoning")).map((item) => item.id),
         [general.id]
     );
+    assert.deepEqual(
+        (await modelService.getEnabledConfigs(db, true, "reasoning")).map((item) => item.id),
+        [general.id, "env"]
+    );
+    assert.deepEqual(await modelService.getEnabledConfigs(db, true, "embedding"), []);
+    await assert.rejects(modelService.callEmbeddingWithFailover(db, "test embedding"), (error) => {
+        assert.equal(error.code, "AI_EMBEDDING_NOT_CONFIGURED");
+        assert.deepEqual(error.attempts, []);
+        return true;
+    });
+    assert.deepEqual(
+        await db.get("SELECT last_status, last_error FROM ai_model_configs WHERE id = ?", [
+            general.id,
+        ]),
+        { last_status: null, last_error: null }
+    );
+
     const updated = await modelService.updateConfig(db, fast.id, {
         role: "embedding",
         priority: 5,
     });
     assert.equal(updated.role, "embedding");
     assert.equal(updated.priority, 5);
+    assert.deepEqual(
+        (await modelService.getEnabledConfigs(db, true, "embedding")).map((item) => item.id),
+        [fast.id]
+    );
 });

@@ -254,11 +254,11 @@ const getEnabledConfigs = async (db, includeEnvFallback = true, role = "general"
     const requestedRole = normalizeRole(role);
     const roleMatches = rows.filter((row) => normalizeRole(row.role) === requestedRole);
     const generalMatches =
-        requestedRole === "general"
+        requestedRole === "general" || requestedRole === "embedding"
             ? []
             : rows.filter((row) => normalizeRole(row.role) === "general");
     const configs = [...roleMatches, ...generalMatches];
-    const envConfig = includeEnvFallback ? buildEnvConfig() : null;
+    const envConfig = includeEnvFallback && requestedRole !== "embedding" ? buildEnvConfig() : null;
     if (envConfig) configs.push(envConfig);
     return configs;
 };
@@ -512,6 +512,14 @@ const callEmbedding = async (config, input, timeout = CALL_TIMEOUT_MS) => {
 
 const callEmbeddingWithFailover = async (db, input, options = {}) => {
     const configs = await getEnabledConfigs(db, options.includeEnvFallback !== false, "embedding");
+    if (configs.length === 0) {
+        const error = new Error("No embedding model config is enabled.");
+        error.code = "AI_EMBEDDING_NOT_CONFIGURED";
+        error.statusCode = 503;
+        error.attempts = [];
+        throw error;
+    }
+
     const primaryConfigs =
         options.skipEnvWhenDbConfigs !== false && configs.some((config) => !config.fromEnv)
             ? configs.filter((config) => !config.fromEnv)
