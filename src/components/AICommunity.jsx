@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
-import {
-    CommunityLibraryDetailHeader,
-    CommunityLibraryHome,
-    FreshmanLibraryIntro,
-} from "./CommunityLibraryHub";
+import { CommunityWorkspaceToolbar, FreshmanLibraryIntro } from "./CommunityLibraryHub";
+import CommunityLibraryDock from "./CommunityLibraryHub";
 import CommunityPosts from "./CommunityPosts";
 
 const LEGACY_TAB_TO_AREA = {
@@ -32,6 +30,7 @@ const LIBRARY_AREAS = {
     freshman: "",
     finals: "resources",
     ai: "learn",
+    community: "discuss",
 };
 
 const COMMUNITY_STATE_KEYS = [
@@ -54,6 +53,8 @@ const AICommunity = () => {
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
+    const [pendingAction, setPendingAction] = useState("");
+    const shouldReduceMotion = useReducedMotion();
 
     const subtitle = useMemo(
         () =>
@@ -79,9 +80,16 @@ const AICommunity = () => {
     const hasDirectCommunityState = ["area", "postTab", "tab", "id", "post", "news", "group"].some(
         (key) => searchParams.has(key)
     );
-    const isDiscussionFromHub =
-        searchParams.get("source") === "libraries" && requestedArea === "discuss";
     const showLibraryHome = !activeLibrary && !hasDirectCommunityState;
+    const selectedDockKey =
+        activeLibrary ||
+        (requestedArea === "resources"
+            ? "finals"
+            : requestedArea === "learn"
+              ? "ai"
+              : requestedArea === "discuss"
+                ? "community"
+                : "");
 
     const migrateLegacyParams = useCallback(() => {
         const legacyTab = searchParams.get("postTab") || searchParams.get("tab");
@@ -115,7 +123,7 @@ const AICommunity = () => {
 
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }, [activeLibrary, isDiscussionFromHub, showLibraryHome]);
+    }, [activeLibrary, showLibraryHome]);
 
     const setCommunityView = useCallback(
         (values = {}) => {
@@ -148,84 +156,87 @@ const AICommunity = () => {
             }
             if (library === "ai") {
                 setCommunityView({ library: "ai", area: "learn" });
+                return;
+            }
+            if (library === "community") {
+                setCommunityView({ library: "community", area: "discuss" });
             }
         },
         [setCommunityView]
     );
 
-    const handleOpenDiscussion = useCallback(() => {
-        setCommunityView({ source: "libraries", area: "discuss" });
-    }, [setCommunityView]);
-
     const handleBackToLibraries = useCallback(() => {
+        setPendingAction("");
         setCommunityView();
     }, [setCommunityView]);
 
-    const renderCommunityContent = () => {
-        if (showLibraryHome) {
-            return (
-                <CommunityLibraryHome
-                    isDayMode={isDayMode}
-                    onSelectLibrary={handleSelectLibrary}
-                    onOpenContribution={() => handleSelectLibrary("finals")}
-                    onOpenDiscussion={handleOpenDiscussion}
-                />
-            );
+    const dispatchComposer = useCallback((boardKey) => {
+        window.dispatchEvent(
+            new CustomEvent("open-community-composer", {
+                detail: { boardKey },
+            })
+        );
+    }, []);
+
+    useEffect(() => {
+        if (!pendingAction) return undefined;
+        const targetReady =
+            (pendingAction === "ask" && activeLibrary === "community") ||
+            (pendingAction === "upload" && activeLibrary === "finals");
+        if (!targetReady) return undefined;
+
+        const timer = window.setTimeout(
+            () => {
+                dispatchComposer(pendingAction === "ask" ? "help" : "materials");
+                setPendingAction("");
+            },
+            shouldReduceMotion ? 0 : 260
+        );
+        return () => window.clearTimeout(timer);
+    }, [activeLibrary, dispatchComposer, pendingAction, shouldReduceMotion]);
+
+    const handleSearch = useCallback(() => {
+        const input = document.querySelector("#community-workspace-content input[type='search']");
+        if (!input) return;
+        input.scrollIntoView({ behavior: shouldReduceMotion ? "auto" : "smooth", block: "center" });
+        window.setTimeout(() => input.focus(), shouldReduceMotion ? 0 : 180);
+    }, [shouldReduceMotion]);
+
+    const handleUpload = useCallback(() => {
+        if (activeLibrary === "finals") {
+            dispatchComposer("materials");
+            return;
         }
+        setPendingAction("upload");
+        handleSelectLibrary("finals");
+    }, [activeLibrary, dispatchComposer, handleSelectLibrary]);
+
+    const handleAsk = useCallback(() => {
+        if (activeLibrary === "community") {
+            dispatchComposer("help");
+            return;
+        }
+        setPendingAction("ask");
+        handleSelectLibrary("community");
+    }, [activeLibrary, dispatchComposer, handleSelectLibrary]);
+
+    const renderCommunityContent = () => {
+        if (showLibraryHome) return null;
 
         if (activeLibrary === "freshman") {
-            return <FreshmanLibraryIntro isDayMode={isDayMode} onBack={handleBackToLibraries} />;
+            return <FreshmanLibraryIntro isDayMode={isDayMode} />;
         }
 
         if (activeLibrary === "finals") {
-            return (
-                <>
-                    <CommunityLibraryDetailHeader
-                        isDayMode={isDayMode}
-                        title={t("community_libraries.finals_title", "期末资料库")}
-                        description={t(
-                            "community_libraries.finals_detail_desc",
-                            "按课程、教师、学期和资料用途查找，也可以上传自己的资料。"
-                        )}
-                        onBack={handleBackToLibraries}
-                    />
-                    <CommunityPosts areaOverride="resources" hideAreaNav />
-                </>
-            );
+            return <CommunityPosts areaOverride="resources" hideAreaNav />;
         }
 
         if (activeLibrary === "ai") {
-            return (
-                <>
-                    <CommunityLibraryDetailHeader
-                        isDayMode={isDayMode}
-                        title={t("community_libraries.ai_title", "AI 学习库")}
-                        description={t(
-                            "community_libraries.ai_detail_desc",
-                            "从已经整理好的内容开始，按主题和难度继续阅读。"
-                        )}
-                        onBack={handleBackToLibraries}
-                    />
-                    <CommunityPosts areaOverride="learn" hideAreaNav />
-                </>
-            );
+            return <CommunityPosts areaOverride="learn" hideAreaNav />;
         }
 
-        if (isDiscussionFromHub) {
-            return (
-                <>
-                    <CommunityLibraryDetailHeader
-                        isDayMode={isDayMode}
-                        title={t("community_libraries.discuss_title", "提出问题或交流")}
-                        description={t(
-                            "community_libraries.discuss_detail_desc",
-                            "把具体问题、经验或学习卡点放进讨论区。"
-                        )}
-                        onBack={handleBackToLibraries}
-                    />
-                    <CommunityPosts areaOverride="discuss" hideAreaNav />
-                </>
-            );
+        if (activeLibrary === "community") {
+            return <CommunityPosts areaOverride="discuss" hideAreaNav />;
         }
 
         return <CommunityPosts />;
@@ -250,7 +261,52 @@ const AICommunity = () => {
             </div>
 
             <div className="relative z-10 mx-auto w-full max-w-[1680px]">
-                {renderCommunityContent()}
+                <CommunityLibraryDock
+                    activeKey={selectedDockKey}
+                    isExpanded={showLibraryHome}
+                    isDayMode={isDayMode}
+                    onSelectLibrary={handleSelectLibrary}
+                    actionBar={
+                        showLibraryHome ? null : (
+                            <CommunityWorkspaceToolbar
+                                activeKey={selectedDockKey}
+                                isDayMode={isDayMode}
+                                onBack={handleBackToLibraries}
+                                onSearch={handleSearch}
+                                onUpload={handleUpload}
+                                onAsk={handleAsk}
+                            />
+                        )
+                    }
+                />
+
+                <AnimatePresence mode="wait" initial={false}>
+                    {!showLibraryHome ? (
+                        <motion.div
+                            id="community-workspace-content"
+                            key={selectedDockKey || requestedArea || "community-content"}
+                            initial={
+                                shouldReduceMotion
+                                    ? false
+                                    : { opacity: 0, y: 24, filter: "blur(5px)" }
+                            }
+                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                            exit={
+                                shouldReduceMotion
+                                    ? { opacity: 0 }
+                                    : { opacity: 0, y: 12, filter: "blur(3px)" }
+                            }
+                            transition={{
+                                duration: shouldReduceMotion ? 0 : 0.34,
+                                delay: shouldReduceMotion ? 0 : 0.1,
+                                ease: [0.22, 1, 0.36, 1],
+                            }}
+                            className="mx-auto mt-4 w-full max-w-[1480px] md:mt-6"
+                        >
+                            {renderCommunityContent()}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
             </div>
         </section>
     );
