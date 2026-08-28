@@ -62,8 +62,8 @@ const HomeSplash = () => {
               transition: { duration: 1.02, ease: [0.16, 1, 0.3, 1] },
           };
     const enterButtonClass = isDayMode
-        ? "inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-slate-900/15 bg-white/80 px-5 text-sm font-bold text-slate-900 shadow-[0_12px_32px_rgba(15,23,42,0.16)] backdrop-blur-md transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/50"
-        : "inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-white/20 bg-slate-950/50 px-5 text-sm font-bold text-white shadow-[0_14px_36px_rgba(2,6,23,0.34)] backdrop-blur-md transition-colors hover:bg-slate-900/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50";
+        ? "theme-on-dark inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-violet-700 px-5 text-sm font-bold shadow-[0_12px_32px_rgba(76,29,149,0.32)] transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/50"
+        : "theme-on-dark inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-indigo-500 px-5 text-sm font-bold shadow-[0_14px_36px_rgba(79,70,229,0.34)] transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50";
 
     return (
         <section className={pageClass}>
