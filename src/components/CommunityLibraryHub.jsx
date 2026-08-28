@@ -364,7 +364,7 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
             <h1 id="community-dock-title" className="sr-only">
                 {t("community_libraries.dock_title", "AI 社区功能入口")}
             </h1>
-            <div className={isExpanded ? undefined : "md:flex md:items-center md:gap-2.5"}>
+            <div className={isExpanded ? undefined : "lg:flex lg:items-center lg:gap-2.5"}>
                 <motion.div
                     layout={!shouldReduceMotion}
                     transition={transition}
@@ -373,7 +373,7 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
                     className={
                         isExpanded
                             ? "community-dock-grid grid grid-cols-2 gap-3 xl:grid-cols-12 xl:grid-rows-2"
-                            : "grid min-w-0 grid-cols-4 gap-1.5 md:flex md:flex-1 md:gap-1.5"
+                            : "grid min-w-0 grid-cols-4 gap-1.5 lg:flex lg:flex-1 lg:gap-1.5"
                     }
                 >
                     {DOCK_ITEMS.map((item) => {
@@ -467,7 +467,7 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
                             duration: shouldReduceMotion ? 0 : 0.24,
                             delay: shouldReduceMotion ? 0 : 0.16,
                         }}
-                        className={`mt-2 border-t pt-2.5 md:mt-0 md:shrink-0 md:border-l md:border-t-0 md:pl-2.5 md:pt-0 ${
+                        className={`mt-2 border-t pt-2.5 lg:mt-0 lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-2.5 lg:pt-0 ${
                             isDayMode ? "border-slate-200" : "border-white/10"
                         }`}
                     >
