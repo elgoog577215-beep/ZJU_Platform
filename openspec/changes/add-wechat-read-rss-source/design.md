@@ -79,7 +79,7 @@ WeWe RSS 的管理能力通过主平台后端代理，不让浏览器直接携�
 - `/api/admin/wechat-rss/feeds/:id/history`、`/history/status`：历史文章同步和状态；
 - `/api/admin/wechat-rss/articles`：文章列表和删除。
 
-后台在现有内容采集页面增加 RSS 管理工作区，直连微信 MP 工作区继续保留。`WEWE_RSS_AUTH_CODE` 只存在主平台服务端环境变量中，WeWe RSS 的 MySQL 和微信读书登录态仍由独立服务保存。
+后台在现有内容采集页面增加 RSS 管理工作区，直连微信 MP 工作区继续保留。生产 WeWe RSS 以 headless backend 运行：保留 `/feeds/*` 和受保护的 `/trpc/*`，`/dash*` 返回 404；`apps/web` 源码保留但不进入生产镜像。`WEWE_RSS_AUTH_CODE` 只存在主平台服务端环境变量中，WeWe RSS 的 MySQL 和微信读书登录态仍由独立服务保存。
 
 账号返回值增加 `source_type` 和 `rss_feed_id`。后台来源表单增加来源类型选择：
 
