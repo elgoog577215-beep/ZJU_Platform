@@ -68,7 +68,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
+    "grid grid-cols-1 items-stretch justify-center gap-y-0 md:grid-cols-[repeat(2,minmax(0,19.5rem))] md:gap-x-7 md:gap-y-10 xl:grid-cols-[repeat(3,minmax(0,19.5rem))] xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-[repeat(4,minmax(0,19.5rem))] 2xl:gap-x-8 2xl:gap-y-12";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
