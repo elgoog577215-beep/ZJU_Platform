@@ -50,6 +50,11 @@ const Portal = ({ children }) => {
 const AuthModal = lazy(() => import("./AuthModal"));
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
+// The wallpaper/theme picker (top-right Wallpaper icon button + its modal) is
+// disabled site-wide. The buttons, modal JSX, and isThemeOpen state are kept so
+// it can be re-enabled later — set this to true to restore.
+const WALLPAPER_PICKER_ENABLED = false;
+
 const Navbar = ({ miniProgramMode = false }) => {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isThemeOpen, setIsThemeOpen] = useState(false);
@@ -420,15 +425,17 @@ const Navbar = ({ miniProgramMode = false }) => {
                     )}
                 </button>
 
-                <button
-                    type="button"
-                    onClick={() => setIsThemeOpen(true)}
-                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-indigo-200"}`}
-                    title={t("nav.wallpaper_title")}
-                    aria-label={t("nav.wallpaper_aria")}
-                >
-                    <Wallpaper size={18} aria-hidden="true" />
-                </button>
+                {WALLPAPER_PICKER_ENABLED && (
+                    <button
+                        type="button"
+                        onClick={() => setIsThemeOpen(true)}
+                        className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-indigo-200"}`}
+                        title={t("nav.wallpaper_title")}
+                        aria-label={t("nav.wallpaper_aria")}
+                    >
+                        <Wallpaper size={18} aria-hidden="true" />
+                    </button>
+                )}
 
                 {isDesktopViewport && (
                     <Suspense fallback={null}>
@@ -738,19 +745,21 @@ const Navbar = ({ miniProgramMode = false }) => {
                                         </span>
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMobileMoreOpen(false);
-                                            setIsThemeOpen(true);
-                                        }}
-                                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100 hover:bg-indigo-500/[0.16]"}`}
-                                    >
-                                        <Wallpaper size={18} aria-hidden="true" />
-                                        <span className="text-sm font-semibold">
-                                            {t("nav.wallpaper_title")}
-                                        </span>
-                                    </button>
+                                    {WALLPAPER_PICKER_ENABLED && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsMobileMoreOpen(false);
+                                                setIsThemeOpen(true);
+                                            }}
+                                            className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100 hover:bg-indigo-500/[0.16]"}`}
+                                        >
+                                            <Wallpaper size={18} aria-hidden="true" />
+                                            <span className="text-sm font-semibold">
+                                                {t("nav.wallpaper_title")}
+                                            </span>
+                                        </button>
+                                    )}
 
                                     <div
                                         className={`col-span-2 flex min-h-[52px] items-center justify-center rounded-lg border px-2 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/[0.04]"}`}
@@ -803,7 +812,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                         </motion.div>
                     </Portal>
                 )}
-                {isThemeOpen && (
+                {WALLPAPER_PICKER_ENABLED && isThemeOpen && (
                     <Portal>
                         <motion.div
                             variants={modalBackdrop}

@@ -357,16 +357,11 @@ const AppContent = () => {
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
     const [isAppRuntime, setIsAppRuntime] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
-    const shouldRenderDynamicBackground =
-        !isAdminRoute &&
-        !isImmersiveRoute &&
-        !hasLandscapeBackdrop &&
-        hasDesktopPointer &&
-        !prefersReducedMotion &&
-        !isLowPowerDevice &&
-        !isAppRuntime &&
-        !isMiniProgramMode &&
-        shouldMountDeferredUi;
+    // The global 3D polyhedron background (BackgroundSystem) is intentionally
+    // disabled site-wide. The component, its lazy import, and dependencies are
+    // retained so it can be re-enabled later. Re-enable by restoring the
+    // original gating conditions below.
+    const shouldRenderDynamicBackground = false;
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {

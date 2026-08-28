@@ -68,9 +68,9 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
-const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
-const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
+    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12";
+const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-7xl";
+const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-7xl";
 const MOBILE_EVENT_CATEGORY_ICONS = {
     all: LayoutGrid,
     [COLLEGE_NOTICE_CATEGORY_VALUE]: FileText,
@@ -434,7 +434,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     : "border-white/[0.15] hover:border-indigo-300/50"
             }`}
         >
-            <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-900">
+            <div className="relative aspect-[16/9] shrink-0 overflow-hidden bg-slate-900">
                 <SmartImage
                     src={getThumbnailUrl(event.image)}
                     alt={event.title}
@@ -1677,13 +1677,13 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-6 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-6 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-[100px]">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
             <motion.div
                 {...pageHeaderMotion}
-                className="relative z-40 mb-3 text-center md:mb-6 md:pt-0"
+                className="relative z-40 mb-3 text-center md:mb-4 md:pt-0"
             >
                 <div className="mb-3 grid grid-cols-[88px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
                     <motion.button
@@ -1830,15 +1830,10 @@ END:VCALENDAR`;
                 >
                     <div className="min-w-0">
                         <h2
-                            className={`text-balance font-serif text-3xl font-bold leading-tight md:text-4xl ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            className={`text-balance font-sans text-3xl font-bold tracking-wide leading-tight md:text-4xl ${isDayMode ? "text-slate-950" : "text-white"}`}
                         >
                             {t("events.title")}
                         </h2>
-                        <p
-                            className={`mt-1.5 max-w-2xl text-sm md:text-base ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
-                        >
-                            {t("events.subtitle")}
-                        </p>
                     </div>
 
                     {!isMiniProgramMode && (
@@ -1861,7 +1856,7 @@ END:VCALENDAR`;
                 </div>
 
                 {/* Desktop Filter Section */}
-                <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden md:block`}>
+                <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-4 hidden md:block`}>
                     <EventFilterPanel
                         filters={filters}
                         onFiltersChange={setFilters}
@@ -1873,14 +1868,14 @@ END:VCALENDAR`;
                 <OrganizationPartnerWall
                     partners={eventOrganizationPartners}
                     isDayMode={isDayMode}
-                    className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden text-left md:block`}
+                    className={`${EVENT_FILTER_WIDTH_CLASS} mb-6 hidden text-left md:block`}
                     activePartnerId={partnerFilter?.id}
                     onApplyPartnerFilter={handleApplyPartnerFilter}
                     onClearPartnerFilter={clearPartnerFilter}
                 />
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex translate-y-[6px]`}
                 >
                     <div
                         className={`text-left text-sm font-medium ${
@@ -2119,7 +2114,7 @@ END:VCALENDAR`;
 
                             {/* Image Skeleton */}
                             <div
-                                className={`aspect-[4/3] w-full ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                                className={`aspect-[16/9] w-full ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                             />
                             {/* Content Skeleton */}
                             <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
