@@ -32,6 +32,7 @@ const IDEAL_MIN_RECOMMENDATIONS = 3;
 const MAX_QUERY_LENGTH = 500;
 const MAX_CLARIFICATION_LENGTH = 300;
 const MAX_MODEL_LOG_LENGTH = 2000;
+const EVENT_ASSISTANT_V2_DEADLINE_MS = 25000;
 
 const EVENT_ASSISTANT_PUBLIC_FIELDS = [
     "id",
@@ -4445,11 +4446,11 @@ const runV2WithDeadline = async (options) => {
             new Promise((resolve, reject) => {
                 timer = setTimeout(() => {
                     const error = new Error(
-                        "Event recommendation v2 exceeded the 5.5 second deadline."
+                        `Event recommendation v2 exceeded the ${EVENT_ASSISTANT_V2_DEADLINE_MS}ms deadline.`
                     );
                     error.code = "EVENT_ASSISTANT_DEADLINE";
                     reject(error);
-                }, 5500);
+                }, EVENT_ASSISTANT_V2_DEADLINE_MS);
             }),
         ]);
     } finally {
@@ -4732,6 +4733,7 @@ module.exports = {
     EVENT_ASSISTANT_PUBLIC_FIELDS,
     MAX_QUERY_LENGTH,
     MAX_CLARIFICATION_LENGTH,
+    EVENT_ASSISTANT_V2_DEADLINE_MS,
     classifyEventScope,
     serializeEventForAssistant,
     serializeEventForClient,

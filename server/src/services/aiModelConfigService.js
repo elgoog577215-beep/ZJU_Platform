@@ -24,6 +24,35 @@ const normalizeRole = (value) => {
     return MODEL_ROLES.has(role) ? role : "general";
 };
 
+const isQwen3Model = (value) =>
+    toText(value, 160)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .includes("qwen3");
+
+const buildChatCompletionPayload = (config, payload = {}, forceStream = false) => {
+    const requestPayload = {
+        model: config.model || DEFAULT_MODEL,
+        stream: false,
+        temperature: 0.2,
+        max_tokens: 900,
+        ...payload,
+    };
+
+    if (forceStream) requestPayload.stream = true;
+    if (
+        isQwen3Model(config.model) &&
+        requestPayload.chat_template_kwargs?.enable_thinking === undefined
+    ) {
+        requestPayload.chat_template_kwargs = {
+            ...(requestPayload.chat_template_kwargs || {}),
+            enable_thinking: false,
+        };
+    }
+
+    return requestPayload;
+};
+
 const getEncryptionKey = () => {
     const secret =
         process.env.AI_CONFIG_ENCRYPTION_KEY ||
@@ -289,13 +318,7 @@ const callChatCompletion = async (config, payload, timeout = CALL_TIMEOUT_MS) =>
 
     const response = await axios.post(
         `${normalizeBaseUrl(config.base_url)}/chat/completions`,
-        {
-            model: config.model || DEFAULT_MODEL,
-            stream: false,
-            temperature: 0.2,
-            max_tokens: 900,
-            ...payload,
-        },
+        buildChatCompletionPayload(config, payload),
         {
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -357,13 +380,7 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
 
     const response = await axios.post(
         `${normalizeBaseUrl(config.base_url)}/chat/completions`,
-        {
-            model: config.model || DEFAULT_MODEL,
-            temperature: 0.2,
-            max_tokens: 900,
-            ...payload,
-            stream: true,
-        },
+        buildChatCompletionPayload(config, payload, true),
         {
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -627,6 +644,8 @@ module.exports = {
     callChatCompletionWithFailover,
     callEmbeddingWithFailover,
     MODEL_ROLES,
+    isQwen3Model,
+    buildChatCompletionPayload,
     encryptApiKey,
     decryptApiKey,
 };

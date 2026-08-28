@@ -36,3 +36,38 @@
 - **WHEN** 活动助手使用聊天模型完成意图或重排且没有显式 embedding 配置
 - **THEN** embedding 未配置 SHALL 由本地语义路径处理
 - **AND** 聊天模型配置不得产生 `/embeddings` 404 或因此变为 `failed`
+
+### Requirement: Activity assistant uses bounded provider-aware time budgets
+
+活动推荐 SHALL 为自建聊天模型提供足以完成结构化意图和候选重排的单任务时间预算，并优先使用流式响应持续接收长结构化输出，同时 MUST 通过整轮截止线限制用户等待时间。
+
+#### Scenario: Self-hosted model responds slower than the legacy intent timeout
+
+- **WHEN** 活动意图模型在 1.5 秒之后、8 秒以内返回有效结构化结果
+- **THEN** 系统 SHALL 接受该结果而不是提前切换本地意图解析
+
+#### Scenario: Streaming V2 recommendation completes within the bounded round
+
+- **WHEN** 流式意图理解和候选重排在 25 秒整轮上限内完成
+- **THEN** 系统 SHALL 返回 v2 模型结果并保留对应 runtime telemetry
+
+#### Scenario: V2 recommendation exceeds the round deadline
+
+- **WHEN** 活动推荐整轮超过 25 秒
+- **THEN** 系统 SHALL 停止等待该轮结果并返回现有本地混合召回结果
+- **AND** 响应 SHALL 标记 deadline fallback
+
+### Requirement: Qwen3 structured tasks avoid hidden long thinking
+
+系统 SHALL 在 Qwen3 执行结构化 JSON 任务且调用方没有显式指定 thinking 行为时关闭 thinking，以降低用户等待时间和不可见 completion token 消耗；非 Qwen3 模型的请求体 MUST 保持通用 OpenAI 兼容形状。
+
+#### Scenario: Qwen3 model receives a structured runtime request
+
+- **WHEN** 配置模型 ID 明确为 Qwen3 且统一 runtime 发起结构化任务
+- **THEN** provider 请求 SHALL 包含 `chat_template_kwargs.enable_thinking=false`
+- **AND** 调用方显式提供的 thinking 设置 SHALL 优先
+
+#### Scenario: Non-Qwen3 model receives the same request
+
+- **WHEN** 配置模型 ID 不是 Qwen3
+- **THEN** 系统 MUST 不自动添加 `chat_template_kwargs`
