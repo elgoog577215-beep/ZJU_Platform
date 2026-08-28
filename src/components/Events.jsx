@@ -1614,7 +1614,7 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-6 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 

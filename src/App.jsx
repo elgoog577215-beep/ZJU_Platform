@@ -561,7 +561,11 @@ const AppContent = () => {
 
                 <main
                     id="main-content"
-                    className={`flex-grow ${isImmersiveRoute ? "pb-0" : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"}`}
+                    className={`flex-grow ${
+                        isImmersiveRoute || isEventsRoute
+                            ? "pb-0"
+                            : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"
+                    }`}
                     role="main"
                 >
                     <Suspense fallback={<LoadingScreen />}>
@@ -582,10 +586,7 @@ const AppContent = () => {
                                     </PageTransition>
                                 }
                             />
-                            <Route
-                                path="/gallery"
-                                element={<Navigate to="/media" replace />}
-                            />
+                            <Route path="/gallery" element={<Navigate to="/media" replace />} />
                             <Route path="/music" element={<MusicRedirect />} />
                             <Route
                                 path="/videos"
