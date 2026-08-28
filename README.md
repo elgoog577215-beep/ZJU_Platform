@@ -70,6 +70,7 @@ npm run dev:client
 - `CORS_ALLOWED_ORIGINS`：生产跨域白名单。
 - `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`：微信文章解析等可选 AI 能力。
 - `WECHAT_MINIAPP_APPID`、`WECHAT_MINIAPP_SECRET`：微信小程序登录。
+- `VITE_AI_COMMUNITY_FRESHMAN_IMA_URL`：前端构建时可选的新生资料库 ima 分享地址；未配置时页面显示链接待配置状态。
 
 不要提交 `server/.env`、数据库、上传文件、真实平台凭据或日志。
 

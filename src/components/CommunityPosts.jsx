@@ -69,8 +69,9 @@ const LEGACY_TAB_TO_AREA = {
     project: "learn",
 };
 
-const LEARNING_KEYWORDS = [
+const AI_CONTEXT_KEYWORDS = [
     "ai",
+    "artificial intelligence",
     "agent",
     "prompt",
     "context",
@@ -83,17 +84,20 @@ const LEARNING_KEYWORDS = [
     "mcp",
     "function calling",
     "tool calling",
+    "提示词",
+    "上下文",
+    "智能体",
+    "大模型",
+    "模型",
+];
+
+const LEARNING_INTENT_KEYWORDS = [
     "tutorial",
     "guide",
     "note",
     "notes",
     "learn",
     "study",
-    "提示词",
-    "上下文",
-    "智能体",
-    "大模型",
-    "模型",
     "教程",
     "笔记",
     "学习",
@@ -752,10 +756,20 @@ const toneClasses = {
 };
 
 const getText = (item) =>
-    [item?.title, item?.excerpt, item?.description, item?.content, item?.tags]
+    [item?.title, item?.excerpt, item?.description, item?.content, item?.tag, item?.tags]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
+
+const includesLearningKeyword = (text, keyword) => {
+    const normalizedKeyword = String(keyword || "").toLowerCase();
+    if (!normalizedKeyword) return false;
+    if (!/^[a-z0-9][a-z0-9 ._+#/-]*$/.test(normalizedKeyword)) {
+        return text.includes(normalizedKeyword);
+    }
+    const escapedKeyword = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[^a-z0-9])${escapedKeyword}([^a-z0-9]|$)`, "i").test(text);
+};
 
 const stripHtml = (value) =>
     String(value || "")
@@ -774,7 +788,20 @@ const isLearningArticle = (item) => {
     if (String(item?.title || "").includes("安全提醒")) return false;
     if (ARTICLE_LEARNING_ROUTE[Number(item?.id)]) return true;
     const text = getText(item);
-    return LEARNING_KEYWORDS.some((keyword) => text.includes(keyword.toLowerCase()));
+    const titleAndTags = [item?.title, item?.tag, item?.tags]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+    const aiContextInTitle = AI_CONTEXT_KEYWORDS.some((keyword) =>
+        includesLearningKeyword(titleAndTags, keyword)
+    );
+    const aiContextInBody = AI_CONTEXT_KEYWORDS.some((keyword) =>
+        includesLearningKeyword(text, keyword)
+    );
+    const hasLearningIntent = LEARNING_INTENT_KEYWORDS.some((keyword) =>
+        includesLearningKeyword(text, keyword)
+    );
+    return aiContextInTitle || (aiContextInBody && hasLearningIntent);
 };
 
 const classifyChapter = (item) => {
@@ -784,7 +811,7 @@ const classifyChapter = (item) => {
     const [matched] = CHAPTERS.map((chapter) => ({
         chapter,
         score: chapter.keywords.reduce(
-            (total, keyword) => total + (text.includes(keyword.toLowerCase()) ? 1 : 0),
+            (total, keyword) => total + (includesLearningKeyword(text, keyword) ? 1 : 0),
             0
         ),
     }))
@@ -1171,16 +1198,14 @@ const LearningArea = ({ isDayMode }) => {
     const [selectedArticle, setSelectedArticle] = useState(null);
     const levelSectionRefs = useRef({});
 
-    const activeChapterKey = CHAPTERS.some((chapter) => chapter.key === searchParams.get("lesson"))
+    const requestedChapterKey = CHAPTERS.some(
+        (chapter) => chapter.key === searchParams.get("lesson")
+    )
         ? searchParams.get("lesson")
-        : "basics";
+        : "";
     const activeLevelKey = LEVELS.some((level) => level.key === searchParams.get("level"))
         ? searchParams.get("level")
         : "";
-    const activeChapter =
-        CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
-    const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
-    const ActiveIcon = activeChapter.icon;
 
     const articleResource = useCachedResource(
         "/articles",
@@ -1216,6 +1241,31 @@ const LearningArea = ({ isDayMode }) => {
         });
         return map;
     }, [articles]);
+
+    const visibleChapters = useMemo(() => {
+        const requestedChapter = CHAPTERS.find((chapter) => chapter.key === requestedChapterKey);
+        if (articleResource.loading && articles.length === 0) {
+            return requestedChapter ? [requestedChapter] : CHAPTERS.slice(0, 1);
+        }
+
+        const populatedChapters = CHAPTERS.filter(
+            (chapter) => (articlesByChapter[chapter.key] || []).length > 0
+        );
+        if (
+            requestedChapter &&
+            !populatedChapters.some((item) => item.key === requestedChapter.key)
+        ) {
+            return [requestedChapter, ...populatedChapters];
+        }
+        if (populatedChapters.length > 0) return populatedChapters;
+        return requestedChapter ? [requestedChapter] : CHAPTERS.slice(0, 1);
+    }, [articleResource.loading, articles.length, articlesByChapter, requestedChapterKey]);
+
+    const activeChapterKey = requestedChapterKey || visibleChapters[0]?.key || "basics";
+    const activeChapter =
+        CHAPTERS.find((chapter) => chapter.key === activeChapterKey) || CHAPTERS[0];
+    const chapterTone = toneClasses[activeChapter.tone] || toneClasses.violet;
+    const ActiveIcon = activeChapter.icon;
 
     const levelGroups = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
@@ -1280,9 +1330,11 @@ const LearningArea = ({ isDayMode }) => {
         setSearchParams(
             (prev) => {
                 const next = new URLSearchParams(prev);
+                next.set("library", "finals");
                 next.set("area", "resources");
-                ["lesson", "level", "postTab", "id", "post", "news", "group", "type"].forEach(
-                    (key) => next.delete(key)
+                next.set("type", "course");
+                ["lesson", "level", "postTab", "id", "post", "news", "group"].forEach((key) =>
+                    next.delete(key)
                 );
                 return next;
             },
@@ -1352,7 +1404,7 @@ const LearningArea = ({ isDayMode }) => {
                     className="scrollbar-none flex w-full max-w-full snap-x snap-proximity overflow-x-auto overscroll-x-contain px-3"
                     aria-label={t("community_learning.curriculum_label", "AI LEARNING PATH")}
                 >
-                    {CHAPTERS.map((chapter, index) => {
+                    {visibleChapters.map((chapter, index) => {
                         const Icon = chapter.icon;
                         const active = chapter.key === activeChapterKey;
                         const tone = toneClasses[chapter.tone] || toneClasses.violet;
@@ -1395,7 +1447,7 @@ const LearningArea = ({ isDayMode }) => {
                         {t("community_learning.curriculum_label", "AI LEARNING PATH")}
                     </div>
                     <div className="space-y-1">
-                        {CHAPTERS.map((chapter, index) => {
+                        {visibleChapters.map((chapter, index) => {
                             const Icon = chapter.icon;
                             const active = chapter.key === activeChapterKey;
                             const tone = toneClasses[chapter.tone] || toneClasses.violet;
@@ -1453,7 +1505,7 @@ const LearningArea = ({ isDayMode }) => {
                                 </span>
                                 <span className="min-w-0">
                                     <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
-                                        {String(CHAPTERS.length + 1).padStart(2, "0")}
+                                        {String(visibleChapters.length + 1).padStart(2, "0")}
                                     </span>
                                     <span className="block truncate text-sm font-bold">
                                         {t(
@@ -1733,17 +1785,18 @@ const LearningArea = ({ isDayMode }) => {
     );
 };
 
-const CommunityPosts = () => {
+const CommunityPosts = ({ areaOverride = "", hideAreaNav = false }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeArea = useMemo(() => {
+        if (AREAS.some((item) => item.key === areaOverride)) return areaOverride;
         const area = searchParams.get("area");
         if (AREAS.some((item) => item.key === area)) return area;
         return LEGACY_TAB_TO_AREA[searchParams.get("postTab")] || "learn";
-    }, [searchParams]);
+    }, [areaOverride, searchParams]);
 
     const handleAreaChange = useCallback(
         (areaKey) => {
@@ -1770,46 +1823,48 @@ const CommunityPosts = () => {
 
     return (
         <div className="space-y-3 md:space-y-5">
-            <nav
-                className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
-                    isDayMode ? "border-slate-200" : "border-white/10"
-                }`}
-                aria-label={t("community_learning.area_nav_label", "学习社区分区")}
-            >
-                {AREAS.map((area) => {
-                    const Icon = area.icon;
-                    const active = area.key === activeAreaConfig.key;
-                    const tone = toneClasses[area.tone] || toneClasses.violet;
-                    return (
-                        <button
-                            key={area.key}
-                            type="button"
-                            aria-pressed={active}
-                            onClick={() => handleAreaChange(area.key)}
-                            className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:min-h-[62px] md:flex-1 md:justify-start md:gap-3 md:rounded-none md:border-0 md:border-r md:px-4 md:py-2 md:text-left md:last:border-r-0 ${
-                                active
-                                    ? isDayMode
-                                        ? tone.card
-                                        : tone.nightCard
-                                    : isDayMode
-                                      ? "border-transparent text-slate-600 hover:text-slate-950 md:border-slate-200 md:bg-white md:hover:border-slate-300 md:hover:bg-slate-50"
-                                      : "border-transparent text-gray-300 hover:text-white md:border-white/10 md:bg-white/[0.035] md:hover:border-white/20 md:hover:bg-white/[0.06]"
-                            }`}
-                        >
-                            <div className="flex items-center justify-between gap-3">
-                                <span
-                                    className={`flex h-6 w-6 items-center justify-center rounded-md md:h-8 md:w-8 ${active ? "md:bg-white/35" : isDayMode ? "md:bg-slate-100" : "md:bg-white/[0.06]"}`}
-                                >
-                                    <Icon size={16} className="md:h-[19px] md:w-[19px]" />
-                                </span>
-                            </div>
-                            <div className="truncate md:text-sm md:font-black">
-                                {t(area.titleKey, area.titleFallback)}
-                            </div>
-                        </button>
-                    );
-                })}
-            </nav>
+            {!hideAreaNav ? (
+                <nav
+                    className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
+                        isDayMode ? "border-slate-200" : "border-white/10"
+                    }`}
+                    aria-label={t("community_learning.area_nav_label", "学习社区分区")}
+                >
+                    {AREAS.map((area) => {
+                        const Icon = area.icon;
+                        const active = area.key === activeAreaConfig.key;
+                        const tone = toneClasses[area.tone] || toneClasses.violet;
+                        return (
+                            <button
+                                key={area.key}
+                                type="button"
+                                aria-pressed={active}
+                                onClick={() => handleAreaChange(area.key)}
+                                className={`flex min-h-12 min-w-0 items-center justify-center gap-1.5 border-b-2 px-1.5 text-center text-xs font-bold transition-all md:min-h-[62px] md:flex-1 md:justify-start md:gap-3 md:rounded-none md:border-0 md:border-r md:px-4 md:py-2 md:text-left md:last:border-r-0 ${
+                                    active
+                                        ? isDayMode
+                                            ? tone.card
+                                            : tone.nightCard
+                                        : isDayMode
+                                          ? "border-transparent text-slate-600 hover:text-slate-950 md:border-slate-200 md:bg-white md:hover:border-slate-300 md:hover:bg-slate-50"
+                                          : "border-transparent text-gray-300 hover:text-white md:border-white/10 md:bg-white/[0.035] md:hover:border-white/20 md:hover:bg-white/[0.06]"
+                                }`}
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <span
+                                        className={`flex h-6 w-6 items-center justify-center rounded-md md:h-8 md:w-8 ${active ? "md:bg-white/35" : isDayMode ? "md:bg-slate-100" : "md:bg-white/[0.06]"}`}
+                                    >
+                                        <Icon size={16} className="md:h-[19px] md:w-[19px]" />
+                                    </span>
+                                </div>
+                                <div className="truncate md:text-sm md:font-black">
+                                    {t(area.titleKey, area.titleFallback)}
+                                </div>
+                            </button>
+                        );
+                    })}
+                </nav>
+            ) : null}
 
             {activeArea === "learn" ? <LearningArea isDayMode={isDayMode} /> : null}
             {activeArea === "resources" ? <CommunityMaterials /> : null}
