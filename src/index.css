@@ -1512,6 +1512,39 @@ img {
         background-color: rgba(255, 255, 255, 0.22);
     }
 
+    @media (min-width: 768px) {
+        :root[data-theme="day"] .ecosystem-landscape-shell {
+            background-color: #dbe5ef;
+        }
+
+        :root[data-theme="day"] .ecosystem-landscape-shell::before {
+            background-color: #dbe5ef;
+            background-image:
+                linear-gradient(
+                    180deg,
+                    rgba(226, 232, 240, 0.36) 0%,
+                    rgba(241, 245, 249, 0.54) 48%,
+                    rgba(226, 232, 240, 0.68) 100%
+                ),
+                url("/images/hero-landscape-day-4k.jpg");
+        }
+
+        :root[data-theme="day"] .ecosystem-landscape-shell nav[aria-label] {
+            border-bottom-color: rgba(100, 116, 139, 0.18);
+            background-color: rgba(226, 232, 240, 0.7);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        :root[data-theme="day"]
+            .day-page-theme-events
+            [data-testid="organization-partner-filter-bar"]
+            > div {
+            border-color: rgba(100, 116, 139, 0.16);
+            background-color: rgba(226, 232, 240, 0.55);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
     @media (max-width: 767px) {
         .ecosystem-landscape-shell::before {
             background-image:
