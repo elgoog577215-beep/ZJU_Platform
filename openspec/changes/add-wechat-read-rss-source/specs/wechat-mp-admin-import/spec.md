@@ -30,6 +30,14 @@
 - **AND** 当 `wewe_rss` 与 `wechat_mp` 来源同时启用时，任务 SHALL 先执行 `wewe_rss`
 - **AND** SHALL 保留 `wechat_mp` 作为兼容和备用来源
 
+#### Scenario: 管理员通过主平台管理 WeRead
+
+- **GIVEN** 主平台后端已配置服务端 `WEWE_RSS_AUTH_CODE`
+- **WHEN** 管理员进入 RSS 管理工作区
+- **THEN** 系统 SHALL 通过主平台管理员 API 提供 WeRead 登录、账号、订阅源、刷新、历史文章和文章管理能力
+- **AND** 浏览器 SHALL NOT 直接携带 WeWe RSS 授权码
+- **AND** 微信读书 Token SHALL NOT 出现在 API 响应、日志或前端状态中
+
 #### Scenario: RSS 读取不触发上游刷新
 
 - **GIVEN** 系统执行普通定时或手动增量任务

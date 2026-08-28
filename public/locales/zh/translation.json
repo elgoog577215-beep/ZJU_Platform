@@ -3398,6 +3398,7 @@
                 "overview_tab": "概况",
                 "sources_tab": "采集源",
                 "candidates_tab": "候选内容",
+                "rss_tab": "RSS 管理",
                 "advanced_tab": "连接与工具",
                 "connect_wechat": "连接微信采集",
                 "sources_status": "采集源 {{enabled}}/{{total}}",
@@ -3547,7 +3548,7 @@
                     "wechat_mp": "直连微信 MP（需要扫码）",
                     "wewe_rss": "微信读书 RSS（无需扫码）"
                 },
-                "rss_source_note": "请先在 WeWe RSS 后台添加公众号；这里只填写 feed ID，采集使用受信任的 rss.tuotuzju.com 服务。",
+                "rss_source_note": "请先在本页 RSS 管理工作区登录微信读书并解析公众号；这里只填写 feed ID，采集使用受信任的 rss.tuotuzju.com 服务。",
                 "token_health_note": "服务启动后立即检查，之后按设定周期自动检查。",
                 "content_status": {
                     "not_fetched": "正文未抓取",
@@ -3577,6 +3578,116 @@
                     "completed": "已完成",
                     "failed": "失败"
                 }
+            },
+            "rss_admin": {
+                "loading": "加载中...",
+                "metrics": {
+                    "accounts": "读书账号",
+                    "feeds": "公众号订阅源",
+                    "feed_count": "{{count}} 个订阅源",
+                    "connection": "后端连接"
+                },
+                "status": {
+                    "ready": "已接入",
+                    "missing": "待配置",
+                    "enabled": "已启用",
+                    "disabled": "已停用",
+                    "invalid": "不可用",
+                    "never": "从未"
+                },
+                "notes": {
+                    "configured": "微信读书管理已接入主平台后台。微信读书 Token 只保存在 WeWe RSS 服务端，浏览器不会接触。",
+                    "not_configured": "主平台后端尚未配置 WEWE_RSS_AUTH_CODE；配置后即可在这里完成微信读书登录和订阅源管理。"
+                },
+                "accounts": {
+                    "title": "微信读书账号",
+                    "description": "在主平台后台发起微信读书扫码登录；账号令牌由 WeWe RSS 服务端保存。",
+                    "empty_title": "还没有微信读书账号",
+                    "empty_desc": "点击右上角添加账号并扫码登录。"
+                },
+                "login": {
+                    "qr_alt": "微信读书登录二维码",
+                    "waiting": "请使用微信扫描二维码登录",
+                    "note": "登录完成后，账号会自动保存到 WeWe RSS 后端，不会把 Token 返回给浏览器。"
+                },
+                "feeds": {
+                    "title": "公众号订阅源",
+                    "description": "粘贴一篇 mp.weixin.qq.com 文章链接，微信读书会解析并维护对应公众号。",
+                    "link_placeholder": "https://mp.weixin.qq.com/s/...",
+                    "link_note": "需要至少有一个已启用的微信读书账号；这里只保存公众号订阅源，不保存文章链接作为凭据。",
+                    "last_sync": "上次同步",
+                    "empty_title": "还没有公众号订阅源",
+                    "empty_desc": "粘贴一篇公众号文章链接开始添加。"
+                },
+                "articles": {
+                    "title": "订阅源文章",
+                    "description": "文章由 WeWe RSS 同步到当前订阅源",
+                    "select_feed": "选择一个订阅源查看文章",
+                    "history_progress": "正在同步历史文章，第 {{page}} 页",
+                    "untitled": "未命名文章",
+                    "empty_title": "还没有文章",
+                    "empty_desc": "点击立即更新，或先完成微信读书账号登录。"
+                },
+                "actions": {
+                    "add_account": "添加账号",
+                    "cancel_login": "取消登录",
+                    "enable_account": "启用账号",
+                    "disable_account": "停用账号",
+                    "delete_account": "删除账号",
+                    "refresh_all": "更新全部",
+                    "discover": "解析订阅源",
+                    "add_feed": "添加",
+                    "copy_feed": "复制 Feed 地址",
+                    "refresh": "立即更新",
+                    "enable_feed": "启用订阅源",
+                    "disable_feed": "停用订阅源",
+                    "delete_feed": "删除订阅源",
+                    "open_feed": "打开 Feed",
+                    "history": "同步历史文章",
+                    "stop_history": "停止历史同步",
+                    "refresh_articles": "刷新文章",
+                    "delete_article": "删除文章"
+                },
+                "confirm": {
+                    "account": "确认删除“{{name}}”？",
+                    "feed": "确认删除“{{name}}”？",
+                    "article": "确认删除文章“{{name}}”？"
+                },
+                "errors": {
+                    "load": "加载微信读书 RSS 状态失败",
+                    "articles": "加载 RSS 文章失败",
+                    "qr": "二维码生成失败",
+                    "login": "获取微信读书登录状态失败",
+                    "login_start": "启动微信读书登录失败",
+                    "login_cancel": "取消登录失败",
+                    "account_update": "更新读书账号失败",
+                    "account_delete": "删除读书账号失败",
+                    "link_required": "请填写公众号文章链接",
+                    "link_not_found": "没有找到对应的公众号订阅源",
+                    "discover": "解析公众号订阅源失败",
+                    "feed_add": "添加订阅源失败",
+                    "feed_update": "更新订阅源失败",
+                    "feed_refresh": "更新订阅源文章失败",
+                    "all_refresh": "更新全部订阅源失败",
+                    "history": "历史文章任务失败",
+                    "copy": "复制失败",
+                    "feed_delete": "删除订阅源失败",
+                    "article_delete": "删除文章失败"
+                },
+                "toasts": {
+                    "login_saved": "微信读书账号已保存",
+                    "account_updated": "读书账号状态已更新",
+                    "account_deleted": "读书账号已删除",
+                    "feed_added": "公众号订阅源已添加",
+                    "feed_updated": "订阅源状态已更新",
+                    "feed_refreshed": "订阅源已更新",
+                    "all_refreshed": "全部订阅源已更新",
+                    "history_started": "历史文章同步已启动",
+                    "history_cancelled": "历史文章同步已停止",
+                    "feed_copied": "Feed 地址已复制",
+                    "article_deleted": "文章已删除"
+                },
+                "footer": "当前平台只代理管理 API；WeWe RSS 的 MySQL、微信读书登录态和原始同步逻辑仍由 rss.tuotuzju.com 内部服务维护。"
             },
             "fields": {
                 "account_name": "公众号名称",

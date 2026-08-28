@@ -32,7 +32,7 @@ GET ${WEWE_RSS_BASE_URL}/feeds/${feed_id}.atom?limit=20&page=1&mode=fulltext
 - `wechat_mp_ingest_articles.content_text/content_html/images_json`：保存 RSS 全文映射；
 - `extraction_*`、`activity_*`：继续保存 AI 提取、活动初筛和治理结果。
 
-不保存 WeRead token、WeWe RSS 授权码或微信登录 cookie。
+不在主平台业务数据库保存 WeRead token 或微信登录 cookie；WeWe RSS 的管理授权码只作为主平台服务端环境变量 `WEWE_RSS_AUTH_CODE` 使用，不进入前端状态或业务记录。
 
 ## Feed 解析
 
@@ -63,12 +63,23 @@ RSS 分页使用 `limit` 和 `page`，不使用上游刷新参数。每个来源
 
 ## API 与前端
 
-不新增第二组后台路由，继续使用：
+增量采集继续使用现有路由：
 
 - `GET/PUT /api/admin/wechat-mp/ingest/settings`；
 - `GET/POST/PUT/DELETE /api/admin/wechat-mp/ingest/accounts`；
 - `POST /api/admin/wechat-mp/ingest/run`；
 - 文章、运行记录和解析重试接口。
+
+WeWe RSS 的管理能力通过主平台后端代理，不让浏览器直接携带 WeWe RSS 授权码。主平台使用服务端环境变量 `WEWE_RSS_AUTH_CODE` 调用 WeWe RSS 的受保护 tRPC API，并对返回值做脱敏后提供以下管理员路由：
+
+- `/api/admin/wechat-rss/login/*`：发起、轮询和取消微信读书扫码登录；登录成功后由服务端直接写入 WeWe RSS 账号，Token 不返回浏览器；
+- `/api/admin/wechat-rss/accounts`：账号列表、启停和删除；
+- `/api/admin/wechat-rss/feeds`：公众号订阅源解析、增删改和列表；
+- `/api/admin/wechat-rss/feeds/:id/refresh`、`/refresh-all`：更新文章；
+- `/api/admin/wechat-rss/feeds/:id/history`、`/history/status`：历史文章同步和状态；
+- `/api/admin/wechat-rss/articles`：文章列表和删除。
+
+后台在现有内容采集页面增加 RSS 管理工作区，直连微信 MP 工作区继续保留。`WEWE_RSS_AUTH_CODE` 只存在主平台服务端环境变量中，WeWe RSS 的 MySQL 和微信读书登录态仍由独立服务保存。
 
 账号返回值增加 `source_type` 和 `rss_feed_id`。后台来源表单增加来源类型选择：
 

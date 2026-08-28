@@ -31,6 +31,7 @@ import toast from "react-hot-toast";
 
 import api, { uploadFile } from "../../services/api";
 import { formatServerDateTime as formatDateTime } from "../../utils/serverDate";
+import WeChatReadRssManager from "./WeChatReadRssManager";
 import {
     AdminButton,
     AdminEmptyState,
@@ -841,6 +842,7 @@ const WeChatMpImportManager = () => {
                         ["overview", "overview_tab", "概况"],
                         ["sources", "sources_tab", "采集源"],
                         ["candidates", "candidates_tab", "候选内容"],
+                        ["rss", "rss_tab", "RSS 管理"],
                         ["advanced", "advanced_tab", "连接与工具"],
                     ].map(([id, key, fallback]) => (
                         <FilterChip
@@ -1463,6 +1465,8 @@ const WeChatMpImportManager = () => {
                         </AdminPanel>
                     </div>
                 ) : null}
+
+                {activeWorkspace === "rss" ? <WeChatReadRssManager /> : null}
 
                 {activeWorkspace === "sources" ? (
                     <AdminPanel

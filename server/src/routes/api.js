@@ -29,6 +29,7 @@ const competitionController = require("../controllers/competitionController");
 const futureLearningController = require("../controllers/futureLearningController");
 const wechatParseController = require("../controllers/wechatParseController");
 const wechatMpAdminController = require("../controllers/wechatMpAdminController");
+const wechatReadRssAdminController = require("../controllers/wechatReadRssAdminController");
 const ecosystemPartnerController = require("../controllers/ecosystemPartnerController");
 const eventAttributionMigrationController = require("../controllers/eventAttributionMigrationController");
 const mediaCategoryController = require("../controllers/mediaCategoryController");
@@ -500,6 +501,132 @@ router.get(
     authenticateToken,
     isAdmin,
     wechatMpAdminController.getWechatMpStatus
+);
+router.get(
+    "/admin/wechat-rss",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getOverview
+);
+router.post(
+    "/admin/wechat-rss/login/start",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.startLogin
+);
+router.get(
+    "/admin/wechat-rss/login/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getLoginStatus
+);
+router.post(
+    "/admin/wechat-rss/login/cancel",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.cancelLogin
+);
+router.get(
+    "/admin/wechat-rss/accounts",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listAccounts
+);
+router.patch(
+    "/admin/wechat-rss/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.updateAccount
+);
+router.delete(
+    "/admin/wechat-rss/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteAccount
+);
+router.get(
+    "/admin/wechat-rss/feeds",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listFeeds
+);
+router.post(
+    "/admin/wechat-rss/feeds/discover",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.discoverFeed
+);
+router.post(
+    "/admin/wechat-rss/feeds",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.addFeed
+);
+router.patch(
+    "/admin/wechat-rss/feeds/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.updateFeed
+);
+router.delete(
+    "/admin/wechat-rss/feeds/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteFeed
+);
+router.post(
+    "/admin/wechat-rss/feeds/refresh-all",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.refreshAllFeeds
+);
+router.post(
+    "/admin/wechat-rss/feeds/:id/refresh",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.refreshFeed
+);
+router.get(
+    "/admin/wechat-rss/refresh/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getRefreshStatus
+);
+router.get(
+    "/admin/wechat-rss/articles",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listArticles
+);
+router.get(
+    "/admin/wechat-rss/feeds/:id/articles",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listArticles
+);
+router.delete(
+    "/admin/wechat-rss/articles/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteArticle
+);
+router.post(
+    "/admin/wechat-rss/feeds/:id/history",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.startHistory
+);
+router.post(
+    "/admin/wechat-rss/history/cancel",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.cancelHistory
+);
+router.get(
+    "/admin/wechat-rss/history/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getHistoryStatus
 );
 router.post(
     "/admin/wechat-mp/login/start",
