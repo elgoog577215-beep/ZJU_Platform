@@ -3036,26 +3036,142 @@ img.motion-image-zoom {
 
 /* AI 社区：四类知识在同一工作台汇流，入口保持任务差异而非复用同一张应用卡。 */
 .community-dock-heading {
-    min-height: clamp(8rem, 15vh, 10.5rem);
-    align-items: flex-end;
-    gap: 1.75rem;
-    padding: 0 0 1.5rem;
+    min-height: clamp(10rem, 18vh, 13rem);
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding: 0 0 1.75rem;
+}
+
+.community-wordmark__emblem {
+    width: clamp(6.75rem, 8vw, 8rem);
+    flex: 0 0 auto;
+    color: #8bdcff;
+    filter: drop-shadow(0 18px 28px rgba(2, 6, 23, 0.3));
+}
+
+.community-wordmark__emblem svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.community-wordmark__frame,
+.community-wordmark__route,
+.community-wordmark__core,
+.community-wordmark__core-mark {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+}
+
+.community-wordmark__frame {
+    stroke: rgba(139, 220, 255, 0.48);
+    stroke-width: 1.5;
+}
+
+.community-wordmark__route {
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.community-wordmark__node {
+    fill: #020617;
+    stroke: #c9f3ff;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.community-wordmark__core {
+    fill: rgba(139, 220, 255, 0.1);
+    stroke: #c9f3ff;
+    stroke-width: 2;
+}
+
+.community-wordmark__core-mark {
+    stroke: #c9f3ff;
+    stroke-width: 2.5;
+    stroke-linecap: square;
+}
+
+.community-wordmark__copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.community-wordmark__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+    color: #c9f3ff;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    line-height: 1;
+}
+
+.community-wordmark__beacon {
+    width: 0.46rem;
+    height: 0.46rem;
+    flex: 0 0 auto;
+    background: #8bdcff;
 }
 
 .community-dock-heading__title {
-    color: #e7f7ff;
-    font-size: clamp(4.5rem, 7.2vw, 6rem);
+    display: flex;
+    align-items: baseline;
+    gap: 0.08em;
+    color: #ffffff;
+    font-size: clamp(4.6rem, 7vw, 6rem);
     font-weight: 950;
     letter-spacing: -0.04em;
-    line-height: 0.86;
+    line-height: 0.84;
+    white-space: nowrap;
     text-shadow: 0 18px 44px rgba(2, 6, 23, 0.34);
 }
 
-.community-dock-heading__rule {
-    width: min(28vw, 24rem);
+html[lang^="en"] .community-dock-heading__title {
+    gap: 0.16em;
+    font-size: clamp(3.4rem, 5.6vw, 5rem);
+    letter-spacing: -0.03em;
+}
+
+.community-dock-heading__title-accent {
+    color: #8bdcff;
+    -webkit-text-stroke: 1px rgba(201, 243, 255, 0.28);
+}
+
+.community-wordmark__rail {
+    display: flex;
+    width: min(44vw, 32rem);
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.community-wordmark__rail-line {
+    width: min(26vw, 20rem);
     height: 1px;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(90deg, rgba(139, 220, 255, 0.82), transparent);
+    background: rgba(139, 220, 255, 0.58);
+}
+
+.community-wordmark__rail-line--short {
+    width: clamp(3rem, 7vw, 6rem);
+    background: rgba(139, 220, 255, 0.24);
+}
+
+.community-wordmark__rail-node {
+    width: 0.55rem;
+    height: 0.55rem;
+    flex: 0 0 auto;
+    border: 2px solid #c9f3ff;
+    background: #020617;
+}
+
+.community-wordmark__rail-end {
+    width: 0.3rem;
+    height: 0.3rem;
+    flex: 0 0 auto;
+    background: #8bdcff;
 }
 
 :root[data-theme="day"] .community-dock-heading__title {
@@ -3063,8 +3179,49 @@ img.motion-image-zoom {
     text-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
 }
 
-:root[data-theme="day"] .community-dock-heading__rule {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.62), transparent);
+:root[data-theme="day"] .community-wordmark__emblem {
+    color: #6366f1;
+    filter: drop-shadow(0 16px 24px rgba(15, 23, 42, 0.12));
+}
+
+:root[data-theme="day"] .community-wordmark__frame {
+    stroke: rgba(99, 102, 241, 0.4);
+}
+
+:root[data-theme="day"] .community-wordmark__node,
+:root[data-theme="day"] .community-wordmark__rail-node {
+    border-color: #6366f1;
+    fill: #ffffff;
+    stroke: #6366f1;
+    background: #ffffff;
+}
+
+:root[data-theme="day"] .community-wordmark__core {
+    fill: rgba(99, 102, 241, 0.08);
+    stroke: #6366f1;
+}
+
+:root[data-theme="day"] .community-wordmark__core-mark {
+    stroke: #6366f1;
+}
+
+:root[data-theme="day"] .community-wordmark__kicker,
+:root[data-theme="day"] .community-dock-heading__title-accent {
+    color: #6366f1;
+    -webkit-text-stroke-color: rgba(99, 102, 241, 0.18);
+}
+
+:root[data-theme="day"] .community-wordmark__beacon,
+:root[data-theme="day"] .community-wordmark__rail-end {
+    background: #6366f1;
+}
+
+:root[data-theme="day"] .community-wordmark__rail-line {
+    background: rgba(99, 102, 241, 0.52);
+}
+
+:root[data-theme="day"] .community-wordmark__rail-line--short {
+    background: rgba(99, 102, 241, 0.2);
 }
 
 .community-dock-shell--compact {

@@ -351,10 +351,62 @@ const CommunityLibraryDock = ({
                     transition={transition}
                     className="community-dock-heading hidden lg:flex"
                 >
-                    <h1 id="community-dock-title" className="community-dock-heading__title">
-                        {t("community_libraries.page_title", "学习社区")}
-                    </h1>
-                    <span aria-hidden="true" className="community-dock-heading__rule" />
+                    <div aria-hidden="true" className="community-wordmark__emblem">
+                        <svg viewBox="0 0 128 128" role="presentation">
+                            <path
+                                className="community-wordmark__frame"
+                                d="M10 36V10H36M92 10h26v26M118 92v26H92M36 118H10V92"
+                            />
+                            <path
+                                className="community-wordmark__route"
+                                d="M14 32H40L56 49M114 32H88L72 49M14 96H40L56 79M114 96H88L72 79"
+                            />
+                            <circle className="community-wordmark__node" cx="14" cy="32" r="4" />
+                            <circle className="community-wordmark__node" cx="114" cy="32" r="4" />
+                            <circle className="community-wordmark__node" cx="14" cy="96" r="4" />
+                            <circle className="community-wordmark__node" cx="114" cy="96" r="4" />
+                            <rect
+                                className="community-wordmark__core"
+                                x="48"
+                                y="48"
+                                width="32"
+                                height="32"
+                                rx="5"
+                                transform="rotate(45 64 64)"
+                            />
+                            <path
+                                className="community-wordmark__core-mark"
+                                d="M54 59H74M54 68H68"
+                            />
+                        </svg>
+                    </div>
+                    <div className="community-wordmark__copy">
+                        <div className="community-wordmark__kicker">
+                            <span aria-hidden="true" className="community-wordmark__beacon" />
+                            {t("community_libraries.page_kicker", "AI LEARNING NETWORK")}
+                        </div>
+                        <h1
+                            id="community-dock-title"
+                            aria-label={t("community_libraries.page_title", "学习社区")}
+                            className="community-dock-heading__title"
+                        >
+                            <span aria-hidden="true">
+                                {t("community_libraries.page_title_learn", "学习")}
+                            </span>
+                            <span
+                                aria-hidden="true"
+                                className="community-dock-heading__title-accent"
+                            >
+                                {t("community_libraries.page_title_community", "社区")}
+                            </span>
+                        </h1>
+                        <div aria-hidden="true" className="community-wordmark__rail">
+                            <span className="community-wordmark__rail-line" />
+                            <span className="community-wordmark__rail-node" />
+                            <span className="community-wordmark__rail-line community-wordmark__rail-line--short" />
+                            <span className="community-wordmark__rail-end" />
+                        </div>
+                    </div>
                 </motion.header>
             ) : (
                 <h1 id="community-dock-title" className="sr-only">

@@ -43,3 +43,9 @@
 - [x] 6.4 提高 AI 社区白天背景清晰度，同步中英文 locale、产品文档和 surface brief
 - [x] 6.5 运行相关格式、ESLint、构建、OpenSpec 和 Impeccable detector
 - [x] 6.6 在 Edge 验收桌面/390px、白天/夜间首屏、栏目切换、分类范围、返回链和代表性深链
+
+## 7. 用户反馈修订：学习社区科技字标
+
+- [x] 7.1 将普通放大标题重构为“四路汇聚徽记 + 中英文字形 + 信号轨道”的桌面字标，保持四入口和移动端不变
+- [x] 7.2 同步中英文 locale、OpenSpec 与 `/articles` surface brief
+- [x] 7.3 运行格式、ESLint、构建、OpenSpec，并在 Edge 验收桌面昼夜字标和 390px 无回归
