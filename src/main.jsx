@@ -8,25 +8,36 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { isMiniProgramWebView } from "./utils/miniProgramEnv";
 
 const PWAUpdaterRuntime = () => {
-    const { needRefresh, updateServiceWorker } = useRegisterSW();
+    useRegisterSW();
+    return null;
+};
 
+const ServiceWorkerCleanup = () => {
     React.useEffect(() => {
-        const onControllerChange = () => window.location.reload();
-        navigator.serviceWorker?.addEventListener("controllerchange", onControllerChange);
-        return () =>
-            navigator.serviceWorker?.removeEventListener("controllerchange", onControllerChange);
+        if (!("serviceWorker" in navigator)) return;
+
+        navigator.serviceWorker
+            .getRegistrations()
+            .then((registrations) =>
+                Promise.all(registrations.map((registration) => registration.unregister()))
+            )
+            .catch(() => {});
+
+        if (import.meta.env.DEV && "caches" in window) {
+            window.caches
+                .keys()
+                .then((cacheNames) =>
+                    Promise.all(cacheNames.map((cacheName) => window.caches.delete(cacheName)))
+                )
+                .catch(() => {});
+        }
     }, []);
 
-    React.useEffect(() => {
-        if (needRefresh?.[0]) {
-            updateServiceWorker(true);
-        }
-    }, [needRefresh, updateServiceWorker]);
     return null;
 };
 
 const PWAUpdater = () => {
-    if (isMiniProgramWebView()) return null;
+    if (import.meta.env.DEV || isMiniProgramWebView()) return <ServiceWorkerCleanup />;
     return <PWAUpdaterRuntime />;
 };
 

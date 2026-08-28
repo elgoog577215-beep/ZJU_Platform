@@ -19,7 +19,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ResourceHints } from "./components/ResourceHints";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
-import { useServiceWorker } from "./hooks/useServiceWorker";
 import { routeTransition, useReducedMotion } from "./utils/animations";
 import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import {
@@ -368,8 +367,6 @@ const AppContent = () => {
         !isAppRuntime &&
         !isMiniProgramMode &&
         shouldMountDeferredUi;
-    useServiceWorker({ enabled: !isMiniProgramMode });
-
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
