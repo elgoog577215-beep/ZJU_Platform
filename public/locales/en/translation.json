@@ -88,7 +88,7 @@
         "password_too_short": "Password must be at least 6 characters.",
         "invalid_credentials": "Username or password is incorrect",
         "error_missing_fields": "Please fill in all fields",
-        "join_lumos": "Join Lumos",
+        "join_lumos": "Join Tuotu Zhixiang",
         "signin_required": "Please sign in first",
         "signin_desc": "Sign in to manage your content",
         "signup_desc": "Create an account to start uploading",
@@ -898,7 +898,7 @@
         "empty_hint": "Search articles, videos, or events...",
         "min_chars": "Enter at least 2 characters to search",
         "footer_hint": "Use ↑↓ to navigate and Enter to select",
-        "brand_search": "Lumos Smart Search",
+        "brand_search": "Tuotu Zhixiang Smart Search",
         "ai_search": "Sitewide AI Search",
         "result_meta": "{{time}}ms · {{count}} results"
     },
@@ -1114,7 +1114,7 @@
         "default_desc": "Immerse yourself in the environment. React to elements and capture the essence of the moment."
     },
     "footer": {
-        "rights": "© 2024 Lumos Photography. All rights reserved.",
+        "rights": "© 2026 TUOTU AI Ecosystem. All rights reserved.",
         "description": "Exploring digital art, interactive media, and creative coding. Pushing the boundaries of what's possible in the browser.",
         "connect_title": "Connect",
         "connect_text": "Interested in collaborating? Let's build something amazing together.",
@@ -1337,7 +1337,7 @@
         "delete_comment": "Delete Comment",
         "min_read": "min read",
         "author": "Author",
-        "admin_name": "Lumos Admin",
+        "admin_name": "Tuotu Zhixiang Admin",
         "read_full_story": "Read Full Story",
         "read_article": "Read Article",
         "register_now": "Register Now",

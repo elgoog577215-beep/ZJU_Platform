@@ -88,7 +88,7 @@
         "password_too_short": "密码至少需要 6 位",
         "invalid_credentials": "用户名或密码不正确",
         "signin_required": "请先登录",
-        "join_lumos": "加入 Lumos",
+        "join_lumos": "加入拓途浙享",
         "signin_desc": "登录以管理您的内容",
         "signup_desc": "创建账户以开始上传",
         "username": "用户名",
@@ -897,7 +897,7 @@
         "empty_hint": "搜索文章、视频或活动...",
         "min_chars": "输入至少 2 个字符以开始搜索",
         "footer_hint": "使用 ↑↓ 键导航，Enter 键选择",
-        "brand_search": "Lumos 智能搜索",
+        "brand_search": "拓途浙享智能搜索",
         "ai_search": "全站 AI 搜索",
         "result_meta": "{{time}}ms · {{count}} 条结果"
     },
@@ -1106,7 +1106,7 @@
         "default_desc": "沉浸在环境中。对元素做出反应，捕捉瞬间的本质。"
     },
     "footer": {
-        "rights": "© 2024 Lumos Photography. 保留所有权利。",
+        "rights": "© 2026 拓浙 AI 生态。保留所有权利。",
         "description": "探索数字艺术、互动媒体和创意编程。推动浏览器可能性的边界。",
         "connect_title": "连接",
         "connect_text": "有兴趣合作吗？让我们一起创造一些惊人的东西。",
@@ -1336,7 +1336,7 @@
         "delete_comment": "删除评论",
         "min_read": "分钟阅读",
         "author": "作者",
-        "admin_name": "Lumos 管理员",
+        "admin_name": "拓途浙享管理员",
         "search": "搜索...",
         "search_placeholder": "搜索活动...",
         "scroll_to_top": "返回顶部",
