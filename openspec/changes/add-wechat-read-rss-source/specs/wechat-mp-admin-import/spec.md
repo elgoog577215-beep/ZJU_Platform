@@ -22,6 +22,14 @@
 - **AND** SHALL 使用原文链接去重
 - **AND** SHALL 将正文交给现有 AI 提取和活动初筛链路
 
+#### Scenario: RSS 作为默认主要来源
+
+- **GIVEN** 管理员新增采集来源
+- **WHEN** 来源表单首次打开
+- **THEN** 系统 SHALL 默认选择 `wewe_rss`
+- **AND** 当 `wewe_rss` 与 `wechat_mp` 来源同时启用时，任务 SHALL 先执行 `wewe_rss`
+- **AND** SHALL 保留 `wechat_mp` 作为兼容和备用来源
+
 #### Scenario: RSS 读取不触发上游刷新
 
 - **GIVEN** 系统执行普通定时或手动增量任务

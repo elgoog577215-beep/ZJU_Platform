@@ -180,6 +180,55 @@ test("WeChat MP account enable toggle changes only the enabled state", async () 
     }
 });
 
+test("WeRead RSS sources are listed and executed before direct WeChat sources", async () => {
+    const db = await createDb();
+    const calls = [];
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "直连来源",
+            fakeid: "direct-source",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_PRIMARY",
+        });
+
+        const accounts = await service.listIngestAccounts(db, { includeDisabled: false });
+        assert.deepEqual(
+            accounts.map((account) => account.source_type),
+            ["wewe_rss", "wechat_mp"]
+        );
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles() {
+                    calls.push("wewe_rss");
+                    return { articles: [] };
+                },
+            },
+            wechatApi: {
+                async fetchArticles() {
+                    calls.push("wechat_mp");
+                    return { articles: [] };
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.deepEqual(calls, ["wewe_rss", "wechat_mp"]);
+    } finally {
+        await db.close();
+    }
+});
+
 test("WeChat MP incremental run saves new articles, bodies, and avoids duplicates", async () => {
     const db = await createDb();
     const sleeps = [];

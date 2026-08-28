@@ -3439,7 +3439,7 @@
             },
             "ingest": {
                 "title": "Daily Incremental Ingest",
-                "description": "Maintain official-account sources and fetch new articles through WeRead RSS or direct WeChat MP access.",
+                "description": "Maintain official-account sources and fetch new articles through WeRead RSS by default; direct WeChat MP remains available for compatibility.",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually.",
                 "confirm_delete_account": "Delete “{{name}}”?",
                 "account_summary": "{{enabled}} enabled / {{total}} total",

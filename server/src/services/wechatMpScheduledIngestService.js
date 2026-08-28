@@ -662,7 +662,10 @@ const listIngestAccounts = async (db, { includeDisabled = true } = {}) => {
     SELECT *
     FROM wechat_mp_ingest_accounts
     ${includeDisabled ? "" : "WHERE enabled = 1"}
-    ORDER BY enabled DESC, updated_at DESC, id DESC
+    ORDER BY enabled DESC,
+             CASE WHEN source_type = 'wewe_rss' THEN 0 ELSE 1 END,
+             updated_at DESC,
+             id DESC
   `);
     return rows.map(serializeAccount);
 };

@@ -3495,7 +3495,7 @@
             },
             "ingest": {
                 "title": "每日增量采集",
-                "description": "维护公众号来源，可通过微信读书 RSS 或直连微信 MP 获取新文章和正文。",
+                "description": "维护公众号来源，默认优先使用微信读书 RSS 获取新文章和正文；直连微信 MP 仍可作为兼容来源。",
                 "pacing_note": "注意！如果你不知道这些参数的作用，请保持默认不要随意变更！",
                 "confirm_delete_account": "确认删除“{{name}}”？",
                 "account_summary": "已启用 {{enabled}} / 共 {{total}} 个",

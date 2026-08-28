@@ -57,6 +57,8 @@ GET ${WEWE_RSS_BASE_URL}/feeds/${feed_id}.atom?limit=20&page=1&mode=fulltext
 - `wechat_mp`：沿用登录态、分页、正文抓取和现有等待策略；
 - `wewe_rss`：调用 RSS provider，一次获取 feed 项目及其全文，不调用 `fetchArticleContent`。
 
+来源列表在执行前按“启用状态、来源优先级、更新时间”排序：启用的 `wewe_rss` 先于启用的 `wechat_mp`，同类来源仍按最近更新时间优先。这样 RSS 是默认和主要来源，但不会禁用已经配置的直连来源；RSS 失败后仍继续处理其他来源。
+
 RSS 分页使用 `limit` 和 `page`，不使用上游刷新参数。每个来源的异常进入当前运行记录的错误统计，继续处理其他来源。文章写入和后续 `parseWithLLM`、活动初筛逻辑保持同一入口。
 
 ## API 与前端

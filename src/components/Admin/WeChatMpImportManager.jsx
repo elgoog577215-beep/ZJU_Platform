@@ -98,7 +98,7 @@ const initialIngestOverview = {
 const initialIngestAccountForm = {
     name: "",
     fakeid: "",
-    source_type: "wechat_mp",
+    source_type: "wewe_rss",
     rss_feed_id: "",
     alias: "",
     keywords: "",
