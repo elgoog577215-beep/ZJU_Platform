@@ -1762,6 +1762,61 @@ img {
         outline: none;
     }
 
+    .theme-appearance-range {
+        appearance: none;
+        height: 24px;
+        cursor: pointer;
+        background: transparent;
+    }
+
+    .theme-appearance-range::-webkit-slider-runnable-track {
+        height: 5px;
+        border-radius: 999px;
+        background: linear-gradient(
+            90deg,
+            var(--theme-accent) 0 var(--range-progress),
+            var(--theme-border-strong) var(--range-progress) 100%
+        );
+    }
+
+    .theme-appearance-range::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        margin-top: -6.5px;
+        border: 3px solid var(--theme-surface-strong);
+        border-radius: 999px;
+        background: var(--theme-accent);
+        box-shadow: 0 1px 5px rgba(15, 23, 42, 0.24);
+    }
+
+    .theme-appearance-range::-moz-range-track {
+        height: 5px;
+        border-radius: 999px;
+        background: var(--theme-border-strong);
+    }
+
+    .theme-appearance-range::-moz-range-progress {
+        height: 5px;
+        border-radius: 999px;
+        background: var(--theme-accent);
+    }
+
+    .theme-appearance-range::-moz-range-thumb {
+        width: 13px;
+        height: 13px;
+        border: 3px solid var(--theme-surface-strong);
+        border-radius: 999px;
+        background: var(--theme-accent);
+        box-shadow: 0 1px 5px rgba(15, 23, 42, 0.24);
+    }
+
+    .theme-appearance-range:focus-visible {
+        border-radius: 999px;
+        outline: 3px solid color-mix(in srgb, var(--theme-accent) 26%, transparent);
+        outline-offset: 2px;
+    }
+
     :root[data-theme="day"] .theme-admin-shell {
         background:
             radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.045), transparent 24rem),

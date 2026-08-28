@@ -14,12 +14,14 @@
 
 - [ ] 3.1 Apply the semantic theme layer to admin dashboard shells, cards, tables, filters, dialogs, and forms.
 - [ ] 3.2 Ensure admin day mode favors clarity and scanability while still matching the refined visual standard required by the new theme system.
+- [x] 3.3 Repair the public-appearance settings path with a live day/dark preview, bounded brightness/opacity/glow/vignette controls, batch save/reset states, backend validation, and actual `BackgroundSystem` consumption.
 
 ## 4. Verification
 
 - [ ] 4.1 Run targeted lint/build validation for the touched theme and UI files.
 - [ ] 4.2 Add or update Playwright regression coverage for at least one public home flow, one public content page, and one admin page in day mode.
 - [ ] 4.3 Verify that day mode and dark mode both render correctly on desktop and mobile breakpoints, with no obvious contrast regressions or night-mode styling remnants in day mode.
+- [x] 4.4 Add targeted regression coverage for appearance-setting validation, live opacity preview, persistence, and saved-state feedback.
 
 ## 5. 验证记录
 
@@ -27,3 +29,6 @@
 - 2026-06-29：`NO_PROXY=localhost,127.0.0.1,::1 npx playwright test e2e/mobile-community-shell.spec.js --project=chromium` 通过，覆盖移动端底部导航、登录弹窗和社区详情返回关闭。
 - 2026-06-29：`NO_PROXY=localhost,127.0.0.1,::1 npx playwright test e2e/admin-console.spec.js --project=chromium` 与 `e2e/admin-ecosystem-partners.spec.js` 通过，覆盖后台桌面、移动抽屉和生态伙伴编辑流程。
 - 2026-06-29：当前记录只证明本轮迭代未破坏关键移动/后台主题面；1-3 章的主题系统重构仍保留为后续独立执行项。
+- 2026-08-28：`node --test server/tests/settings-validation.test.js` 通过 3/3；定向 Playwright 公共外观用例通过 1/1，覆盖透明度实时预览、未保存状态、POST 持久化和日夜预览切换。
+- 2026-08-28：本地真实浏览器确认 `BackgroundSystem` 读取 `background_opacity=0.55` 与 `background_vignette=1`，场景层 opacity 为 `0.55`，暗角层生成对应渐变；桌面日/夜与 390px 移动截图通过。
+- 2026-08-28：`npm run build && npm run check:frontend-assets`、`openspec validate overhaul-day-mode-theme-system --strict` 通过；1.1-3.2 与 4.1-4.3 的全量主题系统重构仍保留为后续任务。

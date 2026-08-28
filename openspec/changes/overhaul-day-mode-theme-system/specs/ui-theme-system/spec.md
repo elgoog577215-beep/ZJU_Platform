@@ -91,3 +91,28 @@ The application SHALL include regression validation for the shared theme system 
 
 - **WHEN** the regression suite or manual validation runs on desktop and mobile breakpoints
 - **THEN** both day mode and dark mode SHALL remain usable, legible, and free of obvious theme residue or contrast regressions
+
+---
+
+### Requirement: Administrators can safely personalize the shared public background
+
+The admin settings UI SHALL provide a live preview and bounded controls for shared background brightness, opacity, glow, and vignette. Changes SHALL remain visibly unsaved until an administrator confirms them, and saved values SHALL be consumed by the public `BackgroundSystem`.
+
+#### Scenario: Appearance changes are previewed before saving
+
+- **WHEN** an administrator changes any public-background control
+- **THEN** the preview SHALL update immediately without changing the saved value
+- **THEN** the UI SHALL show how many appearance settings remain unsaved
+
+#### Scenario: Appearance changes are safely persisted
+
+- **WHEN** an administrator saves valid appearance values
+- **THEN** the admin API SHALL accept the four supported setting keys within their defined numeric ranges
+- **THEN** the saved state SHALL update only for requests confirmed by the server
+- **THEN** partial failures SHALL remain visible and retryable
+
+#### Scenario: Saved values affect the public background
+
+- **WHEN** the public `BackgroundSystem` loads saved brightness, opacity, glow, or vignette values
+- **THEN** each value SHALL affect its corresponding visual layer
+- **THEN** foreground content SHALL NOT inherit background opacity

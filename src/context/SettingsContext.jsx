@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS = {
     hero_title: "拓浙AI生态",
     hero_subtitle: "连接人才、技术与真实产业",
     background_brightness: "1.0",
+    background_opacity: "1.0",
     background_vignette: "0.5",
     background_bloom: "0.8",
     hero_bg_url: "/images/hero-landscape-day-4k.jpg",
@@ -74,6 +75,7 @@ const normalizeSettings = (nextSettings = {}) => {
     return {
         ...merged,
         background_brightness: String(merged.background_brightness),
+        background_opacity: String(merged.background_opacity),
         background_vignette: String(merged.background_vignette),
         background_bloom: String(merged.background_bloom),
     };

@@ -2702,6 +2702,7 @@
             "description": "按类别维护站点、安全与外观配置。",
             "navigation": "设置分类",
             "loading": "正在加载站点设置...",
+            "load_error": "站点设置没有加载成功，请重试后再编辑。",
             "tabs": {
                 "general": "基础与安全",
                 "appearance": "公共外观",
@@ -2710,12 +2711,15 @@
             "actions": {
                 "saving": "保存中...",
                 "save": "保存修改",
-                "saved": "已保存"
+                "saved": "已保存",
+                "retry": "重新加载"
             },
             "toasts": {
                 "load_fail": "加载站点设置失败",
                 "save_success": "设置已保存",
-                "save_fail": "设置保存失败"
+                "save_fail": "设置保存失败",
+                "appearance_save_success": "公共背景已更新",
+                "appearance_save_partial": "已保存 {{saved}} 项，{{failed}} 项失败，请重试"
             },
             "security": {
                 "title": "安全设置",
@@ -2737,16 +2741,30 @@
             },
             "appearance": {
                 "title": "公共外观",
-                "description": "这里只保留会影响全站背景表现的参数。",
+                "description": "实时预览并统一调整全站公共背景。",
+                "preview": "实时预览",
+                "preview_mode_label": "切换背景预览主题",
+                "preview_modes": {
+                    "day": "白天预览",
+                    "dark": "黑夜预览"
+                },
+                "preview_eyebrow": "PUBLIC BACKGROUND",
+                "preview_title": "正文内容始终保持清晰",
+                "saved": "所有设置已保存",
+                "unsaved": "{{count}} 项未保存",
+                "save": "保存公共背景",
+                "reset": "恢复推荐值",
                 "fields": {
-                    "background_brightness": "背景亮度（{{value}}）",
-                    "background_bloom": "Bloom 强度（{{value}}）",
-                    "background_vignette": "暗角强度（{{value}}）"
+                    "background_brightness": "背景亮度",
+                    "background_opacity": "背景透明度",
+                    "background_bloom": "光晕强度",
+                    "background_vignette": "边缘暗度"
                 },
                 "help": {
-                    "background_brightness": "控制背景整体亮度。",
-                    "background_bloom": "控制发光程度，过高会影响可读性。",
-                    "background_vignette": "控制边缘暗角，避免遮压正文。"
+                    "background_brightness": "整体明暗，白天和黑夜会分别做安全限幅。",
+                    "background_opacity": "降低后背景会更克制，前景内容不会一起变淡。",
+                    "background_bloom": "控制彩色光晕的扩散程度，过高会影响可读性。",
+                    "background_vignette": "压低画面边缘，突出中心内容区域。"
                 }
             },
             "about": {

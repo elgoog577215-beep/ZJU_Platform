@@ -278,14 +278,17 @@ const BackgroundSystem = () => {
     const crystalProfile = isDayMode ? CRYSTAL_RENDER_PROFILES.day : CRYSTAL_RENDER_PROFILES.dark;
     const brightness = clamp(
         readNumericSetting(settings.background_brightness, 1) * sceneTuning.brightness,
-        isDayMode ? 0.9 : 0.5,
-        isDayMode ? 1.58 : 1.34
+        isDayMode ? 0.48 : 0.4,
+        isDayMode ? 1.58 : 1.56
     );
+    const opacity = clamp(readNumericSetting(settings.background_opacity, 1), 0.25, 1);
     const bloom = clamp(
         readNumericSetting(settings.background_bloom, 0.8) * sceneTuning.bloom,
-        isDayMode ? 0.12 : 0.06,
-        isDayMode ? 0.74 : 0.74
+        0,
+        0.74
     );
+    const vignette = clamp(readNumericSetting(settings.background_vignette, 0.5), 0, 1);
+    const vignetteOpacity = vignette * (isDayMode ? 0.16 : 0.46);
     const saturation = sceneTuning.saturation || 1;
     const contrast = sceneTuning.contrast || 1;
     const backgroundClassName = isDayMode
@@ -297,50 +300,67 @@ const BackgroundSystem = () => {
         <div
             aria-hidden="true"
             className={backgroundClassName}
+            data-background-opacity={opacity}
+            data-background-vignette={vignette}
             data-dynamic-background="true"
-            style={{ filter: backgroundFilter }}
         >
-            {prefersReducedMotion ? (
-                <StaticFallback isDayMode={isDayMode} />
-            ) : (
-                <Canvas
-                    camera={{ fov: 60, position: [0, 0, 10] }}
-                    className="absolute inset-0"
-                    dpr={dpr}
-                    gl={{
-                        alpha: true,
-                        antialias: dpr > 1.25,
-                        powerPreference: "low-power",
-                        premultipliedAlpha: false,
-                    }}
-                >
-                    <PerformanceMonitor
-                        onDecline={() => {
-                            setDpr(1);
-                            setEffectsEnabled(false);
+            <div
+                className="absolute inset-0"
+                data-background-scene="true"
+                style={{ filter: backgroundFilter, opacity }}
+            >
+                {prefersReducedMotion ? (
+                    <StaticFallback isDayMode={isDayMode} />
+                ) : (
+                    <Canvas
+                        camera={{ fov: 60, position: [0, 0, 10] }}
+                        className="absolute inset-0"
+                        dpr={dpr}
+                        gl={{
+                            alpha: true,
+                            antialias: dpr > 1.25,
+                            powerPreference: "low-power",
+                            premultipliedAlpha: false,
                         }}
-                        onIncline={() => {
-                            setDpr(getHighQualityDpr());
-                            setEffectsEnabled(true);
-                        }}
-                    />
-                    <Suspense fallback={null}>
-                        <CrystalCaveScene profile={crystalProfile} />
-                        {effectsEnabled ? (
-                            <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 2 : 0}>
-                                <Bloom
-                                    intensity={bloom}
-                                    luminanceSmoothing={0.35}
-                                    luminanceThreshold={0.45}
-                                    mipmapBlur
-                                    radius={0.4}
-                                />
-                                <Noise opacity={0.02} />
-                            </EffectComposer>
-                        ) : null}
-                    </Suspense>
-                </Canvas>
-            )}
+                    >
+                        <PerformanceMonitor
+                            onDecline={() => {
+                                setDpr(1);
+                                setEffectsEnabled(false);
+                            }}
+                            onIncline={() => {
+                                setDpr(getHighQualityDpr());
+                                setEffectsEnabled(true);
+                            }}
+                        />
+                        <Suspense fallback={null}>
+                            <CrystalCaveScene profile={crystalProfile} />
+                            {effectsEnabled ? (
+                                <EffectComposer
+                                    disableNormalPass
+                                    multisampling={dpr >= 1.5 ? 2 : 0}
+                                >
+                                    <Bloom
+                                        intensity={bloom}
+                                        luminanceSmoothing={0.35}
+                                        luminanceThreshold={0.45}
+                                        mipmapBlur
+                                        radius={0.4}
+                                    />
+                                    <Noise opacity={0.02} />
+                                </EffectComposer>
+                            ) : null}
+                        </Suspense>
+                    </Canvas>
+                )}
+            </div>
+            <div
+                className="absolute inset-0"
+                data-background-vignette-layer="true"
+                style={{
+                    background: `radial-gradient(circle at center, transparent 38%, rgba(2, 6, 23, ${vignetteOpacity}) 100%)`,
+                }}
+            />
         </div>
     );
 };

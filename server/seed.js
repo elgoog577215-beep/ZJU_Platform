@@ -14,6 +14,10 @@ const settingsSeed = {
     site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
     hero_title: "拓浙AI生态",
     hero_subtitle: "连接人才、技术与真实产业",
+    background_brightness: "1.0",
+    background_opacity: "1.0",
+    background_bloom: "0.8",
+    background_vignette: "0.5",
     about_title: "拓浙AI生态",
     about_subtitle: "从校园连接真实世界",
     about_intro:

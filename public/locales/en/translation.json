@@ -2637,6 +2637,7 @@
             "description": "Maintain site, security, and appearance settings by category.",
             "navigation": "Settings categories",
             "loading": "Loading site settings...",
+            "load_error": "Site settings could not be loaded. Retry before editing.",
             "tabs": {
                 "general": "General & Security",
                 "appearance": "Public Appearance",
@@ -2645,12 +2646,15 @@
             "actions": {
                 "saving": "Saving...",
                 "save": "Save changes",
-                "saved": "Saved"
+                "saved": "Saved",
+                "retry": "Reload"
             },
             "toasts": {
                 "load_fail": "Failed to load site settings",
                 "save_success": "Setting saved",
-                "save_fail": "Failed to save setting"
+                "save_fail": "Failed to save setting",
+                "appearance_save_success": "Public background updated",
+                "appearance_save_partial": "Saved {{saved}} settings; {{failed}} failed. Please retry."
             },
             "security": {
                 "title": "Security",
@@ -2672,16 +2676,30 @@
             },
             "appearance": {
                 "title": "Public Appearance",
-                "description": "Only controls that affect the shared site background live here.",
+                "description": "Preview and tune the shared public background in one place.",
+                "preview": "Live preview",
+                "preview_mode_label": "Switch background preview theme",
+                "preview_modes": {
+                    "day": "Day preview",
+                    "dark": "Dark preview"
+                },
+                "preview_eyebrow": "PUBLIC BACKGROUND",
+                "preview_title": "Foreground content stays clear",
+                "saved": "All settings saved",
+                "unsaved": "{{count}} unsaved",
+                "save": "Save public background",
+                "reset": "Restore recommended",
                 "fields": {
-                    "background_brightness": "Background brightness ({{value}})",
-                    "background_bloom": "Bloom intensity ({{value}})",
-                    "background_vignette": "Vignette intensity ({{value}})"
+                    "background_brightness": "Background brightness",
+                    "background_opacity": "Background opacity",
+                    "background_bloom": "Glow intensity",
+                    "background_vignette": "Edge darkness"
                 },
                 "help": {
-                    "background_brightness": "Controls overall background brightness.",
-                    "background_bloom": "Controls glow intensity; high values reduce readability.",
-                    "background_vignette": "Controls edge shading without obscuring content."
+                    "background_brightness": "Controls overall light while day and dark modes retain safe limits.",
+                    "background_opacity": "Lower values soften the background without fading foreground content.",
+                    "background_bloom": "Controls the spread of colored light; high values reduce readability.",
+                    "background_vignette": "Darkens the outer edge to focus attention toward the center."
                 }
             },
             "about": {
