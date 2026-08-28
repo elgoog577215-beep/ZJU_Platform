@@ -29,6 +29,7 @@ import {
     ChevronRight,
     Menu,
     SlidersHorizontal,
+    Loader2,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -1051,6 +1052,10 @@ const Events = () => {
     const useMiniProgramModalScroll = isMiniProgramMode && isMobileViewport;
     const shouldReduceCardMotion = prefersReducedMotion;
     const trackedViewTimestamps = useRef(new Map());
+    const autoLoadSentinelRef = useRef(null);
+    const autoLoadPendingRef = useRef(false);
+    const autoLoadStartCountRef = useRef(0);
+    const autoLoadSourceEventsRef = useRef(null);
     const updateSelectedEventRecommendationContext = useCallback((context) => {
         selectedEventRecommendationContextRef.current = context;
         setSelectedEventRecommendationContext(context);
@@ -1221,6 +1226,12 @@ const Events = () => {
 
     const totalPages = pagination?.totalPages || 1;
     const hasMore = !isPaginationEnabled && currentPage < totalPages;
+    const supportsAutoLoad = typeof window !== "undefined" && "IntersectionObserver" in window;
+    const isLoadMoreError = Boolean(
+        error && !isPaginationEnabled && currentPage > 1 && displayEvents.length > 0
+    );
+    const isLoadingMore =
+        loading && !isPaginationEnabled && currentPage > 1 && displayEvents.length > 0;
 
     useEffect(() => {
         setCurrentPage(1);
@@ -1247,6 +1258,58 @@ const Events = () => {
             return next.length === 0 ? prev : [...prev, ...next];
         });
     }, [events, currentPage, isPaginationEnabled]);
+
+    const requestNextPage = useCallback(() => {
+        if (isPaginationEnabled || !hasMore || loading || error || autoLoadPendingRef.current) {
+            return;
+        }
+
+        autoLoadPendingRef.current = true;
+        autoLoadStartCountRef.current = displayEvents.length;
+        autoLoadSourceEventsRef.current = events;
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    }, [displayEvents.length, error, events, hasMore, isPaginationEnabled, loading, totalPages]);
+
+    useEffect(() => {
+        if (!autoLoadPendingRef.current) return;
+
+        const receivedNextPage =
+            !loading &&
+            (displayEvents.length > autoLoadStartCountRef.current ||
+                events !== autoLoadSourceEventsRef.current);
+
+        if (error || !hasMore || receivedNextPage) {
+            autoLoadPendingRef.current = false;
+        }
+    }, [displayEvents.length, error, events, hasMore, loading]);
+
+    useEffect(() => {
+        if (currentPage !== 1) return;
+        autoLoadPendingRef.current = false;
+        autoLoadStartCountRef.current = 0;
+        autoLoadSourceEventsRef.current = null;
+    }, [currentPage]);
+
+    useEffect(() => {
+        const sentinel = autoLoadSentinelRef.current;
+        if (!supportsAutoLoad || !sentinel || isPaginationEnabled || !hasMore || loading || error) {
+            return undefined;
+        }
+
+        const observer = new window.IntersectionObserver(
+            ([entry]) => {
+                if (entry?.isIntersecting) requestNextPage();
+            },
+            {
+                root: null,
+                rootMargin: "0px 0px 320px 0px",
+                threshold: 0.01,
+            }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [error, hasMore, isPaginationEnabled, loading, requestNextPage, supportsAutoLoad]);
 
     // Deep linking
     useEffect(() => {
@@ -2029,7 +2092,7 @@ END:VCALENDAR`;
                 )}
             </motion.div>
 
-            {error ? (
+            {error && !isLoadMoreError ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                     <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
                     <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
@@ -2133,17 +2196,46 @@ END:VCALENDAR`;
                 </div>
             )}
 
-            {!loading && !error && displayEvents.length > 0 && !isPaginationEnabled && hasMore && (
-                <div className="flex items-center justify-center pt-12">
-                    <motion.button
-                        whileHover={shouldReduceCardMotion ? undefined : { scale: 1.02 }}
-                        whileTap={shouldReduceCardMotion ? undefined : { scale: 0.98 }}
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className={`inline-flex items-center gap-2 border-b border-transparent px-2 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:border-blue-500/60 hover:text-blue-950" : "text-slate-200 hover:border-indigo-300/70 hover:text-white"}`}
+            {!isPaginationEnabled && displayEvents.length > 0 && (
+                <div className="pt-4">
+                    <div ref={autoLoadSentinelRef} className="h-px" aria-hidden="true" />
+
+                    <div
+                        className={`flex min-h-10 items-center justify-center text-sm ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
+                        role="status"
+                        aria-live="polite"
                     >
-                        {t("common.load_more", "加载更多")}
-                        <ChevronDown size={16} />
-                    </motion.button>
+                        {isLoadingMore ? (
+                            <span className="inline-flex items-center gap-2">
+                                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                                {t("common.loading", "加载中...")}
+                            </span>
+                        ) : isLoadMoreError ? (
+                            <button
+                                type="button"
+                                onClick={() => refresh({ clearCache: true })}
+                                className={`inline-flex min-h-10 items-center gap-2 px-2 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:text-blue-950" : "text-indigo-200 hover:text-white"}`}
+                            >
+                                {t("common.error_fetching_data", "获取数据失败")} ·
+                                {t("common.retry", "重试")}
+                            </button>
+                        ) : !hasMore && currentPage > 1 ? (
+                            <span>
+                                {eventLanguage.toLowerCase().startsWith("zh")
+                                    ? "已显示全部活动"
+                                    : "All events loaded"}
+                            </span>
+                        ) : !supportsAutoLoad && hasMore ? (
+                            <button
+                                type="button"
+                                onClick={requestNextPage}
+                                className={`inline-flex min-h-10 items-center gap-2 px-2 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:text-blue-950" : "text-indigo-200 hover:text-white"}`}
+                            >
+                                {t("common.load_more", "加载更多")}
+                                <ChevronDown size={16} aria-hidden="true" />
+                            </button>
+                        ) : null}
+                    </div>
                 </div>
             )}
 
