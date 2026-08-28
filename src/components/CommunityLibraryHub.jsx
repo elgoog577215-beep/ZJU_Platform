@@ -1,14 +1,13 @@
 import {
     AlertCircle,
     ArrowLeft,
-    ArrowRight,
+    ArrowUpRight,
     BookOpen,
     Bot,
     ExternalLink,
     GraduationCap,
     MessageCircleQuestion,
     Search,
-    Sparkles,
     Upload,
     Users,
 } from "lucide-react";
@@ -17,44 +16,48 @@ import { useTranslation } from "react-i18next";
 
 /*
 THESIS: 同一组四个入口从沉浸式选择界面收缩为工作区顶部栏目，状态变化不替换用户的空间记忆。
-OWN-WORLD: 继承全站深海蓝、生态靛蓝与圆角语义表面，以微光 Dock 呈现 AI 生态的汇聚感。
+OWN-WORLD: 四类知识流在同一张深海工作台上汇聚，不借用应用商店式等分卡片模板。
 STORY: 先选择问题域，再在不离开同一页面的情况下搜索、上传、提问和使用真实内容。
 FIRST VIEWPORT: 初始首屏只有四个丰富的功能入口；进入后，入口收拢，真实操作与内容接管首屏。
-FORM: 生产页面内的渐进式应用 Dock；精确承接用户参考图和已确认交互。
+FORM: 不对称知识汇流台；保留渐进式收拢交互，以任务图形和空间层级建立四个入口的差异。
 */
 
 const DOCK_ITEMS = [
     {
         key: "freshman",
         icon: GraduationCap,
-        mark: "01",
         titleKey: "freshman_title",
         metaKey: "freshman_meta",
         descriptionKey: "freshman_dock_desc",
+        layoutClass: "xl:col-span-4",
+        toneClass: "community-dock-card--freshman",
     },
     {
         key: "finals",
         icon: BookOpen,
-        mark: "02",
         titleKey: "finals_title",
         metaKey: "finals_meta",
         descriptionKey: "finals_dock_desc",
+        layoutClass: "xl:col-span-3",
+        toneClass: "community-dock-card--finals",
     },
     {
         key: "ai",
         icon: Bot,
-        mark: "03",
         titleKey: "ai_title",
         metaKey: "ai_meta",
         descriptionKey: "ai_dock_desc",
+        layoutClass: "xl:col-span-5 xl:row-span-2",
+        toneClass: "community-dock-card--ai",
     },
     {
         key: "community",
         icon: Users,
-        mark: "04",
         titleKey: "community_title",
         metaKey: "community_meta",
         descriptionKey: "community_dock_desc",
+        layoutClass: "xl:col-span-7",
+        toneClass: "community-dock-card--community",
     },
 ];
 
@@ -68,67 +71,99 @@ const isSafeExternalUrl = (value) => {
     }
 };
 
-const DockArtwork = ({ itemKey, isDayMode }) => {
-    const lineClass = isDayMode ? "bg-slate-900/10" : "bg-white/10";
-    const ringClass = isDayMode ? "border-slate-900/10" : "border-white/10";
-
+const DockArtwork = ({ itemKey }) => {
     if (itemKey === "freshman") {
         return (
-            <div aria-hidden="true" className="relative h-28 w-full">
-                <div className="absolute left-2 top-3 h-20 w-20 rotate-[-8deg] rounded-[1.4rem] border border-cyan-300/25 bg-gradient-to-br from-cyan-300/45 to-violet-500/45 shadow-[0_14px_45px_rgba(34,211,238,0.22)]" />
-                <div className={`absolute left-24 top-5 h-2 w-28 rounded-full ${lineClass}`} />
-                <div className={`absolute left-24 top-12 h-2 w-20 rounded-full ${lineClass}`} />
-                <div
-                    className={`absolute left-24 top-[4.75rem] h-2 w-24 rounded-full ${lineClass}`}
-                />
-                <Sparkles className="absolute left-7 top-8 text-white" size={36} />
+            <div aria-hidden="true" className="community-dock-art community-dock-art--freshman">
+                <svg viewBox="0 0 320 168" role="presentation">
+                    <path className="dock-route dock-route--muted" d="M20 32H98L138 72H214" />
+                    <path className="dock-route" d="M28 132H94L138 88H230" />
+                    <path className="dock-route dock-route--muted" d="M72 18V54L118 100V148" />
+                    <circle className="dock-node dock-node--soft" cx="20" cy="32" r="6" />
+                    <circle className="dock-node" cx="28" cy="132" r="7" />
+                    <circle className="dock-node dock-node--soft" cx="72" cy="18" r="5" />
+                    <circle className="dock-node dock-node--core" cx="138" cy="80" r="18" />
+                    <rect className="dock-terminal" x="208" y="52" width="82" height="58" rx="14" />
+                    <path className="dock-terminal-line" d="M226 72H270M226 88H256" />
+                </svg>
             </div>
         );
     }
 
     if (itemKey === "finals") {
         return (
-            <div aria-hidden="true" className="relative h-28 w-full">
-                <div className="absolute left-4 top-3 h-20 w-24 rounded-[1.35rem] border border-blue-300/20 bg-gradient-to-br from-blue-400/45 to-indigo-600/25 shadow-[0_14px_45px_rgba(59,130,246,0.2)]" />
-                {[0, 1, 2].map((index) => (
-                    <div
-                        key={index}
-                        className={`absolute left-10 h-2 rounded-full ${lineClass}`}
-                        style={{ top: 31 + index * 17, width: 44 + index * 10 }}
+            <div aria-hidden="true" className="community-dock-art community-dock-art--finals">
+                <svg viewBox="0 0 260 168" role="presentation">
+                    <rect
+                        className="exam-sheet exam-sheet--back"
+                        x="46"
+                        y="20"
+                        width="128"
+                        height="112"
+                        rx="16"
                     />
-                ))}
-                <div
-                    className={`absolute left-36 top-5 h-16 w-16 rounded-full border border-dashed ${ringClass}`}
-                />
+                    <rect className="exam-sheet" x="68" y="36" width="140" height="112" rx="16" />
+                    <path className="exam-line" d="M92 66H176M92 86H162M92 106H184" />
+                    <path className="exam-scan" d="M78 118H198" />
+                    <circle className="exam-target" cx="208" cy="42" r="17" />
+                    <path className="exam-target-line" d="M220 54L238 72" />
+                </svg>
             </div>
         );
     }
 
     if (itemKey === "ai") {
         return (
-            <div aria-hidden="true" className="relative h-28 w-full">
-                <div className="absolute left-4 top-2 grid h-24 w-24 grid-cols-2 gap-2 rounded-[1.5rem] border border-fuchsia-300/20 bg-gradient-to-br from-fuchsia-400/30 to-cyan-400/20 p-5 shadow-[0_14px_45px_rgba(217,70,239,0.18)]">
-                    <span className="rounded-full bg-amber-300" />
-                    <span className="rounded-full bg-pink-400" />
-                    <span className="rounded-full bg-cyan-300" />
-                    <span className="rounded-full bg-blue-400" />
-                </div>
-                <div
-                    className={`absolute left-28 top-7 h-12 w-24 rotate-6 rounded-2xl border ${ringClass}`}
-                />
+            <div aria-hidden="true" className="community-dock-art community-dock-art--ai">
+                <svg viewBox="0 0 420 320" role="presentation">
+                    <circle className="ai-orbit ai-orbit--outer" cx="210" cy="150" r="126" />
+                    <circle className="ai-orbit" cx="210" cy="150" r="82" />
+                    <path
+                        className="ai-link"
+                        d="M210 68L292 128M210 68L132 132M132 132L168 224M292 128L258 230M168 224H258"
+                    />
+                    <circle className="ai-node ai-node--cyan" cx="210" cy="68" r="14" />
+                    <circle className="ai-node ai-node--violet" cx="132" cy="132" r="19" />
+                    <circle className="ai-node ai-node--blue" cx="292" cy="128" r="17" />
+                    <circle className="ai-node ai-node--soft" cx="168" cy="224" r="11" />
+                    <circle className="ai-node ai-node--soft" cx="258" cy="230" r="13" />
+                    <circle className="ai-core" cx="210" cy="150" r="42" />
+                    <path
+                        className="ai-core-mark"
+                        d="M188 164L210 124L232 164M197 151H223M246 126V174"
+                    />
+                    <path className="ai-signal" d="M64 270H162M258 270H356" />
+                    <circle className="ai-signal-node" cx="210" cy="270" r="5" />
+                </svg>
             </div>
         );
     }
 
     return (
-        <div aria-hidden="true" className="relative h-28 w-full">
-            <div className="absolute left-5 top-3 flex h-20 w-24 items-center justify-center rounded-[1.45rem] border border-emerald-300/20 bg-gradient-to-br from-emerald-300/35 to-cyan-500/20 shadow-[0_14px_45px_rgba(45,212,191,0.18)]">
-                <MessageCircleQuestion className="text-white" size={40} />
-            </div>
-            <div
-                className={`absolute left-32 top-4 h-16 w-16 rounded-full border border-dashed ${ringClass}`}
-            />
-            <div className="absolute left-[9.75rem] top-11 h-2 w-2 rounded-full bg-emerald-300" />
+        <div aria-hidden="true" className="community-dock-art community-dock-art--community">
+            <svg viewBox="0 0 420 168" role="presentation">
+                <path
+                    className="community-flow community-flow--one"
+                    d="M18 28C100 28 106 76 188 76"
+                />
+                <path className="community-flow community-flow--two" d="M18 84H188" />
+                <path
+                    className="community-flow community-flow--three"
+                    d="M18 140C100 140 106 92 188 92"
+                />
+                <circle className="community-source community-source--one" cx="18" cy="28" r="7" />
+                <circle className="community-source community-source--two" cx="18" cy="84" r="8" />
+                <circle
+                    className="community-source community-source--three"
+                    cx="18"
+                    cy="140"
+                    r="6"
+                />
+                <rect className="community-hub" x="184" y="48" width="112" height="72" rx="24" />
+                <path className="community-hub-mark" d="M210 76H270M210 94H252" />
+                <path className="community-output" d="M296 84H394" />
+                <circle className="community-output-node" cx="394" cy="84" r="10" />
+            </svg>
         </div>
     );
 };
@@ -314,141 +349,132 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
             layout={!shouldReduceMotion}
             transition={transition}
             aria-labelledby="community-dock-title"
-            className={`relative z-20 overflow-hidden border shadow-2xl ${
+            className={`relative z-20 ${
                 isExpanded
-                    ? "mx-auto w-full max-w-[1480px] rounded-[1.75rem] p-3 md:p-4"
-                    : "sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] rounded-2xl p-2.5 backdrop-blur-xl md:top-20 md:p-3"
+                    ? "community-dock-shell community-dock-shell--expanded mx-auto w-full max-w-[1480px]"
+                    : "community-dock-shell community-dock-shell--compact sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] overflow-hidden rounded-2xl border p-2.5 backdrop-blur-xl md:top-20 md:p-2.5"
             } ${
-                isDayMode
-                    ? "border-slate-200 bg-white/90 shadow-slate-300/35"
-                    : "border-white/10 bg-[#070b16]/90 shadow-black/40"
+                isExpanded
+                    ? ""
+                    : isDayMode
+                      ? "border-slate-200 bg-white/[0.92]"
+                      : "border-white/10 bg-[#070b16]/[0.92]"
             }`}
         >
             <h1 id="community-dock-title" className="sr-only">
                 {t("community_libraries.dock_title", "AI 社区功能入口")}
             </h1>
-            <motion.div
-                layout={!shouldReduceMotion}
-                transition={transition}
-                role="navigation"
-                aria-label={t("community_libraries.library_nav", "AI 社区功能入口")}
-                className={
-                    isExpanded
-                        ? "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
-                        : "grid grid-cols-4 gap-1.5 md:flex md:gap-2 md:overflow-x-auto md:pb-0.5"
-                }
-            >
-                {DOCK_ITEMS.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeKey === item.key;
-                    return (
-                        <motion.button
-                            layout={!shouldReduceMotion}
-                            transition={transition}
-                            key={item.key}
-                            type="button"
-                            onClick={() => onSelectLibrary(item.key)}
-                            aria-current={isActive ? "page" : undefined}
-                            className={`group relative shrink-0 overflow-hidden border text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
-                                isExpanded
-                                    ? "min-h-[330px] rounded-[1.45rem] p-6 md:min-h-[390px] md:p-7 xl:min-h-[450px]"
-                                    : "min-h-16 w-full rounded-xl px-1.5 py-2 md:min-h-14 md:w-[190px] md:px-3.5 md:py-2.5"
-                            } ${
-                                isActive
-                                    ? isDayMode
-                                        ? "border-violet-400 bg-violet-50 text-violet-950"
-                                        : "border-violet-300/55 bg-violet-400/15 text-white"
-                                    : isDayMode
-                                      ? "border-slate-200 bg-slate-50/80 text-slate-950 hover:border-violet-300 hover:bg-white"
-                                      : "border-white/10 bg-white/[0.04] text-white hover:border-violet-300/35 hover:bg-white/[0.065]"
-                            }`}
-                        >
-                            <motion.div
-                                layout="position"
+            <div className={isExpanded ? undefined : "md:flex md:items-center md:gap-2.5"}>
+                <motion.div
+                    layout={!shouldReduceMotion}
+                    transition={transition}
+                    role="navigation"
+                    aria-label={t("community_libraries.library_nav", "AI 社区功能入口")}
+                    className={
+                        isExpanded
+                            ? "community-dock-grid grid grid-cols-2 gap-3 xl:grid-cols-12 xl:grid-rows-2"
+                            : "grid min-w-0 grid-cols-4 gap-1.5 md:flex md:flex-1 md:gap-1.5"
+                    }
+                >
+                    {DOCK_ITEMS.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeKey === item.key;
+                        return (
+                            <motion.button
+                                layout={!shouldReduceMotion}
                                 transition={transition}
-                                className="relative z-10"
+                                key={item.key}
+                                type="button"
+                                onClick={() => onSelectLibrary(item.key)}
+                                aria-current={isActive ? "page" : undefined}
+                                className={`group relative shrink-0 overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+                                    isExpanded
+                                        ? `community-dock-card min-h-[252px] rounded-2xl p-4 sm:min-h-[306px] sm:p-5 md:p-6 xl:min-h-0 ${item.layoutClass} ${item.toneClass}`
+                                        : "min-h-16 w-full rounded-xl px-1.5 py-2 md:min-h-12 md:min-w-[118px] md:flex-1 md:px-3 md:py-2"
+                                } ${
+                                    isExpanded
+                                        ? isDayMode
+                                            ? "text-slate-950"
+                                            : "text-white"
+                                        : isActive
+                                          ? isDayMode
+                                              ? "bg-violet-600 text-white"
+                                              : "bg-violet-500/20 text-white"
+                                          : isDayMode
+                                            ? "text-slate-600 hover:bg-slate-100 hover:text-violet-700"
+                                            : "text-slate-400 hover:bg-white/[0.055] hover:text-white"
+                                }`}
                             >
-                                {isExpanded ? (
-                                    <>
-                                        <div className="flex items-center justify-between text-xs font-black tracking-[0.16em] text-slate-400">
-                                            <span>{t(`community_libraries.${item.metaKey}`)}</span>
-                                            <span>{item.mark}</span>
-                                        </div>
-                                        <div className="mt-8">
-                                            <DockArtwork itemKey={item.key} isDayMode={isDayMode} />
-                                        </div>
-                                        <h2 className="mt-5 text-3xl font-black tracking-[-0.035em] md:text-4xl">
-                                            {t(`community_libraries.${item.titleKey}`)}
-                                        </h2>
-                                        <p
-                                            className={`mt-3 min-h-12 text-sm leading-6 ${
-                                                isDayMode ? "text-slate-600" : "text-slate-300"
-                                            }`}
-                                        >
-                                            {t(`community_libraries.${item.descriptionKey}`)}
-                                        </p>
-                                        <span className="mt-7 inline-flex items-center gap-2 text-sm font-black text-violet-400">
-                                            {t("community_libraries.enter_action", "进入")}
-                                            <ArrowRight
+                                {isExpanded ? <DockArtwork itemKey={item.key} /> : null}
+                                <motion.div
+                                    layout="position"
+                                    transition={transition}
+                                    className={
+                                        isExpanded
+                                            ? "community-dock-card__content relative z-10 flex h-full flex-col"
+                                            : "relative z-10"
+                                    }
+                                >
+                                    {isExpanded ? (
+                                        <>
+                                            <span className="community-dock-meta inline-flex items-center gap-2 text-xs font-black tracking-[0.13em]">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="h-1.5 w-1.5 rounded-full bg-current"
+                                                />
+                                                {t(`community_libraries.${item.metaKey}`)}
+                                            </span>
+                                            <div className="community-dock-copy mt-auto">
+                                                <div className="flex items-end justify-between gap-4">
+                                                    <h2 className="text-xl font-black tracking-[-0.035em] sm:text-3xl">
+                                                        {t(`community_libraries.${item.titleKey}`)}
+                                                    </h2>
+                                                    <ArrowUpRight
+                                                        aria-hidden="true"
+                                                        size={21}
+                                                        className="community-dock-arrow mb-1 shrink-0"
+                                                    />
+                                                </div>
+                                                <p className="community-dock-description mt-2 hidden max-w-xl text-sm leading-6 sm:block">
+                                                    {t(
+                                                        `community_libraries.${item.descriptionKey}`
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-1.5 text-center md:flex-row md:gap-2.5 md:text-left">
+                                            <Icon
                                                 aria-hidden="true"
-                                                size={16}
-                                                className="transition-transform group-hover:translate-x-1"
+                                                className="shrink-0"
+                                                size={18}
                                             />
-                                        </span>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-1.5 text-center md:flex-row md:gap-3 md:text-left">
-                                        <span
-                                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg md:h-9 md:w-9 ${
-                                                isActive
-                                                    ? "bg-violet-600 text-white"
-                                                    : isDayMode
-                                                      ? "bg-white text-violet-700"
-                                                      : "bg-white/[0.07] text-violet-300"
-                                            }`}
-                                        >
-                                            <Icon aria-hidden="true" size={17} />
-                                        </span>
-                                        <span className="min-w-0">
-                                            <span className="block text-xs font-black leading-tight md:truncate md:text-sm">
+                                            <span className="block min-w-0 text-xs font-black leading-tight md:truncate md:text-sm">
                                                 {t(`community_libraries.${item.titleKey}`)}
                                             </span>
-                                            <span
-                                                className={`mt-0.5 hidden text-xs font-bold tracking-[0.08em] md:block ${
-                                                    isDayMode ? "text-slate-500" : "text-slate-400"
-                                                }`}
-                                            >
-                                                {item.mark}
-                                            </span>
-                                        </span>
-                                    </div>
-                                )}
-                            </motion.div>
-                            {isExpanded ? (
-                                <span
-                                    aria-hidden="true"
-                                    className="absolute -right-12 -top-14 h-40 w-40 rounded-full bg-violet-500/10 blur-3xl transition-colors group-hover:bg-violet-400/20"
-                                />
-                            ) : null}
-                        </motion.button>
-                    );
-                })}
-            </motion.div>
-            {!isExpanded && actionBar ? (
-                <motion.div
-                    initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                        duration: shouldReduceMotion ? 0 : 0.24,
-                        delay: shouldReduceMotion ? 0 : 0.16,
-                    }}
-                    className={`mt-2 border-t pt-2.5 ${
-                        isDayMode ? "border-slate-200" : "border-white/10"
-                    }`}
-                >
-                    {actionBar}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </motion.button>
+                        );
+                    })}
                 </motion.div>
-            ) : null}
+                {!isExpanded && actionBar ? (
+                    <motion.div
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                            duration: shouldReduceMotion ? 0 : 0.24,
+                            delay: shouldReduceMotion ? 0 : 0.16,
+                        }}
+                        className={`mt-2 border-t pt-2.5 md:mt-0 md:shrink-0 md:border-l md:border-t-0 md:pl-2.5 md:pt-0 ${
+                            isDayMode ? "border-slate-200" : "border-white/10"
+                        }`}
+                    >
+                        {actionBar}
+                    </motion.div>
+                ) : null}
+            </div>
         </motion.section>
     );
 };
