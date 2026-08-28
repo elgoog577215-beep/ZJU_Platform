@@ -46,8 +46,6 @@ import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import SortSelector from "./SortSelector";
-import EventAssistantPanel from "./EventAssistantPanel";
-import MobileEventAssistantFullscreen from "./MobileEventAssistantFullscreen";
 import DOMPurify from "dompurify";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
@@ -1045,14 +1043,9 @@ const Events = () => {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-    const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
-    const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
     const [viewMode, setViewMode] = useState("cards");
     const [isMobileViewport, setIsMobileViewport] = useState(() =>
         typeof window !== "undefined" ? window.innerWidth < 768 : false
-    );
-    const [canRenderDesktopAssistant, setCanRenderDesktopAssistant] = useState(() =>
-        typeof window !== "undefined" ? window.innerWidth >= 768 : false
     );
     const isMiniProgramMode = isMiniProgramWebView();
     const useMiniProgramModalScroll = isMiniProgramMode && isMobileViewport;
@@ -1095,10 +1088,6 @@ const Events = () => {
         const updateViewport = () => {
             const isMobile = window.innerWidth < 768;
             setIsMobileViewport(isMobile);
-            setCanRenderDesktopAssistant(!isMobile);
-            if (isMobile) {
-                setIsDesktopAssistantOpen(false);
-            }
         };
 
         updateViewport();
@@ -1196,12 +1185,7 @@ const Events = () => {
     useBackClose(isUploadOpen, () => setIsUploadOpen(false));
     useBackClose(isMobileFilterOpen, () => setIsMobileFilterOpen(false));
     useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
-    useBackClose(isMobileAssistantOpen, () => setIsMobileAssistantOpen(false));
-    useBackClose(isDesktopAssistantOpen, () => setIsDesktopAssistantOpen(false));
-
-    useBodyScrollLock(
-        Boolean(selectedEvent || isMobileFilterOpen || isMobileSortOpen || isMobileAssistantOpen)
-    );
+    useBodyScrollLock(Boolean(selectedEvent || isMobileFilterOpen || isMobileSortOpen));
 
     const isPaginationEnabled = settings.pagination_enabled === "true";
     const pageSize = isPaginationEnabled ? 6 : 12;
@@ -1577,37 +1561,6 @@ END:VCALENDAR`;
         setCurrentPage(1);
     }, []);
 
-    const handleOpenAssistantEvent = useCallback(
-        (assistantEvent, recommendationContext = null) => {
-            if (!assistantEvent?.id) return;
-
-            const cachedEvent =
-                displayEvents.find((event) => event.id === assistantEvent.id) ||
-                (Array.isArray(events)
-                    ? events.find((event) => event.id === assistantEvent.id)
-                    : null);
-
-            setIsMobileAssistantOpen(false);
-            setIsDesktopAssistantOpen(false);
-            updateSelectedEventRecommendationContext(recommendationContext);
-            setSelectedEvent(cachedEvent || assistantEvent);
-
-            api.get(`/events/${assistantEvent.id}`, { silent: true })
-                .then((response) => {
-                    if (response.data) {
-                        updateSelectedEventRecommendationContext(recommendationContext);
-                        setSelectedEvent(response.data);
-                    }
-                })
-                .catch(() => {
-                    toast.error(
-                        t("events.assistant.detail_error", "活动详情加载失败，请稍后再试。")
-                    );
-                });
-        },
-        [displayEvents, events, t, updateSelectedEventRecommendationContext]
-    );
-
     const nightSegmentActiveClass =
         "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
     const dayPrimaryActionClass =
@@ -1767,7 +1720,7 @@ END:VCALENDAR`;
                 </nav>
 
                 <div
-                    className={`mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] border-y md:hidden ${
+                    className={`mb-3 grid grid-cols-2 border-y md:hidden ${
                         isDayMode ? "border-slate-200/80" : "border-white/10"
                     }`}
                 >
@@ -1787,35 +1740,12 @@ END:VCALENDAR`;
                     <motion.button
                         {...mobileControlMotion}
                         type="button"
-                        aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
-                        onClick={() => {
-                            setIsMobileFilterOpen(false);
-                            setIsMobileSortOpen(false);
-                            setIsMobileAssistantOpen(true);
-                        }}
-                        className={`relative inline-flex h-10 min-w-0 items-center justify-center gap-1.5 overflow-hidden px-2 text-[12px] font-black transition-colors ${
-                            isDayMode
-                                ? "text-cyan-700 hover:text-cyan-900"
-                                : "text-cyan-200 hover:text-white"
-                        }`}
-                    >
-                        <Sparkles
-                            size={14}
-                            className={
-                                isDayMode ? "shrink-0 text-cyan-600" : "shrink-0 text-cyan-200"
-                            }
-                        />
-                        <span className="truncate">{t("events.assistant.ask_ai", "问AI")}</span>
-                    </motion.button>
-                    <motion.button
-                        {...mobileControlMotion}
-                        type="button"
                         aria-label={t("events.filter.open_audience_sheet", "打开学院筛选")}
                         onClick={() => {
                             setIsMobileSortOpen(false);
                             setIsMobileFilterOpen(true);
                         }}
-                        className={`inline-flex h-10 items-center justify-center gap-1.5 border-l text-[13px] font-semibold transition-colors ${isDayMode ? "border-slate-200/80 text-slate-600 hover:text-slate-950" : "border-white/10 text-slate-300 hover:text-white"}`}
+                        className={`inline-flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
                     >
                         <SlidersHorizontal size={17} />
                         <span className="truncate">{mobileAudienceLabel}</span>
@@ -2030,78 +1960,6 @@ END:VCALENDAR`;
                     ) : null,
                     document.body
                 )}
-
-                {createPortal(
-                    <MobileEventAssistantFullscreen
-                        isOpen={isMobileAssistantOpen}
-                        isDayMode={isDayMode}
-                        onClose={() => setIsMobileAssistantOpen(false)}
-                        onOpenEvent={handleOpenAssistantEvent}
-                    />,
-                    document.body
-                )}
-
-                {canRenderDesktopAssistant &&
-                    createPortal(
-                        <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
-                            <button
-                                type="button"
-                                onClick={() => setIsDesktopAssistantOpen(true)}
-                                aria-expanded={isDesktopAssistantOpen}
-                                aria-label={t(
-                                    "events.assistant.open_assistant",
-                                    "打开 AI 活动助手"
-                                )}
-                                className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex ${
-                                    isDayMode
-                                        ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
-                                        : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
-                                }`}
-                            >
-                                <Sparkles size={20} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isDesktopAssistantOpen && (
-                                    <>
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            onClick={() => setIsDesktopAssistantOpen(false)}
-                                            className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block ${isDayMode ? "bg-slate-950/5" : "bg-black/45"}`}
-                                        />
-                                        <motion.aside
-                                            initial={{ opacity: 0, x: 28 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{
-                                                type: "spring",
-                                                damping: 30,
-                                                stiffness: 340,
-                                            }}
-                                            role="dialog"
-                                            aria-modal="true"
-                                            aria-label={t(
-                                                "events.assistant.mobile_title",
-                                                "AI 活动助手"
-                                            )}
-                                            className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+88px)] z-[92] hidden h-[calc(100vh-112px)] w-[min(400px,calc(100vw-2rem))] md:block"
-                                        >
-                                            <EventAssistantPanel
-                                                isDayMode={isDayMode}
-                                                onOpenEvent={handleOpenAssistantEvent}
-                                                onClose={() => setIsDesktopAssistantOpen(false)}
-                                                variant="rail"
-                                                className="h-full"
-                                            />
-                                        </motion.aside>
-                                    </>
-                                )}
-                            </AnimatePresence>
-                        </div>,
-                        document.body
-                    )}
 
                 {/* Mobile Sort Drawer (Bottom Sheet) */}
                 {createPortal(
