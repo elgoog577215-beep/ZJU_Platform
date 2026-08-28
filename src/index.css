@@ -3018,16 +3018,27 @@ img.motion-image-zoom {
 
 .community-dock-card {
     --dock-accent: var(--theme-accent-strong);
+    --dock-accent-bright: var(--dock-accent);
     --dock-accent-soft: var(--theme-accent-soft);
     --dock-border: var(--theme-border);
     --dock-muted: var(--theme-text-muted);
+    --dock-surface: var(--theme-surface-strong);
     isolation: isolate;
     border: 1px solid var(--dock-border);
-    background: var(--theme-surface-strong);
+    background: var(--dock-surface);
     transition:
         transform var(--motion-duration-base) var(--motion-ease-emphasized),
         border-color var(--motion-duration-fast) var(--motion-ease-standard),
         background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+:root:not([data-theme="day"]) .community-dock-card {
+    --dock-accent: #8bdcff;
+    --dock-accent-bright: #c9f3ff;
+    --dock-accent-soft: rgba(56, 189, 248, 0.16);
+    --dock-border: rgba(125, 211, 252, 0.2);
+    --dock-muted: #b7c5d8;
+    --dock-surface: color-mix(in srgb, var(--theme-surface-strong) 94%, #075985 6%);
 }
 
 .community-dock-card:hover {
@@ -3035,7 +3046,10 @@ img.motion-image-zoom {
     transform: translateY(-3px);
 }
 
-.community-dock-meta,
+.community-dock-meta {
+    color: var(--dock-accent-bright);
+}
+
 .community-dock-arrow {
     color: var(--dock-accent);
 }
@@ -3263,6 +3277,50 @@ img.motion-image-zoom {
 
 .community-output {
     stroke-width: 2;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .dock-route {
+    opacity: 0.82;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .dock-route--muted {
+    opacity: 0.36;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .exam-sheet--back {
+    opacity: 0.38;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .ai-orbit {
+    opacity: 0.46;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .ai-orbit--outer {
+    opacity: 0.3;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .ai-link {
+    opacity: 0.62;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .ai-signal {
+    opacity: 0.4;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .community-flow {
+    opacity: 0.66;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .community-flow--two {
+    opacity: 0.92;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .community-source--one {
+    opacity: 0.58;
+}
+
+:root:not([data-theme="day"]) .community-dock-card .community-source--three {
+    opacity: 0.78;
 }
 
 @media (min-width: 1280px) {
