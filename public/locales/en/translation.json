@@ -1268,7 +1268,8 @@
         },
         "splash": {
             "meta_title": "TUOZHE AI ECOSYSTEM",
-            "meta_desc": "The TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect events, the AI Community, projects, Zhekesong outcomes, and industry collaboration."
+            "meta_desc": "The TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect events, the AI Community, projects, Zhekesong outcomes, and industry collaboration.",
+            "enter_now": "Enter now"
         }
     },
     "weather": {

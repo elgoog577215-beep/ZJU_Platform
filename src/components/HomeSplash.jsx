@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import SEO from "./SEO";
 import Hero from "./Hero";
 import { useSettings } from "../context/SettingsContext";
-import { useReducedMotion } from "../utils/animations";
+import { tapPress, useReducedMotion } from "../utils/animations";
 
 const SPLASH_DURATION_MS = 3000;
 
@@ -16,14 +17,32 @@ const HomeSplash = () => {
     const prefersReducedMotion = useReducedMotion();
     const shouldAnimate = !prefersReducedMotion;
     const isDayMode = uiMode === "day";
+    const timeoutRef = useRef(null);
+    const hasEnteredRef = useRef(false);
+
+    const enterPlatform = useCallback(() => {
+        if (hasEnteredRef.current) return;
+        hasEnteredRef.current = true;
+
+        if (timeoutRef.current !== null) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+
+        navigate("/events", { replace: true });
+    }, [navigate]);
 
     useEffect(() => {
-        const timeoutId = window.setTimeout(() => {
-            navigate("/events", { replace: true });
-        }, SPLASH_DURATION_MS);
+        const timeoutId = window.setTimeout(enterPlatform, SPLASH_DURATION_MS);
+        timeoutRef.current = timeoutId;
 
-        return () => window.clearTimeout(timeoutId);
-    }, [navigate]);
+        return () => {
+            window.clearTimeout(timeoutId);
+            if (timeoutRef.current === timeoutId) {
+                timeoutRef.current = null;
+            }
+        };
+    }, [enterPlatform]);
 
     const pageClass = isDayMode
         ? "relative min-h-[100svh] overflow-hidden bg-white text-slate-950"
@@ -42,6 +61,10 @@ const HomeSplash = () => {
               animate: { x: "86%", opacity: 0 },
               transition: { duration: 1.02, ease: [0.16, 1, 0.3, 1] },
           };
+    const enterButtonClass = isDayMode
+        ? "inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-slate-900/15 bg-white/80 px-5 text-sm font-bold text-slate-900 shadow-[0_12px_32px_rgba(15,23,42,0.16)] backdrop-blur-md transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/50"
+        : "inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-white/20 bg-slate-950/50 px-5 text-sm font-bold text-white shadow-[0_14px_36px_rgba(2,6,23,0.34)] backdrop-blur-md transition-colors hover:bg-slate-900/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50";
+
     return (
         <section className={pageClass}>
             <SEO
@@ -60,6 +83,18 @@ const HomeSplash = () => {
                     transition={revealMotion.transition}
                 />
             )}
+
+            <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] z-30 flex justify-center px-4">
+                <motion.button
+                    type="button"
+                    whileTap={shouldAnimate ? tapPress : undefined}
+                    onClick={enterPlatform}
+                    className={enterButtonClass}
+                >
+                    {t("home.splash.enter_now")}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </motion.button>
+            </div>
         </section>
     );
 };
