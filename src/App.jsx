@@ -20,7 +20,6 @@ import { ResourceHints } from "./components/ResourceHints";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { routeTransition, useReducedMotion } from "./utils/animations";
-import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import {
     getMiniProgramNavInset,
     isMiniProgramBlockedPath,
@@ -120,7 +119,6 @@ const loadProfileDirectory = () => import("./components/ProfileDirectory");
 const loadProjectPlaza = () => import("./components/ProjectPlaza");
 const loadSearchPalette = () => import("./components/SearchPalette");
 const loadCustomCursor = () => import("./components/CustomCursor");
-const loadBackgroundSystem = () => import("./components/BackgroundSystem");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
 const loadPWAInstallPrompt = () => import("./components/PWAInstallPrompt");
@@ -144,7 +142,6 @@ const ProfileDirectory = lazyRoute(loadProfileDirectory);
 const ProjectPlaza = lazyRoute(loadProjectPlaza);
 const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
-const BackgroundSystem = lazyRoute(loadBackgroundSystem);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
 const PWAInstallPrompt = lazyRoute(loadPWAInstallPrompt);
@@ -355,13 +352,7 @@ const AppContent = () => {
     const shouldMountLateDebugUi = useDeferredMount(1800);
     const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
-    const [isAppRuntime, setIsAppRuntime] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
-    // The global 3D polyhedron background (BackgroundSystem) is intentionally
-    // disabled site-wide. The component, its lazy import, and dependencies are
-    // retained so it can be re-enabled later. Re-enable by restoring the
-    // original gating conditions below.
-    const shouldRenderDynamicBackground = false;
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
@@ -401,23 +392,6 @@ const AppContent = () => {
         return () => {
             cancelled = true;
             window.clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return undefined;
-
-        const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
-        const fullscreenQuery = window.matchMedia?.("(display-mode: fullscreen)");
-        const updateDisplayMode = () => setIsAppRuntime(detectAppRuntime());
-
-        updateDisplayMode();
-        standaloneQuery?.addEventListener?.("change", updateDisplayMode);
-        fullscreenQuery?.addEventListener?.("change", updateDisplayMode);
-
-        return () => {
-            standaloneQuery?.removeEventListener?.("change", updateDisplayMode);
-            fullscreenQuery?.removeEventListener?.("change", updateDisplayMode);
         };
     }, []);
 
@@ -493,18 +467,11 @@ const AppContent = () => {
     return (
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
-                shouldRenderDynamicBackground ? "dynamic-background-active" : ""
-            } ${hasLandscapeBackdrop ? "ecosystem-landscape-shell" : ""}`}
+                hasLandscapeBackdrop ? "ecosystem-landscape-shell" : ""
+            }`}
         >
             <ResourceHints />
             <MiniProgramAuthReturn />
-            {shouldRenderDynamicBackground && (
-                <ErrorBoundary variant="inline" silent>
-                    <Suspense fallback={null}>
-                        <BackgroundSystem />
-                    </Suspense>
-                </ErrorBoundary>
-            )}
             <div className="relative z-10 flex min-h-screen flex-col">
                 <a
                     href="#main-content"

@@ -68,9 +68,9 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12";
-const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-7xl";
-const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-7xl";
+    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
+const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
+const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
     all: LayoutGrid,
     [COLLEGE_NOTICE_CATEGORY_VALUE]: FileText,
@@ -434,7 +434,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     : "border-white/[0.15] hover:border-indigo-300/50"
             }`}
         >
-            <div className="relative aspect-[16/9] shrink-0 overflow-hidden bg-slate-900">
+            <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-900">
                 <SmartImage
                     src={getThumbnailUrl(event.image)}
                     alt={event.title}
@@ -2114,7 +2114,7 @@ END:VCALENDAR`;
 
                             {/* Image Skeleton */}
                             <div
-                                className={`aspect-[16/9] w-full ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                                className={`aspect-[4/3] w-full ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
                             />
                             {/* Content Skeleton */}
                             <div className="flex flex-1 flex-col px-5 pb-5 pt-4">

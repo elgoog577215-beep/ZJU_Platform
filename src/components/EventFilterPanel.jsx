@@ -119,21 +119,12 @@ const EventFilterPanel = ({
     const nightFocusClass = isDayMode
         ? "focus-visible:ring-blue-400/70"
         : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
-    // Selected channel pills: drop the white capsule background, keep only the
-    // text color/bold + the bottom blue light bar (renderChannelIndicator).
-    // Flip to false to restore the original white pill background on selection.
-    const CHANNEL_PILL_BG_REMOVED = true;
-
     const channelButtonClass = (active) =>
         `relative h-10 shrink-0 rounded-[8px] px-3.5 text-sm font-bold transition-[background-color,color,box-shadow] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
             active
                 ? isDayMode
-                    ? CHANNEL_PILL_BG_REMOVED
-                        ? "text-blue-900"
-                        : "bg-white text-blue-900 shadow-[0_2px_8px_rgba(15,23,42,0.07)]"
-                    : CHANNEL_PILL_BG_REMOVED
-                      ? "text-indigo-50"
-                      : "bg-white/[0.075] text-indigo-50 shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
+                    ? "bg-white text-blue-900 shadow-[0_2px_8px_rgba(15,23,42,0.07)]"
+                    : "bg-white/[0.075] text-indigo-50 shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
                 : isDayMode
                   ? "text-slate-500 hover:bg-white/70 hover:text-blue-900"
                   : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
