@@ -103,7 +103,7 @@ const EventFilterPanel = ({
         onSortChange(nextSort);
     };
 
-    const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
+    const shellClass = isSheetMode ? "space-y-3" : "relative z-30 space-y-3";
     const subtleGlassClass = isDayMode
         ? "border-slate-200/80 bg-white/[0.72] shadow-[0_8px_22px_rgba(15,23,42,0.04)]"
         : "border-white/[0.10] bg-white/[0.025] shadow-[0_10px_28px_rgba(0,0,0,0.18)]";
