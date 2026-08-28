@@ -211,6 +211,8 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             host: true, // Allow external access
+            port: 5180,
+            strictPort: true,
             watch: {
                 ignored: ["**/wechat_crawler/**", "**/wechat-batch-crawler/**"],
             },
