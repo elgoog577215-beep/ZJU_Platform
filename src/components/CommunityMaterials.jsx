@@ -29,7 +29,7 @@ const CATEGORY_ICONS = {
     other: PackageOpen,
 };
 
-const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
+const CommunityMaterials = ({ onNewPost, hideNewPostButton = false, allowedMaterialTypes }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const { user } = useAuth();
@@ -37,12 +37,30 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const isDayMode = uiMode === "day";
+    const scopedMaterialTypes = React.useMemo(() => {
+        if (!Array.isArray(allowedMaterialTypes)) return MATERIAL_TYPE_KEYS;
+        const normalizedTypes = allowedMaterialTypes
+            .map((type) => normalizeMaterialType(type))
+            .filter((type, index, rows) => type && rows.indexOf(type) === index);
+        return normalizedTypes.length > 0 ? normalizedTypes : MATERIAL_TYPE_KEYS;
+    }, [allowedMaterialTypes]);
+    const hasMaterialTypeScope = Array.isArray(allowedMaterialTypes);
+    const resolveSelectedMaterialType = useCallback(
+        (value) => {
+            const normalizedType = normalizeMaterialType(value);
+            if (scopedMaterialTypes.includes(normalizedType)) return normalizedType;
+            return hasMaterialTypeScope ? scopedMaterialTypes[0] : "";
+        },
+        [hasMaterialTypeScope, scopedMaterialTypes]
+    );
     const [composerOpen, setComposerOpen] = useState(false);
     const [editingPost, setEditingPost] = useState(null);
     const [materialTypes, setMaterialTypes] = useState([]);
-    const [selectedMaterialType, setSelectedMaterialType] = useState(() =>
-        normalizeMaterialType(searchParams.get("type"))
-    );
+    const [selectedMaterialType, setSelectedMaterialType] = useState(() => {
+        const normalizedType = normalizeMaterialType(searchParams.get("type"));
+        if (scopedMaterialTypes.includes(normalizedType)) return normalizedType;
+        return hasMaterialTypeScope ? scopedMaterialTypes[0] : "";
+    });
     const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
     const materialQueryParams = React.useMemo(
         () => ({
@@ -51,18 +69,23 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         [selectedMaterialType]
     );
     const clearMaterialFilters = useCallback(() => {
-        setSelectedMaterialType("");
+        const resetType = hasMaterialTypeScope ? scopedMaterialTypes[0] : "";
+        setSelectedMaterialType(resetType);
         setSearchParams(
             (prev) => {
                 const params = new URLSearchParams(prev);
                 params.delete("course");
-                params.delete("type");
+                if (resetType) {
+                    params.set("type", resetType);
+                } else {
+                    params.delete("type");
+                }
                 params.set("postTab", "materials");
                 return params;
             },
             { replace: false }
         );
-    }, [setSearchParams]);
+    }, [hasMaterialTypeScope, scopedMaterialTypes, setSearchParams]);
 
     const feed = useCommunityFeed({
         endpoint: "/community/posts",
@@ -94,8 +117,9 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     }, [loadMaterialTypes]);
 
     React.useEffect(() => {
-        setSelectedMaterialType(normalizeMaterialType(searchParams.get("type")));
-    }, [searchParams]);
+        const nextType = resolveSelectedMaterialType(searchParams.get("type"));
+        setSelectedMaterialType(nextType);
+    }, [resolveSelectedMaterialType, searchParams]);
 
     const openComposer = useCallback(() => {
         if (!user) {
@@ -182,6 +206,8 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
     const handleTypeFilter = useCallback(
         (typeValue) => {
             const nextType = normalizeMaterialType(typeValue);
+            if (nextType && !scopedMaterialTypes.includes(nextType)) return;
+            if (!nextType && hasMaterialTypeScope) return;
             const params = new URLSearchParams(searchParams);
             ["id", "post", "news", "group"].forEach((key) => params.delete(key));
             params.set("postTab", "materials");
@@ -194,7 +220,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
             feed.setCurrentPage(1);
             setSearchParams(params, { replace: false });
         },
-        [feed, searchParams, setSearchParams]
+        [feed, hasMaterialTypeScope, scopedMaterialTypes, searchParams, setSearchParams]
     );
 
     const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
@@ -244,7 +270,7 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         ].filter(Boolean);
 
     const selectedMaterialMeta = feed.selectedItem ? getMaterialMeta(feed.selectedItem) : [];
-    const materialTypeRows = MATERIAL_TYPE_KEYS.map((type) => ({
+    const materialTypeRows = scopedMaterialTypes.map((type) => ({
         type,
         count: materialTypes.find((item) => item.type === type)?.count || 0,
         label: t(`community.material_type_${type}`, type),
@@ -351,49 +377,62 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
                     </button>
                 ) : null}
             </div>
-            <div
-                className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
-            >
-                <div className="grid grid-cols-3 gap-2 md:gap-3">
-                    {materialTypeRows.map((item) => {
-                        const isActive = selectedMaterialType === item.type;
-                        const Icon = CATEGORY_ICONS[item.type] || FileStack;
-                        return (
-                            <button
-                                key={item.type}
-                                type="button"
-                                aria-pressed={isActive}
-                                onClick={() => handleTypeFilter(isActive ? "" : item.type)}
-                                className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
-                                    isActive
-                                        ? isDayMode
-                                            ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
-                                            : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
-                                        : isDayMode
-                                          ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
-                                          : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
-                                }`}
-                            >
-                                <span
-                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
+            {materialTypeRows.length > 1 ? (
+                <div
+                    className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
+                >
+                    <div
+                        className={`grid gap-2 md:gap-3 ${
+                            materialTypeRows.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                        }`}
+                    >
+                        {materialTypeRows.map((item) => {
+                            const isActive = selectedMaterialType === item.type;
+                            const Icon = CATEGORY_ICONS[item.type] || FileStack;
+                            return (
+                                <button
+                                    key={item.type}
+                                    type="button"
+                                    aria-pressed={isActive}
+                                    onClick={() =>
+                                        handleTypeFilter(
+                                            !hasMaterialTypeScope && isActive ? "" : item.type
+                                        )
+                                    }
+                                    className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
+                                        isActive
+                                            ? isDayMode
+                                                ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
+                                                : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
+                                            : isDayMode
+                                              ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
+                                              : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
+                                    }`}
                                 >
-                                    <Icon size={18} className="md:h-6 md:w-6" />
-                                </span>
-                                <span className="min-w-0">
-                                    <span className="block truncate text-xs font-black md:text-base">
-                                        {item.label}
-                                    </span>
                                     <span
-                                        className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
                                     >
-                                        {t(`community.material_type_${item.type}_desc`, "资源内容")}
+                                        <Icon size={18} className="md:h-6 md:w-6" />
                                     </span>
-                                </span>
-                            </button>
-                        );
-                    })}
+                                    <span className="min-w-0">
+                                        <span className="block truncate text-xs font-black md:text-base">
+                                            {item.label}
+                                        </span>
+                                        <span
+                                            className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                        >
+                                            {t(
+                                                `community.material_type_${item.type}_desc`,
+                                                "资源内容"
+                                            )}
+                                        </span>
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            ) : null}
         </div>
     );
 

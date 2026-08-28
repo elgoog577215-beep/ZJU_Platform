@@ -1330,9 +1330,9 @@ const LearningArea = ({ isDayMode }) => {
         setSearchParams(
             (prev) => {
                 const next = new URLSearchParams(prev);
-                next.set("library", "finals");
+                next.set("library", "ai");
                 next.set("area", "resources");
-                next.set("type", "course");
+                next.set("type", "ai");
                 ["lesson", "level", "postTab", "id", "post", "news", "group"].forEach((key) =>
                     next.delete(key)
                 );
@@ -1433,6 +1433,22 @@ const LearningArea = ({ isDayMode }) => {
                             </button>
                         );
                     })}
+                    <button
+                        type="button"
+                        onClick={handleCompanionResources}
+                        className={`inline-flex min-h-11 min-w-fit snap-start items-center gap-2 border-x-0 border-t-0 border-b-2 border-transparent px-3 text-xs font-bold transition-colors ${
+                            isDayMode
+                                ? "bg-transparent text-sky-700 hover:border-sky-400 hover:text-sky-900"
+                                : "bg-transparent text-sky-200 hover:border-sky-300 hover:text-white"
+                        }`}
+                    >
+                        <FileStack size={14} />
+                        <span>{String(visibleChapters.length + 1).padStart(2, "0")}</span>
+                        <span>
+                            {t("community_learning.companion_resources_title", "AI 资源库")}
+                        </span>
+                        <ArrowRight size={14} className="opacity-70" />
+                    </button>
                 </div>
             </div>
 
@@ -1510,7 +1526,7 @@ const LearningArea = ({ isDayMode }) => {
                                     <span className="block truncate text-sm font-bold">
                                         {t(
                                             "community_learning.companion_resources_title",
-                                            "配套资源"
+                                            "AI 资源库"
                                         )}
                                     </span>
                                 </span>
@@ -1785,7 +1801,7 @@ const LearningArea = ({ isDayMode }) => {
     );
 };
 
-const CommunityPosts = ({ areaOverride = "", hideAreaNav = false }) => {
+const CommunityPosts = ({ areaOverride = "", hideAreaNav = false, materialTypeScope }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
@@ -1867,7 +1883,9 @@ const CommunityPosts = ({ areaOverride = "", hideAreaNav = false }) => {
             ) : null}
 
             {activeArea === "learn" ? <LearningArea isDayMode={isDayMode} /> : null}
-            {activeArea === "resources" ? <CommunityMaterials /> : null}
+            {activeArea === "resources" ? (
+                <CommunityMaterials allowedMaterialTypes={materialTypeScope} />
+            ) : null}
             {activeArea === "discuss" ? <CommunityHelp discussionMode /> : null}
         </div>
     );

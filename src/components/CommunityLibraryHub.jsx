@@ -6,8 +6,6 @@ import {
     Bot,
     ExternalLink,
     GraduationCap,
-    MessageCircleQuestion,
-    Search,
     Upload,
     Users,
 } from "lucide-react";
@@ -17,8 +15,8 @@ import { useTranslation } from "react-i18next";
 /*
 THESIS: 同一组四个入口从沉浸式选择界面收缩为工作区顶部栏目，状态变化不替换用户的空间记忆。
 OWN-WORLD: 四类知识流在同一张深海工作台上汇聚，不借用应用商店式等分卡片模板。
-STORY: 先选择问题域，再在不离开同一页面的情况下搜索、上传、提问和使用真实内容。
-FIRST VIEWPORT: 初始首屏只有四个丰富的功能入口；进入后，入口收拢，真实操作与内容接管首屏。
+STORY: 先选择问题域，再在不离开同一页面的情况下使用当前页面的搜索、上传和真实内容。
+FIRST VIEWPORT: 桌面端先显示“学习社区”标题，再进入四个丰富的功能入口；进入后，入口收拢，真实内容接管首屏。
 FORM: 不对称知识汇流台；保留渐进式收拢交互，以任务图形和空间层级建立四个入口的差异。
 */
 
@@ -174,12 +172,16 @@ const ToolbarButton = ({
     compactLabel,
     isDayMode,
     primary = false,
+    mobileIconOnly = false,
     ...props
 }) => (
     <button
         type="button"
+        aria-label={mobileIconOnly ? label : undefined}
         {...props}
-        className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-3.5 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-45 ${
+        className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-45 ${
+            mobileIconOnly ? "px-2.5 sm:px-3.5" : "px-3.5"
+        } ${
             primary
                 ? "bg-violet-600 text-white hover:bg-violet-500"
                 : isDayMode
@@ -188,32 +190,24 @@ const ToolbarButton = ({
         }`}
     >
         <Icon aria-hidden="true" size={16} />
-        <span className={compactLabel ? "hidden sm:inline" : undefined}>{label}</span>
-        {compactLabel ? <span className="sm:hidden">{compactLabel}</span> : null}
+        <span
+            className={
+                mobileIconOnly ? "hidden sm:inline" : compactLabel ? "hidden sm:inline" : undefined
+            }
+        >
+            {label}
+        </span>
+        {compactLabel && !mobileIconOnly ? <span className="sm:hidden">{compactLabel}</span> : null}
     </button>
 );
 
-export const CommunityWorkspaceToolbar = ({
-    activeKey,
-    isDayMode,
-    onBack,
-    onSearch,
-    onUpload,
-    onAsk,
-}) => {
+export const CommunityWorkspaceToolbar = ({ activeKey, isDayMode, onUpload }) => {
     const { t } = useTranslation();
     const freshmanUrl = String(import.meta.env.VITE_AI_COMMUNITY_FRESHMAN_IMA_URL || "").trim();
     const hasFreshmanUrl = isSafeExternalUrl(freshmanUrl);
 
     return (
-        <div className="flex w-full items-center gap-2 overflow-x-auto pb-0.5 md:justify-end">
-            <ToolbarButton
-                icon={ArrowLeft}
-                label={t("community_libraries.back_to_dock", "返回入口")}
-                compactLabel={t("community_libraries.back_short", "返回")}
-                isDayMode={isDayMode}
-                onClick={onBack}
-            />
+        <div className="flex w-full items-center justify-end gap-2 overflow-x-auto pb-0.5">
             {activeKey === "freshman" ? (
                 <a
                     href={hasFreshmanUrl ? freshmanUrl : undefined}
@@ -243,15 +237,7 @@ export const CommunityWorkspaceToolbar = ({
                             : t("community_libraries.ima_pending_short", "ima 待配置")}
                     </span>
                 </a>
-            ) : (
-                <ToolbarButton
-                    icon={Search}
-                    label={t("community_libraries.search_current", "搜索当前内容")}
-                    compactLabel={t("community_libraries.search_short", "搜索")}
-                    isDayMode={isDayMode}
-                    onClick={onSearch}
-                />
-            )}
+            ) : null}
             {activeKey === "finals" ? (
                 <ToolbarButton
                     icon={Upload}
@@ -262,25 +248,22 @@ export const CommunityWorkspaceToolbar = ({
                     onClick={onUpload}
                 />
             ) : null}
-            {activeKey === "community" ? (
-                <ToolbarButton
-                    icon={MessageCircleQuestion}
-                    label={t("community_libraries.start_discussion", "发起讨论")}
-                    compactLabel={t("community_libraries.discussion_short", "讨论")}
-                    isDayMode={isDayMode}
-                    primary
-                    onClick={onAsk}
-                />
-            ) : (
-                <ToolbarButton
-                    icon={MessageCircleQuestion}
-                    label={t("community_libraries.ask_action", "提个问题")}
-                    compactLabel={t("community_libraries.ask_short", "提问")}
-                    isDayMode={isDayMode}
-                    onClick={onAsk}
-                />
-            )}
         </div>
+    );
+};
+
+export const CommunityWorkspaceBackButton = ({ isDayMode, onBack }) => {
+    const { t } = useTranslation();
+
+    return (
+        <ToolbarButton
+            icon={ArrowLeft}
+            label={t("community_libraries.back_to_dock", "返回入口")}
+            compactLabel={t("community_libraries.back_short", "返回")}
+            isDayMode={isDayMode}
+            mobileIconOnly
+            onClick={onBack}
+        />
     );
 };
 
@@ -337,7 +320,14 @@ export const FreshmanLibraryIntro = ({ isDayMode }) => {
     );
 };
 
-const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrary, actionBar }) => {
+const CommunityLibraryDock = ({
+    activeKey,
+    isExpanded,
+    isDayMode,
+    onSelectLibrary,
+    backButton,
+    actionBar,
+}) => {
     const { t } = useTranslation();
     const shouldReduceMotion = useReducedMotion();
     const transition = shouldReduceMotion
@@ -352,19 +342,42 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
             className={`relative z-20 ${
                 isExpanded
                     ? "community-dock-shell community-dock-shell--expanded mx-auto w-full max-w-[1480px]"
-                    : "community-dock-shell community-dock-shell--compact sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] overflow-hidden rounded-2xl border p-2.5 backdrop-blur-xl md:top-20 md:p-2.5"
-            } ${
-                isExpanded
-                    ? ""
-                    : isDayMode
-                      ? "border-slate-200 bg-white/[0.92]"
-                      : "border-white/10 bg-[#070b16]/[0.92]"
+                    : "community-dock-shell community-dock-shell--compact sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] overflow-hidden rounded-2xl border p-2.5 backdrop-blur-2xl md:top-20 md:p-2.5"
             }`}
         >
-            <h1 id="community-dock-title" className="sr-only">
-                {t("community_libraries.dock_title", "AI 社区功能入口")}
-            </h1>
-            <div className={isExpanded ? undefined : "lg:flex lg:items-center lg:gap-2.5"}>
+            {isExpanded ? (
+                <motion.header
+                    layout="position"
+                    transition={transition}
+                    className="community-dock-heading hidden lg:flex"
+                >
+                    <h1 id="community-dock-title" className="community-dock-heading__title">
+                        {t("community_libraries.page_title", "学习社区")}
+                    </h1>
+                    <span aria-hidden="true" className="community-dock-heading__rule" />
+                </motion.header>
+            ) : (
+                <h1 id="community-dock-title" className="sr-only">
+                    {t("community_libraries.dock_title", "AI 社区功能入口")}
+                </h1>
+            )}
+            <div
+                className={
+                    isExpanded
+                        ? undefined
+                        : "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-1.5 lg:flex lg:gap-2.5"
+                }
+            >
+                {!isExpanded && backButton ? (
+                    <motion.div
+                        initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: shouldReduceMotion ? 0 : 0.24 }}
+                        className="shrink-0"
+                    >
+                        {backButton}
+                    </motion.div>
+                ) : null}
                 <motion.div
                     layout={!shouldReduceMotion}
                     transition={transition}
@@ -373,7 +386,7 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
                     className={
                         isExpanded
                             ? "community-dock-grid grid grid-cols-2 gap-3 xl:grid-cols-12 xl:grid-rows-2"
-                            : "grid min-w-0 grid-cols-4 gap-1.5 lg:flex lg:flex-1 lg:gap-1.5"
+                            : "grid min-w-0 grid-cols-4 gap-1 lg:flex lg:flex-1 lg:gap-1.5"
                     }
                 >
                     {DOCK_ITEMS.map((item) => {
@@ -467,7 +480,7 @@ const CommunityLibraryDock = ({ activeKey, isExpanded, isDayMode, onSelectLibrar
                             duration: shouldReduceMotion ? 0 : 0.24,
                             delay: shouldReduceMotion ? 0 : 0.16,
                         }}
-                        className={`mt-2 border-t pt-2.5 lg:mt-0 lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-2.5 lg:pt-0 ${
+                        className={`col-span-2 mt-1.5 border-t pt-2.5 lg:col-span-1 lg:mt-0 lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-2.5 lg:pt-0 ${
                             isDayMode ? "border-slate-200" : "border-white/10"
                         }`}
                     >

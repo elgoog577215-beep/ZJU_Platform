@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
-import { CommunityWorkspaceToolbar, FreshmanLibraryIntro } from "./CommunityLibraryHub";
+import {
+    CommunityWorkspaceBackButton,
+    CommunityWorkspaceToolbar,
+    FreshmanLibraryIntro,
+} from "./CommunityLibraryHub";
 import CommunityLibraryDock from "./CommunityLibraryHub";
 import CommunityPosts from "./CommunityPosts";
 
@@ -27,11 +31,14 @@ const LEGACY_TAB_TO_LESSON = {
 };
 
 const LIBRARY_AREAS = {
-    freshman: "",
-    finals: "resources",
-    ai: "learn",
-    community: "discuss",
+    freshman: [""],
+    finals: ["resources"],
+    ai: ["learn", "resources"],
+    community: ["discuss"],
 };
+
+const FINALS_MATERIAL_SCOPE = ["course"];
+const AI_MATERIAL_SCOPE = ["ai", "other"];
 
 const COMMUNITY_STATE_KEYS = [
     "library",
@@ -53,7 +60,6 @@ const AICommunity = () => {
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
-    const [pendingAction, setPendingAction] = useState("");
     const shouldReduceMotion = useReducedMotion();
 
     const subtitle = useMemo(
@@ -71,10 +77,10 @@ const AICommunity = () => {
         LEGACY_TAB_TO_AREA[searchParams.get("postTab") || searchParams.get("tab")] ||
         (searchParams.get("news") ? "learn" : "") ||
         (searchParams.get("group") ? "discuss" : "");
-    const expectedLibraryArea = LIBRARY_AREAS[configuredLibrary];
+    const expectedLibraryAreas = LIBRARY_AREAS[configuredLibrary];
     const activeLibrary =
         Object.prototype.hasOwnProperty.call(LIBRARY_AREAS, configuredLibrary) &&
-        (!requestedArea || requestedArea === expectedLibraryArea)
+        (!requestedArea || expectedLibraryAreas.includes(requestedArea))
             ? configuredLibrary
             : "";
     const hasDirectCommunityState = ["area", "postTab", "tab", "id", "post", "news", "group"].some(
@@ -122,6 +128,27 @@ const AICommunity = () => {
     }, [migrateLegacyParams]);
 
     useEffect(() => {
+        const requestedType = searchParams.get("type");
+        const expectedType =
+            activeLibrary === "finals" && requestedArea === "resources"
+                ? "course"
+                : activeLibrary === "ai" && requestedArea === "resources"
+                  ? AI_MATERIAL_SCOPE.includes(requestedType)
+                      ? requestedType
+                      : "ai"
+                  : "";
+        if (!expectedType || requestedType === expectedType) return;
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev);
+                next.set("type", expectedType);
+                return next;
+            },
+            { replace: true }
+        );
+    }, [activeLibrary, requestedArea, searchParams, setSearchParams]);
+
+    useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }, [activeLibrary, showLibraryHome]);
 
@@ -166,7 +193,6 @@ const AICommunity = () => {
     );
 
     const handleBackToLibraries = useCallback(() => {
-        setPendingAction("");
         setCommunityView();
     }, [setCommunityView]);
 
@@ -178,47 +204,9 @@ const AICommunity = () => {
         );
     }, []);
 
-    useEffect(() => {
-        if (!pendingAction) return undefined;
-        const targetReady =
-            (pendingAction === "ask" && activeLibrary === "community") ||
-            (pendingAction === "upload" && activeLibrary === "finals");
-        if (!targetReady) return undefined;
-
-        const timer = window.setTimeout(
-            () => {
-                dispatchComposer(pendingAction === "ask" ? "help" : "materials");
-                setPendingAction("");
-            },
-            shouldReduceMotion ? 0 : 260
-        );
-        return () => window.clearTimeout(timer);
-    }, [activeLibrary, dispatchComposer, pendingAction, shouldReduceMotion]);
-
-    const handleSearch = useCallback(() => {
-        const input = document.querySelector("#community-workspace-content input[type='search']");
-        if (!input) return;
-        input.scrollIntoView({ behavior: shouldReduceMotion ? "auto" : "smooth", block: "center" });
-        window.setTimeout(() => input.focus(), shouldReduceMotion ? 0 : 180);
-    }, [shouldReduceMotion]);
-
     const handleUpload = useCallback(() => {
-        if (activeLibrary === "finals") {
-            dispatchComposer("materials");
-            return;
-        }
-        setPendingAction("upload");
-        handleSelectLibrary("finals");
-    }, [activeLibrary, dispatchComposer, handleSelectLibrary]);
-
-    const handleAsk = useCallback(() => {
-        if (activeLibrary === "community") {
-            dispatchComposer("help");
-            return;
-        }
-        setPendingAction("ask");
-        handleSelectLibrary("community");
-    }, [activeLibrary, dispatchComposer, handleSelectLibrary]);
+        dispatchComposer("materials");
+    }, [dispatchComposer]);
 
     const renderCommunityContent = () => {
         if (showLibraryHome) return null;
@@ -228,11 +216,25 @@ const AICommunity = () => {
         }
 
         if (activeLibrary === "finals") {
-            return <CommunityPosts areaOverride="resources" hideAreaNav />;
+            return (
+                <CommunityPosts
+                    areaOverride="resources"
+                    hideAreaNav
+                    materialTypeScope={FINALS_MATERIAL_SCOPE}
+                />
+            );
         }
 
         if (activeLibrary === "ai") {
-            return <CommunityPosts areaOverride="learn" hideAreaNav />;
+            return requestedArea === "resources" ? (
+                <CommunityPosts
+                    areaOverride="resources"
+                    hideAreaNav
+                    materialTypeScope={AI_MATERIAL_SCOPE}
+                />
+            ) : (
+                <CommunityPosts areaOverride="learn" hideAreaNav />
+            );
         }
 
         if (activeLibrary === "community") {
@@ -266,17 +268,22 @@ const AICommunity = () => {
                     isExpanded={showLibraryHome}
                     isDayMode={isDayMode}
                     onSelectLibrary={handleSelectLibrary}
-                    actionBar={
+                    backButton={
                         showLibraryHome ? null : (
+                            <CommunityWorkspaceBackButton
+                                isDayMode={isDayMode}
+                                onBack={handleBackToLibraries}
+                            />
+                        )
+                    }
+                    actionBar={
+                        !showLibraryHome && ["freshman", "finals"].includes(selectedDockKey) ? (
                             <CommunityWorkspaceToolbar
                                 activeKey={selectedDockKey}
                                 isDayMode={isDayMode}
-                                onBack={handleBackToLibraries}
-                                onSearch={handleSearch}
                                 onUpload={handleUpload}
-                                onAsk={handleAsk}
                             />
-                        )
+                        ) : null
                     }
                 />
 

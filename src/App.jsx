@@ -468,7 +468,7 @@ const AppContent = () => {
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
                 hasLandscapeBackdrop ? "ecosystem-landscape-shell" : ""
-            }`}
+            } ${isCommunityRoute ? "ai-community-landscape-shell" : ""}`}
         >
             <ResourceHints />
             <MiniProgramAuthReturn />
