@@ -3355,6 +3355,7 @@ html[lang^="en"] .community-dock-heading__title {
 .dock-route,
 .dock-terminal-line,
 .exam-line,
+.exam-scan,
 .exam-target-line,
 .ai-orbit,
 .ai-link,
@@ -3569,6 +3570,19 @@ html[lang^="en"] .community-dock-heading__title {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+    .community-dock-card--freshman:hover .dock-route {
+        stroke-dasharray: 6 9;
+        animation: community-route-signal 1.8s linear infinite;
+    }
+
+    .community-dock-card--freshman:hover .dock-route--muted {
+        animation-duration: 2.35s;
+    }
+
+    .community-dock-card--finals:hover .exam-scan {
+        animation: community-exam-scan 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
     .community-dock-card:hover .ai-orbit--outer {
         animation: community-orbit 8s linear infinite;
         transform-origin: 210px 150px;
@@ -3584,6 +3598,31 @@ html[lang^="en"] .community-dock-heading__title {
     .community-dock-card,
     .community-dock-arrow {
         transition-duration: 0ms;
+    }
+}
+
+@keyframes community-route-signal {
+    to {
+        stroke-dashoffset: -30;
+    }
+}
+
+@keyframes community-exam-scan {
+    0%,
+    8% {
+        opacity: 0;
+        transform: translateY(-56px);
+    }
+
+    18%,
+    74% {
+        opacity: 0.9;
+    }
+
+    92%,
+    100% {
+        opacity: 0;
+        transform: translateY(3px);
     }
 }
 
