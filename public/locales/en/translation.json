@@ -3411,6 +3411,11 @@
             "collect": {
                 "title": "Choose Account",
                 "description": "Enter an official account name and optionally filter articles by keyword.",
+                "rss_description": "Choose a configured WeRead RSS feed to fetch article links; the selected body then uses the same preview and AI parsing flow.",
+                "rss_feed": "WeRead RSS Feed",
+                "rss_feed_empty": "Select a configured RSS feed",
+                "rss_note": "The feed provides original WeChat article links. Body fetching uses WeWe RSS fulltext and does not require WeChat MP login.",
+                "rss_no_sources": "No WeRead RSS source is configured. Add a feed in RSS Admin or Collection Sources first.",
                 "pacing_title": "Collection Pacing",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually."
             },
@@ -3419,6 +3424,7 @@
                 "description": "Select an article, fetch its body, and import it as a site article or event.",
                 "empty_title": "No article candidates yet",
                 "empty_desc": "Complete scan login first, then enter an account name to fetch articles.",
+                "rss_empty_desc": "Add a WeRead RSS feed in RSS Admin or Collection Sources first, then fetch its articles.",
                 "loading": "Fetching articles...",
                 "untitled": "Untitled article",
                 "no_summary": "No summary"

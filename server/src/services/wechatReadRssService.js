@@ -404,11 +404,69 @@ const fetchArticles = async ({
     };
 };
 
+const fetchArticleContent = async ({
+    feedId,
+    url,
+    article = {},
+    count = 100,
+    maxPages = 20,
+    baseUrl,
+    type = "atom",
+    request = axios.get,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    runtime = {},
+} = {}) => {
+    const articleLink = cleanWeChatUrl(url || article.link || "");
+    if (!isTrustedArticleLink(articleLink)) {
+        throw createRssError(
+            "WeWe RSS 文章链接必须来自 mp.weixin.qq.com",
+            "WEWE_RSS_INVALID_ARTICLE_URL",
+            400
+        );
+    }
+
+    const result = await fetchArticles({
+        feedId,
+        baseUrl,
+        count,
+        maxPages,
+        mode: "fulltext",
+        type,
+        request,
+        timeoutMs,
+        runtime,
+    });
+    const target = result.articles.find(
+        (item) => item.link === articleLink || (article.id && item.id === article.id)
+    );
+    if (!target) {
+        throw createRssError(
+            "WeWe RSS Feed 中未找到该文章，请先更新文章列表",
+            "WEWE_RSS_ARTICLE_NOT_FOUND",
+            404
+        );
+    }
+
+    return {
+        url: target.link,
+        title: target.title,
+        summary: target.summary,
+        author: target.author,
+        coverImage: target.cover,
+        contentText: target.content_text,
+        contentHtml: target.content_html,
+        images: target.images,
+        content_available: Boolean(target.content_text),
+        content_status: target.content_status || (target.content_text ? "fetched" : "empty"),
+    };
+};
+
 module.exports = {
     DEFAULT_BASE_URL,
     FEED_ID_PATTERN,
     SOURCE_TYPE,
     buildFeedUrl,
+    fetchArticleContent,
     fetchArticles,
     fetchFeedPage,
     htmlToText,

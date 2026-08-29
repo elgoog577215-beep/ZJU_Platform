@@ -59,6 +59,8 @@ const initialStatus = {
 };
 
 const initialForm = {
+    sourceType: "wechat_mp",
+    rssFeedId: "",
     accountName: "",
     fakeid: "",
     keyword: "",
@@ -215,11 +217,17 @@ const WeChatMpImportManager = () => {
     const contentTextLength = content?.contentText?.length || 0;
     const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
     const ingestAccounts = ingestOverview.accounts || [];
+    const rssTestSources = useMemo(
+        () => ingestAccounts.filter((account) => account.source_type === "wewe_rss"),
+        [ingestAccounts]
+    );
     const enabledIngestAccountCount = ingestAccounts.filter((account) => account.enabled).length;
     const hasEnabledRssSource = ingestAccounts.some(
         (account) => account.enabled && account.source_type === "wewe_rss"
     );
     const ingestReady = credentialsReady || hasEnabledRssSource;
+    const singleTestIsRss = form.sourceType === "wewe_rss";
+    const singleTestReady = singleTestIsRss ? Boolean(form.rssFeedId.trim()) : credentialsReady;
     const ingestRuns = ingestOverview.runs || [];
     const ingestArticles = ingestOverview.articles || [];
     const latestRun = ingestRuns[0] || null;
@@ -315,8 +323,27 @@ const WeChatMpImportManager = () => {
         return () => window.clearInterval(timer);
     }, [latestRun?.status, loadIngestOverview]);
 
+    useEffect(() => {
+        if (form.sourceType !== "wewe_rss" || !rssTestSources.length) return;
+        const selectedFeedExists = rssTestSources.some(
+            (source) => source.rss_feed_id === form.rssFeedId
+        );
+        if (selectedFeedExists) return;
+        setForm((previous) => ({
+            ...previous,
+            rssFeedId: rssTestSources[0].rss_feed_id,
+        }));
+    }, [form.rssFeedId, form.sourceType, rssTestSources]);
+
     const updateForm = (key, value) => {
         setForm((previous) => ({ ...previous, [key]: value }));
+    };
+
+    const selectSingleTestSource = (sourceType) => {
+        updateForm("sourceType", sourceType);
+        setArticlesResult(null);
+        setSelectedArticle(null);
+        setContent(null);
     };
 
     const startLogin = async () => {
@@ -413,28 +440,44 @@ const WeChatMpImportManager = () => {
     });
 
     const fetchArticles = async () => {
-        if (!credentialsReady) {
-            toast.error(t("admin.wechat_mp.toasts.login_required"));
-            return;
-        }
-        if (!form.accountName.trim() && !form.fakeid.trim()) {
-            toast.error(t("admin.wechat_mp.toasts.account_required"));
-            return;
+        const isRssSource = form.sourceType === "wewe_rss";
+        if (isRssSource) {
+            if (!form.rssFeedId.trim()) {
+                toast.error(t("admin.wechat_mp.toasts.rss_feed_required"));
+                return;
+            }
+        } else {
+            if (!credentialsReady) {
+                toast.error(t("admin.wechat_mp.toasts.login_required"));
+                return;
+            }
+            if (!form.accountName.trim() && !form.fakeid.trim()) {
+                toast.error(t("admin.wechat_mp.toasts.account_required"));
+                return;
+            }
         }
         setArticlesLoading(true);
         setArticlesResult(null);
         setSelectedArticle(null);
         setContent(null);
         try {
-            const response = await api.post("/admin/wechat-mp/articles", {
-                account_name: form.accountName.trim(),
-                fakeid: form.fakeid.trim(),
-                keyword: form.keyword.trim(),
-                count: Number(form.count) || 20,
-                max_pages: Number(form.maxPages) || 1,
-                allow_first: form.allowFirst,
-                ...pacingPayload(),
-            });
+            const payload = isRssSource
+                ? {
+                      source_type: "wewe_rss",
+                      rss_feed_id: form.rssFeedId.trim(),
+                      count: Number(form.count) || 20,
+                      max_pages: Number(form.maxPages) || 1,
+                  }
+                : {
+                      account_name: form.accountName.trim(),
+                      fakeid: form.fakeid.trim(),
+                      keyword: form.keyword.trim(),
+                      count: Number(form.count) || 20,
+                      max_pages: Number(form.maxPages) || 1,
+                      allow_first: form.allowFirst,
+                      ...pacingPayload(),
+                  };
+            const response = await api.post("/admin/wechat-mp/articles", payload);
             setArticlesResult(response.data);
             const firstArticle = response.data?.articles?.[0] || null;
             if (firstArticle) setSelectedArticle(firstArticle);
@@ -465,6 +508,14 @@ const WeChatMpImportManager = () => {
         setContent(null);
         try {
             const response = await api.post("/admin/wechat-mp/article-content", {
+                ...(form.sourceType === "wewe_rss"
+                    ? {
+                          source_type: "wewe_rss",
+                          feed_id: selectedArticle?.feed_id || form.rssFeedId.trim(),
+                          count: Number(form.count) || 100,
+                          max_pages: Number(form.maxPages) || 20,
+                      }
+                    : {}),
                 url: selectedUrl,
                 article: selectedArticle,
             });
@@ -1011,6 +1062,7 @@ const WeChatMpImportManager = () => {
                         <AdminPanel
                             title={t("admin.wechat_mp.auth.title")}
                             description={t("admin.wechat_mp.auth.description")}
+                            className={singleTestIsRss ? "hidden" : ""}
                             action={
                                 loginActive ? (
                                     <AdminButton
@@ -1160,12 +1212,16 @@ const WeChatMpImportManager = () => {
 
                         <AdminPanel
                             title={t("admin.wechat_mp.collect.title")}
-                            description={t("admin.wechat_mp.collect.description")}
+                            description={t(
+                                singleTestIsRss
+                                    ? "admin.wechat_mp.collect.rss_description"
+                                    : "admin.wechat_mp.collect.description"
+                            )}
                             action={
                                 <AdminButton
                                     tone="primary"
                                     onClick={fetchArticles}
-                                    disabled={articlesLoading || !credentialsReady}
+                                    disabled={articlesLoading || !singleTestReady}
                                 >
                                     {articlesLoading ? (
                                         <Loader2 size={16} className="animate-spin" />
@@ -1176,74 +1232,134 @@ const WeChatMpImportManager = () => {
                                 </AdminButton>
                             }
                         >
+                            <label
+                                className={clsx("block text-sm font-semibold", headingTextClass)}
+                            >
+                                {t("admin.wechat_mp.ingest.fields.source_type")}
+                                <select
+                                    value={form.sourceType}
+                                    onChange={(event) => selectSingleTestSource(event.target.value)}
+                                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                >
+                                    <option value="wechat_mp">
+                                        {t("admin.wechat_mp.ingest.source_types.wechat_mp")}
+                                    </option>
+                                    <option value="wewe_rss">
+                                        {t("admin.wechat_mp.ingest.source_types.wewe_rss")}
+                                    </option>
+                                </select>
+                            </label>
                             <div className="grid gap-3 lg:grid-cols-2">
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.account_name")}
-                                    <div className="mt-1 flex gap-2">
-                                        <input
-                                            value={form.accountName}
+                                {singleTestIsRss ? (
+                                    <label
+                                        className={clsx(
+                                            "block text-sm font-semibold",
+                                            headingTextClass
+                                        )}
+                                    >
+                                        {t("admin.wechat_mp.collect.rss_feed")}
+                                        <select
+                                            value={form.rssFeedId}
                                             onChange={(event) =>
-                                                updateForm("accountName", event.target.value)
+                                                updateForm("rssFeedId", event.target.value)
                                             }
-                                            className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
-                                            placeholder={t(
-                                                "admin.wechat_mp.placeholders.account_name"
-                                            )}
-                                        />
-                                        <AdminButton
-                                            tone="subtle"
-                                            onClick={searchAccounts}
-                                            disabled={accountSearching || !credentialsReady}
-                                            className="shrink-0"
+                                            disabled={!rssTestSources.length}
+                                            className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                                         >
-                                            {accountSearching ? (
-                                                <Loader2 size={16} className="animate-spin" />
-                                            ) : (
-                                                <Search size={16} />
+                                            <option value="">
+                                                {t("admin.wechat_mp.collect.rss_feed_empty")}
+                                            </option>
+                                            {rssTestSources.map((source) => (
+                                                <option key={source.id} value={source.rss_feed_id}>
+                                                    {source.name || source.rss_feed_id} ·{" "}
+                                                    {source.rss_feed_id}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                ) : (
+                                    <>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
                                             )}
-                                            <span className="hidden sm:inline">
-                                                {t("admin.wechat_mp.actions.search_account")}
-                                            </span>
-                                        </AdminButton>
-                                    </div>
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.fakeid")}
-                                    <input
-                                        value={form.fakeid}
-                                        onChange={(event) =>
-                                            updateForm("fakeid", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                        placeholder={t("admin.wechat_mp.placeholders.fakeid")}
-                                    />
-                                </label>
-                                <label
-                                    className={clsx(
-                                        "block text-sm font-semibold",
-                                        headingTextClass
-                                    )}
-                                >
-                                    {t("admin.wechat_mp.fields.keyword")}
-                                    <input
-                                        value={form.keyword}
-                                        onChange={(event) =>
-                                            updateForm("keyword", event.target.value)
-                                        }
-                                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                                        placeholder={t("admin.wechat_mp.placeholders.keyword")}
-                                    />
-                                </label>
+                                        >
+                                            {t("admin.wechat_mp.fields.account_name")}
+                                            <div className="mt-1 flex gap-2">
+                                                <input
+                                                    value={form.accountName}
+                                                    onChange={(event) =>
+                                                        updateForm(
+                                                            "accountName",
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
+                                                    placeholder={t(
+                                                        "admin.wechat_mp.placeholders.account_name"
+                                                    )}
+                                                />
+                                                <AdminButton
+                                                    tone="subtle"
+                                                    onClick={searchAccounts}
+                                                    disabled={accountSearching || !credentialsReady}
+                                                    className="shrink-0"
+                                                >
+                                                    {accountSearching ? (
+                                                        <Loader2
+                                                            size={16}
+                                                            className="animate-spin"
+                                                        />
+                                                    ) : (
+                                                        <Search size={16} />
+                                                    )}
+                                                    <span className="hidden sm:inline">
+                                                        {t(
+                                                            "admin.wechat_mp.actions.search_account"
+                                                        )}
+                                                    </span>
+                                                </AdminButton>
+                                            </div>
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.fakeid")}
+                                            <input
+                                                value={form.fakeid}
+                                                onChange={(event) =>
+                                                    updateForm("fakeid", event.target.value)
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                placeholder={t(
+                                                    "admin.wechat_mp.placeholders.fakeid"
+                                                )}
+                                            />
+                                        </label>
+                                        <label
+                                            className={clsx(
+                                                "block text-sm font-semibold",
+                                                headingTextClass
+                                            )}
+                                        >
+                                            {t("admin.wechat_mp.fields.keyword")}
+                                            <input
+                                                value={form.keyword}
+                                                onChange={(event) =>
+                                                    updateForm("keyword", event.target.value)
+                                                }
+                                                className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                                                placeholder={t(
+                                                    "admin.wechat_mp.placeholders.keyword"
+                                                )}
+                                            />
+                                        </label>
+                                    </>
+                                )}
                                 <div className="grid grid-cols-2 gap-3">
                                     <label
                                         className={clsx(
@@ -1284,37 +1400,55 @@ const WeChatMpImportManager = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <label
-                                    className={clsx(
-                                        "inline-flex items-center gap-2 text-sm",
-                                        subtleTextClass
-                                    )}
+                            {singleTestIsRss ? (
+                                <AdminInlineNote
+                                    tone={rssTestSources.length ? "info" : "warning"}
+                                    className="mt-3"
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={form.allowFirst}
-                                        onChange={(event) =>
-                                            updateForm("allowFirst", event.target.checked)
-                                        }
-                                        className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                                    />
-                                    {t("admin.wechat_mp.fields.allow_first")}
-                                </label>
-                                {accounts.map((account) => (
-                                    <FilterChip
-                                        key={account.fakeid}
-                                        active={form.fakeid === account.fakeid}
-                                        onClick={() => chooseAccount(account)}
-                                    >
-                                        {account.nickname || account.alias || account.fakeid}
-                                    </FilterChip>
-                                ))}
+                                    {rssTestSources.length
+                                        ? t("admin.wechat_mp.collect.rss_note")
+                                        : t("admin.wechat_mp.collect.rss_no_sources")}
+                                </AdminInlineNote>
+                            ) : null}
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                {!singleTestIsRss ? (
+                                    <>
+                                        <label
+                                            className={clsx(
+                                                "inline-flex items-center gap-2 text-sm",
+                                                subtleTextClass
+                                            )}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={form.allowFirst}
+                                                onChange={(event) =>
+                                                    updateForm("allowFirst", event.target.checked)
+                                                }
+                                                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                                            />
+                                            {t("admin.wechat_mp.fields.allow_first")}
+                                        </label>
+                                        {accounts.map((account) => (
+                                            <FilterChip
+                                                key={account.fakeid}
+                                                active={form.fakeid === account.fakeid}
+                                                onClick={() => chooseAccount(account)}
+                                            >
+                                                {account.nickname ||
+                                                    account.alias ||
+                                                    account.fakeid}
+                                            </FilterChip>
+                                        ))}
+                                    </>
+                                ) : null}
                             </div>
 
                             <details
                                 className={clsx(
                                     "mt-4 rounded-[8px] border p-3",
+                                    singleTestIsRss && "hidden",
                                     isDayMode
                                         ? "border-slate-200 bg-white/70"
                                         : "border-white/10 bg-white/[0.03]"
@@ -2604,7 +2738,11 @@ const WeChatMpImportManager = () => {
                                 <AdminEmptyState
                                     icon={Newspaper}
                                     title={t("admin.wechat_mp.articles.empty_title")}
-                                    description={t("admin.wechat_mp.articles.empty_desc")}
+                                    description={t(
+                                        singleTestIsRss
+                                            ? "admin.wechat_mp.articles.rss_empty_desc"
+                                            : "admin.wechat_mp.articles.empty_desc"
+                                    )}
                                 />
                             )}
                         </AdminPanel>

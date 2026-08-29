@@ -111,6 +111,47 @@ test("WeRead RSS fetches pages with fulltext and deduplicates links", async () =
     assert.equal(requested[1].includes("page=2"), true);
 });
 
+test("WeRead RSS fetches one selected article through the fulltext path", async () => {
+    const requested = [];
+    const content = await service.fetchArticleContent({
+        feedId: "MP_WXS_123",
+        url: "https://mp.weixin.qq.com/s/atom-article?chksm=tracking#fragment",
+        request: async (url) => {
+            requested.push(url);
+            return { status: 200, data: atomFixture };
+        },
+    });
+
+    assert.equal(content.url, "https://mp.weixin.qq.com/s/atom-article");
+    assert.equal(content.title, "校园活动 & 通知");
+    assert.equal(content.author, "测试公众号");
+    assert.equal(content.contentText, "第一段正文。\n\n第二段正文 重点。");
+    assert.equal(content.content_status, "fetched");
+    assert.equal(requested.length, 1);
+    assert.match(requested[0], /mode=fulltext/);
+});
+
+test("WeRead RSS selected article content validates the original article link", async () => {
+    await assert.rejects(
+        () =>
+            service.fetchArticleContent({
+                feedId: "MP_WXS_123",
+                url: "https://example.com/article",
+            }),
+        (error) => error.code === "WEWE_RSS_INVALID_ARTICLE_URL" && error.status === 400
+    );
+
+    await assert.rejects(
+        () =>
+            service.fetchArticleContent({
+                feedId: "MP_WXS_123",
+                url: "https://mp.weixin.qq.com/s/missing",
+                request: async () => ({ status: 200, data: atomFixture }),
+            }),
+        (error) => error.code === "WEWE_RSS_ARTICLE_NOT_FOUND" && error.status === 404
+    );
+});
+
 test("WeRead RSS rejects malformed feed responses", () => {
     assert.throws(
         () => service.parseFeed("<html>not a feed</html>"),
