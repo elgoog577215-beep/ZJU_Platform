@@ -16,6 +16,7 @@ const {
 const { downloadWeChatImage, parseWithLLM } = require("../utils/wechat");
 const { recordWechatParseRun } = require("../services/wechatParseAuditService");
 const wechatMpScheduledIngestService = require("../services/wechatMpScheduledIngestService");
+const wechatReadRssService = require("../services/wechatReadRssService");
 const { buildWechatMpResourcePayload } = require("../services/wechatMpResourcePayloadService");
 const { resolveWechatImportDecision } = require("../utils/wechatActivityScreening");
 
@@ -203,6 +204,15 @@ const searchWechatMpAccounts = async (req, res) => {
 
 const listWechatMpArticles = async (req, res) => {
     try {
+        if (req.body?.source_type === wechatReadRssService.SOURCE_TYPE) {
+            const result = await wechatReadRssService.fetchArticles({
+                feedId: req.body?.rss_feed_id || req.body?.feed_id,
+                count: req.body?.count,
+                maxPages: req.body?.max_pages,
+                mode: "",
+            });
+            return res.json(result);
+        }
         if (Array.isArray(req.body?.accounts) && req.body.accounts.length > 0) {
             const result = await fetchArticlesForAccounts({
                 accounts: req.body.accounts,
@@ -231,6 +241,16 @@ const listWechatMpArticles = async (req, res) => {
 
 const getWechatMpArticleContent = async (req, res) => {
     try {
+        if (req.body?.source_type === wechatReadRssService.SOURCE_TYPE) {
+            const result = await wechatReadRssService.fetchArticleContent({
+                feedId: req.body?.feed_id || req.body?.rss_feed_id,
+                url: req.body?.url,
+                article: req.body?.article || {},
+                count: req.body?.count,
+                maxPages: req.body?.max_pages,
+            });
+            return res.json(result);
+        }
         if (
             (Array.isArray(req.body?.articles) && req.body.articles.length > 0) ||
             (Array.isArray(req.body?.urls) && req.body.urls.length > 0)
