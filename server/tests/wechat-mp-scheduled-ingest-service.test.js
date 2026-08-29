@@ -794,9 +794,10 @@ test("WeChat MP ingest recovers stale running jobs without touching active jobs"
     }
 });
 
-test("WeRead RSS sources reuse the existing ingest article pipeline without MP login", async () => {
+test("WeRead RSS sources reuse the public original-article pipeline without MP login", async () => {
     const db = await createDb();
     const rssCalls = [];
+    const rssContentCalls = [];
     let directWechatCalls = 0;
     try {
         await service.updateIngestSettings(db, {
@@ -834,6 +835,17 @@ test("WeRead RSS sources reuse the existing ingest article pipeline without MP l
                         ],
                     };
                 },
+                async fetchArticleContent(options) {
+                    rssContentCalls.push(options);
+                    return {
+                        url: options.url,
+                        contentText: "活动正文内容",
+                        contentHtml: "<p>活动正文内容</p>",
+                        coverImage: "/uploads/covers/rss-pipeline.jpg",
+                        images: ["/uploads/covers/rss-body.jpg"],
+                        content_status: "fetched",
+                    };
+                },
             },
             wechatApi: {
                 async fetchArticles() {
@@ -853,11 +865,14 @@ test("WeRead RSS sources reuse the existing ingest article pipeline without MP l
         assert.equal(result.fetched_contents, 1);
         assert.equal(directWechatCalls, 0);
         assert.equal(rssCalls.length, 1);
+        assert.equal(rssContentCalls.length, 1);
+        assert.equal(rssContentCalls[0].url, "https://mp.weixin.qq.com/s/rss-pipeline");
+        assert.equal(rssContentCalls[0].feedId, "MP_WXS_TEST");
         assert.deepEqual(rssCalls[0], {
             feedId: "MP_WXS_TEST",
             count: 5,
             maxPages: 2,
-            mode: "fulltext",
+            mode: "",
             pacing: { page_pause_seconds: 1 },
             runtime: undefined,
         });
@@ -868,6 +883,74 @@ test("WeRead RSS sources reuse the existing ingest article pipeline without MP l
         assert.equal(accounts[0].rss_feed_id, "MP_WXS_TEST");
         assert.equal(articles[0].content_text, "活动正文内容");
         assert.equal(articles[0].content_status, "fetched");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS image-led articles remain candidates but skip AI extraction", async () => {
+    const db = await createDb();
+    let parserCalls = 0;
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [0, 0],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "图片 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_IMAGE_ONLY",
+            count_per_page: 1,
+            max_pages: 1,
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles() {
+                    return {
+                        articles: [
+                            {
+                                title: "海报文章",
+                                link: "https://mp.weixin.qq.com/s/image-only",
+                                cover: "/uploads/covers/image-only-cover.jpg",
+                                author: "图片来源",
+                            },
+                        ],
+                    };
+                },
+                async fetchArticleContent({ url }) {
+                    return {
+                        url,
+                        contentText: "左右滑动查看更多 文案 审核",
+                        contentHtml:
+                            '<div><img src="/uploads/covers/one.jpg"><img src="/uploads/covers/two.jpg"></div>',
+                        images: ["/uploads/covers/one.jpg", "/uploads/covers/two.jpg"],
+                        coverImage: "/uploads/covers/image-only-cover.jpg",
+                        content_status: "image_only",
+                    };
+                },
+            },
+            parser: async () => {
+                parserCalls += 1;
+                return { description: "不应调用" };
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.total_articles, 1);
+        assert.equal(result.fetched_contents, 1);
+        assert.equal(result.extracted_articles, 0);
+        assert.equal(result.extraction_failed_count, 0);
+        assert.equal(parserCalls, 0);
+
+        const article = (await service.listIngestArticles(db))[0];
+        assert.equal(article.content_status, "image_only");
+        assert.equal(article.extraction_status, "skipped");
+        assert.equal(article.activity_status, "not_screened");
     } finally {
         await db.close();
     }
@@ -910,6 +993,14 @@ test("WeRead RSS source failures are recorded while later sources continue", asy
                                 content_status: "fetched",
                             },
                         ],
+                    };
+                },
+                async fetchArticleContent({ url }) {
+                    return {
+                        url,
+                        contentText: "成功来源正文",
+                        contentHtml: "<p>成功来源正文</p>",
+                        content_status: "fetched",
                     };
                 },
             },

@@ -12,10 +12,10 @@
 
 ```text
 WEWE_RSS_BASE_URL=https://rss.tuotuzju.com
-GET ${WEWE_RSS_BASE_URL}/feeds/${feed_id}.atom?limit=20&page=1&mode=fulltext
+GET ${WEWE_RSS_BASE_URL}/feeds/${feed_id}.atom?limit=20&page=1
 ```
 
-默认不附加 `update=true`。WeWe RSS 自己负责微信读书同步和定时更新，主仓库只读取已生成的 feed，避免一次采集同时触发上游刷新。
+默认不附加 `update=true` 或 `mode=fulltext`。WeWe RSS 自己负责微信读书同步和定时更新，主仓库先读取轻量 feed 元数据，再使用 feed 项目中的 `https://mp.weixin.qq.com/...` 原文链接获取正文，避免一次请求拉取整个 fulltext feed。
 
 ## 数据模型
 
@@ -48,18 +48,18 @@ GET ${WEWE_RSS_BASE_URL}/feeds/${feed_id}.atom?limit=20&page=1&mode=fulltext
 | 全文     | `content` / `summary`                    | `content:encoded` / `description` |
 | 封面     | feed 扩展图片                            | `media:content` / 正文首图        |
 
-正文同时保存 HTML 和纯文本。纯文本用于 AI 提取，HTML 用于管理员预览；图片 URL 经过现有可信资源和本地化策略处理。若 feed 没有正文，不回退抓取原始微信页面，只记录正文缺失状态。
+RSS 列表阶段只保存标题、原文链接、作者、发布时间和可用封面元数据。正文阶段严格校验原文链接为 `https://mp.weixin.qq.com/...`，复用现有微信文章解析器，只提取 `#js_content` 或 `.rich_media_content`。正文同时保存 HTML 和纯文本，图片 URL 经过现有可信资源和本地化策略处理后写入 `/uploads/covers/`。如果原文页面没有正文节点，只记录正文缺失状态，不把 RSS 地址当作文章 URL。
 
 ## 任务执行
 
 现有任务循环按来源类型分支：
 
 - `wechat_mp`：沿用登录态、分页、正文抓取和现有等待策略；
-- `wewe_rss`：调用 RSS provider，一次获取 feed 项目及其全文，不调用 `fetchArticleContent`。
+- `wewe_rss`：调用 RSS provider 获取轻量 feed 项目，再使用项目中的 `mp.weixin.qq.com` 链接调用现有公开文章正文解析器；不调用微信 MP 管理后台接口。
 
 来源列表在执行前按“启用状态、来源优先级、更新时间”排序：启用的 `wewe_rss` 先于启用的 `wechat_mp`，同类来源仍按最近更新时间优先。这样 RSS 是默认和主要来源，但不会禁用已经配置的直连来源；RSS 失败后仍继续处理其他来源。
 
-RSS 分页使用 `limit` 和 `page`，不使用上游刷新参数。每个来源的异常进入当前运行记录的错误统计，继续处理其他来源。文章写入和后续 `parseWithLLM`、活动初筛逻辑保持同一入口。
+RSS 分页使用 `limit` 和 `page`，不使用上游刷新参数和 fulltext 模式。每个来源的异常进入当前运行记录的错误统计，继续处理其他来源。文章写入和后续 `parseWithLLM`、活动初筛逻辑保持同一入口；正文有效字符少于 100 且图片至少 2 张的文章标记为 `image_only`，保留候选但跳过 AI 和活动筛选。
 
 ## API 与前端
 
@@ -94,7 +94,7 @@ WeWe RSS 的管理能力通过主平台后端代理，不让浏览器直接携�
 - 仅允许 HTTPS `WEWE_RSS_BASE_URL`，启动时规范化并拒绝包含用户名、密码或非 HTTP(S) 协议的基地址；
 - feed ID 使用有限字符集校验，并通过 URL path 构造，阻断任意路径和 SSRF；
 - 请求设置超时、有限重试和响应大小上限；解析失败保留运行记录，不写入半成品文章；
-- 默认读取 `mode=fulltext`，不主动触发 `update=true`，降低对 WeRead/WeWe 上游的额外压力；
+- 默认读取 metadata，不主动触发 `update=true` 或 `mode=fulltext`，降低对 WeRead/WeWe 上游的额外压力；原文正文请求使用现有请求超时、重定向和图片本地化限制；
 - 回滚时关闭或删除 `wewe_rss` 来源即可，已有增量文章和审核结果保留；删除新增列不是回滚要求。
 
 ## 验证矩阵

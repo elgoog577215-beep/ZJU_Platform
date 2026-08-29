@@ -70,10 +70,10 @@ test("WeRead RSS parser maps RSS 2.0 namespaced fields", () => {
     assert.equal(result.articles[0].cover, "https://mmbiz.qpic.cn/cover.jpg");
 });
 
-test("WeRead RSS URL construction rejects unsafe input and never adds update=true", () => {
+test("WeRead RSS metadata URL construction rejects unsafe input and never adds update=true", () => {
     assert.equal(
         service.buildFeedUrl({ feedId: "MP_WXS_123", count: 20, page: 2 }),
-        "https://rss.tuotuzju.com/feeds/MP_WXS_123.atom?limit=20&page=2&mode=fulltext"
+        "https://rss.tuotuzju.com/feeds/MP_WXS_123.atom?limit=20&page=2"
     );
     assert.throws(
         () => service.buildFeedUrl({ feedId: "../private" }),
@@ -85,7 +85,7 @@ test("WeRead RSS URL construction rejects unsafe input and never adds update=tru
     );
 });
 
-test("WeRead RSS fetches pages with fulltext and deduplicates links", async () => {
+test("WeRead RSS fetches metadata pages and deduplicates links", async () => {
     const requested = [];
     const sleeps = [];
     const result = await service.fetchArticles({
@@ -106,29 +106,42 @@ test("WeRead RSS fetches pages with fulltext and deduplicates links", async () =
     assert.equal(result.articles.length, 2);
     assert.equal(requested.length, 2);
     assert.equal(sleeps[0], 250);
-    assert.equal(requested[0].includes("mode=fulltext"), true);
+    assert.equal(requested[0].includes("mode=fulltext"), false);
     assert.equal(requested[0].includes("update=true"), false);
     assert.equal(requested[1].includes("page=2"), true);
+    assert.equal(result.articles[0].content_text, "");
+    assert.equal(result.articles[0].content_status, "not_fetched");
 });
 
-test("WeRead RSS fetches one selected article through the fulltext path", async () => {
-    const requested = [];
+test("WeRead RSS fetches one selected article through its original MP URL", async () => {
+    let received = null;
     const content = await service.fetchArticleContent({
         feedId: "MP_WXS_123",
         url: "https://mp.weixin.qq.com/s/atom-article?chksm=tracking#fragment",
-        request: async (url) => {
-            requested.push(url);
-            return { status: 200, data: atomFixture };
+        article: { cover: "https://mmbiz.qpic.cn/cover.jpg" },
+        articleFetcher: async (options) => {
+            received = options;
+            return {
+                url: options.url,
+                title: "校园活动 & 通知",
+                author: "测试公众号",
+                coverImage: "/uploads/covers/cover.jpg",
+                contentText: "第一段正文。",
+                contentHtml: '<p>第一段正文。</p><img src="/uploads/covers/body.jpg">',
+                images: ["/uploads/covers/body.jpg"],
+                content_status: "fetched",
+            };
         },
     });
 
     assert.equal(content.url, "https://mp.weixin.qq.com/s/atom-article");
     assert.equal(content.title, "校园活动 & 通知");
     assert.equal(content.author, "测试公众号");
-    assert.equal(content.contentText, "第一段正文。\n\n第二段正文 重点。");
+    assert.equal(content.coverImage, "/uploads/covers/cover.jpg");
+    assert.equal(content.contentText, "第一段正文。");
     assert.equal(content.content_status, "fetched");
-    assert.equal(requested.length, 1);
-    assert.match(requested[0], /mode=fulltext/);
+    assert.equal(received.url, "https://mp.weixin.qq.com/s/atom-article");
+    assert.equal(received.cover, "https://mmbiz.qpic.cn/cover.jpg");
 });
 
 test("WeRead RSS selected article content validates the original article link", async () => {
@@ -145,10 +158,21 @@ test("WeRead RSS selected article content validates the original article link", 
         () =>
             service.fetchArticleContent({
                 feedId: "MP_WXS_123",
-                url: "https://mp.weixin.qq.com/s/missing",
-                request: async () => ({ status: 200, data: atomFixture }),
+                url: "https://rss.tuotuzju.com/feeds/MP_WXS_123.atom",
             }),
-        (error) => error.code === "WEWE_RSS_ARTICLE_NOT_FOUND" && error.status === 404
+        (error) => error.code === "WEWE_RSS_INVALID_ARTICLE_URL" && error.status === 400
+    );
+
+    await assert.rejects(
+        () =>
+            service.fetchArticleContent({
+                feedId: "MP_WXS_123",
+                url: "https://mp.weixin.qq.com/s/missing",
+                articleFetcher: async () => ({
+                    url: "https://rss.tuotuzju.com/feeds/MP_WXS_123.atom",
+                }),
+            }),
+        (error) => error.code === "WEWE_RSS_UNTRUSTED_ARTICLE_URL" && error.status === 400
     );
 });
 

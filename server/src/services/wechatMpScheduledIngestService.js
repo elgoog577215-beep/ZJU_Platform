@@ -137,6 +137,15 @@ const isLocalUploadUrl = (value) =>
         .trim()
         .startsWith("/uploads/");
 
+const hasRemoteContentAssets = (article = {}) => {
+    const contentHtml = String(article.content_html || "");
+    if (/data-(?:src|original)|https?:\/\/[^\s"']+(?:qpic\.cn|qlogo\.cn)/i.test(contentHtml)) {
+        return true;
+    }
+    const images = parseJson(article.images_json, []);
+    return Array.isArray(images) && images.some((image) => image && !isLocalUploadUrl(image));
+};
+
 const resolveIngestCover = ({ article = {}, content = {}, existingCover = "" } = {}) => {
     const normalizedContent = content || {};
     const candidates = [
@@ -993,6 +1002,7 @@ const upsertArticle = async (db, { account, article, content }) => {
     const imagesJson = stringifyArray(content?.images || []);
     const contentText = String(content?.contentText || content?.content_text || "").trim();
     const cover = resolveIngestCover({ article, content, existingCover: existing?.cover });
+    const hasFetchedContent = content && ["empty", "fetched", "image_only"].includes(contentStatus);
     if (existing) {
         if (cover && cover !== existing.cover && (!existing.cover || isLocalUploadUrl(cover))) {
             await db.run(
@@ -1005,7 +1015,7 @@ const upsertArticle = async (db, { account, article, content }) => {
             );
         }
         await syncEventCover(db, existing.event_id, cover || existing.cover);
-        if (contentText && !existing.content_text) {
+        if (hasFetchedContent) {
             await db.run(
                 `
         UPDATE wechat_mp_ingest_articles
@@ -1262,6 +1272,18 @@ const extractArticleRecord = async (
         return { status: "not_started", parsed: null, skipped: true };
     }
 
+    const contentPolicy = wechatMpAdminService.classifyWechatArticleContent({
+        contentText: content,
+        images: parseJson(article?.images_json, []),
+    });
+    if (article?.content_status === "image_only" || contentPolicy.imageOnly) {
+        await updateArticleExtraction(db, article.id, {
+            status: "skipped",
+            error: "WECHAT_MP_IMAGE_ONLY_CONTENT",
+        });
+        return { status: "skipped", parsed: null, skipped: true };
+    }
+
     await updateArticleExtraction(db, article.id, { status: "processing" });
     try {
         const parseArticle = parser || require("../utils/wechat").parseWithLLM;
@@ -1415,7 +1437,7 @@ const executeIngestRun = async (
                         feedId: account.rss_feed_id,
                         count: account.count_per_page || effectiveSettings.count_per_page,
                         maxPages: account.max_pages || effectiveSettings.max_pages,
-                        mode: effectiveSettings.fetch_content ? "fulltext" : "",
+                        mode: "",
                         pacing: {
                             page_pause_seconds: effectiveSettings.page_pause_seconds,
                         },
@@ -1482,7 +1504,7 @@ const executeIngestRun = async (
                 });
                 const existing = article.link
                     ? await db.get(
-                          "SELECT id, content_text, cover FROM wechat_mp_ingest_articles WHERE link = ?",
+                          "SELECT id, content_text, cover, content_html, images_json FROM wechat_mp_ingest_articles WHERE link = ?",
                           [article.link]
                       )
                     : null;
@@ -1490,31 +1512,33 @@ const executeIngestRun = async (
                 const shouldFetchContent =
                     account.fetch_content &&
                     effectiveSettings.fetch_content &&
-                    (!existing || !existing.content_text || !isLocalUploadUrl(existing.cover));
+                    (!existing ||
+                        !existing.content_text ||
+                        !isLocalUploadUrl(existing.cover) ||
+                        (account.source_type === wechatReadRssService.SOURCE_TYPE &&
+                            hasRemoteContentAssets(existing)));
                 if (shouldFetchContent && article.link) {
-                    if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
-                        content = {
-                            contentText: article.content_text || "",
-                            contentHtml: article.content_html || "",
-                            images: Array.isArray(article.images) ? article.images : [],
-                            coverImage: article.cover || "",
-                            author: article.author || "",
-                            content_status: article.content_status || "empty",
-                        };
-                        if (content.contentText) fetchedContents += 1;
-                    } else {
-                        if (articleIndex > 0)
-                            await wechatMpAdminService.waitDelayRange(
-                                effectiveSettings.content_delay_range,
-                                runtime
-                            );
-                        try {
+                    if (articleIndex > 0)
+                        await wechatMpAdminService.waitDelayRange(
+                            effectiveSettings.content_delay_range,
+                            runtime
+                        );
+                    try {
+                        if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
+                            content = await rssApi.fetchArticleContent({
+                                feedId: account.rss_feed_id,
+                                url: article.link,
+                                article,
+                            });
+                        } else {
                             content = await wechatApi.fetchArticleContent({ url: article.link });
-                            if (content?.contentText) fetchedContents += 1;
-                        } catch (error) {
-                            failedCount += 1;
-                            content = { content_status: error.message || "fetch_failed" };
                         }
+                        if (content?.contentText || content?.content_status === "image_only") {
+                            fetchedContents += 1;
+                        }
+                    } catch (error) {
+                        failedCount += 1;
+                        content = { content_status: error.message || "fetch_failed" };
                     }
                 }
                 const contentCover = String(content?.coverImage || content?.cover || "").trim();

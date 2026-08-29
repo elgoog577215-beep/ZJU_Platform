@@ -236,6 +236,7 @@ const WeChatMpImportManager = () => {
     const latestRun = ingestRuns[0] || null;
     const latestRunProgress = Math.min(100, Math.max(0, Number(latestRun?.progress_percent) || 0));
     const contentHtml = content?.contentHtml || "";
+    const imageOnlyContent = content?.content_status === "image_only";
 
     const sanitizedContentHtml = useMemo(() => {
         if (!contentHtml) return "";
@@ -540,6 +541,10 @@ const WeChatMpImportManager = () => {
     const importContent = async (resourceType) => {
         if (!content?.contentText) {
             toast.error(t("admin.wechat_mp.toasts.content_required"));
+            return;
+        }
+        if (imageOnlyContent) {
+            toast.error(t("admin.wechat_mp.toasts.image_only_content"));
             return;
         }
         setImportingResource(resourceType);
@@ -2799,7 +2804,8 @@ const WeChatMpImportManager = () => {
                                                     }
                                                     disabled={
                                                         extractingIngestArticleId === article.id ||
-                                                        !article.content_text
+                                                        !article.content_text ||
+                                                        article.content_status === "image_only"
                                                     }
                                                     className={clsx(
                                                         "shrink-0 rounded-[8px] border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
@@ -2957,7 +2963,9 @@ const WeChatMpImportManager = () => {
                                             tone="subtle"
                                             onClick={() => importContent("article")}
                                             disabled={
-                                                Boolean(importingResource) || !content?.contentText
+                                                Boolean(importingResource) ||
+                                                !content?.contentText ||
+                                                imageOnlyContent
                                             }
                                         >
                                             {importingResource === "article" ? (
@@ -2974,7 +2982,9 @@ const WeChatMpImportManager = () => {
                                             tone="primary"
                                             onClick={() => importContent("event")}
                                             disabled={
-                                                Boolean(importingResource) || !content?.contentText
+                                                Boolean(importingResource) ||
+                                                !content?.contentText ||
+                                                imageOnlyContent
                                             }
                                         >
                                             {importingResource === "event" ? (
@@ -3075,6 +3085,12 @@ const WeChatMpImportManager = () => {
                                             tone="violet"
                                         />
                                     </div>
+
+                                    {imageOnlyContent ? (
+                                        <AdminInlineNote tone="warning">
+                                            {t("admin.wechat_mp.preview.image_only_content")}
+                                        </AdminInlineNote>
+                                    ) : null}
 
                                     {contentLoading ? (
                                         <div

@@ -18,9 +18,10 @@
 
 - **GIVEN** 已启用的 RSS 来源可访问 `WEWE_RSS_BASE_URL`
 - **WHEN** 增量任务读取 Atom 或 RSS feed
-- **THEN** 系统 SHALL 保存标题、原文链接、作者、发布时间、封面和全文内容
+- **THEN** 系统 SHALL 保存标题、`https://mp.weixin.qq.com/...` 原文链接、作者、发布时间和可用封面元数据
 - **AND** SHALL 使用原文链接去重
-- **AND** SHALL 将正文交给现有 AI 提取和活动初筛链路
+- **AND** SHALL 使用原文链接获取正文和图片，并将正文交给现有 AI 提取和活动初筛链路
+- **AND** SHALL 将封面和正文图片本地化后保存
 
 #### Scenario: RSS 作为默认主要来源
 
@@ -43,15 +44,24 @@
 - **GIVEN** 系统执行普通定时或手动增量任务
 - **WHEN** 系统请求 WeWe RSS feed
 - **THEN** 请求 SHALL 默认不包含 `update=true`
-- **AND** SHALL 使用 `limit`、`page` 和 `mode=fulltext` 控制读取
+- **AND** SHALL 使用 `limit` 和 `page` 获取轻量 metadata，不默认使用 `mode=fulltext`
 
 #### Scenario: RSS 来源正文缺失
 
 - **GIVEN** feed 项目没有可用正文
 - **WHEN** 系统处理该项目
 - **THEN** 系统 SHALL 保存文章元数据和正文缺失状态
-- **AND** SHALL NOT 回退抓取 `mp.weixin.qq.com`
+- **AND** SHALL 使用 feed 项目中的 `mp.weixin.qq.com` 链接尝试获取正文
+- **AND** SHALL NOT 使用 `rss.tuotuzju.com` 作为文章正文 URL
 - **AND** SHALL 不因单篇正文缺失中断其他来源
+
+#### Scenario: 图片型文章跳过 AI
+
+- **GIVEN** 清洗后的正文有效字符少于 100 且正文图片至少 2 张
+- **WHEN** 系统完成正文和图片本地化
+- **THEN** 系统 SHALL 保留文章候选、原文链接、封面和正文图片
+- **AND** SHALL 标记 `content_status=image_only`
+- **AND** SHALL 跳过 AI 提取、活动初筛和导入
 
 #### Scenario: RSS 来源失败
 
@@ -67,3 +77,10 @@
 - **WHEN** 执行增量任务
 - **THEN** 系统 SHALL 继续使用现有登录态和微信 MP API
 - **AND** 新增 RSS 来源的实现 SHALL NOT 改变直连来源的采集行为
+
+#### Scenario: RSS 原文链接安全校验
+
+- **GIVEN** feed 项目提供的链接不是 HTTPS `mp.weixin.qq.com` 地址
+- **WHEN** 系统准备获取正文
+- **THEN** 系统 SHALL 拒绝该链接
+- **AND** SHALL NOT 请求该链接或 RSS 服务地址作为正文
