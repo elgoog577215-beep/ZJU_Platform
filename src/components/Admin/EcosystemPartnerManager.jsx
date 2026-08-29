@@ -7,6 +7,9 @@ import {
     EyeOff,
     ExternalLink,
     Handshake,
+    Cpu,
+    Factory,
+    Landmark,
     Plus,
     RefreshCw,
     Search,
@@ -22,6 +25,8 @@ import {
     ACTIVITY_PROVIDER_SCOPE,
     CORE_PARTNER_SCOPE,
     ECOSYSTEM_PARTNER_CATEGORIES,
+    ECOSYSTEM_SUPPORT_CATEGORIES,
+    normalizeSupportCategory,
     normalizePartnerScope,
     sortEcosystemPartners,
 } from "../../data/partnerLogos";
@@ -64,8 +69,17 @@ const categoryMeta = {
     },
 };
 
+const supportCategoryMeta = {
+    college: { icon: Landmark, tone: "indigo" },
+    technology_enterprise: { icon: Cpu, tone: "cyan" },
+    industry_enterprise: { icon: Factory, tone: "amber" },
+    capital: { icon: Handshake, tone: "violet" },
+    club: { icon: Users, tone: "emerald" },
+};
+
 const emptyForm = {
     category: "enterprise",
+    support_category: "technology_enterprise",
     profile_handle: "",
     name: "",
     name_en: "",
@@ -125,6 +139,10 @@ const buildProfileAliases = (aliases = []) =>
 
 const normalizeForm = (partner = emptyForm) => ({
     category: partner.category || "enterprise",
+    support_category: normalizeSupportCategory(
+        partner.support_category || partner.supportCategory,
+        partner.category || "enterprise"
+    ),
     profile_handle: partner.profile_handle || partner.handle || "",
     name: partner.name || "",
     name_en: partner.name_en || "",
@@ -198,7 +216,11 @@ const EcosystemPartnerManager = () => {
         for (const partner of partners) {
             if (isPublicVisible(partner)) base.visible += 1;
             else base.hidden += 1;
-            base[partner.category] = (base[partner.category] || 0) + 1;
+            const supportCategory = normalizeSupportCategory(
+                partner.support_category,
+                partner.category
+            );
+            base[supportCategory] = (base[supportCategory] || 0) + 1;
         }
         return base;
     }, [partners]);
@@ -206,7 +228,10 @@ const EcosystemPartnerManager = () => {
     const filteredPartners = useMemo(() => {
         const keyword = search.trim().toLowerCase();
         return partners.filter((partner) => {
-            const matchesCategory = categoryFilter === "all" || partner.category === categoryFilter;
+            const matchesCategory =
+                categoryFilter === "all" ||
+                normalizeSupportCategory(partner.support_category, partner.category) ===
+                    categoryFilter;
             if (!matchesCategory) return false;
             if (!keyword) return true;
             return [
@@ -496,6 +521,21 @@ const EcosystemPartnerManager = () => {
         );
     };
 
+    const renderSupportCategory = (partner) => {
+        const categoryId = normalizeSupportCategory(partner.support_category, partner.category);
+        const category =
+            ECOSYSTEM_SUPPORT_CATEGORIES.find((item) => item.id === categoryId) ||
+            ECOSYSTEM_SUPPORT_CATEGORIES[1];
+        const meta = supportCategoryMeta[categoryId] || supportCategoryMeta.technology_enterprise;
+        const Icon = meta.icon;
+        return (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-current/15 px-2 py-1 text-xs font-semibold">
+                <Icon size={14} />
+                {category.shortLabel}
+            </span>
+        );
+    };
+
     const renderProfileLink = (partner) => {
         if (!partner.profile_handle) {
             return <span className={`text-xs ${mutedTextClass}`}>未生成主体</span>;
@@ -561,7 +601,10 @@ const EcosystemPartnerManager = () => {
                                 <h3 className={`truncate font-semibold ${headingTextClass}`}>
                                     {partner.name}
                                 </h3>
-                                <div className="mt-1">{renderCategory(partner.category)}</div>
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                    {renderSupportCategory(partner)}
+                                    {renderCategory(partner.category)}
+                                </div>
                             </div>
                         </div>
                         <AdminIconButton label="编辑合作方" onClick={() => openEdit(partner)}>
@@ -659,7 +702,7 @@ const EcosystemPartnerManager = () => {
                             >
                                 全部
                             </FilterChip>
-                            {ECOSYSTEM_PARTNER_CATEGORIES.map((category) => (
+                            {ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => (
                                 <FilterChip
                                     key={category.id}
                                     active={categoryFilter === category.id}
@@ -672,7 +715,7 @@ const EcosystemPartnerManager = () => {
                     </AdminToolbar>
                 }
             >
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-8">
                     <AdminMetricCard label="合作方" value={stats.total} icon={Handshake} />
                     <AdminMetricCard
                         label={t(
@@ -689,17 +732,30 @@ const EcosystemPartnerManager = () => {
                         icon={EyeOff}
                         tone="violet"
                     />
+                    <AdminMetricCard label="学院" value={stats.college || 0} icon={Landmark} />
                     <AdminMetricCard
-                        label="学校/社团"
-                        value={`${stats.school || 0}/${stats.organization || 0}`}
-                        icon={Users}
+                        label="技术企业"
+                        value={stats.technology_enterprise || 0}
+                        icon={Cpu}
+                        tone="indigo"
+                    />
+                    <AdminMetricCard
+                        label="行业企业"
+                        value={stats.industry_enterprise || 0}
+                        icon={Factory}
                         tone="amber"
                     />
                     <AdminMetricCard
-                        label="企业伙伴"
-                        value={stats.enterprise || 0}
-                        icon={Building2}
-                        tone="indigo"
+                        label="资本"
+                        value={stats.capital || 0}
+                        icon={Handshake}
+                        tone="violet"
+                    />
+                    <AdminMetricCard
+                        label="社团"
+                        value={stats.club || 0}
+                        icon={Users}
+                        tone="emerald"
                     />
                 </div>
 
@@ -764,7 +820,10 @@ const EcosystemPartnerManager = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                {renderCategory(partner.category)}
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {renderSupportCategory(partner)}
+                                                    {renderCategory(partner.category)}
+                                                </div>
                                             </td>
                                             <td className="p-4">
                                                 <div className="space-y-1">
@@ -826,13 +885,28 @@ const EcosystemPartnerManager = () => {
             >
                 <div className="grid max-h-[60dvh] gap-4 overflow-y-auto pr-1">
                     <label className={`block text-sm font-semibold ${headingTextClass}`}>
-                        分类
+                        主体类型
                         <select
                             value={form.category}
                             onChange={(event) => updateForm("category", event.target.value)}
                             className="theme-admin-input mt-2 w-full rounded-xl px-3 py-2.5 text-sm"
                         >
                             {ECOSYSTEM_PARTNER_CATEGORIES.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className={`block text-sm font-semibold ${headingTextClass}`}>
+                        支持方分类
+                        <select
+                            value={form.support_category}
+                            onChange={(event) => updateForm("support_category", event.target.value)}
+                            className="theme-admin-input mt-2 w-full rounded-xl px-3 py-2.5 text-sm"
+                        >
+                            {ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => (
                                 <option key={category.id} value={category.id}>
                                     {category.label}
                                 </option>

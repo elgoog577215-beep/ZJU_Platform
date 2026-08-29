@@ -6,9 +6,12 @@ import {
     CORE_PARTNER_SCOPE,
     ORGANIZATION_PARTNER_LOGOS,
     defaultEcosystemPartners,
+    getSupportersByCategory,
     getPartnerLogoSrc,
     getPartnersByCategory,
     groupEcosystemPartners,
+    groupEcosystemSupporters,
+    normalizeEcosystemPartner,
 } from "./partnerLogos.js";
 
 const mixedPartners = [
@@ -82,5 +85,46 @@ test("verified core support identities carry theme-aware official logos", () => 
     assert.match(
         getPartnerLogoSrc({ name: "XLAB", logo_url: null, dark_logo_url: null }, false),
         /xlab-white\.svg$/
+    );
+});
+
+test("supporter helpers expose five support categories without promoting activity providers", () => {
+    const supportPartners = [
+        ...mixedPartners,
+        {
+            id: 4,
+            category: "enterprise",
+            support_category: "industry_enterprise",
+            name: "Industry Partner",
+            enabled: true,
+            partner_scope: CORE_PARTNER_SCOPE,
+            sort_order: 40,
+        },
+        {
+            id: 5,
+            category: "enterprise",
+            support_category: "capital",
+            name: "Capital Partner",
+            enabled: true,
+            partner_scope: CORE_PARTNER_SCOPE,
+            sort_order: 50,
+        },
+    ];
+
+    assert.equal(normalizeEcosystemPartner({ category: "school" }).support_category, "college");
+    assert.equal(normalizeEcosystemPartner({ category: "organization" }).support_category, "club");
+    assert.equal(
+        normalizeEcosystemPartner({ category: "enterprise" }).support_category,
+        "technology_enterprise"
+    );
+
+    const groups = groupEcosystemSupporters(supportPartners);
+    assert.deepEqual(
+        groups.map((group) => group.id),
+        ["college", "technology_enterprise", "industry_enterprise", "capital", "club"]
+    );
+    assert.deepEqual(
+        getSupportersByCategory(supportPartners, "club").map((partner) => partner.name),
+        ["ZJUAI"]
     );
 });

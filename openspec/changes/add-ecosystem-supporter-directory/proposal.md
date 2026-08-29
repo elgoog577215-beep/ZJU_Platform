@@ -1,0 +1,29 @@
+## Why
+
+About 已经展示拓浙 AI 生态的资源与合作，但只能看到少量代表性名称，缺少一个可发现、可分类、可追溯的完整支持方名录。现有 `/profiles` 是通用公开主体目录，不能准确表达“谁是生态支持方”这一经过确认的合作关系，也不应把所有活动主办方自动视为支持方。
+
+## What Changes
+
+- 在 About 的“资源与合作”板块增加“查看全部支持方”入口，保留代表性展示并进入完整名录。
+- 新增 `/about/partners` 支持方名录，按学院、技术企业、行业企业、资本、社团五类展示公开核心支持方。
+- 支持方条目展示真实名称、Logo、合作方向与支持内容；存在 `profile_handle` 时进入组织主页，否则按现有可信外链处理。
+- 扩展合作方分类及兼容映射，保留 `partner_scope` 对核心支持方与普通活动提供方的区分。
+- 完成中英文、加载、失败、空状态、键盘操作、日夜主题和桌面/移动响应式表现。
+- 不把 `/profiles` 改造成支持方名录，不把所有活动主办方或公开 profile 自动升级为生态支持方。
+
+## Capabilities
+
+### New Capabilities
+
+- `ecosystem-supporter-directory`: 定义 About 代表性支持方入口、完整支持方名录、五类支持方分类、详情跳转和公开状态边界。
+
+### Modified Capabilities
+
+无。
+
+## Impact
+
+- 前端路由、About、支持方数据适配、支持方名录组件与中英文 locale。
+- `ecosystem_partners` API 和后台合作方管理需要接受五类支持方，同时兼容已有 `school`、`organization`、`enterprise` 数据。
+- 不新增第二套支持方真源；合作身份继续由 `ecosystem_partners.partner_scope` 决定，组织详情继续由 `profiles` 承载。
+- 分类变更采用兼容读取与明确写入，可回滚为旧分类显示，不删除历史合作方数据。

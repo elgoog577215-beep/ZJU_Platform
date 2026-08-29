@@ -1,5 +1,9 @@
 const { getDb } = require("../config/db");
 const profileService = require("../services/profileService");
+const {
+    SUPPORT_CATEGORY_VALUES,
+    normalizeSupportCategory,
+} = require("../utils/ecosystemPartnerClassification");
 
 const CATEGORY_VALUES = new Set(["school", "organization", "enterprise"]);
 const CORE_PARTNER_SCOPE = "core_partner";
@@ -107,6 +111,7 @@ const serializePartner = (row) => {
     const partnerScope = normalizePartnerScope(row.partner_scope, fallbackScope);
     return {
         ...row,
+        support_category: normalizeSupportCategory(row.support_category, row.category),
         event_organizer_aliases: normalizeAliasList(row.event_organizer_aliases),
         sort_order: toInteger(row.sort_order, 0),
         enabled: Boolean(row.enabled),
@@ -172,6 +177,10 @@ const readPartnerBody = (body, existing = {}) => {
         body.category !== undefined
             ? normalizeCategory(body.category, existing.category || "enterprise")
             : existing.category || "enterprise";
+    const supportCategory =
+        body.support_category !== undefined || body.supportCategory !== undefined
+            ? normalizeSupportCategory(body.support_category ?? body.supportCategory, category)
+            : normalizeSupportCategory(existing.support_category, category);
     const description =
         body.description !== undefined
             ? nullableText(body.description, 500)
@@ -230,6 +239,7 @@ const readPartnerBody = (body, existing = {}) => {
         name,
         nameEn,
         category,
+        supportCategory,
         description,
         descriptionEn,
         cooperationDirection,
@@ -257,6 +267,8 @@ const readPartnerBody = (body, existing = {}) => {
 const validatePartnerPayload = (payload, res) => {
     if (!payload.name) return sendBadRequest(res, "请填写合作方名称");
     if (!CATEGORY_VALUES.has(payload.category)) return sendBadRequest(res, "合作方分类无效");
+    if (!SUPPORT_CATEGORY_VALUES.has(payload.supportCategory))
+        return sendBadRequest(res, "支持方分类无效");
     if (!PARTNER_SCOPE_VALUES.has(payload.partnerScope))
         return sendBadRequest(res, "合作方层级无效");
     if (!isSafePartnerUrl(payload.logoUrl)) return sendBadRequest(res, "Logo 地址无效");
@@ -355,13 +367,14 @@ const createPartner = async (req, res, next) => {
 
         const result = await db.run(
             `INSERT INTO ecosystem_partners (
-        category, name, name_en, description, description_en,
+        category, support_category, name, name_en, description, description_en,
         cooperation_direction, cooperation_direction_en, event_organizer_aliases,
         logo_url, dark_logo_url, link_url,
         sort_order, enabled, featured, partner_scope, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
             [
                 payload.category,
+                payload.supportCategory,
                 payload.name,
                 payload.nameEn,
                 payload.description,
@@ -404,6 +417,7 @@ const updatePartner = async (req, res, next) => {
         await db.run(
             `UPDATE ecosystem_partners
        SET category = ?,
+           support_category = ?,
            name = ?,
            name_en = ?,
            description = ?,
@@ -422,6 +436,7 @@ const updatePartner = async (req, res, next) => {
        WHERE id = ? AND deleted_at IS NULL`,
             [
                 payload.category,
+                payload.supportCategory,
                 payload.name,
                 payload.nameEn,
                 payload.description,

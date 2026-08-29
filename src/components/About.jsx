@@ -793,14 +793,23 @@ const About = () => {
                                     </span>
                                 </h2>
                             </div>
-                            <p
-                                className={`max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-2 ${palette.textSoft}`}
-                            >
-                                {t(
-                                    "about.ecosystem.support.desc",
-                                    "学校提供场景与空间，企业提供真实课题和技术资源，学生组织负责招募与执行，产业和资本伙伴承接后续项目。"
-                                )}
-                            </p>
+                            <div className="max-w-3xl lg:justify-self-end lg:pb-2">
+                                <p
+                                    className={`text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}
+                                >
+                                    {t(
+                                        "about.ecosystem.support.desc",
+                                        "学校提供场景与空间，企业提供真实课题和技术资源，学生组织负责招募与执行，产业和资本伙伴承接后续项目。"
+                                    )}
+                                </p>
+                                <Link
+                                    to="/about/partners"
+                                    className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-[10px] border px-4 text-sm font-black outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400/80 ${palette.secondary}`}
+                                >
+                                    {t("about.ecosystem.support.view_all", "查看全部支持方")}
+                                    <ArrowRight size={17} aria-hidden="true" />
+                                </Link>
+                            </div>
                         </div>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">

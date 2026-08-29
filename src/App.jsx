@@ -106,6 +106,7 @@ const loadVideos = () => import("./components/Videos");
 const loadArticles = () => import("./components/AICommunity");
 const loadEvents = () => import("./components/Events");
 const loadAbout = () => import("./components/About");
+const loadEcosystemPartnerDirectory = () => import("./components/EcosystemPartnerDirectory");
 const loadAppDownload = () => import("./components/AppDownload");
 const loadHackathonSeasonOne = () => import("./components/HackathonSeasonOne");
 const loadHackathonWorks = () => import("./components/HackathonWorksRedirect");
@@ -129,6 +130,7 @@ const Videos = lazyRoute(loadVideos);
 const Articles = lazyRoute(loadArticles);
 const Events = lazyRoute(loadEvents);
 const About = lazyRoute(loadAbout);
+const EcosystemPartnerDirectory = lazyRoute(loadEcosystemPartnerDirectory);
 const AppDownload = lazyRoute(loadAppDownload);
 const HackathonSeasonOne = lazyRoute(loadHackathonSeasonOne);
 const HackathonWorks = lazyRoute(loadHackathonWorks);
@@ -596,6 +598,14 @@ const AppContent = () => {
                                 element={
                                     <PageTransition>
                                         <About />
+                                    </PageTransition>
+                                }
+                            />
+                            <Route
+                                path="/about/partners"
+                                element={
+                                    <PageTransition>
+                                        <EcosystemPartnerDirectory />
                                     </PageTransition>
                                 }
                             />

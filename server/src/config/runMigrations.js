@@ -1431,6 +1431,7 @@ async function runMigrations(db) {
                 event_organizer_aliases: "TEXT DEFAULT '[]'",
                 profile_id: "INTEGER",
                 partner_scope: "TEXT DEFAULT 'core_partner'",
+                support_category: "TEXT",
             },
             "ecosystem partners"
         );
@@ -1453,6 +1454,8 @@ async function runMigrations(db) {
         ON ecosystem_partners(category, sort_order, id);
       CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_scope
         ON ecosystem_partners(enabled, partner_scope, category, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_support_category
+        ON ecosystem_partners(enabled, partner_scope, support_category, sort_order, id);
     `);
 
         const partnerCount = await db.get("SELECT COUNT(*) AS count FROM ecosystem_partners");
@@ -2076,6 +2079,50 @@ async function runMigrations(db) {
             );
         }
         console.log("✅ Ecosystem partner official logos synced");
+
+        await db.run(`
+      UPDATE ecosystem_partners
+      SET support_category = CASE
+            WHEN name = '创非凡' THEN 'industry_enterprise'
+            WHEN category = 'school' THEN 'college'
+            WHEN category = 'organization' THEN 'club'
+            ELSE 'technology_enterprise'
+          END,
+          updated_at = datetime('now')
+      WHERE deleted_at IS NULL
+        AND (
+          support_category IS NULL
+          OR TRIM(support_category) = ''
+          OR support_category NOT IN (
+            'college',
+            'technology_enterprise',
+            'industry_enterprise',
+            'capital',
+            'club'
+          )
+        )
+    `);
+
+        await db.run(`
+      INSERT INTO ecosystem_partners (
+        category, support_category, name, name_en, description, description_en,
+        cooperation_direction, cooperation_direction_en, event_organizer_aliases,
+        logo_url, dark_logo_url, link_url, sort_order, enabled, featured, partner_scope,
+        created_at, updated_at
+      )
+      SELECT
+        'enterprise', 'capital', '五源资本', '5Y Capital',
+        '为优秀项目提供创业辅导、路演支持与资源对接。',
+        'Provides venture guidance, demo support, and resource connections for promising projects.',
+        '创业辅导 / 资源对接', 'Venture guidance / Resource connections', '[]',
+        NULL, NULL, NULL, 10, 1, 1, 'core_partner', datetime('now'), datetime('now')
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM ecosystem_partners
+        WHERE name = '五源资本' AND deleted_at IS NULL
+      )
+    `);
+        console.log("✅ Ecosystem supporter categories synced");
     } catch (err) {
         if (!err.message.includes("already exists")) {
             console.warn("Migration warning (ecosystem partners):", err.message);

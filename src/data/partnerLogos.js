@@ -19,6 +19,44 @@ export const ECOSYSTEM_PARTNER_CATEGORIES = [
     },
 ];
 
+export const ECOSYSTEM_SUPPORT_CATEGORIES = [
+    {
+        id: "college",
+        label: "学院与校内机构",
+        labelEn: "Colleges & Campus Units",
+        shortLabel: "学院",
+        code: "Campus",
+    },
+    {
+        id: "technology_enterprise",
+        label: "技术企业",
+        labelEn: "Technology Companies",
+        shortLabel: "技术企业",
+        code: "Technology",
+    },
+    {
+        id: "industry_enterprise",
+        label: "行业企业",
+        labelEn: "Industry Companies",
+        shortLabel: "行业企业",
+        code: "Industry",
+    },
+    {
+        id: "capital",
+        label: "资本与孵化",
+        labelEn: "Capital & Incubation",
+        shortLabel: "资本",
+        code: "Capital",
+    },
+    {
+        id: "club",
+        label: "社团与组织",
+        labelEn: "Clubs & Organizations",
+        shortLabel: "社团",
+        code: "Community",
+    },
+];
+
 export const CORE_PARTNER_SCOPE = "core_partner";
 export const ACTIVITY_PROVIDER_SCOPE = "activity_provider";
 
@@ -586,6 +624,7 @@ export const defaultEcosystemPartners = [
         id: "default-enterprise-chuangfeifan",
         profile_handle: "partner-chuangfeifan",
         category: "enterprise",
+        support_category: "industry_enterprise",
         name: "创非凡",
         name_en: "Chuang Feifan",
         description: "提供软硬件结合的数智化场景与产业协作支持。",
@@ -595,6 +634,21 @@ export const defaultEcosystemPartners = [
         dark_logo_url: "/images/partner-logos/chuangfeifan-dark.svg",
         size: "h-5 sm:h-6 lg:h-7",
         sort_order: 90,
+        enabled: true,
+        featured: true,
+    },
+    {
+        id: "default-capital-five-source",
+        category: "enterprise",
+        support_category: "capital",
+        name: "五源资本",
+        name_en: "5Y Capital",
+        description: "为优秀项目提供创业辅导、路演支持与资源对接。",
+        description_en:
+            "Provides venture guidance, demo support, and resource connections for promising projects.",
+        cooperation_direction: "创业辅导 / 资源对接",
+        cooperation_direction_en: "Venture guidance / Resource connections",
+        sort_order: 10,
         enabled: true,
         featured: true,
     },
@@ -618,6 +672,19 @@ export const defaultEcosystemPartners = [
 const categoryOrder = new Map(
     ECOSYSTEM_PARTNER_CATEGORIES.map((category, index) => [category.id, index])
 );
+const supportCategoryOrder = new Map(
+    ECOSYSTEM_SUPPORT_CATEGORIES.map((category, index) => [category.id, index])
+);
+
+export const normalizeSupportCategory = (value, entityCategory = "enterprise") => {
+    const supportCategory = String(value || "")
+        .trim()
+        .toLowerCase();
+    if (supportCategoryOrder.has(supportCategory)) return supportCategory;
+    if (entityCategory === "school") return "college";
+    if (entityCategory === "organization") return "club";
+    return "technology_enterprise";
+};
 
 const normalizeBooleanFlag = (value, fallback = true) => {
     if (value === undefined || value === null) return fallback;
@@ -657,6 +724,10 @@ export const normalizeEcosystemPartner = (partner = {}) => {
         ...partner,
         id: partner.id ?? `${partner.category || "partner"}-${partner.name || Math.random()}`,
         category: partner.category || "enterprise",
+        support_category: normalizeSupportCategory(
+            partner.support_category || partner.supportCategory,
+            partner.category || "enterprise"
+        ),
         name: partner.name || "",
         name_en: partner.name_en || partner.nameEn || "",
         description: partner.description || "",
@@ -723,6 +794,26 @@ export const groupEcosystemPartners = (partners = [], { scope = CORE_PARTNER_SCO
         partners: normalized.filter((partner) => partner.category === category.id),
     }));
 };
+
+export const getSupportersByCategory = (
+    partners = [],
+    supportCategory,
+    { scope = CORE_PARTNER_SCOPE } = {}
+) => {
+    const requiredScope = scope ? normalizePartnerScope(scope, "") : null;
+    return sortEcosystemPartners(partners.map(normalizeEcosystemPartner)).filter(
+        (partner) =>
+            partner.enabled &&
+            partner.support_category === supportCategory &&
+            (!requiredScope || partner.partner_scope === requiredScope)
+    );
+};
+
+export const groupEcosystemSupporters = (partners = [], { scope = CORE_PARTNER_SCOPE } = {}) =>
+    ECOSYSTEM_SUPPORT_CATEGORIES.map((supportCategory) => ({
+        ...supportCategory,
+        partners: getSupportersByCategory(partners, supportCategory.id, { scope }),
+    }));
 
 export const getPartnerDisplayName = (partner = {}) => {
     if (partner.text) return partner.text;

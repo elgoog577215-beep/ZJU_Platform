@@ -131,6 +131,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                 location.pathname.startsWith("/videos")
             );
         }
+        if (path === "/about") return location.pathname.startsWith("/about");
         return location.pathname === path;
     };
     const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));

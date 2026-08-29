@@ -1003,6 +1003,39 @@
                     "ai_research": "AI Research Club",
                     "embedded_ai": "Embedded AI Association",
                     "kab": "KAB Entrepreneurship Club"
+                },
+                "view_all": "View all supporters"
+            },
+            "supporter_directory": {
+                "meta_title": "Ecosystem Supporters | Tuozhe AI Ecosystem",
+                "meta_desc": "Explore the colleges, technology companies, industry companies, capital partners, and campus organizations supporting the Tuozhe AI Ecosystem.",
+                "back": "Back to Ecosystem",
+                "eyebrow": "Ecosystem Support Network",
+                "title_1": "Shared support.",
+                "title_2": "Real practice.",
+                "desc": "From courses and research settings to technology, industry, capital, and campus collaboration, these supporters help learning, competitions, and real projects keep moving.",
+                "search_label": "Search supporters",
+                "search_placeholder": "Search names, collaboration areas, or support",
+                "clear_search": "Clear search",
+                "all": "All supporters",
+                "category_nav": "Supporter categories",
+                "count": "{{count}} supporters",
+                "support_label": "SUPPORT AREA",
+                "support_pending": "Collaboration information is being updated",
+                "profile_cta": "View organization profile",
+                "website_cta": "Visit official website",
+                "no_link": "Support information",
+                "fallback_notice": "Live data is temporarily unavailable. The built-in supporter directory is shown instead.",
+                "retry": "Reload",
+                "empty_title": "No matching supporters",
+                "empty_desc": "Clear the search or switch to another supporter category.",
+                "clear_filters": "View all supporters",
+                "categories": {
+                    "college": "Colleges & Campus Units",
+                    "technology_enterprise": "Technology Companies",
+                    "industry_enterprise": "Industry Companies",
+                    "capital": "Capital & Incubation",
+                    "club": "Clubs & Organizations"
                 }
             },
             "business": {
