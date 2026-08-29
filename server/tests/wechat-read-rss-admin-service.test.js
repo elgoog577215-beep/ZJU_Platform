@@ -41,7 +41,7 @@ test("WeWe RSS management proxy encodes tRPC requests and unwraps batch response
     assert.equal(url.pathname, "/trpc/account.list");
     assert.equal(url.searchParams.get("batch"), "1");
     assert.deepEqual(JSON.parse(url.searchParams.get("input")), {
-        0: { json: { limit: 20 } },
+        0: { limit: 20 },
     });
 });
 
@@ -154,7 +154,10 @@ test("WeRead login is completed server-side and only returns a sanitized account
     assert.equal(calls[0].method, "POST");
     assert.equal(calls[1].method, "GET");
     assert.equal(calls[2].method, "POST");
-    assert.deepEqual(calls[2].data[0].json, {
+    assert.deepEqual(JSON.parse(new URL(calls[1].url).searchParams.get("input")), {
+        0: { id: "login-session-1" },
+    });
+    assert.deepEqual(calls[2].data[0], {
         id: "12345",
         token: "private-weread-token",
         name: "测试账号",
@@ -251,5 +254,5 @@ test("WeWe RSS management maps feed and article operations to protected procedur
     assert.equal(procedures[1].method, "GET");
     assert.equal(procedures[2].method, "GET");
     assert.equal(procedures[3].method, "POST");
-    assert.deepEqual(procedures[3].data[0].json, { mpId: "MP_TEST" });
+    assert.deepEqual(procedures[3].data[0], { mpId: "MP_TEST" });
 });

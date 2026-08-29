@@ -76,9 +76,7 @@ const buildServiceUrl = (baseUrl, pathname) => {
 
 const encodeBatchInput = (input) =>
     JSON.stringify({
-        0: {
-            json: input === undefined ? null : input,
-        },
+        0: input === undefined ? null : input,
     });
 
 const getTrpcError = (errorPayload) => {
