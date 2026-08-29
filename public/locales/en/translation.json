@@ -3357,10 +3357,12 @@
                 "overview_tab": "Overview",
                 "sources_tab": "Sources",
                 "candidates_tab": "Candidates",
+                "rss_tab": "RSS Admin",
                 "advanced_tab": "Connection & Tools",
                 "connect_wechat": "Connect WeChat Collection",
                 "sources_status": "Sources {{enabled}}/{{total}}",
                 "login_status": "WeChat {{status}}",
+                "rss_status": "RSS ready",
                 "schedule_status": "Daily at {{time}}",
                 "schedule_disabled": "Scheduled collection is off",
                 "new_articles_status": "New this run {{count}}",
@@ -3389,6 +3391,7 @@
             "notes": {
                 "ready": "The WeChat connection is active.",
                 "need_login": "The WeChat connection is not signed in.",
+                "rss_ready": "A WeRead RSS source is configured; scan login is not required for ingest.",
                 "token_checking": "Checking the WeChat MP login session...",
                 "token_expired": "The WeChat MP login session is unavailable. Please scan to log in again.",
                 "token_check_failed": "The WeChat MP login session could not be confirmed. You can retry or scan to log in again.",
@@ -3452,7 +3455,7 @@
             },
             "ingest": {
                 "title": "Daily Incremental Ingest",
-                "description": "Maintain official accounts and automatically fetch new articles and bodies every day.",
+                "description": "Maintain official-account sources and fetch new articles through WeRead RSS by default; direct WeChat MP remains available for compatibility.",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually.",
                 "confirm_delete_account": "Delete “{{name}}”?",
                 "account_summary": "{{enabled}} enabled / {{total}} total",
@@ -3485,6 +3488,7 @@
                     }
                 },
                 "fields": {
+                    "source_type": "Source Type",
                     "enabled": "Scheduled Job",
                     "daily_run_time": "Daily Start",
                     "timezone": "Timezone",
@@ -3497,8 +3501,13 @@
                     "content_delay": "Body interval",
                     "fetch_content": "Fetch article bodies",
                     "auto_parse": "Extract event information automatically",
-                    "account_enabled": "Enable this account"
+                    "account_enabled": "Enable this source"
                 },
+                "source_types": {
+                    "wechat_mp": "Direct WeChat MP (scan required)",
+                    "wewe_rss": "WeRead RSS (no scan required)"
+                },
+                "rss_source_note": "Use the RSS Admin workspace here to sign in to WeRead and resolve the official account first. Enter only its feed ID; ingest uses the trusted rss.tuotuzju.com service.",
                 "token_health_note": "Runs immediately after startup, then at the configured interval.",
                 "content_status": {
                     "not_fetched": "Body not fetched",
@@ -3519,6 +3528,8 @@
                 },
                 "placeholders": {
                     "account_name": "Official account name",
+                    "rss_name": "Official account name (optional)",
+                    "rss_feed_id": "WeWe RSS feed ID, for example MP_WXS_123",
                     "keywords": "Keywords, comma separated"
                 },
                 "run_status": {
@@ -3526,6 +3537,116 @@
                     "completed": "Completed",
                     "failed": "Failed"
                 }
+            },
+            "rss_admin": {
+                "loading": "Loading...",
+                "metrics": {
+                    "accounts": "WeRead Accounts",
+                    "feeds": "Official Account Feeds",
+                    "feed_count": "{{count}} feeds",
+                    "connection": "Backend Connection"
+                },
+                "status": {
+                    "ready": "Connected",
+                    "missing": "Needs setup",
+                    "enabled": "Enabled",
+                    "disabled": "Disabled",
+                    "invalid": "Unavailable",
+                    "never": "Never"
+                },
+                "notes": {
+                    "configured": "WeRead management is connected to the main admin panel. WeRead tokens remain on the WeWe RSS server and never reach the browser.",
+                    "not_configured": "The platform backend has not configured WEWE_RSS_AUTH_CODE. Configure it to manage WeRead login and feeds here."
+                },
+                "accounts": {
+                    "title": "WeRead Accounts",
+                    "description": "Start WeRead QR login from the main admin panel; WeWe RSS stores the account token.",
+                    "empty_title": "No WeRead accounts",
+                    "empty_desc": "Click Add Account and scan the QR code to sign in."
+                },
+                "login": {
+                    "qr_alt": "WeRead login QR code",
+                    "waiting": "Scan this QR code with WeChat to sign in",
+                    "note": "After login, the account is saved on the WeWe RSS backend; its token is never returned to the browser."
+                },
+                "feeds": {
+                    "title": "Official Account Feeds",
+                    "description": "Paste an mp.weixin.qq.com article link and WeRead will resolve and maintain the official account feed.",
+                    "link_placeholder": "https://mp.weixin.qq.com/s/...",
+                    "link_note": "At least one enabled WeRead account is required. The article link is used for discovery, not stored as a credential.",
+                    "last_sync": "Last sync",
+                    "empty_title": "No official account feeds",
+                    "empty_desc": "Paste an official-account article link to add one."
+                },
+                "articles": {
+                    "title": "Feed Articles",
+                    "description": "Articles synchronized by WeWe RSS for the selected feed",
+                    "select_feed": "Select a feed to view its articles",
+                    "history_progress": "Syncing historical articles, page {{page}}",
+                    "untitled": "Untitled article",
+                    "empty_title": "No articles",
+                    "empty_desc": "Refresh the feed, or sign in to a WeRead account first."
+                },
+                "actions": {
+                    "add_account": "Add Account",
+                    "cancel_login": "Cancel Login",
+                    "enable_account": "Enable Account",
+                    "disable_account": "Disable Account",
+                    "delete_account": "Delete Account",
+                    "refresh_all": "Refresh All",
+                    "discover": "Resolve Feed",
+                    "add_feed": "Add",
+                    "copy_feed": "Copy Feed URL",
+                    "refresh": "Refresh Now",
+                    "enable_feed": "Enable Feed",
+                    "disable_feed": "Disable Feed",
+                    "delete_feed": "Delete Feed",
+                    "open_feed": "Open Feed",
+                    "history": "Sync History",
+                    "stop_history": "Stop History",
+                    "refresh_articles": "Refresh Articles",
+                    "delete_article": "Delete Article"
+                },
+                "confirm": {
+                    "account": "Delete “{{name}}”?",
+                    "feed": "Delete “{{name}}”?",
+                    "article": "Delete article “{{name}}”?"
+                },
+                "errors": {
+                    "load": "Failed to load WeRead RSS status",
+                    "articles": "Failed to load RSS articles",
+                    "qr": "Failed to generate QR code",
+                    "login": "Failed to read WeRead login status",
+                    "login_start": "Failed to start WeRead login",
+                    "login_cancel": "Failed to cancel login",
+                    "account_update": "Failed to update WeRead account",
+                    "account_delete": "Failed to delete WeRead account",
+                    "link_required": "Enter an official-account article link",
+                    "link_not_found": "No matching official-account feed was found",
+                    "discover": "Failed to resolve the official-account feed",
+                    "feed_add": "Failed to add feed",
+                    "feed_update": "Failed to update feed",
+                    "feed_refresh": "Failed to refresh feed articles",
+                    "all_refresh": "Failed to refresh all feeds",
+                    "history": "Historical article task failed",
+                    "copy": "Copy failed",
+                    "feed_delete": "Failed to delete feed",
+                    "article_delete": "Failed to delete article"
+                },
+                "toasts": {
+                    "login_saved": "WeRead account saved",
+                    "account_updated": "WeRead account status updated",
+                    "account_deleted": "WeRead account deleted",
+                    "feed_added": "Official-account feed added",
+                    "feed_updated": "Feed status updated",
+                    "feed_refreshed": "Feed refreshed",
+                    "all_refreshed": "All feeds refreshed",
+                    "history_started": "Historical article sync started",
+                    "history_cancelled": "Historical article sync stopped",
+                    "feed_copied": "Feed URL copied",
+                    "article_deleted": "Article deleted"
+                },
+                "footer": "The main platform proxies the management API; WeWe RSS keeps its MySQL data, WeRead login session, and upstream sync logic inside rss.tuotuzju.com."
             },
             "fields": {
                 "account_name": "Account Name",
@@ -3587,6 +3708,8 @@
                 "login_cancelled": "Login cancelled",
                 "cancel_failed": "Failed to cancel login",
                 "account_required": "Enter an account name or fakeid",
+                "rss_feed_required": "Enter a valid WeWe RSS feed ID",
+                "source_required": "Add and enable at least one collection source first",
                 "account_search_failed": "Failed to search accounts",
                 "login_required": "Complete scan login first",
                 "articles_failed": "Failed to fetch article list",
