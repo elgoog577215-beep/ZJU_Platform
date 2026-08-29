@@ -72,6 +72,7 @@ npm run dev:client
 - `WEWE_RSS_BASE_URL`：微信读书 RSS 公众号来源的受信任 HTTPS 基地址，默认使用 `https://rss.tuotuzju.com`。
 - `WEWE_RSS_AUTH_CODE`：主平台后端代理 WeWe RSS 管理 API 使用的服务端授权码；取自 WeWe RSS 的 `AUTH_CODE`，不返回前端。
 - `WECHAT_MINIAPP_APPID`、`WECHAT_MINIAPP_SECRET`：微信小程序登录。
+- `VITE_AI_COMMUNITY_FRESHMAN_IMA_URL`：前端构建时可选的新生资料库 ima 分享地址；未配置时页面显示链接待配置状态。
 
 不要提交 `server/.env`、数据库、上传文件、真实平台凭据或日志。
 

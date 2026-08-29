@@ -29,6 +29,7 @@ import {
     ChevronRight,
     Menu,
     SlidersHorizontal,
+    Loader2,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -46,8 +47,6 @@ import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import SortSelector from "./SortSelector";
-import EventAssistantPanel from "./EventAssistantPanel";
-import MobileEventAssistantFullscreen from "./MobileEventAssistantFullscreen";
 import DOMPurify from "dompurify";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
@@ -69,7 +68,7 @@ import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
-    "grid grid-cols-1 items-stretch gap-y-0 md:grid-cols-2 md:gap-x-7 md:gap-y-10 xl:grid-cols-3 xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-12";
+    "grid grid-cols-1 items-stretch justify-center gap-y-0 md:grid-cols-[repeat(2,minmax(0,19.5rem))] md:gap-x-7 md:gap-y-10 xl:grid-cols-[repeat(3,minmax(0,19.5rem))] xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-[repeat(4,minmax(0,19.5rem))] 2xl:gap-x-8 2xl:gap-y-12";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const EVENT_FILTER_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
 const MOBILE_EVENT_CATEGORY_ICONS = {
@@ -1045,19 +1044,18 @@ const Events = () => {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-    const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
-    const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
     const [viewMode, setViewMode] = useState("cards");
     const [isMobileViewport, setIsMobileViewport] = useState(() =>
         typeof window !== "undefined" ? window.innerWidth < 768 : false
-    );
-    const [canRenderDesktopAssistant, setCanRenderDesktopAssistant] = useState(() =>
-        typeof window !== "undefined" ? window.innerWidth >= 768 : false
     );
     const isMiniProgramMode = isMiniProgramWebView();
     const useMiniProgramModalScroll = isMiniProgramMode && isMobileViewport;
     const shouldReduceCardMotion = prefersReducedMotion;
     const trackedViewTimestamps = useRef(new Map());
+    const autoLoadSentinelRef = useRef(null);
+    const autoLoadPendingRef = useRef(false);
+    const autoLoadStartCountRef = useRef(0);
+    const autoLoadSourceEventsRef = useRef(null);
     const updateSelectedEventRecommendationContext = useCallback((context) => {
         selectedEventRecommendationContextRef.current = context;
         setSelectedEventRecommendationContext(context);
@@ -1095,10 +1093,6 @@ const Events = () => {
         const updateViewport = () => {
             const isMobile = window.innerWidth < 768;
             setIsMobileViewport(isMobile);
-            setCanRenderDesktopAssistant(!isMobile);
-            if (isMobile) {
-                setIsDesktopAssistantOpen(false);
-            }
         };
 
         updateViewport();
@@ -1196,12 +1190,7 @@ const Events = () => {
     useBackClose(isUploadOpen, () => setIsUploadOpen(false));
     useBackClose(isMobileFilterOpen, () => setIsMobileFilterOpen(false));
     useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
-    useBackClose(isMobileAssistantOpen, () => setIsMobileAssistantOpen(false));
-    useBackClose(isDesktopAssistantOpen, () => setIsDesktopAssistantOpen(false));
-
-    useBodyScrollLock(
-        Boolean(selectedEvent || isMobileFilterOpen || isMobileSortOpen || isMobileAssistantOpen)
-    );
+    useBodyScrollLock(Boolean(selectedEvent || isMobileFilterOpen || isMobileSortOpen));
 
     const isPaginationEnabled = settings.pagination_enabled === "true";
     const pageSize = isPaginationEnabled ? 6 : 12;
@@ -1237,6 +1226,12 @@ const Events = () => {
 
     const totalPages = pagination?.totalPages || 1;
     const hasMore = !isPaginationEnabled && currentPage < totalPages;
+    const supportsAutoLoad = typeof window !== "undefined" && "IntersectionObserver" in window;
+    const isLoadMoreError = Boolean(
+        error && !isPaginationEnabled && currentPage > 1 && displayEvents.length > 0
+    );
+    const isLoadingMore =
+        loading && !isPaginationEnabled && currentPage > 1 && displayEvents.length > 0;
 
     useEffect(() => {
         setCurrentPage(1);
@@ -1263,6 +1258,58 @@ const Events = () => {
             return next.length === 0 ? prev : [...prev, ...next];
         });
     }, [events, currentPage, isPaginationEnabled]);
+
+    const requestNextPage = useCallback(() => {
+        if (isPaginationEnabled || !hasMore || loading || error || autoLoadPendingRef.current) {
+            return;
+        }
+
+        autoLoadPendingRef.current = true;
+        autoLoadStartCountRef.current = displayEvents.length;
+        autoLoadSourceEventsRef.current = events;
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    }, [displayEvents.length, error, events, hasMore, isPaginationEnabled, loading, totalPages]);
+
+    useEffect(() => {
+        if (!autoLoadPendingRef.current) return;
+
+        const receivedNextPage =
+            !loading &&
+            (displayEvents.length > autoLoadStartCountRef.current ||
+                events !== autoLoadSourceEventsRef.current);
+
+        if (error || !hasMore || receivedNextPage) {
+            autoLoadPendingRef.current = false;
+        }
+    }, [displayEvents.length, error, events, hasMore, loading]);
+
+    useEffect(() => {
+        if (currentPage !== 1) return;
+        autoLoadPendingRef.current = false;
+        autoLoadStartCountRef.current = 0;
+        autoLoadSourceEventsRef.current = null;
+    }, [currentPage]);
+
+    useEffect(() => {
+        const sentinel = autoLoadSentinelRef.current;
+        if (!supportsAutoLoad || !sentinel || isPaginationEnabled || !hasMore || loading || error) {
+            return undefined;
+        }
+
+        const observer = new window.IntersectionObserver(
+            ([entry]) => {
+                if (entry?.isIntersecting) requestNextPage();
+            },
+            {
+                root: null,
+                rootMargin: "0px 0px 320px 0px",
+                threshold: 0.01,
+            }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [error, hasMore, isPaginationEnabled, loading, requestNextPage, supportsAutoLoad]);
 
     // Deep linking
     useEffect(() => {
@@ -1577,37 +1624,6 @@ END:VCALENDAR`;
         setCurrentPage(1);
     }, []);
 
-    const handleOpenAssistantEvent = useCallback(
-        (assistantEvent, recommendationContext = null) => {
-            if (!assistantEvent?.id) return;
-
-            const cachedEvent =
-                displayEvents.find((event) => event.id === assistantEvent.id) ||
-                (Array.isArray(events)
-                    ? events.find((event) => event.id === assistantEvent.id)
-                    : null);
-
-            setIsMobileAssistantOpen(false);
-            setIsDesktopAssistantOpen(false);
-            updateSelectedEventRecommendationContext(recommendationContext);
-            setSelectedEvent(cachedEvent || assistantEvent);
-
-            api.get(`/events/${assistantEvent.id}`, { silent: true })
-                .then((response) => {
-                    if (response.data) {
-                        updateSelectedEventRecommendationContext(recommendationContext);
-                        setSelectedEvent(response.data);
-                    }
-                })
-                .catch(() => {
-                    toast.error(
-                        t("events.assistant.detail_error", "活动详情加载失败，请稍后再试。")
-                    );
-                });
-        },
-        [displayEvents, events, t, updateSelectedEventRecommendationContext]
-    );
-
     const nightSegmentActiveClass =
         "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
     const dayPrimaryActionClass =
@@ -1661,13 +1677,13 @@ END:VCALENDAR`;
               };
 
     return (
-        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-20">
+        <section className="events-page-atmosphere day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-6 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-[100px]">
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
             <motion.div
                 {...pageHeaderMotion}
-                className="relative z-40 mb-3 text-center md:mb-6 md:pt-0"
+                className="relative z-40 mb-3 text-center md:mb-4 md:pt-0"
             >
                 <div className="mb-3 grid grid-cols-[88px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
                     <motion.button
@@ -1767,7 +1783,7 @@ END:VCALENDAR`;
                 </nav>
 
                 <div
-                    className={`mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] border-y md:hidden ${
+                    className={`mb-3 grid grid-cols-2 border-y md:hidden ${
                         isDayMode ? "border-slate-200/80" : "border-white/10"
                     }`}
                 >
@@ -1787,35 +1803,12 @@ END:VCALENDAR`;
                     <motion.button
                         {...mobileControlMotion}
                         type="button"
-                        aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
-                        onClick={() => {
-                            setIsMobileFilterOpen(false);
-                            setIsMobileSortOpen(false);
-                            setIsMobileAssistantOpen(true);
-                        }}
-                        className={`relative inline-flex h-10 min-w-0 items-center justify-center gap-1.5 overflow-hidden px-2 text-[12px] font-black transition-colors ${
-                            isDayMode
-                                ? "text-cyan-700 hover:text-cyan-900"
-                                : "text-cyan-200 hover:text-white"
-                        }`}
-                    >
-                        <Sparkles
-                            size={14}
-                            className={
-                                isDayMode ? "shrink-0 text-cyan-600" : "shrink-0 text-cyan-200"
-                            }
-                        />
-                        <span className="truncate">{t("events.assistant.ask_ai", "问AI")}</span>
-                    </motion.button>
-                    <motion.button
-                        {...mobileControlMotion}
-                        type="button"
                         aria-label={t("events.filter.open_audience_sheet", "打开学院筛选")}
                         onClick={() => {
                             setIsMobileSortOpen(false);
                             setIsMobileFilterOpen(true);
                         }}
-                        className={`inline-flex h-10 items-center justify-center gap-1.5 border-l text-[13px] font-semibold transition-colors ${isDayMode ? "border-slate-200/80 text-slate-600 hover:text-slate-950" : "border-white/10 text-slate-300 hover:text-white"}`}
+                        className={`inline-flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
                     >
                         <SlidersHorizontal size={17} />
                         <span className="truncate">{mobileAudienceLabel}</span>
@@ -1832,41 +1825,15 @@ END:VCALENDAR`;
                         onClearPartnerFilter={clearPartnerFilter}
                     />
                 </div>
-                {partnerFilter && (
-                    <div
-                        className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden justify-start md:flex`}
-                    >
-                        <button
-                            type="button"
-                            data-testid="organization-partner-active-filter"
-                            onClick={clearPartnerFilter}
-                            className={`inline-flex min-h-9 max-w-full items-center gap-2 border-b border-transparent px-1 text-xs font-bold transition-colors ${isDayMode ? "text-slate-700 hover:border-blue-500/60 hover:text-blue-800" : "text-indigo-100 hover:border-indigo-300/70 hover:text-white"}`}
-                        >
-                            <Users size={14} />
-                            <span className="truncate">
-                                {t("events.organizations.active_filter", "社团：{{name}}", {
-                                    name: partnerFilter.name,
-                                })}
-                            </span>
-                            <X size={14} />
-                        </button>
-                    </div>
-                )}
-
                 <div
                     className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
                 >
                     <div className="min-w-0">
                         <h2
-                            className={`text-balance font-serif text-3xl font-bold leading-tight md:text-4xl ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            className={`text-balance font-sans text-3xl font-bold tracking-wide leading-tight md:text-4xl ${isDayMode ? "text-slate-950" : "text-white"}`}
                         >
                             {t("events.title")}
                         </h2>
-                        <p
-                            className={`mt-1.5 max-w-2xl text-sm md:text-base ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
-                        >
-                            {t("events.subtitle")}
-                        </p>
                     </div>
 
                     {!isMiniProgramMode && (
@@ -1889,7 +1856,7 @@ END:VCALENDAR`;
                 </div>
 
                 {/* Desktop Filter Section */}
-                <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden md:block`}>
+                <div className={`${EVENT_FILTER_WIDTH_CLASS} mb-4 hidden md:block`}>
                     <EventFilterPanel
                         filters={filters}
                         onFiltersChange={setFilters}
@@ -1901,14 +1868,14 @@ END:VCALENDAR`;
                 <OrganizationPartnerWall
                     partners={eventOrganizationPartners}
                     isDayMode={isDayMode}
-                    className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden text-left md:block`}
+                    className={`${EVENT_FILTER_WIDTH_CLASS} mb-6 hidden text-left md:block`}
                     activePartnerId={partnerFilter?.id}
                     onApplyPartnerFilter={handleApplyPartnerFilter}
                     onClearPartnerFilter={clearPartnerFilter}
                 />
 
                 <div
-                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex translate-y-[6px]`}
                 >
                     <div
                         className={`text-left text-sm font-medium ${
@@ -2052,78 +2019,6 @@ END:VCALENDAR`;
                     document.body
                 )}
 
-                {createPortal(
-                    <MobileEventAssistantFullscreen
-                        isOpen={isMobileAssistantOpen}
-                        isDayMode={isDayMode}
-                        onClose={() => setIsMobileAssistantOpen(false)}
-                        onOpenEvent={handleOpenAssistantEvent}
-                    />,
-                    document.body
-                )}
-
-                {canRenderDesktopAssistant &&
-                    createPortal(
-                        <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
-                            <button
-                                type="button"
-                                onClick={() => setIsDesktopAssistantOpen(true)}
-                                aria-expanded={isDesktopAssistantOpen}
-                                aria-label={t(
-                                    "events.assistant.open_assistant",
-                                    "打开 AI 活动助手"
-                                )}
-                                className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex ${
-                                    isDayMode
-                                        ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
-                                        : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
-                                }`}
-                            >
-                                <Sparkles size={20} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isDesktopAssistantOpen && (
-                                    <>
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            onClick={() => setIsDesktopAssistantOpen(false)}
-                                            className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block ${isDayMode ? "bg-slate-950/5" : "bg-black/45"}`}
-                                        />
-                                        <motion.aside
-                                            initial={{ opacity: 0, x: 28 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{
-                                                type: "spring",
-                                                damping: 30,
-                                                stiffness: 340,
-                                            }}
-                                            role="dialog"
-                                            aria-modal="true"
-                                            aria-label={t(
-                                                "events.assistant.mobile_title",
-                                                "AI 活动助手"
-                                            )}
-                                            className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+88px)] z-[92] hidden h-[calc(100vh-112px)] w-[min(400px,calc(100vw-2rem))] md:block"
-                                        >
-                                            <EventAssistantPanel
-                                                isDayMode={isDayMode}
-                                                onOpenEvent={handleOpenAssistantEvent}
-                                                onClose={() => setIsDesktopAssistantOpen(false)}
-                                                variant="rail"
-                                                className="h-full"
-                                            />
-                                        </motion.aside>
-                                    </>
-                                )}
-                            </AnimatePresence>
-                        </div>,
-                        document.body
-                    )}
-
                 {/* Mobile Sort Drawer (Bottom Sheet) */}
                 {createPortal(
                     isMobileSortOpen ? (
@@ -2192,7 +2087,7 @@ END:VCALENDAR`;
                 )}
             </motion.div>
 
-            {error ? (
+            {error && !isLoadMoreError ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                     <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
                     <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
@@ -2296,17 +2191,46 @@ END:VCALENDAR`;
                 </div>
             )}
 
-            {!loading && !error && displayEvents.length > 0 && !isPaginationEnabled && hasMore && (
-                <div className="flex items-center justify-center pt-12">
-                    <motion.button
-                        whileHover={shouldReduceCardMotion ? undefined : { scale: 1.02 }}
-                        whileTap={shouldReduceCardMotion ? undefined : { scale: 0.98 }}
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className={`inline-flex items-center gap-2 border-b border-transparent px-2 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:border-blue-500/60 hover:text-blue-950" : "text-slate-200 hover:border-indigo-300/70 hover:text-white"}`}
+            {!isPaginationEnabled && displayEvents.length > 0 && (
+                <div className="pt-4">
+                    <div ref={autoLoadSentinelRef} className="h-px" aria-hidden="true" />
+
+                    <div
+                        className={`flex min-h-10 items-center justify-center text-sm ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
+                        role="status"
+                        aria-live="polite"
                     >
-                        {t("common.load_more", "加载更多")}
-                        <ChevronDown size={16} />
-                    </motion.button>
+                        {isLoadingMore ? (
+                            <span className="inline-flex items-center gap-2">
+                                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                                {t("common.loading", "加载中...")}
+                            </span>
+                        ) : isLoadMoreError ? (
+                            <button
+                                type="button"
+                                onClick={() => refresh({ clearCache: true })}
+                                className={`inline-flex min-h-10 items-center gap-2 px-2 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:text-blue-950" : "text-indigo-200 hover:text-white"}`}
+                            >
+                                {t("common.error_fetching_data", "获取数据失败")} ·
+                                {t("common.retry", "重试")}
+                            </button>
+                        ) : !hasMore && currentPage > 1 ? (
+                            <span>
+                                {eventLanguage.toLowerCase().startsWith("zh")
+                                    ? "已显示全部活动"
+                                    : "All events loaded"}
+                            </span>
+                        ) : !supportsAutoLoad && hasMore ? (
+                            <button
+                                type="button"
+                                onClick={requestNextPage}
+                                className={`inline-flex min-h-10 items-center gap-2 px-2 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-blue-800 hover:text-blue-950" : "text-indigo-200 hover:text-white"}`}
+                            >
+                                {t("common.load_more", "加载更多")}
+                                <ChevronDown size={16} aria-hidden="true" />
+                            </button>
+                        ) : null}
+                    </div>
                 </div>
             )}
 

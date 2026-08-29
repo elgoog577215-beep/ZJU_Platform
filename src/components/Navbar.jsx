@@ -21,12 +21,10 @@ import {
     Smartphone,
     Trees,
     UserCircle,
-    Wallpaper,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { BACKGROUND_SCENES } from "../constants/backgroundScenes";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -52,13 +50,11 @@ const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
 const Navbar = ({ miniProgramMode = false }) => {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
-    const [isThemeOpen, setIsThemeOpen] = useState(false);
     const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
     const location = useLocation();
     const { t } = useTranslation();
-    const { uiMode, changeUiMode, backgroundScene, changeBackgroundScene, showWeatherWidget } =
-        useSettings();
+    const { uiMode, changeUiMode, showWeatherWidget } = useSettings();
     const { user, logout, isAdmin } = useAuth();
     const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
     const [time, setTime] = useState(new Date());
@@ -81,7 +77,6 @@ const Navbar = ({ miniProgramMode = false }) => {
     } = useWeather(undefined, undefined, { enabled: weatherWidgetEnabled });
 
     useBackClose(weatherWidgetEnabled && isWeatherModalOpen, () => setIsWeatherModalOpen(false));
-    useBackClose(isThemeOpen, () => setIsThemeOpen(false));
     useBackClose(isMobileMoreOpen, () => setIsMobileMoreOpen(false));
 
     useEffect(() => {
@@ -189,8 +184,8 @@ const Navbar = ({ miniProgramMode = false }) => {
     }, []);
 
     const shellClasses = isDayMode
-        ? "bg-white/94 border-slate-900/[0.08] shadow-none"
-        : "bg-black/72 border-white/10 shadow-none";
+        ? "bg-white/[0.82] border-slate-900/[0.08] shadow-none"
+        : "bg-black/[0.78] border-white/10 shadow-none";
     const desktopNavTrackClasses = `flex shrink-0 items-center gap-0.5 rounded-[12px] border p-1 ${
         isDayMode
             ? "border-slate-200/80 bg-slate-950/[0.025]"
@@ -236,12 +231,6 @@ const Navbar = ({ miniProgramMode = false }) => {
             ? "text-slate-600 hover:border-violet-500/55 hover:text-violet-800"
             : "text-slate-300 hover:border-indigo-400/70 hover:text-white"
     }`;
-    const wallpaperModalClasses = isDayMode
-        ? "theme-dialog text-slate-900"
-        : "bg-[#08111f]/96 backdrop-blur-2xl border border-indigo-400/10 text-white";
-    const wallpaperHeaderClasses = isDayMode
-        ? "text-slate-700 bg-white border border-slate-200/70"
-        : "text-white/84 bg-[#08111f]/92 border border-white/10";
     const weatherModalClasses = isDayMode
         ? "theme-dialog text-slate-900"
         : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
@@ -256,12 +245,6 @@ const Navbar = ({ miniProgramMode = false }) => {
     const nextUiMode = isDayMode ? "dark" : "day";
     const themeToggleLabel = t(nextUiMode === "day" ? "nav.day_mode" : "nav.night_mode");
     const themeToggleTitle = `${t("nav.theme_settings")} - ${themeToggleLabel}`;
-    const activeBackgroundScene =
-        BACKGROUND_SCENES.find((scene) => scene.id === backgroundScene) || BACKGROUND_SCENES[0];
-    const activeBackgroundSceneName = t(
-        `themes.${activeBackgroundScene.id}.name`,
-        activeBackgroundScene.name
-    );
     const weatherTemperature = Number(weather?.temperature);
     const weatherTemperatureLabel = Number.isFinite(weatherTemperature)
         ? `${Math.round(weatherTemperature)}°C`
@@ -272,7 +255,7 @@ const Navbar = ({ miniProgramMode = false }) => {
             variants={navEntrance}
             initial={prefersReducedMotion ? false : "initial"}
             animate={prefersReducedMotion ? undefined : "animate"}
-            className={`motion-gpu fixed top-0 left-0 right-0 z-50 items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b ${hideMobileTopBar ? "hidden md:flex" : "flex"} ${isDayMode ? "" : "backdrop-blur-xl"} ${shellClasses}`}
+            className={`motion-gpu fixed top-0 left-0 right-0 z-50 items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b ${hideMobileTopBar ? "hidden md:flex" : "flex"} backdrop-blur-xl ${shellClasses}`}
             role="navigation"
             aria-label={t("nav.main_aria")}
         >
@@ -418,16 +401,6 @@ const Navbar = ({ miniProgramMode = false }) => {
                     ) : (
                         <Sun size={18} aria-hidden="true" />
                     )}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => setIsThemeOpen(true)}
-                    className={`${desktopUtilityButtonClasses} ${isDayMode ? "hover:text-violet-800" : "hover:text-indigo-200"}`}
-                    title={t("nav.wallpaper_title")}
-                    aria-label={t("nav.wallpaper_aria")}
-                >
-                    <Wallpaper size={18} aria-hidden="true" />
                 </button>
 
                 {isDesktopViewport && (
@@ -738,20 +711,6 @@ const Navbar = ({ miniProgramMode = false }) => {
                                         </span>
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMobileMoreOpen(false);
-                                            setIsThemeOpen(true);
-                                        }}
-                                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100 hover:bg-indigo-500/[0.16]"}`}
-                                    >
-                                        <Wallpaper size={18} aria-hidden="true" />
-                                        <span className="text-sm font-semibold">
-                                            {t("nav.wallpaper_title")}
-                                        </span>
-                                    </button>
-
                                     <div
                                         className={`col-span-2 flex min-h-[52px] items-center justify-center rounded-lg border px-2 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/[0.04]"}`}
                                     >
@@ -799,202 +758,6 @@ const Navbar = ({ miniProgramMode = false }) => {
                                         </button>
                                     )}
                                 </div>
-                            </motion.div>
-                        </motion.div>
-                    </Portal>
-                )}
-                {isThemeOpen && (
-                    <Portal>
-                        <motion.div
-                            variants={modalBackdrop}
-                            initial={prefersReducedMotion ? false : "initial"}
-                            animate={prefersReducedMotion ? undefined : "animate"}
-                            exit={prefersReducedMotion ? undefined : "exit"}
-                            className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 ${isDayMode ? "bg-transparent" : "bg-black/80 backdrop-blur-sm"}`}
-                            onClick={() => setIsThemeOpen(false)}
-                        >
-                            <motion.div
-                                variants={modalContent}
-                                initial={prefersReducedMotion ? false : "initial"}
-                                animate={prefersReducedMotion ? undefined : "animate"}
-                                exit={prefersReducedMotion ? undefined : "exit"}
-                                className={`p-4 rounded-t-lg md:rounded-lg shadow-2xl w-full max-w-2xl max-h-[86vh] overflow-y-auto custom-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+20px)] md:pb-5 ${wallpaperModalClasses}`}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div
-                                    className={`mb-4 flex items-center justify-between rounded-lg p-2 backdrop-blur-md ${wallpaperHeaderClasses}`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Wallpaper size={16} />
-                                        <h3 className="text-sm font-bold uppercase tracking-widest">
-                                            {t("nav.wallpaper_title")}
-                                        </h3>
-                                    </div>
-                                    <button
-                                        onClick={() => setIsThemeOpen(false)}
-                                        className={
-                                            isDayMode
-                                                ? "text-slate-400 hover:text-slate-900"
-                                                : "text-gray-400 hover:text-white"
-                                        }
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-
-                                <div
-                                    className={`mb-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
-                                        isDayMode
-                                            ? "border-violet-200/70 bg-white"
-                                            : "border-indigo-400/15 bg-indigo-500/[0.08]"
-                                    }`}
-                                >
-                                    <div>
-                                        <div
-                                            className={`text-xs font-black uppercase tracking-[0.22em] ${
-                                                isDayMode
-                                                    ? "text-violet-500/78"
-                                                    : "text-indigo-200/70"
-                                            }`}
-                                        >
-                                            {t("nav.wallpaper_scope")}
-                                        </div>
-                                        <div
-                                            className={`mt-1 text-sm font-bold ${
-                                                isDayMode ? "text-slate-900" : "text-white"
-                                            }`}
-                                        >
-                                            {t("nav.wallpaper_current", {
-                                                name: activeBackgroundSceneName,
-                                            })}
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={`hidden text-right text-xs leading-5 sm:block ${
-                                            isDayMode ? "text-slate-500" : "text-white/50"
-                                        }`}
-                                    >
-                                        {t("nav.wallpaper_live")}
-                                        <br />
-                                        {t("nav.wallpaper_saved")}
-                                    </div>
-                                </div>
-
-                                <div
-                                    className={`mb-4 rounded-lg border px-4 py-3 text-xs leading-5 ${
-                                        isDayMode
-                                            ? "border-violet-100/90 bg-white text-slate-600"
-                                            : "border-white/10 bg-white/[0.035] text-white/56"
-                                    }`}
-                                >
-                                    {t("nav.wallpaper_mode_hint")}
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-2">
-                                    {BACKGROUND_SCENES.map((scene) => {
-                                        const isActiveScene = true;
-                                        const sceneName = t(`themes.${scene.id}.name`, scene.name);
-                                        const sceneDesc = t(`themes.${scene.id}.desc`, scene.desc);
-                                        const sceneButtonClasses = isDayMode
-                                            ? "border-violet-300/80 bg-white shadow-none"
-                                            : "border-indigo-400/50 bg-indigo-500/[0.14] shadow-[0_18px_44px_rgba(99,102,241,0.14)]";
-
-                                        return (
-                                            <button
-                                                key={scene.id}
-                                                type="button"
-                                                onClick={() => changeBackgroundScene(scene.id)}
-                                                className={`motion-press group flex min-h-[108px] items-stretch overflow-hidden rounded-lg border text-left transition-all ${sceneButtonClasses}`}
-                                                aria-pressed={isActiveScene}
-                                            >
-                                                <div className={`w-24 shrink-0 ${scene.preview}`}>
-                                                    <div className="h-full w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(0,0,0,0.26))]" />
-                                                </div>
-                                                <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <div
-                                                            className={`truncate text-sm font-black ${
-                                                                isDayMode
-                                                                    ? "text-slate-900"
-                                                                    : "text-white"
-                                                            }`}
-                                                        >
-                                                            {sceneName}
-                                                        </div>
-                                                        {isActiveScene ? (
-                                                            <span
-                                                                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-black ${
-                                                                    isDayMode
-                                                                        ? "bg-violet-600 text-white"
-                                                                        : "bg-indigo-500 text-white"
-                                                                }`}
-                                                            >
-                                                                {t("nav.wallpaper_enabled")}
-                                                            </span>
-                                                        ) : null}
-                                                    </div>
-                                                    <p
-                                                        className={`mt-1 line-clamp-2 text-xs leading-5 ${
-                                                            isDayMode
-                                                                ? "text-slate-500"
-                                                                : "text-white/58"
-                                                        }`}
-                                                    >
-                                                        {sceneDesc}
-                                                    </p>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <div
-                                    className={`mb-4 rounded-lg border p-1.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/5"}`}
-                                >
-                                    <div
-                                        className={`mb-2 px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                                    >
-                                        {t("nav.appearance_mode")}
-                                    </div>
-                                    <div
-                                        className={`mb-2 px-2 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                                    >
-                                        {t("nav.appearance_hint")}
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {["dark", "day"].map((mode) => {
-                                            const isActiveMode = uiMode === mode;
-                                            return (
-                                                <button
-                                                    key={mode}
-                                                    onClick={() => changeUiMode(mode)}
-                                                    className={`rounded-md px-3 py-3 text-left transition-all border ${isActiveMode ? (isDayMode ? "bg-white border-indigo-400/30 shadow-none" : "bg-indigo-500/15 border-indigo-400/30 shadow-[0_10px_22px_rgba(99,102,241,0.14)]") : isDayMode ? "bg-transparent border-transparent hover:bg-white" : "bg-transparent border-transparent hover:bg-white/10"}`}
-                                                >
-                                                    <div
-                                                        className={`text-sm font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                                                    >
-                                                        {t(
-                                                            mode === "day"
-                                                                ? "nav.day_mode"
-                                                                : "nav.night_mode"
-                                                        )}
-                                                    </div>
-                                                    <div
-                                                        className={`mt-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                                                    >
-                                                        {t(
-                                                            mode === "day"
-                                                                ? "nav.day_mode_hint"
-                                                                : "nav.night_mode_hint"
-                                                        )}
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div className="hidden">{t("nav.wallpaper_static_home_note")}</div>
                             </motion.div>
                         </motion.div>
                     </Portal>

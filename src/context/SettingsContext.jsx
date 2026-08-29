@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect, useContext, useMemo, useCallback } from "react";
 import api from "../services/api";
-import { DEFAULT_BACKGROUND_SCENE, isBackgroundSceneId } from "../constants/backgroundScenes";
 
 const DEFAULT_SETTINGS = {
     pagination_enabled: "false",
@@ -9,6 +8,7 @@ const DEFAULT_SETTINGS = {
     hero_title: "拓浙AI生态",
     hero_subtitle: "连接人才、技术与真实产业",
     background_brightness: "1.0",
+    background_opacity: "1.0",
     background_vignette: "0.5",
     background_bloom: "0.8",
     hero_bg_url: "/images/hero-landscape-day-4k.jpg",
@@ -43,7 +43,6 @@ const LEGACY_SETTING_VALUES = {
 const DEFAULT_UI_MODE = "dark";
 const UI_MODE_STORAGE_KEY = "ui_mode_v3";
 const WEATHER_WIDGET_STORAGE_KEY = "show_weather_widget_v1";
-const BACKGROUND_SCENE_STORAGE_KEY = "background_scene_v2";
 
 const readStorage = (key, fallbackValue) => {
     try {
@@ -74,6 +73,7 @@ const normalizeSettings = (nextSettings = {}) => {
     return {
         ...merged,
         background_brightness: String(merged.background_brightness),
+        background_opacity: String(merged.background_opacity),
         background_vignette: String(merged.background_vignette),
         background_bloom: String(merged.background_bloom),
     };
@@ -87,8 +87,6 @@ const defaultSettingsValue = {
     toggleCursor: () => {},
     uiMode: DEFAULT_UI_MODE,
     changeUiMode: () => {},
-    backgroundScene: DEFAULT_BACKGROUND_SCENE,
-    changeBackgroundScene: () => {},
     showWeatherWidget: false,
     toggleWeatherWidget: () => {},
     changeWeatherWidgetVisibility: () => {},
@@ -108,12 +106,6 @@ export const SettingsProvider = ({ children }) => {
     const [uiMode, setUiMode] = useState(() => {
         const saved = readStorage(UI_MODE_STORAGE_KEY, DEFAULT_UI_MODE);
         return saved === "day" || saved === "dark" ? saved : DEFAULT_UI_MODE;
-    });
-    const [backgroundScene, setBackgroundScene] = useState(() => {
-        const saved = readStorage(BACKGROUND_SCENE_STORAGE_KEY, DEFAULT_BACKGROUND_SCENE);
-        if (isBackgroundSceneId(saved)) return saved;
-        writeStorage(BACKGROUND_SCENE_STORAGE_KEY, DEFAULT_BACKGROUND_SCENE);
-        return DEFAULT_BACKGROUND_SCENE;
     });
     const [showWeatherWidget, setShowWeatherWidget] = useState(() => {
         const saved = readStorage(WEATHER_WIDGET_STORAGE_KEY, "false");
@@ -153,12 +145,6 @@ export const SettingsProvider = ({ children }) => {
         const nextMode = mode === "day" ? "day" : "dark";
         setUiMode(nextMode);
         writeStorage(UI_MODE_STORAGE_KEY, nextMode);
-    }, []);
-
-    const changeBackgroundScene = useCallback((sceneId) => {
-        const nextScene = isBackgroundSceneId(sceneId) ? sceneId : DEFAULT_BACKGROUND_SCENE;
-        setBackgroundScene(nextScene);
-        writeStorage(BACKGROUND_SCENE_STORAGE_KEY, nextScene);
     }, []);
 
     const changeWeatherWidgetVisibility = useCallback((enabled) => {
@@ -208,8 +194,6 @@ export const SettingsProvider = ({ children }) => {
             toggleCursor,
             uiMode,
             changeUiMode,
-            backgroundScene,
-            changeBackgroundScene,
             showWeatherWidget,
             toggleWeatherWidget,
             changeWeatherWidgetVisibility,
@@ -223,8 +207,6 @@ export const SettingsProvider = ({ children }) => {
             toggleCursor,
             uiMode,
             changeUiMode,
-            backgroundScene,
-            changeBackgroundScene,
             showWeatherWidget,
             toggleWeatherWidget,
             changeWeatherWidgetVisibility,

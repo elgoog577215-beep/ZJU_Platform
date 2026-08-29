@@ -243,7 +243,7 @@ const aiModelConfigsPayload = [
 const installAdminMocks = async (page) => {
     await page.addInitScript(() => {
         localStorage.setItem("token", "mock-admin-token");
-        localStorage.setItem("ui_mode_v2", "day");
+        localStorage.setItem("ui_mode_v3", "day");
     });
 
     await page.route("**/api/**", (route) => {
@@ -255,14 +255,23 @@ const installAdminMocks = async (page) => {
             return route.fulfill({ json: adminUser });
         }
 
-        if (path === "/settings") {
+        if (path === "/settings" && request.method() === "GET") {
             return route.fulfill({
                 json: {
                     site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",
                     pagination_enabled: "false",
                     language: "zh",
+                    background_brightness: "1.0",
+                    background_opacity: "1.0",
+                    background_bloom: "0.8",
+                    background_vignette: "0.5",
                 },
             });
+        }
+
+        if (path === "/settings" && request.method() === "POST") {
+            const payload = request.postDataJSON();
+            return route.fulfill({ json: { success: true, ...payload } });
         }
 
         if (path === "/stats") {
@@ -592,6 +601,42 @@ test.describe("admin console refinement", () => {
             await expect(pageHeader).not.toHaveClass(/rect-surface|theme-admin-panel/);
             await expect(workspace.locator("section.rect-surface")).toHaveCount(0);
         }
+    });
+
+    test("public appearance controls preview and persist background opacity", async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await installAdminMocks(page);
+        await page.goto("/admin?tab=settings");
+
+        await page.getByRole("tab", { name: "公共外观" }).click();
+        await expect(page.getByText("所有设置已保存")).toBeVisible();
+        await expect(page.getByTestId("appearance-background-preview")).toBeVisible();
+        await expect(page.getByRole("slider", { name: "背景亮度" })).toHaveValue("1");
+        await expect(page.getByRole("slider", { name: "背景透明度" })).toHaveValue("1");
+
+        const opacitySlider = page.getByRole("slider", { name: "背景透明度" });
+        await opacitySlider.fill("0.65");
+        await expect(page.getByText("1 项未保存")).toBeVisible();
+        await expect(page.getByTestId("appearance-background-preview-scene")).toHaveCSS(
+            "opacity",
+            "0.65"
+        );
+
+        const settingsRequest = page.waitForRequest(
+            (request) =>
+                request.url().endsWith("/api/settings") &&
+                request.method() === "POST" &&
+                request.postDataJSON().key === "background_opacity"
+        );
+        await page.getByRole("button", { name: "保存公共背景" }).click();
+        await settingsRequest;
+        await expect(page.getByText("所有设置已保存")).toBeVisible();
+
+        await page.getByRole("button", { name: "黑夜预览" }).click();
+        await expect(page.getByRole("button", { name: "黑夜预览" })).toHaveAttribute(
+            "aria-pressed",
+            "true"
+        );
     });
 
     test("mobile admin drawer opens, closes, and navigates without body scroll leak", async ({

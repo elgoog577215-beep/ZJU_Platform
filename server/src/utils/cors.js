@@ -1,5 +1,4 @@
 const DEFAULT_DEV_ORIGINS = [
-    "http://localhost:5173",
     "http://localhost:5180",
     "http://localhost:3000",
     "http://localhost:3001",

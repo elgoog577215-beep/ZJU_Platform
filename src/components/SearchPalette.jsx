@@ -12,6 +12,9 @@ import {
     MessageSquare,
     Users,
     Sparkles,
+    Loader2,
+    MapPin,
+    Clock3,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +26,17 @@ import { useSettings } from "../context/SettingsContext";
 import { useTranslation } from "react-i18next";
 
 import { getThumbnailUrl } from "../utils/imageUtils";
+import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
+
+const formatEventDate = (value) => {
+    if (!value || typeof value !== "string") return "";
+    const normalized = value.trim().replace(" ", "T");
+    const [datePart, timePart] = normalized.split("T");
+    const [, month, day] = datePart.split("-");
+    if (!month || !day) return value;
+    const time = timePart?.slice(0, 5);
+    return `${Number(month)}.${Number(day)}${time && time !== "00:00" ? ` ${time}` : ""}`;
+};
 
 const SearchPalette = ({ initialOpen = false }) => {
     const { t } = useTranslation();
@@ -33,9 +47,14 @@ const SearchPalette = ({ initialOpen = false }) => {
     const [results, setResults] = useState([]);
     const [resultGroups, setResultGroups] = useState([]);
     const [searchMeta, setSearchMeta] = useState(null);
-    const [selectedIndex, setSelectedIndex] = useState(0);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
     const [loading, setLoading] = useState(false);
+    const [aiState, setAiState] = useState(null);
+    const [aiQuery, setAiQuery] = useState("");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState("");
     const inputRef = useRef(null);
+    const aiControllerRef = useRef(null);
     const navigate = useNavigate();
     const prefersReducedMotion = useReducedMotion();
     const normalizedQuery = query.trim();
@@ -67,12 +86,27 @@ const SearchPalette = ({ initialOpen = false }) => {
                 inputRef.current?.focus();
             });
         } else {
+            aiControllerRef.current?.abort();
             setQuery("");
             setResults([]);
             setResultGroups([]);
             setSearchMeta(null);
+            setSelectedIndex(-1);
+            setAiState(null);
+            setAiQuery("");
+            setAiLoading(false);
+            setAiError("");
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (!aiQuery || normalizedQuery === aiQuery) return;
+        aiControllerRef.current?.abort();
+        setAiState(null);
+        setAiQuery("");
+        setAiLoading(false);
+        setAiError("");
+    }, [aiQuery, normalizedQuery]);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -106,7 +140,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                         setResults(visibleResults);
                         setResultGroups(visibleGroups);
                         setSearchMeta(Array.isArray(payload) ? null : payload);
-                        setSelectedIndex(0);
+                        setSelectedIndex(-1);
                         setLoading(false);
                     })
                     .catch((err) => {
@@ -128,19 +162,60 @@ const SearchPalette = ({ initialOpen = false }) => {
         };
     }, [isOpen, normalizedQuery]);
 
-    const handleInputKeyDown = (e) => {
-        if (results.length === 0) return;
+    const runAiRequest = async (payload, activeQuery = normalizedQuery) => {
+        if (activeQuery.length < 2 || aiLoading) return;
 
-        if (e.key === "ArrowDown") {
+        aiControllerRef.current?.abort();
+        const controller = new AbortController();
+        aiControllerRef.current = controller;
+        setAiLoading(true);
+        setAiError("");
+        setAiQuery(activeQuery);
+
+        try {
+            const response = await api.post(
+                "/events/assistant",
+                {
+                    allowHistoricalFallback: true,
+                    visitorKey: getOrCreateSiteVisitorKey(),
+                    ...payload,
+                },
+                { signal: controller.signal }
+            );
+            setAiState(response.data);
+        } catch (error) {
+            if (error.code === "ERR_CANCELED" || error.name === "CanceledError") return;
+            setAiError(
+                error?.response?.data?.message ||
+                    t("events.assistant.error", "AI 推荐暂时不可用，普通搜索结果仍可使用。")
+            );
+        } finally {
+            if (aiControllerRef.current === controller) {
+                setAiLoading(false);
+            }
+        }
+    };
+
+    const handleAiEnhance = () => {
+        if (normalizedQuery.length < 2 || aiLoading) return;
+        runAiRequest({ query: normalizedQuery }, normalizedQuery);
+    };
+
+    const handleInputKeyDown = (e) => {
+        if (e.key === "ArrowDown" && results.length > 0) {
             e.preventDefault();
             setSelectedIndex((prev) => (prev + 1) % results.length);
-        } else if (e.key === "ArrowUp") {
+        } else if (e.key === "ArrowUp" && results.length > 0) {
             e.preventDefault();
-            setSelectedIndex((prev) => (prev - 1 + results.length) % results.length);
+            setSelectedIndex((prev) =>
+                prev < 0 ? results.length - 1 : (prev - 1 + results.length) % results.length
+            );
         } else if (e.key === "Enter") {
             e.preventDefault();
-            if (results[selectedIndex]) {
+            if (selectedIndex >= 0 && results[selectedIndex]) {
                 handleSelect(results[selectedIndex]);
+            } else {
+                handleAiEnhance();
             }
         }
     };
@@ -159,6 +234,119 @@ const SearchPalette = ({ initialOpen = false }) => {
             navigate(`${target}?id=${item.id}`);
         }
         setIsOpen(false);
+    };
+
+    const handleSelectAiRecommendation = (item, index) => {
+        const event = item?.event;
+        if (!event?.id) return;
+
+        if (aiState?.assistantRunId) {
+            api.post(
+                "/events/assistant/action",
+                {
+                    eventId: event.id,
+                    actionType: "view_detail",
+                    assistantRunId: aiState.assistantRunId,
+                    recommendationRank: Number(item.rank) || index + 1,
+                    source: "unified_search",
+                    visitorKey: getOrCreateSiteVisitorKey(),
+                    metadata: { surface: "unified_search_palette" },
+                },
+                { silent: true }
+            ).catch(() => {});
+        }
+
+        navigate(`/events?id=${encodeURIComponent(String(event.id))}`);
+        setIsOpen(false);
+    };
+
+    const renderAiRecommendation = (item, index) => {
+        const event = item?.event;
+        if (!event?.id) return null;
+        const signals = Array.from(
+            new Set([...(item.matchedSignals || []), ...(item.matchSignals || [])])
+        ).slice(0, 3);
+
+        return (
+            <button
+                key={`ai-event-${event.id}`}
+                type="button"
+                onClick={() => handleSelectAiRecommendation(item, index)}
+                className={`group flex w-full items-start gap-3 rounded-[6px] border px-3 py-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                    isDayMode
+                        ? "border-slate-200/80 bg-white/70 hover:border-indigo-200 hover:bg-white"
+                        : "border-white/10 bg-white/[0.035] hover:border-indigo-300/25 hover:bg-white/[0.06]"
+                }`}
+            >
+                <div
+                    className={`h-16 w-20 shrink-0 overflow-hidden rounded-[5px] border ${isDayMode ? "border-slate-200 bg-slate-100" : "border-white/10 bg-black/30"}`}
+                >
+                    {event.image ? (
+                        <img
+                            src={getThumbnailUrl(event.image)}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                            <Sparkles size={20} className="text-indigo-400" />
+                        </div>
+                    )}
+                </div>
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <p
+                                className={`truncate text-sm font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                            >
+                                {event.title}
+                            </p>
+                            {item.reason ? (
+                                <p
+                                    className={`mt-1 line-clamp-2 text-xs leading-5 ${isDayMode ? "text-slate-600" : "text-slate-400"}`}
+                                >
+                                    {item.reason}
+                                </p>
+                            ) : null}
+                        </div>
+                        <ArrowRight
+                            size={16}
+                            className={`mt-0.5 shrink-0 transition-transform group-hover:translate-x-0.5 ${isDayMode ? "text-slate-400" : "text-slate-500"}`}
+                        />
+                    </div>
+                    <div
+                        className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
+                        {event.date ? (
+                            <span className="inline-flex items-center gap-1">
+                                <Clock3 size={12} />
+                                {formatEventDate(event.date)}
+                            </span>
+                        ) : null}
+                        {event.location ? (
+                            <span className="inline-flex min-w-0 items-center gap-1">
+                                <MapPin size={12} />
+                                <span className="max-w-[220px] truncate">{event.location}</span>
+                            </span>
+                        ) : null}
+                    </div>
+                    {signals.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                            {signals.map((signal) => (
+                                <span
+                                    key={signal}
+                                    className={`rounded-[4px] px-1.5 py-0.5 text-[10px] ${isDayMode ? "bg-indigo-50 text-indigo-700" : "bg-indigo-400/10 text-indigo-200"}`}
+                                >
+                                    {signal}
+                                </span>
+                            ))}
+                        </div>
+                    ) : null}
+                </div>
+            </button>
+        );
     };
 
     const getIcon = (type) => {
@@ -315,7 +503,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                             prefersReducedMotion ? undefined : { opacity: 0, scale: 0.98, y: -12 }
                         }
                         transition={prefersReducedMotion ? undefined : { duration: 0.16 }}
-                        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 backdrop-blur-[28px] backdrop-saturate-150 md:h-auto md:max-w-3xl md:rounded-[16px] md:border ${
+                        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 backdrop-blur-[28px] backdrop-saturate-150 md:h-auto md:max-h-[84vh] md:min-h-[420px] md:max-w-5xl md:rounded-[12px] md:border ${
                             isDayMode
                                 ? "bg-white/[0.84] text-slate-950 shadow-[0_26px_80px_rgba(15,23,42,0.24)] md:border-white/70 md:bg-white/[0.74]"
                                 : "bg-[#0b0d16]/[0.90] text-white shadow-[0_30px_90px_rgba(0,0,0,0.48)] md:border-white/[0.13] md:bg-[#0b0d16]/[0.82]"
@@ -363,6 +551,28 @@ const SearchPalette = ({ initialOpen = false }) => {
                                             : "text-white placeholder:text-slate-400"
                                     }`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={handleAiEnhance}
+                                    disabled={normalizedQuery.length < 2 || aiLoading}
+                                    aria-label={t("search.ai_enhance", "使用 AI 增强推荐")}
+                                    className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[6px] px-2.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                        isDayMode
+                                            ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                                            : "bg-indigo-400/10 text-indigo-200 hover:bg-indigo-400/15"
+                                    }`}
+                                >
+                                    {aiLoading ? (
+                                        <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                        <Sparkles size={14} />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {aiLoading
+                                            ? t("search.ai_thinking", "推荐中")
+                                            : t("search.ai_enhance_short", "AI 增强")}
+                                    </span>
+                                </button>
                             </div>
                             <div className="flex items-center gap-2">
                                 <kbd
@@ -390,16 +600,15 @@ const SearchPalette = ({ initialOpen = false }) => {
                         </div>
 
                         <div className="custom-scrollbar flex-1 overflow-y-auto p-3 pb-[env(safe-area-inset-bottom)]">
-                            {loading ? (
+                            {loading && results.length === 0 && !aiState && !aiLoading ? (
                                 <div
                                     className={`p-8 text-center ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
                                 >
                                     {t("common.searching")}
                                 </div>
-                            ) : results.length > 0 ? (
+                            ) : results.length > 0 || aiState || aiLoading || aiError ? (
                                 <div
                                     id={listboxId}
-                                    role="listbox"
                                     aria-label={t("search.results", "搜索结果")}
                                     className="space-y-3"
                                 >
@@ -408,8 +617,18 @@ const SearchPalette = ({ initialOpen = false }) => {
                                             className={`flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.03] text-gray-400"}`}
                                         >
                                             <span className="inline-flex items-center gap-1">
-                                                <Sparkles size={13} />
-                                                {t("search.ai_search", "全站 AI 搜索")}
+                                                <Search size={13} />
+                                                {aiLoading
+                                                    ? t(
+                                                          "search.progressive_status",
+                                                          "已展示即时结果 · AI 正在结合你的兴趣扩展"
+                                                      )
+                                                    : aiState
+                                                      ? t(
+                                                            "search.progressive_complete",
+                                                            "已展示即时结果 · AI 已结合你的兴趣扩展"
+                                                        )
+                                                      : t("search.instant_search", "即时搜索")}
                                             </span>
                                             <span>
                                                 {t("search.result_meta", {
@@ -421,23 +640,128 @@ const SearchPalette = ({ initialOpen = false }) => {
                                         </div>
                                     ) : null}
 
-                                    {resultGroups.length > 0 ? (
-                                        resultGroups.map((group) => (
-                                            <section key={group.key} className="space-y-1">
-                                                <div
-                                                    className={`flex items-center justify-between px-2 text-[11px] font-bold uppercase tracking-normal ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+                                    {results.length > 0 ? (
+                                        <section
+                                            role="listbox"
+                                            aria-label={t("search.instant_results", "即时结果")}
+                                            className="space-y-2"
+                                        >
+                                            <div
+                                                className={`flex items-center justify-between px-2 text-[11px] font-bold ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                                            >
+                                                <span>{t("search.most_relevant", "最相关")}</span>
+                                                <span
+                                                    className={`rounded-[4px] px-1.5 py-0.5 text-[10px] ${isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5 text-slate-400"}`}
                                                 >
-                                                    <span>{group.label}</span>
-                                                    <span>{group.count}</span>
+                                                    {t("search.instant_results", "即时结果")}
+                                                </span>
+                                            </div>
+                                            {resultGroups.length > 0
+                                                ? resultGroups.flatMap((group) =>
+                                                      (group.results || []).map(renderResultItem)
+                                                  )
+                                                : results.map(renderResultItem)}
+                                        </section>
+                                    ) : null}
+
+                                    {aiLoading || aiState || aiError ? (
+                                        <section className="space-y-2 pt-1">
+                                            <div
+                                                className={`flex items-center justify-between px-2 text-[11px] font-bold ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                                            >
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <Sparkles
+                                                        size={13}
+                                                        className="text-indigo-400"
+                                                    />
+                                                    {t("search.for_you", "为你推荐")}
+                                                </span>
+                                                <span
+                                                    className={`rounded-[4px] px-1.5 py-0.5 text-[10px] ${isDayMode ? "bg-indigo-50 text-indigo-700" : "bg-indigo-400/10 text-indigo-200"}`}
+                                                >
+                                                    {t("search.ai_recommendation", "AI 推荐")}
+                                                </span>
+                                            </div>
+                                            {aiLoading ? (
+                                                <div
+                                                    className={`flex min-h-24 items-center justify-center gap-2 rounded-[6px] border text-sm ${isDayMode ? "border-slate-200 bg-white/50 text-slate-500" : "border-white/10 bg-white/[0.025] text-slate-400"}`}
+                                                >
+                                                    <Loader2 size={17} className="animate-spin" />
+                                                    {t(
+                                                        "search.ai_loading_detail",
+                                                        "正在结合语义和兴趣画像扩展结果…"
+                                                    )}
                                                 </div>
-                                                {(group.results || []).map(renderResultItem)}
-                                            </section>
-                                        ))
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {results.map(renderResultItem)}
-                                        </div>
-                                    )}
+                                            ) : aiError ? (
+                                                <div
+                                                    className={`rounded-[6px] border px-4 py-3 text-sm ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-800" : "border-amber-300/15 bg-amber-300/10 text-amber-100"}`}
+                                                >
+                                                    {aiError}
+                                                </div>
+                                            ) : aiState?.type === "recommend" ? (
+                                                <div className="space-y-2">
+                                                    {aiState.summary ? (
+                                                        <p
+                                                            className={`px-2 text-xs leading-5 ${isDayMode ? "text-slate-600" : "text-slate-400"}`}
+                                                        >
+                                                            {aiState.summary}
+                                                        </p>
+                                                    ) : null}
+                                                    {(aiState.recommendations || []).map(
+                                                        renderAiRecommendation
+                                                    )}
+                                                </div>
+                                            ) : aiState?.type === "clarify" ? (
+                                                <div
+                                                    className={`rounded-[6px] border px-4 py-3 ${isDayMode ? "border-slate-200 bg-white/60" : "border-white/10 bg-white/[0.03]"}`}
+                                                >
+                                                    <p
+                                                        className={`text-sm font-semibold ${isDayMode ? "text-slate-800" : "text-slate-100"}`}
+                                                    >
+                                                        {aiState.question}
+                                                    </p>
+                                                    <p
+                                                        className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                                                    >
+                                                        {t(
+                                                            "search.refine_hint",
+                                                            "可以修改上方查询，或先按当前条件查看推荐。"
+                                                        )}
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            runAiRequest(
+                                                                {
+                                                                    query: aiQuery,
+                                                                    clarificationAnswer:
+                                                                        "没有更多限制，请直接按当前条件推荐",
+                                                                    clarificationUsed: true,
+                                                                },
+                                                                aiQuery
+                                                            )
+                                                        }
+                                                        className={`mt-3 inline-flex h-8 items-center gap-1.5 rounded-[6px] px-3 text-xs font-semibold ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-indigo-400 text-slate-950 hover:bg-indigo-300"}`}
+                                                    >
+                                                        <Sparkles size={13} />
+                                                        {t(
+                                                            "search.recommend_now",
+                                                            "按当前条件推荐"
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className={`rounded-[6px] border px-4 py-4 text-center text-sm ${isDayMode ? "border-slate-200 bg-white/60 text-slate-500" : "border-white/10 bg-white/[0.03] text-slate-400"}`}
+                                                >
+                                                    {t(
+                                                        "search.no_ai_recommendations",
+                                                        "暂时没有更合适的活动推荐，可以换个主题再试。"
+                                                    )}
+                                                </div>
+                                            )}
+                                        </section>
+                                    ) : null}
                                 </div>
                             ) : normalizedQuery.length >= 2 ? (
                                 <div
@@ -485,8 +809,13 @@ const SearchPalette = ({ initialOpen = false }) => {
                                     : "border-white/10 bg-black/10 text-slate-400"
                             }`}
                         >
-                            <span>{t("search.footer_hint")}</span>
-                            <span>{t("search.brand_search")}</span>
+                            <span>
+                                {t(
+                                    "search.unified_footer_hint",
+                                    "↑↓ 选择结果 · Enter 使用 AI 增强"
+                                )}
+                            </span>
+                            <span>{t("search.brand_search", "Lumos 智能搜索")}</span>
                         </div>
                     </motion.div>
                 </div>

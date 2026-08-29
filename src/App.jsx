@@ -19,9 +19,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ResourceHints } from "./components/ResourceHints";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
-import { useServiceWorker } from "./hooks/useServiceWorker";
 import { routeTransition, useReducedMotion } from "./utils/animations";
-import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import {
     getMiniProgramNavInset,
     isMiniProgramBlockedPath,
@@ -121,7 +119,6 @@ const loadProfileDirectory = () => import("./components/ProfileDirectory");
 const loadProjectPlaza = () => import("./components/ProjectPlaza");
 const loadSearchPalette = () => import("./components/SearchPalette");
 const loadCustomCursor = () => import("./components/CustomCursor");
-const loadBackgroundSystem = () => import("./components/BackgroundSystem");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
 const loadPWAInstallPrompt = () => import("./components/PWAInstallPrompt");
@@ -145,7 +142,6 @@ const ProfileDirectory = lazyRoute(loadProfileDirectory);
 const ProjectPlaza = lazyRoute(loadProjectPlaza);
 const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
-const BackgroundSystem = lazyRoute(loadBackgroundSystem);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
 const PWAInstallPrompt = lazyRoute(loadPWAInstallPrompt);
@@ -338,6 +334,9 @@ const AppContent = () => {
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
+    const isEventsRoute = location.pathname === "/events";
+    const isCommunityRoute = location.pathname === "/articles";
+    const hasLandscapeBackdrop = isEventsRoute || isCommunityRoute;
     const isImmersiveRoute =
         isHomeRoute ||
         isAboutRoute ||
@@ -353,19 +352,7 @@ const AppContent = () => {
     const shouldMountLateDebugUi = useDeferredMount(1800);
     const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
-    const [isAppRuntime, setIsAppRuntime] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
-    const shouldRenderDynamicBackground =
-        !isAdminRoute &&
-        !isImmersiveRoute &&
-        hasDesktopPointer &&
-        !prefersReducedMotion &&
-        !isLowPowerDevice &&
-        !isAppRuntime &&
-        !isMiniProgramMode &&
-        shouldMountDeferredUi;
-    useServiceWorker({ enabled: !isMiniProgramMode });
-
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
@@ -405,23 +392,6 @@ const AppContent = () => {
         return () => {
             cancelled = true;
             window.clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return undefined;
-
-        const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
-        const fullscreenQuery = window.matchMedia?.("(display-mode: fullscreen)");
-        const updateDisplayMode = () => setIsAppRuntime(detectAppRuntime());
-
-        updateDisplayMode();
-        standaloneQuery?.addEventListener?.("change", updateDisplayMode);
-        fullscreenQuery?.addEventListener?.("change", updateDisplayMode);
-
-        return () => {
-            standaloneQuery?.removeEventListener?.("change", updateDisplayMode);
-            fullscreenQuery?.removeEventListener?.("change", updateDisplayMode);
         };
     }, []);
 
@@ -497,18 +467,11 @@ const AppContent = () => {
     return (
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
-                shouldRenderDynamicBackground ? "dynamic-background-active" : ""
-            }`}
+                hasLandscapeBackdrop ? "ecosystem-landscape-shell" : ""
+            } ${isCommunityRoute ? "ai-community-landscape-shell" : ""}`}
         >
             <ResourceHints />
             <MiniProgramAuthReturn />
-            {shouldRenderDynamicBackground && (
-                <ErrorBoundary variant="inline" silent>
-                    <Suspense fallback={null}>
-                        <BackgroundSystem />
-                    </Suspense>
-                </ErrorBoundary>
-            )}
             <div className="relative z-10 flex min-h-screen flex-col">
                 <a
                     href="#main-content"
@@ -557,7 +520,11 @@ const AppContent = () => {
 
                 <main
                     id="main-content"
-                    className={`flex-grow ${isImmersiveRoute ? "pb-0" : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"}`}
+                    className={`flex-grow ${
+                        isImmersiveRoute || isEventsRoute
+                            ? "pb-0"
+                            : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"
+                    }`}
                     role="main"
                 >
                     <Suspense fallback={<LoadingScreen />}>
@@ -578,10 +545,7 @@ const AppContent = () => {
                                     </PageTransition>
                                 }
                             />
-                            <Route
-                                path="/gallery"
-                                element={<Navigate to="/media" replace />}
-                            />
+                            <Route path="/gallery" element={<Navigate to="/media" replace />} />
                             <Route path="/music" element={<MusicRedirect />} />
                             <Route
                                 path="/videos"

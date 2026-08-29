@@ -196,14 +196,13 @@ export default defineConfig(({ mode }) => {
                 resolveDependencies: (_url, deps) =>
                     deps.filter(
                         (dep) =>
-                            !/(^|\/)(three-vendor|pdf-|mammoth\.browser|AdminDashboard)-/.test(dep)
+                            !/(^|\/)(pdf-|mammoth\.browser|AdminDashboard)-/.test(dep)
                     ),
             },
             rollupOptions: {
                 output: {
                     manualChunks: {
                         "react-vendor": ["react", "react-dom", "react-router-dom", "framer-motion"],
-                        "three-vendor": ["three", "@react-three/fiber", "@react-three/drei"],
                         "ui-vendor": ["lucide-react", "react-hot-toast", "clsx", "tailwind-merge"],
                         utils: ["axios", "swr", "i18next", "react-i18next"],
                     },
@@ -212,6 +211,8 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             host: true, // Allow external access
+            port: 5180,
+            strictPort: true,
             watch: {
                 ignored: ["**/wechat_crawler/**", "**/wechat-batch-crawler/**"],
             },

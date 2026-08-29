@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
@@ -8,46 +8,41 @@ import Hero from "./Hero";
 import { useSettings } from "../context/SettingsContext";
 import { tapPress, useReducedMotion } from "../utils/animations";
 
-const SPLASH_SEEN_KEY = "site-splash:last-seen-date";
-
-const getTodayKey = () => new Date().toISOString().slice(0, 10);
+const SPLASH_DURATION_MS = 3000;
 
 const HomeSplash = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { settings, uiMode } = useSettings();
     const prefersReducedMotion = useReducedMotion();
-    const [isRedirecting, setIsRedirecting] = useState(false);
     const shouldAnimate = !prefersReducedMotion;
     const isDayMode = uiMode === "day";
-    const todayKey = useMemo(() => getTodayKey(), []);
+    const timeoutRef = useRef(null);
+    const hasEnteredRef = useRef(false);
 
     const enterPlatform = useCallback(() => {
-        if (isRedirecting) return;
-        setIsRedirecting(true);
+        if (hasEnteredRef.current) return;
+        hasEnteredRef.current = true;
 
-        try {
-            window.localStorage.setItem(SPLASH_SEEN_KEY, todayKey);
-        } catch {
-            // Storage only prevents replaying today's splash; navigation should continue.
+        if (timeoutRef.current !== null) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
         }
 
         navigate("/events", { replace: true });
-    }, [isRedirecting, navigate, todayKey]);
+    }, [navigate]);
 
     useEffect(() => {
-        if (typeof window === "undefined") return undefined;
+        const timeoutId = window.setTimeout(enterPlatform, SPLASH_DURATION_MS);
+        timeoutRef.current = timeoutId;
 
-        try {
-            if (window.localStorage.getItem(SPLASH_SEEN_KEY) === todayKey) {
-                navigate("/events", { replace: true });
+        return () => {
+            window.clearTimeout(timeoutId);
+            if (timeoutRef.current === timeoutId) {
+                timeoutRef.current = null;
             }
-        } catch {
-            // If storage is unavailable, show the splash once for this render.
-        }
-
-        return undefined;
-    }, [navigate, todayKey]);
+        };
+    }, [enterPlatform]);
 
     const pageClass = isDayMode
         ? "relative min-h-[100svh] overflow-hidden bg-white text-slate-950"
@@ -66,18 +61,9 @@ const HomeSplash = () => {
               animate: { x: "86%", opacity: 0 },
               transition: { duration: 1.02, ease: [0.16, 1, 0.3, 1] },
           };
-    const panelClass = isDayMode
-        ? "pointer-events-auto flex w-full max-w-[640px] flex-col items-center gap-3 border border-slate-200/80 bg-white/88 px-4 py-3 text-center shadow-[0_18px_46px_rgba(67,56,80,0.1)] backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left"
-        : "pointer-events-auto flex w-full max-w-[640px] flex-col items-center gap-3 border border-white/15 bg-slate-950/42 px-4 py-3 text-center shadow-[0_18px_70px_rgba(2,6,23,0.36)] backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left";
-    const labelClass = isDayMode
-        ? "text-[10px] font-black uppercase tracking-[0.26em] text-violet-700"
-        : "text-[10px] font-black uppercase tracking-[0.26em] text-indigo-200/80";
-    const copyClass = isDayMode
-        ? "mt-1 text-xs font-semibold text-slate-600"
-        : "mt-1 text-xs font-semibold text-white/72";
     const enterButtonClass = isDayMode
-        ? "inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-violet-700 px-4 text-xs font-black text-white transition hover:bg-violet-800 focus:outline-none focus:ring-4 focus:ring-violet-300/35"
-        : "inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-indigo-500 px-4 text-xs font-black text-white transition hover:bg-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/35";
+        ? "theme-on-dark inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-violet-700 px-5 text-sm font-bold shadow-[0_12px_32px_rgba(76,29,149,0.32)] transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/50"
+        : "theme-on-dark inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-indigo-500 px-5 text-sm font-bold shadow-[0_14px_36px_rgba(79,70,229,0.34)] transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50";
 
     return (
         <section className={pageClass}>
@@ -98,32 +84,17 @@ const HomeSplash = () => {
                 />
             )}
 
-            <motion.div
-                initial={shouldAnimate ? { opacity: 0, y: 16 } : false}
-                animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
-                transition={
-                    shouldAnimate
-                        ? { delay: 0.72, duration: 0.52, ease: [0.22, 1, 0.36, 1] }
-                        : undefined
-                }
-                className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-30 flex justify-center px-4"
-            >
-                <div className={panelClass}>
-                    <div className="min-w-0">
-                        <div className={labelClass}>{t("home.splash.welcome")}</div>
-                        <div className={copyClass}>{t("home.splash.route_hint")}</div>
-                    </div>
-                    <motion.button
-                        type="button"
-                        whileTap={shouldAnimate ? tapPress : undefined}
-                        onClick={enterPlatform}
-                        className={enterButtonClass}
-                    >
-                        {t("home.splash.enter_now")}
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </motion.button>
-                </div>
-            </motion.div>
+            <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] z-30 flex justify-center px-4">
+                <motion.button
+                    type="button"
+                    whileTap={shouldAnimate ? tapPress : undefined}
+                    onClick={enterPlatform}
+                    className={enterButtonClass}
+                >
+                    {t("home.splash.enter_now")}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </motion.button>
+            </div>
         </section>
     );
 };

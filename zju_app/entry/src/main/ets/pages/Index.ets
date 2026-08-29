@@ -11,11 +11,11 @@ struct Index {
   
   // Primary domain URL
   private potentialUrls: string[] = [
-    'http://www.tuotuzju.com'
+    'https://www.tuotuzju.com'
   ];
 
   @StorageLink('lastSuccessIpIndex') currentIpIndex: number = 0;
-  @State url: string = 'http://www.tuotuzju.com'; 
+  @State url: string = 'https://www.tuotuzju.com';
   
   @State isLoading: boolean = true;
   @State isError: boolean = false;
@@ -32,7 +32,7 @@ struct Index {
     this.url = this.potentialUrls[this.currentIpIndex] || this.potentialUrls[0];
 
     try {
-      webview.WebviewController.setWebDebuggingAccess(true);
+      webview.WebviewController.setWebDebuggingAccess(false);
       // Enable cookies and persistence
       webview.WebCookieManager.putAcceptCookieEnabled(true);
       webview.WebCookieManager.putAcceptThirdPartyCookieEnabled(true);

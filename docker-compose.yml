@@ -49,7 +49,7 @@ services:
         restart: unless-stopped
         ports:
             - "3000:3000"
-            - "5173:5173"
+            - "5180:5180"
         environment:
             - NODE_ENV=development
             - PORT=3000
@@ -57,8 +57,8 @@ services:
             - DB_PATH=./data/database.sqlite
             - UPLOAD_DIR=./uploads
             - LOG_LEVEL=debug
-            - CORS_ORIGIN=http://localhost:5173
-            - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5180
+            - CORS_ORIGIN=http://localhost:5180
+            - CORS_ALLOWED_ORIGINS=http://localhost:5180
         volumes:
             - .:/app
             - /app/node_modules

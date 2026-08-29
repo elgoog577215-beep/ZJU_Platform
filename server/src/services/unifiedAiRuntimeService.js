@@ -7,14 +7,14 @@ const TASK_RUNTIME_POLICIES = {
     event_recommendation_intent: {
         temperature: 0.15,
         maxTokens: 520,
-        timeout: 1500,
-        streamFirst: false,
+        timeout: 8000,
+        streamFirst: true,
     },
     event_recommendation_rerank: {
         temperature: 0.2,
         maxTokens: 760,
-        timeout: 3000,
-        streamFirst: false,
+        timeout: 12000,
+        streamFirst: true,
     },
     event_profile: {
         temperature: 0.1,

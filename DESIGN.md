@@ -10,6 +10,9 @@ colors:
     day-text: "#0f172a"
     day-muted: "#64748b"
     ecosystem-indigo: "#6366f1"
+    community-ice: "#8bdcff"
+    community-ice-bright: "#c9f3ff"
+    community-ice-muted: "#b7c5d8"
     hackathon-lime: "#b9ff18"
 typography:
     display:
@@ -80,6 +83,7 @@ components:
 ### Primary
 
 - **生态靛蓝** (`#6366f1`)：全局主行动、焦点与品牌连接。
+- **社区冰川蓝** (`#8bdcff`)：仅用于 AI 社区夜间模式四个大型入口的线稿与箭头；小标题使用更亮的 `#c9f3ff`，说明文字使用 `#b7c5d8`。收缩后的栏目、操作按钮和白天模式继续使用全局主题强调色。
 - **黑客松青柠** (`#b9ff18`)：只用于黑客松表面的主要行动、当前范围和关键赛事状态。
 
 ### Neutral

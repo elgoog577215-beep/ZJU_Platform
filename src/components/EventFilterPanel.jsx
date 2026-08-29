@@ -39,7 +39,6 @@ const EventFilterPanel = ({
 
     const selectedCategory = filters?.category || null;
     const selectedAudience = filters?.target_audience || null;
-    const hasActiveFilters = Boolean(selectedCategory || selectedAudience);
     const sortExtraOptions = [
         { value: "date_asc", label: t("sort_filter.date_asc", "日期（最早）") },
         { value: "date_desc", label: t("sort_filter.date_desc", "日期（最晚）") },
@@ -99,19 +98,12 @@ const EventFilterPanel = ({
         }
     };
 
-    const clearAll = () => {
-        onFiltersChange({ category: null, target_audience: null });
-        setAudienceSearch("");
-        setShowAllAudiences(false);
-        setIsAudienceOpen(false);
-    };
-
     const handleSortChange = (nextSort) => {
         setIsAudienceOpen(false);
         onSortChange(nextSort);
     };
 
-    const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
+    const shellClass = isSheetMode ? "space-y-3" : "relative z-30 space-y-3";
     const subtleGlassClass = isDayMode
         ? "border-slate-200/80 bg-white/[0.72] shadow-[0_8px_22px_rgba(15,23,42,0.04)]"
         : "border-white/[0.10] bg-white/[0.025] shadow-[0_10px_28px_rgba(0,0,0,0.18)]";
@@ -364,7 +356,7 @@ const EventFilterPanel = ({
                                 : "border-white/[0.10] bg-white/[0.035]"
                         }`}
                     >
-                        <div className="scrollbar-none flex min-w-0 items-center gap-0.5 overflow-x-auto pr-10 md:pr-0">
+                        <div className="scrollbar-none flex min-w-0 items-center gap-0.5 overflow-x-auto pr-2">
                             <button
                                 type="button"
                                 aria-pressed={!selectedCategory}
@@ -395,9 +387,6 @@ const EventFilterPanel = ({
                                 );
                             })}
                         </div>
-                        {!isDayMode && (
-                            <div className="pointer-events-none absolute inset-y-1 right-1 w-10 bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent" />
-                        )}
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:ml-auto lg:justify-end">
@@ -422,17 +411,6 @@ const EventFilterPanel = ({
                                 className={`shrink-0 transition-transform ${isAudienceOpen ? "rotate-180" : ""}`}
                             />
                         </button>
-
-                        {hasActiveFilters && (
-                            <button
-                                type="button"
-                                onClick={clearAll}
-                                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 border-b border-transparent px-2 text-xs font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-400/60 hover:text-rose-600" : "text-slate-400 hover:border-rose-300/60 hover:text-rose-200"}`}
-                            >
-                                <X size={13} />
-                                {t("common.clear_all", "重置")}
-                            </button>
-                        )}
 
                         {!hideSort && (
                             <div
