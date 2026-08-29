@@ -14,8 +14,6 @@ import {
     LogIn,
     Newspaper,
     Play,
-    Power,
-    PowerOff,
     Plus,
     QrCode,
     RefreshCw,
@@ -199,7 +197,7 @@ const WeChatMpImportManager = () => {
     const [ingestImporting, setIngestImporting] = useState(false);
     const [ingestFile, setIngestFile] = useState(null);
     const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
-    const [updatingIngestAccountId, setUpdatingIngestAccountId] = useState(null);
+    const [updatingIngestAccountIds, setUpdatingIngestAccountIds] = useState([]);
     const [activeWorkspace, setActiveWorkspace] = useState("overview");
 
     const login = status?.login || initialStatus.login;
@@ -215,6 +213,14 @@ const WeChatMpImportManager = () => {
     const contentTextLength = content?.contentText?.length || 0;
     const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
     const ingestAccounts = ingestOverview.accounts || [];
+    const directIngestAccounts = useMemo(
+        () => ingestAccounts.filter((account) => account.source_type !== "wewe_rss"),
+        [ingestAccounts]
+    );
+    const rssIngestAccounts = useMemo(
+        () => ingestAccounts.filter((account) => account.source_type === "wewe_rss"),
+        [ingestAccounts]
+    );
     const enabledIngestAccountCount = ingestAccounts.filter((account) => account.enabled).length;
     const hasEnabledRssSource = ingestAccounts.some(
         (account) => account.enabled && account.source_type === "wewe_rss"
@@ -665,21 +671,28 @@ const WeChatMpImportManager = () => {
         }
     };
 
-    const toggleIngestAccount = async (account) => {
-        const nextEnabled = !account.enabled;
-        setUpdatingIngestAccountId(account.id);
+    const updateIngestAccountState = (updatedAccounts) => {
+        const updatesById = new Map(
+            updatedAccounts.filter(Boolean).map((account) => [account.id, account])
+        );
+        setIngestOverview((previous) => ({
+            ...previous,
+            accounts: (previous.accounts || []).map((item) => updatesById.get(item.id) || item),
+        }));
+    };
+
+    const isIngestAccountUpdating = (accountId) => updatingIngestAccountIds.includes(accountId);
+
+    const toggleIngestAccount = async (account, nextEnabled = !account.enabled) => {
+        if (isIngestAccountUpdating(account.id)) return;
+        setUpdatingIngestAccountIds((previous) => [...previous, account.id]);
         try {
             const response = await api.patch(
                 `/admin/wechat-mp/ingest/accounts/${account.id}/enabled`,
                 { enabled: nextEnabled }
             );
             const updatedAccount = response.data?.account || { ...account, enabled: nextEnabled };
-            setIngestOverview((previous) => ({
-                ...previous,
-                accounts: [...(previous.accounts || [])]
-                    .map((item) => (item.id === updatedAccount.id ? updatedAccount : item))
-                    .sort((left, right) => Number(right.enabled) - Number(left.enabled)),
-            }));
+            updateIngestAccountState([updatedAccount]);
             toast.success(t("admin.wechat_mp.toasts.ingest_account_updated"));
         } catch (error) {
             toast.error(
@@ -690,7 +703,57 @@ const WeChatMpImportManager = () => {
                 )
             );
         } finally {
-            setUpdatingIngestAccountId(null);
+            setUpdatingIngestAccountIds((previous) =>
+                previous.filter((accountId) => accountId !== account.id)
+            );
+        }
+    };
+
+    const toggleIngestAccountGroup = async (sourceAccounts) => {
+        if (
+            !sourceAccounts.length ||
+            sourceAccounts.some((account) => isIngestAccountUpdating(account.id))
+        ) {
+            return;
+        }
+        const nextEnabled = !sourceAccounts.every((account) => account.enabled);
+        const accountsToUpdate = sourceAccounts.filter(
+            (account) => Boolean(account.enabled) !== nextEnabled
+        );
+        if (!accountsToUpdate.length) return;
+
+        const accountIds = accountsToUpdate.map((account) => account.id);
+        setUpdatingIngestAccountIds((previous) => [...new Set([...previous, ...accountIds])]);
+        const results = await Promise.allSettled(
+            accountsToUpdate.map(async (account) => {
+                const response = await api.patch(
+                    `/admin/wechat-mp/ingest/accounts/${account.id}/enabled`,
+                    { enabled: nextEnabled }
+                );
+                return response.data?.account || { ...account, enabled: nextEnabled };
+            })
+        );
+        const updatedAccounts = results
+            .filter((result) => result.status === "fulfilled")
+            .map((result) => result.value);
+        updateIngestAccountState(updatedAccounts);
+        setUpdatingIngestAccountIds((previous) =>
+            previous.filter((accountId) => !accountIds.includes(accountId))
+        );
+
+        const failedCount = results.filter((result) => result.status === "rejected").length;
+        if (failedCount) {
+            toast.error(
+                t("admin.wechat_mp.toasts.ingest_account_group_update_failed", {
+                    count: failedCount,
+                })
+            );
+        } else {
+            toast.success(
+                t("admin.wechat_mp.toasts.ingest_account_group_updated", {
+                    count: updatedAccounts.length,
+                })
+            );
         }
     };
 
@@ -769,6 +832,201 @@ const WeChatMpImportManager = () => {
         } finally {
             setExtractingIngestArticleId(null);
         }
+    };
+
+    const renderIngestSourceList = ({
+        sourceAccounts,
+        titleKey,
+        titleFallback,
+        descriptionKey,
+        descriptionFallback,
+        emptyTitleKey,
+        emptyTitleFallback,
+        emptyDescriptionKey,
+        emptyDescriptionFallback,
+        emptyIcon,
+        idPrefix,
+    }) => {
+        const allEnabled =
+            sourceAccounts.length > 0 && sourceAccounts.every((account) => account.enabled);
+        const hasUpdatingAccount = sourceAccounts.some((account) =>
+            isIngestAccountUpdating(account.id)
+        );
+
+        return (
+            <section
+                className={clsx(
+                    "rounded-[8px] border p-3",
+                    isDayMode ? "border-slate-200/70 bg-white/[0.5]" : "border-white/10"
+                )}
+                aria-label={t(titleKey, titleFallback)}
+            >
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h3 className={clsx("text-sm font-bold", headingTextClass)}>
+                            {t(titleKey, titleFallback)}
+                        </h3>
+                        <p className={clsx("mt-1 text-xs leading-5", mutedTextClass)}>
+                            {t(descriptionKey, descriptionFallback)}
+                        </p>
+                        <p className={clsx("mt-1 text-xs", mutedTextClass)}>
+                            {t("admin.wechat_mp.ingest.account_summary", {
+                                enabled: formatNumber(
+                                    sourceAccounts.filter((account) => account.enabled).length
+                                ),
+                                total: formatNumber(sourceAccounts.length),
+                            })}
+                        </p>
+                    </div>
+                    <label
+                        className={clsx(
+                            "inline-flex shrink-0 items-center gap-2 text-xs",
+                            subtleTextClass,
+                            sourceAccounts.length && !hasUpdatingAccount
+                                ? "cursor-pointer"
+                                : "cursor-not-allowed opacity-50"
+                        )}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={allEnabled}
+                            onChange={() => toggleIngestAccountGroup(sourceAccounts)}
+                            disabled={!sourceAccounts.length || hasUpdatingAccount}
+                            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                            aria-label={t(
+                                "admin.wechat_mp.ingest.select_all_sources",
+                                "Select all sources"
+                            )}
+                        />
+                        {t(
+                            allEnabled
+                                ? "admin.wechat_mp.ingest.clear_all_sources"
+                                : "admin.wechat_mp.ingest.select_all_sources",
+                            allEnabled ? "Clear all" : "Select all"
+                        )}
+                    </label>
+                </div>
+
+                <div className="mt-3 max-h-[260px] space-y-2 overflow-y-auto pr-1">
+                    {sourceAccounts.length > 0 ? (
+                        sourceAccounts.map((account) => {
+                            const sourceName =
+                                account.name ||
+                                account.fakeid ||
+                                account.rss_feed_id ||
+                                t("admin.wechat_mp.status.none");
+                            const sourceDetail =
+                                account.source_type === "wewe_rss"
+                                    ? account.rss_feed_id || t("admin.wechat_mp.status.none")
+                                    : account.fakeid || t("admin.wechat_mp.status.none");
+                            const checkboxId = `ingest-source-${idPrefix}-${account.id}`;
+                            const updating = isIngestAccountUpdating(account.id);
+
+                            return (
+                                <div
+                                    key={account.id}
+                                    className={clsx(
+                                        "flex flex-col gap-3 rounded-[8px] border p-3 sm:flex-row sm:items-center sm:justify-between",
+                                        isDayMode
+                                            ? "border-slate-200/70 bg-white/[0.72]"
+                                            : "border-white/10 bg-white/[0.04]"
+                                    )}
+                                >
+                                    <div className="flex min-w-0 items-start gap-3">
+                                        <input
+                                            id={checkboxId}
+                                            type="checkbox"
+                                            checked={Boolean(account.enabled)}
+                                            onChange={(event) =>
+                                                toggleIngestAccount(account, event.target.checked)
+                                            }
+                                            disabled={updating}
+                                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600"
+                                            aria-label={t("admin.wechat_mp.ingest.select_source", {
+                                                name: sourceName,
+                                                defaultValue: `Select ${sourceName} for ingest`,
+                                            })}
+                                        />
+                                        <label
+                                            htmlFor={checkboxId}
+                                            className="min-w-0 cursor-pointer"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <div
+                                                    className={clsx(
+                                                        "truncate text-sm font-bold",
+                                                        headingTextClass
+                                                    )}
+                                                >
+                                                    {sourceName}
+                                                </div>
+                                                <span
+                                                    className={clsx(
+                                                        "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                                                        account.enabled
+                                                            ? isDayMode
+                                                                ? "bg-emerald-50 text-emerald-700"
+                                                                : "bg-emerald-500/10 text-emerald-300"
+                                                            : isDayMode
+                                                              ? "bg-slate-100 text-slate-500"
+                                                              : "bg-white/5 text-gray-400"
+                                                    )}
+                                                >
+                                                    {t(
+                                                        account.enabled
+                                                            ? "admin.wechat_mp.status.enabled"
+                                                            : "admin.wechat_mp.status.disabled"
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className={clsx(
+                                                    "mt-1 truncate text-xs",
+                                                    mutedTextClass
+                                                )}
+                                            >
+                                                {sourceDetail}
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div className="flex shrink-0 items-center justify-end gap-2">
+                                        {updating ? (
+                                            <Loader2
+                                                size={16}
+                                                className={clsx("animate-spin", mutedTextClass)}
+                                                aria-label={t(
+                                                    "admin.wechat_mp.ingest.updating_source",
+                                                    "Updating source"
+                                                )}
+                                            />
+                                        ) : null}
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteIngestAccount(account)}
+                                            className={clsx(
+                                                "rounded-[8px] border p-2 transition-colors",
+                                                isDayMode
+                                                    ? "border-rose-200 text-rose-600 hover:bg-rose-50"
+                                                    : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
+                                            )}
+                                            aria-label={t("admin.wechat_mp.actions.delete_account")}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <AdminEmptyState
+                            icon={emptyIcon}
+                            title={t(emptyTitleKey, emptyTitleFallback)}
+                            description={t(emptyDescriptionKey, emptyDescriptionFallback)}
+                        />
+                    )}
+                </div>
+            </section>
+        );
     };
 
     const runtimeNoteTone = hasEnabledRssSource
@@ -2238,121 +2496,50 @@ const WeChatMpImportManager = () => {
                                     </AdminButton>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className={clsx("text-xs", mutedTextClass)}>
-                                        {t("admin.wechat_mp.ingest.account_summary", {
-                                            enabled: formatNumber(enabledIngestAccountCount),
-                                            total: formatNumber(ingestAccounts.length),
-                                        })}
-                                    </div>
+                                <div className={clsx("text-xs", mutedTextClass)}>
+                                    {t("admin.wechat_mp.ingest.account_summary", {
+                                        enabled: formatNumber(enabledIngestAccountCount),
+                                        total: formatNumber(ingestAccounts.length),
+                                    })}
                                 </div>
-                                <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
-                                    {ingestAccounts.length > 0 ? (
-                                        ingestAccounts.map((account) => (
-                                            <div
-                                                key={account.id}
-                                                className={clsx(
-                                                    "flex flex-col gap-3 rounded-[8px] border p-3 sm:flex-row sm:items-center sm:justify-between",
-                                                    isDayMode
-                                                        ? "border-slate-200/70 bg-white/[0.72]"
-                                                        : "border-white/10 bg-white/[0.04]"
-                                                )}
-                                            >
-                                                <div className="min-w-0">
-                                                    <div className="flex min-w-0 items-center gap-2">
-                                                        <div
-                                                            className={clsx(
-                                                                "truncate text-sm font-bold",
-                                                                headingTextClass
-                                                            )}
-                                                        >
-                                                            {account.name || account.fakeid}
-                                                        </div>
-                                                        <span
-                                                            className={clsx(
-                                                                "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                                                                account.enabled
-                                                                    ? isDayMode
-                                                                        ? "bg-emerald-50 text-emerald-700"
-                                                                        : "bg-emerald-500/10 text-emerald-300"
-                                                                    : isDayMode
-                                                                      ? "bg-slate-100 text-slate-500"
-                                                                      : "bg-white/5 text-gray-400"
-                                                            )}
-                                                        >
-                                                            {t(
-                                                                account.enabled
-                                                                    ? "admin.wechat_mp.status.enabled"
-                                                                    : "admin.wechat_mp.status.disabled"
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        className={clsx(
-                                                            "mt-1 truncate text-xs",
-                                                            mutedTextClass
-                                                        )}
-                                                    >
-                                                        {account.source_type === "wewe_rss"
-                                                            ? `${t("admin.wechat_mp.ingest.source_types.wewe_rss")} · ${account.rss_feed_id}`
-                                                            : account.fakeid ||
-                                                              t("admin.wechat_mp.status.none")}
-                                                    </div>
-                                                </div>
-                                                <div className="flex shrink-0 items-center justify-end gap-2">
-                                                    <AdminButton
-                                                        tone={
-                                                            account.enabled ? "subtle" : "success"
-                                                        }
-                                                        onClick={() => toggleIngestAccount(account)}
-                                                        disabled={
-                                                            updatingIngestAccountId === account.id
-                                                        }
-                                                        className="min-h-8 px-2.5 py-1 text-xs md:px-2.5"
-                                                    >
-                                                        {updatingIngestAccountId === account.id ? (
-                                                            <Loader2
-                                                                size={14}
-                                                                className="animate-spin"
-                                                            />
-                                                        ) : account.enabled ? (
-                                                            <PowerOff size={14} />
-                                                        ) : (
-                                                            <Power size={14} />
-                                                        )}
-                                                        {t(
-                                                            account.enabled
-                                                                ? "admin.wechat_mp.actions.disable_account"
-                                                                : "admin.wechat_mp.actions.enable_account"
-                                                        )}
-                                                    </AdminButton>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => deleteIngestAccount(account)}
-                                                        className={clsx(
-                                                            "rounded-[8px] border p-2 transition-colors",
-                                                            isDayMode
-                                                                ? "border-rose-200 text-rose-600 hover:bg-rose-50"
-                                                                : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10"
-                                                        )}
-                                                        aria-label={t(
-                                                            "admin.wechat_mp.actions.delete_account"
-                                                        )}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <AdminEmptyState
-                                            icon={ClipboardList}
-                                            title={t("admin.wechat_mp.ingest.empty_accounts_title")}
-                                            description={t(
-                                                "admin.wechat_mp.ingest.empty_accounts_desc"
-                                            )}
-                                        />
-                                    )}
+                                <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                                    {renderIngestSourceList({
+                                        sourceAccounts: directIngestAccounts,
+                                        titleKey:
+                                            "admin.wechat_mp.ingest.source_lists.wechat_mp.title",
+                                        titleFallback: "微信公众号来源",
+                                        descriptionKey:
+                                            "admin.wechat_mp.ingest.source_lists.wechat_mp.description",
+                                        descriptionFallback:
+                                            "通过微信公众平台直接采集，多个来源可以同时启用。",
+                                        emptyTitleKey:
+                                            "admin.wechat_mp.ingest.source_lists.wechat_mp.empty_title",
+                                        emptyTitleFallback: "暂无直连公众号",
+                                        emptyDescriptionKey:
+                                            "admin.wechat_mp.ingest.source_lists.wechat_mp.empty_description",
+                                        emptyDescriptionFallback: "添加或导入一个直连公众号来源。",
+                                        emptyIcon: ClipboardList,
+                                        idPrefix: "wechat-mp",
+                                    })}
+                                    {renderIngestSourceList({
+                                        sourceAccounts: rssIngestAccounts,
+                                        titleKey:
+                                            "admin.wechat_mp.ingest.source_lists.wewe_rss.title",
+                                        titleFallback: "微信读书 RSS Feed",
+                                        descriptionKey:
+                                            "admin.wechat_mp.ingest.source_lists.wewe_rss.description",
+                                        descriptionFallback:
+                                            "通过 WeWe RSS 读取公众号 Feed，多个 Feed 可以同时启用。",
+                                        emptyTitleKey:
+                                            "admin.wechat_mp.ingest.source_lists.wewe_rss.empty_title",
+                                        emptyTitleFallback: "暂无微信读书 RSS Feed",
+                                        emptyDescriptionKey:
+                                            "admin.wechat_mp.ingest.source_lists.wewe_rss.empty_description",
+                                        emptyDescriptionFallback:
+                                            "先在 RSS 管理中解析并添加公众号订阅源。",
+                                        emptyIcon: Newspaper,
+                                        idPrefix: "wewe-rss",
+                                    })}
                                 </div>
                             </div>
                         </div>

@@ -3507,6 +3507,24 @@
                     "wechat_mp": "Direct WeChat MP (scan required)",
                     "wewe_rss": "WeRead RSS (no scan required)"
                 },
+                "source_lists": {
+                    "wechat_mp": {
+                        "title": "Direct WeChat MP Sources",
+                        "description": "Collect directly from WeChat MP; multiple sources can be enabled together.",
+                        "empty_title": "No direct WeChat MP sources",
+                        "empty_description": "Add or import a direct WeChat MP source."
+                    },
+                    "wewe_rss": {
+                        "title": "WeRead RSS Feeds",
+                        "description": "Collect official-account feeds through WeWe RSS; multiple feeds can be enabled together.",
+                        "empty_title": "No WeRead RSS feeds",
+                        "empty_description": "Resolve and add an official-account feed in RSS Admin first."
+                    }
+                },
+                "select_all_sources": "Select all",
+                "clear_all_sources": "Clear all",
+                "select_source": "Select {{name}} for ingest",
+                "updating_source": "Updating source",
                 "rss_source_note": "Use the RSS Admin workspace here to sign in to WeRead and resolve the official account first. Enter only its feed ID; ingest uses the trusted rss.tuotuzju.com service.",
                 "token_health_note": "Runs immediately after startup, then at the configured interval.",
                 "content_status": {
@@ -3727,6 +3745,8 @@
                 "ingest_account_failed": "Failed to save account",
                 "ingest_account_updated": "Account status updated",
                 "ingest_account_update_failed": "Failed to update account status",
+                "ingest_account_group_updated": "Updated {{count}} sources",
+                "ingest_account_group_update_failed": "Failed to update {{count}} sources",
                 "ingest_account_deleted": "Account deleted",
                 "ingest_account_delete_failed": "Failed to delete account",
                 "ingest_file_required": "Choose an account list file first",

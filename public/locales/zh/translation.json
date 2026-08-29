@@ -3563,6 +3563,24 @@
                     "wechat_mp": "直连微信 MP（需要扫码）",
                     "wewe_rss": "微信读书 RSS（无需扫码）"
                 },
+                "source_lists": {
+                    "wechat_mp": {
+                        "title": "直连微信公众号来源",
+                        "description": "通过微信公众平台直接采集，可同时启用多个来源。",
+                        "empty_title": "暂无直连公众号来源",
+                        "empty_description": "请添加或导入一个直连微信公众号来源。"
+                    },
+                    "wewe_rss": {
+                        "title": "微信读书 RSS Feed",
+                        "description": "通过 WeWe RSS 采集公众号，可同时启用多个 Feed。",
+                        "empty_title": "暂无微信读书 RSS Feed",
+                        "empty_description": "请先在 RSS 管理中解析并添加公众号订阅源。"
+                    }
+                },
+                "select_all_sources": "全选",
+                "clear_all_sources": "取消全选",
+                "select_source": "选择 {{name}} 参与采集",
+                "updating_source": "正在更新来源",
                 "rss_source_note": "请先在本页 RSS 管理工作区登录微信读书并解析公众号；这里只填写 feed ID，采集使用受信任的 rss.tuotuzju.com 服务。",
                 "token_health_note": "服务启动后立即检查，之后按设定周期自动检查。",
                 "content_status": {
@@ -3783,6 +3801,8 @@
                 "ingest_account_failed": "保存公众号失败",
                 "ingest_account_updated": "公众号状态已更新",
                 "ingest_account_update_failed": "更新公众号状态失败",
+                "ingest_account_group_updated": "已更新 {{count}} 个来源",
+                "ingest_account_group_update_failed": "有 {{count}} 个来源更新失败",
                 "ingest_account_deleted": "公众号已删除",
                 "ingest_account_delete_failed": "删除公众号失败",
                 "ingest_file_required": "请先选择公众号列表文件",
