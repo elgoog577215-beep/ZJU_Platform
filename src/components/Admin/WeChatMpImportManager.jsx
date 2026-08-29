@@ -1118,7 +1118,9 @@ const WeChatMpImportManager = () => {
             }
         >
             <div className="space-y-3">
-                <AdminInlineNote tone={runtimeNoteTone}>{runtimeNoteText}</AdminInlineNote>
+                {activeWorkspace !== "rss" ? (
+                    <AdminInlineNote tone={runtimeNoteTone}>{runtimeNoteText}</AdminInlineNote>
+                ) : null}
 
                 {activeWorkspace === "overview" ? (
                     <>
