@@ -7,6 +7,7 @@ const {
     fetchArticleContents,
     fetchArticles,
     fetchArticlesForAccounts,
+    classifyWechatArticleContent,
     getLoginStatus,
     getStatus,
     searchAccounts,
@@ -22,6 +23,20 @@ const { resolveWechatImportDecision } = require("../utils/wechatActivityScreenin
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
 const isLocalUploadUrl = (url) => String(url || "").startsWith("/uploads/");
+
+const rejectImageOnlyContent = (res) =>
+    res.status(422).json({
+        error: "WECHAT_MP_IMAGE_ONLY_CONTENT",
+        message: "图片型文章已保留候选和图片，但不会进入 AI 解析或导入流程",
+    });
+
+const isImageOnlyContent = (contentPayload = {}) => {
+    const policy = classifyWechatArticleContent({
+        contentText: contentPayload.contentText || contentPayload.content_text || "",
+        images: contentPayload.images || contentPayload.content_images || [],
+    });
+    return contentPayload.content_status === "image_only" || policy.imageOnly;
+};
 
 const toHttpStatus = (error) => {
     if (Number.isInteger(error?.status)) return error.status;
@@ -295,6 +310,7 @@ const buildWechatMpImportPayload = async (req, res) => {
                 message: "文章正文过长，请缩短到 20 万字符以内后重试",
             });
         }
+        if (isImageOnlyContent(contentPayload)) return rejectImageOnlyContent(res);
 
         const analysis = await analyzeWechatImportContent({
             db,
@@ -348,6 +364,7 @@ const parseWechatMpArticle = async (req, res) => {
                 message: "文章正文过长，请缩短到 20 万字符以内后重试",
             });
         }
+        if (isImageOnlyContent(contentPayload)) return rejectImageOnlyContent(res);
 
         const sourceCoverImage = String(
             contentPayload.coverImage || req.body?.article?.cover || ""

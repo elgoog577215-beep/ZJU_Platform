@@ -6,6 +6,7 @@ const path = require("path");
 const { chromium } = require("playwright");
 const { downloadWeChatImage } = require("../utils/wechatImageDownloader");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
+const { classifyWechatArticleContent } = require("./wechatArticleContentPolicy");
 
 const WECHAT_MP_BASE_URL = "https://mp.weixin.qq.com";
 const WECHAT_MP_LOGIN_URL = `${WECHAT_MP_BASE_URL}/?lang=zh_CN`;
@@ -1243,10 +1244,19 @@ const extractArticleBody = (html) => {
     const summary = extractMeta($, "description") || extractMeta($, "og:description");
     let cover = normalizeHttpsUrl(extractMeta($, "og:image") || extractMeta($, "twitter:image"));
     if (!trustedWechatAssetUrl(cover)) cover = "";
-    let contentRoot = $("#js_content");
-    if (!contentRoot.length) contentRoot = $("#js_article");
-    if (!contentRoot.length) contentRoot = $(".rich_media_content");
-    if (!contentRoot.length) contentRoot = $("article");
+    let contentRoot = $("#js_content").first();
+    if (!contentRoot.length) contentRoot = $(".rich_media_content").first();
+    if (!contentRoot.length) {
+        return {
+            title: title || "Untitled",
+            author: author || "",
+            summary: summary || "",
+            coverImage: cover || "",
+            contentText: "",
+            contentHtml: "",
+            images: [],
+        };
+    }
     contentRoot.find("script,style,iframe").remove();
     const images = [];
     const embeddedImages = [];
@@ -1268,7 +1278,7 @@ const extractArticleBody = (html) => {
         author: author || "",
         summary: summary || "",
         coverImage: cover || "",
-        contentText: cleanContentText(contentRoot.text() || $("body").text()),
+        contentText: cleanContentText(contentRoot.text()),
         contentHtml: contentRoot.html() || "",
         images: [...images, ...embeddedImages.filter((imageUrl) => !images.includes(imageUrl))],
     };
@@ -1373,11 +1383,15 @@ const fetchArticleContent = async ({ url, article = {}, cover = "" }) => {
     const fallbackCover = resolveArticleCoverUrl(article, cover);
     if (!articleBody.coverImage && fallbackCover) articleBody.coverImage = fallbackCover;
     const parsed = await localizeWechatArticleImages(articleBody);
+    const contentPolicy = classifyWechatArticleContent({
+        contentText: parsed.contentText,
+        images: parsed.images,
+    });
     return {
         url: resolvedUrl,
         ...parsed,
         content_available: Boolean(parsed.contentText),
-        content_status: parsed.contentText ? "fetched" : "empty",
+        content_status: contentPolicy.contentStatus,
     };
 };
 
@@ -1470,6 +1484,7 @@ module.exports = {
     getStatus,
     maskSecret,
     localizeWechatArticleImages,
+    classifyWechatArticleContent,
     normalizeDelayRangeSeconds,
     normalizeLoginWaitMs,
     normalizeMpArticle,

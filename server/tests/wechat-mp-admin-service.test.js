@@ -306,6 +306,24 @@ test("WeChat MP article extractor returns clean text and image candidates", () =
     ]);
 });
 
+test("WeChat MP article extractor does not fall back to the page shell", () => {
+    const parsed = extractArticleBody(`
+    <html>
+      <head><meta property="og:title" content="Shell only" /></head>
+      <body>
+        <div id="js_article">
+          <a href="https://mp.weixin.qq.com/author">作者导航</a>
+        </div>
+      </body>
+    </html>
+  `);
+
+    assert.equal(parsed.title, "Shell only");
+    assert.equal(parsed.contentText, "");
+    assert.equal(parsed.contentHtml, "");
+    assert.deepEqual(parsed.images, []);
+});
+
 test("WeChat MP article images are localized before admin preview", async () => {
     const localized = await localizeWechatArticleImages(
         {

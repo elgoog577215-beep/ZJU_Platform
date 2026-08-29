@@ -3448,7 +3448,7 @@
                 "rss_description": "Choose a configured WeRead RSS feed to fetch article links; the selected body then uses the same preview and AI parsing flow.",
                 "rss_feed": "WeRead RSS Feed",
                 "rss_feed_empty": "Select a configured RSS feed",
-                "rss_note": "The feed provides original WeChat article links. Body fetching uses WeWe RSS fulltext and does not require WeChat MP login.",
+                "rss_note": "The feed only provides original WeChat article links. Bodies are fetched from mp.weixin.qq.com and images are localized by the platform; WeChat MP login is not required.",
                 "rss_no_sources": "No WeRead RSS source is configured. Add a feed in RSS Admin or Collection Sources first.",
                 "pacing_title": "Collection Pacing",
                 "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually."
@@ -3469,6 +3469,7 @@
                 "open_original": "Open Original",
                 "loading_content": "Fetching body...",
                 "need_fetch_content": "Fetch the article body first. After it succeeds, the article content appears here.",
+                "image_only_content": "This is an image-led article. The cover and body images are preserved, but AI parsing and import are skipped.",
                 "empty_title": "Select an article",
                 "empty_desc": "After article link acquisition completes, select one item from the list to fetch the body."
             },
@@ -3570,13 +3571,15 @@
                 "content_status": {
                     "not_fetched": "Body not fetched",
                     "fetched": "Body fetched",
-                    "empty": "Empty body"
+                    "empty": "Empty body",
+                    "image_only": "Image-led; AI skipped"
                 },
                 "extraction_status": {
                     "not_started": "Not extracted",
                     "processing": "Extracting",
                     "completed": "Extracted",
-                    "failed": "Extraction failed"
+                    "failed": "Extraction failed",
+                    "skipped": "Skipped"
                 },
                 "activity_status": {
                     "not_screened": "Awaiting activity screening",
@@ -3757,7 +3760,8 @@
             "content_status": {
                 "not_fetched": "Not fetched",
                 "fetched": "Fetched",
-                "empty": "Empty"
+                "empty": "Empty",
+                "image_only": "Image-led; AI skipped"
             },
             "toasts": {
                 "status_failed": "Failed to load WeChat import status",
@@ -3775,6 +3779,7 @@
                 "content_ready": "Body fetched",
                 "content_failed": "Failed to fetch body",
                 "content_required": "Fetch the body first",
+                "image_only_content": "Image-led articles do not enter AI parsing or import",
                 "import_article_ready": "Article imported. You can continue editing it in article management.",
                 "import_event_ready": "Event imported. You can add time and location in event management.",
                 "import_failed": "Failed to import content",

@@ -1,6 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const { fetchArticleContent: fetchMpArticleContent } = require("./wechatMpAdminService");
 const { cleanWeChatUrl } = require("../utils/wechatUrl");
 
 const SOURCE_TYPE = "wewe_rss";
@@ -53,14 +54,7 @@ const normalizeBaseUrl = (value = process.env.WEWE_RSS_BASE_URL || DEFAULT_BASE_
     return url.toString().replace(/\/$/, "");
 };
 
-const buildFeedUrl = ({
-    feedId,
-    baseUrl,
-    type = "atom",
-    limit = 20,
-    page = 1,
-    mode = "fulltext",
-} = {}) => {
+const buildFeedUrl = ({ feedId, baseUrl, type = "atom", limit = 20, page = 1, mode = "" } = {}) => {
     const normalizedFeedId = normalizeFeedId(feedId);
     const normalizedType = FEED_TYPES.has(String(type || "").toLowerCase())
         ? String(type).toLowerCase()
@@ -98,7 +92,14 @@ const firstHttpUrl = (value, baseUrl = "") => {
 
 const isTrustedArticleLink = (value) => {
     try {
-        return new URL(value).hostname.toLowerCase() === "mp.weixin.qq.com";
+        const url = new URL(value);
+        return (
+            url.protocol === "https:" &&
+            url.hostname.toLowerCase() === "mp.weixin.qq.com" &&
+            (!url.port || url.port === "443") &&
+            !url.username &&
+            !url.password
+        );
     } catch {
         return false;
     }
@@ -233,7 +234,7 @@ const normalizeSummary = (value) => {
     return text.includes("<") ? htmlToText(text) : text;
 };
 
-const parseFeed = (xml, { baseUrl = "" } = {}) => {
+const parseFeed = (xml, { baseUrl = "", includeContent = true } = {}) => {
     const source = String(xml || "").trim();
     if (!source) throw createRssError("WeWe RSS feed 响应为空", "WEWE_RSS_EMPTY_FEED", 502);
 
@@ -261,7 +262,9 @@ const parseFeed = (xml, { baseUrl = "" } = {}) => {
             const link = cleanWeChatUrl(readFeedLink($, node));
             if (!isTrustedArticleLink(link)) return null;
             const identity = cleanWeChatUrl(childText($, node, isAtom ? ["id"] : ["guid", "id"]));
-            const content = readContent($, node, baseUrl);
+            const content = includeContent
+                ? readContent($, node, baseUrl)
+                : { contentHtml: "", contentText: "", images: [] };
             const publishedAt = childText(
                 $,
                 node,
@@ -285,7 +288,11 @@ const parseFeed = (xml, { baseUrl = "" } = {}) => {
                 content_text: content.contentText,
                 content_html: content.contentHtml,
                 images: content.images,
-                content_status: content.contentText ? "fetched" : "empty",
+                content_status: includeContent
+                    ? content.contentText
+                        ? "fetched"
+                        : "empty"
+                    : "not_fetched",
             };
         })
         .filter((article) => article?.link);
@@ -359,7 +366,7 @@ const fetchArticles = async ({
     baseUrl,
     count = 20,
     maxPages = 1,
-    mode = "fulltext",
+    mode = "",
     type = "atom",
     request = axios.get,
     timeoutMs = DEFAULT_TIMEOUT_MS,
@@ -383,7 +390,10 @@ const fetchArticles = async ({
             mode,
         });
         const xml = await fetchFeedPage({ url, request, timeoutMs, runtime });
-        const result = parseFeed(xml, { baseUrl: normalizedBaseUrl });
+        const result = parseFeed(xml, {
+            baseUrl: normalizedBaseUrl,
+            includeContent: Boolean(toText(mode)),
+        });
         result.articles.forEach((article) => {
             if (!seenLinks.has(article.link)) {
                 seenLinks.add(article.link);
@@ -405,16 +415,9 @@ const fetchArticles = async ({
 };
 
 const fetchArticleContent = async ({
-    feedId,
     url,
     article = {},
-    count = 100,
-    maxPages = 20,
-    baseUrl,
-    type = "atom",
-    request = axios.get,
-    timeoutMs = DEFAULT_TIMEOUT_MS,
-    runtime = {},
+    articleFetcher = fetchMpArticleContent,
 } = {}) => {
     const articleLink = cleanWeChatUrl(url || article.link || "");
     if (!isTrustedArticleLink(articleLink)) {
@@ -425,39 +428,33 @@ const fetchArticleContent = async ({
         );
     }
 
-    const result = await fetchArticles({
-        feedId,
-        baseUrl,
-        count,
-        maxPages,
-        mode: "fulltext",
-        type,
-        request,
-        timeoutMs,
-        runtime,
-    });
-    const target = result.articles.find(
-        (item) => item.link === articleLink || (article.id && item.id === article.id)
-    );
-    if (!target) {
+    let result;
+    try {
+        result = await articleFetcher({
+            url: articleLink,
+            article,
+            cover: article.cover || article.coverImage || "",
+        });
+    } catch (error) {
+        if (Number.isInteger(error?.status)) throw error;
         throw createRssError(
-            "WeWe RSS Feed 中未找到该文章，请先更新文章列表",
-            "WEWE_RSS_ARTICLE_NOT_FOUND",
-            404
+            `WeWe RSS 文章正文获取失败：${error?.message || "网络错误"}`,
+            "WEWE_RSS_ARTICLE_CONTENT_FAILED",
+            502
         );
     }
 
+    const resolvedUrl = cleanWeChatUrl(result?.url || articleLink);
+    if (!isTrustedArticleLink(resolvedUrl)) {
+        throw createRssError(
+            "WeWe RSS 文章最终地址必须来自 mp.weixin.qq.com",
+            "WEWE_RSS_UNTRUSTED_ARTICLE_URL",
+            400
+        );
+    }
     return {
-        url: target.link,
-        title: target.title,
-        summary: target.summary,
-        author: target.author,
-        coverImage: target.cover,
-        contentText: target.content_text,
-        contentHtml: target.content_html,
-        images: target.images,
-        content_available: Boolean(target.content_text),
-        content_status: target.content_status || (target.content_text ? "fetched" : "empty"),
+        ...result,
+        url: resolvedUrl,
     };
 };
 

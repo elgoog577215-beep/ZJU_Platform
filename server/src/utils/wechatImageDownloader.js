@@ -3,15 +3,45 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+const IMAGE_EXTENSIONS = new Set(["jpg", "png", "gif", "webp"]);
+
+const normalizeExtension = (value) => {
+    const extension = String(value || "")
+        .toLowerCase()
+        .replace(/^\./, "");
+    if (extension === "jpeg") return "jpg";
+    return IMAGE_EXTENSIONS.has(extension) ? extension : "";
+};
+
+const extensionFromImageUrl = (imageUrl) => {
+    try {
+        const url = new URL(imageUrl);
+        const format = url.searchParams.get("wx_fmt");
+        const pathExtension = url.pathname.match(/\.([a-z0-9]+)$/i)?.[1];
+        return normalizeExtension(format || pathExtension);
+    } catch {
+        return normalizeExtension(String(imageUrl).match(/\.([a-z0-9]+)(?:\?|$)/i)?.[1]);
+    }
+};
+
+const extensionFromContentType = (value) => {
+    const contentType = String(value || "")
+        .toLowerCase()
+        .split(";", 1)[0]
+        .trim();
+    return normalizeExtension(contentType.replace(/^image\//, ""));
+};
+
 async function downloadWeChatImage(imageUrl) {
     if (!imageUrl) return null;
 
     try {
         const hash = crypto.createHash("md5").update(imageUrl).digest("hex");
-        const ext = imageUrl.includes(".png") ? "png" : imageUrl.includes(".gif") ? "gif" : "jpg";
+        const urlExtension = extensionFromImageUrl(imageUrl);
+        let ext = urlExtension || "jpg";
         const filename = `wechat_${hash}.${ext}`;
         const uploadDir = path.join(__dirname, "../../uploads/covers");
-        const filePath = path.join(uploadDir, filename);
+        let filePath = path.join(uploadDir, filename);
 
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
@@ -37,10 +67,14 @@ async function downloadWeChatImage(imageUrl) {
             timeout: 15000,
         });
 
+        if (!urlExtension) {
+            ext = extensionFromContentType(response.headers?.["content-type"]) || ext;
+            filePath = path.join(uploadDir, `wechat_${hash}.${ext}`);
+        }
         fs.writeFileSync(filePath, response.data);
-        console.log(`✅ Image saved: ${filename}`);
+        console.log(`✅ Image saved: ${path.basename(filePath)}`);
 
-        return `/uploads/covers/${filename}`;
+        return `/uploads/covers/${path.basename(filePath)}`;
     } catch (error) {
         console.error(`❌ Failed to download image: ${error.message}`);
         return null;
@@ -49,4 +83,6 @@ async function downloadWeChatImage(imageUrl) {
 
 module.exports = {
     downloadWeChatImage,
+    extensionFromContentType,
+    extensionFromImageUrl,
 };
