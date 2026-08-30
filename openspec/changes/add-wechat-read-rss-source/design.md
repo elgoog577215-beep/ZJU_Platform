@@ -79,7 +79,13 @@ WeWe RSS 的管理能力通过主平台后端代理，不让浏览器直接携�
 - `/api/admin/wechat-rss/feeds/:id/history`、`/history/status`：历史文章同步和状态；
 - `/api/admin/wechat-rss/articles`：文章列表和删除。
 
-后台在现有内容采集页面增加 RSS 管理工作区，直连微信 MP 工作区继续保留。生产 WeWe RSS 以 headless backend 运行：保留 `/feeds/*` 和受保护的 `/trpc/*`，`/dash*` 返回 404；`apps/web` 源码保留但不进入生产镜像。`WEWE_RSS_AUTH_CODE` 只存在主平台服务端环境变量中，WeWe RSS 的 MySQL 和微信读书登录态仍由独立服务保存。
+后台在现有内容采集页面按职责提供三个顶层模式，并保留同一页面入口：
+
+- `微信读书 RSS（主方案）`：承载 WeRead 账号登录、账号状态、公众号订阅源、刷新、历史文章和 Feed 文章管理；不显示微信 MP 登录态提醒；
+- `微信公众号（备用）`：承载直连微信 MP 的扫码登录、登录状态、Cookie/Token 脱敏诊断；不承载 RSS 管理；
+- `测试与采集`：承载概况、采集源、候选内容和单篇测试；单篇测试继续通过来源选择器在 `wewe_rss` 与 `wechat_mp` 间切换。
+
+公共模式中的状态提醒由单篇测试当前来源决定：选择 `wewe_rss` 时只提示 RSS 来源是否已配置，选择 `wechat_mp` 时才提示微信 MP 登录环境和登录态。这样来源专属的失败状态不会跨页面污染另一条链路。生产 WeWe RSS 以 headless backend 运行：保留 `/feeds/*` 和受保护的 `/trpc/*`，`/dash*` 返回 404；`apps/web` 源码保留但不进入生产镜像。`WEWE_RSS_AUTH_CODE` 只存在主平台服务端环境变量中，WeWe RSS 的 MySQL 和微信读书登录态仍由独立服务保存。
 
 账号返回值增加 `source_type` 和 `rss_feed_id`。后台来源表单增加来源类型选择：
 

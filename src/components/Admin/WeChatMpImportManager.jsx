@@ -57,7 +57,7 @@ const initialStatus = {
 };
 
 const initialForm = {
-    sourceType: "wechat_mp",
+    sourceType: "wewe_rss",
     rssFeedId: "",
     accountName: "",
     fakeid: "",
@@ -200,6 +200,7 @@ const WeChatMpImportManager = () => {
     const [ingestFile, setIngestFile] = useState(null);
     const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
     const [updatingIngestAccountIds, setUpdatingIngestAccountIds] = useState([]);
+    const [activeSourceMode, setActiveSourceMode] = useState("rss");
     const [activeWorkspace, setActiveWorkspace] = useState("overview");
 
     const login = status?.login || initialStatus.login;
@@ -1082,100 +1083,171 @@ const WeChatMpImportManager = () => {
         );
     };
 
-    const runtimeNoteTone = hasEnabledRssSource
-        ? "success"
-        : runtimeReady
-          ? credentialHealthStatus === "expired"
-              ? "warning"
+    const mpRuntimeNoteTone = runtimeReady
+        ? credentialHealthStatus === "expired"
+            ? "warning"
+            : credentialsReady
+              ? "success"
+              : "warning"
+        : "danger";
+    const mpRuntimeNoteText = runtimeReady
+        ? credentialHealthStatus === "expired"
+            ? credentialHealth.reason === "check_failed"
+                ? t("admin.wechat_mp.notes.token_check_failed")
+                : t("admin.wechat_mp.notes.token_expired")
+            : credentialHealthStatus === "checking"
+              ? t("admin.wechat_mp.notes.token_checking")
               : credentialsReady
-                ? "success"
-                : "warning"
-          : "danger";
-    const runtimeNoteText =
-        hasEnabledRssSource && !credentialsReady
-            ? t("admin.wechat_mp.notes.rss_ready")
-            : runtimeReady
-              ? credentialHealthStatus === "expired"
-                  ? credentialHealth.reason === "check_failed"
-                      ? t("admin.wechat_mp.notes.token_check_failed")
-                      : t("admin.wechat_mp.notes.token_expired")
-                  : credentialHealthStatus === "checking"
-                    ? t("admin.wechat_mp.notes.token_checking")
-                    : credentialsReady
-                      ? t("admin.wechat_mp.notes.ready")
-                      : t("admin.wechat_mp.notes.need_login")
-              : t("admin.wechat_mp.notes.runtime_missing");
+                ? t("admin.wechat_mp.notes.ready")
+                : t("admin.wechat_mp.notes.need_login")
+        : t("admin.wechat_mp.notes.runtime_missing");
+    const rssRuntimeNoteTone = hasEnabledRssSource ? "success" : "warning";
+    const rssRuntimeNoteText = hasEnabledRssSource
+        ? t("admin.wechat_mp.notes.rss_ready")
+        : t("admin.wechat_mp.notes.rss_not_configured");
+    const sharedRuntimeNoteTone = singleTestIsRss ? rssRuntimeNoteTone : mpRuntimeNoteTone;
+    const sharedRuntimeNoteText = singleTestIsRss
+        ? rssRuntimeNoteText
+        : `${t("admin.wechat_mp.notes.mp_fallback_prefix")} ${mpRuntimeNoteText}`;
     const simpleLoginStatus = loginStatusKey(login.stage, credentialsReady, credentialHealthStatus);
     const paragraphs = textParagraphs(content?.contentText);
 
+    const selectSourceMode = (mode) => {
+        setActiveSourceMode(mode);
+        if (
+            mode === "shared" &&
+            !["overview", "sources", "candidates", "test"].includes(activeWorkspace)
+        ) {
+            setActiveWorkspace("overview");
+        }
+    };
+
     return (
         <AdminPageShell
-            title={t("admin.wechat_mp.workspace.title", "内容采集")}
+            title={
+                activeSourceMode === "rss"
+                    ? t("admin.wechat_mp.workspace.rss_mode_tab", "微信读书 RSS（主方案）")
+                    : activeSourceMode === "wechat_mp"
+                      ? t("admin.wechat_mp.workspace.wechat_mp_mode_tab", "微信公众号（备用）")
+                      : t("admin.wechat_mp.workspace.shared_mode_tab", "测试与采集")
+            }
             actions={
                 <ToolbarGroup className="justify-start lg:justify-end">
-                    <AdminButton
-                        tone="subtle"
-                        onClick={() => loadStatus()}
-                        disabled={statusLoading}
-                    >
-                        <RefreshCw size={16} className={statusLoading ? "animate-spin" : ""} />
-                        {t("admin.wechat_mp.actions.refresh_status")}
-                    </AdminButton>
-                    <AdminButton
-                        tone="primary"
-                        onClick={ingestReady ? runIngestNow : () => setActiveWorkspace("advanced")}
-                        disabled={
-                            ingestReady
-                                ? ingestRunning
-                                : loginStarting || loginActive || !runtimeReady
-                        }
-                    >
-                        {loginStarting || ingestRunning ? (
-                            <Loader2 size={16} className="animate-spin" />
-                        ) : ingestReady ? (
-                            <Play size={16} />
-                        ) : (
-                            <LogIn size={16} />
-                        )}
-                        {ingestReady
-                            ? t("admin.wechat_mp.actions.run_ingest")
-                            : t("admin.wechat_mp.workspace.connect_wechat", "连接微信采集")}
-                    </AdminButton>
+                    {activeSourceMode !== "rss" ? (
+                        <AdminButton
+                            tone="subtle"
+                            onClick={() => loadStatus()}
+                            disabled={statusLoading}
+                        >
+                            <RefreshCw size={16} className={statusLoading ? "animate-spin" : ""} />
+                            {t("admin.wechat_mp.actions.refresh_status")}
+                        </AdminButton>
+                    ) : null}
+                    {ingestReady || activeSourceMode !== "rss" ? (
+                        <AdminButton
+                            tone="primary"
+                            onClick={
+                                ingestReady
+                                    ? async () => {
+                                          selectSourceMode("shared");
+                                          setActiveWorkspace("overview");
+                                          await runIngestNow();
+                                      }
+                                    : () => {
+                                          selectSourceMode("wechat_mp");
+                                          setActiveWorkspace("advanced");
+                                      }
+                            }
+                            disabled={
+                                ingestReady
+                                    ? ingestRunning
+                                    : loginStarting || loginActive || !runtimeReady
+                            }
+                        >
+                            {loginStarting || ingestRunning ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : ingestReady ? (
+                                <Play size={16} />
+                            ) : (
+                                <LogIn size={16} />
+                            )}
+                            {ingestReady
+                                ? t("admin.wechat_mp.actions.run_ingest")
+                                : t("admin.wechat_mp.workspace.connect_wechat", "连接微信采集")}
+                        </AdminButton>
+                    ) : null}
                 </ToolbarGroup>
             }
             toolbar={
-                <div
-                    className="flex gap-2 overflow-x-auto"
-                    role="tablist"
-                    aria-label={t("admin.wechat_mp.workspace.navigation", "内容采集工作区")}
-                >
-                    {[
-                        ["overview", "overview_tab", "概况"],
-                        ["sources", "sources_tab", "采集源"],
-                        ["candidates", "candidates_tab", "候选内容"],
-                        ["rss", "rss_tab", "RSS 管理"],
-                        ["advanced", "advanced_tab", "连接与工具"],
-                    ].map(([id, key, fallback]) => (
-                        <FilterChip
-                            key={id}
-                            role="tab"
-                            aria-selected={activeWorkspace === id}
-                            active={activeWorkspace === id}
-                            onClick={() => setActiveWorkspace(id)}
-                            className="shrink-0"
+                <div className="space-y-2">
+                    <div
+                        className="flex gap-2 overflow-x-auto"
+                        role="tablist"
+                        aria-label={t(
+                            "admin.wechat_mp.workspace.source_navigation",
+                            "内容来源工作区"
+                        )}
+                    >
+                        {[
+                            ["rss", "rss_mode_tab", "微信读书 RSS（主方案）"],
+                            ["wechat_mp", "wechat_mp_mode_tab", "微信公众号（备用）"],
+                            ["shared", "shared_mode_tab", "测试与采集"],
+                        ].map(([id, key, fallback]) => (
+                            <FilterChip
+                                key={id}
+                                role="tab"
+                                aria-selected={activeSourceMode === id}
+                                active={activeSourceMode === id}
+                                onClick={() => selectSourceMode(id)}
+                                className="shrink-0"
+                            >
+                                {t(`admin.wechat_mp.workspace.${key}`, fallback)}
+                            </FilterChip>
+                        ))}
+                    </div>
+                    {activeSourceMode === "shared" ? (
+                        <div
+                            className="flex gap-2 overflow-x-auto pl-2"
+                            role="tablist"
+                            aria-label={t(
+                                "admin.wechat_mp.workspace.shared_navigation",
+                                "公共测试与采集工作区"
+                            )}
                         >
-                            {t(`admin.wechat_mp.workspace.${key}`, fallback)}
-                        </FilterChip>
-                    ))}
+                            {[
+                                ["overview", "overview_tab", "概况"],
+                                ["sources", "sources_tab", "采集源"],
+                                ["candidates", "candidates_tab", "候选内容"],
+                                ["test", "test_tab", "单篇测试"],
+                            ].map(([id, key, fallback]) => (
+                                <FilterChip
+                                    key={id}
+                                    role="tab"
+                                    aria-selected={activeWorkspace === id}
+                                    active={activeWorkspace === id}
+                                    onClick={() => setActiveWorkspace(id)}
+                                    className="shrink-0"
+                                >
+                                    {t(`admin.wechat_mp.workspace.${key}`, fallback)}
+                                </FilterChip>
+                            ))}
+                        </div>
+                    ) : null}
                 </div>
             }
         >
             <div className="space-y-3">
-                {activeWorkspace !== "rss" ? (
-                    <AdminInlineNote tone={runtimeNoteTone}>{runtimeNoteText}</AdminInlineNote>
+                {activeSourceMode === "wechat_mp" ? (
+                    <AdminInlineNote tone={mpRuntimeNoteTone}>
+                        {t("admin.wechat_mp.notes.mp_fallback_prefix")} {mpRuntimeNoteText}
+                    </AdminInlineNote>
+                ) : activeSourceMode === "shared" ? (
+                    <AdminInlineNote tone={sharedRuntimeNoteTone}>
+                        {sharedRuntimeNoteText}
+                    </AdminInlineNote>
                 ) : null}
 
-                {activeWorkspace === "overview" ? (
+                {activeSourceMode === "shared" && activeWorkspace === "overview" ? (
                     <>
                         <AdminPanel>
                             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
@@ -1189,12 +1261,11 @@ const WeChatMpImportManager = () => {
                                 <span className={mutedTextClass}>|</span>
                                 <span className={headingTextClass}>
                                     {t("admin.wechat_mp.workspace.login_status", {
-                                        status:
-                                            hasEnabledRssSource && !credentialsReady
-                                                ? t("admin.wechat_mp.workspace.rss_status")
-                                                : t(
-                                                      `admin.wechat_mp.simple_status.${simpleLoginStatus}`
-                                                  ),
+                                        status: hasEnabledRssSource
+                                            ? t("admin.wechat_mp.workspace.rss_status")
+                                            : t(
+                                                  `admin.wechat_mp.simple_status.${simpleLoginStatus}`
+                                              ),
                                         defaultValue: `微信连接 ${t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}`,
                                     })}
                                 </span>
@@ -1319,12 +1390,13 @@ const WeChatMpImportManager = () => {
                     </>
                 ) : null}
 
-                {activeWorkspace === "advanced" ? (
+                {activeSourceMode === "wechat_mp" ||
+                (activeSourceMode === "shared" && activeWorkspace === "test") ? (
                     <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                         <AdminPanel
                             title={t("admin.wechat_mp.auth.title")}
                             description={t("admin.wechat_mp.auth.description")}
-                            className={singleTestIsRss ? "hidden" : ""}
+                            className={activeSourceMode === "wechat_mp" ? "" : "hidden"}
                             action={
                                 loginActive ? (
                                     <AdminButton
@@ -1479,6 +1551,11 @@ const WeChatMpImportManager = () => {
                                     ? "admin.wechat_mp.collect.rss_description"
                                     : "admin.wechat_mp.collect.description"
                             )}
+                            className={
+                                activeSourceMode === "shared" && activeWorkspace === "test"
+                                    ? ""
+                                    : "hidden"
+                            }
                             action={
                                 <AdminButton
                                     tone="primary"
@@ -1862,9 +1939,9 @@ const WeChatMpImportManager = () => {
                     </div>
                 ) : null}
 
-                {activeWorkspace === "rss" ? <WeChatReadRssManager /> : null}
+                {activeSourceMode === "rss" ? <WeChatReadRssManager /> : null}
 
-                {activeWorkspace === "sources" ? (
+                {activeSourceMode === "shared" && activeWorkspace === "sources" ? (
                     <AdminPanel
                         title={t("admin.wechat_mp.ingest.title")}
                         description={t("admin.wechat_mp.ingest.description")}
@@ -2842,7 +2919,7 @@ const WeChatMpImportManager = () => {
                     </AdminPanel>
                 ) : null}
 
-                {activeWorkspace === "candidates" ? (
+                {activeSourceMode === "shared" && activeWorkspace === "candidates" ? (
                     <div className="grid gap-3 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]">
                         <AdminPanel
                             title={t("admin.wechat_mp.articles.title")}
