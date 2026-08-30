@@ -16,5 +16,5 @@
 
 ## 4. Production acceptance
 
-- [ ] 4.1 Commit and push only this change to `origin/master`, then verify the deployment workflow and live site health.
-- [ ] 4.2 Run a real `tuotuzju.com` activity-assistant request and verify it reports `qwen3.8-27b` without fallback.
+- [x] 4.1 Commit and push only this change to `origin/master`, then verify the deployment workflow and live site health.
+- [x] 4.2 Run a real `tuotuzju.com` activity-assistant request and verify it reports `qwen3.8-27b` without fallback.
