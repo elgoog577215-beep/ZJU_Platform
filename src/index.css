@@ -3637,3 +3637,54 @@ html[lang^="en"] .community-dock-heading__title {
         stroke-dashoffset: -26;
     }
 }
+
+@supports (view-transition-name: support-category-all) {
+    ::view-transition-group(support-category-all),
+    ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-technology_enterprise),
+    ::view-transition-group(support-category-industry_enterprise),
+    ::view-transition-group(support-category-capital),
+    ::view-transition-group(support-category-club) {
+        z-index: 80;
+        animation-duration: 480ms;
+        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    ::view-transition-old(support-category-all),
+    ::view-transition-new(support-category-all),
+    ::view-transition-old(support-category-college),
+    ::view-transition-new(support-category-college),
+    ::view-transition-old(support-category-technology_enterprise),
+    ::view-transition-new(support-category-technology_enterprise),
+    ::view-transition-old(support-category-industry_enterprise),
+    ::view-transition-new(support-category-industry_enterprise),
+    ::view-transition-old(support-category-capital),
+    ::view-transition-new(support-category-capital),
+    ::view-transition-old(support-category-club),
+    ::view-transition-new(support-category-club) {
+        overflow: clip;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+    ::view-transition-group(support-category-all),
+    ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-technology_enterprise),
+    ::view-transition-group(support-category-industry_enterprise),
+    ::view-transition-group(support-category-capital),
+    ::view-transition-group(support-category-club) {
+        animation-duration: 360ms;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(support-category-all),
+    ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-technology_enterprise),
+    ::view-transition-group(support-category-industry_enterprise),
+    ::view-transition-group(support-category-capital),
+    ::view-transition-group(support-category-club) {
+        animation-duration: 1ms;
+    }
+}

@@ -974,6 +974,10 @@
                 "enterprise_title": "企业合作",
                 "enterprise_headline": "赛题、技术与人才机会",
                 "enterprise_desc": "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。",
+                "technology_headline": "模型、工具与工程资源",
+                "technology_desc": "技术伙伴提供模型、云资源、开发工具和工程经验，让学习成果能够进入真实开发。",
+                "industry_headline": "真实问题与行业场景",
+                "industry_desc": "行业伙伴把真实需求、业务约束和验证场景带进课程、赛事与项目实践。",
                 "enterprise_items": {
                     "getui": "每日互动",
                     "aliyun": "阿里云",
@@ -1003,7 +1007,10 @@
                     "embedded_ai": "嵌入式人工智能协会",
                     "kab": "KAB 创业俱乐部"
                 },
-                "view_all": "查看全部支持方"
+                "view_all": "查看全部支持方",
+                "category_count": "{{count}} 家",
+                "open_category": "查看{{category}}支持方",
+                "enter_category": "进入分类"
             },
             "supporter_directory": {
                 "meta_title": "生态支持方｜拓浙AI生态",

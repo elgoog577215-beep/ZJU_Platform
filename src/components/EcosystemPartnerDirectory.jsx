@@ -7,7 +7,7 @@ FORM: 现有 About 的次级阅读页，采用机构索引结构，不建立新�
 */
 
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -34,6 +34,7 @@ import {
 } from "../data/partnerLogos";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
+import { startRouteViewTransition } from "../utils/routeViewTransition";
 import SEO from "./SEO";
 
 const categoryIcons = {
@@ -51,6 +52,8 @@ const categoryFallbackLabels = {
     capital: "资本与孵化",
     club: "社团与组织",
 };
+
+const supportCategoryIds = new Set(ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => category.id));
 
 const networkNodePositions = {
     college: { x: 20, y: 19 },
@@ -148,6 +151,10 @@ const SupportNetworkMap = ({
             type="button"
             onClick={() => onSelect("all")}
             aria-pressed={activeCategory === "all"}
+            style={{
+                viewTransitionName:
+                    !reduceMotion && activeCategory === "all" ? "support-category-all" : undefined,
+            }}
             className={`absolute left-1/2 top-1/2 z-20 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:h-32 sm:w-32 ${
                 activeCategory === "all"
                     ? isDayMode
@@ -178,7 +185,12 @@ const SupportNetworkMap = ({
                     onClick={() => onSelect(category.id)}
                     aria-pressed={active}
                     aria-label={`${mapLabel} · ${categoryCounts[category.id] || 0}`}
-                    style={{ left: `${position.x}%`, top: `${position.y}%` }}
+                    style={{
+                        left: `${position.x}%`,
+                        top: `${position.y}%`,
+                        viewTransitionName:
+                            !reduceMotion && active ? `support-category-${category.id}` : undefined,
+                    }}
                     className={`absolute z-30 flex min-h-12 min-w-[116px] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-[12px] border px-3 py-2 text-left outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:min-w-[126px] ${
                         active
                             ? isDayMode
@@ -205,12 +217,24 @@ const SupportNetworkMap = ({
 const EcosystemPartnerDirectory = () => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
+    const navigate = useNavigate();
     const { partners, loading, error, refresh } = useEcosystemPartners();
     const reduceMotion = useReducedMotion();
     const isDayMode = uiMode === "day";
     const isEnglish = (i18n.resolvedLanguage || i18n.language || "zh").startsWith("en");
-    const [activeCategory, setActiveCategory] = useState("all");
+    const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState("");
+    const requestedCategory = searchParams.get("category");
+    const activeCategory = supportCategoryIds.has(requestedCategory) ? requestedCategory : "all";
+    const setActiveCategory = (category) => {
+        const next = new URLSearchParams(searchParams);
+        if (supportCategoryIds.has(category)) {
+            next.set("category", category);
+        } else {
+            next.delete("category");
+        }
+        setSearchParams(next, { replace: true, preventScrollReset: true });
+    };
 
     const coreSupporters = useMemo(
         () =>
@@ -470,6 +494,15 @@ const EcosystemPartnerDirectory = () => {
             <main className="relative z-10 mx-auto w-full max-w-[1540px] px-4 pb-20 sm:px-6 lg:px-8 lg:pb-28">
                 <Link
                     to="/about#resource-support"
+                    onClick={(event) =>
+                        startRouteViewTransition({
+                            event,
+                            navigate,
+                            to: "/about#resource-support",
+                            state: { fromSupportDirectory: true, category: activeCategory },
+                            reducedMotion: reduceMotion,
+                        })
+                    }
                     className={`inline-flex min-h-11 items-center gap-2 rounded-[10px] px-3 text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400/80 ${
                         isDayMode
                             ? "text-slate-600 hover:bg-white hover:text-cyan-800"

@@ -975,6 +975,10 @@
                 "enterprise_title": "Enterprise Partners",
                 "enterprise_headline": "Briefs, technology, and talent",
                 "enterprise_desc": "Enterprise and technology partners provide real briefs, models, cloud resources, tools, judges, internships, and recruitment opportunities.",
+                "technology_headline": "Models, tools, and engineering resources",
+                "technology_desc": "Technology partners provide models, cloud resources, development tools, and engineering experience that move learning into real development.",
+                "industry_headline": "Real problems and industry settings",
+                "industry_desc": "Industry partners bring real needs, business constraints, and validation settings into courses, competitions, and project work.",
                 "enterprise_items": {
                     "getui": "Getui",
                     "aliyun": "Alibaba Cloud",
@@ -1004,7 +1008,10 @@
                     "embedded_ai": "Embedded AI Association",
                     "kab": "KAB Entrepreneurship Club"
                 },
-                "view_all": "View all supporters"
+                "view_all": "View all supporters",
+                "category_count": "{{count}} supporters",
+                "open_category": "View {{category}} supporters",
+                "enter_category": "Open category"
             },
             "supporter_directory": {
                 "meta_title": "Ecosystem Supporters | Tuozhe AI Ecosystem",

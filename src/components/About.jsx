@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -7,7 +7,9 @@ import {
     BookOpen,
     Building2,
     CalendarDays,
+    Cpu,
     Download,
+    Factory,
     GraduationCap,
     Handshake,
     Landmark,
@@ -19,11 +21,14 @@ import {
     Users,
     X,
 } from "lucide-react";
-import { getPartnerLogoSrc } from "../data/partnerLogos";
+import { ECOSYSTEM_SUPPORT_CATEGORIES, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
+import { startRouteViewTransition } from "../utils/routeViewTransition";
 import SEO from "./SEO";
+
+const preloadSupporterDirectory = () => import("./EcosystemPartnerDirectory");
 
 const sectionReveal = (enabled, delay = 0) => {
     if (!enabled) return {};
@@ -122,7 +127,8 @@ const useAboutHeroScale = () => {
 const About = () => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
-    const { enterpriseLogos } = useEcosystemPartners();
+    const navigate = useNavigate();
+    const { supporterGroups: supporterDataGroups } = useEcosystemPartners();
     const reduceMotion = useReducedMotion();
     const shouldAnimate = !reduceMotion;
     const isDayMode = uiMode === "day";
@@ -130,7 +136,6 @@ const About = () => {
     const [activeBusinessCode, setActiveBusinessCode] = useState(null);
     const detailCloseButtonRef = useRef(null);
     const businessTriggerRefs = useRef({});
-    const enterpriseLogoWall = enterpriseLogos.filter((logo) => getPartnerLogoSrc(logo, isDayMode));
     const [heroStageRef, heroStageFrame] = useAboutHeroScale();
 
     const openBusinessDetails = (code) => setActiveBusinessCode(code);
@@ -296,67 +301,70 @@ const About = () => {
         },
     ];
 
-    const supportGroups = [
-        {
-            index: "01",
-            code: "Campus",
-            title: t("about.ecosystem.support.school_title", "校内支持"),
+    const supporterGroupMap = new Map(
+        supporterDataGroups.map((group) => [group.id, group.partners || []])
+    );
+    const supportGroupConfig = {
+        college: {
+            code: "CAMPUS",
             headline: t("about.ecosystem.support.school_headline", "课程、科研与场景"),
             description: t(
                 "about.ecosystem.support.school_desc",
                 "未来学习中心与相关学院提供课程共建、科研问题和重点场景，使真实课题进入校园实践。"
             ),
             icon: Landmark,
-            items: [
-                t("about.ecosystem.support.school_items.future_learning", "未来学习中心"),
-                t("about.ecosystem.support.school_items.management", "管理学院"),
-                t("about.ecosystem.support.school_items.innovation", "创新创业学院"),
-                t("about.ecosystem.support.school_items.medical", "基础医学院"),
-            ],
+            layoutClass: "lg:col-span-4 lg:col-start-1 lg:row-start-1",
         },
-        {
-            index: "02",
-            code: "Enterprise",
-            title: t("about.ecosystem.support.enterprise_title", "企业合作"),
-            headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
+        technology_enterprise: {
+            code: "TECHNOLOGY",
+            headline: t("about.ecosystem.support.technology_headline", "模型、工具与工程资源"),
             description: t(
-                "about.ecosystem.support.enterprise_desc",
-                "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。"
+                "about.ecosystem.support.technology_desc",
+                "技术伙伴提供模型、云资源、开发工具和工程经验，让学习成果能够进入真实开发。"
             ),
-            icon: Building2,
+            icon: Cpu,
+            layoutClass: "lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1",
         },
-        {
-            index: "03",
-            code: "Capital",
-            title: t("about.ecosystem.support.capital_title", "资本合作"),
+        industry_enterprise: {
+            code: "INDUSTRY",
+            headline: t("about.ecosystem.support.industry_headline", "真实问题与行业场景"),
+            description: t(
+                "about.ecosystem.support.industry_desc",
+                "行业伙伴把真实需求、业务约束和验证场景带进课程、赛事与项目实践。"
+            ),
+            icon: Factory,
+            layoutClass: "lg:col-span-3 lg:col-start-5 lg:row-start-1",
+        },
+        capital: {
+            code: "CAPITAL",
             headline: t("about.ecosystem.support.capital_headline", "创业辅导与资源对接"),
             description: t(
                 "about.ecosystem.support.capital_desc",
                 "五源资本及浙大系资本为优秀项目提供路演、创业辅导和资源对接。"
             ),
             icon: Handshake,
-            items: [t("about.ecosystem.support.capital_items.five_source", "五源资本")],
+            layoutClass: "lg:col-span-3 lg:col-start-1 lg:row-start-2",
         },
-        {
-            index: "04",
-            code: "Force",
-            title: t("about.ecosystem.support.organization_title", "组织合作"),
+        club: {
+            code: "COMMUNITY",
             headline: t("about.ecosystem.support.organization_headline", "招募、培训与执行"),
             description: t(
                 "about.ecosystem.support.organization_desc",
                 "学生组织和社团负责成员招募、学习培训、活动执行与赛后复盘。"
             ),
             icon: Network,
-            items: [
-                t("about.ecosystem.support.organization_items.qiangying", "强鹰俱乐部"),
-                t("about.ecosystem.support.organization_items.xlab", "XLAB"),
-                t("about.ecosystem.support.organization_items.ai_association", "人工智能协会"),
-                t("about.ecosystem.support.organization_items.ai_research", "AI 创研会"),
-                t("about.ecosystem.support.organization_items.embedded_ai", "嵌入式人工智能协会"),
-                t("about.ecosystem.support.organization_items.kab", "KAB 创业俱乐部"),
-            ],
+            layoutClass: "col-span-2 lg:col-span-4 lg:col-start-4 lg:row-start-2",
         },
-    ];
+    };
+    const supportGroups = ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => ({
+        ...category,
+        ...supportGroupConfig[category.id],
+        title: t(
+            `about.ecosystem.supporter_directory.categories.${category.id}`,
+            isEnglish ? category.labelEn : category.label
+        ),
+        partners: supporterGroupMap.get(category.id) || [],
+    }));
 
     const businessLines = [
         {
@@ -804,6 +812,22 @@ const About = () => {
                                 </p>
                                 <Link
                                     to="/about/partners"
+                                    onClick={(event) =>
+                                        startRouteViewTransition({
+                                            event,
+                                            navigate,
+                                            to: "/about/partners",
+                                            state: { fromSupportOverview: true, category: "all" },
+                                            reducedMotion: reduceMotion,
+                                        })
+                                    }
+                                    onPointerEnter={preloadSupporterDirectory}
+                                    onFocus={preloadSupporterDirectory}
+                                    style={{
+                                        viewTransitionName: reduceMotion
+                                            ? undefined
+                                            : "support-category-all",
+                                    }}
                                     className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-[10px] border px-4 text-sm font-black outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400/80 ${palette.secondary}`}
                                 >
                                     {t("about.ecosystem.support.view_all", "查看全部支持方")}
@@ -812,140 +836,205 @@ const About = () => {
                             </div>
                         </div>
 
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
+                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:h-[clamp(29rem,57vh,42rem)] lg:min-h-0 lg:grid-cols-12 lg:grid-rows-2 lg:gap-4 2xl:gap-6">
                             {supportGroups.map((group) => {
                                 const Icon = group.icon;
-                                const textItemCount = group.items?.length || 0;
-                                const isSingleSupportItem = textItemCount === 1;
-                                const supportItemGridClass =
-                                    textItemCount <= 1 ? "grid-cols-1" : "grid-cols-2";
-                                const supportItemTextClass =
-                                    isEnglish && textItemCount > 1
-                                        ? textItemCount <= 4
-                                            ? "text-xs sm:text-[13px] 2xl:text-sm"
-                                            : "text-[11px] sm:text-xs 2xl:text-sm"
-                                        : textItemCount <= 1
-                                          ? "text-xl sm:text-2xl lg:text-xl 2xl:text-2xl"
-                                          : textItemCount <= 4
-                                            ? "text-base sm:text-lg 2xl:text-xl"
-                                            : "text-sm sm:text-base 2xl:text-lg";
+                                const isTechnology = group.id === "technology_enterprise";
+                                const categoryPath = `/about/partners?category=${group.id}`;
+                                const previewPartners = group.partners.slice(
+                                    0,
+                                    isTechnology ? 9 : 5
+                                );
                                 return (
-                                    <article
-                                        key={group.code}
-                                        className={`relative flex min-h-[300px] flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
+                                    <Link
+                                        key={group.id}
+                                        to={categoryPath}
+                                        state={{ fromSupportOverview: true, category: group.id }}
+                                        onClick={(event) =>
+                                            startRouteViewTransition({
+                                                event,
+                                                navigate,
+                                                to: categoryPath,
+                                                state: {
+                                                    fromSupportOverview: true,
+                                                    category: group.id,
+                                                },
+                                                reducedMotion: reduceMotion,
+                                            })
+                                        }
+                                        onPointerEnter={preloadSupporterDirectory}
+                                        onFocus={preloadSupporterDirectory}
+                                        style={{
+                                            viewTransitionName: reduceMotion
+                                                ? undefined
+                                                : `support-category-${group.id}`,
+                                        }}
+                                        aria-label={t(
+                                            "about.ecosystem.support.open_category",
+                                            "查看{{category}}支持方",
+                                            { category: group.title }
+                                        )}
+                                        className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[278px] sm:p-6 lg:h-full lg:min-h-0 lg:p-5 lg:hover:-translate-y-1.5 2xl:p-7 ${group.layoutClass} ${palette.card}`}
                                     >
                                         <div
-                                            className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}
+                                            className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none transition-transform duration-500 group-hover:-translate-x-2 ${palette.watermark}`}
                                         >
                                             {group.code}
                                         </div>
                                         <div className="relative z-10 flex h-full flex-col">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div
-                                                    className={`font-mono text-sm font-black uppercase 2xl:text-base ${palette.accent}`}
+                                                    className={`flex items-center gap-2 font-mono text-xs font-black uppercase 2xl:text-sm ${palette.accent}`}
                                                 >
-                                                    {group.index} / {group.code}
+                                                    <span className="hidden sm:inline">
+                                                        {group.code}
+                                                    </span>
+                                                    <span
+                                                        className="hidden sm:inline"
+                                                        aria-hidden="true"
+                                                    >
+                                                        ·
+                                                    </span>
+                                                    <span>
+                                                        {t(
+                                                            "about.ecosystem.support.category_count",
+                                                            "{{count}} 家",
+                                                            { count: group.partners.length }
+                                                        )}
+                                                    </span>
                                                 </div>
                                                 <div
-                                                    className={`flex h-11 w-11 items-center justify-center ${group.index === "03" ? palette.altAccentBg : palette.accentBg} text-slate-950`}
+                                                    className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
                                                 >
-                                                    <Icon className="h-5 w-5" />
+                                                    <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>
                                             </div>
-                                            <h3 className="mt-5 text-3xl font-black leading-tight sm:text-4xl lg:text-3xl 2xl:text-4xl">
+                                            <h3
+                                                className={`mt-4 font-black leading-tight tracking-[-0.025em] ${isTechnology ? "text-xl sm:text-4xl lg:text-4xl 2xl:text-5xl" : "text-xl sm:text-3xl lg:text-2xl 2xl:text-3xl"}`}
+                                            >
                                                 {group.title}
                                             </h3>
                                             <p
-                                                className={`mt-2 text-sm font-black ${group.index === "03" ? palette.altAccent : palette.accent}`}
+                                                className={`mt-2 text-sm font-black ${group.id === "capital" ? palette.altAccent : palette.accent}`}
                                             >
                                                 {group.headline}
                                             </p>
                                             <p
-                                                className={`mt-4 text-sm leading-6 ${palette.textSoft}`}
+                                                className={`mt-3 hidden text-sm leading-6 sm:line-clamp-2 ${!isTechnology ? "lg:hidden 2xl:line-clamp-2" : ""} ${palette.textSoft}`}
                                             >
                                                 {group.description}
                                             </p>
-                                            {group.index === "02" ? (
-                                                enterpriseLogoWall.length > 0 ? (
-                                                    <div
-                                                        className={`mt-auto grid grid-cols-4 gap-1.5 border-t pt-4 ${palette.divider}`}
-                                                    >
-                                                        {enterpriseLogoWall.map((logo) => {
-                                                            const logoSrc = getPartnerLogoSrc(
-                                                                logo,
-                                                                isDayMode
-                                                            );
-                                                            const logoKey =
-                                                                `${logo.id || ""} ${logo.name || ""} ${logo.alt || ""}`.toLowerCase();
-                                                            const tileSpan = logoKey.includes(
-                                                                "getui"
-                                                            )
-                                                                ? "col-span-2"
-                                                                : "";
-                                                            return (
-                                                                <div
-                                                                    key={
-                                                                        logo.id ||
-                                                                        logo.src ||
-                                                                        logo.name
-                                                                    }
-                                                                    className={`flex min-h-[34px] items-center justify-center px-1.5 py-1.5 ${tileSpan} ${
-                                                                        isDayMode
-                                                                            ? "bg-white/72"
-                                                                            : "bg-white/[0.04]"
-                                                                    }`}
-                                                                >
-                                                                    <img
-                                                                        src={logoSrc}
-                                                                        alt={
-                                                                            logo.alt ||
-                                                                            `${logo.name || "合作方"} logo`
-                                                                        }
-                                                                        className={`max-h-5 w-auto max-w-full object-contain sm:max-h-6 ${
-                                                                            !isDayMode
-                                                                                ? `${logo.darkClassName || ""} ${logoKey.includes("huawei") ? "brightness-0 invert" : ""}`
-                                                                                : ""
+                                            {isTechnology ? (
+                                                previewPartners.length > 0 ? (
+                                                    <>
+                                                        <div
+                                                            className={`mt-auto grid grid-cols-2 gap-1 border-t pt-3 sm:hidden ${palette.divider}`}
+                                                        >
+                                                            {previewPartners
+                                                                .slice(0, 4)
+                                                                .map((partner) => (
+                                                                    <span
+                                                                        key={partner.id}
+                                                                        className={`flex min-h-8 items-center justify-center px-1.5 text-center text-[10px] font-black leading-tight ${isDayMode ? "bg-white/72 text-slate-800" : "bg-white/[0.045] text-white/82"}`}
+                                                                    >
+                                                                        {isEnglish
+                                                                            ? partner.name_en ||
+                                                                              partner.name
+                                                                            : partner.name ||
+                                                                              partner.name_en}
+                                                                    </span>
+                                                                ))}
+                                                        </div>
+                                                        <div
+                                                            className={`mt-auto hidden grid-cols-3 gap-1.5 border-t pt-4 sm:grid ${palette.divider}`}
+                                                        >
+                                                            {previewPartners.map((partner) => {
+                                                                const logoSrc = getPartnerLogoSrc(
+                                                                    partner,
+                                                                    isDayMode
+                                                                );
+                                                                const logoKey =
+                                                                    `${partner.name || ""} ${partner.name_en || ""}`.toLowerCase();
+                                                                return (
+                                                                    <div
+                                                                        key={partner.id}
+                                                                        className={`flex min-h-[38px] items-center justify-center px-2 py-1.5 ${
+                                                                            isDayMode
+                                                                                ? "bg-white/72"
+                                                                                : "bg-white/[0.04]"
                                                                         }`}
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                                    >
+                                                                        {logoSrc ? (
+                                                                            <img
+                                                                                src={logoSrc}
+                                                                                alt=""
+                                                                                className={`max-h-5 w-auto max-w-full object-contain sm:max-h-6 ${!isDayMode && logoKey.includes("huawei") ? "brightness-0 invert" : ""}`}
+                                                                            />
+                                                                        ) : (
+                                                                            <span className="line-clamp-1 text-center text-[11px] font-black">
+                                                                                {isEnglish
+                                                                                    ? partner.name_en ||
+                                                                                      partner.name
+                                                                                    : partner.name ||
+                                                                                      partner.name_en}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </>
                                                 ) : null
                                             ) : (
                                                 <div
-                                                    className={`border-t ${
-                                                        isSingleSupportItem
-                                                            ? "mt-auto pt-5"
-                                                            : `flex min-h-0 flex-1 flex-col ${isEnglish ? "mt-4 pt-4" : "mt-6 pt-5"}`
-                                                    } ${palette.divider}`}
+                                                    className={`mt-auto border-t pt-3 ${palette.divider}`}
                                                 >
-                                                    <div
-                                                        className={`grid ${supportItemGridClass} ${
-                                                            isSingleSupportItem
-                                                                ? "min-h-[92px] sm:min-h-[104px] lg:min-h-[108px]"
-                                                                : isEnglish
-                                                                  ? "min-h-0 flex-1 content-start gap-1.5"
-                                                                  : "min-h-[144px] flex-1 gap-2.5 sm:min-h-[156px] lg:min-h-0"
-                                                        }`}
-                                                    >
-                                                        {group.items.map((item) => (
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        {previewPartners.map((partner) => (
                                                             <span
-                                                                key={item}
-                                                                className={`flex min-w-0 items-center justify-center break-words border text-center font-black leading-tight ${isEnglish ? "px-1.5 py-1.5" : "px-1.5 py-3"} ${supportItemTextClass} ${
+                                                                key={partner.id}
+                                                                className={`flex min-h-9 min-w-0 items-center justify-center break-words px-2 py-1.5 text-center text-xs font-black leading-tight ${
                                                                     isDayMode
-                                                                        ? "border-slate-200 bg-white/80 text-slate-800"
-                                                                        : "border-white/10 bg-white/[0.055] text-white/82"
+                                                                        ? "bg-white/72 text-slate-800"
+                                                                        : "bg-white/[0.045] text-white/82"
                                                                 }`}
                                                             >
-                                                                {item}
+                                                                {isEnglish
+                                                                    ? partner.name_en ||
+                                                                      partner.name
+                                                                    : partner.name ||
+                                                                      partner.name_en}
                                                             </span>
                                                         ))}
                                                     </div>
                                                 </div>
                                             )}
+                                            <div
+                                                className={`mt-3 flex items-center justify-between gap-3 border-t pt-3 text-xs font-black ${palette.divider} ${palette.accent}`}
+                                            >
+                                                <span>
+                                                    <span className="sm:hidden">
+                                                        {t(
+                                                            "about.ecosystem.support.enter_category",
+                                                            "进入分类"
+                                                        )}
+                                                    </span>
+                                                    <span className="hidden sm:inline">
+                                                        {t(
+                                                            "about.ecosystem.support.open_category",
+                                                            "查看{{category}}支持方",
+                                                            { category: group.title }
+                                                        )}
+                                                    </span>
+                                                </span>
+                                                <ArrowRight
+                                                    size={17}
+                                                    aria-hidden="true"
+                                                    className="shrink-0 transition-transform duration-300 group-hover:translate-x-1.5"
+                                                />
+                                            </div>
                                         </div>
-                                    </article>
+                                    </Link>
                                 );
                             })}
                         </div>

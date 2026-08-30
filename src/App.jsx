@@ -155,6 +155,7 @@ const preloadRouteLoaders = [
     loadProjectPlaza,
     loadProfileDirectory,
     loadHackathonSeasonOne,
+    loadEcosystemPartnerDirectory,
 ];
 
 const useDeferredMount = (delay = 0) => {
