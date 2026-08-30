@@ -1014,12 +1014,12 @@
             },
             "supporter_directory": {
                 "meta_title": "生态支持方｜拓浙AI生态",
-                "meta_desc": "查看支持拓浙 AI 生态的学院、技术企业、行业企业、资本与校园社团。",
+                "meta_desc": "查看支持拓浙 AI 生态的校内机构、企业、资本与校园组织。",
                 "back": "返回生态介绍",
                 "eyebrow": "生态支持网络",
                 "title_1": "共同支撑，",
                 "title_2": "真实实践。",
-                "desc": "从课程与科研场景，到技术、产业、资本和校园组织协作，这些支持方共同让学习、赛事与真实项目持续发生。",
+                "desc": "从校内课程与科研场景，到企业技术与产业资源、资本和校园组织协作，这些支持方共同让学习、赛事与真实项目持续发生。",
                 "search_label": "搜索支持方",
                 "search_placeholder": "搜索名称、合作方向或支持内容",
                 "clear_search": "清除搜索",
@@ -1037,6 +1037,12 @@
                 "empty_title": "没有找到匹配的支持方",
                 "empty_desc": "可以清除搜索词，或切换到其他支持方分类。",
                 "clear_filters": "查看全部支持方",
+                "view_groups": {
+                    "college": "校内支持",
+                    "enterprise": "企业合作",
+                    "capital": "资本合作",
+                    "club": "组织合作"
+                },
                 "categories": {
                     "college": "学院与校内机构",
                     "technology_enterprise": "技术企业",

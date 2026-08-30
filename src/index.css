@@ -3641,6 +3641,7 @@ html[lang^="en"] .community-dock-heading__title {
 @supports (view-transition-name: support-category-all) {
     ::view-transition-group(support-category-all),
     ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-enterprise),
     ::view-transition-group(support-category-technology_enterprise),
     ::view-transition-group(support-category-industry_enterprise),
     ::view-transition-group(support-category-capital),
@@ -3654,6 +3655,8 @@ html[lang^="en"] .community-dock-heading__title {
     ::view-transition-new(support-category-all),
     ::view-transition-old(support-category-college),
     ::view-transition-new(support-category-college),
+    ::view-transition-old(support-category-enterprise),
+    ::view-transition-new(support-category-enterprise),
     ::view-transition-old(support-category-technology_enterprise),
     ::view-transition-new(support-category-technology_enterprise),
     ::view-transition-old(support-category-industry_enterprise),
@@ -3670,6 +3673,7 @@ html[lang^="en"] .community-dock-heading__title {
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
     ::view-transition-group(support-category-all),
     ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-enterprise),
     ::view-transition-group(support-category-technology_enterprise),
     ::view-transition-group(support-category-industry_enterprise),
     ::view-transition-group(support-category-capital),
@@ -3681,6 +3685,7 @@ html[lang^="en"] .community-dock-heading__title {
 @media (prefers-reduced-motion: reduce) {
     ::view-transition-group(support-category-all),
     ::view-transition-group(support-category-college),
+    ::view-transition-group(support-category-enterprise),
     ::view-transition-group(support-category-technology_enterprise),
     ::view-transition-group(support-category-industry_enterprise),
     ::view-transition-group(support-category-capital),

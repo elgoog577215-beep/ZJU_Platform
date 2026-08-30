@@ -1,8 +1,8 @@
 /*
 THESIS: 支持方名录首先证明合作关系与支持内容，而不是重复一面 Logo 墙。
 OWN-WORLD: 继承 About 的深夜蓝/白昼白表面、青色行动和高对比文字，以索引、分隔线和真实标志组织内容。
-STORY: 访客从 About 进入，按五类理解支持网络，搜索具体伙伴，再进入组织主页或官方网站。
-FIRST VIEWPORT: 左侧是页面主张与搜索，右侧是由真实分类数量构成的可操作支持网络；名录索引紧随其后。
+STORY: 访客从 About 进入，按校内、企业、资本、组织四股力量理解支持网络，搜索具体伙伴，再进入组织主页或官方网站。
+FIRST VIEWPORT: 左侧是页面主张与搜索，右侧用四个强节点和真实数量构成可操作支持网络；名录索引紧随其后。
 FORM: 现有 About 的次级阅读页，采用机构索引结构，不建立新的品牌世界。
 */
 
@@ -13,13 +13,12 @@ import { useTranslation } from "react-i18next";
 import {
     ArrowLeft,
     ArrowUpRight,
-    Cpu,
-    Factory,
+    Building2,
     Handshake,
     Landmark,
+    Network,
     RefreshCw,
     Search,
-    Users,
     X,
 } from "lucide-react";
 
@@ -27,6 +26,8 @@ import { useSettings } from "../context/SettingsContext";
 import {
     CORE_PARTNER_SCOPE,
     ECOSYSTEM_SUPPORT_CATEGORIES,
+    ECOSYSTEM_SUPPORT_VIEW_GROUPS,
+    getSupportViewGroupId,
     getPartnerLogoSrc,
     getPartnerProfilePath,
     normalizeEcosystemPartner,
@@ -39,10 +40,9 @@ import SEO from "./SEO";
 
 const categoryIcons = {
     college: Landmark,
-    technology_enterprise: Cpu,
-    industry_enterprise: Factory,
+    enterprise: Building2,
     capital: Handshake,
-    club: Users,
+    club: Network,
 };
 
 const categoryFallbackLabels = {
@@ -53,14 +53,17 @@ const categoryFallbackLabels = {
     club: "社团与组织",
 };
 
-const supportCategoryIds = new Set(ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => category.id));
+const formalSupportCategoryIds = new Set(
+    ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => category.id)
+);
+const viewGroupIds = new Set(ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((group) => group.id));
+const selectableCategoryIds = new Set([...formalSupportCategoryIds, ...viewGroupIds]);
 
 const networkNodePositions = {
-    college: { x: 20, y: 19 },
-    technology_enterprise: { x: 72, y: 15 },
-    industry_enterprise: { x: 84, y: 50 },
-    capital: { x: 68, y: 83 },
-    club: { x: 18, y: 76 },
+    college: { x: 19, y: 20 },
+    enterprise: { x: 81, y: 20 },
+    capital: { x: 81, y: 80 },
+    club: { x: 19, y: 80 },
 };
 
 const getLocalizedValue = (partner, key, isEnglish) => {
@@ -83,43 +86,74 @@ const getPartnerInitials = (name = "") => {
 
 const SupportNetworkMap = ({
     activeCategory,
-    categoryCounts,
+    activeViewGroup,
     isDayMode,
     isEnglish,
     onSelect,
     reduceMotion,
     total,
     t,
+    viewGroupCounts,
 }) => (
     <div
-        className={`relative mx-auto aspect-[1.5/1] w-full max-w-[600px] overflow-hidden border-y sm:aspect-[1.18/1] lg:aspect-square ${
-            isDayMode ? "border-slate-200" : "border-white/10"
+        className={`relative mx-auto aspect-square w-full max-w-[660px] overflow-hidden border ${
+            isDayMode
+                ? "border-slate-300 bg-white/48 shadow-[0_32px_90px_rgba(15,23,42,0.08)]"
+                : "border-cyan-100/16 bg-[#071112]/72 shadow-[0_32px_100px_rgba(0,0,0,0.42),0_0_76px_rgba(34,211,238,0.08)]"
         }`}
     >
         <div
             aria-hidden="true"
-            className={`absolute inset-[8%] rounded-full border ${
-                isDayMode ? "border-slate-300/60" : "border-cyan-200/12"
+            className={`absolute inset-0 [background-size:42px_42px] ${
+                isDayMode
+                    ? "opacity-[0.24] [background-image:linear-gradient(rgba(8,145,178,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(8,145,178,0.12)_1px,transparent_1px)]"
+                    : "opacity-[0.2] [background-image:linear-gradient(rgba(165,243,252,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(165,243,252,0.11)_1px,transparent_1px)]"
             }`}
         />
         <div
             aria-hidden="true"
-            className={`absolute inset-[22%] rounded-full border ${
-                isDayMode ? "border-slate-300/70" : "border-cyan-200/18"
+            className={`absolute inset-[12%] rounded-full border ${
+                isDayMode ? "border-cyan-700/18" : "border-cyan-100/16"
             }`}
         />
+        <div
+            aria-hidden="true"
+            className={`absolute inset-[28%] rounded-full border ${
+                isDayMode ? "border-cyan-800/24" : "border-cyan-100/22"
+            }`}
+        />
+        <div
+            aria-hidden="true"
+            className={`absolute left-1/2 top-[7%] h-[86%] w-px -translate-x-1/2 ${
+                isDayMode ? "bg-slate-300/60" : "bg-white/10"
+            }`}
+        />
+        <div
+            aria-hidden="true"
+            className={`absolute left-[7%] top-1/2 h-px w-[86%] -translate-y-1/2 ${
+                isDayMode ? "bg-slate-300/60" : "bg-white/10"
+            }`}
+        />
+        <div
+            aria-hidden="true"
+            className={`absolute bottom-[2.5%] left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-xs font-black uppercase tracking-[0.2em] ${
+                isDayMode ? "text-slate-400" : "text-white/28"
+            }`}
+        >
+            FOUR FORCES · ONE ECOSYSTEM
+        </div>
         <svg
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
             className="pointer-events-none absolute inset-0 h-full w-full"
             aria-hidden="true"
         >
-            {ECOSYSTEM_SUPPORT_CATEGORIES.map((category, index) => {
-                const position = networkNodePositions[category.id];
-                const selected = activeCategory === "all" || activeCategory === category.id;
+            {ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((group, index) => {
+                const position = networkNodePositions[group.id];
+                const selected = activeCategory === "all" || activeViewGroup === group.id;
                 return (
                     <motion.line
-                        key={category.id}
+                        key={group.id}
                         x1="50"
                         y1="50"
                         x2={position.x}
@@ -133,7 +167,7 @@ const SupportNetworkMap = ({
                                   ? "rgba(148, 163, 184, 0.34)"
                                   : "rgba(255, 255, 255, 0.12)"
                         }
-                        strokeWidth={selected ? "0.45" : "0.3"}
+                        strokeWidth={selected ? "0.55" : "0.3"}
                         strokeDasharray={selected ? "0" : "1.3 1.7"}
                         initial={reduceMotion ? false : { pathLength: 0, opacity: 0.2 }}
                         animate={{ pathLength: 1, opacity: 1 }}
@@ -155,58 +189,72 @@ const SupportNetworkMap = ({
                 viewTransitionName:
                     !reduceMotion && activeCategory === "all" ? "support-category-all" : undefined,
             }}
-            className={`absolute left-1/2 top-1/2 z-20 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:h-32 sm:w-32 ${
+            className={`absolute left-1/2 top-1/2 z-20 flex h-[104px] w-[104px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:h-36 sm:w-36 ${
                 activeCategory === "all"
                     ? isDayMode
-                        ? "theme-on-dark border-slate-950 bg-slate-950 shadow-[0_20px_48px_rgba(15,23,42,0.22)]"
-                        : "border-cyan-100/70 bg-cyan-200 text-cyan-950 shadow-[0_20px_54px_rgba(34,211,238,0.18)]"
+                        ? "theme-on-dark border-slate-950 bg-slate-950 shadow-[0_24px_58px_rgba(15,23,42,0.25)]"
+                        : "border-cyan-100/70 bg-cyan-200 text-cyan-950 shadow-[0_24px_64px_rgba(34,211,238,0.22)]"
                     : isDayMode
-                      ? "border-slate-300 bg-white text-slate-950 hover:border-cyan-500"
-                      : "border-white/18 bg-[#0b1718] text-white hover:border-cyan-200/55"
+                      ? "border-cyan-800/32 bg-white text-slate-950 hover:border-cyan-600"
+                      : "border-cyan-100/24 bg-[#0b1718] text-white hover:border-cyan-200/55"
             }`}
         >
-            <span className="text-4xl font-black leading-none tracking-[-0.03em] sm:text-5xl">
+            <span className="text-5xl font-black leading-none tracking-[-0.05em] sm:text-6xl">
                 {total}
             </span>
-            <span className="mt-2 text-xs font-black">
+            <span className="mt-1.5 text-xs font-black sm:mt-2">
                 {t("about.ecosystem.supporter_directory.network_total", "核心支持方")}
             </span>
         </button>
 
-        {ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => {
-            const Icon = categoryIcons[category.id];
-            const position = networkNodePositions[category.id];
-            const active = activeCategory === category.id;
-            const mapLabel = isEnglish ? category.code : category.shortLabel;
+        {ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((group) => {
+            const Icon = categoryIcons[group.id];
+            const position = networkNodePositions[group.id];
+            const active = activeViewGroup === group.id;
+            const mapLabel = t(
+                `about.ecosystem.supporter_directory.view_groups.${group.id}`,
+                isEnglish ? group.labelEn : group.label
+            );
             return (
                 <button
-                    key={category.id}
+                    key={group.id}
                     type="button"
-                    onClick={() => onSelect(category.id)}
+                    onClick={() => onSelect(group.id)}
                     aria-pressed={active}
-                    aria-label={`${mapLabel} · ${categoryCounts[category.id] || 0}`}
+                    aria-label={`${mapLabel} · ${viewGroupCounts[group.id] || 0}`}
                     style={{
                         left: `${position.x}%`,
                         top: `${position.y}%`,
                         viewTransitionName:
-                            !reduceMotion && active ? `support-category-${category.id}` : undefined,
+                            !reduceMotion && active ? `support-category-${group.id}` : undefined,
                     }}
-                    className={`absolute z-30 flex min-h-12 min-w-[116px] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-[12px] border px-3 py-2 text-left outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:min-w-[126px] ${
+                    className={`absolute z-30 flex h-[72px] w-[116px] -translate-x-1/2 -translate-y-1/2 flex-col justify-between border px-3 py-2.5 text-left outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:h-24 sm:w-[158px] sm:px-4 sm:py-3 ${
                         active
                             ? isDayMode
-                                ? "theme-on-dark border-slate-950 bg-slate-950 shadow-[0_14px_34px_rgba(15,23,42,0.2)]"
-                                : "border-cyan-100/70 bg-cyan-200 text-cyan-950 shadow-[0_14px_38px_rgba(34,211,238,0.16)]"
+                                ? "theme-on-dark border-slate-950 bg-slate-950 shadow-[0_18px_42px_rgba(15,23,42,0.22)]"
+                                : "border-cyan-100/70 bg-cyan-200 text-cyan-950 shadow-[0_18px_46px_rgba(34,211,238,0.18)]"
                             : isDayMode
-                              ? "border-slate-200 bg-white/90 text-slate-700 hover:border-cyan-500 hover:text-cyan-800"
-                              : "border-white/12 bg-[#0b1718]/92 text-white/72 hover:border-cyan-200/45 hover:text-white"
+                              ? "border-slate-300 bg-white/94 text-slate-700 hover:border-cyan-600 hover:text-cyan-800"
+                              : "border-white/16 bg-[#0b1718]/96 text-white/72 hover:border-cyan-200/50 hover:text-white"
                     }`}
                 >
-                    <Icon size={16} className="shrink-0" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 whitespace-nowrap text-xs font-black">
-                        {mapLabel}
+                    <span className="flex w-full items-center justify-between gap-3">
+                        <span className="font-mono text-xs font-black uppercase tracking-[0.06em]">
+                            {group.code}
+                        </span>
+                        <Icon
+                            size={16}
+                            className="shrink-0 sm:h-[18px] sm:w-[18px]"
+                            aria-hidden="true"
+                        />
                     </span>
-                    <span className="font-mono text-xs font-black tabular-nums">
-                        {categoryCounts[category.id] || 0}
+                    <span className="flex w-full items-end justify-between gap-2">
+                        <span className="min-w-0 text-xs font-black leading-tight sm:text-sm">
+                            {mapLabel}
+                        </span>
+                        <span className="font-mono text-2xl font-black leading-none tabular-nums sm:text-3xl">
+                            {viewGroupCounts[group.id] || 0}
+                        </span>
                     </span>
                 </button>
             );
@@ -225,10 +273,16 @@ const EcosystemPartnerDirectory = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState("");
     const requestedCategory = searchParams.get("category");
-    const activeCategory = supportCategoryIds.has(requestedCategory) ? requestedCategory : "all";
+    const activeCategory = selectableCategoryIds.has(requestedCategory) ? requestedCategory : "all";
+    const activeViewGroup =
+        activeCategory === "all"
+            ? "all"
+            : viewGroupIds.has(activeCategory)
+              ? activeCategory
+              : getSupportViewGroupId(activeCategory);
     const setActiveCategory = (category) => {
         const next = new URLSearchParams(searchParams);
-        if (supportCategoryIds.has(category)) {
+        if (selectableCategoryIds.has(category)) {
             next.set("category", category);
         } else {
             next.delete("category");
@@ -256,12 +310,33 @@ const EcosystemPartnerDirectory = () => {
             }, {}),
         [coreSupporters]
     );
+    const viewGroupCounts = useMemo(
+        () =>
+            ECOSYSTEM_SUPPORT_VIEW_GROUPS.reduce((counts, group) => {
+                counts[group.id] = group.categoryIds.reduce(
+                    (total, categoryId) => total + (categoryCounts[categoryId] || 0),
+                    0
+                );
+                return counts;
+            }, {}),
+        [categoryCounts]
+    );
+    const activeSupportCategoryIds = useMemo(() => {
+        if (activeCategory === "all") return null;
+        const viewGroup = ECOSYSTEM_SUPPORT_VIEW_GROUPS.find(
+            (group) => group.id === activeCategory
+        );
+        return new Set(viewGroup?.categoryIds || [activeCategory]);
+    }, [activeCategory]);
 
     const normalizedQuery = query.trim().toLocaleLowerCase(isEnglish ? "en" : "zh-CN");
     const filteredSupporters = useMemo(
         () =>
             coreSupporters.filter((partner) => {
-                if (activeCategory !== "all" && partner.support_category !== activeCategory) {
+                if (
+                    activeSupportCategoryIds &&
+                    !activeSupportCategoryIds.has(partner.support_category)
+                ) {
                     return false;
                 }
                 if (!normalizedQuery) return true;
@@ -278,7 +353,7 @@ const EcosystemPartnerDirectory = () => {
                     )
                     .some((value) => value.includes(normalizedQuery));
             }),
-        [activeCategory, coreSupporters, isEnglish, normalizedQuery]
+        [activeSupportCategoryIds, coreSupporters, isEnglish, normalizedQuery]
     );
 
     const categoryLabel = (category) =>
@@ -287,13 +362,25 @@ const EcosystemPartnerDirectory = () => {
             isEnglish ? category.labelEn : categoryFallbackLabels[category.id] || category.label
         );
 
+    const viewGroupLabel = (group) =>
+        t(
+            `about.ecosystem.supporter_directory.view_groups.${group.id}`,
+            isEnglish ? group.labelEn : group.label
+        );
+
     const activeCategoryLabel =
         activeCategory === "all"
             ? t("about.ecosystem.supporter_directory.all", "全部支持方")
-            : categoryLabel(
-                  ECOSYSTEM_SUPPORT_CATEGORIES.find((category) => category.id === activeCategory) ||
-                      ECOSYSTEM_SUPPORT_CATEGORIES[0]
-              );
+            : viewGroupIds.has(activeCategory)
+              ? viewGroupLabel(
+                    ECOSYSTEM_SUPPORT_VIEW_GROUPS.find((group) => group.id === activeCategory) ||
+                        ECOSYSTEM_SUPPORT_VIEW_GROUPS[0]
+                )
+              : categoryLabel(
+                    ECOSYSTEM_SUPPORT_CATEGORIES.find(
+                        (category) => category.id === activeCategory
+                    ) || ECOSYSTEM_SUPPORT_CATEGORIES[0]
+                );
 
     const clearFilters = () => {
         setActiveCategory("all");
@@ -474,7 +561,7 @@ const EcosystemPartnerDirectory = () => {
                 )}
                 description={t(
                     "about.ecosystem.supporter_directory.meta_desc",
-                    "查看支持拓浙 AI 生态的学院、技术企业、行业企业、资本与校园社团。"
+                    "查看支持拓浙 AI 生态的校内机构、企业、资本与校园组织。"
                 )}
             />
 
@@ -491,7 +578,7 @@ const EcosystemPartnerDirectory = () => {
                 </div>
             </div>
 
-            <main className="relative z-10 mx-auto w-full max-w-[1540px] px-4 pb-20 sm:px-6 lg:px-8 lg:pb-28">
+            <main className="relative z-10 mx-auto w-full max-w-[1680px] px-4 pb-20 sm:px-6 lg:px-8 lg:pb-28">
                 <Link
                     to="/about#resource-support"
                     onClick={(event) =>
@@ -513,7 +600,7 @@ const EcosystemPartnerDirectory = () => {
                     {t("about.ecosystem.supporter_directory.back", "返回生态介绍")}
                 </Link>
 
-                <section className="mt-6 grid gap-8 border-b pb-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,0.78fr)] lg:items-center lg:gap-12 lg:pb-14 xl:gap-20">
+                <section className="mt-6 grid gap-10 border-b pb-14 lg:grid-cols-[minmax(0,0.82fr)_minmax(560px,0.9fr)] lg:items-center lg:gap-14 lg:pb-20 xl:gap-20">
                     <motion.div
                         initial={reduceMotion ? false : { opacity: 0.72, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -532,7 +619,7 @@ const EcosystemPartnerDirectory = () => {
                             />
                             {t("about.ecosystem.supporter_directory.eyebrow", "生态支持网络")}
                         </p>
-                        <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.94] tracking-[-0.04em] sm:text-7xl lg:text-8xl">
+                        <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.88] tracking-[-0.055em] sm:text-7xl lg:text-[clamp(5rem,6.5vw,7.25rem)]">
                             <span className="block">
                                 {t("about.ecosystem.supporter_directory.title_1", "共同支撑，")}
                             </span>
@@ -547,7 +634,7 @@ const EcosystemPartnerDirectory = () => {
                         >
                             {t(
                                 "about.ecosystem.supporter_directory.desc",
-                                "从课程与科研场景，到技术、产业、资本和校园组织协作，这些支持方共同让学习、赛事与真实项目持续发生。"
+                                "从校内课程与科研场景，到企业技术与产业资源、资本和校园组织协作，这些支持方共同让学习、赛事与真实项目持续发生。"
                             )}
                         </p>
                         <label className="relative mt-6 block">
@@ -609,13 +696,14 @@ const EcosystemPartnerDirectory = () => {
                     >
                         <SupportNetworkMap
                             activeCategory={activeCategory}
-                            categoryCounts={categoryCounts}
+                            activeViewGroup={activeViewGroup}
                             isDayMode={isDayMode}
                             isEnglish={isEnglish}
                             onSelect={setActiveCategory}
                             reduceMotion={reduceMotion}
                             total={coreSupporters.length}
                             t={t}
+                            viewGroupCounts={viewGroupCounts}
                         />
                     </motion.div>
                 </section>
@@ -678,14 +766,14 @@ const EcosystemPartnerDirectory = () => {
                                 </span>
                             </button>
 
-                            {ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => {
-                                const Icon = categoryIcons[category.id];
-                                const active = activeCategory === category.id;
+                            {ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((group) => {
+                                const Icon = categoryIcons[group.id];
+                                const active = activeViewGroup === group.id;
                                 return (
                                     <button
-                                        key={category.id}
+                                        key={group.id}
                                         type="button"
-                                        onClick={() => setActiveCategory(category.id)}
+                                        onClick={() => setActiveCategory(group.id)}
                                         aria-pressed={active}
                                         className={`flex min-h-12 min-w-max items-center gap-3 rounded-[10px] px-4 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400/80 lg:mb-1 lg:w-full ${
                                             active
@@ -698,9 +786,9 @@ const EcosystemPartnerDirectory = () => {
                                         }`}
                                     >
                                         <Icon size={17} className="shrink-0" />
-                                        <span className="flex-1">{categoryLabel(category)}</span>
+                                        <span className="flex-1">{viewGroupLabel(group)}</span>
                                         <span className="font-mono text-xs tabular-nums">
-                                            {categoryCounts[category.id] || 0}
+                                            {viewGroupCounts[group.id] || 0}
                                         </span>
                                     </button>
                                 );

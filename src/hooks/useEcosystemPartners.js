@@ -8,6 +8,7 @@ import {
     defaultEcosystemPartners,
     getPartnersByCategory,
     groupEcosystemPartners,
+    groupEcosystemSupportViewGroups,
     groupEcosystemSupporters,
     normalizeEcosystemPartner,
     sortEcosystemPartners,
@@ -90,6 +91,13 @@ export const useEcosystemPartners = () => {
             ),
         [partners]
     );
+    const supporterViewGroups = useMemo(
+        () =>
+            groupEcosystemSupportViewGroups(partners, { scope: CORE_PARTNER_SCOPE }).filter(
+                (group) => group.partners.length > 0
+            ),
+        [partners]
+    );
     const schoolPartners = useMemo(() => getPartnersByCategory(partners, "school"), [partners]);
     const organizationPartners = useMemo(
         () => getPartnersByCategory(partners, "organization"),
@@ -152,6 +160,7 @@ export const useEcosystemPartners = () => {
         groups,
         activityDirectoryGroups,
         supporterGroups,
+        supporterViewGroups,
         schoolPartners,
         organizationPartners,
         eventOrganizationPartners,

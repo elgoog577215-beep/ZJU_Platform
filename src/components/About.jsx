@@ -7,9 +7,7 @@ import {
     BookOpen,
     Building2,
     CalendarDays,
-    Cpu,
     Download,
-    Factory,
     GraduationCap,
     Handshake,
     Landmark,
@@ -21,7 +19,7 @@ import {
     Users,
     X,
 } from "lucide-react";
-import { ECOSYSTEM_SUPPORT_CATEGORIES, getPartnerLogoSrc } from "../data/partnerLogos";
+import { ECOSYSTEM_SUPPORT_VIEW_GROUPS, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
@@ -128,7 +126,7 @@ const About = () => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
     const navigate = useNavigate();
-    const { supporterGroups: supporterDataGroups } = useEcosystemPartners();
+    const { supporterViewGroups: supporterDataGroups } = useEcosystemPartners();
     const reduceMotion = useReducedMotion();
     const shouldAnimate = !reduceMotion;
     const isDayMode = uiMode === "day";
@@ -313,27 +311,15 @@ const About = () => {
                 "未来学习中心与相关学院提供课程共建、科研问题和重点场景，使真实课题进入校园实践。"
             ),
             icon: Landmark,
-            layoutClass: "lg:col-span-4 lg:col-start-1 lg:row-start-1",
         },
-        technology_enterprise: {
-            code: "TECHNOLOGY",
-            headline: t("about.ecosystem.support.technology_headline", "模型、工具与工程资源"),
+        enterprise: {
+            code: "ENTERPRISE",
+            headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
             description: t(
-                "about.ecosystem.support.technology_desc",
-                "技术伙伴提供模型、云资源、开发工具和工程经验，让学习成果能够进入真实开发。"
+                "about.ecosystem.support.enterprise_desc",
+                "合作企业提供真实题目、行业场景、模型、云资源、工具、评审与人才机会。"
             ),
-            icon: Cpu,
-            layoutClass: "lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1",
-        },
-        industry_enterprise: {
-            code: "INDUSTRY",
-            headline: t("about.ecosystem.support.industry_headline", "真实问题与行业场景"),
-            description: t(
-                "about.ecosystem.support.industry_desc",
-                "行业伙伴把真实需求、业务约束和验证场景带进课程、赛事与项目实践。"
-            ),
-            icon: Factory,
-            layoutClass: "lg:col-span-3 lg:col-start-5 lg:row-start-1",
+            icon: Building2,
         },
         capital: {
             code: "CAPITAL",
@@ -343,7 +329,6 @@ const About = () => {
                 "五源资本及浙大系资本为优秀项目提供路演、创业辅导和资源对接。"
             ),
             icon: Handshake,
-            layoutClass: "lg:col-span-3 lg:col-start-1 lg:row-start-2",
         },
         club: {
             code: "COMMUNITY",
@@ -353,14 +338,13 @@ const About = () => {
                 "学生组织和社团负责成员招募、学习培训、活动执行与赛后复盘。"
             ),
             icon: Network,
-            layoutClass: "col-span-2 lg:col-span-4 lg:col-start-4 lg:row-start-2",
         },
     };
-    const supportGroups = ECOSYSTEM_SUPPORT_CATEGORIES.map((category) => ({
+    const supportGroups = ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((category) => ({
         ...category,
         ...supportGroupConfig[category.id],
         title: t(
-            `about.ecosystem.supporter_directory.categories.${category.id}`,
+            `about.ecosystem.supporter_directory.view_groups.${category.id}`,
             isEnglish ? category.labelEn : category.label
         ),
         partners: supporterGroupMap.get(category.id) || [],
@@ -836,14 +820,14 @@ const About = () => {
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:h-[clamp(29rem,57vh,42rem)] lg:min-h-0 lg:grid-cols-12 lg:grid-rows-2 lg:gap-4 2xl:gap-6">
+                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
                             {supportGroups.map((group) => {
                                 const Icon = group.icon;
-                                const isTechnology = group.id === "technology_enterprise";
+                                const isEnterprise = group.id === "enterprise";
                                 const categoryPath = `/about/partners?category=${group.id}`;
                                 const previewPartners = group.partners.slice(
                                     0,
-                                    isTechnology ? 9 : 5
+                                    isEnterprise ? 9 : 6
                                 );
                                 return (
                                     <Link
@@ -874,7 +858,7 @@ const About = () => {
                                             "查看{{category}}支持方",
                                             { category: group.title }
                                         )}
-                                        className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[278px] sm:p-6 lg:h-full lg:min-h-0 lg:p-5 lg:hover:-translate-y-1.5 2xl:p-7 ${group.layoutClass} ${palette.card}`}
+                                        className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 lg:hover:-translate-y-1.5 2xl:p-7 ${palette.card}`}
                                     >
                                         <div
                                             className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none transition-transform duration-500 group-hover:-translate-x-2 ${palette.watermark}`}
@@ -909,9 +893,7 @@ const About = () => {
                                                     <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>
                                             </div>
-                                            <h3
-                                                className={`mt-4 font-black leading-tight tracking-[-0.025em] ${isTechnology ? "text-xl sm:text-4xl lg:text-4xl 2xl:text-5xl" : "text-xl sm:text-3xl lg:text-2xl 2xl:text-3xl"}`}
-                                            >
+                                            <h3 className="mt-4 text-xl font-black leading-tight tracking-[-0.025em] sm:text-3xl lg:text-3xl 2xl:text-4xl">
                                                 {group.title}
                                             </h3>
                                             <p
@@ -920,11 +902,11 @@ const About = () => {
                                                 {group.headline}
                                             </p>
                                             <p
-                                                className={`mt-3 hidden text-sm leading-6 sm:line-clamp-2 ${!isTechnology ? "lg:hidden 2xl:line-clamp-2" : ""} ${palette.textSoft}`}
+                                                className={`mt-3 hidden text-sm leading-6 sm:line-clamp-2 ${palette.textSoft}`}
                                             >
                                                 {group.description}
                                             </p>
-                                            {isTechnology ? (
+                                            {isEnterprise ? (
                                                 previewPartners.length > 0 ? (
                                                     <>
                                                         <div

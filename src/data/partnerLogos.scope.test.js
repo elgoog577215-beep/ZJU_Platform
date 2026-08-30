@@ -6,10 +6,12 @@ import {
     CORE_PARTNER_SCOPE,
     ORGANIZATION_PARTNER_LOGOS,
     defaultEcosystemPartners,
+    getSupportViewGroupId,
     getSupportersByCategory,
     getPartnerLogoSrc,
     getPartnersByCategory,
     groupEcosystemPartners,
+    groupEcosystemSupportViewGroups,
     groupEcosystemSupporters,
     normalizeEcosystemPartner,
 } from "./partnerLogos.js";
@@ -127,4 +129,19 @@ test("supporter helpers expose five support categories without promoting activit
         getSupportersByCategory(supportPartners, "club").map((partner) => partner.name),
         ["ZJUAI"]
     );
+
+    const viewGroups = groupEcosystemSupportViewGroups(supportPartners);
+    assert.deepEqual(
+        viewGroups.map((group) => group.id),
+        ["college", "enterprise", "capital", "club"]
+    );
+    assert.deepEqual(
+        viewGroups
+            .find((group) => group.id === "enterprise")
+            .partners.map((partner) => partner.name),
+        ["Qoder", "Industry Partner"]
+    );
+    assert.equal(getSupportViewGroupId("technology_enterprise"), "enterprise");
+    assert.equal(getSupportViewGroupId("industry_enterprise"), "enterprise");
+    assert.equal(getSupportViewGroupId("unknown"), null);
 });

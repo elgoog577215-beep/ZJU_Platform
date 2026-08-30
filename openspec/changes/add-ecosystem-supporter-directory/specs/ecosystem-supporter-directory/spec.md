@@ -25,17 +25,22 @@
 
 ### Requirement: About 提供完整名录入口
 
-About 的资源与合作区域 SHALL 使用与完整名录一致的五类支持方入口，保留代表性支持方展示，并提供通往完整支持方名录的清晰入口。
+About 的资源与合作区域 SHALL 使用校内支持、企业合作、资本合作、组织合作四个展示入口，保留代表性支持方展示，并提供通往完整支持方名录的清晰入口；其中企业合作 SHALL 聚合底层的技术企业与行业企业，不改变五类正式数据。
 
 #### Scenario: 从 About 查看全部支持方
 
 - **WHEN** 访客点击资源与合作区域的“查看全部支持方”
 - **THEN** 系统 MUST 导航到 `/about/partners`，且浏览器返回能够回到 About
 
-#### Scenario: 从 About 进入指定分类
+#### Scenario: 从 About 进入指定分组
 
-- **WHEN** 访客点击学院、技术企业、行业企业、资本或社团分类入口
-- **THEN** 系统 MUST 导航到带有对应 `category` query 的 `/about/partners`，详情页首次显示该分类，且刷新和分享后仍可恢复
+- **WHEN** 访客点击校内支持、企业合作、资本合作或组织合作入口
+- **THEN** 系统 MUST 导航到带有对应 `category` query 的 `/about/partners`，详情页首次显示该分组，且刷新和分享后仍可恢复
+
+#### Scenario: 企业分组聚合两类正式数据
+
+- **WHEN** 访客进入 `category=enterprise`
+- **THEN** 名录 MUST 同时显示 `technology_enterprise` 与 `industry_enterprise` 支持方，并保留条目自身的正式分类标签
 
 #### Scenario: 概览与详情连续过渡
 
@@ -49,12 +54,17 @@ About 的资源与合作区域 SHALL 使用与完整名录一致的五类支持�
 
 ### Requirement: 完整支持方名录
 
-`/about/partners` SHALL 只展示已启用的核心支持方，并提供五类筛选、名称搜索、各类计数和真实数据状态。
+`/about/partners` SHALL 只展示已启用的核心支持方，并提供四个展示分组、名称搜索、分组计数和真实数据状态；底层五类分类仍用于数据维护和条目标识。
 
-#### Scenario: 按类别浏览
+#### Scenario: 按展示分组浏览
 
-- **WHEN** 访客选择一个支持方类别
-- **THEN** 页面 MUST 仅显示该类别中的核心支持方，并明确当前类别和匹配数量
+- **WHEN** 访客选择校内、企业、资本或组织分组
+- **THEN** 页面 MUST 仅显示该分组包含的核心支持方，并明确当前分组和匹配数量
+
+#### Scenario: 旧五类深链继续兼容
+
+- **WHEN** 访客打开已有的 `technology_enterprise` 或 `industry_enterprise` 深链
+- **THEN** 页面 MUST 恢复对应正式分类结果，不得因四分组展示而失效
 
 #### Scenario: 搜索无结果
 

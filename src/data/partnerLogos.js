@@ -57,6 +57,43 @@ export const ECOSYSTEM_SUPPORT_CATEGORIES = [
     },
 ];
 
+// Public-facing navigation uses four clear support groups. Technology and industry
+// remain separate formal categories so the directory never loses source precision.
+export const ECOSYSTEM_SUPPORT_VIEW_GROUPS = [
+    {
+        id: "college",
+        categoryIds: ["college"],
+        label: "校内支持",
+        labelEn: "Campus Support",
+        shortLabel: "校内",
+        code: "Campus",
+    },
+    {
+        id: "enterprise",
+        categoryIds: ["technology_enterprise", "industry_enterprise"],
+        label: "企业合作",
+        labelEn: "Enterprise Partners",
+        shortLabel: "企业",
+        code: "Enterprise",
+    },
+    {
+        id: "capital",
+        categoryIds: ["capital"],
+        label: "资本合作",
+        labelEn: "Capital Partners",
+        shortLabel: "资本",
+        code: "Capital",
+    },
+    {
+        id: "club",
+        categoryIds: ["club"],
+        label: "组织合作",
+        labelEn: "Organization Partners",
+        shortLabel: "组织",
+        code: "Community",
+    },
+];
+
 export const CORE_PARTNER_SCOPE = "core_partner";
 export const ACTIVITY_PROVIDER_SCOPE = "activity_provider";
 
@@ -813,6 +850,36 @@ export const groupEcosystemSupporters = (partners = [], { scope = CORE_PARTNER_S
     ECOSYSTEM_SUPPORT_CATEGORIES.map((supportCategory) => ({
         ...supportCategory,
         partners: getSupportersByCategory(partners, supportCategory.id, { scope }),
+    }));
+
+export const getSupportViewGroupId = (supportCategory) =>
+    ECOSYSTEM_SUPPORT_VIEW_GROUPS.find((group) => group.categoryIds.includes(supportCategory))
+        ?.id || null;
+
+export const getSupportersByViewGroup = (
+    partners = [],
+    viewGroupId,
+    { scope = CORE_PARTNER_SCOPE } = {}
+) => {
+    const group = ECOSYSTEM_SUPPORT_VIEW_GROUPS.find((item) => item.id === viewGroupId);
+    if (!group) return [];
+    const categoryIds = new Set(group.categoryIds);
+    const requiredScope = scope ? normalizePartnerScope(scope, "") : null;
+    return sortEcosystemPartners(partners.map(normalizeEcosystemPartner)).filter(
+        (partner) =>
+            partner.enabled &&
+            categoryIds.has(partner.support_category) &&
+            (!requiredScope || partner.partner_scope === requiredScope)
+    );
+};
+
+export const groupEcosystemSupportViewGroups = (
+    partners = [],
+    { scope = CORE_PARTNER_SCOPE } = {}
+) =>
+    ECOSYSTEM_SUPPORT_VIEW_GROUPS.map((group) => ({
+        ...group,
+        partners: getSupportersByViewGroup(partners, group.id, { scope }),
     }));
 
 export const getPartnerDisplayName = (partner = {}) => {

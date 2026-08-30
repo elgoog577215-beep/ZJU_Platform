@@ -1015,12 +1015,12 @@
             },
             "supporter_directory": {
                 "meta_title": "Ecosystem Supporters | Tuozhe AI Ecosystem",
-                "meta_desc": "Explore the colleges, technology companies, industry companies, capital partners, and campus organizations supporting the Tuozhe AI Ecosystem.",
+                "meta_desc": "Explore the campus, enterprise, capital, and organization partners supporting the Tuozhe AI Ecosystem.",
                 "back": "Back to Ecosystem",
                 "eyebrow": "Ecosystem Support Network",
                 "title_1": "Shared support.",
                 "title_2": "Real practice.",
-                "desc": "From courses and research settings to technology, industry, capital, and campus collaboration, these supporters help learning, competitions, and real projects keep moving.",
+                "desc": "From campus courses and research settings to enterprise technology, industry resources, capital, and student organizations, these supporters keep learning, competitions, and real projects moving.",
                 "search_label": "Search supporters",
                 "search_placeholder": "Search names, collaboration areas, or support",
                 "clear_search": "Clear search",
@@ -1038,6 +1038,12 @@
                 "empty_title": "No matching supporters",
                 "empty_desc": "Clear the search or switch to another supporter category.",
                 "clear_filters": "View all supporters",
+                "view_groups": {
+                    "college": "Campus Support",
+                    "enterprise": "Enterprise Partners",
+                    "capital": "Capital Partners",
+                    "club": "Organization Partners"
+                },
                 "categories": {
                     "college": "Colleges & Campus Units",
                     "technology_enterprise": "Technology Companies",
