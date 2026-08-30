@@ -239,10 +239,13 @@ jobs:
 
             - name: Deploy artifact, Caddy, and PM2
               uses: appleboy/ssh-action@v1.2.5
+              env:
+                  ZJU_QWEN_BASE_URL: ${{ secrets.ZJU_QWEN_BASE_URL }}
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   key: ${{ secrets.SERVER_SSH_KEY }}
+                  envs: ZJU_QWEN_BASE_URL
                   script: |
                       set -eu
 
@@ -336,8 +339,34 @@ jobs:
                       for database_file in "$previous/server"/database.sqlite*; do
                         if [ -e "$database_file" ] || [ -L "$database_file" ]; then
                           mv "$database_file" "$app_root/server/"
-                        fi
+                          fi
                       done
+
+                      if [ -z "${ZJU_QWEN_BASE_URL:-}" ]; then
+                        echo "ERROR: private Qwen endpoint secret is missing"
+                        exit 1
+                      fi
+                      APP_ROOT="$app_root" ZJU_QWEN_BASE_URL="$ZJU_QWEN_BASE_URL" node - <<'NODE'
+                      const fs = require("node:fs");
+                      const path = require("node:path");
+                      const envPath = path.join(process.env.APP_ROOT, "server", ".env");
+                      const tempPath = `${envPath}.qwen-policy.tmp`;
+                      const key = "ZJU_QWEN_BASE_URL";
+                      const value = process.env.ZJU_QWEN_BASE_URL || "";
+                      if (!value || !/^https?:\/\//.test(value)) {
+                        throw new Error("Private Qwen endpoint secret is invalid.");
+                      }
+                      const current = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+                      const lines = current
+                        .split(/\r?\n/)
+                        .filter((line) => !line.startsWith(`${key}=`));
+                      while (lines.length > 0 && lines.at(-1) === "") lines.pop();
+                      lines.push(`${key}=${value}`, "");
+                      const mode = fs.existsSync(envPath) ? fs.statSync(envPath).mode & 0o777 : 0o600;
+                      fs.writeFileSync(tempPath, lines.join("\n"), { mode });
+                      fs.renameSync(tempPath, envPath);
+                      NODE
+                      echo "Private Qwen endpoint anchor configured"
 
                       install -m 0644 "$stage/payload/release-manifest.txt" "$app_root/.deployed-release"
                       grep -Fxq "commit=$release_id" "$app_root/.deployed-release"
@@ -429,4 +458,33 @@ jobs:
                       throw new Error(`Missing production partner logo: ${name} -> ${logoSuffix}`);
                     }
                   }
+                  NODE
+
+            - name: Verify production self-hosted Qwen path
+              run: |
+                  set -euo pipefail
+                  curl --fail --silent --show-error --max-time 45 \
+                    --retry 2 --retry-all-errors --retry-delay 2 \
+                    -H 'content-type: application/json' \
+                    --data '{"query":"我想看看近期适合学生参加的人工智能活动","allowHistoricalFallback":true,"visitorKey":"production-qwen-deploy-check"}' \
+                    "$PRODUCTION_URL/api/events/assistant" > /tmp/zju-event-assistant.json
+                  node <<'NODE'
+                  const fs = require("node:fs");
+                  const response = JSON.parse(
+                    fs.readFileSync("/tmp/zju-event-assistant.json", "utf8")
+                  );
+                  const status = response.modelStatus || {};
+                  if (status.used !== true || status.model !== "qwen3.8-27b") {
+                    throw new Error("Production activity assistant did not use exact self-hosted Qwen.");
+                  }
+                  if (Array.isArray(status.fallbackAttempts) && status.fallbackAttempts.length > 0) {
+                    throw new Error("Production activity assistant reported provider fallback attempts.");
+                  }
+                  const usedStatuses = [status, ...(status.profileModelStatuses || [])].filter(
+                    (item) => item?.used === true
+                  );
+                  if (usedStatuses.some((item) => item.model !== "qwen3.8-27b")) {
+                    throw new Error("Production activity assistant reported a different text model.");
+                  }
+                  console.log("Production self-hosted Qwen path verified.");
                   NODE

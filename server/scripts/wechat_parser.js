@@ -4,6 +4,13 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const {
+    EXACT_TEXT_MODEL,
+    assertAiModelConfigPolicy,
+} = require("../src/services/aiModelConfigService");
 
 // Load env from server/.env
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,9 +24,9 @@ if (!url) {
 }
 
 // Configuration
-const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL || "https://api-inference.modelscope.cn/v1";
-const LLM_MODEL = process.env.LLM_MODEL || "ZhipuAI/GLM-5.1";
+const LLM_API_KEY = process.env.ZJU_QWEN_API_KEY || process.env.LLM_API_KEY;
+const LLM_BASE_URL = process.env.ZJU_QWEN_BASE_URL || process.env.LLM_BASE_URL;
+const LLM_MODEL = EXACT_TEXT_MODEL;
 
 async function scrapeWeChat(url) {
     console.log(`\n🔍 Fetching URL: ${url}...`);
@@ -87,6 +94,12 @@ async function parseWithLLM(data) {
         return;
     }
 
+    const policyConfig = assertAiModelConfigPolicy({
+        base_url: LLM_BASE_URL,
+        model: LLM_MODEL,
+        role: "general",
+    });
+
     console.log(`\n🧠 Sending to LLM (${LLM_MODEL})...`);
 
     const prompt = `
@@ -113,7 +126,7 @@ async function parseWithLLM(data) {
 
     try {
         const response = await axios.post(
-            `${LLM_BASE_URL}/chat/completions`,
+            `${policyConfig.base_url}/chat/completions`,
             {
                 model: LLM_MODEL,
                 messages: [

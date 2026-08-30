@@ -15,10 +15,10 @@ import {
 } from "./AdminUI";
 
 const emptyForm = {
-    name: "默认接口",
+    name: "浙大自建千问",
     provider: "openai-compatible",
-    base_url: "https://api-inference.modelscope.cn/v1",
-    model: "ZhipuAI/GLM-5.1",
+    base_url: "",
+    model: "qwen3.8-27b",
     api_key: "",
     role: "general",
     priority: 100,
@@ -527,7 +527,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                                     className={fieldClass}
                                     value={form.model}
                                     onChange={(event) => updateForm("model", event.target.value)}
-                                    placeholder="ZhipuAI/GLM-5.1"
+                                    placeholder="qwen3.8-27b"
                                 />
                             </label>
                             <label className="grid gap-2 text-sm font-medium">
@@ -553,7 +553,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                                     className={fieldClass}
                                     value={form.base_url}
                                     onChange={(event) => updateForm("base_url", event.target.value)}
-                                    placeholder="https://api-inference.modelscope.cn/v1"
+                                    placeholder="服务器私有配置中的 Qwen 接口地址"
                                 />
                             </label>
                             <label className="grid gap-2 text-sm font-medium">

@@ -1,10 +1,14 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const { getDb } = require("../src/config/db");
 const axios = require("axios");
+const {
+    EXACT_TEXT_MODEL,
+    assertAiModelConfigPolicy,
+} = require("../src/services/aiModelConfigService");
 
-const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL;
-const LLM_MODEL = process.env.LLM_MODEL;
+const LLM_API_KEY = process.env.ZJU_QWEN_API_KEY || process.env.LLM_API_KEY;
+const LLM_BASE_URL = process.env.ZJU_QWEN_BASE_URL || process.env.LLM_BASE_URL;
+const LLM_MODEL = EXACT_TEXT_MODEL;
 
 const EVENT_TAG_OPTIONS = ["讲座", "竞赛", "志愿", "招新", "文体", "交流", "其他"];
 
@@ -77,6 +81,13 @@ async function generateTags(text, type) {
 }
 
 async function main() {
+    if (LLM_API_KEY) {
+        assertAiModelConfigPolicy({
+            base_url: LLM_BASE_URL,
+            model: LLM_MODEL,
+            role: "general",
+        });
+    }
     const db = await getDb();
 
     // 1. Events

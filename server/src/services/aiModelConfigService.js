@@ -2,8 +2,9 @@ const crypto = require("crypto");
 const axios = require("axios");
 
 const DEFAULT_PROVIDER = "openai-compatible";
-const DEFAULT_BASE_URL = process.env.LLM_BASE_URL || "https://api-inference.modelscope.cn/v1";
-const DEFAULT_MODEL = process.env.LLM_MODEL || "ZhipuAI/GLM-5.1";
+const EXACT_TEXT_MODEL = "qwen3.8-27b";
+const TEXT_MODEL_ROLES = new Set(["general", "fast", "reasoning"]);
+const FORBIDDEN_PROVIDER_DOMAINS = ["modelscope.cn", "deepseek.com"];
 const TEST_TIMEOUT_MS = 15000;
 const CALL_TIMEOUT_MS = 30000;
 const PROVIDER_STOP_STATUSES = new Set([401, 403, 429]);
@@ -14,14 +15,108 @@ const toText = (value, maxLength = 500) => {
     return value.replace(/\s+/g, " ").trim().slice(0, maxLength);
 };
 
-const normalizeBaseUrl = (value) => {
-    const trimmed = toText(value, 300).replace(/\/+$/, "");
-    return trimmed || DEFAULT_BASE_URL;
-};
+const normalizeBaseUrl = (value) => toText(value, 300).replace(/\/+$/, "");
+
+const getExpectedTextBaseUrl = () =>
+    normalizeBaseUrl(process.env.ZJU_QWEN_BASE_URL || process.env.LLM_BASE_URL);
+
+const DEFAULT_BASE_URL = getExpectedTextBaseUrl();
+const DEFAULT_MODEL = EXACT_TEXT_MODEL;
 
 const normalizeRole = (value) => {
     const role = toText(value, 24).toLowerCase();
     return MODEL_ROLES.has(role) ? role : "general";
+};
+
+const createPolicyError = (code, message) => {
+    const error = new Error(message);
+    error.statusCode = 400;
+    error.code = code;
+    return error;
+};
+
+const parseProviderUrl = (value) => {
+    const normalized = normalizeBaseUrl(value);
+    if (!normalized) {
+        throw createPolicyError("AI_MODEL_BASE_URL_REQUIRED", "AI model base URL is required.");
+    }
+
+    try {
+        const parsed = new URL(normalized);
+        if (!/^https?:$/.test(parsed.protocol) || parsed.username || parsed.password) {
+            throw new Error("unsupported URL");
+        }
+        return {
+            hostname: parsed.hostname.toLowerCase(),
+            normalized: `${parsed.origin}${parsed.pathname.replace(/\/+$/, "")}`,
+        };
+    } catch {
+        throw createPolicyError("AI_MODEL_BASE_URL_INVALID", "AI model base URL is invalid.");
+    }
+};
+
+const isForbiddenProviderHost = (hostname) =>
+    FORBIDDEN_PROVIDER_DOMAINS.some(
+        (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+
+const assertAiModelConfigPolicy = (config) => {
+    const role = normalizeRole(config?.role);
+    const candidate = parseProviderUrl(config?.base_url);
+
+    if (isForbiddenProviderHost(candidate.hostname)) {
+        throw createPolicyError(
+            "AI_MODEL_PROVIDER_FORBIDDEN",
+            "This AI provider is not permitted."
+        );
+    }
+
+    if (TEXT_MODEL_ROLES.has(role)) {
+        const expectedValue = getExpectedTextBaseUrl();
+        if (!expectedValue) {
+            throw createPolicyError(
+                "AI_TEXT_PROVIDER_ANCHOR_MISSING",
+                "The private text-model endpoint is not configured."
+            );
+        }
+        const expected = parseProviderUrl(expectedValue);
+        if (isForbiddenProviderHost(expected.hostname)) {
+            throw createPolicyError(
+                "AI_MODEL_PROVIDER_FORBIDDEN",
+                "This AI provider is not permitted."
+            );
+        }
+        if (
+            candidate.normalized !== expected.normalized ||
+            toText(config?.model, 120) !== EXACT_TEXT_MODEL
+        ) {
+            throw createPolicyError(
+                "AI_TEXT_PROVIDER_POLICY_VIOLATION",
+                "Text AI must use the approved private Qwen model."
+            );
+        }
+    } else if (role === "embedding" && toText(config?.model, 120) === EXACT_TEXT_MODEL) {
+        throw createPolicyError(
+            "AI_EMBEDDING_MODEL_REQUIRED",
+            "Embedding requires an explicit embedding model."
+        );
+    }
+
+    return {
+        ...config,
+        base_url: candidate.normalized,
+        model: toText(config?.model, 120),
+        role,
+    };
+};
+
+const isAiModelConfigAllowed = (config) => {
+    try {
+        assertAiModelConfigPolicy(config);
+        return true;
+    } catch {
+        return false;
+    }
 };
 
 const isQwen3Model = (value) =>
@@ -155,6 +250,7 @@ const createConfig = async (db, payload, userId) => {
     const role = normalizeRole(payload.role);
     const priority = Number.isInteger(Number(payload.priority)) ? Number(payload.priority) : 100;
     const enabled = payload.enabled === false ? 0 : 1;
+    const policyConfig = assertAiModelConfigPolicy({ base_url: baseUrl, model, role });
     const encryptedApiKey = encryptApiKey(payload.api_key);
 
     const result = await db.run(
@@ -172,7 +268,17 @@ const createConfig = async (db, payload, userId) => {
         updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `,
-        [name, provider, baseUrl, model, role, encryptedApiKey, priority, enabled, userId || null]
+        [
+            name,
+            provider,
+            policyConfig.base_url,
+            policyConfig.model,
+            policyConfig.role,
+            encryptedApiKey,
+            priority,
+            enabled,
+            userId || null,
+        ]
     );
 
     return serializeConfig(await getConfigById(db, result.lastID));
@@ -211,6 +317,10 @@ const updateConfig = async (db, id, payload) => {
             ? encryptApiKey(payload.api_key)
             : existing.encrypted_api_key,
     };
+    const policyConfig = assertAiModelConfigPolicy(next);
+    next.base_url = policyConfig.base_url;
+    next.model = policyConfig.model;
+    next.role = policyConfig.role;
 
     await db.run(
         `
@@ -256,20 +366,22 @@ const deleteConfig = async (db, id) => {
 };
 
 const buildEnvConfig = () => {
-    if (!process.env.LLM_API_KEY) return null;
+    const apiKey = process.env.ZJU_QWEN_API_KEY || process.env.LLM_API_KEY;
+    const baseUrl = getExpectedTextBaseUrl();
+    if (!apiKey || !baseUrl) return null;
 
-    return {
+    return assertAiModelConfigPolicy({
         id: "env",
         name: "环境变量默认 Key",
         provider: DEFAULT_PROVIDER,
-        base_url: DEFAULT_BASE_URL,
-        model: DEFAULT_MODEL,
+        base_url: baseUrl,
+        model: EXACT_TEXT_MODEL,
         role: "general",
-        encrypted_api_key: encryptApiKey(process.env.LLM_API_KEY),
+        encrypted_api_key: encryptApiKey(apiKey),
         priority: 9999,
         enabled: 1,
         fromEnv: true,
-    };
+    });
 };
 
 const getEnabledConfigs = async (db, includeEnvFallback = true, role = "general") => {
@@ -281,11 +393,12 @@ const getEnabledConfigs = async (db, includeEnvFallback = true, role = "general"
   `);
 
     const requestedRole = normalizeRole(role);
-    const roleMatches = rows.filter((row) => normalizeRole(row.role) === requestedRole);
+    const allowedRows = rows.filter(isAiModelConfigAllowed);
+    const roleMatches = allowedRows.filter((row) => normalizeRole(row.role) === requestedRole);
     const generalMatches =
         requestedRole === "general" || requestedRole === "embedding"
             ? []
-            : rows.filter((row) => normalizeRole(row.role) === "general");
+            : allowedRows.filter((row) => normalizeRole(row.role) === "general");
     const configs = [...roleMatches, ...generalMatches];
     const envConfig = includeEnvFallback && requestedRole !== "embedding" ? buildEnvConfig() : null;
     if (envConfig) configs.push(envConfig);
@@ -309,6 +422,7 @@ const updateStatus = async (db, config, status, errorMessage = "") => {
 };
 
 const callChatCompletion = async (config, payload, timeout = CALL_TIMEOUT_MS) => {
+    const policyConfig = assertAiModelConfigPolicy(config);
     const apiKey = decryptApiKey(config.encrypted_api_key);
     if (!apiKey) {
         const error = new Error("API key cannot be decrypted.");
@@ -317,8 +431,8 @@ const callChatCompletion = async (config, payload, timeout = CALL_TIMEOUT_MS) =>
     }
 
     const response = await axios.post(
-        `${normalizeBaseUrl(config.base_url)}/chat/completions`,
-        buildChatCompletionPayload(config, payload),
+        `${policyConfig.base_url}/chat/completions`,
+        buildChatCompletionPayload(policyConfig, payload),
         {
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -371,6 +485,7 @@ const parseStreamEvent = (line) => {
 };
 
 const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_MS) => {
+    const policyConfig = assertAiModelConfigPolicy(config);
     const apiKey = decryptApiKey(config.encrypted_api_key);
     if (!apiKey) {
         const error = new Error("API key cannot be decrypted.");
@@ -379,8 +494,8 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
     }
 
     const response = await axios.post(
-        `${normalizeBaseUrl(config.base_url)}/chat/completions`,
-        buildChatCompletionPayload(config, payload, true),
+        `${policyConfig.base_url}/chat/completions`,
+        buildChatCompletionPayload(policyConfig, payload, true),
         {
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -429,7 +544,7 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
                 id: lastChunk?.id || "",
                 object: lastChunk?.object || "chat.completion",
                 created: lastChunk?.created || 0,
-                model: lastChunk?.model || config.model || DEFAULT_MODEL,
+                model: lastChunk?.model || policyConfig.model || DEFAULT_MODEL,
                 choices: [
                     {
                         message: {
@@ -500,6 +615,7 @@ const callChatCompletionWithFailover = async (db, payload, options = {}) => {
 };
 
 const callEmbedding = async (config, input, timeout = CALL_TIMEOUT_MS) => {
+    const policyConfig = assertAiModelConfigPolicy(config);
     const apiKey = decryptApiKey(config.encrypted_api_key);
     if (!apiKey) {
         const error = new Error("API key cannot be decrypted.");
@@ -508,8 +624,8 @@ const callEmbedding = async (config, input, timeout = CALL_TIMEOUT_MS) => {
     }
 
     const response = await axios.post(
-        `${normalizeBaseUrl(config.base_url)}/embeddings`,
-        { model: config.model, input },
+        `${policyConfig.base_url}/embeddings`,
+        { model: policyConfig.model, input },
         {
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -578,6 +694,8 @@ const testConfig = async (db, id) => {
         error.code = "AI_MODEL_CONFIG_NOT_FOUND";
         throw error;
     }
+
+    assertAiModelConfigPolicy(config);
 
     try {
         if (normalizeRole(config.role) === "embedding") {
@@ -648,4 +766,8 @@ module.exports = {
     buildChatCompletionPayload,
     encryptApiKey,
     decryptApiKey,
+    EXACT_TEXT_MODEL,
+    getExpectedTextBaseUrl,
+    assertAiModelConfigPolicy,
+    isAiModelConfigAllowed,
 };

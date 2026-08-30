@@ -606,8 +606,8 @@ const evaluateRuntimeJson = async (db) => {
         makeCheck("status is ok-like", /ok|success|ready|evaluate/i.test(JSON.stringify(parsed))),
         makeCheck("model used", result.modelStatus?.used === true),
         makeCheck(
-            "provider is DeepSeek config",
-            String(result.modelStatus?.model || "").includes("DeepSeek")
+            "provider is exact self-hosted Qwen model",
+            String(result.modelStatus?.model || "") === "qwen3.8-27b"
         ),
     ];
     return {

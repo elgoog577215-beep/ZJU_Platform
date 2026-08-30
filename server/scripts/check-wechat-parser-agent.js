@@ -45,8 +45,8 @@ const main = async () => {
                 cacheHit: false,
                 contentLength: 1400,
                 modelUsed: true,
-                provider: "modelscope",
-                model: "ZhipuAI/GLM-5.1",
+                provider: "zju-self-hosted",
+                model: "qwen3.8-27b",
                 runtimeTelemetry: {
                     taskCount: 1,
                     tasks: ["wechat_event_parse"],
@@ -95,8 +95,8 @@ const main = async () => {
         const successSummary = JSON.parse(rows[0].summary_json);
         const failureSummary = JSON.parse(rows[1].summary_json);
         assert(successSummary.modelUsed === true, "Expected model usage to be recorded.");
-        assert(successSummary.provider === "modelscope", "Expected provider metadata.");
-        assert(successSummary.model === "ZhipuAI/GLM-5.1", "Expected model metadata.");
+        assert(successSummary.provider === "zju-self-hosted", "Expected provider metadata.");
+        assert(successSummary.model === "qwen3.8-27b", "Expected model metadata.");
         assert(
             successSummary.runtimeTelemetry.taskCount === 1,
             "Expected runtime telemetry summary."

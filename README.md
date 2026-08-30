@@ -68,7 +68,7 @@ npm run dev:client
 - `SECRET_KEY`、`ADMIN_PASSWORD`：认证与后台安全。
 - `DATABASE_FILE`、`UPLOAD_DIR`：SQLite 与上传存储。
 - `CORS_ALLOWED_ORIGINS`：生产跨域白名单。
-- `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`：微信文章解析等可选 AI 能力。
+- `ZJU_QWEN_API_KEY`、`ZJU_QWEN_BASE_URL`：主站 AI 能力使用的浙大自建 Qwen；旧 `LLM_*` 仅作生产配置迁移兼容，文本模型固定为 `qwen3.8-27b`，不允许公网提供方回退。
 - `WEWE_RSS_BASE_URL`：微信读书 RSS 公众号来源的受信任 HTTPS 基地址，默认使用 `https://rss.tuotuzju.com`。
 - `WEWE_RSS_AUTH_CODE`：主平台后端代理 WeWe RSS 管理 API 使用的服务端授权码；取自 WeWe RSS 的 `AUTH_CODE`，不返回前端。
 - `WECHAT_MINIAPP_APPID`、`WECHAT_MINIAPP_SECRET`：微信小程序登录。
