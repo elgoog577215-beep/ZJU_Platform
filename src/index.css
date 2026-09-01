@@ -1935,6 +1935,18 @@ select:focus-visible {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* CommunitySearchInput: 关闭浏览器原生搜索清除按钮，改用组件自定义 X */
+.community-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* CommunitySearchInput: 焦点指示改由外层容器紫色边框承担，去掉全局蓝框 */
+.community-search-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
 /* Reduced Motion - 减少动画 */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -3288,6 +3300,17 @@ html[lang^="en"] .community-dock-heading__title {
 
 .community-dock-card:hover .community-dock-arrow {
     transform: translate(2px, -2px);
+}
+
+/* Compact dock: 选中态用底部下划线指示（#818CF8，100% 不透明） */
+.community-dock-tab--active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: #818cf8;
 }
 
 .community-dock-art {

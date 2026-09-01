@@ -220,14 +220,23 @@ const CommunityFeedPanel = ({
         </div>
     );
 
+    const hasControlsContent = Boolean(
+        extraControls ||
+            statusControl ||
+            sortControl ||
+            (onNewPost && !hideNewPostButton) ||
+            !hideSummaryLine
+    );
+
     return (
         <div role="tabpanel">
             {/* Controls */}
+            {hasControlsContent ? (
             <div
-                className={`mb-4 flex flex-col rounded-lg border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
+                className={`mb-4 flex flex-col rounded-[12px] border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
                     isLearningSurface
-                        ? `gap-2 p-2.5 md:gap-2.5 md:p-3 ${isDayMode ? "border-slate-200/80 bg-white/85 shadow-[0_12px_34px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035]"}`
-                        : `gap-2.5 p-3 md:gap-3 md:p-4 ${isDayMode ? "bg-white border-slate-200/70 shadow-none" : "bg-white/[0.035] border-white/10"}`
+                        ? `gap-2 p-2.5 md:gap-2.5 md:px-1 py-0 ${isDayMode ? "border-slate-200/80 bg-white/85 shadow-[0_12px_34px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035]"}`
+                        : `gap-2.5 p-3 md:gap-3 md:px-1 py-0 ${isDayMode ? "bg-white border-slate-200/70 shadow-none" : "bg-white/[0.035] border-white/10"}`
                 }`}
             >
                 <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
@@ -321,6 +330,7 @@ const CommunityFeedPanel = ({
                     </div>
                 ) : null}
             </div>
+            ) : null}
 
             {/* Item list */}
             {featuredSection}

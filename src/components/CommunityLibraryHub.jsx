@@ -118,19 +118,19 @@ const DockArtwork = ({ itemKey }) => {
                     <circle className="ai-orbit" cx="210" cy="150" r="82" />
                     <path
                         className="ai-link"
-                        d="M210 68L292 128M210 68L132 132M132 132L168 224M292 128L258 230M168 224H258"
+                        d="M210,68L288.1,124.66L258.26,216.3L161.73,216.3L131.91,124.66Z"
                     />
                     <circle className="ai-node ai-node--cyan" cx="210" cy="68" r="14" />
-                    <circle className="ai-node ai-node--violet" cx="132" cy="132" r="19" />
-                    <circle className="ai-node ai-node--blue" cx="292" cy="128" r="17" />
-                    <circle className="ai-node ai-node--soft" cx="168" cy="224" r="11" />
-                    <circle className="ai-node ai-node--soft" cx="258" cy="230" r="13" />
+                    <circle className="ai-node ai-node--violet" cx="132" cy="124.24" r="19" />
+                    <circle className="ai-node ai-node--blue" cx="288.01" cy="124.24" r="17" />
+                    <circle className="ai-node ai-node--soft" cx="161.89" cy="216.09" r="11" />
+                    <circle className="ai-node ai-node--soft" cx="258.01" cy="216.09" r="13" />
                     <circle className="ai-core" cx="210" cy="150" r="42" />
                     <path
                         className="ai-core-mark"
-                        d="M188 164L210 124L232 164M197 151H223M246 126V174"
+                        d="M186.73,169.27L203.84,130.72L218.37,169.27M193.96,152.99L212.23,152.99M227.06,130.72L227.06,169.27"
                     />
-                    <path className="ai-signal" d="M64 270H162M258 270H356" />
+                    <path className="ai-signal" d="M64,270L162,270M258,270L356,270" />
                     <circle className="ai-signal-node" cx="210" cy="270" r="5" />
                 </svg>
             </div>
@@ -179,14 +179,14 @@ const ToolbarButton = ({
         type="button"
         aria-label={mobileIconOnly ? label : undefined}
         {...props}
-        className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-45 ${
+        className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-[8px] text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-45 ${
             mobileIconOnly ? "px-2.5 sm:px-3.5" : "px-3.5"
         } ${
             primary
                 ? "bg-violet-600 text-white hover:bg-violet-500"
                 : isDayMode
-                  ? "border border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
-                  : "border border-white/10 bg-white/[0.045] text-slate-200 hover:border-violet-300/35 hover:bg-white/[0.075] hover:text-white"
+                  ? "border border-transparent bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
+                  : "border border-transparent bg-white/[0.045] text-slate-200 hover:border-violet-300/35 hover:bg-white/[0.075] hover:text-white"
         }`}
     >
         <Icon aria-hidden="true" size={16} />
@@ -342,7 +342,7 @@ const CommunityLibraryDock = ({
             className={`relative z-20 ${
                 isExpanded
                     ? "community-dock-shell community-dock-shell--expanded mx-auto w-full max-w-[1480px]"
-                    : "community-dock-shell community-dock-shell--compact sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] overflow-hidden rounded-2xl border p-2.5 backdrop-blur-2xl md:top-20 md:p-2.5"
+                    : "community-dock-shell community-dock-shell--compact sticky top-[calc(env(safe-area-inset-top)+3.5rem)] mx-auto w-full max-w-[1480px] overflow-hidden rounded-[12px] border px-3.5 py-2 backdrop-blur-2xl md:top-20 md:px-3.5 py-2"
             }`}
         >
             {isExpanded ? (
@@ -417,7 +417,7 @@ const CommunityLibraryDock = ({
                 className={
                     isExpanded
                         ? undefined
-                        : "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-1.5 lg:flex lg:gap-2.5"
+                        : "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 lg:flex lg:gap-3.5"
                 }
             >
                 {!isExpanded && backButton ? (
@@ -463,8 +463,8 @@ const CommunityLibraryDock = ({
                                             : "text-white"
                                         : isActive
                                           ? isDayMode
-                                              ? "bg-violet-600 text-white"
-                                              : "bg-violet-500/20 text-white"
+                                              ? "text-violet-700 community-dock-tab--active"
+                                              : "text-white community-dock-tab--active"
                                           : isDayMode
                                             ? "text-slate-600 hover:bg-slate-100 hover:text-violet-700"
                                             : "text-slate-400 hover:bg-white/[0.055] hover:text-white"
@@ -532,7 +532,7 @@ const CommunityLibraryDock = ({
                             duration: shouldReduceMotion ? 0 : 0.24,
                             delay: shouldReduceMotion ? 0 : 0.16,
                         }}
-                        className={`col-span-2 mt-1.5 border-t pt-2.5 lg:col-span-1 lg:mt-0 lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-2.5 lg:pt-0 ${
+                        className={`col-span-2 mt-1.5 border-t pt-2.5 lg:col-span-1 lg:mt-0 lg:shrink-0 lg:border-transparent lg:border-t-0 lg:pl-2.5 lg:pt-0 ${
                             isDayMode ? "border-slate-200" : "border-white/10"
                         }`}
                     >

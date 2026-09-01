@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { Bot, FileStack, GraduationCap, Link as LinkIcon, PackageOpen, Upload } from "lucide-react";
+import { Bot, FileStack, GraduationCap, Link as LinkIcon, PackageOpen } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -11,7 +11,6 @@ import PostCard from "./PostCard";
 import CommunityPostDetail from "./CommunityPostDetail";
 import CommunityFeedPanel from "./CommunityFeedPanel";
 import UnifiedCommunityComposer from "./UnifiedCommunityComposer";
-import CommunitySearchInput from "./CommunitySearchInput";
 
 const MATERIAL_TYPE_KEYS = ["course", "ai", "other"];
 const LEGACY_COURSE_MATERIAL_TYPES = new Set(["exam", "outline", "slides", "notes", "solution"]);
@@ -29,7 +28,7 @@ const CATEGORY_ICONS = {
     other: PackageOpen,
 };
 
-const CommunityMaterials = ({ onNewPost, hideNewPostButton = false, allowedMaterialTypes }) => {
+const CommunityMaterials = ({ onNewPost, allowedMaterialTypes }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const { user } = useAuth();
@@ -275,7 +274,6 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false, allowedMater
         count: materialTypes.find((item) => item.type === type)?.count || 0,
         label: t(`community.material_type_${type}`, type),
     }));
-    const uploadAction = onNewPost || openComposer;
 
     const beforeContent = feed.selectedItem && (
         <div
@@ -348,93 +346,64 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false, allowedMater
         />
     );
 
-    const controls = (
+    const controls = materialTypeRows.length > 1 ? (
         <div className="grid gap-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch gap-3">
-                <CommunitySearchInput
-                    value={feed.searchQuery}
-                    onChange={feed.setSearchQuery}
-                    onClear={() => feed.setSearchQuery("")}
-                    placeholder={t(
-                        "community.materials_search_placeholder",
-                        "搜索标题、作者、课程或资源内容"
-                    )}
-                    isDayMode={isDayMode}
-                    size="large"
-                />
-                {!hideNewPostButton ? (
-                    <button
-                        type="button"
-                        onClick={uploadAction}
-                        className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-lg border px-4 text-base font-black transition-colors sm:gap-2.5 sm:px-6 ${
-                            isDayMode
-                                ? "border-sky-200 bg-white text-sky-800 shadow-[0_8px_22px_rgba(14,165,233,0.06)] hover:border-sky-300 hover:bg-sky-50"
-                                : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 hover:border-sky-400/30 hover:bg-sky-500/[0.08]"
-                        }`}
-                    >
-                        <Upload size={21} />
-                        <span>{t("community.materials_upload_action", "上传资料")}</span>
-                    </button>
-                ) : null}
-            </div>
-            {materialTypeRows.length > 1 ? (
+            <div
+                className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
+            >
                 <div
-                    className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
+                    className={`grid gap-2 md:gap-3 ${
+                        materialTypeRows.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                    }`}
                 >
-                    <div
-                        className={`grid gap-2 md:gap-3 ${
-                            materialTypeRows.length === 2 ? "grid-cols-2" : "grid-cols-3"
-                        }`}
-                    >
-                        {materialTypeRows.map((item) => {
-                            const isActive = selectedMaterialType === item.type;
-                            const Icon = CATEGORY_ICONS[item.type] || FileStack;
-                            return (
-                                <button
-                                    key={item.type}
-                                    type="button"
-                                    aria-pressed={isActive}
-                                    onClick={() =>
-                                        handleTypeFilter(
-                                            !hasMaterialTypeScope && isActive ? "" : item.type
-                                        )
-                                    }
-                                    className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
-                                        isActive
-                                            ? isDayMode
-                                                ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
-                                                : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
-                                            : isDayMode
-                                              ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
-                                              : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
-                                    }`}
+                    {materialTypeRows.map((item) => {
+                        const isActive = selectedMaterialType === item.type;
+                        const Icon = CATEGORY_ICONS[item.type] || FileStack;
+                        return (
+                            <button
+                                key={item.type}
+                                type="button"
+                                aria-pressed={isActive}
+                                onClick={() =>
+                                    handleTypeFilter(
+                                        !hasMaterialTypeScope && isActive ? "" : item.type
+                                    )
+                                }
+                                className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
+                                    isActive
+                                        ? isDayMode
+                                            ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
+                                            : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
+                                        : isDayMode
+                                          ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
+                                          : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
+                                }`}
+                            >
+                                <span
+                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
                                 >
+                                    <Icon size={18} className="md:h-6 md:w-6" />
+                                </span>
+                                <span className="min-w-0">
+                                    <span className="block truncate text-xs font-black md:text-base">
+                                        {item.label}
+                                    </span>
                                     <span
-                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
+                                        className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
                                     >
-                                        <Icon size={18} className="md:h-6 md:w-6" />
+                                        {t(
+                                            `community.material_type_${item.type}_desc`,
+                                            "资源内容"
+                                        )}
                                     </span>
-                                    <span className="min-w-0">
-                                        <span className="block truncate text-xs font-black md:text-base">
-                                            {item.label}
-                                        </span>
-                                        <span
-                                            className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                                        >
-                                            {t(
-                                                `community.material_type_${item.type}_desc`,
-                                                "资源内容"
-                                            )}
-                                        </span>
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
-            ) : null}
+            </div>
         </div>
-    );
+    ) : null;
 
     return (
         <>

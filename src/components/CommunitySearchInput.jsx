@@ -17,7 +17,7 @@ const CommunitySearchInput = ({
     return (
         <div
             role="search"
-            className={`flex ${isLarge ? "min-h-14 gap-3 px-4" : "min-h-11 gap-2 px-3"} items-center rounded-lg border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.035)] focus-within:border-violet-300" : "border-white/10 bg-white/[0.045] text-white focus-within:border-violet-300/30"} ${className}`}
+            className={`flex ${isLarge ? "min-h-14 gap-3 px-4" : "min-h-11 gap-2 px-3"} items-center transition-colors ${isDayMode ? "border-transparent bg-transparent text-slate-800 focus-within:border-violet-300" : "border-transparent bg-transparent text-white focus-within:border-violet-300/30"} ${className}`}
         >
             <Search
                 size={isLarge ? 19 : 16}
@@ -31,7 +31,7 @@ const CommunitySearchInput = ({
                 aria-label={placeholder || t("common.search", "搜索...")}
                 autoComplete="off"
                 enterKeyHint="search"
-                className={`min-w-0 flex-1 bg-transparent ${isLarge ? "text-base" : "text-sm"} outline-none ${isDayMode ? "placeholder:text-slate-400" : "placeholder:text-gray-500"}`}
+                className={`community-search-input min-w-0 flex-1 bg-transparent ${isLarge ? "text-base" : "text-sm"} outline-none ${isDayMode ? "placeholder:text-slate-400" : "placeholder:text-gray-500"}`}
             />
             {value ? (
                 <button
