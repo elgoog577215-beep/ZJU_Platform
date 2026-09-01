@@ -222,114 +222,114 @@ const CommunityFeedPanel = ({
 
     const hasControlsContent = Boolean(
         extraControls ||
-            statusControl ||
-            sortControl ||
-            (onNewPost && !hideNewPostButton) ||
-            !hideSummaryLine
+        statusControl ||
+        sortControl ||
+        (onNewPost && !hideNewPostButton) ||
+        !hideSummaryLine
     );
 
     return (
         <div role="tabpanel">
             {/* Controls */}
             {hasControlsContent ? (
-            <div
-                className={`mb-4 flex flex-col rounded-[12px] border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
-                    isLearningSurface
-                        ? `gap-2 p-2.5 md:gap-2.5 md:px-1 py-0 ${isDayMode ? "border-slate-200/80 bg-white/85 shadow-[0_12px_34px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035]"}`
-                        : `gap-2.5 p-3 md:gap-3 md:px-1 py-0 ${isDayMode ? "bg-white border-slate-200/70 shadow-none" : "bg-white/[0.035] border-white/10"}`
-                }`}
-            >
-                <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-                    {extraControls ? <div className="min-w-0">{extraControls}</div> : null}
+                <div
+                    className={`mb-4 flex flex-col rounded-[12px] border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
+                        isLearningSurface
+                            ? `gap-2 p-2.5 md:gap-2.5 md:px-1 py-0 ${isDayMode ? "border-slate-200/80 bg-white/85 shadow-[0_12px_34px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035]"}`
+                            : `gap-2.5 p-3 md:gap-3 md:px-1 py-0 ${isDayMode ? "bg-white border-slate-200/70 shadow-none" : "bg-white/[0.035] border-white/10"}`
+                    }`}
+                >
+                    <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                        {extraControls ? <div className="min-w-0">{extraControls}</div> : null}
 
-                    <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
-                        {statusControl}
-                        {sortControl}
-                        {onNewPost && !hideNewPostButton && (
-                            <button
-                                onClick={onNewPost}
-                                className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${
-                                    isLearningSurface
-                                        ? isDayMode
-                                            ? "border-violet-200 bg-white text-violet-800 shadow-[0_4px_14px_rgba(109,40,217,0.05)] hover:border-violet-300 hover:bg-violet-50"
-                                            : "border-violet-300/20 bg-violet-300/10 text-violet-100 hover:bg-violet-300/15"
-                                        : accentBtnClass
-                                }`}
-                                title={newPostText}
-                            >
-                                <Upload size={18} className="md:w-5 md:h-5" />
-                                <span>{newPostText}</span>
-                            </button>
-                        )}
-                    </div>
-                </div>
-                {onNewPost && !hideNewPostButton ? (
-                    <button
-                        type="button"
-                        onClick={onNewPost}
-                        className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${
-                            isLearningSurface
-                                ? isDayMode
-                                    ? "border-violet-200 bg-white text-violet-800 shadow-[0_4px_14px_rgba(109,40,217,0.05)] hover:border-violet-300 hover:bg-violet-50"
-                                    : "border-violet-300/20 bg-violet-300/10 text-violet-100 hover:bg-violet-300/15"
-                                : accentBtnClass
-                        }`}
-                        title={newPostText}
-                    >
-                        <Upload size={18} />
-                        <span>{newPostText}</span>
-                    </button>
-                ) : null}
-                {!hideSummaryLine ? (
-                    <div
-                        className={`${hideMobileSummary ? "hidden md:flex" : "flex"} flex-wrap items-center justify-between gap-2 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${
-                            isLearningSurface
-                                ? `px-1 pt-0 ${isDayMode ? "text-slate-500" : "text-gray-400"}`
-                                : `border-t pt-3 ${isDayMode ? "border-slate-200/60 text-slate-500" : "border-white/10 text-gray-400"}`
-                        }`}
-                    >
-                        <div className="flex flex-wrap items-center gap-2.5">
-                            <span className={th.textSecondary}>
-                                {displayItems.length} {t("community.results_count", "条结果")}
-                            </span>
-                            {hasActiveFilters && !hideFilterBadge ? (
-                                <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-amber-500/10 text-amber-300 border-amber-500/20"}`}
+                        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
+                            {statusControl}
+                            {sortControl}
+                            {onNewPost && !hideNewPostButton && (
+                                <button
+                                    onClick={onNewPost}
+                                    className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${
+                                        isLearningSurface
+                                            ? isDayMode
+                                                ? "border-violet-200 bg-white text-violet-800 shadow-[0_4px_14px_rgba(109,40,217,0.05)] hover:border-violet-300 hover:bg-violet-50"
+                                                : "border-violet-300/20 bg-violet-300/10 text-violet-100 hover:bg-violet-300/15"
+                                            : accentBtnClass
+                                    }`}
+                                    title={newPostText}
                                 >
-                                    {t("community.filtered_view", "已应用筛选")}
-                                </span>
-                            ) : null}
-                            {searchQuery?.trim() ? (
-                                <span className="truncate max-w-[220px]">
-                                    {t("community.searching_for", "搜索")} &quot;
-                                    {searchQuery.trim()}&quot;
-                                </span>
-                            ) : null}
-                            {isSearchPending ? (
-                                <span>{t("common.loading", "加载中")}...</span>
-                            ) : null}
+                                    <Upload size={18} className="md:w-5 md:h-5" />
+                                    <span>{newPostText}</span>
+                                </button>
+                            )}
                         </div>
-                        <div className="flex items-center gap-1.5 md:gap-2">
-                            {hasActiveFilters ? (
+                    </div>
+                    {onNewPost && !hideNewPostButton ? (
+                        <button
+                            type="button"
+                            onClick={onNewPost}
+                            className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${
+                                isLearningSurface
+                                    ? isDayMode
+                                        ? "border-violet-200 bg-white text-violet-800 shadow-[0_4px_14px_rgba(109,40,217,0.05)] hover:border-violet-300 hover:bg-violet-50"
+                                        : "border-violet-300/20 bg-violet-300/10 text-violet-100 hover:bg-violet-300/15"
+                                    : accentBtnClass
+                            }`}
+                            title={newPostText}
+                        >
+                            <Upload size={18} />
+                            <span>{newPostText}</span>
+                        </button>
+                    ) : null}
+                    {!hideSummaryLine ? (
+                        <div
+                            className={`${hideMobileSummary ? "hidden md:flex" : "flex"} flex-wrap items-center justify-between gap-2 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${
+                                isLearningSurface
+                                    ? `px-1 pt-0 ${isDayMode ? "text-slate-500" : "text-gray-400"}`
+                                    : `border-t pt-3 ${isDayMode ? "border-slate-200/60 text-slate-500" : "border-white/10 text-gray-400"}`
+                            }`}
+                        >
+                            <div className="flex flex-wrap items-center gap-2.5">
+                                <span className={th.textSecondary}>
+                                    {displayItems.length} {t("community.results_count", "条结果")}
+                                </span>
+                                {hasActiveFilters && !hideFilterBadge ? (
+                                    <span
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-amber-500/10 text-amber-300 border-amber-500/20"}`}
+                                    >
+                                        {t("community.filtered_view", "已应用筛选")}
+                                    </span>
+                                ) : null}
+                                {searchQuery?.trim() ? (
+                                    <span className="truncate max-w-[220px]">
+                                        {t("community.searching_for", "搜索")} &quot;
+                                        {searchQuery.trim()}&quot;
+                                    </span>
+                                ) : null}
+                                {isSearchPending ? (
+                                    <span>{t("common.loading", "加载中")}...</span>
+                                ) : null}
+                            </div>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                                {hasActiveFilters ? (
+                                    <button
+                                        type="button"
+                                        onClick={resetFilters}
+                                        className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? "text-slate-600 hover:bg-white" : "text-gray-300 hover:bg-white/10"}`}
+                                    >
+                                        {t("community.clear_filters", "清除筛选")}
+                                    </button>
+                                ) : null}
                                 <button
                                     type="button"
-                                    onClick={resetFilters}
+                                    onClick={handleRefresh}
                                     className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? "text-slate-600 hover:bg-white" : "text-gray-300 hover:bg-white/10"}`}
                                 >
-                                    {t("community.clear_filters", "清除筛选")}
+                                    {t("common.refresh", "刷新")}
                                 </button>
-                            ) : null}
-                            <button
-                                type="button"
-                                onClick={handleRefresh}
-                                className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? "text-slate-600 hover:bg-white" : "text-gray-300 hover:bg-white/10"}`}
-                            >
-                                {t("common.refresh", "刷新")}
-                            </button>
+                            </div>
                         </div>
-                    </div>
-                ) : null}
-            </div>
+                    ) : null}
+                </div>
             ) : null}
 
             {/* Item list */}

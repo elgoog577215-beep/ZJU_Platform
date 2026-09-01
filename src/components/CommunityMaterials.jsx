@@ -346,64 +346,65 @@ const CommunityMaterials = ({ onNewPost, allowedMaterialTypes }) => {
         />
     );
 
-    const controls = materialTypeRows.length > 1 ? (
-        <div className="grid gap-4">
-            <div
-                className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
-            >
+    const controls =
+        materialTypeRows.length > 1 ? (
+            <div className="grid gap-4">
                 <div
-                    className={`grid gap-2 md:gap-3 ${
-                        materialTypeRows.length === 2 ? "grid-cols-2" : "grid-cols-3"
-                    }`}
+                    className={`rounded-lg border p-2.5 md:p-5 ${isDayMode ? "border-slate-200 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.035] backdrop-blur-sm"}`}
                 >
-                    {materialTypeRows.map((item) => {
-                        const isActive = selectedMaterialType === item.type;
-                        const Icon = CATEGORY_ICONS[item.type] || FileStack;
-                        return (
-                            <button
-                                key={item.type}
-                                type="button"
-                                aria-pressed={isActive}
-                                onClick={() =>
-                                    handleTypeFilter(
-                                        !hasMaterialTypeScope && isActive ? "" : item.type
-                                    )
-                                }
-                                className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
-                                    isActive
-                                        ? isDayMode
-                                            ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
-                                            : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
-                                        : isDayMode
-                                          ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
-                                          : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
-                                }`}
-                            >
-                                <span
-                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
+                    <div
+                        className={`grid gap-2 md:gap-3 ${
+                            materialTypeRows.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                        }`}
+                    >
+                        {materialTypeRows.map((item) => {
+                            const isActive = selectedMaterialType === item.type;
+                            const Icon = CATEGORY_ICONS[item.type] || FileStack;
+                            return (
+                                <button
+                                    key={item.type}
+                                    type="button"
+                                    aria-pressed={isActive}
+                                    onClick={() =>
+                                        handleTypeFilter(
+                                            !hasMaterialTypeScope && isActive ? "" : item.type
+                                        )
+                                    }
+                                    className={`group flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors md:min-h-[88px] md:flex-row md:items-center md:justify-start md:gap-3 md:px-4 md:py-3 md:text-left ${
+                                        isActive
+                                            ? isDayMode
+                                                ? "border-sky-300 bg-sky-50 text-sky-800 shadow-[0_10px_26px_rgba(14,165,233,0.07)]"
+                                                : "border-sky-400/20 bg-sky-500/[0.055] text-sky-200 shadow-[0_14px_34px_rgba(0,0,0,0.14)]"
+                                            : isDayMode
+                                              ? "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-sky-200 hover:bg-sky-50/50"
+                                              : "border-white/10 bg-white/[0.035] text-gray-200 hover:border-sky-400/20 hover:bg-sky-500/[0.05]"
+                                    }`}
                                 >
-                                    <Icon size={18} className="md:h-6 md:w-6" />
-                                </span>
-                                <span className="min-w-0">
-                                    <span className="block truncate text-xs font-black md:text-base">
-                                        {item.label}
-                                    </span>
                                     <span
-                                        className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md md:h-10 md:w-10 ${isActive ? "bg-white/20" : isDayMode ? "bg-white shadow-[0_6px_18px_rgba(15,23,42,0.045)]" : "bg-white/[0.06]"}`}
                                     >
-                                        {t(
-                                            `community.material_type_${item.type}_desc`,
-                                            "资源内容"
-                                        )}
+                                        <Icon size={18} className="md:h-6 md:w-6" />
                                     </span>
-                                </span>
-                            </button>
-                        );
-                    })}
+                                    <span className="min-w-0">
+                                        <span className="block truncate text-xs font-black md:text-base">
+                                            {item.label}
+                                        </span>
+                                        <span
+                                            className={`mt-1 hidden text-xs leading-5 md:block ${isActive ? "opacity-80" : isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                        >
+                                            {t(
+                                                `community.material_type_${item.type}_desc`,
+                                                "资源内容"
+                                            )}
+                                        </span>
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
-        </div>
-    ) : null;
+        ) : null;
 
     return (
         <>
