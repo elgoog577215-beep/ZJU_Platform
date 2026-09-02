@@ -85,8 +85,7 @@ const communityCommentCreateLimiter = customRateLimit({
 const salonEventCreateLimiter = customRateLimit({
     windowMs: 10 * 60 * 1000,
     maxRequests: 12,
-    keyGenerator: (req) =>
-        req.user?.id ? `salon-event:${req.user.id}` : `salon-event:${req.ip}`,
+    keyGenerator: (req) => (req.user?.id ? `salon-event:${req.user.id}` : `salon-event:${req.ip}`),
     handler: (_req, res) => {
         res.status(429).json({
             error: "沙龙活动发布过于频繁，请稍后再试",
