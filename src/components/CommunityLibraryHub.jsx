@@ -4,10 +4,10 @@ import {
     ArrowUpRight,
     BookOpen,
     Bot,
+    Calendar,
     ExternalLink,
     GraduationCap,
     Upload,
-    Users,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -49,8 +49,8 @@ const DOCK_ITEMS = [
         toneClass: "community-dock-card--ai",
     },
     {
-        key: "community",
-        icon: Users,
+        key: "salon",
+        icon: Calendar,
         titleKey: "community_title",
         metaKey: "community_meta",
         descriptionKey: "community_dock_desc",

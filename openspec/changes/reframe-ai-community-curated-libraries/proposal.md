@@ -4,11 +4,12 @@
 
 ## What Changes
 
-- 将 `/articles` 默认入口改为带独立“学习社区”科技字标的四入口 Dock：字标以四路汇聚徽记、紧凑中英文字形和信号轨道建立页面身份；三个稳定专题为“新生资料库”“期末资料库”“AI 学习库”，第四个入口复用现有讨论链。
+- 将 `/articles` 默认入口改为带独立“学习社区”科技字标的四入口 Dock：字标以四路汇聚徽记、紧凑中英文字形和信号轨道建立页面身份；三个稳定专题为“新生资料库”“期末资料库”“AI 学习库”，第四个入口为“沙龙交流群”。
 - 四个入口在初始态是页面内唯一操作；选择后通过共享布局动画收缩为顶部选择栏，下面再出现当前入口的操作和真实内容。
 - 为新生资料库提供站内简介与维护状态，再通过明确的外部平台标识跳转到 ima；具体分享地址未配置时显示不可用原因与恢复方式，不伪造可用链接。
 - 复用现有站内资料搜索、筛选、上传能力和 AI 学习文章与路径能力；期末资料库只显示课程资料，AI/其他资源移入 AI 学习库末尾的独立资源库，不建立新的内容表或平行投稿池。
-- 将求助讨论作为第四个“讨论区”入口；工作态返回位于栏目左侧，删除与页面内容重复的顶部搜索和跨栏目发起讨论/提问按钮，保留旧深链和现有详情访问能力。
+- “沙龙交流群”只读取正式 `events` 中带“沙龙”标签的讲座类活动，并通过受限活动发布入口写回同一活动、审核与组织归属链；不再从第四入口发布普通讨论帖。
+- 工作态返回位于栏目左侧，删除与页面内容重复的顶部搜索和跨栏目操作；旧讨论深链继续只读兼容访问。
 - AI 学习路径默认只强调已有内容的主题；空主题仍可通过深链访问，但不在资料库主入口制造虚假的内容规模感。
 - 同步中文、英文文案和正式产品文档，明确 AI 社区采用“垂直专题精选 + 统一内容治理”的运营模型。
 
@@ -24,9 +25,9 @@
 
 ## Impact
 
-- 前端：`src/App.jsx`、`src/index.css`、`src/components/AICommunity.jsx`、`src/components/CommunityLibraryHub.jsx`、`src/components/CommunityPosts.jsx`、`src/components/CommunityMaterials.jsx` 和中英文 locale。
+- 前端：`src/App.jsx`、`src/index.css`、`src/components/AICommunity.jsx`、`src/components/CommunityLibraryHub.jsx`、`src/components/SalonExchange.jsx`、`src/components/CommunityPosts.jsx`、`src/components/CommunityMaterials.jsx`、`src/components/UploadModal.jsx` 和中英文 locale。
 - 路由：继续使用 `/articles`，通过可恢复的 query 参数进入三个资料库和次级社区能力；旧 `tab`、`postTab`、详情参数继续兼容。
-- 数据与 API：不新增数据库表、不修改现有社区 API；继续复用文章、社区资料和讨论接口。
+- 数据与 API：不新增数据库表；新增沙龙活动受限读写入口，继续复用 `events`、活动审核与组织归属，不建立平行沙龙帖子表。
 - 配置：新生资料库的 ima 分享地址通过前端环境变量配置；缺失时按钮禁用并解释原因。
 - 文档：更新 `docs/产品蓝图.md` 和 `docs/产品状态.md` 的 AI 社区定位与当前能力描述。
 - 回滚：前端入口可以通过回退本 change 的组件和 locale 改动恢复；底层内容、审核与数据模型不变，因此无需数据回滚。

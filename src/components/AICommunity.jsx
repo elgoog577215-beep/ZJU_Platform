@@ -11,6 +11,7 @@ import {
 } from "./CommunityLibraryHub";
 import CommunityLibraryDock from "./CommunityLibraryHub";
 import CommunityPosts from "./CommunityPosts";
+import SalonExchange from "./SalonExchange";
 
 const LEGACY_TAB_TO_AREA = {
     tech: "learn",
@@ -35,6 +36,7 @@ const LIBRARY_AREAS = {
     finals: ["resources"],
     ai: ["learn", "resources"],
     community: ["discuss"],
+    salon: ["salon"],
 };
 
 const FINALS_MATERIAL_SCOPE = ["course"];
@@ -88,13 +90,13 @@ const AICommunity = () => {
     );
     const showLibraryHome = !activeLibrary && !hasDirectCommunityState;
     const selectedDockKey =
-        activeLibrary ||
+        (activeLibrary === "community" ? "" : activeLibrary) ||
         (requestedArea === "resources"
             ? "finals"
             : requestedArea === "learn"
               ? "ai"
-              : requestedArea === "discuss"
-                ? "community"
+              : requestedArea === "salon"
+                ? "salon"
                 : "");
 
     const migrateLegacyParams = useCallback(() => {
@@ -185,8 +187,8 @@ const AICommunity = () => {
                 setCommunityView({ library: "ai", area: "learn" });
                 return;
             }
-            if (library === "community") {
-                setCommunityView({ library: "community", area: "discuss" });
+            if (library === "salon") {
+                setCommunityView({ library: "salon", area: "salon" });
             }
         },
         [setCommunityView]
@@ -235,6 +237,10 @@ const AICommunity = () => {
             ) : (
                 <CommunityPosts areaOverride="learn" hideAreaNav />
             );
+        }
+
+        if (activeLibrary === "salon") {
+            return <SalonExchange />;
         }
 
         if (activeLibrary === "community") {

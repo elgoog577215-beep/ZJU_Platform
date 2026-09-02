@@ -4174,7 +4174,7 @@
     },
     "community_libraries": {
         "meta_title": "AI Community Libraries",
-        "seo_description": "A learning community for freshman resources, finals preparation, AI tutorials, companion resources, and peer discussion.",
+        "seo_description": "A learning community for freshman resources, finals preparation, AI tutorials, companion resources, and salon events.",
         "kicker": "AI COMMUNITY · CURATED LIBRARIES",
         "title": "Fewer sections. Three libraries worth maintaining.",
         "subtitle": "We keep selecting, organizing, and maintaining resources that solve real problems.",
@@ -4215,9 +4215,9 @@
         "ai_action": "Enter the learning library",
         "ai_open_aria": "Open the AI Learning Library",
         "ai_detail_desc": "Start with material that is already organized, then continue by topic and level.",
-        "community_title": "Discussion",
-        "community_meta": "Ask · Exchange experience",
-        "community_dock_desc": "Ask questions, exchange experience, and work through concrete learning problems with peers.",
+        "community_title": "Salon Exchange",
+        "community_meta": "Salon events · In-person exchange",
+        "community_dock_desc": "Find and publish AI salons, then keep meeting people through real conversations.",
         "contribute_title": "Help make the libraries more useful",
         "contribute_desc": "Every contribution follows the same submission, review, and attribution flow.",
         "submit_title": "Submit a resource",
@@ -4243,6 +4243,21 @@
         "ima_external_note": "ima opens in a new tab, and this page stays available.",
         "ima_missing_note": "The specific share link is not configured yet. Try again later or return to the libraries.",
         "ima_missing_note_short": "The ima share link is not configured yet"
+    },
+    "community_salon": {
+        "search_placeholder": "Search salons, locations, or organizers",
+        "publish_action": "Publish salon event",
+        "fixed_type": "Salon event",
+        "empty_title": "No salon events yet",
+        "empty_desc": "Only salon events are published here. Submit the first one through the existing review flow.",
+        "sort_newest": "Recently published",
+        "sort_soonest": "Starting soonest",
+        "sort_latest": "Starting latest",
+        "status_upcoming": "Upcoming",
+        "status_ongoing": "In progress",
+        "status_past": "Ended",
+        "status_unknown": "Time pending",
+        "online": "Online"
     },
     "community_learning": {
         "meta_title": "Learning Community",

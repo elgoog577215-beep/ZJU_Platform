@@ -5,7 +5,7 @@ const memoryCache = new Map();
 const inflightRequests = new Map();
 
 const LIST_ENDPOINT_PATTERN =
-    /^\/(events|photos|videos|articles|community\/posts|news|ecosystem-partners)(\/)?$/;
+    /^\/(events|photos|videos|articles|community\/(posts|salon-events)|news|ecosystem-partners)(\/)?$/;
 const LIST_RESPONSE_KEYS = [
     "items",
     "results",

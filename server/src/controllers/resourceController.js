@@ -777,6 +777,7 @@ const getAllHandler =
             // Limit max limit to 100 to prevent DoS
             const limit = Math.min(parseInt(req.query.limit) || defaultLimit, 100);
             const category = req.query.category;
+            const exactCategory = req.query.category_exact;
             const rawCategoryId = req.query.category_id || req.query.categoryId;
             const tag = req.query.tag; // For articles
             const requestedStatus = String(req.query.status || "approved")
@@ -939,6 +940,12 @@ const getAllHandler =
                     params.push(category);
                     countParams.push(category);
                 }
+            }
+
+            if (table === "events" && String(exactCategory || "").trim() !== "") {
+                whereClauses.push(`${table}.category = ?`);
+                params.push(exactCategory);
+                countParams.push(exactCategory);
             }
 
             if (tag && tag !== "All") {

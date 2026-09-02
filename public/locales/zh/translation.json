@@ -4211,7 +4211,7 @@
     },
     "community_libraries": {
         "meta_title": "AI 社区资料库",
-        "seo_description": "学习社区：连接新生资料、期末复习、AI 教程、配套资源与同伴讨论。",
+        "seo_description": "学习社区：连接新生资料、期末复习、AI 教程、配套资源与沙龙活动。",
         "kicker": "AI COMMUNITY · CURATED LIBRARIES",
         "title": "少一点栏目，做三座真正有用的资料库",
         "subtitle": "我们持续筛选、整理和维护真正能解决问题的资料。",
@@ -4252,9 +4252,9 @@
         "ai_action": "进入学习库",
         "ai_open_aria": "打开 AI 学习库",
         "ai_detail_desc": "从已经整理好的内容开始，按主题和难度继续阅读。",
-        "community_title": "讨论区",
-        "community_meta": "提问交流 · 经验分享",
-        "community_dock_desc": "提出问题、交换经验，和同学一起讨论学习中的具体问题。",
+        "community_title": "沙龙交流群",
+        "community_meta": "沙龙活动 · 线下交流",
+        "community_dock_desc": "查看和发布 AI 沙龙，在持续交流中认识同路人。",
         "contribute_title": "一起把资料做得更有用",
         "contribute_desc": "资料进入同一套投稿、审核和归属链。",
         "submit_title": "提交一份资料",
@@ -4280,6 +4280,21 @@
         "ima_external_note": "将在新标签页打开 ima，当前页面会保留。",
         "ima_missing_note": "具体分享地址尚未配置，请稍后再试或返回资料库首页。",
         "ima_missing_note_short": "ima 分享地址尚未配置"
+    },
+    "community_salon": {
+        "search_placeholder": "搜索沙龙名称、地点或主办方",
+        "publish_action": "发布沙龙活动",
+        "fixed_type": "沙龙活动",
+        "empty_title": "暂无沙龙活动",
+        "empty_desc": "这里仅发布沙龙活动。你可以发布第一场活动，提交后将进入现有审核流程。",
+        "sort_newest": "最近发布",
+        "sort_soonest": "最早开始",
+        "sort_latest": "最晚开始",
+        "status_upcoming": "即将开始",
+        "status_ongoing": "进行中",
+        "status_past": "已结束",
+        "status_unknown": "时间待定",
+        "online": "线上"
     },
     "community_learning": {
         "meta_title": "学习社区",

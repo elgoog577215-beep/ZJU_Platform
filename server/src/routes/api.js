@@ -36,6 +36,10 @@ const mediaCategoryController = require("../controllers/mediaCategoryController"
 const projectCardController = require("../controllers/projectCardController");
 const { logger } = require("../utils/logger");
 const { verifyNativeUploadToken } = require("../services/nativeUploadSessionService");
+const {
+    normalizeSalonEventPayload,
+    normalizeSalonEventQuery,
+} = require("../utils/salonEventContract");
 
 const { authenticateToken, isAdmin, optionalAuth } = require("../middleware/auth");
 const {
@@ -74,6 +78,19 @@ const communityCommentCreateLimiter = customRateLimit({
         res.status(429).json({
             error: "回复过于频繁，请稍后再试",
             retryAfter: 5 * 60,
+        });
+    },
+});
+
+const salonEventCreateLimiter = customRateLimit({
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 12,
+    keyGenerator: (req) =>
+        req.user?.id ? `salon-event:${req.user.id}` : `salon-event:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "沙龙活动发布过于频繁，请稍后再试",
+            retryAfter: 10 * 60,
         });
     },
 });
@@ -310,6 +327,27 @@ router.post("/comments", authenticateToken, commentController.createComment);
 router.delete("/comments/:id", authenticateToken, commentController.deleteComment);
 
 // Community Routes
+const listSalonEvents = resourceController.getAllHandler("events", 12);
+const createSalonEvent = resourceController.createHandler(
+    "events",
+    resourceController.fields.events
+);
+
+router.get("/community/salon-events", optionalAuth, (req, res, next) => {
+    req.query = normalizeSalonEventQuery(req.query);
+    return listSalonEvents(req, res, next);
+});
+router.post(
+    "/community/salon-events",
+    authenticateToken,
+    salonEventCreateLimiter,
+    (req, _res, next) => {
+        req.body = normalizeSalonEventPayload(req.body);
+        next();
+    },
+    validate(resourceValidation),
+    createSalonEvent
+);
 router.get("/community/posts", optionalAuth, communityController.listPosts);
 router.get("/community/material-courses", optionalAuth, communityController.listMaterialCourses);
 router.get("/community/material-types", optionalAuth, communityController.listMaterialTypes);

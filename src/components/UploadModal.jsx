@@ -61,6 +61,7 @@ const getTagList = (value = "") =>
         .filter(Boolean);
 
 const serializeTagList = (items = []) => [...new Set(items)].join(",");
+const EMPTY_FIXED_EVENT_TAGS = Object.freeze([]);
 
 const NATIVE_UPLOAD_POLL_INTERVAL_MS = 1500;
 const NATIVE_UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
@@ -332,6 +333,9 @@ const UploadModal = ({
     type = "image",
     initialData = null,
     allowBatch = false,
+    fixedEventCategory = "",
+    fixedEventCategoryLabel = "",
+    fixedEventTags = EMPTY_FIXED_EVENT_TAGS,
 }) => {
     const { t, i18n } = useTranslation();
     const onCloseRef = useRef(onClose);
@@ -369,7 +373,9 @@ const UploadModal = ({
     const nativeUploadPollerRef = useRef(null);
 
     const [title, setTitle] = useState(initialData?.title || "");
-    const [tags, setTags] = useState(initialData?.tags || ""); // Tags state
+    const [tags, setTags] = useState(() =>
+        serializeTagList([...getTagList(initialData?.tags), ...getTagList(fixedEventTags)])
+    ); // Tags state
     const [mediaCategoryId, setMediaCategoryId] = useState(initialData?.category_id || "");
     const [description, setDescription] = useState(
         initialData?.excerpt || initialData?.description || ""
@@ -435,7 +441,7 @@ const UploadModal = ({
     const [eventScore, setEventScore] = useState(initialData?.score || "");
     const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || "");
     const [eventCategory, setEventCategory] = useState(() =>
-        normalizeEventCategory(initialData?.category)
+        normalizeEventCategory(initialData?.category || fixedEventCategory)
     );
     const [isCollegeNotice, setIsCollegeNotice] = useState(
         () =>
@@ -502,9 +508,17 @@ const UploadModal = ({
     useEffect(() => {
         if (isOpen && !wasOpenRef.current && type === "event") {
             setMobileEventStep(1);
+            if (!isEditing && fixedEventCategory) {
+                setEventCategory(normalizeEventCategory(fixedEventCategory));
+            }
+            if (!isEditing && getTagList(fixedEventTags).length > 0) {
+                setTags((current) =>
+                    serializeTagList([...getTagList(current), ...getTagList(fixedEventTags)])
+                );
+            }
         }
         wasOpenRef.current = isOpen;
-    }, [isOpen, type]);
+    }, [fixedEventCategory, fixedEventTags, isEditing, isOpen, type]);
 
     const articleDraftStorageKey = React.useMemo(
         () => `zju-article-draft-${user?.id || "guest"}`,
@@ -674,7 +688,7 @@ const UploadModal = ({
                 if (data.location) setEventLocation(data.location);
                 if (data.content) setContent(data.content); // Store full content for parsing/editing
                 if (data.description) setDescription(data.description); // Summary for description
-                if (data.category) {
+                if (data.category && !fixedEventCategory) {
                     const normalizedCategory = normalizeEventCategory(data.category);
                     if (normalizedCategory) setEventCategory(normalizedCategory);
                 }
@@ -740,14 +754,14 @@ const UploadModal = ({
         setEventDate("");
         setEventEndDate("");
         setEventLocation("");
-        setEventCategory("");
         setEventOrganizer("");
         setEventTarget("");
         setEventVolunteerTime("");
         setEventScore("");
         setDateReasoning("");
         setEventLink("");
-        setTags("");
+        setEventCategory(normalizeEventCategory(fixedEventCategory));
+        setTags(serializeTagList(getTagList(fixedEventTags)));
         toast.success(t("upload.cleared"));
     };
 
@@ -838,7 +852,12 @@ const UploadModal = ({
 
             if (initialData) {
                 setTitle(initialData.title || "");
-                setTags(initialData.tags || "");
+                setTags(
+                    serializeTagList([
+                        ...getTagList(initialData.tags),
+                        ...getTagList(fixedEventTags),
+                    ])
+                );
                 setMediaCategoryId(initialData.category_id || "");
                 setDescription(initialData.excerpt || initialData.description || "");
                 setContent(initialData.content || "");
@@ -902,7 +921,9 @@ const UploadModal = ({
                 setEventLink(initialData.link || "");
                 setEventScore(initialData.score || "");
                 setEventVolunteerTime(initialData.volunteer_time || "");
-                setEventCategory(normalizeEventCategory(initialData.category));
+                setEventCategory(
+                    normalizeEventCategory(fixedEventCategory || initialData.category)
+                );
                 setIsCollegeNotice(
                     Boolean(Number(initialData.is_college_notice)) ||
                         getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG)
@@ -952,7 +973,7 @@ const UploadModal = ({
                 );
             } else {
                 setTitle("");
-                setTags("");
+                setTags(serializeTagList(getTagList(fixedEventTags)));
                 setMediaCategoryId("");
                 setDescription("");
                 setContent("");
@@ -965,7 +986,7 @@ const UploadModal = ({
                 setEventLocation("");
                 setEventLink("");
                 setEventScore("");
-                setEventCategory("");
+                setEventCategory(normalizeEventCategory(fixedEventCategory));
                 setIsCollegeNotice(false);
                 setEventTarget("");
                 setEventOrganizer("");
@@ -992,7 +1013,7 @@ const UploadModal = ({
             setActiveTextBlockId(null);
             setSlashMenuBlockId(null);
         }
-    }, [isOpen, initialData, user, t, handleClose, type]);
+    }, [fixedEventCategory, fixedEventTags, handleClose, initialData, isOpen, t, type, user]);
 
     React.useEffect(() => {
         if (!isOpen || type !== "article" || isEditing) return;
@@ -1760,14 +1781,15 @@ const UploadModal = ({
             // 2. Construct new item
             const resolvedStatus =
                 submitIntent === "draft" ? "draft" : isAdmin ? "approved" : "pending";
-            const eventTags = serializeTagList(
-                isCollegeNotice
+            const eventTags = serializeTagList([
+                ...(isCollegeNotice
                     ? [
                           ...getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
                           COLLEGE_NOTICE_TAG,
                       ]
-                    : getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG)
-            );
+                    : getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG)),
+                ...getTagList(fixedEventTags),
+            ]);
 
             const newItem = {
                 ...initialData, // Keep existing ID and other fields if editing
@@ -1808,7 +1830,10 @@ const UploadModal = ({
                 score: type === "event" ? eventScore : null,
                 target_audience: type === "event" ? eventTarget : null,
                 organizer: type === "event" ? eventOrganizer : null,
-                category: type === "event" ? eventCategory : null,
+                category:
+                    type === "event"
+                        ? normalizeEventCategory(fixedEventCategory) || eventCategory
+                        : null,
                 is_college_notice: type === "event" && isCollegeNotice ? 1 : 0,
                 notice_type: type === "event" && isCollegeNotice ? noticeType : null,
                 source_college: type === "event" && isCollegeNotice ? sourceCollege : null,
@@ -2571,40 +2596,68 @@ const UploadModal = ({
                                                         <label className={labelClasses}>
                                                             {t("event_fields.category")}
                                                         </label>
-                                                        <div className="upload-modal-chip-grid grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                                            {EVENT_CATEGORIES.map((category) => {
-                                                                const selected =
-                                                                    eventCategory ===
-                                                                    category.value;
-                                                                return (
-                                                                    <button
-                                                                        key={category.value}
-                                                                        type="button"
-                                                                        aria-pressed={selected}
-                                                                        onClick={() =>
-                                                                            setEventCategory(
-                                                                                category.value
-                                                                            )
-                                                                        }
-                                                                        className={`upload-modal-choice-button min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                                                            selected
-                                                                                ? isDayMode
-                                                                                    ? "border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]"
-                                                                                    : "border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none"
-                                                                                : isDayMode
-                                                                                  ? "border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900"
-                                                                                  : "border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white"
-                                                                        }`}
-                                                                    >
-                                                                        {getEventCategoryLabel(
-                                                                            category.value,
+                                                        {fixedEventCategory ? (
+                                                            <div
+                                                                role="status"
+                                                                className={`flex min-h-[44px] items-center gap-2.5 rounded-[10px] border px-4 text-sm font-bold ${
+                                                                    isDayMode
+                                                                        ? "border-indigo-200 bg-indigo-50 text-indigo-800"
+                                                                        : "border-indigo-300/25 bg-indigo-300/10 text-indigo-100"
+                                                                }`}
+                                                            >
+                                                                <Check
+                                                                    aria-hidden="true"
+                                                                    size={17}
+                                                                />
+                                                                <span>
+                                                                    {fixedEventCategoryLabel ||
+                                                                        getEventCategoryLabel(
+                                                                            fixedEventCategory,
                                                                             i18n.resolvedLanguage ||
                                                                                 i18n.language
                                                                         )}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="upload-modal-chip-grid grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                                                {EVENT_CATEGORIES.map(
+                                                                    (category) => {
+                                                                        const selected =
+                                                                            eventCategory ===
+                                                                            category.value;
+                                                                        return (
+                                                                            <button
+                                                                                key={category.value}
+                                                                                type="button"
+                                                                                aria-pressed={
+                                                                                    selected
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    setEventCategory(
+                                                                                        category.value
+                                                                                    )
+                                                                                }
+                                                                                className={`upload-modal-choice-button min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                                                    selected
+                                                                                        ? isDayMode
+                                                                                            ? "border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]"
+                                                                                            : "border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none"
+                                                                                        : isDayMode
+                                                                                          ? "border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900"
+                                                                                          : "border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white"
+                                                                                }`}
+                                                                            >
+                                                                                {getEventCategoryLabel(
+                                                                                    category.value,
+                                                                                    i18n.resolvedLanguage ||
+                                                                                        i18n.language
+                                                                                )}
+                                                                            </button>
+                                                                        );
+                                                                    }
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className={labelClasses}>
