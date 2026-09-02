@@ -24,9 +24,7 @@ test("installed App runtime hides download entries and blocks the download route
     await page.goto("/about");
     await expect(page.locator('a[href="/download"]')).toHaveCount(0);
 
-    await page
-        .locator('nav[role="navigation"] button[aria-expanded]:not([aria-haspopup])')
-        .click();
+    await page.locator('nav[role="navigation"] button[aria-expanded]:not([aria-haspopup])').click();
     const moreDialog = page.getByRole("dialog");
     await expect(moreDialog).toBeVisible();
     await expect(moreDialog.locator('a[href="/download"]')).toHaveCount(0);

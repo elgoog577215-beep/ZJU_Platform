@@ -470,10 +470,7 @@ const AppContent = () => {
         return <Navigate to={toMiniProgramPath("/events")} replace />;
     }
 
-    if (
-        isAppRuntime &&
-        (location.pathname === "/download" || location.pathname === "/app")
-    ) {
+    if (isAppRuntime && (location.pathname === "/download" || location.pathname === "/app")) {
         return <Navigate to="/" replace />;
     }
 

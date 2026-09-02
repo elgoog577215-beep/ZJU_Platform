@@ -240,9 +240,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
         !location.pathname.startsWith("/me") && !location.pathname.startsWith("/user/");
     const secondaryMobileLinks = [
         { key: "about", path: "/about", icon: Info },
-        ...(showAppDownload
-            ? [{ key: "download", path: "/download", icon: Smartphone }]
-            : []),
+        ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
         ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
     ];
     const nextUiMode = isDayMode ? "dark" : "day";
