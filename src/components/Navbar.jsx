@@ -48,7 +48,7 @@ const Portal = ({ children }) => {
 const AuthModal = lazy(() => import("./AuthModal"));
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
-const Navbar = ({ miniProgramMode = false }) => {
+const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -240,7 +240,9 @@ const Navbar = ({ miniProgramMode = false }) => {
         !location.pathname.startsWith("/me") && !location.pathname.startsWith("/user/");
     const secondaryMobileLinks = [
         { key: "about", path: "/about", icon: Info },
-        ...(!miniProgramMode ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
+        ...(showAppDownload
+            ? [{ key: "download", path: "/download", icon: Smartphone }]
+            : []),
         ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
     ];
     const nextUiMode = isDayMode ? "dark" : "day";
@@ -332,7 +334,7 @@ const Navbar = ({ miniProgramMode = false }) => {
                         <span>{t("nav.ai_search", "AI 搜索")}</span>
                     </button>
 
-                    {!miniProgramMode ? (
+                    {showAppDownload ? (
                         <Link
                             to="/download"
                             className={desktopDownloadButtonClasses}

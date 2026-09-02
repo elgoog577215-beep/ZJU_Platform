@@ -27,6 +27,7 @@ import {
     rememberMiniProgramWebView,
     toMiniProgramPath,
 } from "./utils/miniProgramEnv";
+import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
 import SEO from "./components/SEO";
@@ -356,6 +357,8 @@ const AppContent = () => {
     const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
+    const isAppRuntime = isMiniProgramMode || detectAppRuntime();
+    const showAppDownload = !isAppRuntime;
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
@@ -467,6 +470,13 @@ const AppContent = () => {
         return <Navigate to={toMiniProgramPath("/events")} replace />;
     }
 
+    if (
+        isAppRuntime &&
+        (location.pathname === "/download" || location.pathname === "/app")
+    ) {
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
@@ -484,7 +494,10 @@ const AppContent = () => {
                 </a>
                 {!hideGlobalShell && (
                     <ErrorBoundary variant="inline" silent>
-                        <Navbar miniProgramMode={isMiniProgramMode} />
+                        <Navbar
+                            miniProgramMode={isMiniProgramMode}
+                            showAppDownload={showAppDownload}
+                        />
                     </ErrorBoundary>
                 )}
                 {!hideGlobalShell &&
@@ -598,7 +611,7 @@ const AppContent = () => {
                                 path="/about"
                                 element={
                                     <PageTransition>
-                                        <About />
+                                        <About showAppDownload={showAppDownload} />
                                     </PageTransition>
                                 }
                             />

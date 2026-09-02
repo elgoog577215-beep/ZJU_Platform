@@ -122,7 +122,7 @@ const useAboutHeroScale = () => {
     return [stageRef, frame];
 };
 
-const About = () => {
+const About = ({ showAppDownload = true }) => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
     const navigate = useNavigate();
@@ -1373,13 +1373,15 @@ const About = () => {
                             </p>
 
                             <div className="mt-7 flex flex-wrap gap-3">
-                                <Link
-                                    to="/download"
-                                    className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
-                                >
-                                    <Download className="h-4 w-4" />
-                                    {t("about.ecosystem.join.download_cta", "下载 App")}
-                                </Link>
+                                {showAppDownload ? (
+                                    <Link
+                                        to="/download"
+                                        className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        {t("about.ecosystem.join.download_cta", "下载 App")}
+                                    </Link>
+                                ) : null}
                                 <Link
                                     to="/events"
                                     className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
