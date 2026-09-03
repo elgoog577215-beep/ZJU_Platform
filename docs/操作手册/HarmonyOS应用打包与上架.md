@@ -15,11 +15,32 @@
 ## 修改后重新打包
 
 1. 在 `zju_app/AppScope/app.json5` 中递增 `versionCode`，并同步调整 `versionName`。
-2. 使用最新正式版 HUAWEI DevEco Studio 打开 `zju_app/`。
-3. 在 `File > Project Structure > Signing Configs` 检查 release 签名。证书、Profile、P12 和密码只保存在发布电脑或平台 Secrets，不新增到 Git。
-4. 选择 release 构建，执行 `Build > Build Hap(s)/APP(s) > Build APP(s)`。
-5. 看到 `BUILD SUCCESSFUL` 后，在 `zju_app/build/outputs/default/` 查找签名后的 `.app` 文件。上架上传 `.app`，不要用调试 `.hap` 代替。
+2. 检查 release 签名。证书、Profile、P12 和密码只保存在发布电脑或平台 Secrets，不新增到 Git。
+3. 在项目根目录检查图标，再进入 `zju_app/` 安装依赖并构建 release APP：
+
+   ```bash
+   npm run check:harmonyos-icons
+   cd zju_app
+   ohpm install
+   hvigorw clean --no-daemon
+   hvigorw assembleApp --mode project -p product=default -p buildMode=release --no-daemon
+   ```
+
+4. 只有命令返回 `BUILD SUCCESSFUL` 才表示签名 APP 完成。在 `zju_app/build/outputs/default/` 查找 `.app` 文件，再用签名工具核验；上架不得使用带 `unsigned` 的 `.app` 或 `.hap`。
+5. 如果命令在 `SignHap` 或 `SignApp` 失败，先检查 `build-profile.json5` 中的 release 签名路径是否指向当前电脑实际存在的材料；不得为了让构建通过而伪造或更换线上应用的签名身份。
 6. 用 DevEco Testing 的“上架预检”检查图标，并至少在一台 HarmonyOS 真机安装，确认桌面图标完整、清晰、没有白边或异常裁切。
+
+### 命令行工具首次安装
+
+从华为官方下载与项目 SDK 版本匹配的 [Command Line Tools for HarmonyOS](https://developer.huawei.com/consumer/cn/download/command-line-tools-for-hmos)。macOS 解压后配置：
+
+```bash
+export HARMONYOS_COMMANDLINE_HOME="/实际安装路径/command-line-tools"
+export DEVECO_SDK_HOME="$HARMONYOS_COMMANDLINE_HOME/sdk"
+export PATH="$HARMONYOS_COMMANDLINE_HOME/bin:$DEVECO_SDK_HOME/default/openharmony/toolchains:$PATH"
+```
+
+保存到 shell 配置后，用 `ohpm -v`、`hvigorw --version` 和 `hdc -v` 确认安装成功。本项目当前使用 HarmonyOS 6.0.1 / API 21，工具包必须包含对应 SDK。
 
 ## AppGallery Connect 重新提交
 
