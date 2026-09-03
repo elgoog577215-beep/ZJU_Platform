@@ -21,6 +21,8 @@
         "openspec:view": "openspec view",
         "build": "vite build",
         "check:frontend-assets": "node scripts/check-frontend-assets.mjs",
+        "generate:harmonyos-icons": "node scripts/generate-harmonyos-icons.mjs",
+        "check:harmonyos-icons": "node scripts/check-harmonyos-icons.mjs",
         "cap:build:web": "npm run build",
         "cap:add:ios": "cap add ios",
         "cap:sync:ios": "npm run cap:build:web && cap sync ios",
