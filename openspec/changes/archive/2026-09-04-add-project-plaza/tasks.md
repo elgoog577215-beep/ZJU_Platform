@@ -1,5 +1,7 @@
 # Tasks: add-project-plaza
 
+> **历史归档说明（2026-09-04）**：项目广场已经由后续 `make-project-plaza-hackathon-hub`、`rebuild-project-plaza-navigation`、`connect-hackathon-project-media-journey` 等变更重构并进入当前主链。本文件剩余的“双主题快照”和旧页面 diff review 已不再对应当前界面，相关 E2E 断言也已随入口、文案和布局演进而失效。因此本 change 按历史记录归档，不把旧 delta 回灌到已经更新的正式规格。
+
 > **执行状态（2026-06-13, /execute Inline @ feat/project-plaza）**：
 > ✅ 后端 §1–§2 全部完成并 API 验证；✅ 前端 §3–§4 全部完成并浏览器验证（AC1/2/3/6 通过）。
 > ✅ §5.2 API 验证、§5.4 lint（改动文件 exit 0）、§6.1 validate --strict 通过。
@@ -43,7 +45,7 @@
 
 - [x] 5.1 e2e 主流程：发布→广场出现→收藏；移动详情 body portal 和 scroll lock
 - [x] 5.2 API：未登录无联系方式 / 非作者改删被拒 / 被收藏产生通知
-- [ ] 5.3 白天+暗色两主题渲染快照
+- 未执行（历史归档，不再作为当前任务）：5.3 白天+暗色两主题渲染快照
 - [x] 5.4 相关 eslint 通过；`/verify` Gate 1
 - [x] 5.5 发现效率 E2E：默认推荐排序优先机会项目，切换“最新”后按发布时间排序
 - [x] 5.6 雷达筛选 E2E：开放招募入口只保留有需求项目，再次点击恢复列表
@@ -51,8 +53,8 @@
 ## 6. 收尾
 
 - [x] 6.1 `openspec validate add-project-plaza --strict` 通过
-- [ ] 6.2 diff review（5+ 文件必审）
-- [ ] 6.3 sync-specs + archive
+- 未执行（历史归档，不再作为当前任务）：6.2 diff review（5+ 文件必审）
+- 未执行（历史归档，不再作为当前任务）：6.3 sync-specs + archive
 
 ---
 

@@ -26,7 +26,7 @@
 - [x] 4.1 将用户、组织 profile、合作方层级和历史归属迁移统一放入“主体与关系”导航域。
 - [x] 4.2 确认 `UserManager` 继续遵守账号主体类型、发布审核权限、后台访问角色三轴分离。
 - [x] 4.3 确认 `EcosystemPartnerManager` 继续区分生态/比赛合作方和活动提供方。
-- [ ] 4.4 处理完成但未归档的 `unify-user-organization-system`，归档前再次 validate。
+- [x] 4.4 处理完成但未归档的 `unify-user-organization-system`，归档前再次 validate。
 
 ## 5. 内容供应与生态项目入口
 

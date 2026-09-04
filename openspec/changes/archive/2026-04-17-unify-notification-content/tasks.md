@@ -1,3 +1,5 @@
+> **历史归档说明（2026-09-04）**：该变更早已进入历史区，剩余人工与生产验证没有在原 change 中完成。它们保留为未执行事实，不再作为当前任务；现行通知合同、数据库和产品状态负责继续校验真实行为。
+
 ## 0. Rollback Checkpoint
 
 - [x] 0.1 在动工前打 tag：`git tag pre-msg-refactor-v1`，作为整轮改动的回滚锚点。
@@ -22,8 +24,8 @@
 - [x] 3.1 迁移脚本幂等性：手动跑两次迁移，断言无报错、`content` 列无重复回填。
 - [x] 3.2 历史数据完整性：迁移前后 `SELECT id, content, message, title FROM notifications` 的行数一致，且 `content` 列覆盖率达 100%（除空正文的通知外）。
 - [x] 3.3 新通知写入路径：手动触发三种通知（收藏他人内容、评论他人内容、被关注），断言新行的 `content` 列有值、`message` / `title` 列为空。
-- [ ] 3.4 前端展示：登录 `seed_admin` 打开铃铛 + 个人中心"消息"tab，确认旧通知与新通知的展示文本一致。
-- [ ] 3.5 回滚演练：在本地把代码 `git reset --hard pre-msg-refactor-v1`，启动服务，确认旧 controller 能继续读出迁移后回填的数据（因 `message` / `title` 列未删）。
+- 未执行（历史归档，不再作为当前任务）：3.4 前端展示：登录 `seed_admin` 打开铃铛 + 个人中心"消息"tab，确认旧通知与新通知的展示文本一致。
+- 未执行（历史归档，不再作为当前任务）：3.5 回滚演练：在本地把代码 `git reset --hard pre-msg-refactor-v1`，启动服务，确认旧 controller 能继续读出迁移后回填的数据（因 `message` / `title` 列未删）。
 
 ## 4. Follow-up Tech Debt
 
@@ -31,11 +33,11 @@
 
 ## 5. Server Deployment Verification（部署时执行，不在本地）
 
-- [ ] 5.1 部署前在服务器 dump 一次 `PRAGMA table_info(notifications)` 到 `server/database.schema.pre-deploy.json`。
-- [ ] 5.2 部署后在服务器启动日志中确认看到 `✅ Added notifications.content column` + `✅ Notifications content column backfilled`。
-- [ ] 5.3 部署后抽查：`SELECT COUNT(*) FROM notifications WHERE content IS NULL AND (message IS NOT NULL OR title IS NOT NULL)` 必须为 0。
-- [ ] 5.4 若 5.2 / 5.3 失败 → 不动服务器 DB，`git reset --hard pre-msg-refactor-v1` 重启即可（软迁移保证旧代码读 `message`/`title` 仍工作）。
-- [ ] 5.5 可选：部署后再 dump 一次 schema，diff 前后两份 json，确认"只多出 content 列，其它零改动"。
+- 未执行（历史归档，不再作为当前任务）：5.1 部署前在服务器 dump 一次 `PRAGMA table_info(notifications)` 到 `server/database.schema.pre-deploy.json`。
+- 未执行（历史归档，不再作为当前任务）：5.2 部署后在服务器启动日志中确认看到 `✅ Added notifications.content column` + `✅ Notifications content column backfilled`。
+- 未执行（历史归档，不再作为当前任务）：5.3 部署后抽查：`SELECT COUNT(*) FROM notifications WHERE content IS NULL AND (message IS NOT NULL OR title IS NOT NULL)` 必须为 0。
+- 未执行（历史归档，不再作为当前任务）：5.4 若 5.2 / 5.3 失败 → 不动服务器 DB，`git reset --hard pre-msg-refactor-v1` 重启即可（软迁移保证旧代码读 `message`/`title` 仍工作）。
+- 未执行（历史归档，不再作为当前任务）：5.5 可选：部署后再 dump 一次 schema，diff 前后两份 json，确认"只多出 content 列，其它零改动"。
 
 ---
 

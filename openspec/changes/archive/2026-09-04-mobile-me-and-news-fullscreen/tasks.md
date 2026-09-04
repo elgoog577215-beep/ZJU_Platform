@@ -1,3 +1,5 @@
+> **历史归档说明（2026-09-04）**：核心实现已进入当前移动端主链，但本 change 仍依赖旧版 AI 社区新闻入口和旧 E2E 选择器；现有 Chromium 回归中只有未登录“我的”入口与项目详情滚动锁样例仍通过，新闻入口相关断言已随页面重构失效。Safari/WebKit 真机验证继续由 `docs/产品状态.md` 的多端完成门统一跟踪，本 change 按历史记录归档，不把旧 delta 回灌为当前正式规格。
+
 ## 0. Rollback Checkpoint
 
 - [x] 0.1 动工前打 tag：`git tag pre-mobile-ux-v1`，作为本轮回滚锚点。
@@ -35,14 +37,14 @@
     - 登录成功后再点"我的" → 跳 `/user/${id}`
 - [x] 4.2 同预设：点 AI 社区"新闻热榜"入口 → 全屏覆盖，底部 MobileNavbar 不可见；右上角 X 点击关闭；硬件返回（或 devtools 的 back 按钮）也能关闭。
 - [x] 4.3 StrictMode 自检：dev 模式打开覆盖层，观察是否存在打开后立即关闭的 double-mount race；若有，对 `useBackClose` 的调用套 `setTimeout(0)` 模式。
-- [ ] 4.4 iOS Safari 真机（或 Safari macOS 响应式设计模式）确认 `100dvh` 下地址栏显隐都不截断内容。
+- 未执行（历史归档，不再作为当前任务）：4.4 iOS Safari 真机（或 Safari macOS 响应式设计模式）确认 `100dvh` 下地址栏显隐都不截断内容。
 - [x] 4.5 深链测试：直接访问 `/articles?news=<id>` → `isMobileNewsOpen` 自动为 true，覆盖层自动打开。
 - [x] 4.6 Accessibility：`aria-label` 在 X 按钮 / "我的" button（未登录态）上存在；focus-visible ring 正常。
 
 ## 5. Follow-up
 
-- [ ] 5.1 本轮在真实设备上跑满两天无回归反馈 → 考虑下一轮把其他移动端 overlay（收藏页、消息页等）统一到同一套"全屏 + useBackClose"模式。
-- [ ] 5.2 若用户反馈"登录成功后希望自动跳到个人主页"，开单独 change `mobile-auth-success-auto-navigate`。
+- 未执行（历史归档，不再作为当前任务）：5.1 本轮在真实设备上跑满两天无回归反馈 → 考虑下一轮把其他移动端 overlay（收藏页、消息页等）统一到同一套"全屏 + useBackClose"模式。
+- 未执行（历史归档，不再作为当前任务）：5.2 若用户反馈"登录成功后希望自动跳到个人主页"，开单独 change `mobile-auth-success-auto-navigate`。
 
 ## 6. 验证记录
 

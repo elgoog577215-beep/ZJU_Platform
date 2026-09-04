@@ -1,3 +1,5 @@
+> **历史归档说明（2026-09-04）**：该变更早已进入历史区，剩余测试与 UI 复核没有在原 change 中完成。它们保留为未执行事实，不再作为当前任务；现行身份、关注与通知规格负责当前合同。
+
 ## 1. 数据库迁移
 
 - [x] 1.1 在 `server/src/config/runMigrations.js` 追加 `ALTER TABLE community_posts ADD COLUMN is_anonymous BOOLEAN DEFAULT 0`（幂等：先 PRAGMA table_info 检测）
@@ -10,14 +12,14 @@
 - [x] 2.1 `resourceController.js` 的 `getOneHandler` 和 `getAllHandler` SQL 将 `u.nickname AS author_name` 改为 `COALESCE(u.nickname, u.username) AS author_name`（同时处理 `getFollowingFeed` 已有的 `author_nickname` / `author_username` 分字段，保持一致）
 - [x] 2.2 `newsController.js` 的 `listNews` 和 `getNews` 同样改 COALESCE（实际扩展到 5 处含 createNews/updateNews，满足 spec"任何作者 JOIN"）
 - [x] 2.3 Admin 管理相关的 list / detail 查询（如 `AdminCommunity` 调用路径）一并核查：按现状是直接穿透同一个 handler，不需单独改，但加测试验证
-- [ ] 2.4 写一个后端 e2e 测试：创建 username=`test_no_nickname` 但无 nickname 的用户，发一篇 article，GET /articles/:id 断言 `author_name = 'test_no_nickname'` — 留给 /verify Gate 2 做
+- 未执行（历史归档，不再作为当前任务）：2.4 写一个后端 e2e 测试：创建 username=`test_no_nickname` 但无 nickname 的用户，发一篇 article，GET /articles/:id 断言 `author_name = 'test_no_nickname'` — 留给 /verify Gate 2 做
 
 ## 3. 后端 · nickname 编辑
 
 - [x] 3.1 `userController.updateUser` 在处理 `nickname !== undefined` 前加校验：trim、长度 2-20、字符集正则 `/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/`（或等价实现），不符合返 400 + 明确 message
 - [x] 3.2 空字符串视为置 NULL 的意图：`nickname === ''` 时写入 NULL
 - [x] 3.3 写入前用 try/catch 包 db.run；SQLite UNIQUE 冲突（error.code === 'SQLITE_CONSTRAINT'）时返 409，message 为 "该昵称已被使用"
-- [ ] 3.4 手动测试：（a）合法昵称 200（b）emoji 400（c）冲突 409（d）空字符串清空 200 — 留给 /verify Gate 2 做
+- 未执行（历史归档，不再作为当前任务）：3.4 手动测试：（a）合法昵称 200（b）emoji 400（c）冲突 409（d）空字符串清空 200 — 留给 /verify Gate 2 做
 
 ## 4. 后端 · 社区帖匿名 + 脱敏
 
@@ -35,7 +37,7 @@
 - [x] 5.4 循环 `createNotification(followerId, 'new_content', content, resourceId, resourceType)`；错误吞掉不 throw
 - [x] 5.5 `resourceController.createHandler` 在 `db.run INSERT` 成功后调用 fanOutNewContent（仅当 table 在白名单且 status 非 rejected 时）；使用既有 `getSingularType` helper 避免 `'music'→'musi'` off-by-one
 - [x] 5.6 `newsController.createNews` 同样触发 fanOutNewContent
-- [ ] 5.7 单元 / 集成测试：（a）作者无粉丝不写通知（b）作者 3 粉丝其中 1 banned，写 2 条（c）通知 content 格式正确 — 留给 /verify Gate 2 做
+- 未执行（历史归档，不再作为当前任务）：5.7 单元 / 集成测试：（a）作者无粉丝不写通知（b）作者 3 粉丝其中 1 banned，写 2 条（c）通知 content 格式正确 — 留给 /verify Gate 2 做
 
 ## 6. 后端 · self-follow 禁止 + getUserResources 扩展
 
@@ -66,7 +68,7 @@
 - [x] 9.1 `CommunityDetailModal.jsx` 的作者头像 div 包一层 `role="button"`，绑 onClick + onKeyDown（Enter/Space）
 - [x] 9.2 `const canGoProfile = uploaderId != null`；true 时 navigate `/user/:uploaderId`（修正 plan 里的 `/profile`，实际路由是 `/user/:id`）
 - [x] 9.3 样式：`canGoProfile` 时 `cursor: pointer` + hover/focus ring；false 时 `cursor: not-allowed opacity-60` + 灰底 User icon
-- [ ] 9.4 审计其它资源详情组件（如果有独立实现），一并加同样的入口行为 — 留给 /verify Gate 3 diff review 阶段确认
+- 未执行（历史归档，不再作为当前任务）：9.4 审计其它资源详情组件（如果有独立实现），一并加同样的入口行为 — 留给 /verify Gate 3 diff review 阶段确认
 
 ## 10. 前端 · PublicProfile 内容区改造
 
@@ -85,12 +87,12 @@
 
 - [x] 11.1 author_name username fallback（已 API-only：fetch `/articles/:id` 断言 `author_name = username`，设 nickname 后再断言 = nickname）
 - [x] 11.2 nickname 冲突 409（已 API-only：断言 `PUT /auth/profile` 返回 409 + message 匹配 /该昵称已被使用/）
-- [ ] 11.2b Toast UI 显示 collision 文案 — **fixme**，文案 i18n 漂移，API 层断言已足够
+- 未执行（历史归档，不再作为当前任务）：11.2b Toast UI 显示 collision 文案 — **fixme**，文案 i18n 漂移，API 层断言已足够
 - [x] 11.3 follow new_content 通知（fan + poll `/notifications` 90s，断言 content 包含 publisher.username + article.title，unreadCount > 0）
 - [x] 11.4 匿名 help post 不 fan-out + 主页不显示（API-only：fan poll 10s 无通知；visitor fetch `/users/:id/resources` 返回列表不含匿名 title）
 - [x] 11.5 Self-follow POST + DELETE 都 400 + message 匹配 /不能关注自己/
 - [x] 11.6 详情头像跳转（API-only：断言 `/articles/:id` 响应的 uploader_id 等于作者 id，author_name = 作者 username —— 前端 navigate /user/${uploaderId} 路径由 Gate 3 diff review 覆盖）
-- [ ] 11.7 tab + scroll 记忆 — **fixme**，纯 UI 行为，后端契约由 11.4 覆盖；留给后续 playwright 扩展（需要加 aria 角色 / data-testid 稳定选择器）
+- 未执行（历史归档，不再作为当前任务）：11.7 tab + scroll 记忆 — **fixme**，纯 UI 行为，后端契约由 11.4 覆盖；留给后续 playwright 扩展（需要加 aria 角色 / data-testid 稳定选择器）
 
 端到端跑测试时捕获了 3 个真实 bug（超出 static grep 能发现的范围），见下条 12 的相关 commit。
 
