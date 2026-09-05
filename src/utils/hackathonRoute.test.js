@@ -3,10 +3,38 @@ import assert from "node:assert/strict";
 
 import {
     getDefaultHackathonView,
+    getHackathonProjectUrl,
     getHackathonMediaView,
     getHackathonViewFromLocation,
     isHackathonWorkspaceView,
 } from "./hackathonRoute.js";
+
+test("project entry uses the independent page scoped to the resolved event", () => {
+    assert.equal(getHackathonProjectUrl("season-two"), "/projects?competition=season-two");
+    assert.equal(getHackathonProjectUrl(""), "/projects");
+    const url = new URL(
+        getHackathonProjectUrl("season/two", {
+            search: "?event=old&view=projects&competition=old&mediaView=live&photo=17&id=42&submit=1&create=1&fromfav=1&work=9",
+            hash: "#project-details",
+        }),
+        "https://example.test"
+    );
+    assert.equal(url.pathname, "/projects");
+    assert.equal(url.searchParams.get("competition"), "season/two");
+    for (const key of ["event", "view", "mediaView", "photo"]) {
+        assert.equal(url.searchParams.has(key), false);
+    }
+    for (const [key, value] of Object.entries({
+        id: "42",
+        submit: "1",
+        create: "1",
+        fromfav: "1",
+        work: "9",
+    })) {
+        assert.equal(url.searchParams.get(key), value);
+    }
+    assert.equal(url.hash, "#project-details");
+});
 
 test("hackathon route defaults to registration and preserves explicit outcome links", () => {
     assert.equal(getHackathonViewFromLocation({ pathname: "/hackathon", search: "" }), "register");

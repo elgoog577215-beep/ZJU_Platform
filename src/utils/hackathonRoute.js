@@ -3,6 +3,16 @@ export const HACKATHON_WORKSPACE_VIEWS = ["register", "projects", "media", "show
 export const isHackathonWorkspaceView = (value) =>
     HACKATHON_WORKSPACE_VIEWS.includes(String(value || ""));
 
+// Retire the embedded project route without losing project actions or share context.
+export const getHackathonProjectUrl = (competitionSlug, location = {}) => {
+    const params = new URLSearchParams(location.search || "");
+    ["event", "view", "mediaView", "photo"].forEach((key) => params.delete(key));
+    if (competitionSlug) params.set("competition", competitionSlug);
+    else params.delete("competition");
+    const search = params.toString();
+    return `/projects${search ? `?${search}` : ""}${location.hash || ""}`;
+};
+
 export const getHackathonViewFromLocation = (location = {}, fallback = "register") => {
     const params = new URLSearchParams(location.search || "");
     const requestedView = params.get("view");

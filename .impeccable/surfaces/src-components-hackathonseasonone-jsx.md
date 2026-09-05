@@ -15,13 +15,13 @@ related_targets:
 
 # Hackathon Event Workspace
 
-- Scope: `/hackathon` cross-event workspace, including event selection, registration, projects, media and showcase stages.
+- Scope: `/hackathon` cross-event workspace with registration, media and showcase stages, plus a projects link to the independent `/projects?competition=<slug>` page.
 - Mode: Operate.
 - Audience: participants, organizers, photographers, judges and visitors returning to current or past hackathons.
 - Job: choose one event, understand its lifecycle, and move through registration, project submission, live/featured media and final outcomes without losing context.
 - Primary action: continue the task owned by the selected stage while keeping the selected event stable.
 - Proof/content: published event schedule, registration state, public project evidence, canonical photos and featured media, awards and outcome records.
-- Constraints: the outer workspace is the only event selector; four stages remain stable while scrolling; URL owns event and stage; legacy project, media, works and showcase links stay compatible; zh/en, coherent day/night shells and 390px support; stage content keeps its own theme rather than inheriting shell overrides; no fabricated event data.
+- Constraints: the outer workspace owns event selection for its embedded stages; four entry points remain stable while scrolling; URL owns event and stage; projects open the independent page with competition scope and an event return link; legacy project, media, works and showcase links stay compatible; zh/en, coherent day/night shells and 390px support; stage content keeps its own theme rather than inheriting shell overrides; no fabricated event data.
 - Direction: use the About page's restrained site-level surface language for the cross-event shell: deep neutral with cyan at night, white with teal and minimal shadow by day. The event context, four-stage control, and desktop event index are compact typographic navigation rather than cards or glowing timelines; registration, project, media and showcase surfaces retain their incumbent backgrounds and visual identity.
 - Global navigation: keep the four primary destinations as typography inside one quiet shared track; pair AI Search and Download App as equal-geometry actions while preserving Download App as the stronger fill.
 - Global search: use one theme-aware translucent glass surface over an independent dimmed, blurred scrim; keep input, results, empty state and keyboard help readable without stacking decorative cards. Night glass stays neutral blue-black instead of inheriting event greens.

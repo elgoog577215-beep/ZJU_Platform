@@ -12,13 +12,13 @@ related_targets:
 
 # Project Plaza
 
-- Scope: project discovery and submission as the `/hackathon?...&view=projects` stage, with `/projects` preserved as the all-projects and legacy compatibility route.
+- Scope: project discovery and submission on the independent `/projects` page; Hackathon projects links select `/projects?competition=<slug>`, and legacy `/hackathon?...&view=projects` links redirect here.
 - Mode: Operate.
 - Audience: hackathon participants, builders, organizers and public visitors comparing work.
 - Job: understand the current event, find projects, verify public evidence, and take the correct submission or continuation action.
 - Primary action: submit to the selected competition when available; otherwise browse and publish a long-term project.
 - Proof/content: real public project cards, competition works, author, major, award/rank, GitHub and deployment evidence.
-- Constraints: the Hackathon shell owns event selection in embedded mode; the independent route still owns its URL competition scope; no fabricated evidence or ownership; zh/en and 390px support.
-- Direction: preserve the Project Plaza's incumbent dark hackathon background, lime controls, artwork and card language in both independent and embedded modes. The Hackathon shell may remove the duplicate event selector, but must not repaint this surface.
-- Memorable moment: selecting an event once updates the project catalog without introducing another competition selector inside the stage.
-- Unresolved decisions: none for the workspace integration.
+- Constraints: the independent route owns its URL competition scope; event entry preselects the same competition and keeps an event return link; no fabricated evidence or ownership; zh/en and 390px support.
+- Direction: preserve the independent Project Plaza's incumbent dark hackathon background, lime controls, artwork, full-width layout and card language. Retire the embedded Hackathon entry without repainting the independent surface.
+- Memorable moment: the event's project entry opens the complete project center, with the current competition selected and all projects still discoverable.
+- Unresolved decisions: broader cross-community project-center positioning remains outside this entry replacement.

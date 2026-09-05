@@ -9,7 +9,7 @@ import {
     X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useSettings } from "../context/SettingsContext";
 import { getHackathonScheduleEvent } from "../data/hackathonTemplate";
@@ -19,13 +19,13 @@ import BodyPortal from "../shared/ui/BodyPortal";
 import { getCompetitionPhase } from "../utils/competitionPhase";
 import {
     getDefaultHackathonView,
+    getHackathonProjectUrl,
     getHackathonViewFromLocation,
     isHackathonWorkspaceView,
 } from "../utils/hackathonRoute";
 import HackathonRegistration from "./HackathonRegistration";
 import HackathonShowcase from "./HackathonOutcomeShowcase";
 
-const ProjectPlaza = lazy(() => import("./ProjectPlaza"));
 const MediaEventArchive = lazy(() => import("./MediaEventArchive"));
 
 /*
@@ -136,6 +136,13 @@ const HackathonSeasonOne = () => {
 
     useEffect(() => {
         if (scheduleLoading) return;
+        if (activeView === "projects") {
+            navigate(getHackathonProjectUrl(competitionSlug, location), {
+                replace: true,
+                state: location.state,
+            });
+            return;
+        }
         const pathNeedsSync = location.pathname !== "/hackathon";
         const eventNeedsSync = requestedEventKey !== activeEventKey;
         const viewNeedsSync =
@@ -150,10 +157,9 @@ const HackathonSeasonOne = () => {
     }, [
         activeEventKey,
         activeView,
+        competitionSlug,
         explicitView,
-        location.hash,
-        location.pathname,
-        location.search,
+        location,
         navigate,
         requestedEventKey,
         scheduleLoading,
@@ -207,26 +213,9 @@ const HackathonSeasonOne = () => {
         setEventPickerOpen(false);
     };
 
-    const switchView = (view) => {
-        if (view.id === activeView) return;
-        navigate(buildWorkspaceUrl(activeEventKey, view.id));
-        resetStagePosition();
-    };
-
     const renderStage = () => {
         if (activeView === "register") {
             return <HackathonRegistration key={activeEventKey} template={template} />;
-        }
-        if (activeView === "projects") {
-            return (
-                <Suspense fallback={<WorkspaceLoading t={t} />}>
-                    <ProjectPlaza
-                        key={`${activeEventKey}-projects`}
-                        embedded
-                        competitionSlug={competitionSlug}
-                    />
-                </Suspense>
-            );
         }
         if (activeView === "media") {
             return (
@@ -256,6 +245,15 @@ const HackathonSeasonOne = () => {
             </div>
         );
     };
+
+    if (activeView === "projects") {
+        return (
+            <div className={`hackathon-workspace ${isDayMode ? "is-day" : "is-dark"}`}>
+                <style>{WORKSPACE_CSS}</style>
+                <WorkspaceLoading t={t} />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -312,27 +310,32 @@ const HackathonSeasonOne = () => {
 
                         <nav
                             className="hws-stage-tabs"
-                            role="tablist"
                             aria-label={t("hackathon.workspace.stages_aria", "赛事环节")}
                         >
                             {views.map((view) => {
                                 const Icon = view.icon;
                                 const selected = activeView === view.id;
                                 return (
-                                    <button
+                                    <Link
                                         key={view.id}
-                                        type="button"
-                                        role="tab"
-                                        aria-selected={selected}
-                                        aria-controls="hackathon-workspace-stage"
+                                        to={
+                                            view.id === "projects"
+                                                ? getHackathonProjectUrl(competitionSlug)
+                                                : buildWorkspaceUrl(activeEventKey, view.id)
+                                        }
+                                        aria-current={selected ? "page" : undefined}
+                                        aria-disabled={scheduleLoading || undefined}
                                         className={selected ? "is-current" : ""}
-                                        onClick={() => switchView(view)}
+                                        onClick={(event) => {
+                                            if (scheduleLoading) event.preventDefault();
+                                            else resetStagePosition();
+                                        }}
                                     >
                                         <span className="hws-stage-symbol" aria-hidden="true">
                                             <Icon />
                                         </span>
                                         <strong>{view.label}</strong>
-                                    </button>
+                                    </Link>
                                 );
                             })}
                         </nav>
@@ -341,7 +344,6 @@ const HackathonSeasonOne = () => {
                     <section
                         id="hackathon-workspace-stage"
                         className={`hws-stage is-${activeView}`}
-                        role="tabpanel"
                         aria-label={views.find((view) => view.id === activeView)?.label}
                     >
                         <span
@@ -458,7 +460,7 @@ const WORKSPACE_CSS = `
 .hws-event-card:hover{color:var(--hws-text);}
 .hws-event-card.is-current{color:var(--hws-text);}
 .hws-event-card.is-current::before{background:var(--hws-lime);}
-.hws-event-card:focus-visible,.hws-stage-tabs button:focus-visible,.hws-mobile-event-button:focus-visible,.hws-event-drawer header button:focus-visible{outline:3px solid color-mix(in srgb,var(--hws-lime) 42%,transparent);outline-offset:2px;}
+.hws-event-card:focus-visible,.hws-stage-tabs a:focus-visible,.hws-mobile-event-button:focus-visible,.hws-event-drawer header button:focus-visible{outline:3px solid color-mix(in srgb,var(--hws-lime) 42%,transparent);outline-offset:2px;}
 .hws-event-edition{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--hws-muted);font-size:10px;font-weight:900;line-height:1.2;}
 .hws-event-card.is-current .hws-event-edition{color:var(--hws-lime);}
 .hws-event-edition i{font-style:normal;color:var(--hws-muted);font-size:10px;font-weight:850;}
@@ -475,14 +477,15 @@ const WORKSPACE_CSS = `
 .hws-context-bar{position:sticky;top:calc(env(safe-area-inset-top) + 64px);z-index:30;overflow:hidden;border-bottom:1px solid var(--hws-line);background:rgba(8,19,20,.94);box-shadow:0 12px 36px rgba(0,0,0,.18);backdrop-filter:blur(18px);}
 .hackathon-workspace.is-day .hws-context-bar{background:rgba(255,255,255,.92);box-shadow:0 8px 28px rgba(15,23,42,.06);}
 .hws-stage-tabs{position:relative;display:flex;min-height:48px;align-items:stretch;gap:clamp(24px,3vw,44px);padding:0 clamp(28px,4vw,64px);}
-.hws-stage-tabs button{position:relative;display:flex;min-width:0;min-height:48px;align-items:center;gap:8px;padding:0;border:0;border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;cursor:pointer;transition:color .18s ease;}
-.hws-stage-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent;transition:background .18s ease;}
-.hws-stage-tabs button:hover{color:var(--hws-text);}
-.hws-stage-tabs button.is-current{color:var(--hws-text);}
-.hws-stage-tabs button.is-current::after{background:var(--hws-lime);}
+.hws-stage-tabs a{position:relative;display:flex;min-width:0;min-height:48px;align-items:center;gap:8px;padding:0;border:0;border-radius:0;background:transparent;color:var(--hws-muted);font:inherit;text-align:left;text-decoration:none;cursor:pointer;transition:color .18s ease;}
+.hws-stage-tabs a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent;transition:background .18s ease;}
+.hws-stage-tabs a:hover{color:var(--hws-text);}
+.hws-stage-tabs a[aria-disabled="true"]{opacity:.6;cursor:wait;}
+.hws-stage-tabs a.is-current{color:var(--hws-text);}
+.hws-stage-tabs a.is-current::after{background:var(--hws-lime);}
 .hws-stage-symbol{display:grid;width:18px;height:18px;flex:none;place-items:center;}
 .hws-stage-symbol svg{width:16px;height:16px;color:currentColor;}
-.hws-stage-tabs button.is-current .hws-stage-symbol{color:var(--hws-lime);}
+.hws-stage-tabs a.is-current .hws-stage-symbol{color:var(--hws-lime);}
 .hws-stage-tabs strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:950;}
 .hws-stage{position:relative;min-width:0;min-height:calc(100svh - 112px);background:var(--hws-bg);}
 .hws-stage.is-projects,.hws-stage.is-media{background:#020806;color:#fff;}
@@ -526,16 +529,16 @@ const WORKSPACE_CSS = `
   .hws-mobile-event-button svg{width:18px;height:18px;color:var(--hws-lime)}
   .hws-stage-tabs{display:flex;max-width:100%;min-height:52px;gap:4px;overflow-x:auto;padding:0 8px;scrollbar-width:none;scroll-snap-type:x proximity}
   .hws-stage-tabs::-webkit-scrollbar{display:none}
-  .hws-stage-tabs button{flex:0 0 auto;min-width:104px;min-height:52px;padding:0 12px;scroll-snap-align:start}
-  .hws-stage-tabs button::after{left:10px;right:10px}
+  .hws-stage-tabs a{flex:0 0 auto;min-width:104px;min-height:52px;padding:0 12px;scroll-snap-align:start}
+  .hws-stage-tabs a::after{left:10px;right:10px}
   .hws-stage-symbol{width:18px;height:18px}
   .hws-stage-symbol svg{width:15px;height:15px}
   .hws-stage{min-height:calc(100svh - 176px)}
   .hws-stage.is-register [data-registration-page]{height:calc(100svh - env(safe-area-inset-top) - 176px)!important;min-height:520px}
   .hws-stage.is-register [data-registration-page] #hackathon-hero{padding-top:36px!important}
 }
-@media(max-width:560px){.hws-stage-tabs button{min-width:100px}.hws-stage-tabs strong{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.hws-event-card,.hws-stage-tabs button{transition:none}.hws-event-card:hover{transform:none}.hws-loading span{animation:none}}
+@media(max-width:560px){.hws-stage-tabs a{min-width:100px}.hws-stage-tabs strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.hws-event-card,.hws-stage-tabs a{transition:none}.hws-event-card:hover{transform:none}.hws-loading span{animation:none}}
 `;
 
 export default HackathonSeasonOne;
