@@ -352,13 +352,14 @@ const AppContent = () => {
         "(min-width: 768px) and (hover: hover) and (pointer: fine)"
     );
     const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+    const isMobileViewport = useMediaQuery("(max-width: 767px)");
     const shouldMountDeferredUi = useDeferredMount(700);
     const shouldMountLateDebugUi = useDeferredMount(1800);
     const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
     const isAppRuntime = isMiniProgramMode || detectAppRuntime();
-    const showAppDownload = !isAppRuntime;
+    const showAppDownload = !isAppRuntime && !isMobileViewport;
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
@@ -470,7 +471,10 @@ const AppContent = () => {
         return <Navigate to={toMiniProgramPath("/events")} replace />;
     }
 
-    if (isAppRuntime && (location.pathname === "/download" || location.pathname === "/app")) {
+    if (
+        (isAppRuntime || isMobileViewport) &&
+        (location.pathname === "/download" || location.pathname === "/app")
+    ) {
         return <Navigate to="/" replace />;
     }
 
