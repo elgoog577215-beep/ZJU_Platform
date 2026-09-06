@@ -11,6 +11,18 @@ test("regular web keeps the App download entries", async ({ page }) => {
     await expect(page.locator('a[href="/download"]')).toHaveCount(2);
 });
 
+test("browser install events never open an App installation prompt", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+
+    await page.evaluate(() => {
+        window.dispatchEvent(new Event("beforeinstallprompt", { cancelable: true }));
+    });
+
+    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(page.getByText("安装拓浙AI生态 App")).toHaveCount(0);
+});
+
 test("mobile web hides download entries and blocks download routes", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
 

@@ -123,7 +123,6 @@ const loadSearchPalette = () => import("./components/SearchPalette");
 const loadCustomCursor = () => import("./components/CustomCursor");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
-const loadPWAInstallPrompt = () => import("./components/PWAInstallPrompt");
 const loadPerformancePanel = () => import("./components/PerformancePanel");
 
 const MediaLibrary = lazyRoute(loadMediaLibrary);
@@ -147,7 +146,6 @@ const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
-const PWAInstallPrompt = lazyRoute(loadPWAInstallPrompt);
 const PerformancePanel = lazyRoute(loadPerformancePanel);
 
 const preloadRouteLoaders = [
@@ -737,11 +735,6 @@ const AppContent = () => {
                         </Suspense>
                     </ErrorBoundary>
                 )}
-                <ErrorBoundary variant="inline" silent>
-                    <Suspense fallback={null}>
-                        <PWAInstallPrompt />
-                    </Suspense>
-                </ErrorBoundary>
                 {import.meta.env.DEV && shouldMountLateDebugUi && (
                     <Suspense fallback={null}>
                         <PerformancePanel />

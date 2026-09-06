@@ -52,11 +52,6 @@
         "next_photo": "Next photo",
         "view_related_photo": "View {{title}}"
     },
-    "pwa": {
-        "install_title": "Install the TUOZHE AI ECOSYSTEM App",
-        "install_desc": "Add it to your home screen and open it like an app.",
-        "install_action": "Install App"
-    },
     "me": {
         "preferences": "Preferences & Device",
         "weather_widget": "Time & Weather",

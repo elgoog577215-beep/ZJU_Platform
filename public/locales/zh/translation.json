@@ -23,11 +23,6 @@
         "delete": "删除通知",
         "mark_read": "标记已读"
     },
-    "pwa": {
-        "install_title": "安装拓浙AI生态 App",
-        "install_desc": "添加到桌面，像 App 一样打开。",
-        "install_action": "安装 App"
-    },
     "me": {
         "preferences": "偏好与设备",
         "weather_widget": "时间与天气",
