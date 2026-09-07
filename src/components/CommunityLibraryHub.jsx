@@ -390,15 +390,7 @@ const CommunityLibraryDock = ({
                             aria-label={t("community_libraries.page_title", "学习资料")}
                             className="community-dock-heading__title"
                         >
-                            <span aria-hidden="true">
-                                {t("community_libraries.page_title_learn", "学习")}
-                            </span>
-                            <span
-                                aria-hidden="true"
-                                className="community-dock-heading__title-accent"
-                            >
-                                {t("community_libraries.page_title_community", "社区")}
-                            </span>
+                            {t("community_libraries.page_title", "学习资料")}
                         </h1>
                         <div aria-hidden="true" className="community-wordmark__rail">
                             <span className="community-wordmark__rail-line" />
