@@ -68,7 +68,7 @@ const AICommunity = () => {
         () =>
             t(
                 "community_libraries.seo_description",
-                "AI 社区资料库：精选新生、期末和 AI 学习资料。"
+                "AI资料库：精选新生、期末和 AI 学习资料。"
             ),
         [t]
     );
@@ -257,7 +257,7 @@ const AICommunity = () => {
             }`}
         >
             <SEO
-                title={t("community_libraries.meta_title", "AI 社区资料库")}
+                title={t("community_libraries.meta_title", "AI资料库")}
                 description={subtitle}
             />
 

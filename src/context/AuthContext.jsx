@@ -8,6 +8,7 @@ import {
     getStoredAuthToken,
     storeAuthToken,
 } from "../shared/authTokenStorage";
+import { isHarmonyAppWebView } from "../utils/harmonyAppEnv";
 
 const AuthContext = createContext();
 
@@ -62,7 +63,9 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.post("/auth/login", { username, password });
             const { token, user } = res.data;
-            storeAuthToken(token, { persistent: options.remember === true });
+            storeAuthToken(token, {
+                persistent: options.remember === true || isHarmonyAppWebView(),
+            });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             setUser(user);
             errorMonitor.setUser(user);
@@ -79,7 +82,9 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.post("/auth/register", { username, password });
             const { token, user } = res.data;
-            storeAuthToken(token, { persistent: options.remember === true });
+            storeAuthToken(token, {
+                persistent: options.remember === true || isHarmonyAppWebView(),
+            });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             setUser(user);
             errorMonitor.setUser(user);
@@ -99,7 +104,9 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            storeAuthToken(token, { persistent: options.remember === true });
+            storeAuthToken(token, {
+                persistent: options.remember === true || isHarmonyAppWebView(),
+            });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             const res = await api.get("/auth/me");
             setUser(res.data);

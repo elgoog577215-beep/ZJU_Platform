@@ -1844,7 +1844,7 @@ const CommunityPosts = ({ areaOverride = "", hideAreaNav = false, materialTypeSc
                     className={`-mx-3 grid grid-cols-3 border-b px-3 md:mx-0 md:flex md:overflow-hidden md:rounded-lg md:border md:px-0 ${
                         isDayMode ? "border-slate-200" : "border-white/10"
                     }`}
-                    aria-label={t("community_learning.area_nav_label", "学习社区分区")}
+                    aria-label={t("community_learning.area_nav_label", "学习资料分区")}
                 >
                     {AREAS.map((area) => {
                         const Icon = area.icon;

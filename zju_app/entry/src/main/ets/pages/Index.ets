@@ -11,7 +11,7 @@ struct Index {
   
   // Primary domain URL
   private potentialUrls: string[] = [
-    'https://www.tuotuzju.com'
+    'https://www.tuotuzju.com/?harmony_app=1'
   ];
 
   @StorageLink('lastSuccessIpIndex') currentIpIndex: number = 0;
