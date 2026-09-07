@@ -86,10 +86,7 @@ test("frontend API foundation keeps writes non-retried and token storage session
         /const canRetry = method === ["']get["'] \|\| config\?\.retryWrites === true/
     );
     assert.doesNotMatch(authSource, /localStorage\.setItem\('token'/);
-    assert.match(
-        authSource,
-        /persistent: options\.remember === true \|\| isHarmonyAppWebView\(\)/
-    );
+    assert.match(authSource, /persistent: options\.remember === true \|\| isHarmonyAppWebView\(\)/);
     assert.match(harmonyRuntimeSource, /harmony_app/);
 });
 

@@ -65,11 +65,7 @@ const AICommunity = () => {
     const shouldReduceMotion = useReducedMotion();
 
     const subtitle = useMemo(
-        () =>
-            t(
-                "community_libraries.seo_description",
-                "AI资料库：精选新生、期末和 AI 学习资料。"
-            ),
+        () => t("community_libraries.seo_description", "AI资料库：精选新生、期末和 AI 学习资料。"),
         [t]
     );
 
@@ -256,10 +252,7 @@ const AICommunity = () => {
                 isDayMode ? "text-slate-950" : "text-white"
             }`}
         >
-            <SEO
-                title={t("community_libraries.meta_title", "AI资料库")}
-                description={subtitle}
-            />
+            <SEO title={t("community_libraries.meta_title", "AI资料库")} description={subtitle} />
 
             <div
                 aria-hidden="true"
