@@ -1,11 +1,12 @@
 ## ADDED Requirements
 
-### Requirement: WeRead account round-robin selection
-The WeWe RSS service SHALL distribute article-list and MP-info requests across all enabled, non-blocked accounts using one process-local round-robin cursor.
+### Requirement: WeRead account random selection
+The WeWe RSS service SHALL distribute article-list and MP-info requests across all enabled, non-blocked accounts by independently selecting one eligible account uniformly at random for every request, without a cursor.
 
 #### Scenario: Multiple eligible accounts
 - **WHEN** successive requests select accounts from an unchanged eligible set
-- **THEN** each account SHALL be selected once per cycle, including when the set exceeds ten accounts
+- **THEN** every eligible account SHALL be selectable, including when the set exceeds ten accounts
+- **AND** consecutive requests MAY select the same account
 
 #### Scenario: Account unavailable
 - **WHEN** an account is disabled, invalid, or blocked for the current Shanghai calendar day
