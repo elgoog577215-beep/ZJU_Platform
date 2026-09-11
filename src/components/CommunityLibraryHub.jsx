@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 THESIS: 同一组四个入口从沉浸式选择界面收缩为工作区顶部栏目，状态变化不替换用户的空间记忆。
 OWN-WORLD: 四类知识流在同一张深海工作台上汇聚，不借用应用商店式等分卡片模板。
 STORY: 先选择问题域，再在不离开同一页面的情况下使用当前页面的搜索、上传和真实内容。
-FIRST VIEWPORT: 桌面端先显示“学习社区”标题，再进入四个丰富的功能入口；进入后，入口收拢，真实内容接管首屏。
+FIRST VIEWPORT: 桌面端先显示“学习资料”标题，再进入四个丰富的功能入口；进入后，入口收拢，真实内容接管首屏。
 FORM: 不对称知识汇流台；保留渐进式收拢交互，以任务图形和空间层级建立四个入口的差异。
 */
 
@@ -387,18 +387,10 @@ const CommunityLibraryDock = ({
                         </div>
                         <h1
                             id="community-dock-title"
-                            aria-label={t("community_libraries.page_title", "学习社区")}
+                            aria-label={t("community_libraries.page_title", "学习资料")}
                             className="community-dock-heading__title"
                         >
-                            <span aria-hidden="true">
-                                {t("community_libraries.page_title_learn", "学习")}
-                            </span>
-                            <span
-                                aria-hidden="true"
-                                className="community-dock-heading__title-accent"
-                            >
-                                {t("community_libraries.page_title_community", "社区")}
-                            </span>
+                            {t("community_libraries.page_title", "学习资料")}
                         </h1>
                         <div aria-hidden="true" className="community-wordmark__rail">
                             <span className="community-wordmark__rail-line" />
@@ -410,7 +402,7 @@ const CommunityLibraryDock = ({
                 </motion.header>
             ) : (
                 <h1 id="community-dock-title" className="sr-only">
-                    {t("community_libraries.dock_title", "AI 社区功能入口")}
+                    {t("community_libraries.dock_title", "AI资料入口")}
                 </h1>
             )}
             <div
@@ -434,7 +426,7 @@ const CommunityLibraryDock = ({
                     layout={!shouldReduceMotion}
                     transition={transition}
                     role="navigation"
-                    aria-label={t("community_libraries.library_nav", "AI 社区功能入口")}
+                    aria-label={t("community_libraries.library_nav", "AI资料入口")}
                     className={
                         isExpanded
                             ? "community-dock-grid grid grid-cols-2 gap-3 xl:grid-cols-12 xl:grid-rows-2"

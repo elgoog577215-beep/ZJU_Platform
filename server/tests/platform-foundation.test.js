@@ -76,16 +76,18 @@ test("errorHandler keeps the unified error response shape", () => {
 test("frontend API foundation keeps writes non-retried and token storage session-first", () => {
     const apiSource = fs.readFileSync(path.join(repoRoot, "src/services/api.js"), "utf8");
     const authSource = fs.readFileSync(path.join(repoRoot, "src/context/AuthContext.jsx"), "utf8");
+    const harmonyRuntimeSource = fs.readFileSync(
+        path.join(repoRoot, "src/utils/harmonyAppEnv.js"),
+        "utf8"
+    );
 
     assert.match(
         apiSource,
         /const canRetry = method === ["']get["'] \|\| config\?\.retryWrites === true/
     );
     assert.doesNotMatch(authSource, /localStorage\.setItem\('token'/);
-    assert.match(
-        authSource,
-        /storeAuthToken\(token, \{ persistent: options\.remember === true \}\)/
-    );
+    assert.match(authSource, /persistent: options\.remember === true \|\| isHarmonyAppWebView\(\)/);
+    assert.match(harmonyRuntimeSource, /harmony_app/);
 });
 
 test("tag update rewrites exact comma-separated tags without runtime schema changes", async () => {

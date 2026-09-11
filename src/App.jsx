@@ -123,7 +123,6 @@ const loadSearchPalette = () => import("./components/SearchPalette");
 const loadCustomCursor = () => import("./components/CustomCursor");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
-const loadPWAInstallPrompt = () => import("./components/PWAInstallPrompt");
 const loadPerformancePanel = () => import("./components/PerformancePanel");
 
 const MediaLibrary = lazyRoute(loadMediaLibrary);
@@ -147,7 +146,6 @@ const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
-const PWAInstallPrompt = lazyRoute(loadPWAInstallPrompt);
 const PerformancePanel = lazyRoute(loadPerformancePanel);
 
 const preloadRouteLoaders = [
@@ -352,13 +350,14 @@ const AppContent = () => {
         "(min-width: 768px) and (hover: hover) and (pointer: fine)"
     );
     const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+    const isMobileViewport = useMediaQuery("(max-width: 767px)");
     const shouldMountDeferredUi = useDeferredMount(700);
     const shouldMountLateDebugUi = useDeferredMount(1800);
     const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
     const isAppRuntime = isMiniProgramMode || detectAppRuntime();
-    const showAppDownload = !isAppRuntime;
+    const showAppDownload = !isAppRuntime && !isMobileViewport;
     usePerformanceMonitor({
         enabled: import.meta.env.PROD,
         onMetric: (_metric) => {
@@ -470,7 +469,10 @@ const AppContent = () => {
         return <Navigate to={toMiniProgramPath("/events")} replace />;
     }
 
-    if (isAppRuntime && (location.pathname === "/download" || location.pathname === "/app")) {
+    if (
+        (isAppRuntime || isMobileViewport) &&
+        (location.pathname === "/download" || location.pathname === "/app")
+    ) {
         return <Navigate to="/" replace />;
     }
 
@@ -733,11 +735,6 @@ const AppContent = () => {
                         </Suspense>
                     </ErrorBoundary>
                 )}
-                <ErrorBoundary variant="inline" silent>
-                    <Suspense fallback={null}>
-                        <PWAInstallPrompt />
-                    </Suspense>
-                </ErrorBoundary>
                 {import.meta.env.DEV && shouldMountLateDebugUi && (
                     <Suspense fallback={null}>
                         <PerformancePanel />
