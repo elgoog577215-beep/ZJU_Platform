@@ -178,13 +178,6 @@ const CommunityMaterials = ({ onNewPost, allowedMaterialTypes }) => {
         updateParams({ postTab: "materials" });
     };
 
-    const handleCommentsCountChange = useCallback(
-        (postId, count) => {
-            feed.updateItemById(postId, (item) => ({ ...item, comments_count: count }));
-        },
-        [feed]
-    );
-
     const handleRelatedSelect = useCallback(
         (resource) => {
             if (!resource?.id) return;
@@ -323,7 +316,6 @@ const CommunityMaterials = ({ onNewPost, allowedMaterialTypes }) => {
             isDayMode={isDayMode}
             gradientFrom="from-slate-900/30"
             onRelatedSelect={handleRelatedSelect}
-            onCommentsCountChange={handleCommentsCountChange}
             beforeContent={beforeContent}
             headerContent={
                 feed.selectedItem && (

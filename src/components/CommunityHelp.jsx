@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
-import api from "../services/api";
 import PostCard from "./PostCard";
 import UnifiedCommunityComposer from "./UnifiedCommunityComposer";
 import CommunityPostDetail from "./CommunityPostDetail";
@@ -67,22 +66,6 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false, discussionMode = 
         return () => window.removeEventListener("community-feed-refresh", onRefresh);
     }, [feed]);
 
-    const handleSolve = async (commentId) => {
-        if (!feed.selectedItem) return;
-        try {
-            await api.put(`/community/posts/${feed.selectedItem.id}/solve`, {
-                comment_id: commentId,
-            });
-            feed.setSelectedItem((prev) =>
-                prev ? { ...prev, status: "solved", solved_comment_id: commentId } : prev
-            );
-            toast.success(t("community.post_marked_solved", "已采纳最佳答案"));
-            feed.handleRefresh();
-        } catch {
-            toast.error(t("community.post_mark_solved_failed", "操作失败"));
-        }
-    };
-
     const updateParams = (next) => {
         const params = new URLSearchParams(searchParams);
         ["id", "post", "news", "group"].forEach((key) => params.delete(key));
@@ -118,13 +101,6 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false, discussionMode = 
         updateParams({ postTab: "help" });
     };
 
-    const handleCommentsCountChange = useCallback(
-        (postId, count) => {
-            feed.updateItemById(postId, (item) => ({ ...item, comments_count: count }));
-        },
-        [feed]
-    );
-
     const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
         <PostCard
             key={post.id}
@@ -142,9 +118,7 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false, discussionMode = 
             onClose={handleCloseDetail}
             isDayMode={isDayMode}
             gradientFrom="from-amber-900/30"
-            onSolve={handleSolve}
             onRelatedSelect={handleRelatedSelect}
-            onCommentsCountChange={handleCommentsCountChange}
             headerContent={
                 feed.selectedItem && (
                     <>

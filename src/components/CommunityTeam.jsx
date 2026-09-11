@@ -94,13 +94,6 @@ const CommunityTeam = ({ onNewPost, hideNewPostButton = false }) => {
         updateParams({ postTab: "team" });
     };
 
-    const handleCommentsCountChange = useCallback(
-        (postId, count) => {
-            feed.updateItemById(postId, (item) => ({ ...item, comments_count: count }));
-        },
-        [feed]
-    );
-
     const handleJoin = async () => {
         if (!feed.selectedItem?.id) return;
         if (!user) {
@@ -141,7 +134,6 @@ const CommunityTeam = ({ onNewPost, hideNewPostButton = false }) => {
                 if (resource.type === "post")
                     updateParams({ postTab: resource.section || "team", post: resource.id });
             }}
-            onCommentsCountChange={handleCommentsCountChange}
             beforeContent={
                 feed.selectedItem && (
                     <div

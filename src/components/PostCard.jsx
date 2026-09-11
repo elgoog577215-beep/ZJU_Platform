@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, MessageCircle, User, Calendar, Users } from "lucide-react";
+import { BookOpen, User, Calendar, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const STATUS_CONFIG = {
@@ -262,11 +262,6 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
                         <span className="max-w-[8rem] truncate">
                             {post.author_name || t("common.anonymous", "匿名用户")}
                         </span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <MessageCircle size={12} />
-                        {post.comments_count || 0}
-                        {t("community.post_replies_unit", "回复")}
                     </span>
                 </div>
             </div>
