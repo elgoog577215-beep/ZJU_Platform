@@ -1615,7 +1615,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    navigateProfileTab("settings");
+                                    openUserSystemTarget("profile-card-editor");
                                 }}
                                 aria-label={t("user_profile.edit_profile", "编辑资料")}
                                 className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
@@ -1770,7 +1770,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             {isOwner && (
                                 <button
                                     onClick={() => {
-                                        navigateProfileTab("settings");
+                                        openUserSystemTarget("profile-card-editor");
                                     }}
                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white"}`}
                                 >
