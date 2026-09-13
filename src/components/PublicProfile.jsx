@@ -1469,7 +1469,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             key: "works",
             label: t("user_profile.stats.works", "作品"),
             value: visibleResources.length,
-            onClick: () => setActiveTab("published"),
+            onClick: () => {
+                navigateProfileTab("published");
+                scrollToProfileSection(profileContentRef);
+            },
         },
         {
             key: "likes",
@@ -1482,7 +1485,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             value: user.followers_count || 0,
             onClick: () => {
                 setRelationTab("followers");
-                setActiveTab("relations");
+                navigateProfileTab("relations");
+                scrollToProfileSection(profileContentRef);
             },
         },
         {
@@ -1491,7 +1495,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             value: user.following_count || 0,
             onClick: () => {
                 setRelationTab("following");
-                setActiveTab("relations");
+                navigateProfileTab("relations");
+                scrollToProfileSection(profileContentRef);
             },
         },
     ];

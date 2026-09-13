@@ -90,6 +90,23 @@ test("frontend API foundation keeps writes non-retried and token storage session
     assert.match(harmonyRuntimeSource, /harmony_app/);
 });
 
+test("profile entry actions navigate to a visible target section", () => {
+    const profileSource = fs.readFileSync(
+        path.join(repoRoot, "src/components/PublicProfile.jsx"),
+        "utf8"
+    );
+
+    assert.match(profileSource, /openUserSystemTarget\("profile-card-editor"\)/);
+    assert.match(
+        profileSource,
+        /navigateProfileTab\("published"\);\s*scrollToProfileSection\(profileContentRef\)/
+    );
+    assert.match(
+        profileSource,
+        /navigateProfileTab\("relations"\);\s*scrollToProfileSection\(profileContentRef\)/
+    );
+});
+
 test("tag update rewrites exact comma-separated tags without runtime schema changes", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "zju-platform-foundation-"));
     process.env.DATABASE_FILE = path.join(tempDir, "database.sqlite");
