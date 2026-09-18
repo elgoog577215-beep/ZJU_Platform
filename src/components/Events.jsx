@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
 import { useMobileSortLabel } from "../hooks/useContentPage";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -2323,23 +2323,23 @@ END:VCALENDAR`;
                                         ? undefined
                                         : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                                 }
-                                className={`event-detail-modal-panel ${useMiniProgramModalScroll ? "event-detail-modal-panel-miniapp" : ""} w-full max-w-5xl overscroll-contain relative flex flex-col ${
+                                className={`event-detail-modal-panel ${useMiniProgramModalScroll ? "event-detail-modal-panel-miniapp" : ""} w-full max-w-6xl overscroll-contain relative flex flex-col ${
                                     useMiniProgramModalScroll
                                         ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0 overflow-y-auto overflow-x-hidden touch-pan-y"
                                         : isMobileViewport
                                           ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0 overflow-hidden"
-                                          : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border overflow-hidden"
-                                } ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_24px_72px_rgba(15,23,42,0.16)]" : "bg-[#0f0f0f] border-white/10 shadow-2xl"}`}
+                                          : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border-0 overflow-hidden"
+                                } ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_24px_72px_rgba(15,23,42,0.16)]" : "bg-[#0f0f0f] border-white/10 shadow-2xl"} tracking-[0.02em]`}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {!isMobileViewport && (
                                     <button
                                         onClick={closeEvent}
                                         aria-label={t("common.close", "关闭")}
-                                        className={`absolute right-5 top-5 h-12 w-12 rounded-lg border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white text-slate-700 border-slate-200 hover:bg-white focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                                        className={`absolute right-5 top-5 h-12 w-12 rounded-lg border-0 transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `text-slate-700 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "text-white focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                                     >
                                         <span
-                                            className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                                            className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300`}
                                         >
                                             <X
                                                 size={20}
@@ -2359,7 +2359,7 @@ END:VCALENDAR`;
                                         <>
                                             {/* Modal Header Image */}
                                             <div
-                                                className={`relative shrink-0 overflow-hidden h-80 sm:h-[27rem] ${isDayMode ? "border-b border-slate-200/70" : ""}`}
+                                                className={`relative shrink-0 overflow-hidden h-80 sm:h-[27rem] ${isDayMode ? "border-b-0 border-slate-200/70" : ""}`}
                                             >
                                                 <SmartImage
                                                     src={selectedEvent.image}
@@ -2376,10 +2376,10 @@ END:VCALENDAR`;
                                                 <button
                                                     onClick={closeEvent}
                                                     aria-label={t("common.close", "关闭")}
-                                                    className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-white text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                                                    className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-lg border-0 transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-white text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                                                 >
                                                     <span
-                                                        className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                                                        className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border-0 border-slate-200 group-hover:bg-white" : "bg-white/10 border-0 border-white/10 group-hover:bg-white/15"}`}
                                                     >
                                                         <X
                                                             size={20}
@@ -2389,13 +2389,13 @@ END:VCALENDAR`;
                                                 </button>
 
                                                 <div
-                                                    className={`absolute bottom-0 left-0 w-full px-5 pt-12 pb-5 sm:px-10 sm:pt-16 sm:pb-8 z-10 ${isDayMode ? "bg-white" : "bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent backdrop-blur-[2px]"}`}
+                                                    className={`absolute bottom-0 left-0 w-full px-6 pt-12 pb-5 sm:px-12 sm:pt-16 sm:pb-8 z-10 ${isDayMode ? "bg-white" : "bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent backdrop-blur-[2px]"}`}
                                                 >
                                                     {/* Editorial Eyebrow: Date & Location & Status */}
                                                     <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
                                                         <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                                                             <div
-                                                                className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white border-slate-200" : "bg-white/10 border-white/20 backdrop-blur-xl shadow-inner"}`}
+                                                                className={`px-3 sm:px-4 py-1.5 sm:py-2 border-0 rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white border-slate-200" : "bg-white/10 border-white/20 backdrop-blur-xl shadow-inner"}`}
                                                             >
                                                                 <Calendar
                                                                     size={14}
@@ -2415,7 +2415,7 @@ END:VCALENDAR`;
                                                             </div>
                                                             {selectedEvent.location && (
                                                                 <div
-                                                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white border-slate-200/80 text-slate-600" : "bg-white/8 border-white/15 text-white/85 backdrop-blur-xl"}`}
+                                                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 border-0 rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white border-slate-200/80 text-slate-600" : "bg-white/8 border-white/15 text-white/85 backdrop-blur-xl"}`}
                                                                 >
                                                                     <MapPin
                                                                         size={14}
@@ -2432,7 +2432,7 @@ END:VCALENDAR`;
                                                     <div className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
                                                         <div className="max-w-full sm:max-w-[82%]">
                                                             <div
-                                                                className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-3 sm:mb-4 border ${isDayMode ? "bg-white border-slate-200 text-slate-500" : "bg-white/10 border-white/15 text-white/70"}`}
+                                                                className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-3 sm:mb-4 border-0 ${isDayMode ? "bg-white border-slate-200 text-slate-500" : "bg-white/10 border-white/15 text-white/70"}`}
                                                             >
                                                                 <span
                                                                     className={`h-1.5 w-1.5 rounded-full ${eventThemeAccent.dot}`}
@@ -2446,7 +2446,7 @@ END:VCALENDAR`;
                                                             >
                                                                 {selectedEvent.title}
                                                                 <span
-                                                                    className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border font-sans translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50 shadow-none" : "backdrop-blur-md shadow-lg"} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
+                                                                    className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border-0 font-sans translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50 shadow-none" : "backdrop-blur-md shadow-lg"} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
                                                                 >
                                                                     {getEventLifecycle(
                                                                         selectedEvent.date,
@@ -2469,7 +2469,7 @@ END:VCALENDAR`;
                                                                             to={
                                                                                 selectedOrganizerProfilePath
                                                                             }
-                                                                            className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200 hover:text-slate-950" : "bg-white/10 text-white/80 border-white/15 hover:text-white"}`}
+                                                                            className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border-0 text-xs sm:text-sm font-medium transition-colors ${isDayMode ? "bg-white text-slate-600 border-slate-200 hover:text-slate-950" : "bg-white/10 text-white/80 border-white/15 hover:text-white"}`}
                                                                         >
                                                                             <Building2
                                                                                 size={14}
@@ -2492,7 +2492,7 @@ END:VCALENDAR`;
                                                                         </RouterLink>
                                                                     ) : (
                                                                         <span
-                                                                            className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white text-slate-600 border-slate-200" : "bg-white/10 text-white/80 border-white/15"}`}
+                                                                            className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border-0 text-xs sm:text-sm font-medium ${isDayMode ? "bg-white text-slate-600 border-slate-200" : "bg-white/10 text-white/80 border-white/15"}`}
                                                                         >
                                                                             <Building2
                                                                                 size={14}
@@ -2516,7 +2516,7 @@ END:VCALENDAR`;
                                                                     ))}
                                                                 {selectedEvent.target_audience && (
                                                                     <span
-                                                                        className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white text-slate-600 border-slate-200" : "bg-white/10 text-white/80 border-white/15"}`}
+                                                                        className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border-0 text-xs sm:text-sm font-medium ${isDayMode ? "bg-white text-slate-600 border-slate-200" : "bg-white/10 text-white/80 border-white/15"}`}
                                                                     >
                                                                         <Users
                                                                             size={14}
@@ -2541,7 +2541,7 @@ END:VCALENDAR`;
                                                                 count={selectedEvent.likes || 0}
                                                                 favorited={selectedEvent.favorited}
                                                                 testId="event-detail-favorite-desktop"
-                                                                className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
+                                                                className={`p-3 rounded-md transition-all shrink-0 border-0 ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border-0 border-white/10 backdrop-blur-md"}`}
                                                                 onToggle={(favorited, likes) => {
                                                                     recordSelectedEventAssistantAction(
                                                                         favorited
@@ -2587,7 +2587,7 @@ END:VCALENDAR`;
 
                                     {isMobileViewport && (
                                         <div
-                                            className={`relative border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#030817] border-white/10"}`}
+                                            className={`relative border-b-0 ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#030817] border-white/10"}`}
                                         >
                                             <div className="relative h-[170px] overflow-hidden">
                                                 <SmartImage
@@ -2628,7 +2628,7 @@ END:VCALENDAR`;
                                                 </span>
                                             </div>
 
-                                            <div className="px-4 pb-4 pt-3">
+                                            <div className="px-6 pb-4 pt-3">
                                                 <div className="flex items-start gap-3">
                                                     <div className="min-w-0 flex-1">
                                                         <h2
@@ -2665,7 +2665,7 @@ END:VCALENDAR`;
                                                         count={selectedEvent.likes || 0}
                                                         favorited={selectedEvent.favorited}
                                                         testId="event-detail-favorite-mobile"
-                                                        className={`h-9 w-9 rounded-full border ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/10 border-white/10 text-white"}`}
+                                                        className={`h-9 w-9 rounded-full border-0 ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/10 border-white/10 text-white"}`}
                                                         onToggle={(favorited, likes) => {
                                                             recordSelectedEventAssistantAction(
                                                                 favorited
@@ -2745,7 +2745,7 @@ END:VCALENDAR`;
 
                                     {!isMobileViewport && (
                                         <div
-                                            className={`relative px-8 pt-8 pb-6 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                                            className={`relative px-6 sm:px-12 pt-8 pb-6 border-b-0 ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                                         >
                                             <div className="pr-20 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                                                 <div className="min-w-0 max-w-4xl">
@@ -2765,7 +2765,7 @@ END:VCALENDAR`;
 
                                                     <div className="flex flex-wrap items-center gap-2.5 mt-4">
                                                         <div
-                                                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/8 border-white/15 text-white/85"}`}
+                                                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border-0 ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/8 border-white/15 text-white/85"}`}
                                                         >
                                                             <Calendar
                                                                 size={15}
@@ -2787,7 +2787,7 @@ END:VCALENDAR`;
                                                             <button
                                                                 type="button"
                                                                 onClick={handleCopyLocation}
-                                                                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-white" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
+                                                                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border-0 text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-white" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
                                                             >
                                                                 <MapPin
                                                                     size={15}
@@ -2802,7 +2802,7 @@ END:VCALENDAR`;
                                                             </button>
                                                         )}
                                                         <span
-                                                            className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
+                                                            className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border-0 ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
                                                         >
                                                             {getEventLifecycle(
                                                                 selectedEvent.date,
@@ -2821,7 +2821,7 @@ END:VCALENDAR`;
                                                         count={selectedEvent.likes || 0}
                                                         favorited={selectedEvent.favorited}
                                                         testId="event-detail-favorite-desktop"
-                                                        className={`h-12 px-4 rounded-lg transition-all border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 text-white backdrop-blur-md"}`}
+                                                        className={`h-12 px-4 rounded-lg transition-all border-0 ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border-0 border-white/10 text-white backdrop-blur-md"}`}
                                                         onToggle={(favorited, likes) => {
                                                             recordSelectedEventAssistantAction(
                                                                 favorited
@@ -2869,7 +2869,7 @@ END:VCALENDAR`;
                                                                     }
                                                                 )
                                                             }
-                                                            className={`inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                                                            className={`inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border-0 border-white/10"}`}
                                                         >
                                                             {t("events.visit_link")}
                                                             <ExternalLink
@@ -2884,7 +2884,7 @@ END:VCALENDAR`;
                                     )}
 
                                     {/* Modal Content */}
-                                    <div className="p-4 sm:p-8 pt-5 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-8">
+                                    <div className="p-6 sm:p-12 pt-7 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-12">
                                         <div className="flex flex-col-reverse lg:flex-row gap-6">
                                             <div className="flex-1 space-y-4">
                                                 <div
@@ -2892,7 +2892,7 @@ END:VCALENDAR`;
                                                 >
                                                     <div className="relative">
                                                         <div
-                                                            className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border ${isDayMode ? "bg-white text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
+                                                            className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border-0 ${isDayMode ? "bg-white text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
                                                         >
                                                             <FileText
                                                                 size={16}
@@ -2924,14 +2924,14 @@ END:VCALENDAR`;
                                             </div>
 
                                             {/* Sidebar - Details & Link */}
-                                            <div className="lg:w-[360px] xl:w-[400px] space-y-4">
+                                            <div className="lg:w-[400px] xl:w-[440px] space-y-4">
                                                 <div
                                                     className={`rounded-lg p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-white border-slate-200/80" : "bg-white/5 border-white/5"}`}
                                                 >
                                                     {/* Key Attributes Grid */}
                                                     {selectedEvent.category && (
                                                         <div
-                                                            className={`rounded-lg p-4 border ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/[0.03] border-white/5 backdrop-blur-sm"}`}
+                                                            className={`rounded-lg p-4 border-0 ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/[0.03] border-white/5 backdrop-blur-sm"}`}
                                                         >
                                                             <div
                                                                 className={`flex items-center gap-2 mb-3 ${eventThemeAccent.accentText}`}
@@ -2943,12 +2943,25 @@ END:VCALENDAR`;
                                                             </div>
                                                             <div className="flex flex-wrap gap-2">
                                                                 <span
-                                                                    className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-blue-100/80 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
+                                                                    className={`px-3 py-1.5 rounded-md text-sm font-medium border-0 transition-all ${isDayMode ? `bg-white text-slate-600 border-blue-100/80 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
                                                                 >
                                                                     {formatEventCategory(
                                                                         selectedEvent.category
                                                                     )}
                                                                 </span>
+                                                                {Array.isArray(
+                                                                    selectedEvent.tags
+                                                                ) &&
+                                                                    selectedEvent.tags.map(
+                                                                        (tag) => (
+                                                                            <span
+                                                                                key={tag}
+                                                                                className={`px-3 py-1.5 rounded-md text-sm font-medium border-0 transition-all ${isDayMode ? `bg-white text-slate-600 border-blue-100/80 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
+                                                                            >
+                                                                                {tag}
+                                                                            </span>
+                                                                        )
+                                                                    )}
                                                             </div>
                                                         </div>
                                                     )}
@@ -2961,10 +2974,10 @@ END:VCALENDAR`;
                                                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                                         {selectedEventNoticeSource && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-5 col-span-2 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-blue-100 text-blue-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-blue-100 text-blue-700" : "bg-indigo-500/5 border-0 border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}
                                                                 >
                                                                     <Building2
                                                                         size={18}
@@ -2990,10 +3003,10 @@ END:VCALENDAR`;
 
                                                         {selectedEventNoticeTypeLabel && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-6 col-span-2 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-sky-100 text-sky-700" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-sky-100 text-sky-700" : "bg-purple-500/5 border-0 border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}
                                                                 >
                                                                     <FileText
                                                                         size={18}
@@ -3020,10 +3033,10 @@ END:VCALENDAR`;
                                                         )}
 
                                                         <div
-                                                            className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                            className={`flex items-start gap-2.5 group order-1 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                         >
                                                             <div
-                                                                className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-blue-100 text-blue-700" : "bg-orange-500/5 border border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}
+                                                                className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-blue-100 text-blue-700" : "bg-orange-500/5 border-0 border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}
                                                             >
                                                                 <Calendar
                                                                     size={18}
@@ -3053,10 +3066,10 @@ END:VCALENDAR`;
                                                         </div>
 
                                                         <div
-                                                            className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                            className={`flex items-start gap-2.5 group order-3 col-span-2 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                         >
                                                             <div
-                                                                className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-sky-100 text-sky-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}
+                                                                className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-sky-100 text-sky-700" : "bg-indigo-500/5 border-0 border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}
                                                             >
                                                                 <MapPin
                                                                     size={18}
@@ -3080,10 +3093,10 @@ END:VCALENDAR`;
 
                                                         {selectedEvent.organizer && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-4 col-span-2 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-emerald-100 text-emerald-700" : "bg-green-500/5 border border-green-500/10 text-green-400 group-hover:bg-green-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-emerald-100 text-emerald-700" : "bg-green-500/5 border-0 border-green-500/10 text-green-400 group-hover:bg-green-500/10"}`}
                                                                 >
                                                                     <Building2
                                                                         size={18}
@@ -3133,10 +3146,10 @@ END:VCALENDAR`;
 
                                                         {selectedEvent.target_audience && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-white border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-2 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-white border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-slate-200 text-blue-700 group-hover:text-blue-800" : "bg-blue-500/5 border border-blue-500/10 text-blue-300 group-hover:bg-blue-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-slate-200 text-blue-700 group-hover:text-blue-800" : "bg-blue-500/5 border-0 border-blue-500/10 text-blue-300 group-hover:bg-blue-500/10"}`}
                                                                 >
                                                                     <Users
                                                                         size={18}
@@ -3162,12 +3175,12 @@ END:VCALENDAR`;
                                                             </div>
                                                         )}
 
-                                                        {selectedEvent.volunteer_time && (
+                                                        {!!selectedEvent.volunteer_time && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-emerald-50/70 border-emerald-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-7 col-span-2 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-emerald-50/70 border-emerald-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-emerald-100 text-emerald-700" : "bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-emerald-100 text-emerald-700" : "bg-emerald-500/5 border-0 border-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/10"}`}
                                                                 >
                                                                     <Clock
                                                                         size={18}
@@ -3193,12 +3206,12 @@ END:VCALENDAR`;
                                                             </div>
                                                         )}
 
-                                                        {selectedEvent.score && (
+                                                        {!!selectedEvent.score && (
                                                             <div
-                                                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-amber-50/70 border-amber-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                                className={`flex items-start gap-2.5 group order-8 col-span-2 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-amber-50/70 border-amber-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                             >
                                                                 <div
-                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-amber-100 text-amber-700" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}
+                                                                    className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-amber-100 text-amber-700" : "bg-purple-500/5 border-0 border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}
                                                                 >
                                                                     <Award
                                                                         size={18}
