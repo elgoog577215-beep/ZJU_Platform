@@ -2163,7 +2163,9 @@
             "search_audience_placeholder": "Search college / program",
             "no_audience_matches": "No matching college or program",
             "collapse_common_audiences": "Show common audiences",
-            "expand_all_audiences": "Show all colleges/programs ({{count}})"
+            "expand_all_audiences": "Show all colleges/programs ({{count}})",
+            "my_college_prefix": "My college: ",
+            "campus_wide": "All campus"
         },
         "status": {
             "upcoming": "Upcoming",
@@ -2269,7 +2271,8 @@
                 "feedback_failed": "Failed to save feedback. Please try again later."
             },
             "ask_ai": "Ask AI",
-            "open_assistant": "Open AI Event Assistant"
+            "open_assistant": "Open AI Event Assistant",
+            "inline_placeholder": "Find activities by topic, time or location"
         },
         "countdown": {
             "days": "Days",

@@ -118,7 +118,6 @@ const loadProfilePage = () => import("./components/ProfilePage");
 const loadPublicProfile = () => import("./components/PublicProfile");
 const loadProfileDirectory = () => import("./components/ProfileDirectory");
 const loadProjectPlaza = () => import("./components/ProjectPlaza");
-const loadSearchPalette = () => import("./components/SearchPalette");
 const loadCustomCursor = () => import("./components/CustomCursor");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
@@ -141,7 +140,6 @@ const ProfilePage = lazyRoute(loadProfilePage);
 const PublicProfile = lazyRoute(loadPublicProfile);
 const ProfileDirectory = lazyRoute(loadProfileDirectory);
 const ProjectPlaza = lazyRoute(loadProjectPlaza);
-const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
@@ -340,7 +338,6 @@ const AppContent = () => {
     const isMobileViewport = useMediaQuery("(max-width: 767px)");
     const shouldMountDeferredUi = useDeferredMount(700);
     const shouldMountLateDebugUi = useDeferredMount(1800);
-    const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
     const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
     const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
     const isAppRuntime = isMiniProgramMode || detectAppRuntime();
@@ -417,23 +414,6 @@ const AppContent = () => {
     }, [settings?.site_title, isHomeRoute]);
 
     useEffect(() => {
-        const mountSearchPalette = () => setShouldMountSearchPalette(true);
-        const handleKeyDown = (event) => {
-            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-                event.preventDefault();
-                mountSearchPalette();
-            }
-        };
-
-        window.addEventListener("open-search-palette", mountSearchPalette);
-        window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("open-search-palette", mountSearchPalette);
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
-
-    useEffect(() => {
         window.scrollTo(0, 0);
     }, [location.pathname]);
 
@@ -505,14 +485,6 @@ const AppContent = () => {
                             </Suspense>
                         </ErrorBoundary>
                     )}
-
-                {shouldMountSearchPalette && (
-                    <ErrorBoundary variant="inline" silent>
-                        <Suspense fallback={null}>
-                            <SearchPalette initialOpen />
-                        </Suspense>
-                    </ErrorBoundary>
-                )}
 
                 <main
                     id="main-content"

@@ -26,6 +26,7 @@ const EventFilterPanel = ({
     hideSort = false,
     mode = "default",
     sheetScope = "all",
+    trailingAction,
 }) => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
@@ -402,7 +403,7 @@ const EventFilterPanel = ({
                                     className={isDayMode ? "text-blue-600" : "text-[#aab0ff]"}
                                 />
                                 <span className="truncate">
-                                    {t("events.filter.audience_prefix", "学院范围：")}
+                                    {t("events.filter.my_college_prefix")}
                                     {audienceLabel(selectedAudience || allAudienceValue)}
                                 </span>
                             </span>
@@ -412,6 +413,7 @@ const EventFilterPanel = ({
                             />
                         </button>
 
+                        {trailingAction}
                         {!hideSort && (
                             <div
                                 className="sm:w-44"

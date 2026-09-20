@@ -208,11 +208,6 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
         : "absolute inset-x-3 bottom-0 h-0.5 rounded-t-full bg-indigo-400";
     const desktopActionButtonBaseClasses =
         "motion-press inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] border px-3 text-xs font-extrabold transition-[background,border-color,color,transform,box-shadow] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70";
-    const desktopSearchButtonClasses = `${desktopActionButtonBaseClasses} ${
-        isDayMode
-            ? "border-slate-200/90 bg-white text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
-            : "border-white/[0.12] bg-white/[0.055] text-slate-200 hover:border-indigo-400/40 hover:bg-indigo-400/10 hover:text-white"
-    }`;
     const desktopDownloadButtonClasses = `${desktopActionButtonBaseClasses} border-transparent ${
         isDayMode
             ? "bg-violet-700 text-white hover:bg-violet-800"
@@ -237,8 +232,6 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
         ? "theme-dialog text-slate-900"
         : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
     const showMobileUploadAction = showUploadButton;
-    const showMobileSearchAction =
-        !location.pathname.startsWith("/me") && !location.pathname.startsWith("/user/");
     const secondaryMobileLinks = [
         { key: "about", path: "/about", icon: Info },
         ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
@@ -324,17 +317,6 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                 </div>
 
                 <div className="ml-1 flex shrink-0 items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                        className={desktopSearchButtonClasses}
-                        title={t("nav.ai_search", "AI 搜索")}
-                        aria-label={t("nav.ai_search", "AI 搜索")}
-                    >
-                        <Search size={15} aria-hidden="true" />
-                        <span>{t("nav.ai_search", "AI 搜索")}</span>
-                    </button>
-
                     {showAppDownload ? (
                         <Link
                             to="/download"
@@ -479,16 +461,6 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                 </div>
 
                 <div className="flex items-center">
-                    {showMobileSearchAction && (
-                        <button
-                            type="button"
-                            aria-label={t("search.placeholder")}
-                            onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                            className={`motion-press rect-icon-button inline-flex h-9 w-9 items-center justify-center p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
-                        >
-                            <Search size={18} />
-                        </button>
-                    )}
                     {/* Page-level sort and filter live in the mobile content toolbar. */}
                     {showMobileUploadAction && (
                         <button
@@ -501,7 +473,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                             <Plus size={19} strokeWidth={3} />
                         </button>
                     )}
-                    {!showMobileSearchAction && !showMobileUploadAction && (
+                    {!showMobileUploadAction && (
                         <div className="min-h-[44px] min-w-[44px]" aria-hidden="true" />
                     )}
                 </div>

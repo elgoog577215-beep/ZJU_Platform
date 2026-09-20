@@ -2165,7 +2165,9 @@
             "search_audience_placeholder": "搜索学院 / 学园",
             "no_audience_matches": "没有匹配的学院或学园",
             "collapse_common_audiences": "收起到常用对象",
-            "expand_all_audiences": "展开全部学院/学园（{{count}}）"
+            "expand_all_audiences": "展开全部学院/学园（{{count}}）",
+            "my_college_prefix": "我的学院：",
+            "campus_wide": "全校"
         },
         "status": {
             "upcoming": "即将开始",
@@ -2273,7 +2275,8 @@
                 "feedback_failed": "反馈记录失败，请稍后再试"
             },
             "ask_ai": "问AI",
-            "open_assistant": "打开 AI 活动助手"
+            "open_assistant": "打开 AI 活动助手",
+            "inline_placeholder": "输入主题、时间或地点，帮你找活动"
         },
         "processing": "处理中...",
         "signed_up": "已报名",

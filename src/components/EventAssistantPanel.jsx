@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     AlertTriangle,
@@ -100,9 +100,16 @@ const EventAssistantPanel = ({
     onClose,
     className = "",
     variant = "panel",
+    audience = "",
 }) => {
     const { t } = useTranslation();
     const [input, setInput] = useState("");
+    const inputRef = useRef(null);
+    const requestRef = useRef(null);
+    useEffect(() => {
+        if (variant === "inline") inputRef.current?.focus();
+        return () => requestRef.current?.abort();
+    }, [variant]);
     const [loading, setLoading] = useState(false);
     const [assistantState, setAssistantState] = useState(null);
     const [originalQuery, setOriginalQuery] = useState("");
@@ -149,13 +156,21 @@ const EventAssistantPanel = ({
 
     const sendAssistantRequest = async (payload, nextOriginalQuery, nextClarificationAsked) => {
         setLoading(true);
+        requestRef.current?.abort();
+        const controller = new AbortController();
+        requestRef.current = controller;
 
         try {
-            const response = await api.post("/events/assistant", {
-                allowHistoricalFallback: true,
-                visitorKey: getOrCreateSiteVisitorKey(),
-                ...payload,
-            });
+            const response = await api.post(
+                "/events/assistant",
+                {
+                    allowHistoricalFallback: true,
+                    visitorKey: getOrCreateSiteVisitorKey(),
+                    ...payload,
+                    query: audience ? `[${audience}] ${payload.query}` : payload.query,
+                },
+                { signal: controller.signal }
+            );
             setAssistantState(response.data);
             setOriginalQuery(nextOriginalQuery);
             setClarificationAsked(
@@ -164,7 +179,7 @@ const EventAssistantPanel = ({
             setInput("");
             setFeedbackMap({});
         } catch (error) {
-            toast.error(getErrorMessage(error, t));
+            if (!controller.signal.aborted) toast.error(getErrorMessage(error, t));
         } finally {
             setLoading(false);
         }
@@ -305,9 +320,10 @@ const EventAssistantPanel = ({
         setFeedbackReasonMap({});
     };
 
+    const isInlineVariant = variant === "inline";
     const isFullscreenVariant = variant === "fullscreen";
     const isRailVariant = variant === "rail";
-    const isCompactVariant = isFullscreenVariant || isRailVariant;
+    const isCompactVariant = isFullscreenVariant || isRailVariant || isInlineVariant;
     const quickPromptGridClass = isFullscreenVariant
         ? "mt-0 grid grid-cols-2 gap-2"
         : isRailVariant
@@ -382,11 +398,13 @@ const EventAssistantPanel = ({
     const promptFocusClass = isDayMode
         ? "focus-within:border-blue-300/80 focus-within:shadow-none"
         : "focus-within:border-blue-300/35 focus-within:bg-white/[0.06]";
-    const textareaSizeClass = isRailVariant
-        ? "min-h-[70px] text-sm leading-6"
-        : isFullscreenVariant
-          ? "min-h-[96px] text-sm leading-7 sm:text-base"
-          : "min-h-[82px] text-sm leading-7 sm:text-base";
+    const textareaSizeClass = isInlineVariant
+        ? "min-h-[44px] text-sm leading-6"
+        : isRailVariant
+          ? "min-h-[70px] text-sm leading-6"
+          : isFullscreenVariant
+            ? "min-h-[96px] text-sm leading-7 sm:text-base"
+            : "min-h-[82px] text-sm leading-7 sm:text-base";
     const quickPromptButtonSizeClass = isRailVariant
         ? "min-h-[38px] px-2.5 py-2 text-[11px] leading-4"
         : "min-h-[44px] px-3 py-2 text-xs";
@@ -409,6 +427,21 @@ const EventAssistantPanel = ({
                 className={`relative overflow-hidden border transition-[background-color,border-color,box-shadow] ${isDayMode ? "" : "backdrop-blur-2xl"} ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}
             >
                 <div className={`relative ${panelPaddingClass}`}>
+                    {isInlineVariant && (
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h3 className={`text-base font-semibold ${textClass}`}>
+                                {t("events.assistant.panel_title")}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                aria-label={t("common.close")}
+                                className={`inline-flex h-11 w-11 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 ${mutedClass}`}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                    )}
                     {isRailVariant ? (
                         <div
                             className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#0d111a]/76 backdrop-blur-xl"}`}
@@ -441,7 +474,7 @@ const EventAssistantPanel = ({
                                 ) : null}
                             </div>
                         </div>
-                    ) : !isFullscreenVariant ? (
+                    ) : !isFullscreenVariant && !isInlineVariant ? (
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                             <div className="max-w-2xl text-left">
                                 <span
@@ -529,27 +562,36 @@ const EventAssistantPanel = ({
                                 </div>
                             ) : null}
                             <textarea
+                                ref={inputRef}
+                                aria-label={t("events.assistant.panel_title")}
                                 value={input}
                                 onChange={(event) => setInput(event.target.value)}
                                 onKeyDown={(event) => {
-                                    if (event.key === "Enter" && !event.shiftKey) {
+                                    if (
+                                        event.key === "Enter" &&
+                                        !event.shiftKey &&
+                                        !event.nativeEvent.isComposing
+                                    ) {
                                         event.preventDefault();
                                         handleSubmit(event);
                                     }
                                 }}
-                                rows={2}
+                                rows={isInlineVariant ? 1 : 2}
+                                maxLength={450}
                                 placeholder={
                                     assistantState?.type === "clarify"
                                         ? t(
                                               "events.assistant.clarification_placeholder",
                                               "补充一点偏好，我就继续帮你缩小范围。"
                                           )
-                                        : t(
-                                              "events.assistant.input_placeholder",
-                                              "比如：这周末线下，适合新生，最好有综测或志愿时长"
-                                          )
+                                        : isInlineVariant
+                                          ? t("events.assistant.inline_placeholder")
+                                          : t(
+                                                "events.assistant.input_placeholder",
+                                                "比如：这周末线下，适合新生，最好有综测或志愿时长"
+                                            )
                                 }
-                                className={`w-full resize-none bg-transparent px-1 py-1 outline-none ${textareaSizeClass} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
+                                className={`w-full resize-none bg-transparent px-1 py-1 outline-none ${textareaSizeClass} ${isDayMode ? "text-slate-900 placeholder:text-slate-500" : "text-white placeholder:text-slate-400"}`}
                             />
 
                             <div

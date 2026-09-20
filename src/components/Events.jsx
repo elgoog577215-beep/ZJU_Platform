@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
-import { useMobileSortLabel } from "../hooks/useContentPage";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -46,7 +45,7 @@ import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
-import SortSelector from "./SortSelector";
+import EventAssistantPanel from "./EventAssistantPanel";
 import DOMPurify from "dompurify";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
@@ -1043,7 +1042,12 @@ const Events = () => {
     const selectedEventRecommendationContextRef = useRef(null);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-    const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+    const [isAiSearchOpen, setIsAiSearchOpen] = useState(false);
+    const aiTriggerRef = useRef(null);
+    const closeAiSearch = useCallback(() => {
+        setIsAiSearchOpen(false);
+        aiTriggerRef.current?.focus();
+    }, []);
     const [viewMode, setViewMode] = useState("cards");
     const [isMobileViewport, setIsMobileViewport] = useState(() =>
         typeof window !== "undefined" ? window.innerWidth < 768 : false
@@ -1100,7 +1104,7 @@ const Events = () => {
         return () => window.removeEventListener("resize", updateViewport);
     }, []);
 
-    const [sort, setSort] = useState("newest");
+    const sort = "newest";
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [filters, setFilters] = useState({
@@ -1124,10 +1128,9 @@ const Events = () => {
     const [partnerFilter, setPartnerFilter] = useState(null);
     const partnerFilterKey = partnerFilter?.terms?.join("|") || "";
     const hasActiveMobileAudienceFilter = Boolean(filters.target_audience);
-    const mobileSortLabel = useMobileSortLabel(sort, t);
     const mobileAudienceLabel = filters.target_audience
         ? formatEventAudience(filters.target_audience)
-        : t("events.filter.all_audiences", "全部学院");
+        : t("events.filter.campus_wide");
 
     const clearMobileAudienceFilter = useCallback(() => {
         setFilters((prev) => ({
@@ -1189,8 +1192,7 @@ const Events = () => {
     useBackClose(selectedEvent !== null, closeEvent);
     useBackClose(isUploadOpen, () => setIsUploadOpen(false));
     useBackClose(isMobileFilterOpen, () => setIsMobileFilterOpen(false));
-    useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
-    useBodyScrollLock(Boolean(selectedEvent || isMobileFilterOpen || isMobileSortOpen));
+    useBodyScrollLock(Boolean(selectedEvent || isMobileFilterOpen));
 
     const isPaginationEnabled = settings.pagination_enabled === "true";
     const pageSize = isPaginationEnabled ? 6 : 12;
@@ -1624,6 +1626,43 @@ END:VCALENDAR`;
         setCurrentPage(1);
     }, []);
 
+    useEffect(() => {
+        const handleKey = (event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+                event.preventDefault();
+                document.querySelectorAll(".event-ai-toggle").forEach((button) => {
+                    if (button.getClientRects().length && !isAiSearchOpen) button.click();
+                });
+            } else if (
+                event.key === "Escape" &&
+                isAiSearchOpen &&
+                !selectedEvent &&
+                !isMobileFilterOpen
+            ) {
+                closeAiSearch();
+            }
+        };
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [isAiSearchOpen, selectedEvent, isMobileFilterOpen, closeAiSearch]);
+
+    const renderAiSearchButton = () => (
+        <button
+            type="button"
+            aria-expanded={isAiSearchOpen}
+            aria-controls="event-ai-search"
+            onClick={(event) => {
+                aiTriggerRef.current = event.currentTarget;
+                setIsAiSearchOpen((open) => !open);
+            }}
+            className={`event-ai-toggle inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${isDayMode ? "border-slate-200 bg-white text-blue-800 hover:bg-blue-50" : "border-white/15 bg-slate-900/80 text-indigo-100 hover:bg-slate-800"}`}
+        >
+            <Sparkles size={16} />
+            {t("nav.ai_search")}
+            <ChevronDown size={14} className={isAiSearchOpen ? "rotate-180" : ""} />
+        </button>
+    );
+
     const nightSegmentActiveClass =
         "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
     const dayPrimaryActionClass =
@@ -1711,15 +1750,6 @@ END:VCALENDAR`;
                         <motion.button
                             {...mobileControlMotion}
                             type="button"
-                            aria-label={t("search.placeholder", "搜索")}
-                            onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-                            className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950" : "text-slate-300 hover:border-indigo-400/70 hover:text-white"}`}
-                        >
-                            <Search size={18} />
-                        </motion.button>
-                        <motion.button
-                            {...mobileControlMotion}
-                            type="button"
                             aria-label={t("common.create_event")}
                             data-testid="event-create-mobile"
                             onClick={() => {
@@ -1790,41 +1820,22 @@ END:VCALENDAR`;
                     <motion.button
                         {...mobileControlMotion}
                         type="button"
-                        onClick={() => {
-                            setIsMobileFilterOpen(false);
-                            setIsMobileSortOpen(true);
-                        }}
-                        className={`inline-flex h-10 items-center justify-center gap-1.5 border-r text-[13px] font-semibold transition-colors ${isDayMode ? "border-slate-200/80 text-slate-600 hover:text-slate-950" : "border-white/10 text-slate-300 hover:text-white"}`}
-                    >
-                        <Clock size={16} />
-                        <span className="truncate">{mobileSortLabel}</span>
-                        <ChevronDown size={15} />
-                    </motion.button>
-                    <motion.button
-                        {...mobileControlMotion}
-                        type="button"
                         aria-label={t("events.filter.open_audience_sheet", "打开学院筛选")}
                         onClick={() => {
-                            setIsMobileSortOpen(false);
                             setIsMobileFilterOpen(true);
                         }}
                         className={`inline-flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
                     >
                         <SlidersHorizontal size={17} />
-                        <span className="truncate">{mobileAudienceLabel}</span>
+                        <span className="truncate">
+                            {t("events.filter.my_college_prefix")}
+                            {mobileAudienceLabel}
+                        </span>
+                        <ChevronDown size={15} />
                     </motion.button>
+                    {renderAiSearchButton()}
                 </div>
 
-                <div className="scroll-mt-4 md:hidden">
-                    <OrganizationPartnerWall
-                        partners={eventOrganizationPartners}
-                        isDayMode={isDayMode}
-                        className="mb-4 text-left"
-                        activePartnerId={partnerFilter?.id}
-                        onApplyPartnerFilter={handleApplyPartnerFilter}
-                        onClearPartnerFilter={clearPartnerFilter}
-                    />
-                </div>
                 <div
                     className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden items-end justify-between gap-8 text-left md:flex`}
                 >
@@ -1861,10 +1872,39 @@ END:VCALENDAR`;
                         filters={filters}
                         onFiltersChange={setFilters}
                         sort={sort}
-                        onSortChange={setSort}
+                        hideSort
+                        trailingAction={renderAiSearchButton()}
                     />
                 </div>
 
+                {isAiSearchOpen && (
+                    <section
+                        id="event-ai-search"
+                        aria-label={t("nav.ai_search")}
+                        className={`${EVENT_FILTER_WIDTH_CLASS} mb-5 text-left`}
+                    >
+                        <EventAssistantPanel
+                            isDayMode={isDayMode}
+                            variant="inline"
+                            audience={filters.target_audience || ""}
+                            onClose={closeAiSearch}
+                            onOpenEvent={(event, context) => {
+                                updateSelectedEventRecommendationContext(context);
+                                setSelectedEvent(event);
+                            }}
+                        />
+                    </section>
+                )}
+                <div className="scroll-mt-4 md:hidden">
+                    <OrganizationPartnerWall
+                        partners={eventOrganizationPartners}
+                        isDayMode={isDayMode}
+                        className="mb-4 text-left"
+                        activePartnerId={partnerFilter?.id}
+                        onApplyPartnerFilter={handleApplyPartnerFilter}
+                        onClearPartnerFilter={clearPartnerFilter}
+                    />
+                </div>
                 <OrganizationPartnerWall
                     partners={eventOrganizationPartners}
                     isDayMode={isDayMode}
@@ -1981,7 +2021,6 @@ END:VCALENDAR`;
                                         filters={filters}
                                         onFiltersChange={setFilters}
                                         sort={sort}
-                                        onSortChange={setSort}
                                         hideSort={true}
                                         mode="sheet"
                                         sheetScope="audience"
@@ -2012,73 +2051,6 @@ END:VCALENDAR`;
                                             {t("common.done", "完成")}
                                         </button>
                                     </div>
-                                </div>
-                            </motion.div>
-                        </>
-                    ) : null,
-                    document.body
-                )}
-
-                {/* Mobile Sort Drawer (Bottom Sheet) */}
-                {createPortal(
-                    isMobileSortOpen ? (
-                        <>
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                onClick={() => setIsMobileSortOpen(false)}
-                                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-transparent" : "bg-black/60 backdrop-blur-sm"}`}
-                            />
-                            <motion.div
-                                initial={{ y: 36 }}
-                                animate={{ y: 0 }}
-                                transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                                role="dialog"
-                                aria-modal="true"
-                                aria-labelledby="events-mobile-sort-title"
-                                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[72dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[18px] border-x border-t md:hidden ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#171c2b]/96 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
-                            >
-                                <div
-                                    className={`relative flex items-center justify-between border-b px-5 pb-4 pt-7 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-transparent"}`}
-                                >
-                                    <div className="absolute left-1/2 top-3 h-1 w-12 -translate-x-1/2 rounded-full bg-slate-400/45" />
-                                    <div>
-                                        <h3
-                                            id="events-mobile-sort-title"
-                                            className={`text-base font-black ${isDayMode ? "text-slate-900" : "text-white"}`}
-                                        >
-                                            排序方式
-                                        </h3>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        aria-label={t("common.close", "关闭")}
-                                        onClick={() => setIsMobileSortOpen(false)}
-                                        className={`rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-                                <div className="px-5 py-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-                                    <SortSelector
-                                        sort={sort}
-                                        onSortChange={(val) => {
-                                            setSort(val);
-                                            setTimeout(() => setIsMobileSortOpen(false), 300);
-                                        }}
-                                        className="w-full"
-                                        extraOptions={[
-                                            {
-                                                value: "date_asc",
-                                                label: t("sort_filter.date_asc", "日期（最早）"),
-                                            },
-                                            {
-                                                value: "date_desc",
-                                                label: t("sort_filter.date_desc", "日期（最晚）"),
-                                            },
-                                        ]}
-                                        renderMode="list"
-                                    />
                                 </div>
                             </motion.div>
                         </>
