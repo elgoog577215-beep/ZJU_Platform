@@ -1,21 +1,18 @@
 /*
 THESIS: A quiet, useful starting point for university AI work; links lead the page.
-OWN-WORLD: Existing ecosystem logo and theme, neutral surfaces, restrained forest green.
+OWN-WORLD: Shared site shell; approved soft daytime surfaces and slate/indigo night theme.
 STORY: Find a tool, course or paper, then continue into community and real projects.
-FIRST VIEWPORT: Compact brand navigation, search and quick links, a three-column directory.
+FIRST VIEWPORT: Existing global tabs, search and quick links, a three-column directory.
 FORM: User-approved campus directory reference: dense link grids, generous group spacing.
 */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
     ArrowUpRight,
     ArrowRight,
     Search,
     X,
-    Sun,
-    Moon,
-    Globe2,
     Bot,
     Boxes,
     FlaskConical,
@@ -43,16 +40,9 @@ const icons = {
     news: Radio,
     campus: Library,
 };
-const ecosystemLinks = [
-    ["community", "/articles"],
-    ["projects", "/projects"],
-    ["hackathon", "/hackathon"],
-    ["events", "/events"],
-];
-
 export default function HomeDirectory() {
     const { t, i18n } = useTranslation("navigation");
-    const { uiMode, changeUiMode } = useSettings();
+    const { uiMode } = useSettings();
     const [params, setParams] = useSearchParams();
     const query = params.get("q") || "";
     const requestedCategory = params.get("category") || "all";
@@ -107,47 +97,6 @@ export default function HomeDirectory() {
 
     return (
         <div className="ai-directory" data-appearance={uiMode}>
-            <a className="directory-skip" href="#directory-content">
-                {t("skip")}
-            </a>
-            <header className="directory-header">
-                <div className="directory-container directory-header-inner">
-                    <Link to="/" className="directory-brand" aria-label={t("home")}>
-                        <img src="/newlogo.png" alt="" width="36" height="36" />
-                        <span>
-                            {t("brand")}
-                            <small>AI · COMMUNITY · CREATION</small>
-                        </span>
-                    </Link>
-                    <nav className="directory-main-nav" aria-label={t("navLabel")}>
-                        <Link to="/" aria-current="page">
-                            {t("directory")}
-                        </Link>
-                        <Link to="/events">{t("events")}</Link>
-                        <Link to="/articles">{t("community")}</Link>
-                        <Link to="/hackathon">{t("hackathon")}</Link>
-                    </nav>
-                    <div className="directory-preferences">
-                        <button
-                            type="button"
-                            onClick={() => i18n.changeLanguage(english ? "zh" : "en")}
-                            aria-label={t("language")}
-                            title={t("language")}
-                        >
-                            <Globe2 size={17} />
-                            <span>{english ? "中" : "EN"}</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => changeUiMode(uiMode === "day" ? "dark" : "day")}
-                            aria-label={t(uiMode === "day" ? "dark" : "day")}
-                            title={t(uiMode === "day" ? "dark" : "day")}
-                        >
-                            {uiMode === "day" ? <Moon size={18} /> : <Sun size={18} />}
-                        </button>
-                    </div>
-                </div>
-            </header>
             <SEO title={t("meta")} description={t("description")} />
             <div className="directory-container">
                 <section className="directory-intro" aria-labelledby="directory-title">
@@ -311,28 +260,6 @@ export default function HomeDirectory() {
                         </div>
                     )}
                 </section>
-                <section className="directory-ecosystem" aria-labelledby="ecosystem-title">
-                    <div>
-                        <h2 id="ecosystem-title">{t("ecosystem")}</h2>
-                        <p>{t("ecosystemDesc")}</p>
-                        <Link to="/about">
-                            {t("join")}
-                            <ArrowRight size={16} aria-hidden="true" />
-                        </Link>
-                    </div>
-                    <nav aria-label={t("navLabel")}>
-                        {ecosystemLinks.map(([label, url]) => (
-                            <Link key={url} to={url}>
-                                {t(label)}
-                                <ArrowUpRight size={16} aria-hidden="true" />
-                            </Link>
-                        ))}
-                    </nav>
-                </section>
-                <footer className="directory-footer">
-                    <span>{t("footer")}</span>
-                    <span>{t("footerNote")}</span>
-                </footer>
             </div>
         </div>
     );

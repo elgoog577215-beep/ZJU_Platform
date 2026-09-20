@@ -330,11 +330,7 @@ const AppContent = () => {
     const isCommunityRoute = location.pathname === "/articles";
     const hasLandscapeBackdrop = isEventsRoute || isCommunityRoute;
     const isImmersiveRoute =
-        isHomeRoute ||
-        isAboutRoute ||
-        isDownloadRoute ||
-        location.pathname.startsWith("/hackathon");
-    const hideGlobalShell = isHomeRoute;
+        isAboutRoute || isDownloadRoute || location.pathname.startsWith("/hackathon");
     const { cursorEnabled, settings } = useSettings();
     const hasDesktopPointer = useMediaQuery(
         "(min-width: 768px) and (hover: hover) and (pointer: fine)"
@@ -481,16 +477,10 @@ const AppContent = () => {
                 >
                     {t("common.skip_to_main")}
                 </a>
-                {!hideGlobalShell && (
-                    <ErrorBoundary variant="inline" silent>
-                        <Navbar
-                            miniProgramMode={isMiniProgramMode}
-                            showAppDownload={showAppDownload}
-                        />
-                    </ErrorBoundary>
-                )}
-                {!hideGlobalShell &&
-                    !isAdminRoute &&
+                <ErrorBoundary variant="inline" silent>
+                    <Navbar miniProgramMode={isMiniProgramMode} showAppDownload={showAppDownload} />
+                </ErrorBoundary>
+                {!isAdminRoute &&
                     cursorEnabled &&
                     hasDesktopPointer &&
                     !prefersReducedMotion &&
@@ -526,7 +516,7 @@ const AppContent = () => {
                 <main
                     id="main-content"
                     className={`flex-grow ${
-                        isImmersiveRoute || isEventsRoute
+                        isImmersiveRoute || isEventsRoute || isHomeRoute
                             ? "pb-0"
                             : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"
                     }`}
@@ -715,9 +705,9 @@ const AppContent = () => {
                     </Suspense>
                 </main>
 
-                {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
+                {!isAdminRoute && !isImmersiveRoute && <Footer />}
 
-                {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
+                {!isAdminRoute && <MobileNavbar />}
                 {!isImmersiveRoute && hasDesktopPointer && shouldMountDeferredUi && (
                     <ErrorBoundary variant="inline" silent>
                         <Suspense fallback={null}>

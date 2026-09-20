@@ -115,6 +115,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
     };
 
     const navLinks = [
+        { key: "home", path: "/" },
         { key: "events", path: "/events" },
         { key: "articles", path: "/articles" },
         { key: "hackathon", path: "/hackathon" },
@@ -641,7 +642,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                             initial={prefersReducedMotion ? false : "initial"}
                             animate={prefersReducedMotion ? undefined : "animate"}
                             exit={prefersReducedMotion ? undefined : "exit"}
-                            className={`fixed inset-0 z-[100] flex items-end justify-center p-0 md:hidden ${isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"}`}
+                            className={`fixed inset-0 z-[100] flex items-end justify-center p-0 lg:hidden ${isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"}`}
                             onClick={() => setIsMobileMoreOpen(false)}
                         >
                             <motion.div
@@ -676,6 +677,24 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                                     </button>
                                 </div>
 
+                                <nav
+                                    aria-label={t("nav.menu_aria")}
+                                    className="mb-4 hidden flex-wrap gap-2 md:flex"
+                                >
+                                    {navLinks.map(({ key, path }) => (
+                                        <Link
+                                            key={key}
+                                            to={path}
+                                            aria-current={
+                                                isNavItemActive(path) ? "page" : undefined
+                                            }
+                                            className={navLinkClasses(isNavItemActive(path))}
+                                            onClick={() => setIsMobileMoreOpen(false)}
+                                        >
+                                            {t(`nav.${key}`)}
+                                        </Link>
+                                    ))}
+                                </nav>
                                 <div className="grid grid-cols-2 gap-2">
                                     {secondaryMobileLinks.map(
                                         ({ key, path, icon: Icon, label }) => (

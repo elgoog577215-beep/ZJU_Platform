@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Sparkles, Trees, UserCircle } from "lucide-react";
+import { Calendar, Home, Sparkles, Trees, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -69,6 +69,13 @@ const MobileNavbar = () => {
 
     const navItems = [
         {
+            key: "home",
+            path: "/",
+            icon: Home,
+            label: t("nav.home"),
+            ariaLabel: t("nav.home"),
+        },
+        {
             key: "events",
             path: "/events",
             icon: Calendar,
@@ -124,7 +131,7 @@ const MobileNavbar = () => {
             aria-label={t("nav.mobile_tabbar")}
         >
             <div className="pb-[env(safe-area-inset-bottom)]">
-                <div className="grid h-[72px] grid-cols-4 px-1.5">
+                <div className="grid h-[72px] grid-cols-5 px-1.5">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = isItemActive(item.path, item.key);

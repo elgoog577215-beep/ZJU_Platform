@@ -1,14 +1,16 @@
 .ai-directory {
-    --directory-bg: #101815;
-    --directory-surface: #16211c;
-    --directory-hover: #203329;
-    --directory-text: #e9efeb;
-    --directory-muted: #a3b3a9;
-    --directory-border: #2b3931;
-    --directory-accent: #acd1bb;
-    --directory-selected: #284738;
-    --directory-input: #19251f;
-    min-height: 100svh;
+    --directory-bg: #020617;
+    --directory-surface: #0f172a;
+    --directory-hover: #1e293b;
+    --directory-text: #f1f5f9;
+    --directory-muted: #94a3b8;
+    --directory-border: rgb(255 255 255 / 10%);
+    --directory-accent: #a5b4fc;
+    --directory-selected: rgb(99 102 241 / 16%);
+    --directory-input: #0f172a;
+    min-height: 70svh;
+    padding-top: 88px;
+    padding-bottom: 54px;
     background: var(--directory-bg);
     color: var(--directory-text);
     font-family: Inter, "HarmonyOS Sans SC", "PingFang SC", system-ui, sans-serif;
@@ -45,82 +47,6 @@
     width: min(1440px, 100%);
     margin-inline: auto;
     padding-inline: 48px;
-}
-.directory-header {
-    border-bottom: 1px solid var(--directory-border);
-}
-.directory-header-inner {
-    min-height: 88px;
-    display: flex;
-    align-items: center;
-    gap: 38px;
-}
-.directory-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 11px;
-    flex-shrink: 0;
-}
-.directory-brand img {
-    object-fit: contain;
-}
-.directory-brand > span {
-    font-size: 18px;
-    font-weight: 650;
-    letter-spacing: 0.015em;
-}
-.directory-brand small {
-    display: block;
-    font-size: 9px;
-    letter-spacing: 0.13em;
-    font-weight: 500;
-    color: var(--directory-muted);
-    margin-top: 3px;
-}
-.directory-main-nav {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    margin-left: auto;
-}
-.directory-main-nav a {
-    font-size: 14px;
-    padding-block: 12px;
-    color: var(--directory-muted);
-}
-.directory-main-nav a[aria-current],
-.directory-main-nav a:hover {
-    color: var(--directory-text);
-}
-.directory-main-nav a[aria-current] {
-    text-decoration: underline;
-    text-decoration-color: var(--directory-accent);
-    text-underline-offset: 12px;
-    text-decoration-thickness: 2px;
-}
-.directory-preferences {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding-left: 20px;
-    border-left: 1px solid var(--directory-border);
-}
-.directory-preferences button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-width: 38px;
-    min-height: 38px;
-    border-radius: 8px;
-    background: transparent;
-    border: 0;
-    font-size: 11px;
-    color: var(--directory-muted);
-}
-.directory-preferences button:hover {
-    background: var(--directory-hover);
-    color: var(--directory-text);
 }
 .directory-intro {
     padding: 54px 0 36px;
@@ -379,72 +305,6 @@
     border: 0;
     border-radius: 8px;
 }
-.directory-ecosystem {
-    margin-top: 54px;
-    border-top: 1px solid var(--directory-border);
-    padding: 34px 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 40px;
-}
-.directory-ecosystem h2 {
-    font-size: 21px;
-    font-weight: 500;
-    margin: 0;
-    letter-spacing: -0.015em;
-}
-.directory-ecosystem p {
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--directory-muted);
-    margin: 10px 0 14px;
-}
-.directory-ecosystem > div > a {
-    color: var(--directory-accent);
-    display: inline-flex;
-    gap: 12px;
-    align-items: center;
-    font-size: 13px;
-}
-.directory-ecosystem nav {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    min-width: 280px;
-    gap: 8px 28px;
-}
-.directory-ecosystem nav a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 10px 0;
-    font-size: 14px;
-}
-.directory-ecosystem a:hover {
-    text-decoration: underline;
-    text-underline-offset: 5px;
-}
-.directory-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 22px 0 calc(24px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--directory-border);
-    font-size: 11px;
-    color: var(--directory-muted);
-}
-.directory-skip {
-    position: absolute;
-    top: -100px;
-    left: 12px;
-    padding: 12px;
-    background: var(--directory-input);
-    z-index: 100;
-}
-.directory-skip:focus {
-    top: 12px;
-}
 @media (min-width: 1600px) {
     .directory-container {
         padding-inline: 24px;
@@ -456,12 +316,6 @@
 @media (max-width: 1100px) {
     .directory-container {
         padding-inline: 28px;
-    }
-    .directory-header-inner {
-        gap: 20px;
-    }
-    .directory-main-nav {
-        gap: 20px;
     }
     .directory-grid {
         column-gap: 22px;
@@ -475,22 +329,8 @@
     }
 }
 @media (max-width: 820px) {
-    .directory-header-inner {
-        flex-wrap: wrap;
-        padding-block: 18px 0;
-        gap: 16px;
-    }
-    .directory-preferences {
-        margin-left: auto;
-        border: 0;
-        padding: 0;
-    }
-    .directory-main-nav {
-        order: 3;
-        width: 100%;
-        margin: 0;
-        gap: 28px;
-        padding-bottom: 10px;
+    .ai-directory {
+        padding-top: calc(64px + env(safe-area-inset-top));
     }
     .directory-intro {
         grid-template-columns: 1fr;
@@ -500,27 +340,10 @@
     .directory-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .directory-ecosystem {
-        align-items: start;
-        gap: 28px;
-    }
-    .directory-ecosystem nav {
-        min-width: 210px;
-    }
 }
 @media (max-width: 540px) {
     .directory-container {
         padding-inline: 20px;
-    }
-    .directory-brand > span {
-        font-size: 17px;
-    }
-    .directory-main-nav {
-        justify-content: space-between;
-        gap: 12px;
-    }
-    .directory-main-nav a {
-        font-size: 13px;
     }
     .directory-intro h1 {
         font-size: 27px;
@@ -561,21 +384,8 @@
     .directory-site-name svg {
         display: none;
     }
-    .directory-ecosystem {
-        flex-direction: column;
-        margin-top: 36px;
-    }
-    .directory-ecosystem nav {
-        width: 100%;
-    }
-    .directory-footer {
-        flex-direction: column;
-        gap: 8px;
-        line-height: 1.6;
-    }
 }
 @media (pointer: coarse) {
-    .directory-preferences button,
     .directory-filters button {
         min-height: 44px;
     }

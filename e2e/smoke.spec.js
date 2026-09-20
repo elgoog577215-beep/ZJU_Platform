@@ -15,6 +15,14 @@ test("homepage stays available and only exposes public directory URLs", async ({
     await expect(page).toHaveTitle(/AI 与科技导航/);
     await expect(page.locator(".directory-group")).toHaveCount(9);
     await expect(page.locator(".directory-group li")).toHaveCount(69);
+    await expect(page.getByRole("menubar", { name: "导航菜单" }).getByRole("menuitem")).toHaveText([
+        "首页",
+        "活动聚合",
+        "AI社区",
+        "浙客松",
+        "生态介绍",
+    ]);
+    await expect(page.locator("footer")).toHaveCount(1);
     await page.waitForTimeout(3200); // Regression: the former splash redirected after 3 seconds.
     await expect(page).toHaveURL(/\/$/);
     const links = await page
@@ -59,7 +67,10 @@ test("internal navigation and back preserve the directory without reloading", as
     let loads = 0;
     page.on("load", () => loads++);
     await page.goto("/?category=learning");
-    await page.locator(".directory-main-nav").getByRole("link", { name: "活动聚合" }).click();
+    await page
+        .getByRole("menubar", { name: "导航菜单" })
+        .getByRole("menuitem", { name: "活动聚合" })
+        .click();
     await expect(page).toHaveURL(/\/events$/);
     await page.goBack();
     await expect(page).toHaveURL(/category=learning/);
@@ -70,9 +81,25 @@ test("internal navigation and back preserve the directory without reloading", as
 test("theme, keyboard search and English work at narrow widths", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await page.getByRole("button", { name: "切换浅色模式" }).click();
+    const bottomNav = page.getByRole("navigation", { name: "移动端底部导航" });
+    await expect(bottomNav.getByRole("link")).toHaveCount(4);
+    await expect(bottomNav.getByRole("button", { name: "我的", exact: true })).toBeVisible();
+    await expect(bottomNav.getByRole("link", { name: "首页", exact: true })).toHaveAttribute(
+        "aria-current",
+        "page"
+    );
+    await page.getByRole("button", { name: "更多", exact: true }).click();
+    await page.getByRole("button", { name: "白天模式", exact: true }).click();
     await expect(page.locator(".ai-directory")).toHaveAttribute("data-appearance", "day");
-    await page.getByRole("button", { name: "Switch to English" }).click();
+    await page
+        .getByRole("dialog", { name: "更多" })
+        .getByRole("button", { name: "切换语言" })
+        .click();
+    await page.getByRole("menuitemradio", { name: "English" }).click();
+    await page
+        .getByRole("dialog", { name: "More" })
+        .getByRole("button", { name: "Close", exact: true })
+        .click();
     await expect(page.getByRole("heading", { name: "Your starting point for AI." })).toBeVisible();
     await page.keyboard.press("/");
     await expect(page.getByRole("searchbox", { name: "Search directory" })).toBeFocused();
