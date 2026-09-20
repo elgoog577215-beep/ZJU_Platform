@@ -142,6 +142,10 @@ test("admin module permissions are granular, revocable and never inherited from 
                 const schema =
                     "CREATE TABLE users(id INTEGER, role TEXT, admin_scope TEXT, review_permission TEXT); INSERT INTO users VALUES(7,'admin','none','admin'); INSERT INTO users VALUES(8,'admin','organization','admin')";
                 await old.exec(schema);
+                // FTS5 integrity validation needs a writable connection to the snapshot.
+                await old.exec(
+                    "CREATE VIRTUAL TABLE search_fixture USING fts5(body); INSERT INTO search_fixture VALUES ('public fixture text')"
+                );
                 try {
                     fs.writeFileSync(path.join(directory, "backups"), "block backup directory");
                     await assert.rejects(migrateAdminAccess(old));

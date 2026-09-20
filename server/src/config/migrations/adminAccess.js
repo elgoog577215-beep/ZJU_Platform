@@ -22,13 +22,18 @@ async function migrateAdminAccess(db) {
             const snapshot = await open({
                 filename,
                 driver: sqlite3.Database,
-                mode: sqlite3.OPEN_READONLY,
+                // FTS5 integrity_check writes temporary validation state even on a
+                // valid database. Validate the private copy through a writable handle.
+                mode: sqlite3.OPEN_READWRITE,
             });
             try {
                 const check = await snapshot.get("PRAGMA integrity_check");
                 const backupCount = await snapshot.get("SELECT COUNT(*) AS count FROM users");
-                if (Object.values(check)[0] !== "ok" || backupCount.count !== count.count) {
-                    throw new Error("Administrator access backup verification failed");
+                if (Object.values(check)[0] !== "ok") {
+                    throw new Error("Administrator access backup integrity check failed");
+                }
+                if (backupCount.count !== count.count) {
+                    throw new Error("Administrator access backup account count mismatch");
                 }
             } finally {
                 await snapshot.close();
