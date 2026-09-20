@@ -1,7 +1,7 @@
 import { localizedNames } from "./names.js";
 // Public editorial allowlist. Never import browser exports or account-specific URLs here.
 const site = (id, name, url, zh, en, keywords = "") => ({ id, name, url, zh, en, keywords });
-export const directory = [
+const sections = [
     {
         id: "assistants",
         zh: "AI 助手与应用",
@@ -260,6 +260,30 @@ export const directory = [
                 "Teamwork & databases",
                 "lark 办公"
             ),
+            site(
+                "libreoffice",
+                "LibreOffice",
+                "https://www.libreoffice.org/",
+                "开源办公套件",
+                "Open-source office suite",
+                "文档 表格 演示"
+            ),
+            site(
+                "mubu",
+                "幕布",
+                "https://mubu.com/",
+                "大纲笔记与思维导图",
+                "Outlines & mind maps",
+                "笔记"
+            ),
+            site(
+                "seatable",
+                "SeaTable",
+                "https://seatable.cn/",
+                "表格与协作数据库",
+                "Tables & collaboration",
+                "多维表格"
+            ),
         ],
     },
     {
@@ -315,6 +339,23 @@ export const directory = [
                 "Browser image compression",
                 "图片 压缩"
             ),
+            site(
+                "chuangkit",
+                "创客贴",
+                "https://www.chuangkit.com/",
+                "在线设计与模板",
+                "Online design & templates",
+                "海报"
+            ),
+            site("bigjpg", "Bigjpg", "https://bigjpg.com/", "图片放大", "Image upscaling", "高清"),
+            site(
+                "iloveimg",
+                "iLoveIMG",
+                "https://www.iloveimg.com/",
+                "图片裁剪与批量处理",
+                "Batch image editing",
+                "压缩"
+            ),
         ],
     },
     {
@@ -369,6 +410,30 @@ export const directory = [
                 "视频、音效与模板",
                 "Video, sound & templates",
                 "素材 音乐"
+            ),
+            site(
+                "undraw",
+                "unDraw",
+                "https://undraw.co/",
+                "可调色插画",
+                "Customizable illustrations",
+                "插画"
+            ),
+            site(
+                "manypixels",
+                "ManyPixels",
+                "https://www.manypixels.co/gallery",
+                "插画素材库",
+                "Illustration gallery",
+                "矢量"
+            ),
+            site(
+                "humaaans",
+                "Humaaans",
+                "https://www.humaaans.com/",
+                "人物插画组件",
+                "Mix-and-match illustrations",
+                "人物"
             ),
         ],
     },
@@ -851,6 +916,22 @@ export const directory = [
                 "Interface & web icons",
                 "图标"
             ),
+            site(
+                "icons8",
+                "Icons8",
+                "https://icons8.com/",
+                "图标与设计素材",
+                "Icons & design assets",
+                "图标"
+            ),
+            site(
+                "iconstore",
+                "IconStore",
+                "https://iconstore.co/",
+                "成套图标素材",
+                "Icon collections",
+                "图标"
+            ),
         ],
     },
     {
@@ -906,6 +987,22 @@ export const directory = [
                 "Design work & inspiration",
                 "ui ux"
             ),
+            site(
+                "zhongguose",
+                "中国色",
+                "https://zhongguose.com/",
+                "中国传统色彩",
+                "Traditional Chinese colors",
+                "配色"
+            ),
+            site(
+                "gitmind",
+                "GitMind",
+                "https://gitmind.cn/",
+                "思维导图与脑图",
+                "Mind mapping",
+                "思维导图"
+            ),
         ],
     },
     {
@@ -954,25 +1051,270 @@ export const directory = [
                 "tool lu"
             ),
             site(
-                "deepl",
-                "DeepL",
-                "https://www.deepl.com/translator",
-                "文本与文档翻译",
-                "Text & document translation",
-                "英文 翻译"
+                "aconvert",
+                "Aconvert",
+                "https://www.aconvert.com/",
+                "文件格式转换",
+                "File format conversion",
+                "转换"
+            ),
+            site(
+                "diffchecker",
+                "Diffchecker",
+                "https://www.diffchecker.com/",
+                "文本与文件差异对比",
+                "Text & file comparison",
+                "文本"
+            ),
+        ],
+    },
+    {
+        id: "presentations",
+        zh: "演示与排版",
+        en: "Presentations & publishing",
+        sites: [
+            site(
+                "slidesgo",
+                "Slidesgo",
+                "https://slidesgo.com/",
+                "演示模板与制作",
+                "Presentation templates",
+                "PPT"
+            ),
+            site(
+                "showeet",
+                "Showeet",
+                "https://www.showeet.com/",
+                "演示图表与模板",
+                "Presentation diagrams & templates",
+                "PPT"
+            ),
+            site(
+                "1ppt",
+                "第一PPT",
+                "https://www.1ppt.com/",
+                "PPT 模板与课件",
+                "Slides & teaching templates",
+                "演示"
+            ),
+            site(
+                "ypppt",
+                "优品PPT",
+                "https://www.ypppt.com/",
+                "PPT 模板与素材",
+                "Presentation templates & assets",
+                "演示"
+            ),
+            site(
+                "mdnice",
+                "墨滴",
+                "https://mdnice.com/",
+                "Markdown 排版",
+                "Markdown publishing",
+                "公众号 写作"
+            ),
+            site(
+                "xiumi",
+                "秀米",
+                "https://xiumi.us/",
+                "图文排版与制作",
+                "Article layout & design",
+                "公众号"
+            ),
+        ],
+    },
+    {
+        id: "media",
+        zh: "音频与视频工具",
+        en: "Audio & video",
+        sites: [
+            site(
+                "123apps",
+                "123apps",
+                "https://123apps.com/",
+                "在线音视频编辑",
+                "Online audio & video tools",
+                "剪辑"
+            ),
+            site(
+                "clipchamp",
+                "Clipchamp",
+                "https://clipchamp.com/",
+                "视频剪辑与字幕",
+                "Video editing & captions",
+                "剪辑"
+            ),
+            site(
+                "gifcap",
+                "gifcap",
+                "https://gifcap.dev/",
+                "录屏制作 GIF",
+                "Record screen to GIF",
+                "录屏"
+            ),
+            site(
+                "freesound",
+                "Freesound",
+                "https://freesound.org/",
+                "声音与音效素材",
+                "Sounds & audio samples",
+                "音频"
+            ),
+            site(
+                "bensound",
+                "Bensound",
+                "https://www.bensound.com/",
+                "配乐素材",
+                "Music for creative projects",
+                "背景音乐"
+            ),
+            site(
+                "audionautix",
+                "Audionautix",
+                "https://audionautix.com/",
+                "音乐素材库",
+                "Music library",
+                "配乐"
+            ),
+        ],
+    },
+    {
+        id: "reading",
+        zh: "阅读与数字图书馆",
+        en: "Reading & libraries",
+        sites: [
+            site(
+                "gutenberg",
+                "Project Gutenberg",
+                "https://www.gutenberg.org/",
+                "经典电子书",
+                "Classic ebooks",
+                "阅读"
+            ),
+            site(
+                "shuge",
+                "书格",
+                "https://www.shuge.org/",
+                "古籍与艺术数字资源",
+                "Historical books & art",
+                "古籍"
+            ),
+            site(
+                "nlc",
+                "国家图书馆",
+                "https://www.nlc.cn/",
+                "馆藏与数字资源",
+                "National library resources",
+                "图书"
+            ),
+            site(
+                "zjlib",
+                "浙江图书馆",
+                "https://www.zjlib.cn/",
+                "公共图书馆与数字阅读",
+                "Public library & digital reading",
+                "图书"
+            ),
+            site(
+                "gushiwen",
+                "古诗文网",
+                "https://www.gushiwen.cn/",
+                "古诗词与文言文",
+                "Classical Chinese poetry",
+                "古诗 文学"
+            ),
+            site(
+                "allhistory",
+                "全历史",
+                "https://www.allhistory.com/",
+                "历史与艺术知识",
+                "History & art exploration",
+                "历史"
+            ),
+        ],
+    },
+    {
+        id: "mathematics",
+        zh: "数学与科学工具",
+        en: "Math & science tools",
+        sites: [
+            site(
+                "wolfram",
+                "WolframAlpha",
+                "https://www.wolframalpha.com/",
+                "计算与知识查询",
+                "Computational knowledge",
+                "数学"
+            ),
+            site(
+                "geogebra",
+                "GeoGebra",
+                "https://www.geogebra.org/",
+                "几何与函数可视化",
+                "Geometry & graphing",
+                "数学"
+            ),
+            site(
+                "desmos",
+                "Desmos",
+                "https://www.desmos.com/calculator",
+                "交互式函数绘图",
+                "Interactive graphing calculator",
+                "数学"
+            ),
+            site(
+                "animagraffs",
+                "Animagraffs",
+                "https://animagraffs.com/",
+                "机械与科学原理图解",
+                "Visual explanations of mechanisms",
+                "科学"
+            ),
+            site(
+                "mygraphpaper",
+                "MyGraphPaper",
+                "https://www.mygraphpaper.com/",
+                "网格与坐标纸生成",
+                "Graph paper generator",
+                "数学"
+            ),
+            site(
+                "kingdraw",
+                "KingDraw",
+                "https://www.kingdraw.cn/",
+                "化学结构绘图",
+                "Chemical structure drawing",
+                "化学"
             ),
         ],
     },
 ];
-export const featuredIds = [
-    "github",
-    "huggingface",
-    "chatgpt",
-    "zdbk",
-    "eta",
-    "qqdocs",
-    "canva",
-    "notion",
+// Keep one flat directory. Related bookmark collections share a practical category.
+const byId = Object.fromEntries(sections.map((section) => [section.id, section]));
+const combine = (id, zh, en, related = [], extraSites = []) => ({
+    ...byId[id],
+    zh,
+    en,
+    sites: [...byId[id].sites, ...related.flatMap((key) => byId[key].sites), ...extraSites],
+});
+const mediaTools = byId.media.sites.slice(0, 3);
+const audioAssets = byId.media.sites.slice(3);
+export const directory = [
+    byId.assistants,
+    byId.models,
+    byId.campus,
+    combine("office", "办公与演示", "Office & presentations", ["presentations"]),
+    byId.design,
+    combine("assets", "图片与音视频素材", "Images, video & audio", [], audioAssets),
+    byId["ai-dev"],
+    byId.development,
+    combine("learning", "课程与科学学习", "Courses & science", ["mathematics"]),
+    combine("research", "论文与阅读", "Research & reading", ["reading"]),
+    byId.practice,
+    byId.news,
+    byId.icons,
+    byId.diagrams,
+    combine("productivity", "文档与媒体工具", "Document & media tools", [], mediaTools),
 ];
 export const allSites = directory.flatMap((group) => group.sites);
 export function filterDirectory(query, category = "all") {

@@ -328,10 +328,11 @@ const AppContent = () => {
     const isDownloadRoute = location.pathname === "/download";
     const isEventsRoute = location.pathname === "/events";
     const isCommunityRoute = location.pathname === "/articles";
-    const hasLandscapeBackdrop = isEventsRoute || isCommunityRoute;
     const isImmersiveRoute =
         isAboutRoute || isDownloadRoute || location.pathname.startsWith("/hackathon");
-    const { cursorEnabled, settings } = useSettings();
+    const { cursorEnabled, settings, uiMode } = useSettings();
+    const hasLandscapeBackdrop =
+        isEventsRoute || isCommunityRoute || (isHomeRoute && uiMode !== "day");
     const hasDesktopPointer = useMediaQuery(
         "(min-width: 768px) and (hover: hover) and (pointer: fine)"
     );

@@ -1,9 +1,9 @@
 .ai-directory {
-    --directory-bg: #020617;
-    --directory-surface: #0f172a;
+    --directory-bg: transparent;
+    --directory-surface: rgba(15, 23, 42, 0.9);
     --directory-hover: #1e293b;
     --directory-text: #f1f5f9;
-    --directory-muted: #94a3b8;
+    --directory-muted: #b3c0d3;
     --directory-border: rgb(255 255 255 / 10%);
     --directory-accent: #a5b4fc;
     --directory-selected: rgb(99 102 241 / 16%);
@@ -122,31 +122,6 @@
     padding: 0 7px;
     font-size: 12px;
 }
-.directory-quick-links {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 9px 14px;
-    margin-top: 13px;
-    font-size: 11px;
-}
-.directory-quick-links > span {
-    color: var(--directory-muted);
-}
-.directory-quick-links a {
-    display: inline-flex;
-    gap: 3px;
-    align-items: center;
-    padding-block: 2px;
-}
-.directory-quick-links a svg {
-    color: var(--directory-muted);
-}
-.directory-quick-links a:hover {
-    color: var(--directory-accent);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
 .directory-toolbar {
     padding: 0 0 26px;
 }
@@ -178,7 +153,7 @@
     min-width: 0;
 }
 .directory-group h2 {
-    margin: 0 0 14px;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 9px;
@@ -194,7 +169,6 @@
     font-size: 11px;
     font-weight: 400;
     color: var(--directory-muted);
-    margin-left: auto;
 }
 .directory-group ul {
     display: grid;
@@ -325,13 +299,6 @@
     .directory-search-area input {
         font-size: 16px;
     }
-    .directory-quick-links {
-        gap: 8px 14px;
-        font-size: 12px;
-    }
-    .directory-quick-links > span {
-        width: 100%;
-    }
 
     .directory-grid {
         grid-template-columns: 1fr;
@@ -351,11 +318,6 @@
         display: none;
     }
 }
-@media (pointer: coarse) {
-    .directory-quick-links a {
-        min-height: 36px;
-    }
-}
 @media (prefers-reduced-motion: reduce) {
     .ai-directory *,
     .ai-directory *::before,
@@ -365,184 +327,34 @@
     }
 }
 
-.directory-shortcuts {
-    border-block: 1px solid var(--directory-border);
-    padding-block: 15px;
-    margin-bottom: 24px;
-}
-.directory-quick-row {
+.directory-group-heading {
+    min-height: 32px;
     display: flex;
-    align-items: baseline;
-    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
 }
-.directory-quick-row h2 {
-    flex-shrink: 0;
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
+.directory-group-heading h2 {
+    flex-wrap: wrap;
 }
-.directory-quick-links {
-    flex: 1;
-    min-width: 0;
-    margin-top: 0;
-    font-size: 13px;
-    gap: 10px 22px;
-}
-.directory-edit-shortcuts,
-.directory-shortcut-message button {
-    flex-shrink: 0;
+.ai-directory .directory-view-all {
     border: 0;
     background: transparent;
-    color: var(--directory-accent) !important;
-    font-size: 13px !important;
-    padding: 8px 0;
-}
-.directory-shortcut-message {
-    margin: 8px 0 0;
+    padding: 4px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    color: var(--directory-muted) !important;
     font-size: 12px;
-    color: var(--directory-muted);
+    min-height: 32px;
 }
-.directory-shortcut-editor {
-    border-top: 1px solid var(--directory-border);
-    margin-top: 14px;
-    padding-top: 20px;
+.directory-view-all:hover {
+    color: var(--directory-accent) !important;
 }
-.directory-shortcut-editor > p {
-    margin: 0 0 20px;
-    font-size: 13px;
-    color: var(--directory-muted);
-}
-.directory-shortcut-editor-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-}
-.directory-shortcut-editor h3,
-.directory-shortcut-add label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    margin: 0 0 10px;
-}
-.directory-shortcut-editor button {
-    border: 1px solid var(--directory-border);
-    background: var(--directory-surface);
-    border-radius: 7px;
-    padding: 9px 12px;
-    min-height: 38px;
-    font-size: 13px;
-}
-.directory-shortcuts button:disabled {
-    opacity: 0.45;
-    cursor: default;
-}
-.directory-shortcut-editor button:not(:disabled):hover {
-    background: var(--directory-hover);
-}
-.directory-selected-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.directory-selected-links li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--directory-border);
-}
-.directory-selected-links li > span {
-    min-width: 0;
-    flex: 1;
-    overflow-wrap: anywhere;
-    font-size: 14px;
-}
-.directory-selected-links small {
-    display: block;
-    color: var(--directory-muted);
-    margin-top: 4px;
-    font-size: 11px;
-}
-.directory-selected-links button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    width: 38px;
-}
-.directory-shortcut-add input {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    min-height: 42px;
-    background: var(--directory-input);
-    color: var(--directory-text);
-    border: 1px solid var(--directory-border);
-    border-radius: 7px;
-    padding: 9px 12px;
-    font: inherit;
-    font-size: 14px;
-}
-.directory-shortcut-add input::placeholder {
-    color: var(--directory-muted);
-}
-.directory-shortcut-candidates {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-block: 12px 24px;
-}
-.directory-shortcut-add form {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-}
-.directory-shortcut-add form label {
-    margin: 0;
-}
-.directory-shortcut-add form button {
-    justify-self: start;
-    margin-top: 4px;
-}
-.directory-shortcut-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-}
-.directory-shortcut-actions > span {
-    flex: 1;
-}
-.directory-shortcut-actions .directory-shortcut-save {
-    background: var(--directory-selected);
-    color: var(--directory-accent);
-}
-.directory-shortcut-error {
-    margin-top: 16px !important;
-    color: var(--directory-text) !important;
-    font-weight: 600;
-}
-@media (max-width: 640px) {
-    .directory-quick-row {
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
-    .directory-edit-shortcuts {
-        margin-left: auto;
-    }
-    .directory-quick-links {
-        order: 3;
-        flex-basis: 100%;
-        gap: 8px 18px;
-    }
-    .directory-shortcut-editor-columns {
-        grid-template-columns: 1fr;
-        gap: 28px;
-    }
-    .directory-shortcut-editor button {
+@media (pointer: coarse) {
+    .directory-view-all {
         min-height: 44px;
-    }
-    .directory-selected-links button {
-        width: 44px;
     }
 }
