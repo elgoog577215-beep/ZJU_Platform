@@ -1445,6 +1445,8 @@
         "upload_pending_review": "Upload successful, pending review",
         "update_success": "Update successful",
         "upload_failed": "Upload failed",
+        "duplicate_source": "This link has already been imported as “{{title}}”. Please do not upload it again.",
+        "existing_content": "existing content",
         "native_upload_file": "Upload file",
         "native_upload_cover": "Upload image",
         "native_upload_short": "Upload",

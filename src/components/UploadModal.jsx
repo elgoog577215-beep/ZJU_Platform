@@ -1916,7 +1916,16 @@ const UploadModal = ({
             handleClose();
         } catch (err) {
             console.error("Upload failed:", err);
-            toast.error(t("upload.upload_failed"));
+            const conflict = err.response?.data;
+            if (err.response?.status === 409 && conflict?.error === "RESOURCE_DUPLICATE_SOURCE") {
+                toast.error(
+                    t("upload.duplicate_source", {
+                        title: conflict.existing_title || t("upload.existing_content"),
+                    })
+                );
+            } else {
+                toast.error(t("upload.upload_failed"));
+            }
         } finally {
             setIsUploading(false);
         }

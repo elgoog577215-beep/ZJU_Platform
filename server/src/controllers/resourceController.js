@@ -427,8 +427,6 @@ const createHandler = (table, fields) => async (req, res, next) => {
             await processTags(req.body.tags);
         }
 
-        if (table === "events") refreshEventAiIndex(db, id);
-
         // Fan-out new-content notifications to the author's followers.
         // Only for the 5 user-facing resource tables. Community posts are excluded
         // per spec "No Fan-out for Community Posts". Pending/draft/rejected items

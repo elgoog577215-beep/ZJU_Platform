@@ -1434,6 +1434,8 @@
         "upload_success": "上传成功",
         "upload_pending_review": "上传成功，等待审核",
         "upload_failed": "上传失败",
+        "duplicate_source": "该链接已导入为「{{title}}」，请勿重复上传。",
+        "existing_content": "已有内容",
         "native_upload_file": "上传文件",
         "native_upload_cover": "上传图片",
         "native_upload_short": "上传",
