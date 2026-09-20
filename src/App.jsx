@@ -30,7 +30,6 @@ import {
 import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
-import SEO from "./components/SEO";
 
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
@@ -197,16 +196,7 @@ const PageTransition = ({ children }) => {
     );
 };
 
-const Home = () => {
-    const { t } = useTranslation();
-
-    return (
-        <>
-            <SEO title={t("home.splash.meta_title")} description={t("home.splash.meta_desc")} />
-            <HomeSplash />
-        </>
-    );
-};
+const Home = () => <HomeSplash />;
 
 const MusicRedirect = () => {
     const location = useLocation();
@@ -424,10 +414,10 @@ const AppContent = () => {
     }, [isMiniProgramMode, location.search]);
 
     useEffect(() => {
-        if (settings?.site_title) {
+        if (!isHomeRoute && settings?.site_title) {
             document.title = settings.site_title;
         }
-    }, [settings?.site_title]);
+    }, [settings?.site_title, isHomeRoute]);
 
     useEffect(() => {
         const mountSearchPalette = () => setShouldMountSearchPalette(true);
