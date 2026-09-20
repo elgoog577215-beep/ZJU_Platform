@@ -1169,7 +1169,8 @@
         "brand": "拓浙AI生态",
         "alt_brand": "TUOZHE AI ECOSYSTEM",
         "copyright": "© {{year}} TUOZHE AI ECOSYSTEM. All rights reserved.",
-        "tagline": "Connecting Talent, Technology & Industry"
+        "tagline": "Connecting Talent, Technology & Industry",
+        "developer_acknowledgements": "Developer acknowledgements"
     },
     "home": {
         "meta_title": "TUOZHE AI ECOSYSTEM",

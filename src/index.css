@@ -1579,6 +1579,46 @@ img {
         }
     }
 
+    /* Events use a quiet paper surface; other landscape pages keep their imagery. */
+    :root[data-theme="day"] .ecosystem-landscape-shell.events-landscape-shell {
+        background-color: #edf1f4;
+    }
+
+    :root[data-theme="day"] .ecosystem-landscape-shell.events-landscape-shell::before {
+        background-color: #edf1f4;
+        background-image:
+            radial-gradient(ellipse 75% 55% at 8% 0%, rgba(205, 222, 236, 0.48), transparent 75%),
+            radial-gradient(ellipse 65% 50% at 100% 8%, rgba(239, 231, 216, 0.42), transparent 75%);
+        background-blend-mode: normal;
+        background-size: cover;
+    }
+
+    :root[data-theme="day"] .ecosystem-landscape-shell.events-landscape-shell nav[aria-label] {
+        border-bottom-color: rgba(100, 116, 139, 0.14);
+        background-color: rgba(247, 249, 250, 0.94);
+        box-shadow: none;
+    }
+
+    :root[data-theme="day"]
+        .events-landscape-shell
+        [data-testid="organization-partner-filter-bar"]
+        > div {
+        border-color: rgba(100, 116, 139, 0.15);
+        background-color: rgba(255, 255, 255, 0.48);
+        box-shadow: none;
+    }
+
+    :root[data-theme="day"] .events-landscape-shell .event-card-shell {
+        background: #ffffff;
+        border-color: #d5dee6;
+        box-shadow: none;
+    }
+
+    :root[data-theme="day"] .events-landscape-shell .event-card-shell:hover {
+        border-color: #94aabd;
+        box-shadow: none;
+    }
+
     :root[data-theme="day"] .event-card-shell {
         background: rgba(255, 255, 255, 0.94);
     }

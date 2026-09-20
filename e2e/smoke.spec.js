@@ -147,3 +147,28 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
         true
     );
 });
+
+test("welcome enters the homepage after three seconds and can be skipped", async ({ page }) => {
+    await page.goto("/");
+    const welcome = page.getByTestId("home-welcome");
+    await expect(welcome).toBeVisible();
+    await page.waitForTimeout(1000);
+    await expect(welcome).toBeVisible();
+    await expect(page.locator(".ai-directory")).toBeVisible({ timeout: 4500 });
+    await expect(page).toHaveURL(/\/$/);
+    await page.reload();
+    await expect(page.locator(".ai-directory")).toBeVisible();
+    await expect(welcome).toHaveCount(0);
+
+    await page.evaluate(() => sessionStorage.removeItem("tuozhe_welcome_seen"));
+    await page.reload();
+    await expect(welcome).toBeVisible();
+    await welcome.getByRole("button", { name: "直接进入" }).click();
+    await expect(page.locator(".ai-directory")).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+
+    await page.evaluate(() => sessionStorage.removeItem("tuozhe_welcome_seen"));
+    await page.goto("/?q=GitHub");
+    await expect(page.getByRole("searchbox", { name: "搜索导航网站" })).toHaveValue("GitHub");
+    await expect(welcome).toHaveCount(0);
+});

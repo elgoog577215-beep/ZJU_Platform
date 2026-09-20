@@ -1161,7 +1161,8 @@
         "brand": "拓浙AI生态",
         "alt_brand": "TUOZHE AI ECOSYSTEM",
         "copyright": "© {{year}} 拓浙AI生态. All rights reserved.",
-        "tagline": "连接人才、技术与产业"
+        "tagline": "连接人才、技术与产业",
+        "developer_acknowledgements": "开发者鸣谢"
     },
     "home": {
         "meta_title": "拓浙AI生态",
