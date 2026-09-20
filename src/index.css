@@ -1525,14 +1525,7 @@ img {
 
         :root[data-theme="day"] .ecosystem-landscape-shell::before {
             background-color: #dbe5ef;
-            background-image:
-                linear-gradient(
-                    180deg,
-                    rgba(226, 232, 240, 0.36) 0%,
-                    rgba(241, 245, 249, 0.54) 48%,
-                    rgba(226, 232, 240, 0.68) 100%
-                ),
-                url("/images/hero-landscape-day-4k.jpg");
+            background-image: url("/images/hero-landscape-day-4k.jpg");
         }
 
         :root[data-theme="day"] .ecosystem-landscape-shell.ai-community-landscape-shell::before {
