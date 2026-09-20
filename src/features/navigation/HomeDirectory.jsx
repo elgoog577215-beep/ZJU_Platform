@@ -123,9 +123,9 @@ export default function HomeDirectory() {
                         <Link to="/" aria-current="page">
                             {t("directory")}
                         </Link>
+                        <Link to="/events">{t("events")}</Link>
                         <Link to="/articles">{t("community")}</Link>
-                        <Link to="/projects">{t("projects")}</Link>
-                        <Link to="/about">{t("about")}</Link>
+                        <Link to="/hackathon">{t("hackathon")}</Link>
                     </nav>
                     <div className="directory-preferences">
                         <button

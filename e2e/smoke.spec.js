@@ -59,8 +59,8 @@ test("internal navigation and back preserve the directory without reloading", as
     let loads = 0;
     page.on("load", () => loads++);
     await page.goto("/?category=learning");
-    await page.locator(".directory-main-nav").getByRole("link", { name: "项目广场" }).click();
-    await expect(page).toHaveURL(/\/projects$/);
+    await page.locator(".directory-main-nav").getByRole("link", { name: "活动聚合" }).click();
+    await expect(page).toHaveURL(/\/events$/);
     await page.goBack();
     await expect(page).toHaveURL(/category=learning/);
     await expect(page.locator(".directory-group")).toHaveCount(1);
