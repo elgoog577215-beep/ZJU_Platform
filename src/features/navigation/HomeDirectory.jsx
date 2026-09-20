@@ -174,29 +174,6 @@ export default function HomeDirectory() {
                     aria-label={t("categories")}
                 >
                     <div className="directory-toolbar">
-                        <div
-                            className="directory-filters"
-                            role="group"
-                            aria-label={t("categories")}
-                        >
-                            <button
-                                type="button"
-                                aria-pressed={category === "all"}
-                                onClick={() => updateFilters(query, "all")}
-                            >
-                                {t("all")}
-                            </button>
-                            {directory.map((group) => (
-                                <button
-                                    type="button"
-                                    key={group.id}
-                                    aria-pressed={category === group.id}
-                                    onClick={() => updateFilters(query, group.id)}
-                                >
-                                    {group[language]}
-                                </button>
-                            ))}
-                        </div>
                         <p className="directory-result-count" role="status">
                             {t(isFiltered ? "results" : "count", { count })}
                             {isFiltered && (

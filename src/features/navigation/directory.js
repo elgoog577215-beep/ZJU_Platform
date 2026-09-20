@@ -137,6 +137,77 @@ export const directory = [
         ],
     },
     {
+        id: "campus",
+        zh: "校园与学术服务",
+        en: "Campus & academic services",
+        sites: [
+            site(
+                "zdbk",
+                "浙大本科",
+                "https://zdbk.zju.edu.cn/",
+                "本科选课与教务",
+                "Undergraduate academic services",
+                "浙江大学 选课 成绩 课表 教务"
+            ),
+            site(
+                "eta",
+                "ETA",
+                "https://eta.zju.edu.cn/",
+                "三全育人学生服务",
+                "Student services",
+                "浙江大学 三全育人 评奖评优 资助"
+            ),
+            site(
+                "courses",
+                "学在浙大",
+                "https://courses.zju.edu.cn/",
+                "课程与教学平台",
+                "Courses & teaching",
+                "浙江大学 学校"
+            ),
+            site(
+                "zjulib",
+                "浙大图书馆",
+                "https://libweb.zju.edu.cn/",
+                "馆藏与学术资源",
+                "Library & research resources",
+                "浙江大学 文献"
+            ),
+            site(
+                "zju-git",
+                "ZJU Git",
+                "https://git.zju.edu.cn/",
+                "校内代码协作",
+                "Campus code collaboration",
+                "浙江大学 仓库"
+            ),
+            site(
+                "mirrors",
+                "浙大开源镜像",
+                "https://mirrors.zju.edu.cn/",
+                "软件与系统镜像",
+                "Open source mirrors",
+                "浙江大学 linux 下载"
+            ),
+            site(
+                "pta",
+                "PTA",
+                "https://pintia.cn/",
+                "程序设计练习",
+                "Programming practice",
+                "浙大 数据结构 oj"
+            ),
+            site(
+                "zjucourses",
+                "浙大课程攻略",
+                "https://github.com/QSCTech/zju-icicles",
+                "公开课程学习资料",
+                "Community course resources",
+                "浙江大学 qsctech 学习"
+            ),
+        ],
+    },
+    {
         id: "ai-dev",
         zh: "AI 开发与实验",
         en: "Build & experiment",
@@ -559,61 +630,6 @@ export const directory = [
                 "开发经验与技术文章",
                 "Developer knowledge",
                 "社区 前端 后端"
-            ),
-        ],
-    },
-    {
-        id: "campus",
-        zh: "校园与学术服务",
-        en: "Campus & academic services",
-        sites: [
-            site(
-                "courses",
-                "学在浙大",
-                "https://courses.zju.edu.cn/",
-                "课程与教学平台",
-                "Courses & teaching",
-                "浙江大学 学校"
-            ),
-            site(
-                "zjulib",
-                "浙大图书馆",
-                "https://libweb.zju.edu.cn/",
-                "馆藏与学术资源",
-                "Library & research resources",
-                "浙江大学 文献"
-            ),
-            site(
-                "zju-git",
-                "ZJU Git",
-                "https://git.zju.edu.cn/",
-                "校内代码协作",
-                "Campus code collaboration",
-                "浙江大学 仓库"
-            ),
-            site(
-                "mirrors",
-                "浙大开源镜像",
-                "https://mirrors.zju.edu.cn/",
-                "软件与系统镜像",
-                "Open source mirrors",
-                "浙江大学 linux 下载"
-            ),
-            site(
-                "pta",
-                "PTA",
-                "https://pintia.cn/",
-                "程序设计练习",
-                "Programming practice",
-                "浙大 数据结构 oj"
-            ),
-            site(
-                "zjucourses",
-                "浙大课程攻略",
-                "https://github.com/QSCTech/zju-icicles",
-                "公开课程学习资料",
-                "Community course resources",
-                "浙江大学 qsctech 学习"
             ),
         ],
     },

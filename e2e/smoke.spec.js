@@ -14,7 +14,7 @@ test("homepage stays available and only exposes public directory URLs", async ({
     await expect(page.getByRole("heading", { name: "探索 AI，从这里开始。" })).toBeVisible();
     await expect(page).toHaveTitle(/AI 与科技导航/);
     await expect(page.locator(".directory-group")).toHaveCount(9);
-    await expect(page.locator(".directory-group li")).toHaveCount(69);
+    await expect(page.locator(".directory-group li")).toHaveCount(71);
     await expect(page.getByRole("menubar", { name: "导航菜单" }).getByRole("menuitem")).toHaveText([
         "首页",
         "活动聚合",
@@ -51,16 +51,22 @@ test("search, empty recovery and category URL restoration", async ({ page }) => 
     await input.fill("不存在的网站-no-match");
     await expect(page.getByRole("heading", { name: "还没有找到匹配的网站" })).toBeVisible();
     await page.locator(".directory-empty").getByRole("button", { name: "浏览全部网站" }).click();
-    await page.getByRole("button", { name: "论文与科研", exact: true }).click();
-    await expect(page).toHaveURL(/category=research/);
-    await expect(page.locator(".directory-group")).toHaveCount(1);
-    await page.getByRole("button", { name: "模型与数据集", exact: true }).click();
-    await page.goBack();
-    await expect(page.getByRole("button", { name: "论文与科研", exact: true })).toHaveAttribute(
-        "aria-pressed",
-        "true"
-    );
+    await expect(page.locator(".directory-filters")).toHaveCount(0);
+    await page.goto("/?category=research");
     await expect(page.locator(".directory-group li")).toHaveCount(9);
+    await page.getByRole("button", { name: "浏览全部网站", exact: true }).click();
+    await expect(page.locator(".directory-group li")).toHaveCount(71);
+    await input.fill("浙大本科");
+    await expect(page.locator(".directory-group li")).toHaveCount(1);
+    await expect(page.locator(".directory-group a")).toHaveAttribute(
+        "href",
+        "https://zdbk.zju.edu.cn/"
+    );
+    await input.fill("ETA");
+    await expect(page.locator(".directory-group a")).toHaveAttribute(
+        "href",
+        "https://eta.zju.edu.cn/"
+    );
 });
 
 test("internal navigation and back preserve the directory without reloading", async ({ page }) => {
@@ -108,7 +114,7 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
     await page.getByRole("searchbox", { name: "Search directory" }).fill("python");
     await expect(page.locator(".directory-group li")).toHaveCount(4);
     await page.keyboard.press("Escape");
-    await expect(page.locator(".directory-group li")).toHaveCount(69);
+    await expect(page.locator(".directory-group li")).toHaveCount(71);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
     );
