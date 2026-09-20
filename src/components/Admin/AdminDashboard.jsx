@@ -48,6 +48,9 @@ import EventAttributionMigrationManager from "./EventAttributionMigrationManager
 import MediaCategoryManager from "./MediaCategoryManager";
 import WeChatMpImportManager from "./WeChatMpImportManager";
 import ProjectManager from "./ProjectManager";
+import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import AdminPermissionManager from "./AdminPermissionManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
@@ -65,6 +68,7 @@ const MODULE_STATUS = {
 const normalizeTabId = (tabId) => LEGACY_TAB_ALIASES[tabId] || tabId;
 const KNOWN_TAB_IDS = new Set([
     "overview",
+    "admin-access",
     "pending",
     "intelligence",
     "wechat-mp",
@@ -120,6 +124,43 @@ const persistRecentTabs = (tabIds) => {
 
 const AdminDashboard = () => {
     const { t } = useTranslation();
+    const { user, logout } = useAuth();
+    const [capabilities, setCapabilities] = useState(null);
+    const [accessError, setAccessError] = useState(false);
+    const [accessRevision, setAccessRevision] = useState(0);
+    useEffect(() => {
+        let alive = true;
+        let running = false;
+        const refresh = async () => {
+            if (running) return;
+            running = true;
+            try {
+                const response = await api.get("/admin/capabilities", {
+                    noRetry: true,
+                    silent: true,
+                });
+                if (alive) {
+                    setCapabilities(response.data);
+                    setAccessError(false);
+                }
+            } catch {
+                if (alive) {
+                    setCapabilities(null);
+                    setAccessError(true);
+                }
+            } finally {
+                running = false;
+            }
+        };
+        refresh();
+        const interval = window.setInterval(refresh, 15000);
+        window.addEventListener("focus", refresh);
+        return () => {
+            alive = false;
+            window.clearInterval(interval);
+            window.removeEventListener("focus", refresh);
+        };
+    }, [user?.id, accessRevision]);
     const { uiMode } = useSettings();
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState(getInitialTabId);
@@ -158,7 +199,7 @@ const AdminDashboard = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const menuGroups = useMemo(
+    const allMenuGroups = useMemo(
         () => [
             {
                 id: "overview",
@@ -378,6 +419,52 @@ const AdminDashboard = () => {
         [t]
     );
 
+    const menuGroups = useMemo(() => {
+        if (!capabilities) return [];
+        if (capabilities.isPlatformAdmin)
+            return allMenuGroups.map((group) =>
+                group.id !== "system"
+                    ? group
+                    : {
+                          ...group,
+                          items: [
+                              {
+                                  id: "admin-access",
+                                  label: t("admin.access.title"),
+                                  icon: ShieldCheck,
+                                  description: t("admin.access.description"),
+                                  keywords: ["权限", "管理员", "permissions"],
+                              },
+                              ...group.items,
+                          ],
+                      }
+            );
+        const grants = new Set(capabilities.permissions || []);
+        const modules = {
+            overview: ["admin.dashboard.read"],
+            pending: ["admin.review.manage", "admin.content.manage", "admin.events.manage"],
+            events: ["admin.events.manage"],
+            community: ["admin.content.manage"],
+            articles: ["admin.content.manage"],
+            photos: ["admin.content.manage"],
+            videos: ["admin.content.manage"],
+            music: ["admin.content.manage"],
+            "media-categories": ["admin.taxonomy.manage"],
+            tags: ["admin.taxonomy.manage"],
+            pages: ["admin.pages.manage"],
+            partners: ["admin.partners.manage"],
+            projects: ["admin.projects.manage"],
+        };
+        return allMenuGroups
+            .map((group) => ({
+                ...group,
+                items: group.items.filter((item) =>
+                    modules[item.id]?.some((key) => grants.has(key))
+                ),
+            }))
+            .filter((group) => group.items.length > 0);
+    }, [capabilities, allMenuGroups, t]);
+
     const flatMenuItems = useMemo(() => menuGroups.flatMap((group) => group.items), [menuGroups]);
     const normalizedNavQuery = navQuery.trim().toLowerCase();
     const filteredMenuGroups = useMemo(() => {
@@ -481,9 +568,44 @@ const AdminDashboard = () => {
     );
 
     const renderContent = () => {
+        if (!capabilities)
+            return (
+                <div role={accessError ? "alert" : "status"} className="space-y-3 py-6 text-sm">
+                    <p>{t(accessError ? "admin.access.load_error" : "admin.access.loading")}</p>
+                    {accessError && (
+                        <div className="flex gap-2">
+                            <AdminButton onClick={() => setAccessRevision((v) => v + 1)}>
+                                {t("admin.access.refresh")}
+                            </AdminButton>
+                            <AdminButton tone="subtle" onClick={logout}>
+                                {t("admin.access.logout")}
+                            </AdminButton>
+                        </div>
+                    )}
+                </div>
+            );
+        if (!activeItem)
+            return (
+                <div className="space-y-3 py-6 text-sm">
+                    <p role="status">{t("admin.access.denied")}</p>
+                    {flatMenuItems[0] && (
+                        <AdminButton onClick={() => selectTab(flatMenuItems[0].id)}>
+                            {t("admin.access.open_available")}
+                        </AdminButton>
+                    )}
+                </div>
+            );
         switch (activeTab) {
+            case "admin-access":
+                return <AdminPermissionManager />;
             case "overview":
-                return <Overview onChangeTab={selectTab} />;
+                return (
+                    <Overview
+                        onChangeTab={selectTab}
+                        allowedTabs={flatMenuItems.map((item) => item.id)}
+                        isPlatformAdmin={capabilities.isPlatformAdmin}
+                    />
+                );
             case "pending":
                 return <PendingReviewManager />;
             case "messages":
@@ -706,7 +828,7 @@ const AdminDashboard = () => {
                         } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
                     >
                         <div
-                            className={`rect-surface h-full p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto ${sidebarClass}`}
+                            className={`rect-surface h-full overflow-y-auto overscroll-contain p-3 md:p-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:h-auto ${sidebarClass}`}
                         >
                             <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
                                 <div
@@ -724,6 +846,30 @@ const AdminDashboard = () => {
                                 </button>
                             </div>
 
+                            <div className="mb-4 space-y-2 px-1 text-sm">
+                                <p className="break-all font-semibold">
+                                    {user?.nickname || user?.username}
+                                </p>
+                                <p>
+                                    {t(
+                                        capabilities?.isPlatformAdmin
+                                            ? "admin.access.roles.admin"
+                                            : "admin.access.roles.operator"
+                                    )}
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    <a href="/" className="underline underline-offset-4">
+                                        {t("admin.access.frontstage")}
+                                    </a>
+                                    <button
+                                        type="button"
+                                        className="underline underline-offset-4"
+                                        onClick={logout}
+                                    >
+                                        {t("admin.access.logout")}
+                                    </button>
+                                </div>
+                            </div>
                             <div className="mb-3 px-1">
                                 <div className="relative">
                                     <Search
@@ -823,7 +969,7 @@ const AdminDashboard = () => {
 
                     <main className="min-w-0 flex-1" aria-live="polite">
                         <motion.div
-                            key={activeTab}
+                            key={`${activeTab}-${capabilities?.isPlatformAdmin}-${capabilities?.permissions?.join(",")}`}
                             initial={{ opacity: 0, x: 18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.25 }}

@@ -3030,7 +3030,7 @@
             "subtitle": "Sign in to manage content, reviews, community operations, and system settings.",
             "username": "Username",
             "password": "Password",
-            "password_placeholder": "Default password 123456",
+            "password_placeholder": "Enter password",
             "enter_dashboard": "Enter Admin Dashboard"
         },
         "logout": "Logout",
@@ -3221,7 +3221,8 @@
             },
             "admin_scope": {
                 "none": "No Admin Scope",
-                "platform": "Platform Admin"
+                "platform": "Platform Admin",
+                "organization": "Assigned organizations"
             },
             "partner_scope": {
                 "core_partner": "Ecosystem / Hackathon Partner",
@@ -3820,6 +3821,67 @@
                 "ingest_start_failed": "Failed to start incremental ingest",
                 "ingest_extraction_completed": "Article information extracted",
                 "ingest_extraction_failed": "Failed to extract article information"
+            }
+        },
+        "access": {
+            "title": "Administrators & permissions",
+            "description": "One console with configurable module access for regular administrators.",
+            "loading": "Loading permissions…",
+            "load_error": "Unable to load permissions or data. Refresh to retry, or sign out if access was revoked.",
+            "save_error": "Could not save. Refresh and try again.",
+            "refresh": "Refresh",
+            "find_account": "Search account or nickname",
+            "no_accounts": "No matching accounts.",
+            "select_account": "Select an account to manage console access.",
+            "own_hint": "Ask another platform administrator to change your access to prevent accidental lockout.",
+            "password_hint": "Manage console access here. Reset passwords in Accounts & organizations.",
+            "role": "Console role",
+            "roles": {
+                "user": "User",
+                "operator": "Regular administrator",
+                "admin": "Developer administrator",
+                "banned": "Disabled"
+            },
+            "permissions": "Allowed operations",
+            "permission_labels": {
+                "dashboard": "Operations overview",
+                "events": "Events, including review and deletion",
+                "content": "AI resources, community, articles and media, including review and deletion",
+                "review": "Review all events and content",
+                "projects": "Project moderation",
+                "partners": "Ecosystem partners",
+                "taxonomy": "Tags and media categories",
+                "pages": "Public page content"
+            },
+            "platform_hint": "Developer administrators have full access, including private accounts, access grants, registrations, credentials and system settings.",
+            "preview": "After saving: {{role}}, with {{count}} operations grants. Developer administrators have full access.",
+            "save": "Save permissions",
+            "saving": "Saving…",
+            "saved": "Saved. Subsequent requests use the new permissions.",
+            "force_logout": "Force sign-out",
+            "logout_hint": "All existing sessions for this account will expire. The user must sign in again.",
+            "confirm": "Confirm",
+            "cancel": "Cancel",
+            "logout": "Sign out",
+            "frontstage": "Back to website",
+            "denied": "You do not have access to this module.",
+            "open_available": "Open an authorized module",
+            "status": {
+                "active": "Active",
+                "approved": "Published",
+                "pending": "Pending review",
+                "draft": "Draft",
+                "rejected": "Rejected"
+            },
+            "account_editor_hint": "Set console roles and module access in Administrators & permissions. This editor manages account details and publishing review privileges.",
+            "errors": {
+                "ACCESS_CHANGED_RELOAD": "Another administrator changed this account. Refresh before editing again.",
+                "CANNOT_CHANGE_OWN_ACCESS": "You cannot change your own console access here.",
+                "LAST_PLATFORM_ADMIN": "At least one platform administrator must remain.",
+                "INVALID_ACCESS_SETTINGS": "Invalid access settings. Check and try again.",
+                "ACCOUNT_DISABLED": "This account is disabled.",
+                "PLATFORM_ADMIN_REQUIRED": "Platform administrator access is required.",
+                "ACCOUNT_NOT_FOUND": "The account no longer exists."
             }
         }
     },

@@ -552,7 +552,7 @@ async function runMigrations(db) {
             END
         WHERE admin_scope IS NULL
            OR TRIM(admin_scope) = ''
-           OR admin_scope NOT IN ('none', 'platform')
+           OR admin_scope NOT IN ('none', 'platform', 'organization', 'operations')
       `);
             await db.exec(`
         UPDATE users
@@ -2905,6 +2905,7 @@ async function runMigrations(db) {
             console.warn("Migration warning (project cards):", err.message);
         }
     }
+    await require("./migrations/adminAccess").migrateAdminAccess(db);
 }
 
 module.exports = {

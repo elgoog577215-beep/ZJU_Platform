@@ -25,6 +25,7 @@ const signAuthToken = (user) =>
     jwt.sign(
         {
             id: user.id,
+            auth_version: Number(user.auth_version || 0),
             username: user.username,
             role: user.role,
             account_type: user.account_type || "personal",
@@ -43,6 +44,7 @@ const toAuthUser = (user) => ({
     account_type: user.account_type || "personal",
     review_permission: user.review_permission || (user.role === "admin" ? "admin" : "normal"),
     admin_scope: user.admin_scope || (user.role === "admin" ? "platform" : "none"),
+    admin_permissions: require("../utils/userPermissions").getAdminPermissions(user),
     nickname: user.nickname,
     avatar: user.avatar,
 });
@@ -303,18 +305,10 @@ const adminLogin = async (req, res, next) => {
         // FIX: BUG-14 — Look up actual admin user from database instead of hardcoding id:1
         const db = await getDb();
         let adminUser = await db.get(
-            "SELECT id, username, role, account_type, review_permission, admin_scope FROM users WHERE role = 'admin' LIMIT 1"
+            "SELECT id, username, role, account_type, review_permission, admin_scope, auth_version FROM users WHERE role = 'admin' AND admin_scope = 'platform' ORDER BY id LIMIT 1"
         );
         if (!adminUser) {
-            // Fallback: create a virtual admin identity if no admin user exists in DB
-            adminUser = {
-                id: 0,
-                username: "admin",
-                role: "admin",
-                account_type: "personal",
-                review_permission: "admin",
-                admin_scope: "platform",
-            };
+            return res.status(503).json({ error: "No platform administrator configured" });
         }
 
         const token = signAuthToken({ ...adminUser, role: "admin" });
@@ -385,26 +379,13 @@ const me = async (req, res, next) => {
         // Fetch full user details from DB to ensure we have the latest data
         // Exclude password for security
         const user = await db.get(
-            `SELECT id, username, role, account_type, review_permission, admin_scope,
+            `SELECT id, username, role, account_type, review_permission, admin_scope, admin_permissions,
                   avatar, organization_cr, gender, age, nickname, created_at
            FROM users WHERE id = ?`,
             [req.user.id]
         );
 
         if (!user) {
-            // Handle special case for hardcoded admin (id: 1)
-            if (req.user.id === 1 && req.user.username === "admin") {
-                return res.json({
-                    id: 1,
-                    username: "admin",
-                    role: "admin",
-                    account_type: "personal",
-                    review_permission: "admin",
-                    admin_scope: "platform",
-                    nickname: "Administrator",
-                    created_at: new Date().toISOString(),
-                });
-            }
             return res.status(404).json({ error: "User not found" });
         }
 
@@ -433,7 +414,10 @@ const changePassword = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await db.run("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+        await db.run(
+            "UPDATE users SET password = ?, auth_version = auth_version + 1 WHERE id = ?",
+            [hashedPassword, userId]
+        );
 
         res.json({ message: "Password updated successfully" });
     } catch (error) {

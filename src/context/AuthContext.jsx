@@ -156,6 +156,9 @@ export const AuthProvider = ({ children }) => {
                 loading,
                 refreshUser,
                 isAdmin: user?.role === "admin",
+                canAccessAdmin:
+                    user?.role === "admin" ||
+                    (user?.role === "operator" && user?.admin_scope === "operations"),
             }}
         >
             {children}

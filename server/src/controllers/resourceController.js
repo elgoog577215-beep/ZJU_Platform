@@ -11,7 +11,11 @@ const {
     normalizeEventCategory,
 } = require("../services/eventIntelligenceService");
 const profileService = require("../services/profileService");
-const { canBypassReview } = require("../utils/userPermissions");
+const {
+    canBypassReview,
+    canManageResource,
+    canReviewResource,
+} = require("../utils/userPermissions");
 const { normalizeEventWorkflowStatus } = require("../utils/resourceWorkflowStatus");
 const { triggerEventGovernance } = require("../services/eventGovernanceTriggerService");
 const { ensureEventProfile } = require("../services/eventAiProfileService");
@@ -293,14 +297,14 @@ const normalizeArticleWorkflowStatus = (table, requestedStatus, user = {}) => {
     const normalized = String(requestedStatus || "")
         .trim()
         .toLowerCase();
-    const userRole = user?.role || "user";
+    const userRole = canManageResource(user, table) ? "admin" : user?.role || "user";
     if (!normalized) {
-        return canBypassReview(user) ? "approved" : "pending";
+        return canManageResource(user, table) || canBypassReview(user) ? "approved" : "pending";
     }
     // Non-admin users can only create drafts or submit for pending review.
     if (userRole !== "admin") {
         if (normalized === "draft") return "draft";
-        return canBypassReview(user) ? "approved" : "pending";
+        return canManageResource(user, table) || canBypassReview(user) ? "approved" : "pending";
     }
     // Admins can set any workflow status explicitly.
     if (["draft", "pending", "approved", "rejected"].includes(normalized)) {
@@ -337,7 +341,7 @@ const restoreOwnHandler = (table) => async (req, res, next) => {
         if (!item.deleted_at) {
             return res.status(400).json({ error: "Item is not in trash" });
         }
-        if (req.user.role !== "admin" && item.uploader_id !== userId) {
+        if (!canManageResource(req.user, table) && item.uploader_id !== userId) {
             return res
                 .status(403)
                 .json({ error: "You do not have permission to restore this resource" });
@@ -363,13 +367,17 @@ const createHandler = (table, fields) => async (req, res, next) => {
         const placeholders = fields.map(() => "?").join(",");
 
         // Determine status based on user role and optional workflow intent.
-        const userRole = req.user ? req.user.role : "user";
+        const userRole = canManageResource(req.user, table) ? "admin" : req.user?.role || "user";
         const workflowStatus = normalizeResourceWorkflowStatus(
             table,
             req.body.status,
             req.user || {}
         );
-        const status = workflowStatus || (canBypassReview(req.user || {}) ? "approved" : "pending");
+        const status =
+            workflowStatus ||
+            (canManageResource(req.user, table) || canBypassReview(req.user || {})
+                ? "approved"
+                : "pending");
         const uploader_id = req.user ? req.user.id : null;
         const publisherProfileId = await profileService.resolvePublisherProfileId(
             db,
@@ -482,12 +490,12 @@ const updateHandler = (table, fields) => async (req, res, next) => {
             await findDuplicateResourceSource(db, table, source, id)
         );
 
-        if (req.user.role !== "admin" && oldItem.uploader_id !== req.user.id) {
+        if (!canManageResource(req.user, table) && oldItem.uploader_id !== req.user.id) {
             return res
                 .status(403)
                 .json({ error: "You do not have permission to update this resource" });
         }
-        const userRole = req.user ? req.user.role : "user";
+        const userRole = canManageResource(req.user, table) ? "admin" : req.user?.role || "user";
 
         // Check for file changes to delete old files
         const fileFields = ["url", "cover", "thumbnail", "image", "audio", "video"];
@@ -560,7 +568,7 @@ const deleteHandler = (table) => async (req, res, next) => {
             return res.status(404).json({ error: "Item not found" });
         }
 
-        if (req.user.role !== "admin" && item.uploader_id !== req.user.id) {
+        if (!canManageResource(req.user, table) && item.uploader_id !== req.user.id) {
             return res
                 .status(403)
                 .json({ error: "You do not have permission to delete this resource" });
@@ -571,7 +579,7 @@ const deleteHandler = (table) => async (req, res, next) => {
         if (table === "events") refreshEventAiIndex(db, id);
 
         // Audit Log for Admins
-        if (req.user.role === "admin") {
+        if (canManageResource(req.user, table)) {
             await db.run(
                 `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
                 [req.user.id, table, id, "soft_delete", "Admin soft deleted resource"]
@@ -632,7 +640,7 @@ const permanentDeleteHandler = (table) => async (req, res, next) => {
             await db.run(`DELETE FROM ${table} WHERE id = ?`, id);
 
             // Audit Log for Admins
-            if (req.user.role === "admin") {
+            if (canManageResource(req.user, table)) {
                 await db.run(
                     `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
                     [
@@ -665,7 +673,7 @@ const restoreHandler = (table) => async (req, res, next) => {
         await db.run(`UPDATE ${table} SET deleted_at = NULL WHERE id = ?`, id);
 
         // Audit Log for Admins
-        if (req.user.role === "admin") {
+        if (canManageResource(req.user, table)) {
             await db.run(
                 `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
                 [req.user.id, table, id, "restore", "Admin restored resource"]
@@ -736,7 +744,7 @@ const getOneHandler = (table) => async (req, res, next) => {
 
         // Access Control: Only admin or owner can see non-approved/deleted items
         if (item.status !== "approved" || item.deleted_at) {
-            const isAdmin = req.user && req.user.role === "admin";
+            const isAdmin = canReviewResource(req.user, table);
             const isOwner = req.user && req.user.id === item.uploader_id;
 
             if (!isAdmin && !isOwner) {
@@ -792,7 +800,7 @@ const getAllHandler =
             const offset = (page - 1) * limit;
 
             const userId = req.user && req.user.id ? req.user.id : null;
-            const isAdmin = req.user && req.user.role === "admin";
+            const isAdmin = canReviewResource(req.user, table);
             const itemType = getSingularType(table);
 
             let effectiveStatus = requestedStatus;

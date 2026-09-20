@@ -9,12 +9,9 @@ const { serializeCommunityPost } = require("../utils/serializeCommunityPost");
 const { cleanupTempFiles } = require("../middleware/upload");
 const { importCommunityDocument } = require("../utils/communityDocumentImport");
 const profileService = require("../services/profileService");
-const { canBypassReview } = require("../utils/userPermissions");
+const { canBypassReview, canManageCommunity } = require("../utils/userPermissions");
 
-const viewerFromReq = (req) =>
-    req && req.user && req.user.id != null
-        ? { id: req.user.id, role: req.user.role || null }
-        : null;
+const viewerFromReq = (req) => (req && req.user && req.user.id != null ? { ...req.user } : null);
 
 const ALLOWED_SECTIONS = new Set(["help", "team", "materials", "groups"]);
 const ALLOWED_GROUP_PLATFORMS = new Set(["wechat", "qq", "discord", "telegram", "other"]);
@@ -76,9 +73,10 @@ const normalizeContentStatus = (
         .trim()
         .toLowerCase();
     if (requested === "draft") return "draft";
-    if (role === "admin" && CONTENT_STATUSES.has(requested)) return requested;
+    if ((role === "admin" || canManageCommunity(user)) && CONTENT_STATUSES.has(requested))
+        return requested;
     if (intent === "draft") return "draft";
-    return canBypassReview(user) ? "approved" : "pending";
+    return canManageCommunity(user) || canBypassReview(user) ? "approved" : "pending";
 };
 
 const sanitizeCommunityText = (input) => {
@@ -200,10 +198,11 @@ const deletePost = async (req, res, next) => {
             return res.status(404).json({ error: "Post not found" });
         }
 
-        const actor = await db.get("SELECT role, review_permission FROM users WHERE id = ?", [
-            userId,
-        ]);
-        const canDelete = actor?.role === "admin" || post.author_id === userId;
+        const actor = await db.get(
+            "SELECT role, review_permission, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        const canDelete = canManageCommunity(actor) || post.author_id === userId;
         if (!canDelete) {
             return res.status(403).json({ error: "Permission denied" });
         }
@@ -236,20 +235,22 @@ const restorePost = async (req, res, next) => {
             return res.status(404).json({ error: "Post not found" });
         }
 
-        const actor = await db.get("SELECT role FROM users WHERE id = ?", [userId]);
-        const canRestore = actor?.role === "admin" || post.author_id === userId;
+        const actor = await db.get(
+            "SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        const canRestore = canManageCommunity(actor) || post.author_id === userId;
         if (!canRestore) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
-        const nextStatus =
-            actor?.role === "admin"
-                ? "approved"
-                : normalizeContentStatus("submit", {
-                      section: post.section,
-                      user: actor || {},
-                      intent: "submit",
-                  });
+        const nextStatus = canManageCommunity(actor)
+            ? "approved"
+            : normalizeContentStatus("submit", {
+                  section: post.section,
+                  user: actor || {},
+                  intent: "submit",
+              });
         await db.run(
             `UPDATE community_posts
        SET status = ?, rejection_reason = NULL, updated_at = datetime('now')
@@ -291,9 +292,12 @@ const deletePostComment = async (req, res, next) => {
             return res.status(404).json({ error: "Comment not found" });
         }
 
-        const actor = await db.get("SELECT role FROM users WHERE id = ?", [userId]);
+        const actor = await db.get(
+            "SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
         const canDelete =
-            actor?.role === "admin" || comment.user_id === userId || post.author_id === userId;
+            canManageCommunity(actor) || comment.user_id === userId || post.author_id === userId;
         if (!canDelete) {
             return res.status(403).json({ error: "Permission denied" });
         }
@@ -525,7 +529,7 @@ const listPosts = async (req, res, next) => {
         const q = String(req.query.search || "").trim();
         const sort = String(req.query.sort || "newest");
         const viewer = viewerFromReq(req);
-        const isAdmin = viewer?.role === "admin";
+        const isAdmin = canManageCommunity(viewer);
         const ownAuthorScope = Boolean(
             viewer?.id && authorId && Number(viewer.id) === Number(authorId)
         );
@@ -727,7 +731,7 @@ const getPost = async (req, res, next) => {
         const viewer = viewerFromReq(req);
         if (post.status !== "approved") {
             const canSeePrivate =
-                viewer?.role === "admin" ||
+                canManageCommunity(viewer) ||
                 (viewer?.id && Number(viewer.id) === Number(post.author_id));
             if (!canSeePrivate || post.status === "deleted") {
                 return res.status(404).json({ error: "Post not found" });
@@ -779,7 +783,7 @@ const createPost = async (req, res, next) => {
         }
 
         const user = await db.get(
-            "SELECT username, nickname, avatar, role, review_permission FROM users WHERE id = ?",
+            "SELECT username, nickname, avatar, role, review_permission, admin_scope, admin_permissions FROM users WHERE id = ?",
             [userId]
         );
         if (!user) {
@@ -818,7 +822,7 @@ const createPost = async (req, res, next) => {
             db,
             userId,
             mutableBody.publisher_profile_id,
-            user.role || "user"
+            canManageCommunity(user) ? "admin" : user.role || "user"
         );
 
         const result = await db.run(
@@ -1205,8 +1209,11 @@ const updatePostStatus = async (req, res, next) => {
                 .json({ error: "Status update is not supported for this section" });
         }
 
-        const actor = await db.get("SELECT id, role FROM users WHERE id = ?", [userId]);
-        if (!actor || (actor.role !== "admin" && post.author_id !== userId)) {
+        const actor = await db.get(
+            "SELECT id, role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!actor || (!canManageCommunity(actor) && post.author_id !== userId)) {
             return res.status(403).json({ error: "Permission denied" });
         }
         if (!validatePostStatus(post.section, status)) {
@@ -1310,8 +1317,11 @@ const solvePost = async (req, res, next) => {
         if (post.section !== "help")
             return res.status(400).json({ error: "Only help posts can be solved" });
 
-        const actor = await db.get("SELECT id, role FROM users WHERE id = ?", [userId]);
-        if (!actor || (actor.role !== "admin" && post.author_id !== userId)) {
+        const actor = await db.get(
+            "SELECT id, role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!actor || (!canManageCommunity(actor) && post.author_id !== userId)) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
@@ -1413,9 +1423,11 @@ const listGroups = async (req, res, next) => {
             .trim()
             .toLowerCase();
         const actor = req.user?.id
-            ? await db.get("SELECT role FROM users WHERE id = ?", [req.user.id])
+            ? await db.get("SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?", [
+                  req.user.id,
+              ])
             : null;
-        const reviewStatus = actor?.role === "admin" ? requestedReviewStatus : "approved";
+        const reviewStatus = canManageCommunity(actor) ? requestedReviewStatus : "approved";
         const params = [];
         let where = "";
         if (reviewStatus !== "all") {
@@ -1445,10 +1457,11 @@ const updatePost = async (req, res, next) => {
         if (!existing || existing.status === "deleted") {
             return res.status(404).json({ error: "Post not found" });
         }
-        const actor = await db.get("SELECT role, review_permission FROM users WHERE id = ?", [
-            userId,
-        ]);
-        if (!actor || (actor.role !== "admin" && existing.author_id !== userId)) {
+        const actor = await db.get(
+            "SELECT role, review_permission, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!actor || (!canManageCommunity(actor) && existing.author_id !== userId)) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
@@ -1488,7 +1501,7 @@ const updatePost = async (req, res, next) => {
                   })
                 : existing.status;
         const rejectionReason =
-            actor.role === "admin" && mutableBody.rejection_reason !== undefined
+            canManageCommunity(actor) && mutableBody.rejection_reason !== undefined
                 ? sanitizeCommunityText(String(mutableBody.rejection_reason || "")).slice(0, 500)
                 : nextStatus === "pending" || nextStatus === "approved"
                   ? null
@@ -1557,13 +1570,15 @@ const getGroup = async (req, res, next) => {
         const db = await getDb();
         const { id } = req.params;
         const actor = req.user?.id
-            ? await db.get("SELECT role FROM users WHERE id = ?", [req.user.id])
+            ? await db.get("SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?", [
+                  req.user.id,
+              ])
             : null;
         const row = await db.get("SELECT * FROM community_groups WHERE id = ?", [id]);
         if (!row) return res.status(404).json({ error: "Group not found" });
         if (
             row.review_status !== "approved" &&
-            actor?.role !== "admin" &&
+            !canManageCommunity(actor) &&
             row.created_by !== req.user?.id
         ) {
             return res.status(403).json({ error: "Permission denied" });
@@ -1606,8 +1621,11 @@ const createGroup = async (req, res, next) => {
             related_group_ids,
         } = mutableBody;
         if (!name || !name.trim()) return res.status(400).json({ error: "Group name is required" });
-        const actor = await db.get("SELECT role FROM users WHERE id = ?", [userId]);
-        const reviewStatus = actor?.role === "admin" ? "approved" : "pending";
+        const actor = await db.get(
+            "SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        const reviewStatus = canManageCommunity(actor) ? "approved" : "pending";
         const normalizedPlatform = normalizeGroupPlatform(platform);
         const normalizedQr = normalizeHttpUrl(qr_code_url);
         const normalizedInvite = normalizeHttpUrl(invite_link);
@@ -1619,7 +1637,7 @@ const createGroup = async (req, res, next) => {
             return res.status(400).json({ error: "Invalid invite link URL" });
         if (valid_until && !normalizedValidUntil)
             return res.status(400).json({ error: "Invalid valid_until date" });
-        const adminMode = actor?.role === "admin";
+        const adminMode = canManageCommunity(actor);
         const expiredFlag = deriveExpiredFlag(
             normalizedValidUntil,
             adminMode ? is_expired : undefined,
@@ -1666,8 +1684,11 @@ const updateGroup = async (req, res, next) => {
         const group = await db.get("SELECT * FROM community_groups WHERE id = ?", [id]);
         if (!group) return res.status(404).json({ error: "Group not found" });
 
-        const actor = await db.get("SELECT role FROM users WHERE id = ?", [userId]);
-        if (!actor || (actor.role !== "admin" && group.created_by !== userId)) {
+        const actor = await db.get(
+            "SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!actor || (!canManageCommunity(actor) && group.created_by !== userId)) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
@@ -1713,7 +1734,7 @@ const updateGroup = async (req, res, next) => {
             return res.status(400).json({ error: "Invalid valid_until date" });
         const expiredFlag = deriveExpiredFlag(
             normalizedValidUntil,
-            actor.role === "admin" ? is_expired : undefined,
+            canManageCommunity(actor) ? is_expired : undefined,
             group.is_expired
         );
         await db.run(
@@ -1726,7 +1747,7 @@ const updateGroup = async (req, res, next) => {
                 normalizedInvite,
                 member_count ?? group.member_count,
                 category ?? group.category,
-                actor.role === "admin"
+                canManageCommunity(actor)
                     ? review_status || group.review_status || "approved"
                     : group.review_status,
                 normalizedValidUntil,
@@ -1737,7 +1758,7 @@ const updateGroup = async (req, res, next) => {
                     : group.is_recommended,
                 sort_order ?? group.sort_order,
                 expiredFlag,
-                actor.role === "admin"
+                canManageCommunity(actor)
                     ? (review_note ?? group.review_note ?? null)
                     : (group.review_note ?? null),
                 primary_tags ?? group.primary_tags ?? null,
@@ -1763,8 +1784,11 @@ const deleteGroup = async (req, res, next) => {
         const group = await db.get("SELECT * FROM community_groups WHERE id = ?", [id]);
         if (!group) return res.status(404).json({ error: "Group not found" });
 
-        const actor = await db.get("SELECT role FROM users WHERE id = ?", [userId]);
-        if (!actor || (actor.role !== "admin" && group.created_by !== userId)) {
+        const actor = await db.get(
+            "SELECT role, admin_scope, admin_permissions FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!actor || (!canManageCommunity(actor) && group.created_by !== userId)) {
             return res.status(403).json({ error: "Permission denied" });
         }
 

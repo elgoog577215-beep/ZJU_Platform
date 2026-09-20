@@ -8,7 +8,7 @@ const {
 } = require("../utils/communityLinks");
 const { fanOutNewContent } = require("./notificationController");
 const profileService = require("../services/profileService");
-const { canBypassReview } = require("../utils/userPermissions");
+const { canBypassReview, canManageResource } = require("../utils/userPermissions");
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const NEWS_STATUSES = new Set(["draft", "pending", "approved", "rejected"]);
@@ -97,11 +97,8 @@ const listNews = async (req, res, next) => {
             ? parseInt(req.query.uploader_id, 10)
             : null;
         const q = String(req.query.search || "").trim();
-        const viewer =
-            req.user && req.user.id != null
-                ? { id: req.user.id, role: req.user.role || null }
-                : null;
-        const isAdmin = viewer?.role === "admin";
+        const viewer = req.user && req.user.id != null ? { ...req.user } : null;
+        const isAdmin = canManageResource(viewer, "news");
         const ownUploaderScope = Boolean(
             viewer?.id && requestedUploaderId && Number(viewer.id) === Number(requestedUploaderId)
         );
@@ -184,13 +181,10 @@ const getNews = async (req, res, next) => {
         if (!item) {
             return res.status(404).json({ error: "News item not found" });
         }
-        const viewer =
-            req.user && req.user.id != null
-                ? { id: req.user.id, role: req.user.role || null }
-                : null;
+        const viewer = req.user && req.user.id != null ? { ...req.user } : null;
         if (item.status !== "approved") {
             const canSeePrivate =
-                viewer?.role === "admin" ||
+                canManageResource(viewer, "news") ||
                 (viewer?.id && Number(viewer.id) === Number(item.uploader_id));
             if (!canSeePrivate) {
                 return res.status(404).json({ error: "News item not found" });
@@ -268,7 +262,7 @@ const normalizeNewsStatus = (value, user = {}, fallback = null) => {
     const requested = String(value || "")
         .trim()
         .toLowerCase();
-    const userRole = user?.role || "user";
+    const userRole = canManageResource(user, "news") ? "admin" : user?.role || "user";
     if (userRole === "admin") {
         if (NEWS_STATUSES.has(requested)) return requested;
         return fallback || "approved";
@@ -282,7 +276,7 @@ const normalizeNewsStatus = (value, user = {}, fallback = null) => {
 const buildNewsPayload = (body = {}, user = {}, fallbackStatus = null) => {
     const mutableBody = { ...body };
     normalizeLinkagePayload(mutableBody, { strict: true });
-    const userRole = user?.role || "user";
+    const userRole = canManageResource(user, "news") ? "admin" : user?.role || "user";
     const title = String(body.title || "").trim();
     const excerpt = String(body.excerpt || "").trim();
     const content = String(body.content || "").trim();
@@ -335,7 +329,7 @@ const createNews = async (req, res, next) => {
             db,
             userId,
             req.body.publisher_profile_id,
-            req.user?.role
+            canManageResource(req.user, "news") ? "admin" : req.user?.role
         );
 
         const result = await db.run(
@@ -405,7 +399,7 @@ const updateNews = async (req, res, next) => {
             id,
         ]);
         if (!existing) return res.status(404).json({ error: "News item not found" });
-        if (req.user?.role !== "admin" && existing.uploader_id !== userId) {
+        if (!canManageResource(req.user, "news") && existing.uploader_id !== userId) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
@@ -420,7 +414,7 @@ const updateNews = async (req, res, next) => {
                       db,
                       userId,
                       req.body.publisher_profile_id,
-                      req.user?.role
+                      canManageResource(req.user, "news") ? "admin" : req.user?.role
                   )
                 : existing.publisher_profile_id;
         await db.run(
@@ -481,7 +475,7 @@ const deleteNews = async (req, res, next) => {
             id,
         ]);
         if (!existing) return res.status(404).json({ error: "News item not found" });
-        if (req.user?.role !== "admin" && existing.uploader_id !== userId) {
+        if (!canManageResource(req.user, "news") && existing.uploader_id !== userId) {
             return res.status(403).json({ error: "Permission denied" });
         }
         await db.run(
@@ -506,16 +500,15 @@ const restoreNews = async (req, res, next) => {
             [id]
         );
         if (!existing) return res.status(404).json({ error: "News item not found" });
-        if (req.user?.role !== "admin" && existing.uploader_id !== userId) {
+        if (!canManageResource(req.user, "news") && existing.uploader_id !== userId) {
             return res.status(403).json({ error: "Permission denied" });
         }
 
-        const nextStatus =
-            req.user?.role === "admin"
-                ? "approved"
-                : existing.status === "draft"
-                  ? "draft"
-                  : "pending";
+        const nextStatus = canManageResource(req.user, "news")
+            ? "approved"
+            : existing.status === "draft"
+              ? "draft"
+              : "pending";
         await db.run(
             "UPDATE news SET deleted_at = NULL, status = ?, rejection_reason = NULL, updated_at = datetime('now') WHERE id = ?",
             [nextStatus, id]
@@ -611,7 +604,7 @@ const importNews = async (req, res, next) => {
             db,
             userId,
             req.body.publisher_profile_id,
-            req.user?.role
+            canManageResource(req.user, "news") ? "admin" : req.user?.role
         );
 
         const result = await db.run(

@@ -605,7 +605,6 @@ const updateUser = async (req, res, next) => {
         const db = await getDb();
         const { id } = req.params;
         const {
-            role,
             password,
             avatar,
             organization_cr,
@@ -615,9 +614,19 @@ const updateUser = async (req, res, next) => {
             invitation_code,
             account_type,
             review_permission,
-            admin_scope,
         } = req.body;
 
+        const accessFields = [
+            "role",
+            "admin_scope",
+            "admin_permissions",
+            "admin_profile_ids",
+            "auth_version",
+            "admin_access_version",
+        ];
+        if (accessFields.some((key) => Object.hasOwn(req.body, key))) {
+            return res.status(403).json({ error: "Use administrator permission settings" });
+        }
         const user = await db.get("SELECT * FROM users WHERE id = ?", [id]);
         if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -644,22 +653,8 @@ const updateUser = async (req, res, next) => {
             }
         }
 
-        // FIX: BUG-01 — Only admins can change roles; ignore role field from non-admin users
+        // Backend access changes belong exclusively to the audited admin-access endpoint.
         if (req.user && req.user.role === "admin") {
-            if (role) {
-                const nextRole = role === "admin" ? "admin" : "user";
-                await db.run("UPDATE users SET role = ? WHERE id = ?", [nextRole, id]);
-                if (review_permission === undefined && admin_scope === undefined) {
-                    await db.run(
-                        "UPDATE users SET review_permission = ?, admin_scope = ? WHERE id = ?",
-                        [
-                            nextRole === "admin" ? "admin" : "normal",
-                            nextRole === "admin" ? "platform" : "none",
-                            id,
-                        ]
-                    );
-                }
-            }
             if (account_type !== undefined) {
                 await db.run("UPDATE users SET account_type = ? WHERE id = ?", [
                     normalizeAccountType(account_type),
@@ -672,12 +667,6 @@ const updateUser = async (req, res, next) => {
                         review_permission,
                         user.role === "admin" ? "admin" : "normal"
                     ),
-                    id,
-                ]);
-            }
-            if (admin_scope !== undefined) {
-                await db.run("UPDATE users SET admin_scope = ? WHERE id = ?", [
-                    normalizeAdminScope(admin_scope, user.role === "admin" ? "platform" : "none"),
                     id,
                 ]);
             }
@@ -714,7 +703,10 @@ const updateUser = async (req, res, next) => {
                     .json({ error: "Password must be at least 6 characters long" });
             }
             const hashedPassword = await bcrypt.hash(password, 10);
-            await db.run("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
+            await db.run(
+                "UPDATE users SET password = ?, auth_version = auth_version + 1 WHERE id = ?",
+                [hashedPassword, id]
+            );
         }
 
         res.json({ message: "User updated successfully" });
@@ -1021,11 +1013,19 @@ const deleteUser = async (req, res, next) => {
             return res.status(400).json({ error: "Cannot delete your own account" });
         }
 
+        const target = await db.get("SELECT role FROM users WHERE id = ?", [id]);
+        if (target?.role === "admin")
+            return res
+                .status(400)
+                .json({ error: "Revoke platform access before deleting this account" });
+
         await db.run("DELETE FROM user_follows WHERE follower_id = ? OR following_id = ?", [
             id,
             id,
         ]);
-        await db.run("DELETE FROM users WHERE id = ?", [id]);
+        const removed = await db.run("DELETE FROM users WHERE id = ? AND role != 'admin'", [id]);
+        if (!removed.changes)
+            return res.status(409).json({ error: "Account changed; reload before deleting" });
         res.json({ message: "User deleted successfully" });
     } catch (error) {
         next(error);

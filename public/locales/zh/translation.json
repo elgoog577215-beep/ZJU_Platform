@@ -3099,7 +3099,7 @@
             "subtitle": "登录后继续管理内容、审核、社区和系统配置。",
             "username": "账号",
             "password": "密码",
-            "password_placeholder": "默认密码 123456",
+            "password_placeholder": "请输入密码",
             "enter_dashboard": "进入管理员后台"
         },
         "logout": "退出管理",
@@ -3277,7 +3277,8 @@
             },
             "admin_scope": {
                 "none": "无后台范围",
-                "platform": "平台后台"
+                "platform": "平台后台",
+                "organization": "指定社团"
             },
             "partner_scope": {
                 "core_partner": "生态/比赛合作方",
@@ -3876,6 +3877,67 @@
                 "ingest_start_failed": "启动增量采集失败",
                 "ingest_extraction_completed": "文章信息已提取",
                 "ingest_extraction_failed": "文章信息提取失败"
+            }
+        },
+        "access": {
+            "title": "管理员与权限",
+            "description": "统一后台，按模块设置普通管理员可使用的功能。",
+            "loading": "正在读取权限…",
+            "load_error": "无法读取当前权限或数据，请刷新重试；权限已撤销时请退出登录。",
+            "save_error": "保存失败，请刷新后重试。",
+            "refresh": "刷新",
+            "find_account": "搜索账号或昵称",
+            "no_accounts": "没有匹配的账号。",
+            "select_account": "选择左侧账号，设置其后台权限。",
+            "own_hint": "当前登录账号的权限由另一位平台管理员调整，避免误撤权。",
+            "password_hint": "此处只管理后台权限。密码重置请到“账号与组织”。",
+            "role": "后台身份",
+            "roles": {
+                "user": "普通用户",
+                "operator": "普通管理员",
+                "admin": "开发管理员",
+                "banned": "已禁用"
+            },
+            "permissions": "开放的运营功能",
+            "permission_labels": {
+                "dashboard": "运营总览",
+                "events": "活动管理（含审核、删除）",
+                "content": "AI 资料、文章与媒体（含审核、删除）",
+                "review": "全站活动与内容审核",
+                "projects": "项目广场治理",
+                "partners": "生态合作方管理",
+                "taxonomy": "标签与影像分类",
+                "pages": "公开页面内容"
+            },
+            "platform_hint": "开发管理员可使用全部后台功能，并负责账号隐私、权限分配、报名资料、密钥与系统配置。",
+            "preview": "生效后：{{role}}；开放 {{count}} 项运营权限。开发管理员拥有全部后台权限。",
+            "save": "保存权限",
+            "saving": "正在保存…",
+            "saved": "已保存，后续请求按新权限执行。",
+            "force_logout": "强制下线",
+            "logout_hint": "该账号所有现有登录会话将失效，需要重新登录。",
+            "confirm": "确认",
+            "cancel": "取消",
+            "logout": "退出登录",
+            "frontstage": "返回网站",
+            "denied": "当前账号没有此模块的权限。",
+            "open_available": "进入已授权模块",
+            "status": {
+                "active": "正常",
+                "approved": "已发布",
+                "pending": "待审核",
+                "draft": "草稿",
+                "rejected": "已驳回"
+            },
+            "account_editor_hint": "后台身份和模块权限请在“管理员与权限”中设置；这里管理账号资料与发布审核权限。",
+            "errors": {
+                "ACCESS_CHANGED_RELOAD": "权限已被其他管理员修改，请刷新后重新设置。",
+                "CANNOT_CHANGE_OWN_ACCESS": "不能在此修改自己的后台权限。",
+                "LAST_PLATFORM_ADMIN": "必须保留至少一位平台管理员。",
+                "INVALID_ACCESS_SETTINGS": "权限设置无效，请检查后重试。",
+                "ACCOUNT_DISABLED": "该账号已禁用。",
+                "PLATFORM_ADMIN_REQUIRED": "需要平台管理员权限。",
+                "ACCOUNT_NOT_FOUND": "账号已不存在。"
             }
         }
     },

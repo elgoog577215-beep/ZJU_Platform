@@ -843,6 +843,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             />
 
             <UploadModal
+                adminResource={apiEndpoint}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onUpload={handleSave}

@@ -327,6 +327,7 @@ const ARTICLE_BLOCK_META = {
 };
 
 const UploadModal = ({
+    adminResource,
     isOpen,
     onClose,
     onUpload,
@@ -775,7 +776,10 @@ const UploadModal = ({
         let active = true;
         setProfilesLoading(true);
 
-        api.get("/users/me/profiles", { silent: true })
+        api.get(adminResource ? "/admin/publishing-profiles" : "/users/me/profiles", {
+            silent: true,
+            ...(adminResource ? { params: { resource: adminResource, id: initialData?.id } } : {}),
+        })
             .then((response) => {
                 if (!active) return;
                 const profiles = Array.isArray(response.data)
@@ -838,7 +842,15 @@ const UploadModal = ({
         return () => {
             active = false;
         };
-    }, [initialData?.organizer_profile_id, initialData?.publisher_profile_id, isOpen, type, user]);
+    }, [
+        adminResource,
+        initialData?.id,
+        initialData?.organizer_profile_id,
+        initialData?.publisher_profile_id,
+        isOpen,
+        type,
+        user,
+    ]);
 
     // Reset form when modal opens with new data or closes
     React.useEffect(() => {

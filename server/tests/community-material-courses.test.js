@@ -75,7 +75,9 @@ test.before(async () => {
       organization_cr TEXT,
       nickname TEXT,
       role TEXT,
-      review_permission TEXT
+      review_permission TEXT,
+      admin_scope TEXT,
+      admin_permissions TEXT DEFAULT '[]'
     );
 
     CREATE TABLE profiles (

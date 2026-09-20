@@ -116,6 +116,16 @@ export default defineConfig(({ mode }) => {
                     cleanupOutdatedCaches: true,
                     runtimeCaching: [
                         {
+                            // Authenticated data must be re-authorized, including when offline.
+                            urlPattern: ({ request, url }) =>
+                                url.pathname.startsWith("/api/") &&
+                                (request.headers.has("Authorization") ||
+                                    /^\/api\/(?:admin(?:\/|$)|auth(?:\/|$)|stats$|audit-logs|fs\/|db\/)/.test(
+                                        url.pathname
+                                    )),
+                            handler: "NetworkOnly",
+                        },
+                        {
                             urlPattern: /^\/api\/.*$/,
                             handler: "NetworkFirst",
                             options: {
@@ -195,8 +205,7 @@ export default defineConfig(({ mode }) => {
             modulePreload: {
                 resolveDependencies: (_url, deps) =>
                     deps.filter(
-                        (dep) =>
-                            !/(^|\/)(pdf-|mammoth\.browser|AdminDashboard)-/.test(dep)
+                        (dep) => !/(^|\/)(pdf-|mammoth\.browser|AdminDashboard)-/.test(dep)
                     ),
             },
             rollupOptions: {

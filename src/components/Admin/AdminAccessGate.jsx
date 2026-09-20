@@ -8,9 +8,9 @@ import { useSettings } from "../../context/SettingsContext";
 
 const AdminAccessGate = () => {
     const { t } = useTranslation();
-    const { user, loading, login, logout } = useAuth();
+    const { user, loading, login, logout, canAccessAdmin } = useAuth();
     const { uiMode } = useSettings();
-    const [username, setUsername] = useState("123");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -158,7 +158,7 @@ const AdminAccessGate = () => {
                             setPassword(event.target.value);
                             setError("");
                         }}
-                        placeholder={t("admin.login.password_placeholder", "默认密码 123456")}
+                        placeholder={t("admin.login.password_placeholder", "请输入密码")}
                         autoComplete="current-password"
                     />
                 </label>
@@ -194,7 +194,7 @@ const AdminAccessGate = () => {
                 <section className={`w-full border p-6 md:p-8 ${panelClass}`}>
                     {loading
                         ? renderLoading()
-                        : user && user.role !== "admin"
+                        : user && !canAccessAdmin
                           ? renderNoPermission()
                           : renderLogin()}
                 </section>

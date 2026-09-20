@@ -1,3 +1,4 @@
+const { isPlatformAdmin, canReviewResource } = require("../utils/userPermissions");
 const { getDb } = require("../config/db");
 const path = require("path");
 const fs = require("fs");
@@ -618,7 +619,7 @@ const getStats = async (req, res, next) => {
                 articles: articles.total,
                 events: events.total,
                 users: users.count,
-                audit_logs: audit.count,
+                ...(isPlatformAdmin(req.user) ? { audit_logs: audit.count } : {}),
             },
             breakdown: {
                 photos,
@@ -635,12 +636,16 @@ const getStats = async (req, res, next) => {
                 registrations7d: recentEventRegistrationsRow?.count || 0,
                 hottestEvents,
             },
-            system: {
-                uptime: process.uptime(),
-                nodeVersion: process.version,
-                platform: process.platform,
-                dbSize,
-            },
+            ...(isPlatformAdmin(req.user)
+                ? {
+                      system: {
+                          uptime: process.uptime(),
+                          nodeVersion: process.version,
+                          platform: process.platform,
+                          dbSize,
+                      },
+                  }
+                : {}),
         });
     } catch (error) {
         console.error("Stats Error:", error);
@@ -972,7 +977,7 @@ const getPendingContent = async (req, res, next) => {
             db.all(
                 "SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL"
             ),
-            listPendingCompetitionItems(db).catch(() => []),
+            isPlatformAdmin(req.user) ? listPendingCompetitionItems(db).catch(() => []) : [],
         ]);
 
         // Combine and sort (newest first based on ID as proxy)
@@ -993,7 +998,11 @@ const getPendingContent = async (req, res, next) => {
             return b.id - a.id;
         });
 
-        res.json(allPending);
+        res.json(
+            allPending.filter(
+                (item) => isPlatformAdmin(req.user) || canReviewResource(req.user, item.type)
+            )
+        );
     } catch (error) {
         next(error);
     }

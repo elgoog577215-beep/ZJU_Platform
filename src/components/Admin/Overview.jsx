@@ -26,7 +26,8 @@ const DEFAULT_STATS = {
     system: { uptime: 0, nodeVersion: "", platform: "" },
 };
 
-const Overview = ({ onChangeTab }) => {
+const Overview = ({ onChangeTab, allowedTabs, isPlatformAdmin = true }) => {
+    const canOpen = (tab) => !allowedTabs || allowedTabs.includes(tab);
     const { t, i18n } = useTranslation();
     const { headingTextClass, mutedTextClass } = useAdminTheme();
     const [stats, setStats] = useState(DEFAULT_STATS);
@@ -171,9 +172,11 @@ const Overview = ({ onChangeTab }) => {
                         <RefreshCw size={16} />
                         {t("admin.overview_ui.refresh", "刷新")}
                     </AdminButton>
-                    <AdminButton tone="primary" onClick={() => onChangeTab("wechat-mp")}>
-                        {t("admin.overview_ui.content_collection", "内容采集")}
-                    </AdminButton>
+                    {canOpen("wechat-mp") && (
+                        <AdminButton tone="primary" onClick={() => onChangeTab("wechat-mp")}>
+                            {t("admin.overview_ui.content_collection", "内容采集")}
+                        </AdminButton>
+                    )}
                 </>
             }
         >
@@ -183,6 +186,7 @@ const Overview = ({ onChangeTab }) => {
                         <button
                             key={label}
                             type="button"
+                            disabled={!canOpen(tab)}
                             onClick={() => onChangeTab(tab)}
                             className="flex items-baseline gap-2 text-left"
                         >
@@ -198,28 +202,30 @@ const Overview = ({ onChangeTab }) => {
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
                 <AdminPanel title={t("admin.overview_ui.priority", "当前工作")}>
                     <div className="divide-y divide-[rgba(128,146,167,0.14)]">
-                        {priorityRows.map((row) => (
-                            <button
-                                key={row.title}
-                                type="button"
-                                onClick={() => onChangeTab(row.tab)}
-                                className="flex w-full items-center gap-3 py-3 text-left first:pt-0 last:pb-0"
-                            >
-                                <span
-                                    className={`min-w-0 flex-1 text-sm font-bold ${headingTextClass}`}
+                        {priorityRows
+                            .filter((row) => canOpen(row.tab))
+                            .map((row) => (
+                                <button
+                                    key={row.title}
+                                    type="button"
+                                    onClick={() => onChangeTab(row.tab)}
+                                    className="flex w-full items-center gap-3 py-3 text-left first:pt-0 last:pb-0"
                                 >
-                                    {row.title}
-                                </span>
-                                <span
-                                    className={`hidden min-w-0 flex-[1.4] truncate text-xs sm:block ${mutedTextClass}`}
-                                >
-                                    {row.signal}
-                                </span>
-                                <span className="shrink-0 text-xs font-semibold text-indigo-500">
-                                    {row.action}
-                                </span>
-                            </button>
-                        ))}
+                                    <span
+                                        className={`min-w-0 flex-1 text-sm font-bold ${headingTextClass}`}
+                                    >
+                                        {row.title}
+                                    </span>
+                                    <span
+                                        className={`hidden min-w-0 flex-[1.4] truncate text-xs sm:block ${mutedTextClass}`}
+                                    >
+                                        {row.signal}
+                                    </span>
+                                    <span className="shrink-0 text-xs font-semibold text-indigo-500">
+                                        {row.action}
+                                    </span>
+                                </button>
+                            ))}
                     </div>
                 </AdminPanel>
 
@@ -246,6 +252,7 @@ const Overview = ({ onChangeTab }) => {
                                 <button
                                     key={resource.id}
                                     type="button"
+                                    disabled={!canOpen(resource.id)}
                                     onClick={() => onChangeTab(resource.id)}
                                     className="grid w-full grid-cols-[minmax(0,1fr)_64px_64px_64px] items-center gap-2 py-2.5 text-sm"
                                 >
@@ -274,7 +281,11 @@ const Overview = ({ onChangeTab }) => {
             <AdminPanel
                 title={t("admin.overview_ui.activity_status", "活动运营")}
                 action={
-                    <AdminButton tone="subtle" onClick={() => onChangeTab("events")}>
+                    <AdminButton
+                        tone="subtle"
+                        disabled={!canOpen("events")}
+                        onClick={() => onChangeTab("events")}
+                    >
                         {t("admin.overview_ui.open_events", "进入活动")}
                     </AdminButton>
                 }
@@ -285,6 +296,7 @@ const Overview = ({ onChangeTab }) => {
                             <button
                                 key={event.id}
                                 type="button"
+                                disabled={!canOpen("events")}
                                 onClick={() => onChangeTab("events")}
                                 className="grid w-full gap-1 py-2.5 text-left sm:grid-cols-[minmax(0,1fr)_160px_100px_100px] sm:items-center"
                             >
@@ -314,21 +326,25 @@ const Overview = ({ onChangeTab }) => {
                 )}
             </AdminPanel>
 
-            <details className="border-t border-[rgba(128,146,167,0.16)] py-3 text-sm">
-                <summary className={`cursor-pointer font-semibold ${headingTextClass}`}>
-                    {t("admin.overview_ui.runtime_details", "系统运行信息")}
-                </summary>
-                <div className={`mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs ${mutedTextClass}`}>
-                    <span>Node {stats.system.nodeVersion || "-"}</span>
-                    <span>{stats.system.platform || "-"}</span>
-                    <span>
-                        {t("admin.overview_ui.uptime_seconds", {
-                            count: Number(stats.system.uptime || 0),
-                            defaultValue: `${Number(stats.system.uptime || 0)} 秒`,
-                        })}
-                    </span>
-                </div>
-            </details>
+            {isPlatformAdmin && (
+                <details className="border-t border-[rgba(128,146,167,0.16)] py-3 text-sm">
+                    <summary className={`cursor-pointer font-semibold ${headingTextClass}`}>
+                        {t("admin.overview_ui.runtime_details", "系统运行信息")}
+                    </summary>
+                    <div
+                        className={`mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs ${mutedTextClass}`}
+                    >
+                        <span>Node {stats.system.nodeVersion || "-"}</span>
+                        <span>{stats.system.platform || "-"}</span>
+                        <span>
+                            {t("admin.overview_ui.uptime_seconds", {
+                                count: Number(stats.system.uptime || 0),
+                                defaultValue: `${Number(stats.system.uptime || 0)} 秒`,
+                            })}
+                        </span>
+                    </div>
+                </details>
+            )}
         </AdminPageShell>
     );
 };

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { resourcePermission } = require("../utils/userPermissions");
 
 // Middleware
 const { upload, avatarUpload } = require("../middleware/upload");
@@ -9,6 +10,7 @@ const resourceController = require("../controllers/resourceController");
 const favoriteController = require("../controllers/favoriteController");
 const settingsController = require("../controllers/settingsController");
 const systemController = require("../controllers/systemController");
+const adminAccessController = require("../controllers/adminAccessController");
 const fsController = require("../controllers/fsController");
 const eventController = require("../controllers/eventController");
 const eventAssistantController = require("../controllers/eventAssistantController");
@@ -41,7 +43,15 @@ const {
     normalizeSalonEventQuery,
 } = require("../utils/salonEventContract");
 
-const { authenticateToken, isAdmin, optionalAuth } = require("../middleware/auth");
+const {
+    authenticateToken,
+    isAdmin,
+    isScopedAdmin,
+    requireAdminPermission,
+    requireAnyAdminPermission,
+    canUpdateSetting,
+    optionalAuth,
+} = require("../middleware/auth");
 const {
     validate,
     registerValidation,
@@ -199,6 +209,19 @@ router.post(
     authController.wechatMiniappBind
 );
 router.get("/auth/me", authenticateToken, authController.me);
+router.get(
+    "/admin/capabilities",
+    authenticateToken,
+    isScopedAdmin,
+    adminAccessController.getCapabilities
+);
+router.get(
+    "/admin/publishing-profiles",
+    authenticateToken,
+    adminAccessController.getPublishingProfiles
+);
+router.get("/admin/access", authenticateToken, isAdmin, adminAccessController.listAccess);
+router.put("/admin/access/:id", authenticateToken, isAdmin, adminAccessController.updateAccess);
 router.post(
     "/auth/change-password",
     authenticateToken,
@@ -416,7 +439,12 @@ router.get("/news/:id/source-health", optionalAuth, newsController.checkNewsSour
 router.post("/news", authenticateToken, newsController.createNews);
 router.post("/news/import", authenticateToken, newsController.importNews);
 router.put("/news/:id", authenticateToken, newsController.updateNews);
-router.put("/news/:id/review", authenticateToken, isAdmin, newsController.reviewNews);
+router.put(
+    "/news/:id/review",
+    authenticateToken,
+    requireAnyAdminPermission("admin.content.manage", "admin.review.manage"),
+    newsController.reviewNews
+);
 router.delete("/news/:id", authenticateToken, newsController.deleteNews);
 router.post("/news/:id/restore", authenticateToken, newsController.restoreNews);
 
@@ -424,26 +452,26 @@ router.post("/news/:id/restore", authenticateToken, newsController.restoreNews);
 router.get(
     "/admin/community/stats",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.content.manage"),
     communityController.adminCommunityStats
 );
 router.get(
     "/admin/community/metrics",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.content.manage"),
     communityController.adminCommunityMetrics
 );
 router.post("/community/metrics/track", optionalAuth, communityController.trackCommunityMetric);
 router.put(
     "/admin/community/posts/:id/review",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.content.manage"),
     communityController.reviewPost
 );
 router.post(
     "/admin/community/posts/batch-review",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.content.manage"),
     communityController.batchReviewPosts
 );
 
@@ -465,23 +493,33 @@ router.post(
 router.put("/projects/:id", authenticateToken, projectCardController.updateProject);
 router.delete("/projects/:id", authenticateToken, projectCardController.deleteProject);
 router.post("/projects/:id/report", authenticateToken, projectCardController.reportProject);
-router.get("/admin/projects", authenticateToken, isAdmin, projectCardController.listAdminProjects);
+router.get(
+    "/admin/projects",
+    authenticateToken,
+    requireAdminPermission("admin.projects.manage"),
+    projectCardController.listAdminProjects
+);
 router.put(
     "/admin/projects/:id/takedown",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.projects.manage"),
     projectCardController.takedownProject
 );
 router.put(
     "/admin/projects/:id/restore",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.projects.manage"),
     projectCardController.restoreProject
 );
 
 // System Routes
 router.get("/search", systemController.searchContent);
-router.get("/stats", authenticateToken, isAdmin, systemController.getStats);
+router.get(
+    "/stats",
+    authenticateToken,
+    requireAdminPermission("admin.dashboard.read"),
+    systemController.getStats
+);
 router.get("/site-metrics", systemController.getSiteMetrics);
 router.post("/site-metrics/visit", optionalAuth, systemController.trackVisit);
 router.get("/uploads/image-variant", systemController.getImageVariant);
@@ -796,7 +834,12 @@ router.get("/db/backup", authenticateToken, isAdmin, systemController.downloadDb
 router.get("/featured", systemController.getFeaturedContent);
 router.post("/events/crawl", authenticateToken, isAdmin, systemController.crawlEvents);
 router.get("/audit-logs", authenticateToken, isAdmin, systemController.getAuditLogs);
-router.get("/admin/pending", authenticateToken, isAdmin, systemController.getPendingContent);
+router.get(
+    "/admin/pending",
+    authenticateToken,
+    requireAnyAdminPermission("admin.review.manage", "admin.events.manage", "admin.content.manage"),
+    systemController.getPendingContent
+);
 router.get(
     "/admin/ai-model-configs",
     authenticateToken,
@@ -851,7 +894,7 @@ router.get("/settings", settingsController.getSettings);
 router.post(
     "/settings",
     authenticateToken,
-    isAdmin,
+    canUpdateSetting,
     validate(settingsValidation),
     settingsController.updateSetting
 );
@@ -861,25 +904,25 @@ router.get("/ecosystem-partners", ecosystemPartnerController.listPublicPartners)
 router.get(
     "/admin/ecosystem-partners",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.partners.manage"),
     ecosystemPartnerController.listAdminPartners
 );
 router.post(
     "/admin/ecosystem-partners",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.partners.manage"),
     ecosystemPartnerController.createPartner
 );
 router.put(
     "/admin/ecosystem-partners/:id",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.partners.manage"),
     ecosystemPartnerController.updatePartner
 );
 router.delete(
     "/admin/ecosystem-partners/:id",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.partners.manage"),
     ecosystemPartnerController.deletePartner
 );
 
@@ -1026,25 +1069,25 @@ router.get("/media-categories", mediaCategoryController.listPublicCategories);
 router.get(
     "/admin/media-categories",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.taxonomy.manage"),
     mediaCategoryController.listAdminCategories
 );
 router.post(
     "/admin/media-categories",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.taxonomy.manage"),
     mediaCategoryController.createCategory
 );
 router.put(
     "/admin/media-categories/:id",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.taxonomy.manage"),
     mediaCategoryController.updateCategory
 );
 router.delete(
     "/admin/media-categories/:id",
     authenticateToken,
-    isAdmin,
+    requireAdminPermission("admin.taxonomy.manage"),
     mediaCategoryController.deleteCategory
 );
 
@@ -1186,10 +1229,30 @@ router.post("/errors", (req, res) => {
 
 // Tag Routes
 router.get("/tags", tagController.getTags);
-router.post("/tags", authenticateToken, isAdmin, tagController.createTag);
-router.put("/tags/:id", authenticateToken, isAdmin, tagController.updateTag);
-router.delete("/tags/:id", authenticateToken, isAdmin, tagController.deleteTag);
-router.post("/tags/sync", authenticateToken, isAdmin, tagController.syncTags);
+router.post(
+    "/tags",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.createTag
+);
+router.put(
+    "/tags/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.updateTag
+);
+router.delete(
+    "/tags/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.deleteTag
+);
+router.post(
+    "/tags/sync",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.syncTags
+);
 
 resources.forEach((resource) => {
     // Get All
@@ -1236,7 +1299,7 @@ resources.forEach((resource) => {
     router.delete(
         `/${resource}/:id/permanent`,
         authenticateToken,
-        isAdmin,
+        requireAdminPermission(resourcePermission(resource)),
         resourceController.permanentDeleteHandler(resource)
     );
 
@@ -1244,7 +1307,7 @@ resources.forEach((resource) => {
     router.post(
         `/${resource}/:id/restore`,
         authenticateToken,
-        isAdmin,
+        requireAdminPermission(resourcePermission(resource)),
         resourceController.restoreHandler(resource)
     );
 
@@ -1252,7 +1315,7 @@ resources.forEach((resource) => {
     router.put(
         `/${resource}/:id/status`,
         authenticateToken,
-        isAdmin,
+        requireAnyAdminPermission(resourcePermission(resource), "admin.review.manage"),
         resourceController.updateStatus(resource)
     );
 });

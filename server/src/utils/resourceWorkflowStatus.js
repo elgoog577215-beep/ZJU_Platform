@@ -1,4 +1,4 @@
-const { canBypassReview } = require("./userPermissions");
+const { canBypassReview, canManageResource } = require("./userPermissions");
 
 const normalizeEventWorkflowStatus = (requestedStatus, user = {}) => {
     const normalized = String(requestedStatus || "")
@@ -10,11 +10,11 @@ const normalizeEventWorkflowStatus = (requestedStatus, user = {}) => {
     // enters the review queue even when the uploader is an administrator.
     if (normalized === "draft" || normalized === "pending") return normalized;
 
-    if (user?.role === "admin" && ["approved", "rejected"].includes(normalized)) {
+    if (canManageResource(user, "events") && ["approved", "rejected"].includes(normalized)) {
         return normalized;
     }
 
-    return canBypassReview(user) ? "approved" : "pending";
+    return canManageResource(user, "events") || canBypassReview(user) ? "approved" : "pending";
 };
 
 module.exports = {

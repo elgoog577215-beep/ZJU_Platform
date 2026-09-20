@@ -37,18 +37,16 @@ import {
 const VIEW_KEYS = ["accounts", "organizations", "permissions"];
 const ACCOUNT_TYPES = ["personal", "organization"];
 const REVIEW_PERMISSIONS = ["normal", "trusted", "admin"];
-const ADMIN_SCOPES = ["none", "platform"];
 
 const normalizeSearchText = (value) =>
     String(value ?? "")
         .trim()
         .toLowerCase();
-const getUserRoleGroup = (role) => (role === "admin" ? "admin" : "user");
+const getUserRoleGroup = (role) => (["admin", "operator"].includes(role) ? "admin" : "user");
 const getAccountType = (user) =>
     user?.account_type || (user?.organization_cr ? "organization" : "personal");
 const getReviewPermission = (user) =>
     user?.review_permission || (user?.role === "admin" ? "admin" : "normal");
-const getAdminScope = (user) => user?.admin_scope || (user?.role === "admin" ? "platform" : "none");
 
 const roleSearchAliases = {
     admin: "admin administrator manager shield 管理员 管理",
@@ -61,10 +59,8 @@ const permissionSearchAliases = {
     admin: "admin platform 管理员 后台",
 };
 
-const EDIT_ROLE_INPUT_ID = "admin-user-edit-role";
 const EDIT_ACCOUNT_TYPE_INPUT_ID = "admin-user-edit-account-type";
 const EDIT_REVIEW_PERMISSION_INPUT_ID = "admin-user-edit-review-permission";
-const EDIT_ADMIN_SCOPE_INPUT_ID = "admin-user-edit-admin-scope";
 const EDIT_PASSWORD_INPUT_ID = "admin-user-edit-password";
 
 const getUserInitial = (username) =>
@@ -98,10 +94,8 @@ const UserManager = () => {
     const [permissionFilter, setPermissionFilter] = useState("all");
     const [editingUser, setEditingUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newRole, setNewRole] = useState("user");
     const [newAccountType, setNewAccountType] = useState("personal");
     const [newReviewPermission, setNewReviewPermission] = useState("normal");
-    const [newAdminScope, setNewAdminScope] = useState("none");
     const [newPassword, setNewPassword] = useState("");
     const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -298,24 +292,15 @@ const UserManager = () => {
               total: activeRoleTotal,
           });
 
-    const editingRoleGroup = editingUser ? getUserRoleGroup(editingUser.role) : "user";
     const editingAccountType = editingUser ? getAccountType(editingUser) : "personal";
     const editingReviewPermission = editingUser ? getReviewPermission(editingUser) : "normal";
-    const editingAdminScope = editingUser ? getAdminScope(editingUser) : "none";
-    const roleChanged = Boolean(editingUser) && newRole !== editingRoleGroup;
     const accountTypeChanged = Boolean(editingUser) && newAccountType !== editingAccountType;
     const reviewPermissionChanged =
         Boolean(editingUser) && newReviewPermission !== editingReviewPermission;
-    const adminScopeChanged = Boolean(editingUser) && newAdminScope !== editingAdminScope;
     const trimmedPassword = newPassword.trim();
     const passwordChanged = trimmedPassword.length > 0;
     const passwordTooShort = passwordChanged && trimmedPassword.length < 6;
-    const hasEditableChange =
-        roleChanged ||
-        accountTypeChanged ||
-        reviewPermissionChanged ||
-        adminScopeChanged ||
-        passwordChanged;
+    const hasEditableChange = accountTypeChanged || reviewPermissionChanged || passwordChanged;
 
     const clearFilters = () => {
         setSearchQuery("");
@@ -330,10 +315,8 @@ const UserManager = () => {
 
     const handleEdit = (user) => {
         setEditingUser(user);
-        setNewRole(getUserRoleGroup(user.role));
         setNewAccountType(getAccountType(user));
         setNewReviewPermission(getReviewPermission(user));
-        setNewAdminScope(getAdminScope(user));
         setNewPassword("");
         setIsModalOpen(true);
     };
@@ -342,19 +325,15 @@ const UserManager = () => {
         setIsModalOpen(false);
         setEditingUser(null);
         setNewPassword("");
-        setNewRole("user");
         setNewAccountType("personal");
         setNewReviewPermission("normal");
-        setNewAdminScope("none");
     };
 
     const handleSave = async () => {
         if (!editingUser || !hasEditableChange || passwordTooShort) return;
         const payload = {};
-        if (roleChanged) payload.role = newRole;
         if (accountTypeChanged) payload.account_type = newAccountType;
         if (reviewPermissionChanged) payload.review_permission = newReviewPermission;
-        if (adminScopeChanged) payload.admin_scope = newAdminScope;
         if (passwordChanged) payload.password = trimmedPassword;
 
         setSaving(true);
@@ -432,7 +411,7 @@ const UserManager = () => {
         const roleGroup = getUserRoleGroup(role);
         return renderBadge(
             roleGroup === "admin"
-                ? t("admin.user_manager_ui.role_admin")
+                ? t(`admin.access.roles.${role}`)
                 : t("admin.user_manager_ui.role_user"),
             roleGroup === "admin" ? "violet" : "slate",
             roleGroup === "admin" ? ShieldCheck : User
@@ -960,6 +939,7 @@ const UserManager = () => {
                 onCancel={closeEditDialog}
             >
                 <div className="space-y-4">
+                    <p className="text-sm">{t("admin.access.account_editor_hint")}</p>
                     <div
                         className={`rounded-[8px] border p-3 ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"}`}
                     >
@@ -981,31 +961,6 @@ const UserManager = () => {
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <label
-                            htmlFor={EDIT_ROLE_INPUT_ID}
-                            className={`block text-sm font-medium ${subtleTextClass}`}
-                        >
-                            {t("admin.user_manager_ui.role_field")}
-                            <select
-                                id={EDIT_ROLE_INPUT_ID}
-                                value={newRole}
-                                onChange={(event) => {
-                                    const role = event.target.value;
-                                    setNewRole(role);
-                                    if (role === "admin") {
-                                        setNewReviewPermission("admin");
-                                        setNewAdminScope("platform");
-                                    }
-                                }}
-                                className="theme-admin-input mt-2 w-full rounded-[8px] p-3"
-                            >
-                                <option value="user">{t("admin.user_manager_ui.role_user")}</option>
-                                <option value="admin">
-                                    {t("admin.user_manager_ui.role_admin")}
-                                </option>
-                            </select>
-                        </label>
-
                         <label
                             htmlFor={EDIT_ACCOUNT_TYPE_INPUT_ID}
                             className={`block text-sm font-medium ${subtleTextClass}`}
@@ -1039,25 +994,6 @@ const UserManager = () => {
                                 {REVIEW_PERMISSIONS.map((permission) => (
                                     <option key={permission} value={permission}>
                                         {t(`admin.user_manager_ui.review_permission.${permission}`)}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label
-                            htmlFor={EDIT_ADMIN_SCOPE_INPUT_ID}
-                            className={`block text-sm font-medium ${subtleTextClass}`}
-                        >
-                            {t("admin.user_manager_ui.admin_scope_field")}
-                            <select
-                                id={EDIT_ADMIN_SCOPE_INPUT_ID}
-                                value={newAdminScope}
-                                onChange={(event) => setNewAdminScope(event.target.value)}
-                                className="theme-admin-input mt-2 w-full rounded-[8px] p-3"
-                            >
-                                {ADMIN_SCOPES.map((scope) => (
-                                    <option key={scope} value={scope}>
-                                        {t(`admin.user_manager_ui.admin_scope.${scope}`)}
                                     </option>
                                 ))}
                             </select>

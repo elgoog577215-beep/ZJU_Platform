@@ -251,6 +251,17 @@ const installAdminMocks = async (page) => {
         const url = new URL(request.url());
         const path = url.pathname.replace(/^\/api/, "");
 
+        if (path === "/admin/capabilities") {
+            return route.fulfill({
+                json: {
+                    scope: "platform",
+                    permissions: ["*"],
+                    isPlatformAdmin: true,
+                    profileIds: [],
+                },
+            });
+        }
+
         if (path === "/auth/me") {
             return route.fulfill({ json: adminUser });
         }
@@ -360,7 +371,7 @@ test.describe("admin console refinement", () => {
 
         await expect(page).toHaveURL(/\/admin\?tab=photos/);
         await expect(page.getByRole("heading", { name: "管理员登录" })).toBeVisible();
-        await expect(page.getByLabel("账号")).toHaveValue("123");
+        await expect(page.getByLabel("账号")).toHaveValue("");
         await expect(page.getByRole("button", { name: "进入管理员后台" })).toBeVisible();
     });
 
@@ -411,18 +422,20 @@ test.describe("admin console refinement", () => {
 
         await quickJump.selectOption("wechat-mp");
         await expect(page).toHaveURL(/tab=wechat-mp/);
-        await expect(page.getByRole("heading", { name: "内容采集" })).toBeVisible();
-        await expect(page.getByRole("tab", { name: "概况" })).toHaveAttribute(
-            "aria-selected",
-            "true"
-        );
-        await expect(page.getByRole("heading", { name: "最近采集" })).toBeVisible();
-        await expect(page.getByRole("heading", { name: "候选内容" })).toBeVisible();
-        await expect(page.getByRole("heading", { name: "采集流水线" })).toHaveCount(0);
-        await expect(page.getByText("定时与风控参数")).toHaveCount(0);
-        await page.getByRole("tab", { name: "连接与工具" }).click();
-        await expect(page.getByRole("heading", { name: "扫码登录" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "扫码登录" })).toBeVisible();
+        await expect(
+            page.getByRole("heading", { name: "微信读书 RSS（主方案）", exact: true })
+        ).toBeVisible();
+        await expect(
+            page.getByRole("tab", { name: "微信读书 RSS（主方案）", exact: true })
+        ).toHaveAttribute("aria-selected", "true");
+        await expect(
+            page.getByRole("heading", { name: "微信读书账号", exact: true })
+        ).toBeVisible();
+        await expect(
+            page.getByRole("heading", { name: "公众号订阅源", exact: true })
+        ).toBeVisible();
+        await page.getByRole("tab", { name: "微信公众号（备用）", exact: true }).click();
+        await expect(page.getByRole("heading", { name: "扫码登录", exact: true })).toBeVisible();
 
         await quickJump.selectOption("settings");
         await expect(page.getByRole("heading", { name: "站点设置" })).toBeVisible();
@@ -444,7 +457,9 @@ test.describe("admin console refinement", () => {
         await quickJump.selectOption("projects");
         await expect(page).toHaveURL(/tab=projects/);
         await expect(page.getByRole("heading", { name: "项目治理" })).toBeVisible();
-        await expect(page.getByRole("cell", { name: /校园 AI 助手/ })).toBeVisible();
+        await expect(
+            page.getByRole("cell", { name: "校园 AI 助手 面向校园服务的智能问答项目", exact: true })
+        ).toBeVisible();
         await expect(page.getByText("浙江大学 AI 社团")).toBeVisible();
         await expect(page.getByText("联系方式疑似失效")).toBeVisible();
         await expect(page.getByRole("button", { name: /下架项目：校园 AI 助手/ })).toBeVisible();
@@ -654,7 +669,7 @@ test.describe("admin console refinement", () => {
         await expect(page.getByLabel("管理员导航")).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
-        await page.getByRole("button", { name: "打开黑客松模块" }).click();
+        await page.getByRole("button", { name: "打开浙客松模块" }).click();
         await expect(page.getByRole("heading", { name: "黑客松运营管理" })).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
         await expect

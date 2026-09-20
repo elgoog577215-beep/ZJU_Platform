@@ -246,8 +246,8 @@ const LegacyUserRedirect = () => {
 };
 
 const AdminRoute = ({ children }) => {
-    const { user, loading } = useAuth();
-    if (loading || !user || user.role !== "admin") return <AdminAccessGate />;
+    const { canAccessAdmin, loading } = useAuth();
+    if (loading || !canAccessAdmin) return <AdminAccessGate />;
     return children;
 };
 

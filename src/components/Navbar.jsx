@@ -55,7 +55,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
     const location = useLocation();
     const { t } = useTranslation();
     const { uiMode, changeUiMode, showWeatherWidget } = useSettings();
-    const { user, logout, isAdmin } = useAuth();
+    const { user, logout, canAccessAdmin } = useAuth();
     const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
     const [time, setTime] = useState(new Date());
     const prefersReducedMotion = useReducedMotion();
@@ -119,7 +119,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
         { key: "articles", path: "/articles" },
         { key: "hackathon", path: "/hackathon" },
         { key: "about", path: "/about" },
-        ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin" }] : []),
+        ...(!miniProgramMode && canAccessAdmin ? [{ key: "admin", path: "/admin" }] : []),
     ];
     const isNavItemActive = (path) => {
         if (path === "/hackathon") {
@@ -241,7 +241,9 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
     const secondaryMobileLinks = [
         { key: "about", path: "/about", icon: Info },
         ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
-        ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
+        ...(!miniProgramMode && canAccessAdmin
+            ? [{ key: "admin", path: "/admin", icon: Shield }]
+            : []),
     ];
     const nextUiMode = isDayMode ? "dark" : "day";
     const themeToggleLabel = t(nextUiMode === "day" ? "nav.day_mode" : "nav.night_mode");

@@ -1,3 +1,4 @@
+const { isPlatformAdmin } = require("../utils/userPermissions");
 const { getDb } = require("../config/db");
 const { renderProjectShareCard } = require("../services/projectShareCardService");
 
@@ -521,13 +522,15 @@ const listAdminProjects = async (req, res, next) => {
 
         res.json({
             items: rows.map((row) => ({
-                ...serialize(row, { viewer: req.user.id }),
+                ...serialize(row, { viewer: isPlatformAdmin(req.user) ? req.user.id : null }),
                 owner_profiles: String(row.owner_profiles || "")
                     .split(",")
                     .map((name) => name.trim())
                     .filter(Boolean),
                 report_count: Number(row.report_count || 0),
-                latest_report_reason: row.latest_report_reason || null,
+                latest_report_reason: isPlatformAdmin(req.user)
+                    ? row.latest_report_reason || null
+                    : null,
             })),
             page,
             limit,
