@@ -18,6 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../services/api";
+import "./EventAssistantPanel.css";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const formatEventDate = (value) => {
@@ -424,24 +425,13 @@ const EventAssistantPanel = ({
     return (
         <div className={`w-full ${isRailVariant ? "h-full min-h-0" : ""} ${className}`}>
             <div
-                className={`relative overflow-hidden border transition-[background-color,border-color,box-shadow] ${isDayMode ? "" : "backdrop-blur-2xl"} ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}
+                className={
+                    isInlineVariant
+                        ? `event-assistant-inline ${isDayMode ? "is-day" : "is-night"}`
+                        : `relative overflow-hidden border transition-[background-color,border-color,box-shadow] ${isDayMode ? "" : "backdrop-blur-2xl"} ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`
+                }
             >
-                <div className={`relative ${panelPaddingClass}`}>
-                    {isInlineVariant && (
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                            <h3 className={`text-base font-semibold ${textClass}`}>
-                                {t("events.assistant.panel_title")}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                aria-label={t("common.close")}
-                                className={`inline-flex h-11 w-11 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 ${mutedClass}`}
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    )}
+                <div className={`relative ${isInlineVariant ? "" : panelPaddingClass}`}>
                     {isRailVariant ? (
                         <div
                             className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#0d111a]/76 backdrop-blur-xl"}`}
@@ -533,7 +523,7 @@ const EventAssistantPanel = ({
                         </div>
                     ) : null}
 
-                    {!originalQuery && !assistantState ? (
+                    {!isInlineVariant && !originalQuery && !assistantState ? (
                         <div className={quickPromptGridClass}>
                             {quickPrompts.map((item) => (
                                 <button
@@ -549,11 +539,18 @@ const EventAssistantPanel = ({
                         </div>
                     ) : null}
 
-                    <form onSubmit={handleSubmit} className={formMarginClass}>
+                    <form
+                        onSubmit={handleSubmit}
+                        className={isInlineVariant ? "event-assistant-composer" : formMarginClass}
+                    >
                         <div
-                            className={`relative overflow-hidden rounded-lg border transition-[background-color,border-color,box-shadow] ${promptCardPaddingClass} ${promptFocusClass} ${promptCardClass}`}
+                            className={
+                                isInlineVariant
+                                    ? "event-assistant-input-surface"
+                                    : `relative overflow-hidden rounded-lg border transition-[background-color,border-color,box-shadow] ${promptCardPaddingClass} ${promptFocusClass} ${promptCardClass}`
+                            }
                         >
-                            {originalQuery ? (
+                            {!isInlineVariant && originalQuery ? (
                                 <div
                                     className={`mb-3 inline-flex max-w-full items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}
                                 >
@@ -561,6 +558,13 @@ const EventAssistantPanel = ({
                                     <span className="truncate">{originalQuery}</span>
                                 </div>
                             ) : null}
+                            {isInlineVariant && (
+                                <Sparkles
+                                    size={19}
+                                    className="event-assistant-input-icon"
+                                    aria-hidden="true"
+                                />
+                            )}
                             <textarea
                                 ref={inputRef}
                                 aria-label={t("events.assistant.panel_title")}
@@ -591,13 +595,17 @@ const EventAssistantPanel = ({
                                                 "比如：这周末线下，适合新生，最好有综测或志愿时长"
                                             )
                                 }
-                                className={`w-full resize-none bg-transparent px-1 py-1 outline-none ${textareaSizeClass} ${isDayMode ? "text-slate-900 placeholder:text-slate-500" : "text-white placeholder:text-slate-400"}`}
+                                className={`${isInlineVariant ? "event-assistant-input" : ""} w-full resize-none bg-transparent px-1 py-1 outline-none ${textareaSizeClass} ${isDayMode ? "text-slate-900 placeholder:text-slate-500" : "text-white placeholder:text-slate-400"}`}
                             />
 
                             <div
-                                className={`flex flex-col border-t sm:flex-row sm:items-center ${controlRowClass} ${showInlineReset ? "sm:justify-between" : "sm:justify-end"} ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}
+                                className={
+                                    isInlineVariant
+                                        ? "event-assistant-send"
+                                        : `flex flex-col border-t sm:flex-row sm:items-center ${controlRowClass} ${showInlineReset ? "sm:justify-between" : "sm:justify-end"} ${isDayMode ? "border-slate-200/70" : "border-white/10"}`
+                                }
                             >
-                                {showInlineReset ? (
+                                {showInlineReset && !isInlineVariant ? (
                                     <button
                                         type="button"
                                         onClick={resetAssistant}
@@ -611,28 +619,81 @@ const EventAssistantPanel = ({
                                 <button
                                     type="submit"
                                     disabled={loading || input.trim() === ""}
-                                    className={`inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all hover:-translate-y-px active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:hover:translate-y-0 ${submitButtonSizeClass} ${disabledActionClass} ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
+                                    className={
+                                        isInlineVariant
+                                            ? "event-assistant-submit"
+                                            : `inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all hover:-translate-y-px active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:hover:translate-y-0 ${submitButtonSizeClass} ${disabledActionClass} ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`
+                                    }
                                 >
                                     {loading ? (
                                         <>
                                             <Loader2 size={16} className="animate-spin" />
-                                            {t("events.assistant.loading", "思考中...")}
+                                            <span className={isInlineVariant ? "sr-only" : ""}>
+                                                {t("events.assistant.loading", "思考中...")}
+                                            </span>
                                         </>
                                     ) : (
                                         <>
                                             <SendHorizontal size={16} />
-                                            {assistantState?.type === "clarify"
-                                                ? t(
-                                                      "events.assistant.submit_clarification",
-                                                      "继续推荐"
-                                                  )
-                                                : t("events.assistant.submit", "开始推荐")}
+                                            <span className={isInlineVariant ? "sr-only" : ""}>
+                                                {assistantState?.type === "clarify"
+                                                    ? t(
+                                                          "events.assistant.submit_clarification",
+                                                          "继续推荐"
+                                                      )
+                                                    : t("events.assistant.submit", "开始推荐")}
+                                            </span>
                                         </>
                                     )}
                                 </button>
                             </div>
                         </div>
                     </form>
+
+                    {isInlineVariant && (
+                        <div className="event-assistant-tools">
+                            <div className="event-assistant-suggestions">
+                                {originalQuery && (
+                                    <span className="event-assistant-query" title={originalQuery}>
+                                        {originalQuery}
+                                    </span>
+                                )}
+                                {!originalQuery && !assistantState ? (
+                                    quickPrompts.map((item) => (
+                                        <button
+                                            key={item.key}
+                                            type="button"
+                                            onClick={() => handleQuickPrompt(item.prompt)}
+                                            disabled={loading}
+                                        >
+                                            {item.label}
+                                            <ArrowRight size={12} aria-hidden="true" />
+                                        </button>
+                                    ))
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            resetAssistant();
+                                            inputRef.current?.focus();
+                                        }}
+                                        disabled={loading}
+                                    >
+                                        <RotateCcw size={13} aria-hidden="true" />
+                                        {t("events.assistant.reset", "重新提问")}
+                                    </button>
+                                )}
+                            </div>
+                            <button
+                                className="event-assistant-close"
+                                type="button"
+                                onClick={onClose}
+                                aria-label={t("common.close")}
+                            >
+                                <X size={16} aria-hidden="true" />
+                            </button>
+                        </div>
+                    )}
 
                     <AnimatePresence mode="wait">
                         {assistantState && (

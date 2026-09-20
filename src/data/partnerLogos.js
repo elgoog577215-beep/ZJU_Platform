@@ -1,3 +1,5 @@
+import campusOrganizations from "../../shared/campusOrganizations.json";
+
 export const ECOSYSTEM_PARTNER_CATEGORIES = [
     {
         id: "school",
@@ -689,22 +691,34 @@ export const defaultEcosystemPartners = [
         enabled: true,
         featured: true,
     },
-].map((partner) => {
-    const partnerScope =
-        partner.category === "organization" && partner.sort_order >= 100
-            ? ACTIVITY_PROVIDER_SCOPE
-            : CORE_PARTNER_SCOPE;
-    return withOrganizationLogo({
-        ...partner,
-        partner_scope: partner.partner_scope || partnerScope,
-        featured:
-            partner.partner_scope === ACTIVITY_PROVIDER_SCOPE
-                ? false
-                : partner.partner_scope === CORE_PARTNER_SCOPE
-                  ? true
-                  : partnerScope === CORE_PARTNER_SCOPE,
+]
+    .concat(
+        campusOrganizations.map((org) => ({
+            ...org,
+            id: `default-${org.id}`,
+            category: "organization",
+            support_category: "club",
+            partner_scope: ACTIVITY_PROVIDER_SCOPE,
+            enabled: true,
+            featured: false,
+        }))
+    )
+    .map((partner) => {
+        const partnerScope =
+            partner.category === "organization" && partner.sort_order >= 100
+                ? ACTIVITY_PROVIDER_SCOPE
+                : CORE_PARTNER_SCOPE;
+        return withOrganizationLogo({
+            ...partner,
+            partner_scope: partner.partner_scope || partnerScope,
+            featured:
+                partner.partner_scope === ACTIVITY_PROVIDER_SCOPE
+                    ? false
+                    : partner.partner_scope === CORE_PARTNER_SCOPE
+                      ? true
+                      : partnerScope === CORE_PARTNER_SCOPE,
+        });
     });
-});
 
 const categoryOrder = new Map(
     ECOSYSTEM_PARTNER_CATEGORIES.map((category, index) => [category.id, index])
