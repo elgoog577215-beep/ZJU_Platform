@@ -1,6 +1,7 @@
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { body, validationResult } = require("express-validator");
+const { isAdmin } = require("../utils/userPermissions");
 const {
     RateLimiter,
     LoginAttemptTracker,
@@ -79,6 +80,8 @@ const customRateLimit = (options = {}) => {
     const limiter = new RateLimiter(windowMs, maxRequests);
 
     return (req, res, next) => {
+        // Authenticated content routes populate req.user before this limiter.
+        if (isAdmin(req.user)) return next();
         const key = keyGenerator(req);
         const result = limiter.check(key);
 

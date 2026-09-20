@@ -5,7 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const compression = require("compression");
 const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
+const { createApiRateLimiters } = require("./src/middleware/rateLimiting");
 const hpp = require("hpp");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -53,14 +53,6 @@ app.disable("x-powered-by");
 // 端口配置：优先使用环境变量，否则使用 5181
 const PORT = process.env.PORT || 5181;
 const NODE_ENV = process.env.NODE_ENV || "development";
-
-const isLocalDevRequest = (req) => {
-    if (NODE_ENV === "production") return false;
-    const ip = String(req.ip || req.connection?.remoteAddress || "").trim();
-    return (
-        ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1" || ip.endsWith("localhost")
-    );
-};
 
 // ====================
 // Logging Configuration
@@ -123,45 +115,8 @@ app.use(sanitizeRequest);
 // Rate Limiting
 // ====================
 
-// General API rate limiting
-const generalLimiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000, // Increased significantly
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => {
-        const path = req.path || "";
-        return isLocalDevRequest(req) || path === "/api/settings" || path === "/api/auth/me";
-    },
-    message: {
-        error: "Too many requests, please try again later.",
-        retryAfter: "900",
-    },
-    handler: (req, res) => {
-        res.status(429).json({
-            error: "Rate limit exceeded",
-            message: "Too many requests, please try again later.",
-            retryAfter: Math.ceil(
-                (parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000
-            ),
-        });
-    },
-});
-
-// Stricter rate limit for auth routes
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    // FIX: BUG-04 — Reduce auth rate limit from 2000 to 20 per 15 minutes
-    max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => isLocalDevRequest(req) || req.path === "/me",
-    skipSuccessfulRequests: true, // Don't count successful logins
-    message: {
-        error: "Too many login attempts, please try again later.",
-        retryAfter: "900",
-    },
-});
+// Verified administrators are exempt; login attempts have a separate limiter.
+const { generalLimiter, authLimiter } = createApiRateLimiters();
 
 // Apply rate limiting
 app.use("/api/", generalLimiter);

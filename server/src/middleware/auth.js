@@ -28,11 +28,19 @@ const readIdentity = async (token) => {
     return user;
 };
 const tokenFrom = (req) => req.headers.authorization?.split(" ")[1];
+// Share one verified database identity within a request, never across requests.
+const requestIdentities = new WeakMap();
+const readRequestIdentity = (req) => {
+    const token = tokenFrom(req);
+    if (!token) return Promise.resolve(null);
+    if (!requestIdentities.has(req)) requestIdentities.set(req, readIdentity(token));
+    return requestIdentities.get(req);
+};
 const authenticateToken = async (req, res, next) => {
     const token = tokenFrom(req);
     if (!token) return res.sendStatus(401);
     try {
-        req.user = await readIdentity(token);
+        req.user = await readRequestIdentity(req);
         res.set("Cache-Control", "no-store");
         next();
     } catch (error) {
@@ -47,7 +55,7 @@ const authenticateToken = async (req, res, next) => {
 const optionalAuth = async (req, res, next) => {
     if (!tokenFrom(req)) return next();
     try {
-        req.user = await readIdentity(tokenFrom(req));
+        req.user = await readRequestIdentity(req);
     } catch (error) {
         if (!["JsonWebTokenError", "TokenExpiredError", "NotBeforeError"].includes(error.name)) {
             return res.status(503).json({ error: "Authentication unavailable" });
@@ -99,6 +107,7 @@ const canUpdateSetting = (req, res, next) =>
         ? next()
         : res.status(403).json({ error: "Setting access denied" });
 module.exports = {
+    readRequestIdentity,
     authenticateToken,
     optionalAuth,
     isAdmin,
