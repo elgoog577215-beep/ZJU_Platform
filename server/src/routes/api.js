@@ -17,6 +17,7 @@ const eventAssistantController = require("../controllers/eventAssistantControlle
 const aiAssistantController = require("../controllers/aiAssistantController");
 const aiModelConfigController = require("../controllers/aiModelConfigController");
 const userController = require("../controllers/userController");
+const navigationController = require("../controllers/navigationController");
 const profileController = require("../controllers/profileController");
 const profileCardController = require("../controllers/profileCardController");
 const messageController = require("../controllers/messageController");
@@ -234,6 +235,8 @@ router.put("/auth/profile", authenticateToken, (req, res) => {
     userController.updateUser(req, res);
 });
 router.get("/users/me/overview", authenticateToken, userController.getOwnOverview);
+router.get("/users/me/navigation-shortcuts", authenticateToken, navigationController.getShortcuts);
+router.put("/users/me/navigation-shortcuts", authenticateToken, navigationController.saveShortcuts);
 router.post(
     "/users/me/avatar",
     authenticateToken,

@@ -208,6 +208,171 @@ export const directory = [
         ],
     },
     {
+        id: "office",
+        zh: "办公与协作",
+        en: "Office & collaboration",
+        sites: [
+            site(
+                "qqdocs",
+                "腾讯文档",
+                "https://docs.qq.com/",
+                "文档、表格与在线协作",
+                "Documents & spreadsheets",
+                "tencent 办公"
+            ),
+            site(
+                "shimo",
+                "石墨文档",
+                "https://shimo.im/",
+                "多人文档与表格",
+                "Collaborative documents",
+                "office 办公"
+            ),
+            site(
+                "yuque",
+                "语雀",
+                "https://www.yuque.com/",
+                "知识库与团队文档",
+                "Knowledge bases",
+                "笔记 文档"
+            ),
+            site(
+                "notion",
+                "Notion",
+                "https://www.notion.com/",
+                "笔记与项目工作区",
+                "Notes & project workspace",
+                "知识库 办公"
+            ),
+            site(
+                "wps",
+                "WPS",
+                "https://www.wps.cn/",
+                "文档、表格与演示",
+                "Documents & presentations",
+                "office ppt 办公"
+            ),
+            site(
+                "feishu",
+                "飞书",
+                "https://www.feishu.cn/",
+                "团队协作与多维表格",
+                "Teamwork & databases",
+                "lark 办公"
+            ),
+        ],
+    },
+    {
+        id: "design",
+        zh: "设计与图像",
+        en: "Design & images",
+        sites: [
+            site(
+                "canva",
+                "Canva 可画",
+                "https://www.canva.com/",
+                "海报与演示设计",
+                "Graphics & presentations",
+                "素材 ppt"
+            ),
+            site(
+                "gaoding",
+                "稿定设计",
+                "https://www.gaoding.com/",
+                "平面设计与模板",
+                "Graphic design templates",
+                "海报 素材"
+            ),
+            site(
+                "figma",
+                "Figma",
+                "https://www.figma.com/",
+                "界面设计与原型",
+                "Interface design & prototypes",
+                "ui ux 设计"
+            ),
+            site(
+                "photopea",
+                "Photopea",
+                "https://www.photopea.com/",
+                "在线图像与 PSD 编辑",
+                "Online image & PSD editor",
+                "ps 图片"
+            ),
+            site(
+                "removebg",
+                "remove.bg",
+                "https://www.remove.bg/",
+                "图片背景去除",
+                "Remove image backgrounds",
+                "抠图"
+            ),
+            site(
+                "squoosh",
+                "Squoosh",
+                "https://squoosh.app/",
+                "浏览器图片压缩",
+                "Browser image compression",
+                "图片 压缩"
+            ),
+        ],
+    },
+    {
+        id: "assets",
+        zh: "图片与视频素材",
+        en: "Photos & video assets",
+        sites: [
+            site(
+                "unsplash",
+                "Unsplash",
+                "https://unsplash.com/",
+                "摄影图片素材",
+                "Photography resources",
+                "图片 素材"
+            ),
+            site(
+                "pexels",
+                "Pexels",
+                "https://www.pexels.com/",
+                "图片与视频素材",
+                "Photos & videos",
+                "图片 素材"
+            ),
+            site(
+                "pixabay",
+                "Pixabay",
+                "https://pixabay.com/",
+                "图片、视频与音频",
+                "Images, video & audio",
+                "素材"
+            ),
+            site(
+                "freepik",
+                "Freepik",
+                "https://www.freepik.com/",
+                "插画与设计素材",
+                "Illustrations & design assets",
+                "素材"
+            ),
+            site(
+                "pngimg",
+                "PNGimg",
+                "https://pngimg.com/",
+                "透明背景图片素材",
+                "Transparent PNG images",
+                "素材 png"
+            ),
+            site(
+                "mixkit",
+                "Mixkit",
+                "https://mixkit.co/",
+                "视频、音效与模板",
+                "Video, sound & templates",
+                "素材 音乐"
+            ),
+        ],
+    },
+    {
         id: "ai-dev",
         zh: "AI 开发与实验",
         en: "Build & experiment",
@@ -633,8 +798,182 @@ export const directory = [
             ),
         ],
     },
+    {
+        id: "icons",
+        zh: "图标与字体",
+        en: "Icons & fonts",
+        sites: [
+            site(
+                "iconfont",
+                "Iconfont",
+                "https://www.iconfont.cn/",
+                "矢量图标与插画",
+                "Vector icons & illustrations",
+                "阿里 图标"
+            ),
+            site(
+                "iconpark",
+                "IconPark",
+                "https://iconpark.oceanengine.com/",
+                "可调整的图标库",
+                "Customizable icon library",
+                "字节 图标"
+            ),
+            site(
+                "iconfinder",
+                "Iconfinder",
+                "https://www.iconfinder.com/",
+                "图标与设计资源",
+                "Icons & design resources",
+                "素材"
+            ),
+            site(
+                "100font",
+                "100font",
+                "https://www.100font.com/",
+                "中文字体与授权信息",
+                "Chinese fonts & licenses",
+                "字体"
+            ),
+            site(
+                "googlefonts",
+                "Google Fonts",
+                "https://fonts.google.com/",
+                "网页与设计字体",
+                "Web & design fonts",
+                "字体"
+            ),
+            site(
+                "fontawesome",
+                "Font Awesome",
+                "https://fontawesome.com/",
+                "界面与网页图标",
+                "Interface & web icons",
+                "图标"
+            ),
+        ],
+    },
+    {
+        id: "diagrams",
+        zh: "图表与灵感",
+        en: "Diagrams & inspiration",
+        sites: [
+            site(
+                "drawio",
+                "draw.io",
+                "https://app.diagrams.net/",
+                "流程图与架构图",
+                "Flowcharts & architecture",
+                "绘图"
+            ),
+            site(
+                "excalidraw",
+                "Excalidraw",
+                "https://excalidraw.com/",
+                "手绘风格协作白板",
+                "Sketch-style whiteboard",
+                "流程图 绘图"
+            ),
+            site(
+                "processon",
+                "ProcessOn",
+                "https://www.processon.com/",
+                "思维导图与流程图",
+                "Mind maps & flowcharts",
+                "绘图"
+            ),
+            site(
+                "huaban",
+                "花瓣",
+                "https://huaban.com/",
+                "视觉设计灵感",
+                "Visual design inspiration",
+                "素材"
+            ),
+            site(
+                "adobecolor",
+                "Adobe Color",
+                "https://color.adobe.com/",
+                "配色与色彩工具",
+                "Color palettes & tools",
+                "设计"
+            ),
+            site(
+                "dribbble",
+                "Dribbble",
+                "https://dribbble.com/",
+                "设计作品与灵感",
+                "Design work & inspiration",
+                "ui ux"
+            ),
+        ],
+    },
+    {
+        id: "productivity",
+        zh: "文档与效率",
+        en: "Documents & utilities",
+        sites: [
+            site(
+                "smallpdf",
+                "Smallpdf",
+                "https://smallpdf.com/",
+                "PDF 编辑与转换",
+                "PDF editing & conversion",
+                "文档"
+            ),
+            site(
+                "pdf24",
+                "PDF24",
+                "https://tools.pdf24.org/zh/",
+                "PDF 合并、压缩与转换",
+                "PDF merge & conversion",
+                "文档"
+            ),
+            site(
+                "tinypng",
+                "TinyPNG",
+                "https://tinypng.com/",
+                "图片文件压缩",
+                "Image compression",
+                "图片"
+            ),
+            site(
+                "docsmall",
+                "Docsmall",
+                "https://docsmall.com/",
+                "图片与 PDF 处理",
+                "Image & PDF utilities",
+                "压缩 文档"
+            ),
+            site(
+                "toollu",
+                "在线工具",
+                "https://tool.lu/",
+                "文本、编码与开发工具",
+                "Text & developer utilities",
+                "tool lu"
+            ),
+            site(
+                "deepl",
+                "DeepL",
+                "https://www.deepl.com/translator",
+                "文本与文档翻译",
+                "Text & document translation",
+                "英文 翻译"
+            ),
+        ],
+    },
 ];
-export const featuredIds = ["github", "huggingface", "chatgpt", "deepseek", "arxiv", "colab"];
+export const featuredIds = [
+    "github",
+    "huggingface",
+    "chatgpt",
+    "zdbk",
+    "eta",
+    "qqdocs",
+    "canva",
+    "notion",
+];
 export const allSites = directory.flatMap((group) => group.sites);
 export function filterDirectory(query, category = "all") {
     const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);

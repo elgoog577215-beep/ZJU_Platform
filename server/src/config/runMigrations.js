@@ -2906,6 +2906,7 @@ async function runMigrations(db) {
         }
     }
     await require("./migrations/adminAccess").migrateAdminAccess(db);
+    await require("./migrations/navigationShortcuts").migrateNavigationShortcuts(db);
 }
 
 module.exports = {

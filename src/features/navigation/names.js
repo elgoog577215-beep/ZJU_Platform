@@ -22,6 +22,15 @@ export const localizedNames = {
         zjucourses: "浙大课程攻略",
     },
     en: {
+        qqdocs: "Tencent Docs",
+        shimo: "Shimo",
+        yuque: "Yuque",
+        feishu: "Feishu",
+        canva: "Canva",
+        gaoding: "Gaoding",
+        huaban: "Huaban",
+        toollu: "Tool.lu",
+
         qwen: "Qwen",
         doubao: "Doubao",
         modelscope: "ModelScope",

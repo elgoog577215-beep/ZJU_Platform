@@ -11,10 +11,10 @@ test("homepage stays available and only exposes public directory URLs", async ({
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "探索 AI，从这里开始。" })).toBeVisible();
-    await expect(page).toHaveTitle(/AI 与科技导航/);
-    await expect(page.locator(".directory-group")).toHaveCount(9);
-    await expect(page.locator(".directory-group li")).toHaveCount(71);
+    await expect(page.getByRole("heading", { name: "好用的网站，从这里开始。" })).toBeVisible();
+    await expect(page).toHaveTitle(/常用网站导航/);
+    await expect(page.locator(".directory-group")).toHaveCount(15);
+    await expect(page.locator(".directory-group li")).toHaveCount(107);
     await expect(page.getByRole("menubar", { name: "导航菜单" }).getByRole("menuitem")).toHaveText([
         "首页",
         "活动聚合",
@@ -55,7 +55,7 @@ test("search, empty recovery and category URL restoration", async ({ page }) => 
     await page.goto("/?category=research");
     await expect(page.locator(".directory-group li")).toHaveCount(9);
     await page.getByRole("button", { name: "浏览全部网站", exact: true }).click();
-    await expect(page.locator(".directory-group li")).toHaveCount(71);
+    await expect(page.locator(".directory-group li")).toHaveCount(107);
     await input.fill("浙大本科");
     await expect(page.locator(".directory-group li")).toHaveCount(1);
     await expect(page.locator(".directory-group a")).toHaveAttribute(
@@ -106,7 +106,9 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
         .getByRole("dialog", { name: "More" })
         .getByRole("button", { name: "Close", exact: true })
         .click();
-    await expect(page.getByRole("heading", { name: "Your starting point for AI." })).toBeVisible();
+    await expect(
+        page.getByRole("heading", { name: "Your everyday starting point." })
+    ).toBeVisible();
     await page.keyboard.press("/");
     await expect(page.getByRole("searchbox", { name: "Search directory" })).toBeFocused();
     await page.keyboard.type("ZJU Course Guide");
@@ -114,7 +116,7 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
     await page.getByRole("searchbox", { name: "Search directory" }).fill("python");
     await expect(page.locator(".directory-group li")).toHaveCount(4);
     await page.keyboard.press("Escape");
-    await expect(page.locator(".directory-group li")).toHaveCount(71);
+    await expect(page.locator(".directory-group li")).toHaveCount(107);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true
     );

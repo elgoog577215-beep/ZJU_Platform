@@ -1,5 +1,5 @@
 /*
-THESIS: A quiet, useful starting point for university AI work; links lead the page.
+THESIS: A quiet, useful starting point for learning, work and creation; links lead the page.
 OWN-WORLD: Shared site shell; approved soft daytime surfaces and slate/indigo night theme.
 STORY: Find a tool, course or paper, then continue into community and real projects.
 FIRST VIEWPORT: Existing global tabs, search and quick links, a three-column directory.
@@ -22,10 +22,17 @@ import {
     Trophy,
     Radio,
     Library,
+    Briefcase,
+    Palette,
+    Image,
+    Type,
+    PenTool,
+    FileText,
 } from "lucide-react";
 import { useSettings } from "../../context/SettingsContext";
+import QuickLinks from "./QuickLinks";
 import SEO from "../../components/SEO";
-import { allSites, directory, featuredIds, filterDirectory } from "./directory";
+import { directory, filterDirectory } from "./directory";
 import "./locales";
 import "./navigation.css";
 
@@ -39,6 +46,12 @@ const icons = {
     practice: Trophy,
     news: Radio,
     campus: Library,
+    office: Briefcase,
+    design: Palette,
+    assets: Image,
+    icons: Type,
+    diagrams: PenTool,
+    productivity: FileText,
 };
 export default function HomeDirectory() {
     const { t, i18n } = useTranslation("navigation");
@@ -148,26 +161,9 @@ export default function HomeDirectory() {
                                 <kbd title={t("shortcut")}>/</kbd>
                             )}
                         </form>
-                        <div className="directory-quick-links">
-                            <span>{t("featured")}</span>
-                            {featuredIds.map((id) => {
-                                const entry = allSites.find((item) => item.id === id);
-                                return (
-                                    <a
-                                        key={id}
-                                        href={entry.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={`${name(entry)} · ${t("external")}`}
-                                    >
-                                        {name(entry)}
-                                        <ArrowUpRight size={12} aria-hidden="true" />
-                                    </a>
-                                );
-                            })}
-                        </div>
                     </div>
                 </section>
+                <QuickLinks />
                 <section
                     id="directory-content"
                     className="directory-content"

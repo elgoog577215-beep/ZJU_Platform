@@ -31,7 +31,7 @@ web
 
 ## Capabilities and Constraints
 
-- 首页提供大学、CS、AI 与科技的公开网址导航，支持用途分类、双语搜索与站内生态入口；收藏夹仅为选站线索，公开目录不接收私人文档、账号路径、会话参数或脚本书签。
+- 首页提供学习、办公、设计、素材、AI、CS 与校园的公开网址导航，支持用途分类、双语搜索与站内生态入口；收藏夹仅为选站线索，公开目录不接收私人文档、账号路径、会话参数或脚本书签。
 
 - `users` 是登录账号；公开主体由 `profiles + profile_members` 承载。
 - 长期项目由 `project_cards` 拥有；赛事成果由 `competition_works` 与 canonical competition 拥有。公开页面可以组合投影，但不能复制业务真源或伪造所有权。
