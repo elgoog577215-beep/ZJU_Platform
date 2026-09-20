@@ -17,7 +17,7 @@ const Footer = () => {
         >
             <div
                 className={`mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-lg border px-5 py-5 text-center md:flex-row md:px-6 md:text-left ${
-                    isDayMode ? "day-fine-surface border" : "border-white/6 bg-white/[0.03]"
+                    isDayMode ? "day-fine-surface border" : "border-white/[0.06] bg-white/[0.03]"
                 }`}
             >
                 <div className="flex flex-col items-center gap-2.5 md:items-start">

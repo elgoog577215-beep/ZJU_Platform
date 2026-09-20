@@ -653,7 +653,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                                 role="dialog"
                                 aria-modal="true"
                                 aria-label={t("nav.more", "更多")}
-                                className={`w-full rounded-t-lg border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] ${isDayMode ? "border-slate-200/80 bg-white text-slate-900 shadow-none" : "border-white/10 bg-[#111827]/96 text-white shadow-2xl"}`}
+                                className={`w-full rounded-t-lg border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] ${isDayMode ? "border-slate-200/80 bg-white text-slate-900 shadow-none" : "border-white/10 bg-[#111827]/[0.96] text-white shadow-2xl"}`}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="mb-4 flex items-center justify-between">
