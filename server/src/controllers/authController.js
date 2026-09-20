@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { getDb } = require("../config/db");
-const { loginAttemptTracker } = require("../middleware/security");
 const {
     WECHAT_BIND_TICKET_RE,
     WECHAT_BIND_TICKET_TTL_MS,
@@ -271,53 +270,9 @@ const login = async (req, res, next) => {
     }
 };
 
-const adminLogin = async (req, res, next) => {
-    try {
-        const { password } = req.body;
-        const clientIp = req.ip || req.connection.remoteAddress;
-
-        const lockStatus = loginAttemptTracker.isLocked(clientIp);
-        if (lockStatus.locked) {
-            return res.status(429).json({
-                error: "Account temporarily locked",
-                message: `Too many failed attempts. Try again in ${lockStatus.remainingMinutes} minutes.`,
-                retryAfter: lockStatus.remainingMinutes * 60,
-            });
-        }
-
-        const adminPassword = process.env.ADMIN_PASSWORD;
-        if (!adminPassword) {
-            console.error("Admin login attempted but ADMIN_PASSWORD not set");
-            return res.status(500).json({ error: "Server configuration error" });
-        }
-
-        if (password !== adminPassword) {
-            loginAttemptTracker.recordFailed(clientIp);
-            const status = loginAttemptTracker.isLocked(clientIp);
-            return res.status(401).json({
-                error: "Invalid password",
-                attemptsRemaining: status.attemptsRemaining || 0,
-            });
-        }
-
-        loginAttemptTracker.clear(clientIp);
-
-        // FIX: BUG-14 — Look up actual admin user from database instead of hardcoding id:1
-        const db = await getDb();
-        let adminUser = await db.get(
-            "SELECT id, username, role, account_type, review_permission, admin_scope, auth_version FROM users WHERE role = 'admin' AND admin_scope = 'platform' ORDER BY id LIMIT 1"
-        );
-        if (!adminUser) {
-            return res.status(503).json({ error: "No platform administrator configured" });
-        }
-
-        const token = signAuthToken({ ...adminUser, role: "admin" });
-
-        res.json({ token, user: toAuthUser({ ...adminUser, role: "admin" }) });
-    } catch (error) {
-        next(error);
-    }
-};
+// Shared-password login cannot identify or revoke an individual administrator.
+const adminLogin = (_req, res) =>
+    res.status(410).json({ error: "Shared admin login retired; sign in with your account" });
 
 const wechatMiniappLogin = async (req, res, next) => {
     try {

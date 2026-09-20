@@ -40,6 +40,12 @@ The system SHALL reserve private account management, access grants, registration
 - **WHEN** the corresponding operational module is granted
 - **THEN** project contacts, reporter details, system internals and complete audit information are excluded.
 
+#### Scenario: A caller uses the former shared administrator password
+
+- **WHEN** a caller submits even the configured shared password to the legacy admin-login endpoint
+- **THEN** the endpoint returns a retired response without issuing a token or selecting another user's identity
+- **AND** administrators authenticate with their own account credentials.
+
 ### Requirement: Content management preserves ownership and domain grants
 
 The system SHALL authorize content management by resource capability while preserving existing publisher attribution and limiting review queues to permitted resource types.

@@ -95,6 +95,25 @@ test("admin module permissions are granular, revocable and never inherited from 
         const update = (id, body, actor = 1) =>
             request(`/admin/access/${id}`, actor, { method: "PUT", body: JSON.stringify(body) });
 
+        await t.test("shared administrator password cannot issue any identity", async () => {
+            const previous = process.env.ADMIN_PASSWORD;
+            process.env.ADMIN_PASSWORD = "fixture-legacy-admin-secret";
+            try {
+                for (const actor of [null, 3]) {
+                    const response = await request("/auth/admin-login", actor, {
+                        method: "POST",
+                        body: JSON.stringify({ password: process.env.ADMIN_PASSWORD }),
+                    });
+                    assert.equal(response.status, 410);
+                    assert.equal(response.body.token, undefined);
+                    assert.equal(response.body.user, undefined);
+                }
+            } finally {
+                if (previous === undefined) delete process.env.ADMIN_PASSWORD;
+                else process.env.ADMIN_PASSWORD = previous;
+            }
+        });
+
         await t.test(
             "legacy admin migration preserves full access once and does not restore revoked grants",
             async () => {
