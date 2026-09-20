@@ -355,117 +355,137 @@ const restoreOwnHandler = (table) => async (req, res, next) => {
 };
 
 // Helper Factories
-const createHandler = (table, fields) => async (req, res, next) => {
-    try {
-        const db = await getDb();
-        normalizeArticlePayload(table, req.body);
-        if (table === "events") {
-            normalizeEventPayload(req.body);
-        }
-        const source = normalizeResourceSource(table, req.body);
-        throwDuplicateResourceSource(table, await findDuplicateResourceSource(db, table, source));
-        const placeholders = fields.map(() => "?").join(",");
+const createHandler =
+    (table, fields, options = {}) =>
+    async (req, res, next) => {
+        let cleanupAsset;
+        let inserted = false;
+        try {
+            const db = await getDb();
+            normalizeArticlePayload(table, req.body);
+            if (table === "events") {
+                normalizeEventPayload(req.body);
+            }
+            const source = normalizeResourceSource(table, req.body);
+            throwDuplicateResourceSource(
+                table,
+                await findDuplicateResourceSource(db, table, source)
+            );
+            const placeholders = fields.map(() => "?").join(",");
 
-        // Determine status based on user role and optional workflow intent.
-        const userRole = canManageResource(req.user, table) ? "admin" : req.user?.role || "user";
-        const workflowStatus = normalizeResourceWorkflowStatus(
-            table,
-            req.body.status,
-            req.user || {}
-        );
-        const status =
-            workflowStatus ||
-            (canManageResource(req.user, table) || canBypassReview(req.user || {})
-                ? "approved"
-                : "pending");
-        const uploader_id = req.user ? req.user.id : null;
-        const publisherProfileId = await profileService.resolvePublisherProfileId(
-            db,
-            uploader_id,
-            req.body.publisher_profile_id,
-            userRole
-        );
-        const organizerProfileId =
-            table === "events"
-                ? await profileService.resolveOrganizerProfileId(
-                      db,
-                      uploader_id,
-                      req.body.organizer_profile_id,
-                      req.body.organizer,
-                      userRole
-                  )
-                : null;
+            // Determine status based on user role and optional workflow intent.
+            const userRole = canManageResource(req.user, table)
+                ? "admin"
+                : req.user?.role || "user";
+            const workflowStatus = normalizeResourceWorkflowStatus(
+                table,
+                req.body.status,
+                req.user || {}
+            );
+            const status =
+                workflowStatus ||
+                (canManageResource(req.user, table) || canBypassReview(req.user || {})
+                    ? "approved"
+                    : "pending");
+            const uploader_id = req.user ? req.user.id : null;
+            const publisherProfileId = await profileService.resolvePublisherProfileId(
+                db,
+                uploader_id,
+                req.body.publisher_profile_id,
+                userRole
+            );
+            const organizerProfileId =
+                table === "events"
+                    ? await profileService.resolveOrganizerProfileId(
+                          db,
+                          uploader_id,
+                          req.body.organizer_profile_id,
+                          req.body.organizer,
+                          userRole
+                      )
+                    : null;
 
-        const sql = `INSERT INTO ${table} (${fields.join(",")}, status, uploader_id, created_at) VALUES (${placeholders}, ?, ?, datetime('now'))`;
-        const values = [...fields.map((field) => req.body[field]), status, uploader_id];
+            // Structured imports persist their cover only after source and identity checks.
+            cleanupAsset = await options.beforeInsert?.(req);
+            const sql = `INSERT INTO ${table} (${fields.join(",")}, status, uploader_id, created_at) VALUES (${placeholders}, ?, ?, datetime('now'))`;
+            const values = [...fields.map((field) => req.body[field]), status, uploader_id];
 
-        const result = await db.run(sql, values);
-        if (publisherProfileId) {
-            await db.run(`UPDATE ${table} SET publisher_profile_id = ? WHERE id = ?`, [
-                publisherProfileId,
-                result.lastID,
-            ]);
-        }
-        if (table === "events" && organizerProfileId) {
-            await db.run("UPDATE events SET organizer_profile_id = ? WHERE id = ?", [
-                organizerProfileId,
-                result.lastID,
-            ]);
-        }
+            const result = await db.run(sql, values);
+            inserted = true;
+            if (publisherProfileId) {
+                await db.run(`UPDATE ${table} SET publisher_profile_id = ? WHERE id = ?`, [
+                    publisherProfileId,
+                    result.lastID,
+                ]);
+            }
+            if (table === "events" && organizerProfileId) {
+                await db.run("UPDATE events SET organizer_profile_id = ? WHERE id = ?", [
+                    organizerProfileId,
+                    result.lastID,
+                ]);
+            }
 
-        if (table === "events" && status !== "rejected") {
-            void triggerEventGovernance(db, {
-                eventId: result.lastID,
-                userId: uploader_id,
-                source: "automatic_resource_create",
-            });
-        }
-        if (table === "events") refreshEventAiIndex(db, result.lastID);
+            if (table === "events" && status !== "rejected") {
+                void triggerEventGovernance(db, {
+                    eventId: result.lastID,
+                    userId: uploader_id,
+                    source: "automatic_resource_create",
+                });
+            }
+            if (table === "events") refreshEventAiIndex(db, result.lastID);
 
-        // Process tags to ensure they exist in the centralized tags table
-        if (req.body.tags) {
-            await processTags(req.body.tags);
-        }
+            // Process tags to ensure they exist in the centralized tags table
+            if (req.body.tags) {
+                await processTags(req.body.tags);
+            }
 
-        // Fan-out new-content notifications to the author's followers.
-        // Only for the 5 user-facing resource tables. Community posts are excluded
-        // per spec "No Fan-out for Community Posts". Pending/draft/rejected items
-        // must not leak before review.
-        //
-        // NOTE: Using getSingularType so 'music' stays 'music' (not table.slice(0,-1)
-        // which would incorrectly produce 'musi').
-        const FANOUT_TABLES = new Set(["photos", "music", "videos", "articles", "events"]);
-        if (FANOUT_TABLES.has(table) && status === "approved") {
-            await fanOutNewContent({
-                authorId: uploader_id,
-                resourceType: getSingularType(table),
-                resourceId: result.lastID,
-                title: req.body.title,
-            });
-        }
+            // Fan-out new-content notifications to the author's followers.
+            // Only for the 5 user-facing resource tables. Community posts are excluded
+            // per spec "No Fan-out for Community Posts". Pending/draft/rejected items
+            // must not leak before review.
+            //
+            // NOTE: Using getSingularType so 'music' stays 'music' (not table.slice(0,-1)
+            // which would incorrectly produce 'musi').
+            const FANOUT_TABLES = new Set(["photos", "music", "videos", "articles", "events"]);
+            if (FANOUT_TABLES.has(table) && status === "approved") {
+                await fanOutNewContent({
+                    authorId: uploader_id,
+                    resourceType: getSingularType(table),
+                    resourceId: result.lastID,
+                    title: req.body.title,
+                });
+            }
 
-        res.json(
-            serializeResourceItem(table, {
-                id: result.lastID,
-                ...req.body,
-                status,
-                likes: 0,
-                publisher_profile_id: publisherProfileId,
-                organizer_profile_id: organizerProfileId,
-            })
-        );
-    } catch (error) {
-        if (error.status) {
-            return res.status(error.status).json({
-                error: error.code || error.message,
-                message: error.message,
-                existing_id: error.existing_id || null,
-                existing_title: error.existing_title || null,
-            });
+            res.json(
+                serializeResourceItem(table, {
+                    id: result.lastID,
+                    ...req.body,
+                    status,
+                    likes: 0,
+                    publisher_profile_id: publisherProfileId,
+                    organizer_profile_id: organizerProfileId,
+                })
+            );
+        } catch (error) {
+            // A failure after INSERT may already have saved the event. Keep its cover.
+            if (!inserted && cleanupAsset) {
+                try {
+                    await cleanupAsset();
+                } catch (_cleanupError) {
+                    console.error("Failed to clean up an uncommitted resource cover");
+                }
+            }
+            if (error.status) {
+                return res.status(error.status).json({
+                    error: error.code || error.message,
+                    message: error.message,
+                    existing_id: error.existing_id || null,
+                    existing_title: error.existing_title || null,
+                });
+            }
+            next(error);
         }
-        next(error);
-    }
-};
+    };
 
 const updateHandler = (table, fields) => async (req, res, next) => {
     try {

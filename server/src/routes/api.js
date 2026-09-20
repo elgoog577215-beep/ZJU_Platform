@@ -7,6 +7,7 @@ const { upload, avatarUpload } = require("../middleware/upload");
 
 // Controllers
 const resourceController = require("../controllers/resourceController");
+const eventImportController = require("../controllers/eventImportController");
 const favoriteController = require("../controllers/favoriteController");
 const settingsController = require("../controllers/settingsController");
 const systemController = require("../controllers/systemController");
@@ -1255,6 +1256,15 @@ router.post(
     authenticateToken,
     requireAdminPermission("admin.taxonomy.manage"),
     tagController.syncTags
+);
+
+// Pre-structured articles enter the normal event ownership and review chain.
+router.post(
+    "/events/import",
+    authenticateToken,
+    eventImportController.receive,
+    eventImportController.prepare,
+    eventImportController.submit
 );
 
 resources.forEach((resource) => {
