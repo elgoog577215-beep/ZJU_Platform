@@ -1,10 +1,13 @@
 .ai-directory {
-    --directory-bg: transparent;
-    --directory-surface: rgba(15, 23, 42, 0.9);
-    --directory-hover: #1e293b;
+    --directory-bg: rgb(2 6 23 / 14%);
+    --directory-surface: rgb(18 30 50 / 97%);
+    --directory-hover: #24334b;
     --directory-text: #f1f5f9;
-    --directory-muted: #b3c0d3;
-    --directory-border: rgb(255 255 255 / 10%);
+    --directory-muted: #c3cede;
+    --directory-border: #617089;
+    --directory-card-border: rgb(179 192 211 / 16%);
+    --directory-action: #a5b4fc;
+    --directory-action-hover: #d5dcff;
     --directory-accent: #a5b4fc;
     --directory-selected: rgb(99 102 241 / 16%);
     --directory-input: #0f172a;
@@ -23,6 +26,9 @@
     --directory-text: #1c3025;
     --directory-muted: #57685d;
     --directory-border: #d9e1db;
+    --directory-card-border: transparent;
+    --directory-action: var(--directory-muted);
+    --directory-action-hover: var(--directory-accent);
     --directory-accent: #285e41;
     --directory-selected: #dce9df;
     --directory-input: #ffffff;
@@ -82,6 +88,8 @@
 }
 .directory-search-area form:focus-within {
     border-color: var(--directory-accent);
+    outline: 2px solid var(--directory-accent);
+    outline-offset: 3px;
 }
 .directory-search-area input {
     width: 100%;
@@ -190,6 +198,10 @@
     border-radius: 6px;
     background: var(--directory-surface);
     transition: background-color 160ms;
+}
+.directory-group li a:not(:focus-visible) {
+    outline: 1px solid var(--directory-card-border);
+    outline-offset: -1px;
 }
 .directory-group li a:hover {
     background: var(--directory-hover);
@@ -346,12 +358,14 @@
     align-items: center;
     gap: 4px;
     flex-shrink: 0;
-    color: var(--directory-muted) !important;
+    color: var(--directory-action);
     font-size: 12px;
     min-height: 32px;
 }
-.directory-view-all:hover {
-    color: var(--directory-accent) !important;
+.ai-directory .directory-view-all:is(:hover, :focus-visible) {
+    color: var(--directory-action-hover);
+    text-decoration: underline;
+    text-underline-offset: 4px;
 }
 @media (pointer: coarse) {
     .directory-view-all {
