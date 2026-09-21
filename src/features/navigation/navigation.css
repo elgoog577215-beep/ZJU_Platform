@@ -20,15 +20,15 @@
     text-align: left;
 }
 .ai-directory[data-appearance="day"] {
-    --directory-bg: #f7f9f7;
-    --directory-surface: #eef2ef;
-    --directory-hover: #e3ebe5;
+    --directory-bg: #f3f6f3;
+    --directory-surface: #ffffff;
+    --directory-hover: #e6eee8;
     --directory-text: #1c3025;
-    --directory-muted: #57685d;
-    --directory-border: #d9e1db;
-    --directory-card-border: transparent;
-    --directory-action: var(--directory-muted);
-    --directory-action-hover: var(--directory-accent);
+    --directory-muted: #4d6053;
+    --directory-border: #7d8e82;
+    --directory-card-border: #d0dbd2;
+    --directory-action: var(--directory-accent);
+    --directory-action-hover: #18472f;
     --directory-accent: #285e41;
     --directory-selected: #dce9df;
     --directory-input: #ffffff;
