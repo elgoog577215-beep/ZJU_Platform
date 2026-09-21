@@ -1,23 +1,23 @@
 services:
-  collector:
-    # Reuse the tested we-mp-rss image; no additional browser or paid API is needed.
-    image: ${WEREAD_COLLECTOR_IMAGE:-we-mp-rss-trial:d8feb6a}
-    init: true
-    restart: unless-stopped
-    command: ["python", "-u", "/collector/weread_poll.py"]
-    environment:
-      WEREAD_POLL_SECONDS: "900"
-      WEREAD_REQUEST_GAP: "10"
-    volumes:
-      - ./weread_poll.py:/collector/weread_poll.py:ro
-      - ${WEREAD_DATA_DIR:?set the existing we-mp-rss data directory}:/app/data
-    mem_limit: 192m
-    cpus: 0.25
-    pids_limit: 40
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-size: "3m"
-        max-file: "2"
+    collector:
+        # Reuse the tested we-mp-rss image; no additional browser or paid API is needed.
+        image: ${WEREAD_COLLECTOR_IMAGE:-we-mp-rss-trial:d8feb6a}
+        init: true
+        restart: unless-stopped
+        command: ["python", "-u", "/collector/weread_poll.py"]
+        environment:
+            WEREAD_POLL_SECONDS: "900"
+            WEREAD_REQUEST_GAP: "10"
+        volumes:
+            - ./weread_poll.py:/collector/weread_poll.py:ro
+            - ${WEREAD_DATA_DIR:?set the existing we-mp-rss data directory}:/app/data
+        mem_limit: 192m
+        cpus: 0.25
+        pids_limit: 40
+        security_opt:
+            - no-new-privileges:true
+        logging:
+            driver: json-file
+            options:
+                max-size: "3m"
+                max-file: "2"

@@ -3,7 +3,10 @@ const fs = require("fs");
 const wechatMpAdminService = require("./wechatMpAdminService");
 const wechatReadRssService = require("./wechatReadRssService");
 const wechatWereadCacheService = require("./wechatWereadCacheService");
-const isRssSource = (account) => [wechatReadRssService.SOURCE_TYPE, wechatWereadCacheService.SOURCE_TYPE].includes(account.source_type);
+const isRssSource = (account) =>
+    [wechatReadRssService.SOURCE_TYPE, wechatWereadCacheService.SOURCE_TYPE].includes(
+        account.source_type
+    );
 const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
@@ -27,7 +30,11 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 const INGEST_STALE_AFTER_MINUTES = 30;
 const STALE_RUN_ERROR = "采集任务因服务重启或长时间无响应而中止";
-const INGEST_SOURCE_TYPES = new Set(["wechat_mp", wechatReadRssService.SOURCE_TYPE, wechatWereadCacheService.SOURCE_TYPE]);
+const INGEST_SOURCE_TYPES = new Set([
+    "wechat_mp",
+    wechatReadRssService.SOURCE_TYPE,
+    wechatWereadCacheService.SOURCE_TYPE,
+]);
 let activeRun = null;
 let activeRunId = null;
 let schedulerTimer = null;
@@ -691,13 +698,13 @@ const upsertIngestAccount = async (db, payload = {}) => {
         throw error;
     }
     if (isRssSource(account)) {
-        account.rss_feed_id = (account.source_type === wechatWereadCacheService.SOURCE_TYPE ? wechatWereadCacheService : wechatReadRssService).normalizeFeedId(account.rss_feed_id);
+        account.rss_feed_id = (
+            account.source_type === wechatWereadCacheService.SOURCE_TYPE
+                ? wechatWereadCacheService
+                : wechatReadRssService
+        ).normalizeFeedId(account.rss_feed_id);
     }
-    if (
-        isRssSource(account) &&
-        !account.name &&
-        account.rss_feed_id
-    ) {
+    if (isRssSource(account) && !account.name && account.rss_feed_id) {
         account.name = account.rss_feed_id;
     }
     if (account.source_type === "wechat_mp" && !account.name && !account.fakeid) {
@@ -1424,7 +1431,8 @@ const executeIngestRun = async (
         });
         for (let index = 0; index < accounts.length; index += 1) {
             const account = accounts[index];
-            const feedApi = account.source_type === wechatWereadCacheService.SOURCE_TYPE ? wereadApi : rssApi;
+            const feedApi =
+                account.source_type === wechatWereadCacheService.SOURCE_TYPE ? wereadApi : rssApi;
             await updateRunProgress(db, createdRunId, {
                 stage: "fetching_accounts",
                 totalAccounts: accounts.length,
@@ -1521,14 +1529,18 @@ const executeIngestRun = async (
                 const shouldFetchContent =
                     account.fetch_content &&
                     effectiveSettings.fetch_content &&
-                    !(account.source_type === wechatWereadCacheService.SOURCE_TYPE && article.collector_content_status === "pending") &&
+                    !(
+                        account.source_type === wechatWereadCacheService.SOURCE_TYPE &&
+                        article.collector_content_status === "pending"
+                    ) &&
                     (account.source_type === wechatWereadCacheService.SOURCE_TYPE
-                        ? (!existing || (!existing.content_text && existing.content_status !== "image_only"))
-                        : (!existing ||
-                        !existing.content_text ||
-                        !isLocalUploadUrl(existing.cover) ||
-                        (account.source_type === wechatReadRssService.SOURCE_TYPE &&
-                            hasRemoteContentAssets(existing))));
+                        ? !existing ||
+                          (!existing.content_text && existing.content_status !== "image_only")
+                        : !existing ||
+                          !existing.content_text ||
+                          !isLocalUploadUrl(existing.cover) ||
+                          (account.source_type === wechatReadRssService.SOURCE_TYPE &&
+                              hasRemoteContentAssets(existing)));
                 if (shouldFetchContent && article.link) {
                     if (articleIndex > 0)
                         await wechatMpAdminService.waitDelayRange(
@@ -1555,8 +1567,11 @@ const executeIngestRun = async (
                 }
                 const contentCover = String(content?.coverImage || content?.cover || "").trim();
                 const listCover = String(article.cover || "").trim();
-                if (listCover && !isLocalUploadUrl(contentCover || existing?.cover || listCover) &&
-                    (account.source_type !== wechatWereadCacheService.SOURCE_TYPE || !existing)) {
+                if (
+                    listCover &&
+                    !isLocalUploadUrl(contentCover || existing?.cover || listCover) &&
+                    (account.source_type !== wechatWereadCacheService.SOURCE_TYPE || !existing)
+                ) {
                     const localizedCover = await localizeIngestCover(listCover, localizeImages);
                     if (localizedCover && localizedCover !== listCover) {
                         content = {
@@ -1785,10 +1800,13 @@ const startWechatMpIngestScheduler = ({ getDb, intervalMs = 60 * 1000 } = {}) =>
             if (activeRun) return;
             const zoned = getZonedDateTimeKey(new Date(), settings.timezone);
             const dailyKey = `${zoned.dateKey}:${settings.daily_run_time}`;
-            const dailyDue = zoned.timeKey === settings.daily_run_time && schedulerLastKey !== dailyKey;
+            const dailyDue =
+                zoned.timeKey === settings.daily_run_time && schedulerLastKey !== dailyKey;
             const repeatMinutes = Number(process.env.WEREAD_INGEST_INTERVAL_MINUTES) || 0;
             const intervalKey = Math.floor(Date.now() / (repeatMinutes * 60000));
-            const cacheDue = Number.isFinite(repeatMinutes) && repeatMinutes >= 5 &&
+            const cacheDue =
+                Number.isFinite(repeatMinutes) &&
+                repeatMinutes >= 5 &&
                 wereadSchedulerLastKey !== intervalKey;
             if (!dailyDue && !cacheDue) return;
             // Frequent imports only read the local cache. Legacy sources keep their daily schedule.

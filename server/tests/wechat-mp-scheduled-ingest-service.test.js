@@ -13,10 +13,31 @@ test("WeRead pending metadata survives until its asynchronous body becomes avail
     let calls = 0;
     try {
         await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
-        await service.upsertIngestAccount(db, { name: "延迟正文", source_type: "weread_mp", rss_feed_id: "MP_WXS_456" });
+        await service.upsertIngestAccount(db, {
+            name: "延迟正文",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_456",
+        });
         const wereadApi = {
-            async fetchArticles() { return { articles: [{ title: "待补正文", link: "https://mp.weixin.qq.com/s/pending", collector_content_status: ready ? "ready" : "pending" }] }; },
-            async fetchArticleContent() { calls++; return { contentText: "后来抓到的正文", contentHtml: "<p>后来抓到的正文</p>", content_status: "fetched" }; }
+            async fetchArticles() {
+                return {
+                    articles: [
+                        {
+                            title: "待补正文",
+                            link: "https://mp.weixin.qq.com/s/pending",
+                            collector_content_status: ready ? "ready" : "pending",
+                        },
+                    ],
+                };
+            },
+            async fetchArticleContent() {
+                calls++;
+                return {
+                    contentText: "后来抓到的正文",
+                    contentHtml: "<p>后来抓到的正文</p>",
+                    content_status: "fetched",
+                };
+            },
         };
         let result = await service.executeIngestRun(db, { wereadApi });
         assert.equal(result.new_articles, 1);
@@ -26,8 +47,13 @@ test("WeRead pending metadata survives until its asynchronous body becomes avail
         result = await service.executeIngestRun(db, { wereadApi });
         assert.equal(result.new_articles, 0);
         assert.equal(calls, 1);
-        assert.equal((await db.get("SELECT content_text FROM wechat_mp_ingest_articles")).content_text, "后来抓到的正文");
-    } finally { await db.close(); }
+        assert.equal(
+            (await db.get("SELECT content_text FROM wechat_mp_ingest_articles")).content_text,
+            "后来抓到的正文"
+        );
+    } finally {
+        await db.close();
+    }
 });
 
 test("WeRead live source imports from cache once and never calls either legacy collector", async () => {
@@ -35,13 +61,45 @@ test("WeRead live source imports from cache once and never calls either legacy c
     let contentCalls = 0;
     try {
         await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
-        await service.upsertIngestAccount(db, { name: "读书来源", source_type: "weread_mp", rss_feed_id: "MP_WXS_123" });
+        await service.upsertIngestAccount(db, {
+            name: "读书来源",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_123",
+        });
         const wereadApi = {
-            async fetchArticles() { return { articles: [{ title: "最新文章", link: "https://mp.weixin.qq.com/s/a_b~c", create_time: "", time_text: "" }] }; },
-            async fetchArticleContent() { contentCalls++; return { contentText: "已采集正文", contentHtml: "<p>已采集正文</p>", images: [], content_status: "fetched" }; }
+            async fetchArticles() {
+                return {
+                    articles: [
+                        {
+                            title: "最新文章",
+                            link: "https://mp.weixin.qq.com/s/a_b~c",
+                            create_time: "",
+                            time_text: "",
+                        },
+                    ],
+                };
+            },
+            async fetchArticleContent() {
+                contentCalls++;
+                return {
+                    contentText: "已采集正文",
+                    contentHtml: "<p>已采集正文</p>",
+                    images: [],
+                    content_status: "fetched",
+                };
+            },
         };
-        const forbidden = { async fetchArticles() { throw new Error("legacy collector must not run"); } };
-        const options = { wereadApi, wechatApi: forbidden, rssApi: forbidden, settings: await service.getIngestSettings(db) };
+        const forbidden = {
+            async fetchArticles() {
+                throw new Error("legacy collector must not run");
+            },
+        };
+        const options = {
+            wereadApi,
+            wechatApi: forbidden,
+            rssApi: forbidden,
+            settings: await service.getIngestSettings(db),
+        };
         const first = await service.executeIngestRun(db, options);
         const second = await service.executeIngestRun(db, options);
         assert.equal(first.status, "completed");
@@ -52,26 +110,51 @@ test("WeRead live source imports from cache once and never calls either legacy c
         assert.equal(rows.length, 1);
         assert.equal(rows[0].create_time, "");
         assert.equal(rows[0].content_text, "已采集正文");
-    } finally { await db.close(); }
+    } finally {
+        await db.close();
+    }
 });
 
 test("frequent cache imports leave enabled legacy sources for their daily run", async () => {
     const db = await createDb();
     try {
         await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
-        await service.upsertIngestAccount(db, { name: "缓存", source_type: "weread_mp", rss_feed_id: "MP_WXS_123" });
-        await service.upsertIngestAccount(db, { name: "旧源", source_type: "wewe_rss", rss_feed_id: "MP_WXS_456" });
-        await service.upsertIngestAccount(db, { name: "后台", source_type: "wechat_mp", fakeid: "789" });
-        const forbidden = { async fetchArticles() { throw new Error("legacy source queried"); } };
+        await service.upsertIngestAccount(db, {
+            name: "缓存",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_123",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "旧源",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_456",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "后台",
+            source_type: "wechat_mp",
+            fakeid: "789",
+        });
+        const forbidden = {
+            async fetchArticles() {
+                throw new Error("legacy source queried");
+            },
+        };
         const result = await service.executeIngestRun(db, {
             sourceTypes: ["weread_mp"],
-            wereadApi: { async fetchArticles() { return { articles: [] }; } },
-            rssApi: forbidden, wechatApi: forbidden,
+            wereadApi: {
+                async fetchArticles() {
+                    return { articles: [] };
+                },
+            },
+            rssApi: forbidden,
+            wechatApi: forbidden,
         });
         assert.equal(result.status, "completed");
         assert.equal(result.total_accounts, 1);
         assert.equal(result.failed_count, 0);
-    } finally { await db.close(); }
+    } finally {
+        await db.close();
+    }
 });
 
 test("WeChat MP scheduled ingest settings keep conservative defaults", async () => {
