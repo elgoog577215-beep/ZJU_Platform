@@ -84,10 +84,41 @@ class Poller:
         ROOT.mkdir(parents=True, exist_ok=True)
         self.state = read_json(ROOT / "status.json", {"accounts": {}, "global_pause_until": 0})
         self.last_request = 0
+        self.interval = INTERVAL
+        self.control = {}
 
     def save(self):
         self.state["heartbeat_at"] = stamp()
         write_json(ROOT / "status.json", self.state)
+
+    def apply_control(self):
+        self.control = read_json(ROOT / "control.json", {})
+        self.interval = max(900, min(21600, int(self.control.get("poll_seconds", INTERVAL))))
+        if self.state.get("poll_seconds") != self.interval:
+            for item in self.state["accounts"].values():
+                if item.get("last_success_at") and not item.get("error"):
+                    last = datetime.fromisoformat(item["last_success_at"]).timestamp()
+                    item["next_check"] = last + self.interval
+        self.state.update(worker_version=2, poll_seconds=self.interval,
+                          control_revision=self.control.get("revision"),
+                          paused=bool(self.control.get("paused")))
+        tokens = self.state.setdefault("retry_tokens", {})
+        for mp_id, settings in self.control.get("feeds", {}).items():
+            if not re.fullmatch(r"MP_WXS_\d+", mp_id):
+                continue
+            token = settings.get("retry_token")
+            if not token or tokens.get(mp_id) == token:
+                continue
+            self.state["accounts"].setdefault(mp_id, {})["next_check"] = 0
+            feed_path = ROOT / (mp_id + ".json")
+            feed = read_json(feed_path, {"articles": []})
+            for article in feed["articles"]:
+                if article.get("content_status") != "ready":
+                    article["body_next_retry"] = 0
+            if feed_path.exists():
+                write_json(feed_path, feed)
+            tokens[mp_id] = token
+        self.save()
 
     def request(self, endpoint, params, as_json=True):
         time.sleep(max(0, self.last_request + GAP - time.monotonic()))
@@ -142,13 +173,13 @@ class Poller:
                     "author": feed["name"], "observed_at": stamp(), "published_at": "",
                     "content_status": "pending", "body_failures": 0, "body_next_retry": 0})
             write_json(feed_path, feed)
-            state.update(last_success_at=stamp(), failures=0, error="", next_check=time.time() + INTERVAL)
+            state.update(last_success_at=stamp(), failures=0, error="", next_check=time.time() + self.interval)
         except Exception as exc:
             # Do not log request objects, cookies, or untrusted response bodies.
             code = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
             state["failures"] = state.get("failures", 0) + 1
             state.update(error=code[:100], last_error_at=stamp(),
-                         next_check=time.time() + min(21600, INTERVAL * 2 ** min(state["failures"] - 1, 4)))
+                         next_check=time.time() + min(21600, self.interval * 2 ** min(state["failures"] - 1, 4)))
             if code in {"auth_missing", "api_-2012", "api_-2010", "http_401", "http_403", "http_429", "api_200013"}:
                 self.state["global_pause_until"] = time.time() + (3600 if "429" in code or "200013" in code else 1800)
                 if code in {"auth_missing", "api_-2012", "api_-2010", "http_401"}:
@@ -171,6 +202,8 @@ class Poller:
             article.update(body_error=code[:100], body_next_retry=time.time() + min(21600, 900 * 2 ** min(article["body_failures"], 4)))
             if code in {"http_401", "http_403", "http_429"}:
                 self.state["global_pause_until"] = time.time() + 1800
+                if code == "http_401":
+                    self.state["auth_required"] = True
             print(json.dumps({"mp_id": mp_id, "phase": "body", "error": code[:100]}), flush=True)
         write_json(ROOT / (mp_id + ".json"), feed)
         self.save()
@@ -178,7 +211,12 @@ class Poller:
     def run(self, once=False):
         visited = set()
         while True:
-            accounts = read_json(MANIFEST, [])
+            self.apply_control()
+            accounts = [a for a in read_json(MANIFEST, [])
+                        if not self.control.get("feeds", {}).get(a["mp_id"], {}).get("paused")]
+            if self.state.get("paused"):
+                if once: return
+                time.sleep(5); continue
             auth_data = yaml.safe_load(AUTH.read_text()) or {}
             digest = hashlib.sha256(json.dumps(auth_data.get("weread_data", {}), sort_keys=True).encode()).hexdigest()
             previous_digest = self.state.get("auth_digest")
@@ -193,6 +231,7 @@ class Poller:
                 self.save()
                 if once: return
                 time.sleep(5); continue
+            self.state.pop("error", None)
             if shutil.disk_usage(ROOT).free < 512 * 1024 * 1024:
                 self.state["error"] = "disk_below_512MiB"; self.save()
                 if once: return

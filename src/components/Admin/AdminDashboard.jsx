@@ -46,6 +46,7 @@ import AiAssistantManager from "./AiAssistantManager";
 import EcosystemPartnerManager from "./EcosystemPartnerManager";
 import EventAttributionMigrationManager from "./EventAttributionMigrationManager";
 import MediaCategoryManager from "./MediaCategoryManager";
+import WeReadCollectorManager from "./WeReadCollectorManager";
 import WeChatMpImportManager from "./WeChatMpImportManager";
 import ProjectManager from "./ProjectManager";
 import api from "../../services/api";
@@ -72,6 +73,7 @@ const KNOWN_TAB_IDS = new Set([
     "pending",
     "intelligence",
     "wechat-mp",
+    "weread-collector",
     "attribution",
     "events",
     "hackathon",
@@ -272,6 +274,14 @@ const AdminDashboard = () => {
                         icon: Music,
                         description: t("admin.descriptions.music", "音频资源与封面"),
                         status: MODULE_STATUS.ready,
+                    },
+                    {
+                        id: "weread-collector",
+                        label: t("admin.weread.title"),
+                        icon: BookOpen,
+                        description: t("admin.weread.description"),
+                        status: MODULE_STATUS.maintenance,
+                        keywords: ["微信读书", "采集", "轮询", "WeRead"],
                     },
                     {
                         id: "wechat-mp",
@@ -618,6 +628,8 @@ const AdminDashboard = () => {
                 return <SettingsManager />;
             case "intelligence":
                 return <AiAssistantManager />;
+            case "weread-collector":
+                return <WeReadCollectorManager />;
             case "wechat-mp":
                 return <WeChatMpImportManager />;
             case "attribution":

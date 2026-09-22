@@ -95,6 +95,27 @@ test("admin module permissions are granular, revocable and never inherited from 
         const update = (id, body, actor = 1) =>
             request(`/admin/access/${id}`, actor, { method: "PUT", body: JSON.stringify(body) });
 
+        await t.test(
+            "WeRead maintenance endpoints require platform administrator authority",
+            async () => {
+                for (const [route, method] of [
+                    ["/admin/weread", "GET"],
+                    ["/admin/weread/control", "PATCH"],
+                    ["/admin/weread/import", "POST"],
+                    ["/admin/weread/login", "POST"],
+                    ["/admin/weread/login", "GET"],
+                ]) {
+                    for (const actor of [null, 3, 4]) {
+                        const result = await request(route, actor, {
+                            method,
+                            ...(method === "GET" ? {} : { body: "{}" }),
+                        });
+                        assert.equal(result.status, actor ? 403 : 401, `${method} ${route}`);
+                    }
+                }
+            }
+        );
+
         await t.test("shared administrator password cannot issue any identity", async () => {
             const previous = process.env.ADMIN_PASSWORD;
             process.env.ADMIN_PASSWORD = "fixture-legacy-admin-secret";

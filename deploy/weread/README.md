@@ -16,3 +16,5 @@ python -m unittest discover -s deploy/weread -p 'test_*.py'
 - `WEREAD_REQUEST_GAP`：所有请求之间的最小间隔，最少 10 秒。
 
 只启动一个轮询进程写入同一缓存目录。`--once` 处理当前到期来源及可重试正文后退出，仍遵守已保存的间隔、认证暂停和退避状态。
+
+维护界面使用缓存目录内的 `control.json` 控制轮询，`status.json` 的 `worker_version=2` 和 `control_revision` 表示版本与已接收指令。更新脚本后重启 collector；主平台与采集器必须共享同一个可写缓存目录。应用不会直接修改 collector 的正文或运行状态文件。手动重试保持授权与限流暂停，命令 token 跨重启去重。

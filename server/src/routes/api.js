@@ -33,6 +33,7 @@ const competitionController = require("../controllers/competitionController");
 const futureLearningController = require("../controllers/futureLearningController");
 const wechatParseController = require("../controllers/wechatParseController");
 const wechatMpAdminController = require("../controllers/wechatMpAdminController");
+const wechatWereadAdminController = require("../controllers/wechatWereadAdminController");
 const wechatReadRssAdminController = require("../controllers/wechatReadRssAdminController");
 const ecosystemPartnerController = require("../controllers/ecosystemPartnerController");
 const eventAttributionMigrationController = require("../controllers/eventAttributionMigrationController");
@@ -574,6 +575,32 @@ router.post(
     "/resources/parse-wechat",
     authenticateToken,
     wechatParseController.parseWeChatResource
+);
+// Separate maintenance surface for the persistent WeRead collector.
+router.get("/admin/weread", authenticateToken, isAdmin, wechatWereadAdminController.overview);
+router.patch(
+    "/admin/weread/control",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.control
+);
+router.post(
+    "/admin/weread/import",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.importNow
+);
+router.post(
+    "/admin/weread/login",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.startLogin
+);
+router.get(
+    "/admin/weread/login",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.loginStatus
 );
 router.get(
     "/admin/wechat-mp/status",
