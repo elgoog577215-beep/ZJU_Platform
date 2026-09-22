@@ -109,6 +109,30 @@ class ParserTests(unittest.TestCase):
         result = parse_body('<script>var ct = "1750000000";</script><div id="js_content">正文</div>')
         self.assertTrue(result["published_at"].startswith("2025-"))
 
+    def test_picture_message_excludes_nested_watermark_and_decodes_text(self):
+        raw = r'''<meta property="og:description" content="第一行\\x0a第二行 &lt;script&gt;不是代码&lt;/script&gt;">
+        <script>window.data = { item_show_type: '8' * 1, picture_page_info_list: [
+          {cdn_url: 'https://mmbiz.qpic.cn/one.jpg', poi_info: [],
+           watermark_info: {cdn_url: 'https://mmbiz.qpic.cn/watermark.jpg'},
+           caption: 'brackets ] } and escaped quote \' remain data'},
+          {cdn_url: 'http://mmbiz.qpic.cn/two.jpg', nested: [{x: 1}]},
+          {cdn_url: 'https://unrelated.example/tracker.jpg'}
+        ] };</script>'''
+        result = parse_body(raw)
+        self.assertEqual(result["images"], ["https://mmbiz.qpic.cn/one.jpg", "https://mmbiz.qpic.cn/two.jpg"])
+        self.assertIn("第一行\n第二行", result["content_text"])
+        self.assertIn("&lt;script&gt;", result["content_html"])
+        self.assertNotIn("<script>", result["content_html"])
+        self.assertEqual(result["published_at"], "")
+
+    def test_picture_message_requires_complete_typed_picture_list(self):
+        for raw in [
+            "<script>picture_page_info_list: [{cdn_url: 'https://mmbiz.qpic.cn/a'}]</script>",
+            "<script>item_show_type: '8', picture_page_info_list: [{cdn_url: 'https://mmbiz.qpic.cn/a'}</script>",
+            "<script>item_show_type: '8', picture_page_info_list: []</script>",
+        ]:
+            with self.assertRaisesRegex(ValueError, "article_body_missing"): parse_body(raw)
+
 
 if __name__ == "__main__":
     unittest.main()
