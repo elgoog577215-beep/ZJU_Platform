@@ -101,6 +101,12 @@ jobs:
             - name: Run backend test suite
               run: node --test --test-concurrency=1 server/tests/*.test.js
 
+            - name: Test WeRead collector
+              run: |
+                  python3 -m venv "$RUNNER_TEMP/weread-tests"
+                  "$RUNNER_TEMP/weread-tests/bin/pip" install requests beautifulsoup4 pyyaml
+                  "$RUNNER_TEMP/weread-tests/bin/python" -m unittest discover -s deploy/weread -p 'test_*.py'
+
     build:
         name: Build dist
         runs-on: ubuntu-latest

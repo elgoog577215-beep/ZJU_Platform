@@ -165,6 +165,79 @@ export default function WeReadCaptureHistory({ overview, sourceId, openSource })
                                     </div>
                                 ))}
                             </dl>
+                            {article.body_status === "pending" && (
+                                <div
+                                    className={`mt-3 rounded-lg border p-3 text-sm ${theme.panelClass}`}
+                                >
+                                    <p>
+                                        {tr("bodyFailure", {
+                                            reason: tr(
+                                                `bodyErrors.${article.body_error || "not_attempted"}`,
+                                                {
+                                                    defaultValue:
+                                                        article.body_error || tr("waiting"),
+                                                }
+                                            ),
+                                        })}
+                                    </p>
+                                    {article.weread_error && (
+                                        <p>
+                                            {tr("wereadRoute")}:{" "}
+                                            {tr(`bodyErrors.${article.weread_error}`, {
+                                                defaultValue: article.weread_error,
+                                            })}
+                                        </p>
+                                    )}
+                                    {article.public_error && (
+                                        <p>
+                                            {tr("publicRoute")}:{" "}
+                                            {tr(`bodyErrors.${article.public_error}`, {
+                                                defaultValue: article.public_error,
+                                            })}
+                                        </p>
+                                    )}
+                                    <p>
+                                        {tr("bodyRetryInfo", {
+                                            count: article.body_failures,
+                                            last: date(article.body_last_attempt_at),
+                                            next: date(article.body_next_retry),
+                                        })}
+                                    </p>
+                                </div>
+                            )}
+                            {overview.vision_enabled &&
+                                article.body_status === "ready" &&
+                                !article.vision && (
+                                    <p className="mt-3 text-sm">{tr("visionQueued")}</p>
+                                )}
+                            {article.vision && (
+                                <div className="mt-3 border-t pt-3 text-sm">
+                                    <p>
+                                        {tr("visionProgress", {
+                                            status: tr(`visionStates.${article.vision.status}`),
+                                            done: article.vision.processed,
+                                            total: article.vision.total,
+                                            failed: article.vision.failed,
+                                            chars: article.vision.ocr_chars,
+                                        })}
+                                    </p>
+                                    {article.vision.uncertain && <p>{tr("visionUncertain")}</p>}
+                                    {article.vision.selected_image && (
+                                        <div className="mt-2 flex items-start gap-3">
+                                            <img
+                                                src={article.vision.selected_image}
+                                                alt={tr("selectedImage")}
+                                                loading="lazy"
+                                                className="h-20 w-28 rounded object-contain"
+                                            />
+                                            <p>
+                                                {tr("selectedImage")}:{" "}
+                                                {article.vision.selection_reason}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {article.activity_reason && (
                                 <p className={`mt-2 break-words text-xs ${theme.mutedTextClass}`}>
                                     {tr("screenReason", { reason: article.activity_reason })}

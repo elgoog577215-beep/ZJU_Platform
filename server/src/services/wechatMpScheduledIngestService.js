@@ -1,3 +1,4 @@
+const { enrichArticle } = require("./wechatArticleVisionService");
 const fs = require("fs");
 
 const wechatMpAdminService = require("./wechatMpAdminService");
@@ -1118,10 +1119,8 @@ const activityEventPayload = (article, parsed) => {
               .join(",")
         : String(parsed.tags || "").trim();
     const contentText = String(article.content_text || "").trim();
-    const date =
-        normalizeEventDateTime(parsed.date, parsed.time, 0) ||
-        normalizeEventDateTime(article.time_text) ||
-        "";
+    // Publication time is not an event time; leave unknown dates for review.
+    const date = normalizeEventDateTime(parsed.date, parsed.time, 0) || "";
     return {
         title: String(parsed.title || article.title || "未命名活动").trim(),
         date,
@@ -1302,6 +1301,7 @@ const extractArticleRecord = async (
                 title: article.title || "Untitled",
                 author: article.author || article.account_name || "Unknown",
                 content,
+                publishedAt: article.time_text || null,
                 coverImage: article.cover || "",
             },
             { db }
@@ -1413,6 +1413,7 @@ const executeIngestRun = async (
     let newArticles = 0;
     let fetchedContents = 0;
     let extractedArticles = 0;
+    const visionBudget = { remaining: 12 };
     let failedCount = 0;
     let extractionFailedCount = 0;
     const sourceErrors = [];
@@ -1595,7 +1596,7 @@ const executeIngestRun = async (
                 const saved = await upsertArticle(db, { account, article, content });
                 if (saved.inserted) newArticles += 1;
                 if (effectiveSettings.auto_parse && saved.id) {
-                    const storedArticle = await db.get(
+                    let storedArticle = await db.get(
                         `
             SELECT a.*, acc.name AS account_name
             FROM wechat_mp_ingest_articles a
@@ -1604,6 +1605,19 @@ const executeIngestRun = async (
           `,
                         [saved.id]
                     );
+                    if (
+                        account.source_type === wechatWereadCacheService.SOURCE_TYPE &&
+                        process.env.WEREAD_VISION_ENABLED === "true" &&
+                        ["fetched", "image_only"].includes(storedArticle?.content_status)
+                    ) {
+                        try {
+                            storedArticle = await enrichArticle(db, storedArticle, {
+                                budget: visionBudget,
+                            });
+                        } catch (error) {
+                            console.error("[WeRead vision]", error.code || "vision_failed");
+                        }
+                    }
                     if (storedArticle?.content_text) {
                         let extraction = {
                             status: storedArticle.extraction_status,

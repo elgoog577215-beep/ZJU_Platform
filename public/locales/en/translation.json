@@ -4001,7 +4001,37 @@
                 "draft": "Draft",
                 "archived": "Archived",
                 "body_pending": "Waiting for body"
-            }
+            },
+            "bodyFailure": "Body unavailable: {{reason}}",
+            "wereadRoute": "WeRead endpoint",
+            "publicRoute": "Public article fallback",
+            "bodyRetryInfo": "{{count}} failures · Last attempt: {{last}} · Next retry: {{next}}",
+            "visionProgress": "Image analysis: {{status}} · {{done}}/{{total}} processed · {{failed}} failed · {{chars}} OCR characters",
+            "visionUncertain": "Unclear text or animated image first frame: verify against the original image.",
+            "selectedImage": "Suggested summary image",
+            "visionStates": {
+                "completed": "Complete; review required",
+                "processing": "Processing",
+                "retrying": "Partial failure; retry scheduled"
+            },
+            "bodyErrors": {
+                "not_attempted": "Body request has not started",
+                "empty_response": "Upstream returned an empty response; underlying cause unconfirmed",
+                "article_body_missing": "No article body node; page format or upstream state unconfirmed",
+                "verification_required": "WeChat requires verification; automatic access cannot proceed",
+                "article_unavailable": "Article deleted or unavailable",
+                "http_401": "Login expired",
+                "http_403": "Access denied",
+                "http_429": "Rate limited",
+                "http_302": "Upstream requested a redirect; not followed",
+                "ReadTimeout": "Upstream read timed out",
+                "ConnectTimeout": "Connection timed out",
+                "ConnectionError": "Network connection failed",
+                "Timeout": "Request timed out",
+                "empty_article_body": "Body node contains neither text nor images",
+                "response_too_large": "Response exceeded size limit"
+            },
+            "visionQueued": "Image OCR and selection: queued"
         }
     },
     "not_found": {
