@@ -812,7 +812,7 @@ const getAllHandler =
             const requestedUploaderId = req.query.uploader_id
                 ? Number.parseInt(req.query.uploader_id, 10)
                 : null;
-            const sort = req.query.sort || "newest"; // Default to newest
+            const sort = req.query.sort || (table === "events" ? "date_desc" : "newest");
             const search = String(req.query.search || "").trim(); // Generic search
             const trashed = req.query.trashed === "true"; // Check if requesting trash
             const offset = (page - 1) * limit;
@@ -1106,7 +1106,11 @@ const getAllHandler =
                     query += ` ORDER BY ${table}.date ASC`;
                     break;
                 case "date_desc":
-                    query += ` ORDER BY ${table}.date DESC`;
+                    // Parse actual event dates; unknown dates sort last, with stable pagination.
+                    query +=
+                        table === "events"
+                            ? ` ORDER BY julianday(${table}.date) DESC, ${table}.id DESC`
+                            : ` ORDER BY ${table}.date DESC`;
                     break;
                 case "newest":
                 default:

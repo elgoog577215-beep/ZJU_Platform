@@ -1104,7 +1104,7 @@ const Events = () => {
         return () => window.removeEventListener("resize", updateViewport);
     }, []);
 
-    const sort = "newest";
+    const sort = "date_desc";
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [filters, setFilters] = useState({
