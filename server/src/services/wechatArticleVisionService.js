@@ -185,7 +185,9 @@ async function enrichArticle(
     }
     summarize(state);
     await save(article.id, state, dir);
-    if (state.status !== "completed" || state.applied) return article;
+    // A cache re-import can replace enriched text with the original body. Reapply
+    // completed OCR idempotently; the comparison below avoids duplicate writes.
+    if (state.status !== "completed") return article;
     const texts = Object.values(state.images)
         .filter((x) => x.kind !== "qr" && x.kind !== "logo" && x.kind !== "decoration" && x.text)
         .map((x) => `[图片 ${urls.indexOf(x.url) + 1}]\n${x.text}`);
