@@ -69,6 +69,9 @@ const isSafeExternalUrl = (value) => {
     }
 };
 
+const LAW_LIBRARY_IMA_URL =
+    "https://ima.qq.com/wiki/?shareId=05579b671bdaf0d35ebffb11a54e96b822861bbda6c3632dda0c6cefc5730cc7";
+
 const DockArtwork = ({ itemKey }) => {
     if (itemKey === "freshman") {
         return (
@@ -273,50 +276,92 @@ export const FreshmanLibraryIntro = ({ isDayMode }) => {
     const hasValidUrl = isSafeExternalUrl(configuredUrl);
 
     return (
-        <section
-            className={`relative overflow-hidden rounded-2xl border p-6 md:p-9 ${
-                isDayMode
-                    ? "border-violet-200 bg-violet-50/80 text-violet-950"
-                    : "border-violet-300/20 bg-violet-400/[0.075] text-white"
-            }`}
-        >
-            <span
-                aria-hidden="true"
-                className={`absolute -bottom-8 right-2 text-9xl font-black leading-none ${
-                    isDayMode ? "text-violet-200/55" : "text-violet-200/[0.045]"
+        <>
+            <section
+                className={`relative overflow-hidden rounded-2xl border p-6 md:p-9 ${
+                    isDayMode
+                        ? "border-violet-200 bg-violet-50/80 text-violet-950"
+                        : "border-violet-300/20 bg-violet-400/[0.075] text-white"
                 }`}
             >
-                新
-            </span>
-            <div className="relative z-10 max-w-3xl">
-                <h1 className="text-3xl font-black tracking-[-0.03em] md:text-5xl">
-                    {t("community_libraries.freshman_title", "新生资料库")}
-                </h1>
-                <p
-                    className={`mt-4 max-w-2xl text-base leading-7 ${
-                        isDayMode ? "text-violet-950/75" : "text-violet-100/80"
+                <span
+                    aria-hidden="true"
+                    className={`absolute -bottom-8 right-2 text-9xl font-black leading-none ${
+                        isDayMode ? "text-violet-200/55" : "text-violet-200/[0.045]"
                     }`}
                 >
-                    {t(
-                        "community_libraries.freshman_intro_short",
-                        "入学准备、课程学习与校园生活资料，由 ima 持续维护。"
-                    )}
-                </p>
-                {!hasValidUrl ? (
+                    新生
+                </span>
+                <div className="relative z-10 max-w-3xl">
+                    <h1 className="text-3xl font-black tracking-[0.01em] md:text-5xl">
+                        {t("community_libraries.freshman_intro_heading", "新生资料库")}
+                    </h1>
                     <p
-                        role="status"
-                        className={`mt-7 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold ${
-                            isDayMode
-                                ? "bg-white/75 text-violet-800"
-                                : "bg-white/[0.06] text-violet-200"
+                        className={`mt-4 max-w-2xl tracking-[0.04em] text-base leading-7 ${
+                            isDayMode ? "text-violet-950/75" : "text-violet-100/80"
                         }`}
                     >
-                        <AlertCircle aria-hidden="true" size={17} />
-                        {t("community_libraries.ima_missing_note_short", "ima 分享地址尚未配置")}
+                        {t(
+                            "community_libraries.freshman_intro_short",
+                            "入学准备、课程学习与校园生活资料，由 ima 持续维护。"
+                        )}
                     </p>
-                ) : null}
-            </div>
-        </section>
+                    {!hasValidUrl ? (
+                        <p
+                            role="status"
+                            className={`mt-7 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold tracking-[0.04em] ${
+                                isDayMode
+                                    ? "bg-white/75 text-violet-800"
+                                    : "bg-white/[0.06] text-violet-200"
+                            }`}
+                        >
+                            <AlertCircle aria-hidden="true" size={17} />
+                            {t("community_libraries.ima_missing_note_short", "ima 分享地址尚未配置")}
+                        </p>
+                    ) : null}
+                </div>
+            </section>
+            <a
+                href={LAW_LIBRARY_IMA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("community_libraries.law_title", "法学资料库")}
+                className={`group relative mt-4 block cursor-pointer overflow-hidden rounded-2xl border p-6 transition-colors md:mt-6 md:p-9 ${
+                    isDayMode
+                        ? "border-indigo-200 bg-indigo-50/80 text-indigo-950 hover:border-indigo-300 hover:bg-indigo-100/70"
+                        : "border-indigo-300/20 bg-indigo-400/[0.075] text-white hover:border-indigo-300/40 hover:bg-indigo-400/[0.12]"
+                }`}
+            >
+                <span
+                    aria-hidden="true"
+                    className={`absolute -bottom-8 right-2 text-9xl font-black leading-none ${
+                        isDayMode ? "text-indigo-200/55" : "text-indigo-200/[0.045]"
+                    }`}
+                >
+                    法
+                </span>
+                <div className="relative z-10 max-w-3xl">
+                    <h2 className="flex items-center gap-6 text-3xl font-black tracking-[0.01em] md:text-5xl">
+                        {t("community_libraries.law_title", "法学资料库")}
+                        <ExternalLink
+                            aria-hidden="true"
+                            size={20}
+                            className="opacity-70 transition-opacity group-hover:opacity-100"
+                        />
+                    </h2>
+                    <p
+                        className={`mt-4 max-w-2xl tracking-[0.04em] text-base leading-7 ${
+                            isDayMode ? "text-indigo-950/75" : "text-indigo-100/80"
+                        }`}
+                    >
+                        {t(
+                            "community_libraries.law_intro_short",
+                            "法学课程讲义、案例汇编与复习资料，持续整理中。"
+                        )}
+                    </p>
+                </div>
+            </a>
+        </>
     );
 };
 
