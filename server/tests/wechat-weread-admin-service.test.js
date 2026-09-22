@@ -38,6 +38,7 @@ test("maintenance overview joins collector state and import configuration withou
                 articles: [
                     {
                         title: "待补文章",
+                        link: "https://mp.weixin.qq.com/s/test",
                         content_status: "pending",
                         body_error: "article_body_missing",
                     },
@@ -128,3 +129,66 @@ test("QR status redacts upstream credentials; QR retrieval only uses the fixed l
         }
     }
 });
+
+test("capture totals use first observation and linked processing/review records, not polling time", async () =>
+    fixture(async (root) => {
+        const recent = new Date().toISOString();
+        const old = new Date(Date.now() - 172800000).toISOString();
+        const article = (id, observed_at) => ({
+            id,
+            link: `https://mp.weixin.qq.com/s/${id}`,
+            title: id,
+            observed_at,
+            content_status: "ready",
+        });
+        await fs.writeFile(
+            path.join(root, "MP_WXS_123.json"),
+            JSON.stringify({
+                checked_at: recent,
+                articles: [
+                    article("old", old),
+                    article("new", recent),
+                    article("new", recent),
+                    { link: "javascript:alert(1)" },
+                ],
+            })
+        );
+        const db = {
+            all: async (sql) =>
+                sql.includes("FROM wechat_mp_ingest_articles")
+                    ? [
+                          {
+                              id: 12,
+                              link: "https://mp.weixin.qq.com/s/new",
+                              content_status: "fetched",
+                              extraction_status: "completed",
+                              activity_status: "accepted",
+                              event_id: 99,
+                              review_status: "pending",
+                          },
+                      ]
+                    : [{ rss_feed_id: "MP_WXS_123", enabled: 1 }],
+            get: async () => null,
+        };
+        const data = await service.getOverview(db, { root });
+        assert.equal(data.captured_total, 2);
+        assert.equal(data.captured_24h, 1);
+        assert.equal(data.captured_sources_24h, 1);
+        assert.equal(data.recent_articles[0].id, "new");
+        assert.equal(data.recent_articles[0].review_status, "pending");
+        assert.equal(data.recent_articles[0].extraction_status, "completed");
+        assert.equal(data.recent_articles[1].imported, false);
+        const page = await service.getSourceArticles(db, "MP_WXS_123", 1, { root });
+        assert.equal(page.total, 2);
+        assert.equal(page.articles.length, 2);
+        assert.equal(
+            (await service.getSourceArticles(db, "MP_WXS_123", 2, { root })).articles.length,
+            0
+        );
+        await assert.rejects(service.getSourceArticles(db, "../status", 1, { root }), {
+            code: "WEREAD_SOURCE_NOT_FOUND",
+        });
+        await assert.rejects(service.getSourceArticles(db, "MP_WXS_123", 0, { root }), {
+            code: "WEREAD_INVALID_PAGE",
+        });
+    }));

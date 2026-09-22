@@ -189,6 +189,7 @@ async function parseWithLLM(data, options = {}) {
                     "必须结合当前日期、校历参考和网站标准活动库输出结构化 JSON。",
                     "你还必须判断这篇文章是否适合进入活动栏目：只有具有明确参与对象、活动安排或报名/参与动作的内容才可以判为活动候选。",
                     "新闻报道、成果回顾、政策说明、经验分享和没有具体活动安排的纯通知应判为非活动候选。",
+                    "正文或OCR中的报名、抢票、抽奖、领奖时间不等于活动举办时间。分别说明依据，不能将抢票时间推断为演出时间；无法确定举办时间填null。相对日期应以原文发布时间为锚点；发布时间未知或图片字迹不清时不要猜测。",
                     "不要返回 markdown，不要解释过程，只输出 JSON 对象。",
                 ].join("\n"),
             },
@@ -203,6 +204,7 @@ async function parseWithLLM(data, options = {}) {
                         article: {
                             title: data.title,
                             author: data.author,
+                            publishedAt: data.publishedAt || null,
                             content: compactWechatArticleContent(data.content),
                             sourceSummary: String(data.summary || "").trim(),
                         },
@@ -213,7 +215,7 @@ async function parseWithLLM(data, options = {}) {
                             content:
                                 "整理后的活动详情 HTML 片段，最多 1200 字，只用 h3/p/ul/li 等正文标签；不要复制整篇原文，不要用省略号截断",
                             date_reasoning: "说明如何从文章和当前日期推断活动日期",
-                            date: "YYYY-MM-DDTHH:MM；无具体时间用 T00:00",
+                            date: "YYYY-MM-DDTHH:MM；已知日期但无时刻用 T00:00；举办日期不明填 null",
                             end_date: "YYYY-MM-DDTHH:MM；单日活动需与 date 同日",
                             time: "例如 14:00-16:00，不能确定填 null",
                             location: "尽量包含校区/楼号/房间；线上活动填线上或平台名",

@@ -76,6 +76,35 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_body('<html>当前环境异常</html>')
 
+    def test_body_error_classification(self):
+        for raw, code in [("", "empty_response"), ("<p>当前环境异常，完成验证后继续</p>", "verification_required"), ("<p>内容已被发布者删除</p>", "article_unavailable"), ("<p>other</p>", "article_body_missing")]:
+            with self.assertRaisesRegex(ValueError, code): parse_body(raw)
+
+    def test_body_fallback_diagnostics_and_auth_do_not_get_conflated(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(weread_poll, "ROOT", Path(directory)):
+            poller = weread_poll.Poller()
+            a = {"id": "MP_WXS_123_test", "title": "test", "content_status": "pending"}
+            f = {"articles": [a]}
+            poller.request = lambda *args, **kwargs: ""
+            with patch.object(poller, "public_body", side_effect=ValueError("verification_required")):
+                poller.body_step("MP_WXS_123", f, a)
+            self.assertEqual(a["weread_error"], "empty_response")
+            self.assertEqual(a["public_error"], "verification_required")
+            self.assertEqual(a["body_failures"], 1)
+            self.assertTrue(a["body_last_attempt_at"])
+            self.assertFalse(poller.state.get("auth_required"))
+            def no_auth(*args, **kwargs): raise ValueError("http_401")
+            poller.request = no_auth
+            with patch.object(poller, "public_body") as public:
+                poller.body_step("MP_WXS_123", f, a)
+                public.assert_not_called()
+            self.assertTrue(poller.state["auth_required"])
+            poller.request = lambda *args, **kwargs: '<div id="js_content">正文</div>'
+            poller.body_step("MP_WXS_123", f, a)
+            self.assertEqual(a["content_status"], "ready")
+            self.assertEqual(a["body_error"], "")
+            self.assertEqual(a["body_next_retry"], 0)
+
     def test_explicit_date_only(self):
         result = parse_body('<script>var ct = "1750000000";</script><div id="js_content">正文</div>')
         self.assertTrue(result["published_at"].startswith("2025-"))
