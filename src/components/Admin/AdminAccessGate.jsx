@@ -8,10 +8,11 @@ import { useSettings } from "../../context/SettingsContext";
 
 const AdminAccessGate = () => {
     const { t } = useTranslation();
-    const { user, loading, login, logout, canAccessAdmin } = useAuth();
+    const { user, loading, login, logout, canAccessAdmin, sessionError, retrySession } = useAuth();
     const { uiMode } = useSettings();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const isDayMode = uiMode === "day";
@@ -33,8 +34,10 @@ const AdminAccessGate = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const nextUsername = username.trim();
-        if (!nextUsername || !password) {
+        const fields = new FormData(event.currentTarget);
+        const nextUsername = String(fields.get("username") || "").trim();
+        const nextPassword = String(fields.get("password") || "");
+        if (!nextUsername || !nextPassword) {
             setError(t("admin.login.empty_credentials", "请填写管理员账号和密码。"));
             return;
         }
@@ -42,7 +45,7 @@ const AdminAccessGate = () => {
         setSubmitting(true);
         setError("");
         try {
-            const ok = await login(nextUsername, password);
+            const ok = await login(nextUsername, nextPassword, { remember });
             if (!ok) {
                 setError(
                     t(
@@ -140,6 +143,7 @@ const AdminAccessGate = () => {
                     <span className={mutedClass}>{t("admin.login.username", "账号")}</span>
                     <input
                         className={inputClass}
+                        name="username"
                         value={username}
                         onChange={(event) => {
                             setUsername(event.target.value);
@@ -152,6 +156,7 @@ const AdminAccessGate = () => {
                     <span className={mutedClass}>{t("admin.login.password", "密码")}</span>
                     <input
                         type="password"
+                        name="password"
                         className={inputClass}
                         value={password}
                         onChange={(event) => {
@@ -163,6 +168,15 @@ const AdminAccessGate = () => {
                     />
                 </label>
             </div>
+
+            <label className={`flex items-center gap-2 text-sm ${mutedClass}`}>
+                <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                />
+                {t("admin.login.remember")}
+            </label>
 
             {error ? (
                 <div
@@ -192,11 +206,24 @@ const AdminAccessGate = () => {
         <div className={`min-h-screen px-4 py-[calc(env(safe-area-inset-top)+72px)] ${shellClass}`}>
             <div className="mx-auto flex min-h-[calc(100dvh-144px)] max-w-lg items-center justify-center">
                 <section className={`w-full border p-6 md:p-8 ${panelClass}`}>
-                    {loading
-                        ? renderLoading()
-                        : user && !canAccessAdmin
-                          ? renderNoPermission()
-                          : renderLogin()}
+                    {loading ? (
+                        renderLoading()
+                    ) : sessionError ? (
+                        <div className="space-y-4" role="alert">
+                            <p>{t("admin.login.session_error")}</p>
+                            <button
+                                type="button"
+                                className={`${buttonClass} ${primaryButtonClass}`}
+                                onClick={retrySession}
+                            >
+                                {t("admin.login.retry_session")}
+                            </button>
+                        </div>
+                    ) : user && !canAccessAdmin ? (
+                        renderNoPermission()
+                    ) : (
+                        renderLogin()
+                    )}
                 </section>
             </div>
         </div>

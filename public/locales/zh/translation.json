@@ -3106,7 +3106,10 @@
             "username": "账号",
             "password": "密码",
             "password_placeholder": "请输入密码",
-            "enter_dashboard": "进入管理员后台"
+            "enter_dashboard": "进入管理员后台",
+            "remember": "在此设备保持登录（7 天）",
+            "session_error": "暂时无法连接服务器，登录状态已保留，无需重新输入密码。",
+            "retry_session": "重新连接"
         },
         "logout": "退出管理",
         "toast": {

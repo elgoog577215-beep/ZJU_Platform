@@ -3037,7 +3037,10 @@
             "username": "Username",
             "password": "Password",
             "password_placeholder": "Enter password",
-            "enter_dashboard": "Enter Admin Dashboard"
+            "enter_dashboard": "Enter Admin Dashboard",
+            "remember": "Keep me signed in on this device (7 days)",
+            "session_error": "The server is temporarily unavailable. Your session is saved; you do not need to enter your password again.",
+            "retry_session": "Reconnect"
         },
         "logout": "Logout",
         "toast": {

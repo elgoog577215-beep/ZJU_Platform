@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
 import api from "../services/api";
 import { showSuccess, showError } from "../utils/notify";
 import errorMonitor from "../utils/errorMonitor";
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
     const { t } = useTranslation();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(() => !!getStoredAuthToken());
+    const [sessionError, setSessionError] = useState(false);
 
     const getAuthErrorMessage = (err, fallbackKey) => {
         const data = err?.response?.data;
@@ -39,29 +40,43 @@ export const AuthProvider = ({ children }) => {
             : rawMessage || t(fallbackKey);
     };
 
-    useEffect(() => {
+    const retrySession = useCallback(async () => {
         const token = getStoredAuthToken();
+        setSessionError(false);
         if (!token) {
             setLoading(false);
             return;
         }
-
+        setLoading(true);
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        api.get("/auth/me")
-            .then((res) => setUser(res.data))
-            .catch((err) => {
-                if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                    clearStoredAuthToken();
-                    delete api.defaults.headers.common["Authorization"];
-                    setUser(null);
-                }
-            })
-            .finally(() => setLoading(false));
+        try {
+            const res = await api.get("/auth/me", { timeout: 10000, noRetry: true, silent: true });
+            if (getStoredAuthToken() === token) setUser(res.data);
+        } catch (err) {
+            if (getStoredAuthToken() !== token) return;
+            if ([401, 403].includes(err.response?.status)) {
+                clearStoredAuthToken();
+                delete api.defaults.headers.common["Authorization"];
+                setUser(null);
+            } else {
+                setSessionError(true);
+            }
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        retrySession();
+    }, [retrySession]);
 
     const login = async (username, password, options = {}) => {
         try {
-            const res = await api.post("/auth/login", { username, password });
+            const res = await api.post(
+                "/auth/login",
+                { username, password },
+                { timeout: 15000, noRetry: true }
+            );
             const { token, user } = res.data;
             storeAuthToken(token, {
                 persistent: options.remember === true || isHarmonyAppWebView(),
@@ -155,6 +170,8 @@ export const AuthProvider = ({ children }) => {
                 logout,
                 loading,
                 refreshUser,
+                sessionError,
+                retrySession,
                 isAdmin: user?.role === "admin",
                 canAccessAdmin:
                     user?.role === "admin" ||
