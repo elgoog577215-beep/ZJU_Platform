@@ -4057,7 +4057,37 @@
                 "draft": "草稿",
                 "archived": "已归档",
                 "body_pending": "正文待补抓"
-            }
+            },
+            "bodyFailure": "正文未获取：{{reason}}",
+            "wereadRoute": "微信读书接口",
+            "publicRoute": "微信原文备用请求",
+            "bodyRetryInfo": "累计失败 {{count}} 次 · 最近尝试：{{last}} · 下次重试：{{next}}",
+            "visionProgress": "图片识别：{{status}} · 已处理 {{done}}/{{total}} 张 · 失败 {{failed}} 张 · 识别 {{chars}} 字",
+            "visionUncertain": "含难以辨认的文字或动态图首帧，需人工核对原图。",
+            "selectedImage": "摘要候选配图",
+            "visionStates": {
+                "completed": "完成，待人工核对",
+                "processing": "处理中",
+                "retrying": "部分失败，等待重试"
+            },
+            "bodyErrors": {
+                "not_attempted": "尚未尝试正文请求",
+                "empty_response": "上游返回空内容，具体原因未确认",
+                "article_body_missing": "响应中没有正文节点，页面格式或上游状态待确认",
+                "verification_required": "微信返回环境异常/验证提示，自动请求无法通过",
+                "article_unavailable": "文章已删除或不可查看",
+                "http_401": "登录凭据失效",
+                "http_403": "访问被拒绝",
+                "http_429": "请求受到限流",
+                "http_302": "上游要求跳转，未继续请求",
+                "ReadTimeout": "上游响应超时",
+                "ConnectTimeout": "连接超时",
+                "ConnectionError": "网络连接失败",
+                "Timeout": "请求超时",
+                "empty_article_body": "正文节点存在，但文字和图片均为空",
+                "response_too_large": "响应超过大小限制"
+            },
+            "visionQueued": "图片文字识别与配图：等待处理"
         }
     },
     "not_found": {

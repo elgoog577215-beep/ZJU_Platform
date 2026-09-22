@@ -1,3 +1,4 @@
+const { readVision, publicVision } = require("./wechatArticleVisionService");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
@@ -43,28 +44,40 @@ async function articleStates(db, feed, source) {
         );
         for (const row of rows) records.set(row.link, row);
     }
-    return captured
-        .map((a) => {
-            const row = records.get(a.link);
-            return {
-                id: a.id,
-                link: a.link,
-                title: a.title || "",
-                source_id: source.mp_id,
-                source_name: feed.name || source.name,
-                observed_at: a.observed_at || null,
-                published_at: a.published_at || null,
-                body_status: a.content_status === "ready" ? "ready" : "pending",
-                imported: Boolean(row),
-                content_status: row?.content_status || "not_imported",
-                extraction_status: row?.extraction_status || "not_started",
-                activity_status: row?.activity_status || "not_screened",
-                activity_reason: row?.activity_reason || "",
-                event_id: row?.event_id || null,
-                review_status: row?.event_deleted_at ? "deleted" : row?.review_status || "",
-            };
-        })
-        .sort(newestFirst);
+    return (
+        await Promise.all(
+            captured.map(async (a) => {
+                const row = records.get(a.link);
+                return {
+                    id: a.id,
+                    link: a.link,
+                    title: a.title || "",
+                    source_id: source.mp_id,
+                    source_name: feed.name || source.name,
+                    observed_at: a.observed_at || null,
+                    published_at: a.published_at || null,
+                    body_status: a.content_status === "ready" ? "ready" : "pending",
+                    body_error: a.body_error || "",
+                    weread_error: a.weread_error || "",
+                    public_error: a.public_error || "",
+                    body_failures: a.body_failures || 0,
+                    body_last_attempt_at: a.body_last_attempt_at || null,
+                    body_next_retry: a.body_next_retry
+                        ? new Date(a.body_next_retry * 1000).toISOString()
+                        : null,
+                    body_source: a.body_source || "weread",
+                    vision: row?.id ? publicVision(await readVision(row.id)) : null,
+                    imported: Boolean(row),
+                    content_status: row?.content_status || "not_imported",
+                    extraction_status: row?.extraction_status || "not_started",
+                    activity_status: row?.activity_status || "not_screened",
+                    activity_reason: row?.activity_reason || "",
+                    event_id: row?.event_id || null,
+                    review_status: row?.event_deleted_at ? "deleted" : row?.review_status || "",
+                };
+            })
+        )
+    ).sort(newestFirst);
 }
 async function getSourceArticles(db, id, page = 1, { root = cacheRoot() } = {}) {
     const manifest = await readJson(manifestPath(root), []);
@@ -140,6 +153,7 @@ async function getOverview(db, { root = cacheRoot() } = {}) {
     const heartbeat = Date.parse(state.heartbeat_at || "");
     return {
         configured: manifest.length > 0,
+        vision_enabled: process.env.WEREAD_VISION_ENABLED === "true",
         online: Number.isFinite(heartbeat) && Date.now() - heartbeat < 120000,
         heartbeat_at: state.heartbeat_at || null,
         auth_required: Boolean(state.auth_required),

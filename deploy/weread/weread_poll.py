@@ -8,7 +8,7 @@ import re
 import shutil
 import time
 from datetime import datetime, timezone
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import requests
 import yaml
@@ -47,9 +47,16 @@ def article_link(mp_id, review_id):
 
 
 def parse_body(raw):
+    if not raw.strip():
+        raise ValueError("empty_response")
     soup = BeautifulSoup(raw, "html.parser")
     root = soup.select_one("#js_content, .rich_media_content")
     if root is None:
+        visible = soup.get_text(" ", strip=True)
+        if any(x in visible for x in ["当前环境异常", "完成验证后", "访问过于频繁"]):
+            raise ValueError("verification_required")
+        if any(x in visible for x in ["内容已被发布者删除", "该内容已被删除", "此内容因违规无法查看"]):
+            raise ValueError("article_unavailable")
         raise ValueError("article_body_missing")
     # Only explicit article metadata is a publication time; never substitute polling time.
     match = re.search(r'\b(?:var\s+)?ct\s*=\s*[\"\x27](\d{10})[\"\x27]', raw)
@@ -187,13 +194,49 @@ class Poller:
             print(json.dumps({"mp_id": mp_id, "phase": phase, "error": code[:100]}), flush=True)
         self.save()
 
+    def public_body(self, mp_id, article):
+        # A separate public request: never forward WeRead cookies or follow redirects.
+        url = article_link(mp_id, article["id"])
+        time.sleep(max(0, self.last_request + GAP - time.monotonic()))
+        self.last_request = time.monotonic()
+        with requests.get(url, headers={"User-Agent": "Mozilla/5.0", "Referer": "https://mp.weixin.qq.com/"},
+                          timeout=(10, 30), stream=True, allow_redirects=False) as response:
+            redirect = urlsplit(response.headers.get("Location", ""))
+            if response.status_code in {301, 302, 303, 307, 308} and redirect.hostname == "mp.weixin.qq.com" and redirect.path == "/mp/wappoc_appmsgcaptcha":
+                raise ValueError("verification_required")
+            if response.status_code != 200:
+                raise ValueError("http_" + str(response.status_code))
+            chunks = []; size = 0
+            for chunk in response.iter_content(65536):
+                size += len(chunk)
+                if size > 6 * 1024 * 1024: raise ValueError("response_too_large")
+                chunks.append(chunk)
+            return parse_body(b"".join(chunks).decode("utf-8", errors="replace"))
+
     def body_step(self, mp_id, feed, article):
+        article["body_last_attempt_at"] = stamp()
+        article["body_attempts"] = article.get("body_attempts", article.get("body_failures", 0)) + 1
+        article.pop("public_error", None)
+        article.pop("weread_error", None)
         try:
-            raw = self.request("/web/mp/content", {"reviewId": article["id"]}, as_json=False)
-            body = parse_body(raw)
+            try:
+                raw = self.request("/web/mp/content", {"reviewId": article["id"]}, as_json=False)
+                body = parse_body(raw)
+                article["body_source"] = "weread"
+            except ValueError as exc:
+                article["weread_error"] = str(exc)[:100]
+                if str(exc) not in {"empty_response", "article_body_missing"}: raise
+                try:
+                    body = self.public_body(mp_id, article)
+                    article["body_source"] = "public_article"
+                except Exception as public_exc:
+                    article["public_error"] = str(public_exc)[:100] if isinstance(public_exc, ValueError) else type(public_exc).__name__
+                    raise
+
             name = hashlib.sha256(article["id"].encode()).hexdigest() + ".json"
             write_json(ROOT / "bodies" / name, body)
             article.update(body_file=name, content_status="ready", published_at=body["published_at"], fetched_at=stamp())
+            article.update(body_error="", body_next_retry=0)
             print(json.dumps({"mp_id": mp_id, "title": article["title"], "status": "ready",
                               "text_chars": len(body["content_text"]), "images": len(body["images"])}), flush=True)
         except Exception as exc:
@@ -202,7 +245,7 @@ class Poller:
             article.update(body_error=code[:100], body_next_retry=time.time() + min(21600, 900 * 2 ** min(article["body_failures"], 4)))
             if code in {"http_401", "http_403", "http_429"}:
                 self.state["global_pause_until"] = time.time() + 1800
-                if code == "http_401":
+                if code == "http_401" and not article.get("public_error"):
                     self.state["auth_required"] = True
             print(json.dumps({"mp_id": mp_id, "phase": "body", "error": code[:100]}), flush=True)
         write_json(ROOT / (mp_id + ".json"), feed)
