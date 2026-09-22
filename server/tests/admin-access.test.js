@@ -100,6 +100,7 @@ test("admin module permissions are granular, revocable and never inherited from 
             async () => {
                 for (const [route, method] of [
                     ["/admin/weread", "GET"],
+                    ["/admin/weread/sources/MP_WXS_123/articles", "GET"],
                     ["/admin/weread/control", "PATCH"],
                     ["/admin/weread/import", "POST"],
                     ["/admin/weread/login", "POST"],

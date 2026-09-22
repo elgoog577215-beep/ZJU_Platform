@@ -3,6 +3,8 @@ import { Activity, BookOpen, Clock, FileClock, Pause, Play, RefreshCw, QrCode } 
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import { useSearchParams } from "react-router-dom";
+import WeReadCaptureHistory from "./WeReadCaptureHistory";
 import {
     AdminPageShell,
     AdminPanel,
@@ -17,6 +19,16 @@ export default function WeReadCollectorManager() {
     const { t, i18n } = useTranslation();
     const tr = (key, values) => t(`admin.weread.${key}`, values);
     const theme = useAdminTheme();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const openSource = (id) => {
+        setSearchParams((current) => {
+            const next = new URLSearchParams(current);
+            if (id) next.set("source", id);
+            else next.delete("source");
+            return next;
+        });
+        document.getElementById("weread-captures")?.scrollIntoView({ block: "start" });
+    };
     const [data, setData] = useState(null);
     const [error, setError] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -172,6 +184,11 @@ export default function WeReadCollectorManager() {
                             helper={date(data.last_run?.started_at)}
                         />
                     </div>
+                    <WeReadCaptureHistory
+                        overview={data}
+                        sourceId={searchParams.get("source") || ""}
+                        openSource={openSource}
+                    />
                     <AdminInlineNote>{tr("limits")}</AdminInlineNote>
                     {!data.configured && (
                         <AdminInlineNote tone="warning">{tr("unconfigured")}</AdminInlineNote>
@@ -292,7 +309,12 @@ export default function WeReadCollectorManager() {
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div className="min-w-0 flex-1">
                                             <h4 className="font-semibold">
-                                                {source.name}{" "}
+                                                <button
+                                                    className="underline underline-offset-4"
+                                                    onClick={() => openSource(source.id)}
+                                                >
+                                                    {source.name}
+                                                </button>{" "}
                                                 <span
                                                     className={`ml-2 text-xs ${theme.mutedTextClass}`}
                                                 >
@@ -303,6 +325,17 @@ export default function WeReadCollectorManager() {
                                                 {tr("sourceStats", {
                                                     total: source.total,
                                                     pending: source.pending,
+                                                })}
+                                            </p>
+                                            <p className={`mt-1 text-xs ${theme.mutedTextClass}`}>
+                                                {tr("sourceProcessing", {
+                                                    recent: source.captured_24h,
+                                                    imported: source.imported,
+                                                    extracted: source.extracted,
+                                                })}
+                                                {" · "}
+                                                {tr("capturedAt", {
+                                                    time: date(source.captured_at),
                                                 })}
                                             </p>
                                             <p className="mt-2 break-words text-sm">

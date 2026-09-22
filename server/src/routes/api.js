@@ -578,6 +578,12 @@ router.post(
 );
 // Separate maintenance surface for the persistent WeRead collector.
 router.get("/admin/weread", authenticateToken, isAdmin, wechatWereadAdminController.overview);
+router.get(
+    "/admin/weread/sources/:id/articles",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.articles
+);
 router.patch(
     "/admin/weread/control",
     authenticateToken,
