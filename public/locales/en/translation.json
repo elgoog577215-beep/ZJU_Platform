@@ -915,7 +915,7 @@
         "exhibitions": "Exhibitions",
         "projects": "Projects",
         "ecosystem": {
-            "meta_title": "TUOZHE AI ECOSYSTEM",
+            "meta_title": "Ecosystem",
             "meta_desc": "Starting at Zhejiang University, the TUOZHE AI ECOSYSTEM connects information sharing, AI+X talent development, Zhekesong practice, and industry projects.",
             "pagination_aria": "About page sections",
             "hero": {
@@ -1173,7 +1173,7 @@
         "developer_acknowledgements": "Developer acknowledgements"
     },
     "home": {
-        "meta_title": "TUOZHE AI ECOSYSTEM",
+        "meta_title": "Home",
         "meta_desc": "Connect event collection, AI learning, project practice, Zhekesong outcomes, and industry collaboration through an information-sharing platform.",
         "featured_premiere": "Featured Premiere",
         "cinematic_journey": "Cinematic Journey",
@@ -1312,7 +1312,7 @@
             "badge": ""
         },
         "splash": {
-            "meta_title": "TUOZHE AI ECOSYSTEM",
+            "meta_title": "Home",
             "meta_desc": "The TUOZHE AI ECOSYSTEM uses an information-sharing platform to connect events, AI resources, projects, Zhekesong outcomes, and industry collaboration.",
             "enter_now": "Enter now"
         }
@@ -4278,7 +4278,7 @@
         "privacy_note": "The card does not show hidden contact details, hidden cards, or login-only information."
     },
     "download": {
-        "meta_title": "Download the TUOZHE AI ECOSYSTEM App",
+        "meta_title": "Download App",
         "meta_desc": "Download the TUOZHE AI ECOSYSTEM Android app.",
         "kicker": "Android App",
         "title": "Download the TUOZHE AI ECOSYSTEM App",

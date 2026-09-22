@@ -3,8 +3,8 @@ import i18n from "../../i18n";
 export const resources = {
     zh: {
         subtitle: "学习、办公、设计与开发的常用入口。",
-        title: "好用的网站，从这里开始。",
-        meta: "常用网站导航 · 拓浙AI生态",
+        title: "信息入口，从这里开始。",
+        meta: "首页",
         description:
             "面向学习、工作与创作的精选网址导航，覆盖 AI、校园、办公、设计、素材、开发与科研。",
         search: "搜索网站、工具、课程、论文…",
@@ -30,8 +30,8 @@ export const resources = {
     },
     en: {
         subtitle: "Useful places for learning, work, design and development.",
-        title: "Your everyday starting point.",
-        meta: "Useful websites · TUOZHE AI ECOSYSTEM",
+        title: "Start from information.",
+        meta: "Home",
         description:
             "A curated directory for learning, work and creation: AI, campus, office, design, assets, development and research.",
         search: "Search sites, tools, courses, papers…",

@@ -26,12 +26,15 @@ const SEO = ({ title, description, image, url, type = "website", article = {} })
     );
 
     const normalizedTitle = typeof title === "string" ? title.trim() : "";
+    const brandSuffixPattern = new RegExp(
+        `\\s*(?:\\||｜|·)\\s*(?:${siteName}|${siteAltName})\\s*$`,
+        "i"
+    );
+    const pageTitle = normalizedTitle.replace(brandSuffixPattern, "").trim();
     const seoTitle =
-        !normalizedTitle || normalizedTitle === siteName
+        !pageTitle || pageTitle === siteName || pageTitle === siteAltName
             ? `${siteName} | ${siteAltName}`
-            : normalizedTitle.includes(siteName) || normalizedTitle.includes(siteAltName)
-              ? normalizedTitle
-              : `${normalizedTitle} | ${siteName}`;
+            : `${pageTitle} | ${siteName}`;
     const seoDescription = description || defaultDescription;
     const seoImage = toAbsoluteUrl(siteUrl, image);
     const seoUrl = url || siteUrl;

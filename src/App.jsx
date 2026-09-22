@@ -35,7 +35,7 @@ import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
 import Footer from "./components/Footer";
 import LoadingScreen from "./components/LoadingScreen";
-import HomeSplash from "./components/HomeSplash";
+import HomeDirectory from "./features/navigation/HomeDirectory";
 
 const CHUNK_RECOVERY_RELOAD_KEY = "tuotu:chunk-recovery:reload-attempted";
 const STALE_CHUNK_CACHE_NAMES = new Set(["js-chunk-cache", "css-chunk-cache"]);
@@ -194,7 +194,7 @@ const PageTransition = ({ children }) => {
     );
 };
 
-const Home = () => <HomeSplash />;
+const Home = () => <HomeDirectory />;
 
 const MusicRedirect = () => {
     const location = useLocation();
@@ -328,7 +328,7 @@ const AppContent = () => {
     const isCommunityRoute = location.pathname === "/articles";
     const isImmersiveRoute =
         isAboutRoute || isDownloadRoute || location.pathname.startsWith("/hackathon");
-    const { cursorEnabled, settings, uiMode } = useSettings();
+    const { cursorEnabled, uiMode } = useSettings();
     const hasLandscapeBackdrop =
         isEventsRoute || isCommunityRoute || (isHomeRoute && uiMode !== "day");
     const hasDesktopPointer = useMediaQuery(
@@ -408,12 +408,6 @@ const AppContent = () => {
     }, [isMiniProgramMode, location.search]);
 
     useEffect(() => {
-        if (!isHomeRoute && settings?.site_title) {
-            document.title = settings.site_title;
-        }
-    }, [settings?.site_title, isHomeRoute]);
-
-    useEffect(() => {
         window.scrollTo(0, 0);
     }, [location.pathname]);
 
@@ -447,7 +441,7 @@ const AppContent = () => {
         <div
             className={`day-ambient-shell flex min-h-screen flex-col ${
                 hasLandscapeBackdrop ? "ecosystem-landscape-shell" : ""
-            } ${isCommunityRoute ? "ai-community-landscape-shell" : ""} ${isEventsRoute ? "events-landscape-shell" : ""}`}
+            } ${isCommunityRoute ? "ai-community-landscape-shell" : ""} ${isEventsRoute ? "events-landscape-shell" : ""}}`}
         >
             <ResourceHints />
             <MiniProgramAuthReturn />

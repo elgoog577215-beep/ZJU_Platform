@@ -914,7 +914,7 @@
         "exhibitions": "次展览",
         "projects": "个完成项目",
         "ecosystem": {
-            "meta_title": "拓浙AI生态",
+            "meta_title": "生态介绍",
             "meta_desc": "拓浙 AI 生态以浙江大学为起点，连接信息共享、AI+X 人才培养、浙客松实战与产业实践。",
             "pagination_aria": "关于页面分页",
             "hero": {
@@ -1165,7 +1165,7 @@
         "developer_acknowledgements": "开发者鸣谢"
     },
     "home": {
-        "meta_title": "拓浙AI生态",
+        "meta_title": "首页",
         "meta_desc": "以信息共享平台连接活动集合、AI 学习、项目实践、浙客松成果与产学协作。",
         "discover": "发现",
         "featured_event": "精选活动",
@@ -1302,7 +1302,7 @@
             "badge": ""
         },
         "splash": {
-            "meta_title": "拓浙AI生态",
+            "meta_title": "首页",
             "meta_desc": "拓浙AI生态以信息共享平台连接活动、AI资料、实践项目、浙客松成果与产学协作。",
             "enter_now": "直接进入"
         }
@@ -4315,7 +4315,7 @@
         "privacy_note": "名片不会显示隐藏联系方式、隐藏卡片或仅登录可见的信息。"
     },
     "download": {
-        "meta_title": "下载拓浙AI生态 App",
+        "meta_title": "下载 App",
         "meta_desc": "下载拓浙AI生态 Android App。",
         "kicker": "Android App",
         "title": "下载拓浙AI生态 App",
