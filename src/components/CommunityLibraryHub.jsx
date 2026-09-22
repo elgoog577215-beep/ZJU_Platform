@@ -316,7 +316,10 @@ export const FreshmanLibraryIntro = ({ isDayMode }) => {
                             }`}
                         >
                             <AlertCircle aria-hidden="true" size={17} />
-                            {t("community_libraries.ima_missing_note_short", "ima 分享地址尚未配置")}
+                            {t(
+                                "community_libraries.ima_missing_note_short",
+                                "ima 分享地址尚未配置"
+                            )}
                         </p>
                     ) : null}
                 </div>
