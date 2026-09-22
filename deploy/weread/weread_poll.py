@@ -19,6 +19,13 @@ AUTH = Path(os.environ.get("WEREAD_AUTH_FILE", "/app/data/wx.lic"))
 MANIFEST = Path(os.environ.get("WEREAD_MANIFEST", "/app/data/weread-accounts.json"))
 INTERVAL = max(900, int(os.environ.get("WEREAD_POLL_SECONDS", "900")))
 GAP = max(10, int(os.environ.get("WEREAD_REQUEST_GAP", "10")))
+PUBLIC_HEADERS = {
+    # A bare Mozilla/5.0 consistently returned a verification redirect in live tests.
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+    "Referer": "https://mp.weixin.qq.com/",
+}
 
 
 def write_json(path, data):
@@ -43,7 +50,54 @@ def article_link(mp_id, review_id):
     token = review_id[len(prefix):]
     if not token or not re.fullmatch(r"[A-Za-z0-9_~=-]+", token):
         raise ValueError("invalid_review_id")
-    return "https://mp.weixin.qq.com/s/" + quote(token, safe="~")
+    # WeRead escapes the short-link token's underscore as '~'.
+    return "https://mp.weixin.qq.com/s/" + quote(token.replace("~", "_"), safe="")
+
+
+def picture_message_root(soup, raw):
+    """Read picture-message data without executing page JavaScript.
+
+    Only direct picture entries count: nested watermark/share-cover URLs do not.
+    """
+    marker = re.search(r"\bpicture_page_info_list\s*:\s*\[", raw)
+    if not marker or not re.search(r"\bitem_show_type\s*:\s*['\"]8['\"]", raw):
+        return None
+    depth, start, quoted, escaped, urls = 1, None, None, False, []
+    for i in range(marker.end(), len(raw)):
+        ch = raw[i]
+        if quoted:
+            if escaped: escaped = False
+            elif ch == "\\": escaped = True
+            elif ch == quoted: quoted = None
+            continue
+        if ch in "'\"": quoted = ch
+        elif ch in "[{":
+            if depth == 1 and ch == "{": start = i
+            depth += 1
+        elif ch in "]}":
+            depth -= 1
+            if depth == 1 and ch == "}" and start is not None:
+                match = re.match(r"\{\s*cdn_url\s*:\s*(['\"])(.*?)\1", raw[start:i + 1], re.S)
+                if match:
+                    url = match[2].replace("\\/", "/").replace("&amp;", "&")
+                    if url.startswith("http://"): url = "https://" + url[7:]
+                    if urlsplit(url).scheme == "https" and urlsplit(url).hostname == "mmbiz.qpic.cn":
+                        urls.append(url)
+                start = None
+            if depth == 0: break
+    if depth != 0 or not urls: return None
+    root = soup.new_tag("div")
+    description = soup.select_one('meta[property="og:description"], meta[name="description"]')
+    if description:
+        text = description.get("content", "")
+        text = re.sub(r"\\+x([0-9a-fA-F]{2})", lambda m: chr(int(m[1], 16)), text)
+        text = text.replace("\\n", "\n")
+        for line in text.splitlines():
+            if line.strip():
+                p = soup.new_tag("p"); p.string = line.strip(); root.append(p)
+    for url in dict.fromkeys(urls):
+        img = soup.new_tag("img", src=url); root.append(img)
+    return root
 
 
 def parse_body(raw):
@@ -57,7 +111,8 @@ def parse_body(raw):
             raise ValueError("verification_required")
         if any(x in visible for x in ["内容已被发布者删除", "该内容已被删除", "此内容因违规无法查看"]):
             raise ValueError("article_unavailable")
-        raise ValueError("article_body_missing")
+        root = picture_message_root(soup, raw)
+        if root is None: raise ValueError("article_body_missing")
     # Only explicit article metadata is a publication time; never substitute polling time.
     match = re.search(r'\b(?:var\s+)?ct\s*=\s*[\"\x27](\d{10})[\"\x27]', raw)
     published = datetime.fromtimestamp(int(match[1]), timezone.utc).isoformat() if match else ""
@@ -165,6 +220,8 @@ class Poller:
         state = self.state["accounts"].setdefault(mp_id, {})
         feed_path = ROOT / (mp_id + ".json")
         feed = read_json(feed_path, {"mp_id": mp_id, "name": account["name"], "articles": []})
+        for saved in feed["articles"]:
+            saved["link"] = article_link(mp_id, saved["id"])
         phase = "cover"
         try:
             cover = self.request("/api/mp/cover", {"bookId": mp_id})
@@ -199,7 +256,7 @@ class Poller:
         url = article_link(mp_id, article["id"])
         time.sleep(max(0, self.last_request + GAP - time.monotonic()))
         self.last_request = time.monotonic()
-        with requests.get(url, headers={"User-Agent": "Mozilla/5.0", "Referer": "https://mp.weixin.qq.com/"},
+        with requests.get(url, headers=PUBLIC_HEADERS,
                           timeout=(10, 30), stream=True, allow_redirects=False) as response:
             redirect = urlsplit(response.headers.get("Location", ""))
             if response.status_code in {301, 302, 303, 307, 308} and redirect.hostname == "mp.weixin.qq.com" and redirect.path == "/mp/wappoc_appmsgcaptcha":

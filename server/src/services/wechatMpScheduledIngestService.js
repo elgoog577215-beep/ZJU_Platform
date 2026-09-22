@@ -1008,13 +1008,32 @@ const listIngestArticles = async (db, { limit = 50 } = {}) => {
 const upsertArticle = async (db, { account, article, content }) => {
     const link = cleanWeChatUrl(article.link || "");
     if (!link) return { inserted: false, skipped: true };
-    const existing = await db.get("SELECT * FROM wechat_mp_ingest_articles WHERE link = ?", [link]);
+    const existing =
+        account.source_type === wechatWereadCacheService.SOURCE_TYPE
+            ? await db.get(
+                  "SELECT * FROM wechat_mp_ingest_articles WHERE link = ? OR (account_id = ? AND replace(link, '~', '_') = ?) ORDER BY id LIMIT 1",
+                  [link, account.id, link]
+              )
+            : await db.get("SELECT * FROM wechat_mp_ingest_articles WHERE link = ?", [link]);
     const contentStatus = content?.content_status || article.content_status || "not_fetched";
     const imagesJson = stringifyArray(content?.images || []);
     const contentText = String(content?.contentText || content?.content_text || "").trim();
     const cover = resolveIngestCover({ article, content, existingCover: existing?.cover });
     const hasFetchedContent = content && ["empty", "fetched", "image_only"].includes(contentStatus);
     if (existing) {
+        if (existing.link !== link) {
+            await db.run("UPDATE wechat_mp_ingest_articles SET link = ? WHERE id = ?", [
+                link,
+                existing.id,
+            ]);
+            if (existing.event_id) {
+                await db.run("UPDATE events SET link = ? WHERE id = ? AND link = ?", [
+                    link,
+                    existing.event_id,
+                    existing.link,
+                ]);
+            }
+        }
         if (cover && cover !== existing.cover && (!existing.cover || isLocalUploadUrl(cover))) {
             await db.run(
                 `
