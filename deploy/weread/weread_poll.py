@@ -50,7 +50,8 @@ def article_link(mp_id, review_id):
     token = review_id[len(prefix):]
     if not token or not re.fullmatch(r"[A-Za-z0-9_~=-]+", token):
         raise ValueError("invalid_review_id")
-    return "https://mp.weixin.qq.com/s/" + quote(token, safe="~")
+    # WeRead escapes the short-link token's underscore as '~'.
+    return "https://mp.weixin.qq.com/s/" + quote(token.replace("~", "_"), safe="")
 
 
 def picture_message_root(soup, raw):
@@ -219,6 +220,8 @@ class Poller:
         state = self.state["accounts"].setdefault(mp_id, {})
         feed_path = ROOT / (mp_id + ".json")
         feed = read_json(feed_path, {"mp_id": mp_id, "name": account["name"], "articles": []})
+        for saved in feed["articles"]:
+            saved["link"] = article_link(mp_id, saved["id"])
         phase = "cover"
         try:
             cover = self.request("/api/mp/cover", {"bookId": mp_id})

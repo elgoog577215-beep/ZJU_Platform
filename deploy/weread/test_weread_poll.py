@@ -60,8 +60,8 @@ class ParserTests(unittest.TestCase):
                 poller.run(once=True)
                 request.assert_not_called()
 
-    def test_link_preserves_underscore_and_tilde(self):
-        self.assertEqual(article_link("MP_WXS_123", "MP_WXS_123_ab_c~d"), "https://mp.weixin.qq.com/s/ab_c~d")
+    def test_link_preserves_underscore_and_decodes_weread_tilde(self):
+        self.assertEqual(article_link("MP_WXS_123", "MP_WXS_123_ab_c~d"), "https://mp.weixin.qq.com/s/ab_c_d")
         with self.assertRaises(ValueError):
             article_link("MP_WXS_123", "MP_WXS_456_abc")
 

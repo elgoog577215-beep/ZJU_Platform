@@ -115,6 +115,45 @@ test("WeRead live source imports from cache once and never calls either legacy c
     }
 });
 
+test("corrected WeRead short links keep the existing article and review candidate", async () => {
+    const db = await createDb();
+    let link = "https://mp.weixin.qq.com/s/a~b";
+    try {
+        await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
+        await service.upsertIngestAccount(db, {
+            name: "链接修复",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_321",
+        });
+        const wereadApi = {
+            async fetchArticles() {
+                return {
+                    articles: [{ title: "同一文章", link, collector_content_status: "pending" }],
+                };
+            },
+        };
+        await service.executeIngestRun(db, { wereadApi });
+        const original = await db.get("SELECT * FROM wechat_mp_ingest_articles");
+        await db.exec("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, link TEXT)");
+        await db.run("INSERT INTO events (id, link) VALUES (900, ?)", [link]);
+        await db.run(
+            "UPDATE wechat_mp_ingest_articles SET event_id = 900, activity_status = 'pending_review' WHERE id = ?",
+            [original.id]
+        );
+        link = "https://mp.weixin.qq.com/s/a_b";
+        const result = await service.executeIngestRun(db, { wereadApi });
+        const rows = await db.all("SELECT * FROM wechat_mp_ingest_articles");
+        assert.equal(result.new_articles, 0);
+        assert.equal(rows.length, 1);
+        assert.equal(rows[0].id, original.id);
+        assert.equal(rows[0].event_id, 900);
+        assert.equal(rows[0].link, link);
+        assert.equal((await db.get("SELECT link FROM events WHERE id = 900")).link, link);
+    } finally {
+        await db.close();
+    }
+});
+
 test("frequent cache imports leave enabled legacy sources for their daily run", async () => {
     const db = await createDb();
     try {
