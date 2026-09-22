@@ -2,6 +2,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const axios = require("axios");
+const { isTrustedArticleLink } = require("./wechatReadRssService");
 
 const cacheRoot = () => process.env.WEREAD_CACHE_DIR || "/opt/we-mp-rss-trial/data/weread-live";
 const manifestPath = (root) =>
@@ -20,6 +21,69 @@ const readControl = (root) =>
 const validId = (id) => /^MP_WXS_\d+$/.test(String(id || ""));
 let writing = Promise.resolve();
 
+const newestFirst = (a, b) => (Date.parse(b.observed_at) || 0) - (Date.parse(a.observed_at) || 0);
+async function articleStates(db, feed, source) {
+    const captured = [
+        ...new Map(
+            (feed.articles || [])
+                .filter((a) => isTrustedArticleLink(a.link))
+                .map((a) => [a.link, a])
+        ).values(),
+    ];
+    const records = new Map();
+    for (let offset = 0; offset < captured.length; offset += 400) {
+        const links = captured.slice(offset, offset + 400).map((a) => a.link);
+        const rows = await db.all(
+            `SELECT a.id, a.link, a.content_status, a.extraction_status,
+            a.activity_status, a.activity_reason, a.event_id, e.status AS review_status,
+            e.deleted_at AS event_deleted_at
+            FROM wechat_mp_ingest_articles a LEFT JOIN events e ON e.id = a.event_id
+            WHERE a.link IN (${links.map(() => "?").join(",")})`,
+            links
+        );
+        for (const row of rows) records.set(row.link, row);
+    }
+    return captured
+        .map((a) => {
+            const row = records.get(a.link);
+            return {
+                id: a.id,
+                link: a.link,
+                title: a.title || "",
+                source_id: source.mp_id,
+                source_name: feed.name || source.name,
+                observed_at: a.observed_at || null,
+                published_at: a.published_at || null,
+                body_status: a.content_status === "ready" ? "ready" : "pending",
+                imported: Boolean(row),
+                content_status: row?.content_status || "not_imported",
+                extraction_status: row?.extraction_status || "not_started",
+                activity_status: row?.activity_status || "not_screened",
+                activity_reason: row?.activity_reason || "",
+                event_id: row?.event_id || null,
+                review_status: row?.event_deleted_at ? "deleted" : row?.review_status || "",
+            };
+        })
+        .sort(newestFirst);
+}
+async function getSourceArticles(db, id, page = 1, { root = cacheRoot() } = {}) {
+    const manifest = await readJson(manifestPath(root), []);
+    const source = manifest.find((a) => a.mp_id === id);
+    if (!validId(id) || !source) throw fail("WEREAD_SOURCE_NOT_FOUND", 404);
+    page = Number(page);
+    if (!Number.isInteger(page) || page < 1) throw fail("WEREAD_INVALID_PAGE");
+    const feed = await readJson(path.join(root, `${id}.json`), { articles: [] });
+    const articles = await articleStates(db, feed, source);
+    return {
+        id,
+        name: feed.name || source.name,
+        total: articles.length,
+        page,
+        page_size: 20,
+        articles: articles.slice((page - 1) * 20, page * 20),
+    };
+}
+
 async function getOverview(db, { root = cacheRoot() } = {}) {
     const [manifest, state, control, rows, lastRun] = await Promise.all([
         readJson(manifestPath(root), []),
@@ -32,6 +96,7 @@ async function getOverview(db, { root = cacheRoot() } = {}) {
             "SELECT id, status, started_at, finished_at, total_accounts, new_articles, fetched_contents, failed_count FROM wechat_mp_ingest_runs ORDER BY id DESC LIMIT 1"
         ),
     ]);
+    const allArticles = [];
     const sources = await Promise.all(
         manifest
             .filter((a) => validId(a.mp_id))
@@ -40,7 +105,9 @@ async function getOverview(db, { root = cacheRoot() } = {}) {
                 const progress = state.accounts?.[a.mp_id] || {};
                 const row = rows.find((r) => r.rss_feed_id === a.mp_id);
                 const pending = (feed.articles || []).filter((x) => x.content_status !== "ready");
-                const latest = feed.articles?.at(-1);
+                const articles = await articleStates(db, feed, a);
+                allArticles.push(...articles);
+                const latest = articles[0];
                 return {
                     id: a.mp_id,
                     name: feed.name || a.name,
@@ -49,7 +116,13 @@ async function getOverview(db, { root = cacheRoot() } = {}) {
                     checked_at: progress.last_success_at || null,
                     next_check: progress.next_check || null,
                     error: progress.error || "",
-                    total: feed.articles?.length || 0,
+                    total: articles.length,
+                    captured_at: latest?.observed_at || null,
+                    captured_24h: articles.filter(
+                        (x) => Date.parse(x.observed_at) >= Date.now() - 86400000
+                    ).length,
+                    imported: articles.filter((x) => x.imported).length,
+                    extracted: articles.filter((x) => x.extraction_status === "completed").length,
                     pending: pending.length,
                     latest_title: latest?.title || "",
                     pending_articles: pending.slice(0, 20).map((x) => ({
@@ -86,7 +159,18 @@ async function getOverview(db, { root = cacheRoot() } = {}) {
             process.env.WEREAD_ADMIN_USERNAME && process.env.WEREAD_ADMIN_PASSWORD
         ),
         import_minutes: Number(process.env.WEREAD_INGEST_INTERVAL_MINUTES) || 0,
-        sources,
+        sources: sources.sort(
+            (a, b) => (Date.parse(b.captured_at) || 0) - (Date.parse(a.captured_at) || 0)
+        ),
+        captured_total: allArticles.length,
+        captured_24h: allArticles.filter((x) => Date.parse(x.observed_at) >= Date.now() - 86400000)
+            .length,
+        captured_sources_24h: new Set(
+            allArticles
+                .filter((x) => Date.parse(x.observed_at) >= Date.now() - 86400000)
+                .map((x) => x.source_id)
+        ).size,
+        recent_articles: allArticles.sort(newestFirst).slice(0, 30),
         last_run: lastRun || null,
     };
 }
@@ -179,4 +263,4 @@ async function loginStatus() {
     if (response.data?.code !== 0) throw fail("WEREAD_LOGIN_UNAVAILABLE", 502);
     return { logged_in: response.data?.data?.login_status === true };
 }
-module.exports = { getOverview, updateControl, startLogin, loginStatus };
+module.exports = { getOverview, getSourceArticles, updateControl, startLogin, loginStatus };

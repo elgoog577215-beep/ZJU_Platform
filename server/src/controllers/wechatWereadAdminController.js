@@ -19,3 +19,7 @@ exports.importNow = handle(async (req) => {
     const db = await getDb();
     return ingest.startWechatMpIngestRun(db, { userId: req.user.id, sourceTypes: ["weread_mp"] });
 });
+
+exports.articles = handle(async (req) =>
+    service.getSourceArticles(await getDb(), req.params.id, req.query.page || 1)
+);
