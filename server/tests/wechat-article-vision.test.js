@@ -59,6 +59,21 @@ test("vision OCR is cached, bounded, uses local images, and only selects origina
         await service.enrichArticle(db, article, options);
         assert.equal(calls, 2);
         assert.equal(writes.length, 1);
+        const refreshed = {
+            ...article,
+            content_text: "短文",
+            content_status: "image_only",
+            cover: urls[0],
+        };
+        const restored = await service.enrichArticle(db, refreshed, options);
+        assert.equal(restored.content_text, article.content_text);
+        assert.equal(restored.content_status, "fetched");
+        assert.equal(restored.cover, urls[1]);
+        assert.equal(calls, 2);
+        assert.equal(writes.length, 2);
+        await service.enrichArticle(db, restored, options);
+        assert.equal(calls, 2);
+        assert.equal(writes.length, 2);
         await assert.rejects(
             service.prepareImage("https://example.com/private", uploads),
             /image_not_local/
