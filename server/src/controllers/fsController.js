@@ -5,13 +5,25 @@ const PROJECT_ROOT = path.resolve(__dirname, "../../../src");
 
 // Helper to validate path
 const validatePath = (relativePath) => {
-    if (!relativePath) return null;
-    // Prevent directory traversal
-    if (relativePath.includes("..")) return null;
-
-    // Resolve absolute path and ensure it's within PROJECT_ROOT
+    if (
+        typeof relativePath !== "string" ||
+        relativePath.includes("\0") ||
+        path.isAbsolute(relativePath)
+    )
+        return null;
     const fullPath = path.resolve(PROJECT_ROOT, relativePath);
-    if (!fullPath.startsWith(PROJECT_ROOT)) return null;
+    const isInside = (candidate) =>
+        candidate === PROJECT_ROOT || candidate.startsWith(PROJECT_ROOT + path.sep);
+    if (!isInside(fullPath)) return null;
+    // Resolve symlinks too: lexical containment alone cannot protect file reads/writes.
+    try {
+        const realPath = fs.existsSync(fullPath)
+            ? fs.realpathSync(fullPath)
+            : path.join(fs.realpathSync(path.dirname(fullPath)), path.basename(fullPath));
+        if (!isInside(realPath)) return null;
+    } catch {
+        return null;
+    }
 
     return fullPath;
 };

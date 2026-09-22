@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { normalizeWechatRequestUrl, wechatRequestOptions } = require("./wechatRequestPolicy");
 const cheerio = require("cheerio");
 const { getDb } = require("../config/db");
 const aiRuntime = require("../services/unifiedAiRuntimeService");
@@ -15,36 +16,7 @@ const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 const wechatCache = new Map();
 
 async function scrapeWeChat(url) {
-    console.log(`\n🔍 Fetching URL: ${url}...`);
-
-    // SSRF Protection
-    let parsedUrl;
-    try {
-        parsedUrl = new URL(url);
-        const hostname = parsedUrl.hostname;
-
-        // Block private IP ranges and localhost
-        const isPrivate =
-            /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|::1)/.test(hostname);
-        if (isPrivate) {
-            throw new Error("Invalid URL: Internal addresses are not allowed");
-        }
-
-        // Only allow http/https
-        if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-            throw new Error("Invalid URL: Only HTTP/HTTPS allowed");
-        }
-
-        // Validate WeChat domain
-        const isWeChatDomain =
-            hostname.includes("weixin.qq.com") || hostname.includes("mp.weixin.qq.com");
-        if (!isWeChatDomain) {
-            console.warn(`⚠️  Non-WeChat domain detected: ${hostname}`);
-        }
-    } catch (e) {
-        console.error("SSRF Protection blocked:", e.message);
-        throw new Error(`Invalid URL: ${e.message}`);
-    }
+    url = normalizeWechatRequestUrl(url);
 
     try {
         const response = await axios.get(url, {
@@ -58,7 +30,7 @@ async function scrapeWeChat(url) {
                 "Upgrade-Insecure-Requests": "1",
             },
             timeout: 30000, // 30 second timeout
-            maxRedirects: 5,
+            ...wechatRequestOptions(),
             validateStatus: (status) => status < 400,
         });
 

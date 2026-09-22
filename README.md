@@ -30,7 +30,7 @@ AI Agent 的正式执行规则位于 [AGENTS.md](./AGENTS.md)。它主要面向 
 
 ## 环境要求
 
-- Node.js 20 推荐，最低 Node.js 18。
+- Node.js 24 推荐，最低 Node.js 22.13.0（PDF 解析和构建工具的运行要求）。
 - npm。
 - 本地开发不需要提交数据库或上传目录。
 - iOS 构建需要 macOS、Xcode 和可用的 Apple Developer 环境。

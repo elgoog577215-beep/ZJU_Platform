@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { normalizeWechatRequestUrl, wechatRequestOptions } = require("./wechatRequestPolicy");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -36,6 +37,7 @@ async function downloadWeChatImage(imageUrl) {
     if (!imageUrl) return null;
 
     try {
+        imageUrl = normalizeWechatRequestUrl(imageUrl, { asset: true });
         const hash = crypto.createHash("md5").update(imageUrl).digest("hex");
         const urlExtension = extensionFromImageUrl(imageUrl);
         let ext = urlExtension || "jpg";
@@ -65,7 +67,12 @@ async function downloadWeChatImage(imageUrl) {
                 Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
             },
             timeout: 15000,
+            ...wechatRequestOptions({ asset: true }),
         });
+
+        if (!extensionFromContentType(response.headers?.["content-type"])) {
+            throw new Error("Unexpected WeChat image content type");
+        }
 
         if (!urlExtension) {
             ext = extensionFromContentType(response.headers?.["content-type"]) || ext;

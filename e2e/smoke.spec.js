@@ -11,8 +11,8 @@ test("homepage stays available and only exposes public directory URLs", async ({
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "好用的网站，从这里开始。" })).toBeVisible();
-    await expect(page).toHaveTitle(/常用网站导航/);
+    await expect(page.getByRole("heading", { name: "信息入口，从这里开始。" })).toBeVisible();
+    await expect(page).toHaveTitle(/首页/);
     await expect(page.locator(".directory-group")).toHaveCount(15);
     await expect(page.locator(".directory-group li")).toHaveCount(123);
     await expect(page.getByRole("menubar", { name: "导航菜单" }).getByRole("menuitem")).toHaveText([
@@ -132,9 +132,7 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
         .getByRole("dialog", { name: "More" })
         .getByRole("button", { name: "Close", exact: true })
         .click();
-    await expect(
-        page.getByRole("heading", { name: "Your everyday starting point." })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Start from information." })).toBeVisible();
     await page.keyboard.press("/");
     await expect(page.getByRole("searchbox", { name: "Search directory" })).toBeFocused();
     await page.keyboard.type("ZJU Course Guide");
@@ -148,27 +146,16 @@ test("theme, keyboard search and English work at narrow widths", async ({ page }
     );
 });
 
-test("welcome enters the homepage after three seconds and can be skipped", async ({ page }) => {
+test("homepage opens the directory directly without the retired welcome screen", async ({
+    page,
+}) => {
     await page.goto("/");
-    const welcome = page.getByTestId("home-welcome");
-    await expect(welcome).toBeVisible();
-    await page.waitForTimeout(1000);
-    await expect(welcome).toBeVisible();
-    await expect(page.locator(".ai-directory")).toBeVisible({ timeout: 4500 });
+    await expect(page.locator(".ai-directory")).toBeVisible();
+    await expect(page.getByTestId("home-welcome")).toHaveCount(0);
     await expect(page).toHaveURL(/\/$/);
     await page.reload();
     await expect(page.locator(".ai-directory")).toBeVisible();
-    await expect(welcome).toHaveCount(0);
-
-    await page.evaluate(() => sessionStorage.removeItem("tuozhe_welcome_seen"));
-    await page.reload();
-    await expect(welcome).toBeVisible();
-    await welcome.getByRole("button", { name: "直接进入" }).click();
-    await expect(page.locator(".ai-directory")).toBeVisible();
-    await expect(page).toHaveURL(/\/$/);
-
-    await page.evaluate(() => sessionStorage.removeItem("tuozhe_welcome_seen"));
+    await expect(page.getByTestId("home-welcome")).toHaveCount(0);
     await page.goto("/?q=GitHub");
     await expect(page.getByRole("searchbox", { name: "搜索导航网站" })).toHaveValue("GitHub");
-    await expect(welcome).toHaveCount(0);
 });

@@ -8,7 +8,7 @@ const {
     downloadWeChatImage,
 } = require("../utils/wechat");
 
-const WECHAT_URL_REGEX = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
+const { normalizeWechatRequestUrl } = require("../utils/wechatRequestPolicy");
 
 const buildErrorResponse = (error) => {
     let statusCode = Number.isInteger(error?.status) ? error.status : 500;
@@ -39,14 +39,15 @@ const parseWeChatResource = async (req, res) => {
         return res.status(400).json({ error: "URL is required" });
     }
 
-    if (!WECHAT_URL_REGEX.test(url)) {
+    let cleanedUrl;
+    try {
+        cleanedUrl = cleanWeChatUrl(normalizeWechatRequestUrl(url));
+    } catch {
         return res.status(400).json({
             error: "Invalid WeChat URL",
             message: "URL must be from mp.weixin.qq.com or www.weixin.qq.com",
         });
     }
-
-    const cleanedUrl = cleanWeChatUrl(url);
 
     try {
         if (wechatCache.has(cleanedUrl)) {

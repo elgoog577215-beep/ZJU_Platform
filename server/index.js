@@ -9,6 +9,7 @@ const { createApiRateLimiters } = require("./src/middleware/rateLimiting");
 const hpp = require("hpp");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const { uploadSecurityHeaders } = require("./src/middleware/uploadServing");
 
 const { getDb, pool } = require("./src/config/db");
 const { runMigrations } = require("./src/config/runMigrations");
@@ -195,15 +196,7 @@ app.use(
     express.static(uploadDir, {
         maxAge: "30d",
         immutable: true,
-        setHeaders: (res, path) => {
-            // Add security headers for static files
-            res.setHeader("X-Content-Type-Options", "nosniff");
-
-            // Prevent execution of uploaded files
-            if (path.match(/\.(php|jsp|asp|aspx|exe|sh|bat)$/i)) {
-                res.setHeader("Content-Type", "text/plain");
-            }
-        },
+        setHeaders: uploadSecurityHeaders,
     })
 );
 
