@@ -2,6 +2,11 @@ const fs = require("fs");
 
 const wechatMpAdminService = require("./wechatMpAdminService");
 const wechatReadRssService = require("./wechatReadRssService");
+const wechatWereadCacheService = require("./wechatWereadCacheService");
+const isRssSource = (account) =>
+    [wechatReadRssService.SOURCE_TYPE, wechatWereadCacheService.SOURCE_TYPE].includes(
+        account.source_type
+    );
 const { recordWechatParseRun } = require("./wechatParseAuditService");
 const { triggerEventGovernance } = require("./eventGovernanceTriggerService");
 const { screenActivityCandidate } = require("../utils/wechatActivityScreening");
@@ -25,11 +30,16 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 const INGEST_STALE_AFTER_MINUTES = 30;
 const STALE_RUN_ERROR = "采集任务因服务重启或长时间无响应而中止";
-const INGEST_SOURCE_TYPES = new Set(["wechat_mp", wechatReadRssService.SOURCE_TYPE]);
+const INGEST_SOURCE_TYPES = new Set([
+    "wechat_mp",
+    wechatReadRssService.SOURCE_TYPE,
+    wechatWereadCacheService.SOURCE_TYPE,
+]);
 let activeRun = null;
 let activeRunId = null;
 let schedulerTimer = null;
 let schedulerLastKey = "";
+let wereadSchedulerLastKey = "";
 let tokenHealthSchedulerTimer = null;
 let tokenHealthLastCheckedAt = 0;
 let tokenHealthRun = null;
@@ -687,14 +697,14 @@ const upsertIngestAccount = async (db, payload = {}) => {
         error.status = 400;
         throw error;
     }
-    if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
-        account.rss_feed_id = wechatReadRssService.normalizeFeedId(account.rss_feed_id);
+    if (isRssSource(account)) {
+        account.rss_feed_id = (
+            account.source_type === wechatWereadCacheService.SOURCE_TYPE
+                ? wechatWereadCacheService
+                : wechatReadRssService
+        ).normalizeFeedId(account.rss_feed_id);
     }
-    if (
-        account.source_type === wechatReadRssService.SOURCE_TYPE &&
-        !account.name &&
-        account.rss_feed_id
-    ) {
+    if (isRssSource(account) && !account.name && account.rss_feed_id) {
         account.name = account.rss_feed_id;
     }
     if (account.source_type === "wechat_mp" && !account.name && !account.fakeid) {
@@ -1385,6 +1395,8 @@ const executeIngestRun = async (
         runtime,
         wechatApi = wechatMpAdminService,
         rssApi = wechatReadRssService,
+        wereadApi = wechatWereadCacheService,
+        sourceTypes = null,
         parser = null,
         localizeImages = null,
         audit = recordWechatParseRun,
@@ -1393,7 +1405,10 @@ const executeIngestRun = async (
 ) => {
     await ensureWechatMpScheduledIngestSchema(db);
     const effectiveSettings = settings || (await getIngestSettings(db));
-    const accounts = await listIngestAccounts(db, { includeDisabled: false });
+    const enabledAccounts = await listIngestAccounts(db, { includeDisabled: false });
+    const accounts = sourceTypes
+        ? enabledAccounts.filter((account) => sourceTypes.includes(account.source_type))
+        : enabledAccounts;
     let totalArticles = 0;
     let newArticles = 0;
     let fetchedContents = 0;
@@ -1416,6 +1431,8 @@ const executeIngestRun = async (
         });
         for (let index = 0; index < accounts.length; index += 1) {
             const account = accounts[index];
+            const feedApi =
+                account.source_type === wechatWereadCacheService.SOURCE_TYPE ? wereadApi : rssApi;
             await updateRunProgress(db, createdRunId, {
                 stage: "fetching_accounts",
                 totalAccounts: accounts.length,
@@ -1432,8 +1449,8 @@ const executeIngestRun = async (
             }
             let listResult;
             try {
-                if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
-                    listResult = await rssApi.fetchArticles({
+                if (isRssSource(account)) {
+                    listResult = await feedApi.fetchArticles({
                         feedId: account.rss_feed_id,
                         count: account.count_per_page || effectiveSettings.count_per_page,
                         maxPages: account.max_pages || effectiveSettings.max_pages,
@@ -1461,7 +1478,7 @@ const executeIngestRun = async (
                     });
                 }
             } catch (error) {
-                if (account.source_type !== wechatReadRssService.SOURCE_TYPE) throw error;
+                if (!isRssSource(account)) throw error;
                 failedCount += 1;
                 sourceErrors.push(`${account.name}: ${error?.message || String(error)}`);
                 await db.run(
@@ -1504,7 +1521,7 @@ const executeIngestRun = async (
                 });
                 const existing = article.link
                     ? await db.get(
-                          "SELECT id, content_text, cover, content_html, images_json FROM wechat_mp_ingest_articles WHERE link = ?",
+                          "SELECT id, content_text, content_status, cover, content_html, images_json FROM wechat_mp_ingest_articles WHERE link = ?",
                           [article.link]
                       )
                     : null;
@@ -1512,11 +1529,18 @@ const executeIngestRun = async (
                 const shouldFetchContent =
                     account.fetch_content &&
                     effectiveSettings.fetch_content &&
-                    (!existing ||
-                        !existing.content_text ||
-                        !isLocalUploadUrl(existing.cover) ||
-                        (account.source_type === wechatReadRssService.SOURCE_TYPE &&
-                            hasRemoteContentAssets(existing)));
+                    !(
+                        account.source_type === wechatWereadCacheService.SOURCE_TYPE &&
+                        article.collector_content_status === "pending"
+                    ) &&
+                    (account.source_type === wechatWereadCacheService.SOURCE_TYPE
+                        ? !existing ||
+                          (!existing.content_text && existing.content_status !== "image_only")
+                        : !existing ||
+                          !existing.content_text ||
+                          !isLocalUploadUrl(existing.cover) ||
+                          (account.source_type === wechatReadRssService.SOURCE_TYPE &&
+                              hasRemoteContentAssets(existing)));
                 if (shouldFetchContent && article.link) {
                     if (articleIndex > 0)
                         await wechatMpAdminService.waitDelayRange(
@@ -1524,8 +1548,8 @@ const executeIngestRun = async (
                             runtime
                         );
                     try {
-                        if (account.source_type === wechatReadRssService.SOURCE_TYPE) {
-                            content = await rssApi.fetchArticleContent({
+                        if (isRssSource(account)) {
+                            content = await feedApi.fetchArticleContent({
                                 feedId: account.rss_feed_id,
                                 url: article.link,
                                 article,
@@ -1543,7 +1567,11 @@ const executeIngestRun = async (
                 }
                 const contentCover = String(content?.coverImage || content?.cover || "").trim();
                 const listCover = String(article.cover || "").trim();
-                if (listCover && !isLocalUploadUrl(contentCover || listCover)) {
+                if (
+                    listCover &&
+                    !isLocalUploadUrl(contentCover || existing?.cover || listCover) &&
+                    (account.source_type !== wechatWereadCacheService.SOURCE_TYPE || !existing)
+                ) {
                     const localizedCover = await localizeIngestCover(listCover, localizeImages);
                     if (localizedCover && localizedCover !== listCover) {
                         content = {
@@ -1769,14 +1797,26 @@ const startWechatMpIngestScheduler = ({ getDb, intervalMs = 60 * 1000 } = {}) =>
             const db = await getDb();
             const settings = await getIngestSettings(db);
             if (!settings.enabled) return;
+            if (activeRun) return;
             const zoned = getZonedDateTimeKey(new Date(), settings.timezone);
-            const tickKey = `${zoned.dateKey}:${settings.daily_run_time}`;
-            if (zoned.timeKey !== settings.daily_run_time || schedulerLastKey === tickKey) return;
-            schedulerLastKey = tickKey;
+            const dailyKey = `${zoned.dateKey}:${settings.daily_run_time}`;
+            const dailyDue =
+                zoned.timeKey === settings.daily_run_time && schedulerLastKey !== dailyKey;
+            const repeatMinutes = Number(process.env.WEREAD_INGEST_INTERVAL_MINUTES) || 0;
+            const intervalKey = Math.floor(Date.now() / (repeatMinutes * 60000));
+            const cacheDue =
+                Number.isFinite(repeatMinutes) &&
+                repeatMinutes >= 5 &&
+                wereadSchedulerLastKey !== intervalKey;
+            if (!dailyDue && !cacheDue) return;
+            // Frequent imports only read the local cache. Legacy sources keep their daily schedule.
             await startWechatMpIngestRun(db, {
                 triggerType: "scheduled",
                 settings,
+                sourceTypes: dailyDue ? null : [wechatWereadCacheService.SOURCE_TYPE],
             });
+            if (dailyDue) schedulerLastKey = dailyKey;
+            if (cacheDue) wereadSchedulerLastKey = intervalKey;
         } catch (error) {
             console.error("[WeChat MP Ingest] scheduler tick failed:", error.message || error);
         }

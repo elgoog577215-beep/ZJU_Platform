@@ -17,6 +17,7 @@ i18n.use(HttpBackend)
         },
         backend: {
             loadPath: "/locales/{{lng}}/translation.json",
+            requestOptions: { cache: "no-cache" },
         },
         detection: {
             order: ["localStorage", "htmlTag", "navigator"],

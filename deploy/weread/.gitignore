@@ -1,0 +1,4 @@
+.env
+data/
+*.lic
+__pycache__/
