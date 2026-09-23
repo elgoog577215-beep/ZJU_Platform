@@ -1,5 +1,9 @@
-"""Persistent, paced latest-cover polling. No MP backend calls or paid APIs."""
+"""Persistent, paced latest-cover polling. No MP backend calls.
+
+Optional: a Kuaisou search key finds the other articles of a push whose headline WeRead reported.
+"""
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -7,8 +11,8 @@ from pathlib import Path
 import re
 import shutil
 import time
-from datetime import datetime, timezone
-from urllib.parse import quote, urlsplit
+from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
 import requests
 import yaml
@@ -19,6 +23,12 @@ AUTH = Path(os.environ.get("WEREAD_AUTH_FILE", "/app/data/wx.lic"))
 MANIFEST = Path(os.environ.get("WEREAD_MANIFEST", "/app/data/weread-accounts.json"))
 INTERVAL = max(900, int(os.environ.get("WEREAD_POLL_SECONDS", "900")))
 GAP = max(10, int(os.environ.get("WEREAD_REQUEST_GAP", "10")))
+KUAISOU_KEY = Path(os.environ.get("KUAISOU_KEY_FILE", "/run/secrets/kuaisou_key"))
+KUAISOU_URL = "https://platform.kuaisou.com/api/web-search"
+# Search indexing lags publication by hours to days, so each headline is checked more than once.
+KUAISOU_CHECK_HOURS = [float(h) for h in os.environ.get("KUAISOU_CHECK_HOURS", "12,48").split(",") if h.strip()]
+KUAISOU_DAILY_LIMIT = int(os.environ.get("KUAISOU_DAILY_LIMIT", "80"))
+CHINA = timezone(timedelta(hours=8))
 PUBLIC_HEADERS = {
     # A bare Mozilla/5.0 consistently returned a verification redirect in live tests.
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
@@ -52,6 +62,41 @@ def article_link(mp_id, review_id):
         raise ValueError("invalid_review_id")
     # WeRead escapes the short-link token's underscore as '~'.
     return "https://mp.weixin.qq.com/s/" + quote(token.replace("~", "_"), safe="")
+
+
+def mp_biz(mp_id):
+    """WeRead's MP_WXS_<n> id is the decimal form of the article URL's __biz."""
+    return base64.b64encode(mp_id[len("MP_WXS_"):].encode()).decode()
+
+
+def message_identity(raw):
+    found = {}
+    for key, value in re.findall(r'\bvar\s+(biz|mid|idx)\s*=\s*"([^"]+)"\s*\|\|', raw):
+        found.setdefault(key, value)
+    if re.fullmatch(r"[A-Za-z0-9+/]+={0,2}", found.get("biz", "")) and found.get("mid", "").isdigit() \
+            and found.get("idx", "").isdigit():
+        return found
+    return {}
+
+
+def search_identity(url):
+    """(biz, mid, idx, sn, chksm) of a long mp.weixin.qq.com article URL, else None.
+
+    Without chksm the public page redirects to a captcha (verified 2026-09-23), so it is required.
+    """
+    parts = urlsplit(url or "")
+    if parts.scheme != "https" or parts.hostname != "mp.weixin.qq.com" or parts.path != "/s":
+        return None
+    q = {k: v[0] for k, v in parse_qs(parts.query).items()}
+    if not (q.get("__biz") and q.get("mid", "").isdigit() and q.get("idx", "").isdigit()
+            and re.fullmatch(r"[0-9a-f]{32}", q.get("sn", "")) and re.fullmatch(r"[0-9a-f]{16,}", q.get("chksm", ""))):
+        return None
+    # Search results carry base64 unescaped, so parse_qs would turn "+" into a space.
+    return q["__biz"].replace(" ", "+"), q["mid"], q["idx"], q["sn"], q["chksm"]
+
+
+def title_key(text):
+    return re.sub(r"[^0-9a-z\u4e00-\u9fff]", "", (text or "").lower())[:14]
 
 
 def picture_message_root(soup, raw):
@@ -114,6 +159,7 @@ def parse_body(raw):
         root = picture_message_root(soup, raw)
         if root is None: raise ValueError("article_body_missing")
     # Only explicit article metadata is a publication time; never substitute polling time.
+    title = soup.select_one('meta[property="og:title"]')
     match = re.search(r'\b(?:var\s+)?ct\s*=\s*[\"\x27](\d{10})[\"\x27]', raw)
     published = datetime.fromtimestamp(int(match[1]), timezone.utc).isoformat() if match else ""
     for el in root.select("script, iframe, object, embed, form"):
@@ -138,7 +184,8 @@ def parse_body(raw):
         raise ValueError("empty_article_body")
     return {"content_html": root.decode_contents(), "content_text": text,
             "images": images, "published_at": published,
-            "publication_time_source": "article_ct" if published else "unknown"}
+            "publication_time_source": "article_ct" if published else "unknown",
+            "msg": message_identity(raw), "title": title.get("content", "").strip() if title else ""}
 
 
 class Poller:
@@ -221,7 +268,8 @@ class Poller:
         feed_path = ROOT / (mp_id + ".json")
         feed = read_json(feed_path, {"mp_id": mp_id, "name": account["name"], "articles": []})
         for saved in feed["articles"]:
-            saved["link"] = article_link(mp_id, saved["id"])
+            if not saved.get("discovered_by"):
+                saved["link"] = article_link(mp_id, saved["id"])
         phase = "cover"
         try:
             cover = self.request("/api/mp/cover", {"bookId": mp_id})
@@ -253,7 +301,8 @@ class Poller:
 
     def public_body(self, mp_id, article):
         # A separate public request: never forward WeRead cookies or follow redirects.
-        url = article_link(mp_id, article["id"])
+        # Search-discovered pushes have no WeRead id; their link was rebuilt from validated parts.
+        url = article["link"] if article.get("discovered_by") else article_link(mp_id, article["id"])
         time.sleep(max(0, self.last_request + GAP - time.monotonic()))
         self.last_request = time.monotonic()
         with requests.get(url, headers=PUBLIC_HEADERS,
@@ -275,25 +324,35 @@ class Poller:
         article["body_attempts"] = article.get("body_attempts", article.get("body_failures", 0)) + 1
         article.pop("public_error", None)
         article.pop("weread_error", None)
-        try:
+        def public():
             try:
-                raw = self.request("/web/mp/content", {"reviewId": article["id"]}, as_json=False)
-                body = parse_body(raw)
-                article["body_source"] = "weread"
-            except ValueError as exc:
-                article["weread_error"] = str(exc)[:100]
-                if str(exc) not in {"empty_response", "article_body_missing"}: raise
+                body = self.public_body(mp_id, article)
+                article["body_source"] = "public_article"
+                return body
+            except Exception as public_exc:
+                article["public_error"] = str(public_exc)[:100] if isinstance(public_exc, ValueError) else type(public_exc).__name__
+                raise
+        try:
+            if article.get("discovered_by"):
+                body = public()
+            else:
                 try:
-                    body = self.public_body(mp_id, article)
-                    article["body_source"] = "public_article"
-                except Exception as public_exc:
-                    article["public_error"] = str(public_exc)[:100] if isinstance(public_exc, ValueError) else type(public_exc).__name__
-                    raise
+                    raw = self.request("/web/mp/content", {"reviewId": article["id"]}, as_json=False)
+                    body = parse_body(raw)
+                    article["body_source"] = "weread"
+                except ValueError as exc:
+                    article["weread_error"] = str(exc)[:100]
+                    if str(exc) not in {"empty_response", "article_body_missing"}: raise
+                    body = public()
 
             name = hashlib.sha256(article["id"].encode()).hexdigest() + ".json"
             write_json(ROOT / "bodies" / name, body)
             article.update(body_file=name, content_status="ready", published_at=body["published_at"], fetched_at=stamp())
             article.update(body_error="", body_next_retry=0)
+            if body.get("msg", {}).get("biz") == mp_biz(mp_id):
+                article["msg"] = body["msg"]
+            if article.get("discovered_by") and body.get("title"):
+                article["title"] = body["title"]
             print(json.dumps({"mp_id": mp_id, "title": article["title"], "status": "ready",
                               "text_chars": len(body["content_text"]), "images": len(body["images"])}), flush=True)
         except Exception as exc:
@@ -306,6 +365,97 @@ class Poller:
                     self.state["auth_required"] = True
             print(json.dumps({"mp_id": mp_id, "phase": "body", "error": code[:100]}), flush=True)
         write_json(ROOT / (mp_id + ".json"), feed)
+        self.save()
+
+    def kuaisou(self, query, count):
+        usage = self.state.setdefault("kuaisou", {})
+        today = datetime.now(CHINA).date().isoformat()
+        if usage.get("day") != today:
+            usage.update(day=today, calls=0)
+        usage["calls"] += 1
+        usage["total_calls"] = usage.get("total_calls", 0) + 1
+        time.sleep(1)
+        response = requests.post(KUAISOU_URL, json={"query": query, "count": count, "offset": 1},
+                                 headers={"Authorization": "Bearer " + KUAISOU_KEY.read_text().strip(),
+                                          "User-Agent": "Mozilla/5.0"}, timeout=(10, 30))
+        if response.status_code != 200:
+            raise ValueError("kuaisou_http_" + str(response.status_code))
+        data = response.json()
+        if data.get("code") != 200:
+            raise ValueError("kuaisou_api_" + str(data.get("code")))
+        try:
+            return data["data"][0]["webPages"]["value"] or []
+        except (KeyError, IndexError, TypeError):
+            return []
+
+    def sibling_job(self, accounts):
+        """The next headline whose push should be searched for further articles, if any."""
+        usage = self.state.get("kuaisou", {})
+        if not KUAISOU_CHECK_HOURS or usage.get("pause_until", 0) > time.time() \
+                or (usage.get("day") == datetime.now(CHINA).date().isoformat() and usage.get("calls", 0) >= KUAISOU_DAILY_LIMIT - 1):
+            return None
+        try:
+            if not KUAISOU_KEY.read_text().strip():
+                return None
+        except OSError:
+            return None
+        now = time.time()
+        for a in accounts:
+            feed = read_json(ROOT / (a["mp_id"] + ".json"), {"articles": []})
+            for article in feed["articles"]:
+                done = article.get("sibling_checks_done", 0)
+                if article.get("discovered_by") or article.get("content_status") != "ready" \
+                        or done >= len(KUAISOU_CHECK_HOURS) or not article.get("observed_at"):
+                    continue
+                seen = datetime.fromisoformat(article["observed_at"]).timestamp()
+                if now >= seen + KUAISOU_CHECK_HOURS[done] * 3600:
+                    return a["mp_id"], feed, article
+        return None
+
+    def sibling_step(self, mp_id, feed, article):
+        biz = mp_biz(mp_id)
+        usage = self.state.setdefault("kuaisou", {})
+        try:
+            msg = article.get("msg") or {}
+            if msg.get("biz") != biz:
+                # Bodies cached before identity extraction: locate the headline by its title.
+                key = title_key(article.get("title"))
+                msg = {}
+                for hit in self.kuaisou(article.get("title", "")[:60], 10):
+                    ident = search_identity(hit.get("url"))
+                    if ident and ident[0] == biz and key and title_key(hit.get("name")) == key:
+                        msg = {"biz": biz, "mid": ident[1], "idx": ident[2]}
+                        article["msg"] = msg
+                        break
+            added = 0
+            if msg:
+                known = {(x.get("msg") or {}).get("mid", "") + ":" + (x.get("msg") or {}).get("idx", "") for x in feed["articles"]}
+                for hit in self.kuaisou(msg["mid"], 50):
+                    ident = search_identity(hit.get("url"))
+                    if not ident or ident[:2] != (biz, msg["mid"]) or ident[2] == msg["idx"] \
+                            or ident[1] + ":" + ident[2] in known:
+                        continue
+                    known.add(ident[1] + ":" + ident[2])
+                    link = "https://mp.weixin.qq.com/s?" + urlencode(
+                        {"__biz": ident[0], "mid": ident[1], "idx": ident[2], "sn": ident[3], "chksm": ident[4]})
+                    feed["articles"].append({"id": f"{mp_id}_m{ident[1]}_{ident[2]}", "link": link,
+                        "title": (hit.get("name") or "").strip(), "cover": "", "summary": "",
+                        "author": feed.get("name", ""), "observed_at": stamp(), "published_at": "",
+                        "content_status": "pending", "body_failures": 0, "body_next_retry": 0,
+                        "discovered_by": "kuaisou", "msg": {"biz": biz, "mid": ident[1], "idx": ident[2]}})
+                    added += 1
+            article["sibling_checks_done"] = article.get("sibling_checks_done", 0) + 1
+            article["sibling_checked_at"] = stamp()
+            article["siblings_found"] = article.get("siblings_found", 0) + added
+            usage.update(error="", found=usage.get("found", 0) + added)
+            write_json(ROOT / (mp_id + ".json"), feed)
+            print(json.dumps({"mp_id": mp_id, "phase": "siblings", "mid": msg.get("mid", ""), "added": added}), flush=True)
+        except Exception as exc:
+            code = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+            # Search is optional: pause only this step (longer for key or balance problems).
+            usage.update(error=code[:100], last_error_at=stamp(), pause_until=time.time() + (
+                21600 if code.startswith(("kuaisou_http_4", "kuaisou_api_4")) else 1800))
+            print(json.dumps({"mp_id": mp_id, "phase": "siblings", "error": code[:100]}), flush=True)
         self.save()
 
     def run(self, once=False):
@@ -355,6 +505,9 @@ class Poller:
                     job = (a["mp_id"], feed, article); break
             if job:
                 self.body_step(*job); continue
+            job = self.sibling_job(accounts)
+            if job:
+                self.sibling_step(*job); continue
             self.save()
             if once: return
             time.sleep(5)

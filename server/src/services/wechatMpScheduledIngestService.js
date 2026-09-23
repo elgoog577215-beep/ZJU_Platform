@@ -1045,6 +1045,13 @@ const upsertArticle = async (db, { account, article, content }) => {
             );
         }
         await syncEventCover(db, existing.event_id, cover || existing.cover);
+        // A pending WeRead row is imported before its body reveals the publication time.
+        if (!existing.create_time && article.create_time) {
+            await db.run(
+                "UPDATE wechat_mp_ingest_articles SET create_time = ?, time_text = ?, updated_at = datetime('now') WHERE id = ?",
+                [article.create_time, article.time_text || article.create_time, existing.id]
+            );
+        }
         if (hasFetchedContent) {
             await db.run(
                 `

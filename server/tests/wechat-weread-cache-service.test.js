@@ -20,12 +20,25 @@ test("WeRead cache preserves unknown publication time and pending article metada
                     },
                     { link: "https://mp.weixin.qq.com/s/def", content_status: "pending" },
                     { link: "https://other.test/s/abc", content_status: "ready" },
+                    {
+                        link: "https://mp.weixin.qq.com/s?__biz=MTIz&mid=7&idx=2&sn=x",
+                        content_status: "pending",
+                        discovered_by: "kuaisou",
+                        title: "搜索摘要里被截断的标题...",
+                    },
+                    {
+                        link: "https://mp.weixin.qq.com/s?__biz=MTIz&mid=7&idx=3&sn=y",
+                        content_status: "ready",
+                        discovered_by: "kuaisou",
+                        title: "正文页标题",
+                    },
                 ],
             })
         );
         const result = await service.fetchArticles({ feedId, root });
-        assert.equal(result.articles.length, 2);
+        assert.equal(result.articles.length, 3);
         assert.equal(result.articles[1].collector_content_status, "pending");
+        assert.equal(result.articles[2].title, "正文页标题");
         assert.equal(result.articles[0].create_time, "");
         await assert.rejects(service.fetchArticles({ feedId: "../../etc/passwd", root }));
     } finally {

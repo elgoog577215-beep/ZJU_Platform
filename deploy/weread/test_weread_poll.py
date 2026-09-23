@@ -125,6 +125,98 @@ class ParserTests(unittest.TestCase):
         self.assertNotIn("<script>", result["content_html"])
         self.assertEqual(result["published_at"], "")
 
+    def test_message_identity_and_title_come_from_page_metadata(self):
+        raw = ('<meta property="og:title" content="标题 &amp; 副题"><script>var biz = "MzA3NjkyOTEwMw==" || "";'
+               'var mid = "2649700114" || "" || ""; var idx = "1" || "" || ""; var idx = opt.idx || window.idx</script>'
+               '<div id="js_content">正文</div>')
+        result = parse_body(raw)
+        self.assertEqual(result["msg"], {"biz": "MzA3NjkyOTEwMw==", "mid": "2649700114", "idx": "1"})
+        self.assertEqual(result["title"], "标题 & 副题")
+        self.assertEqual(weread_poll.mp_biz("MP_WXS_3076929103"), "MzA3NjkyOTEwMw==")
+        self.assertEqual(parse_body('<div id="js_content">正文</div>')["msg"], {})
+        self.assertEqual(weread_poll.search_identity("https://mp.weixin.qq.com/s?__biz=Mz+A==&mid=1&idx=2&sn=" + "a" * 32 + "&chksm=" + "b" * 16)[0], "Mz+A==")
+        self.assertIsNone(weread_poll.search_identity("https://mp.weixin.qq.com/s?__biz=M&mid=1&idx=2&sn=" + "a" * 32))
+        self.assertIsNone(weread_poll.search_identity("https://mp.weixin.qq.com.evil.test/s?__biz=M&mid=1&idx=2&sn=" + "a" * 32 + "&chksm=" + "b" * 16))
+
+    def test_search_finds_other_articles_of_the_same_push_only(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(weread_poll, "ROOT", Path(directory)), \
+                patch.object(weread_poll, "KUAISOU_KEY", Path(directory) / "key"), \
+                patch.object(weread_poll, "KUAISOU_CHECK_HOURS", [12, 48]):
+            root = Path(directory); (root / "key").write_text("secret")
+            biz = weread_poll.mp_biz("MP_WXS_123")
+            sn = "0" * 32
+            def url(b, mid, idx): return f"https://mp.weixin.qq.com/s?__biz={b}&mid={mid}&idx={idx}&sn={sn}&chksm=ab12cd34ef56ab78&scene=27"
+            old = weread_poll.datetime.fromtimestamp(0, weread_poll.timezone.utc).isoformat()
+            fresh = weread_poll.stamp()
+            headline = {"id": "MP_WXS_123_tok", "title": "头条文章标题很长很长很长", "content_status": "ready", "observed_at": old}
+            waiting = {"id": "MP_WXS_123_new", "title": "刚发现", "content_status": "ready", "observed_at": fresh}
+            feed = {"name": "号", "articles": [headline, waiting]}
+            weread_poll.write_json(root / "MP_WXS_123.json", feed)
+            accounts = [{"mp_id": "MP_WXS_123"}]
+            poller = weread_poll.Poller()
+            calls = []
+            def search(query, count):
+                calls.append(query)
+                if count == 10:  # headline cached before identity extraction: resolved by title
+                    return [{"name": "头条文章标题很长很长很长", "url": url("other", "9", "1")},
+                            {"name": "头条文章标题很长很长很长...", "url": url(biz, "77", "1")}]
+                return [{"name": "头条", "url": url(biz, "77", "1")},
+                        {"name": "次条标题...", "url": url(biz, "77", "2")},
+                        {"name": "别的推送", "url": url(biz, "78", "1")},
+                        {"name": "别的号", "url": url("other", "77", "3")},
+                        {"name": "坏链接", "url": "https://mp.weixin.qq.com/s/short"}]
+            poller.kuaisou = search
+            mp_id, f, article = poller.sibling_job(accounts)
+            self.assertEqual(article["id"], "MP_WXS_123_tok")
+            poller.sibling_step(mp_id, f, article)
+            self.assertEqual(calls, ["头条文章标题很长很长很长", "77"])
+            saved = weread_poll.read_json(root / "MP_WXS_123.json", {})["articles"]
+            self.assertEqual(len(saved), 3)
+            sibling = saved[2]
+            self.assertEqual(sibling["link"], f"https://mp.weixin.qq.com/s?__biz={biz.replace('=', '%3D')}&mid=77&idx=2&sn={sn}&chksm=ab12cd34ef56ab78")
+            self.assertEqual((sibling["discovered_by"], sibling["content_status"], sibling["msg"]["idx"]), ("kuaisou", "pending", "2"))
+            self.assertEqual(saved[0]["msg"]["mid"], "77")
+            self.assertEqual(saved[0]["sibling_checks_done"], 1)
+            # The second check neither re-adds the sibling nor re-resolves the headline.
+            poller.sibling_step(*poller.sibling_job(accounts))
+            self.assertEqual(calls[-1], "77")
+            self.assertEqual(len(weread_poll.read_json(root / "MP_WXS_123.json", {})["articles"]), 3)
+            self.assertIsNone(poller.sibling_job(accounts))  # both checks done; the fresh headline is not due
+            # The sibling link is kept across cover polls and its body only comes from the public page.
+            poller.request = lambda *a, **k: {"reviewId": "MP_WXS_123_tok", "title": "头条"}
+            poller.step({"mp_id": "MP_WXS_123", "name": "号"})
+            feed = weread_poll.read_json(root / "MP_WXS_123.json", {})
+            sibling = feed["articles"][2]
+            self.assertIn("mid=77", sibling["link"])
+            def weread(*a, **k): raise AssertionError("sibling has no WeRead review id")
+            poller.request = weread
+            page = f'<meta property="og:title" content="次条完整标题"><script>var biz = "{biz}" || ""; var mid = "77" || ""; var idx = "2" || "";</script><div id="js_content">次条正文</div>'
+            with patch.object(poller, "public_body", return_value=parse_body(page)) as public:
+                poller.body_step("MP_WXS_123", feed, sibling)
+                self.assertIs(public.call_args.args[1], sibling)
+            self.assertEqual((sibling["content_status"], sibling["title"], sibling["body_source"]), ("ready", "次条完整标题", "public_article"))
+
+    def test_search_is_optional_and_failures_pause_only_search(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(weread_poll, "ROOT", Path(directory)), \
+                patch.object(weread_poll, "KUAISOU_KEY", Path(directory) / "missing"):
+            root = Path(directory)
+            old = weread_poll.datetime.fromtimestamp(0, weread_poll.timezone.utc).isoformat()
+            article = {"id": "MP_WXS_123_tok", "title": "头条", "content_status": "ready", "observed_at": old,
+                       "msg": {"biz": weread_poll.mp_biz("MP_WXS_123"), "mid": "77", "idx": "1"}}
+            feed = {"articles": [article]}
+            weread_poll.write_json(root / "MP_WXS_123.json", feed)
+            poller = weread_poll.Poller()
+            self.assertIsNone(poller.sibling_job([{"mp_id": "MP_WXS_123"}]))
+            def broke(*a, **k): raise ValueError("kuaisou_http_402")
+            poller.kuaisou = broke
+            poller.sibling_step("MP_WXS_123", feed, article)
+            self.assertNotIn("sibling_checks_done", article)
+            self.assertGreater(poller.state["kuaisou"]["pause_until"], weread_poll.time.time() + 3600)
+            self.assertFalse(poller.state.get("auth_required"))
+            self.assertEqual(poller.state.get("global_pause_until", 0), 0)
+
     def test_picture_message_requires_complete_typed_picture_list(self):
         for raw in [
             "<script>picture_page_info_list: [{cdn_url: 'https://mmbiz.qpic.cn/a'}]</script>",

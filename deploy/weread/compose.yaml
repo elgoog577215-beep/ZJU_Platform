@@ -8,8 +8,12 @@ services:
         environment:
             WEREAD_POLL_SECONDS: "900"
             WEREAD_REQUEST_GAP: "10"
+            # Optional sibling discovery; with /dev/null the search step stays off.
+            KUAISOU_CHECK_HOURS: "12,48"
+            KUAISOU_DAILY_LIMIT: "80"
         volumes:
             - ./weread_poll.py:/collector/weread_poll.py:ro
+            - ${KUAISOU_KEY_FILE:-/dev/null}:/run/secrets/kuaisou_key:ro
             - ${WEREAD_DATA_DIR:?set the existing we-mp-rss data directory}:/app/data
         mem_limit: 192m
         cpus: 0.25

@@ -4,6 +4,7 @@ const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const axios = require("axios");
 const { isTrustedArticleLink } = require("./wechatReadRssService");
+const { cleanWeChatUrl } = require("../utils/wechatUrl");
 
 const cacheRoot = () => process.env.WEREAD_CACHE_DIR || "/opt/we-mp-rss-trial/data/weread-live";
 const manifestPath = (root) =>
@@ -33,7 +34,8 @@ async function articleStates(db, feed, source) {
     ];
     const records = new Map();
     for (let offset = 0; offset < captured.length; offset += 400) {
-        const links = captured.slice(offset, offset + 400).map((a) => a.link);
+        // Ingest stores cleaned links; search-discovered links keep chksm for the public page.
+        const links = captured.slice(offset, offset + 400).map((a) => cleanWeChatUrl(a.link));
         const rows = await db.all(
             `SELECT a.id, a.link, a.content_status, a.extraction_status,
             a.activity_status, a.activity_reason, a.event_id, e.status AS review_status,
@@ -47,7 +49,7 @@ async function articleStates(db, feed, source) {
     return (
         await Promise.all(
             captured.map(async (a) => {
-                const row = records.get(a.link);
+                const row = records.get(cleanWeChatUrl(a.link));
                 return {
                     id: a.id,
                     link: a.link,
