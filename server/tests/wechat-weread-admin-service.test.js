@@ -149,6 +149,11 @@ test("capture totals use first observation and linked processing/review records,
                     article("old", old),
                     article("new", recent),
                     article("new", recent),
+                    {
+                        ...article("sibling", old),
+                        link: "https://mp.weixin.qq.com/s?__biz=MTIz&mid=7&idx=2&sn=abc&chksm=ff00",
+                        discovered_by: "kuaisou",
+                    },
                     { link: "javascript:alert(1)" },
                 ],
             })
@@ -166,21 +171,28 @@ test("capture totals use first observation and linked processing/review records,
                               event_id: 99,
                               review_status: "pending",
                           },
+                          {
+                              id: 13,
+                              link: "https://mp.weixin.qq.com/s?__biz=MTIz&mid=7&idx=2&sn=abc",
+                              content_status: "fetched",
+                          },
                       ]
                     : [{ rss_feed_id: "MP_WXS_123", enabled: 1 }],
             get: async () => null,
         };
         const data = await service.getOverview(db, { root });
-        assert.equal(data.captured_total, 2);
+        assert.equal(data.captured_total, 3);
         assert.equal(data.captured_24h, 1);
         assert.equal(data.captured_sources_24h, 1);
         assert.equal(data.recent_articles[0].id, "new");
         assert.equal(data.recent_articles[0].review_status, "pending");
         assert.equal(data.recent_articles[0].extraction_status, "completed");
-        assert.equal(data.recent_articles[1].imported, false);
+        assert.equal(data.recent_articles.find((a) => a.id === "old").imported, false);
+        // Stored links drop chksm; the discovered sibling still resolves to its record.
+        assert.equal(data.recent_articles.find((a) => a.id === "sibling").imported, true);
         const page = await service.getSourceArticles(db, "MP_WXS_123", 1, { root });
-        assert.equal(page.total, 2);
-        assert.equal(page.articles.length, 2);
+        assert.equal(page.total, 3);
+        assert.equal(page.articles.length, 3);
         assert.equal(
             (await service.getSourceArticles(db, "MP_WXS_123", 2, { root })).articles.length,
             0

@@ -25,7 +25,11 @@ const readFeed = async (id, root) => {
 const fetchArticles = async ({ feedId, root = cacheRoot() } = {}) => {
     const feed = await readFeed(feedId, root);
     const articles = (feed.articles || [])
-        .filter((a) => isTrustedArticleLink(a.link))
+        // Search-discovered articles carry an unverified snippet title until their body is read.
+        .filter(
+            (a) =>
+                isTrustedArticleLink(a.link) && (!a.discovered_by || a.content_status === "ready")
+        )
         .map((a) => ({
             ...a,
             create_time: a.published_at || "",

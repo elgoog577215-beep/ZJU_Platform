@@ -26,6 +26,8 @@ test("WeRead pending metadata survives until its asynchronous body becomes avail
                             title: "待补正文",
                             link: "https://mp.weixin.qq.com/s/pending",
                             collector_content_status: ready ? "ready" : "pending",
+                            create_time: ready ? "2026-09-21T02:00:00+00:00" : "",
+                            time_text: ready ? "2026-09-21T02:00:00+00:00" : "",
                         },
                     ],
                 };
@@ -51,6 +53,9 @@ test("WeRead pending metadata survives until its asynchronous body becomes avail
             (await db.get("SELECT content_text FROM wechat_mp_ingest_articles")).content_text,
             "后来抓到的正文"
         );
+        const row = await db.get("SELECT create_time, time_text FROM wechat_mp_ingest_articles");
+        assert.equal(row.create_time, "2026-09-21T02:00:00+00:00");
+        assert.equal(row.time_text, "2026-09-21T02:00:00+00:00");
     } finally {
         await db.close();
     }

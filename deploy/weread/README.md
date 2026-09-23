@@ -15,6 +15,11 @@ python -m unittest discover -s deploy/weread -p 'test_*.py'
 - `WEREAD_POLL_SECONDS`：每个来源的目标间隔，最少 900 秒。
 - `WEREAD_REQUEST_GAP`：所有请求之间的最小间隔，最少 10 秒。
 
+- `KUAISOU_KEY_FILE`：可选，宿主机上快搜 Web Search API Key 文件（权限 600），只读挂载到容器 `/run/secrets/kuaisou_key`。未配置时不做次条发现。
+- `KUAISOU_CHECK_HOURS`：头条首次发现后第几小时用群发 `mid` 搜索同组次条，默认 `12,48`；`KUAISOU_DAILY_LIMIT` 为每日调用上限，默认 80（按北京时间计日）。
+
+微信读书只返回每次群发的头条。正文页中的 `biz/mid/idx` 与 `og:title` 随正文保存；配置快搜后，采集器按 `mid` 搜索同一次群发的其他文章（仅保留 `__biz`、`mid` 一致且带 `sn`、`chksm` 的完整链接；缺少 `chksm` 的公开链接实测会跳转验证页），作为 `discovered_by=kuaisou` 的待抓正文加入同一公众号缓存，只经公开原文页抓取，正文就绪前不交给平台。早于此功能缓存的头条先按标题搜索一次取得 `mid`。搜索失败只暂停这一步（Key/余额类错误 6 小时，其他 30 分钟），不影响微信读书轮询；`status.json` 的 `kuaisou` 记录当日调用数、累计发现数和最近错误。2026-09-23 实测搜索引擎收录约四成次条，是补充而非完整性保证。
+
 只启动一个轮询进程写入同一缓存目录。`--once` 处理当前到期来源及可重试正文后退出，仍遵守已保存的间隔、认证暂停和退避状态。
 
 维护界面使用缓存目录内的 `control.json` 控制轮询，`status.json` 的 `worker_version=2` 和 `control_revision` 表示版本与已接收指令。更新脚本后重启 collector；主平台与采集器必须共享同一个可写缓存目录。应用不会直接修改 collector 的正文或运行状态文件。手动重试保持授权与限流暂停，命令 token 跨重启去重。
