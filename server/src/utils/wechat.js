@@ -10,6 +10,13 @@ const {
 const { downloadWeChatImage } = require("./wechatImageDownloader");
 const { cleanWeChatUrl } = require("./wechatUrl");
 const { compactWechatArticleContent } = require("./wechatArticleContext");
+const {
+    KEY_LABELS,
+    normalizeStudentSummary,
+    renderStudentSummary,
+    normalizeDeadline,
+    yearOf,
+} = require("./wechatEventSummary");
 
 // Simple In-Memory Cache
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
@@ -190,6 +197,8 @@ async function parseWithLLM(data, options = {}) {
                     "你还必须判断这篇文章是否适合进入活动栏目：只有具有明确参与对象、活动安排或报名/参与动作的内容才可以判为活动候选。",
                     "新闻报道、成果回顾、政策说明、经验分享和没有具体活动安排的纯通知应判为非活动候选。",
                     "正文或OCR中的报名、抢票、抽奖、领奖时间不等于活动举办时间。分别说明依据，不能将抢票时间推断为演出时间；无法确定举办时间填null。相对日期应以原文发布时间为锚点；发布时间未知或图片字迹不清时不要猜测。",
+                    "highlight、key_info、sections 写给正在考虑是否参加的学生：让他们几秒内看懂这是什么、和自己有没有关系、何时何地、怎么报名、截止到什么时候、参加能得到什么。用学生视角的短句（如“打开原文扫码报名”），每条只说一件事；不写宣传口号、主办方意义或活动目的；来源没写的项目直接省略。",
+                    "key_info 的“时间”只写活动举办时间；报名、抢票、截止时间写在“报名截止”或要点里；纳新、招募等没有举办时间的不输出“时间”。日期写成“9月24日 15:00-17:30”，不要写星期几和年份。报名二维码或链接只在原文中时写“打开原文扫码报名”，不要写“扫描上方二维码”。",
                     "不要返回 markdown，不要解释过程，只输出 JSON 对象。",
                 ].join("\n"),
             },
@@ -212,8 +221,12 @@ async function parseWithLLM(data, options = {}) {
                             title: "活动名称；无具体活动名时用文章标题",
                             description:
                                 "通常80-160字，信息不足时允许更短；只概括来源明确说明的核心内容、参与对象和参与动作，不补写目的或宣传口号，不要用省略号截断",
-                            content:
-                                "整理后的活动详情 HTML 片段，最多 1200 字，只用 h3/p/ul/li 等正文标签；不要复制整篇原文，不要用省略号截断",
+                            highlight: "一句话说明这是什么活动、对学生有什么用，不超过40字",
+                            key_info: `数组 [{label, value}]；label 只能取 ${KEY_LABELS.join("/")}，按此顺序；来源没有的项不要输出；收获指二课分、志愿时长、综测分、奖品等`,
+                            sections:
+                                "最多3个 {heading, bullets[]}，heading 如“活动内容”“怎么参加”“注意事项”；每节最多5条，每条不超过40字",
+                            registration_deadline:
+                                "报名截止 YYYY-MM-DDTHH:MM；原文没有写截止时间填 null",
                             date_reasoning: "说明如何从文章和当前日期推断活动日期",
                             date: "YYYY-MM-DDTHH:MM；已知日期但无时刻用 T00:00；举办日期不明填 null",
                             end_date: "YYYY-MM-DDTHH:MM；单日活动需与 date 同日",
@@ -261,7 +274,15 @@ async function parseWithLLM(data, options = {}) {
     }
     if (parsed.description)
         parsed.description = cleanField(parsed.description, /^活动详情摘要[：:]\s*/);
-    if (parsed.content) parsed.content = cleanField(parsed.content, /^活动详细内容[：:]\s*/);
+    parsed.registration_deadline = normalizeDeadline(parsed.registration_deadline);
+    parsed.student_summary = normalizeStudentSummary(parsed);
+    if (parsed.student_summary) {
+        parsed.content = renderStudentSummary(parsed.student_summary, {
+            year: yearOf(data.publishedAt, today),
+        });
+    } else if (parsed.content) {
+        parsed.content = cleanField(parsed.content, /^活动详细内容[：:]\s*/);
+    }
     if (parsed.location) parsed.location = cleanField(parsed.location, /^活动地点[：:]\s*/);
     if (parsed.organizer) parsed.organizer = cleanField(parsed.organizer, /^主办方[：:]\s*/);
     if (parsed.target_audience)

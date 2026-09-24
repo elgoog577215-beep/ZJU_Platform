@@ -1210,3 +1210,80 @@ test("WeRead RSS source failures are recorded while later sources continue", asy
         await db.close();
     }
 });
+
+test("student summary events lead with the main image and keep other chosen images", async () => {
+    const fs = require("node:fs/promises");
+    const path = require("node:path");
+    const db = await createDb();
+    const articleId = 987654321;
+    const visionFile = path.resolve(__dirname, "../data/wechat-vision", `${articleId}.json`);
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        await fs.mkdir(path.dirname(visionFile), { recursive: true });
+        const image = (url, kind, score) => ({
+            url,
+            kind,
+            score,
+            status: "completed",
+            width: 1080,
+            height: 1440,
+        });
+        await fs.writeFile(
+            visionFile,
+            JSON.stringify({
+                images: {
+                    a: image("/uploads/covers/qr.png", "qr", 1),
+                    b: image("/uploads/covers/poster.jpg", "poster", 0.99),
+                    c: image("/uploads/covers/photo.jpg", "photo", 0.8),
+                    d: image("/uploads/covers/low.jpg", "photo", 0.3),
+                },
+            })
+        );
+        const article = {
+            id: articleId,
+            title: "讲座报名",
+            link: "https://mp.weixin.qq.com/s/summary",
+            cover: "/uploads/covers/poster.jpg",
+            create_time: "2026-09-21T02:58:33+00:00",
+        };
+        const result = await service.screenArticleActivity(
+            db,
+            article,
+            {
+                title: "讲座",
+                description: "卡片摘要",
+                is_activity_candidate: true,
+                activity_confidence: 0.95,
+                student_summary: {
+                    highlight: "线下参加可获二课分",
+                    key_info: [{ label: "时间", value: "9月24日 15:00" }],
+                    sections: [],
+                },
+            },
+            { governanceTrigger: async () => {} }
+        );
+        assert.equal(result.status, "accepted");
+        const event = await db.get("SELECT image, description, content FROM events");
+        assert.equal(event.image, "/uploads/covers/poster.jpg");
+        assert.equal(event.description, "卡片摘要");
+        assert.ok(event.content.startsWith('<p><img src="/uploads/covers/poster.jpg"'));
+        assert.match(event.content, /9月24日（周四） 15:00/);
+        assert.ok(event.content.indexOf("photo.jpg") > event.content.indexOf("二课分"));
+        assert.equal(event.content.match(/poster\.jpg/g).length, 1);
+        assert.doesNotMatch(event.content, /qr\.png|low\.jpg/);
+    } finally {
+        await fs.rm(visionFile, { force: true });
+        await db.close();
+    }
+});

@@ -1,4 +1,5 @@
-const { enrichArticle } = require("./wechatArticleVisionService");
+const { enrichArticle, imageChoices, readVision } = require("./wechatArticleVisionService");
+const { renderStudentSummary, yearOf } = require("../utils/wechatEventSummary");
 const fs = require("fs");
 
 const wechatMpAdminService = require("./wechatMpAdminService");
@@ -1137,7 +1138,7 @@ const updateArticleActivity = async (db, articleId, { status, reason = "", event
     );
 };
 
-const activityEventPayload = (article, parsed) => {
+const activityEventPayload = (article, parsed, { images = [] } = {}) => {
     const tags = Array.isArray(parsed.tags)
         ? parsed.tags
               .map((tag) => String(tag || "").trim())
@@ -1156,7 +1157,17 @@ const activityEventPayload = (article, parsed) => {
         status: "pending",
         image: String(article.cover || "").trim(),
         description: String(parsed.description || article.summary || "").trim(),
-        content: String(parsed.content || article.content_html || contentText).trim(),
+        // The main image leads the student summary, followed by other relevant article images.
+        content: String(
+            (parsed.student_summary &&
+                renderStudentSummary(parsed.student_summary, {
+                    images: [article.cover, ...images],
+                    year: yearOf(article.create_time, article.first_seen_at),
+                })) ||
+                parsed.content ||
+                article.content_html ||
+                contentText
+        ).trim(),
         link: cleanWeChatUrl(article.link || ""),
         featured: 0,
         score: parsed.score || null,
@@ -1171,7 +1182,13 @@ const activityEventPayload = (article, parsed) => {
 };
 
 const upsertActivityEvent = async (db, article, parsed) => {
-    const payload = activityEventPayload(article, parsed);
+    let images = [];
+    try {
+        images = imageChoices(await readVision(article.id)).map((x) => x.url);
+    } catch (error) {
+        console.error("[WeChat event images]", error.code || "vision_read_failed");
+    }
+    const payload = activityEventPayload(article, parsed, { images });
     if (!payload.link) throw new Error("活动候选缺少公众号原文链接");
 
     let existing = null;
