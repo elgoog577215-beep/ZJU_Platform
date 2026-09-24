@@ -89,3 +89,24 @@ test("weekdays, years and deadlines are computed rather than trusted", () => {
     assert.equal(normalizeDeadline("9月26日"), null);
     assert.equal(normalizeDeadline(null), null);
 });
+
+test("several sessions or venues render one per line", () => {
+    const html = renderStudentSummary(
+        {
+            key_info: [
+                {
+                    label: "时间",
+                    value: "9月26日 9:00-17:00 百团纳新；9月26日 17:00-21:30 百团之夜；",
+                },
+                { label: "地点", value: "紫云篮球场" },
+            ],
+            sections: [],
+        },
+        { year: 2026 }
+    );
+    assert.match(
+        html,
+        /<li><strong>时间<\/strong>：<ul><li>9月26日（周六） 9:00-17:00 百团纳新<\/li><li>9月26日（周六） 17:00-21:30 百团之夜<\/li><\/ul><\/li>/
+    );
+    assert.match(html, /<li><strong>地点<\/strong>：紫云篮球场<\/li>/);
+});
