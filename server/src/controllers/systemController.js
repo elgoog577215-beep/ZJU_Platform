@@ -792,7 +792,7 @@ const getNativePosterSessionImageHandler = async (req, res, next) => {
 const uploadRoot = path.resolve(__dirname, "../../uploads");
 const imageVariantRoot = path.join(uploadRoot, "_variants");
 const variantWidths = [320, 480, 640, 960, 1200, 1600];
-const allowedVariantExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp"]);
+const allowedVariantExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif"]);
 
 const pickVariantWidth = (value) => {
     const requested = Number.parseInt(value, 10);
@@ -837,10 +837,12 @@ const getImageVariant = async (req, res, next) => {
             88
         );
         const sourceStat = fs.statSync(resolved.resolvedPath);
+        // GIF covers keep their animation as animated WebP instead of a frozen first frame.
+        const animated = path.extname(resolved.resolvedPath).toLowerCase() === ".gif";
         const cacheKey = crypto
             .createHash("sha1")
             .update(
-                `${resolved.cleanSrc}:${sourceStat.mtimeMs}:${sourceStat.size}:${width}:${quality}`
+                `${resolved.cleanSrc}:${sourceStat.mtimeMs}:${sourceStat.size}:${width}:${quality}:${animated}`
             )
             .digest("hex");
         const variantDir = path.join(imageVariantRoot, String(width));
@@ -848,7 +850,7 @@ const getImageVariant = async (req, res, next) => {
 
         if (!fs.existsSync(variantPath)) {
             fs.mkdirSync(variantDir, { recursive: true });
-            await sharp(resolved.resolvedPath, { animated: false })
+            await sharp(resolved.resolvedPath, { animated })
                 .rotate()
                 .resize({ width, withoutEnlargement: true })
                 .webp({ quality, effort: 4 })

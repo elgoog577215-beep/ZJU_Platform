@@ -1181,6 +1181,43 @@ const activityEventPayload = (article, parsed, { images = [] } = {}) => {
     };
 };
 
+// Same happening announced by several posts (countdowns, reposts, ticket + entry guide).
+const eventDedupKey = (title) =>
+    String(title || "")
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/20\d{2}\s*[-—~至]\s*20\d{2}\s*学年|20\d{2}\s*年/g, "")
+        .replace(/招新|招募/g, "纳新")
+        .replace(/[^0-9a-z\u4e00-\u9fff]/g, "")
+        .replace(/(报名|通知|活动|启动|开启)+$/, "");
+const sameText = (a, b) => {
+    const x = eventDedupKey(a);
+    return Boolean(x) && x === eventDedupKey(b);
+};
+const findDuplicateEvent = async (db, payload) => {
+    const key = eventDedupKey(payload.title);
+    if (key.length < 4) return null;
+    const candidates = await db.all(
+        `
+      SELECT id, title, date, organizer, status
+      FROM events
+      WHERE (deleted_at IS NULL OR deleted_at = '')
+        AND link LIKE 'https://mp.weixin.qq.com/%'
+        AND created_at >= datetime('now', '-45 days')
+      ORDER BY id
+    `
+    );
+    const day = String(payload.date || "").slice(0, 10);
+    return (
+        candidates.find(
+            (event) =>
+                eventDedupKey(event.title) === key &&
+                (sameText(event.organizer, payload.organizer) ||
+                    (day && String(event.date || "").slice(0, 10) === day))
+        ) || null
+    );
+};
+
 const upsertActivityEvent = async (db, article, parsed) => {
     let images = [];
     try {
@@ -1205,6 +1242,12 @@ const upsertActivityEvent = async (db, article, parsed) => {
     `,
             [payload.link]
         );
+    }
+    if (!existing) {
+        // Link the article to the event already in review instead of queueing a copy.
+        const duplicate = await findDuplicateEvent(db, payload);
+        if (duplicate)
+            return { id: duplicate.id, created: false, status: duplicate.status || "pending" };
     }
 
     const fields = [
@@ -1938,6 +1981,7 @@ const stopWechatMpTokenHealthScheduler = () => {
 };
 
 module.exports = {
+    eventDedupKey,
     DEFAULT_SETTINGS,
     deleteIngestAccount,
     ensureWechatMpScheduledIngestSchema,

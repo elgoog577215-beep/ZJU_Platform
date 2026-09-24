@@ -30,7 +30,7 @@ const normalizeStudentSummary = (parsed = {}) => {
     const highlight = cleanLine(parsed.highlight, 60);
     const seen = new Set();
     const keyInfo = (Array.isArray(parsed.key_info) ? parsed.key_info : [])
-        .map((item) => ({ label: cleanLine(item?.label, 8), value: cleanLine(item?.value, 80) }))
+        .map((item) => ({ label: cleanLine(item?.label, 8), value: cleanLine(item?.value, 200) }))
         .filter((item) => {
             if (!KEY_LABELS.includes(item.label) || !item.value || seen.has(item.label))
                 return false;
@@ -71,10 +71,18 @@ const renderStudentSummary = (summary, { images = [], year = new Date().getFullY
     if (urls[0]) parts.push(image(urls[0]));
     if (summary?.highlight) parts.push(`<p><strong>${escapeHtml(summary.highlight)}</strong></p>`);
     if (summary?.key_info?.length) {
-        const items = summary.key_info.map(
-            (item) =>
-                `<li><strong>${escapeHtml(item.label)}</strong>：${escapeHtml(withWeekday(item.value, year))}</li>`
-        );
+        const items = summary.key_info.map((item) => {
+            // Several sessions or venues get one line each instead of a comma run-on.
+            const values = item.value
+                .split(/[；;]/)
+                .map((v) => v.trim())
+                .filter(Boolean);
+            const label = `<strong>${escapeHtml(item.label)}</strong>`;
+            if (values.length < 2)
+                return `<li>${label}：${escapeHtml(withWeekday(item.value, year))}</li>`;
+            const lines = values.map((v) => `<li>${escapeHtml(withWeekday(v, year))}</li>`);
+            return `<li>${label}：<ul>${lines.join("")}</ul></li>`;
+        });
         parts.push(`<ul>${items.join("")}</ul>`);
     }
     for (const section of summary?.sections || []) {

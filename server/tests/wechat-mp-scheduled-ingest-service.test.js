@@ -1287,3 +1287,54 @@ test("student summary events lead with the main image and keep other chosen imag
         await db.close();
     }
 });
+
+test("posts announcing the same happening share one review event", async () => {
+    const db = await createDb();
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        const screen = (id, parsed) =>
+            service.screenArticleActivity(
+                db,
+                { id, title: parsed.title, link: `https://mp.weixin.qq.com/s/post-${id}` },
+                { is_activity_candidate: true, activity_confidence: 0.9, ...parsed },
+                { governanceTrigger: async () => {} }
+            );
+        const first = await screen(1, { title: "星辰汇纳新", organizer: "浙江大学星辰汇" });
+        const countdown = await screen(2, { title: "星辰汇纳新报名", organizer: "浙江大学星辰汇" });
+        const repost = await screen(3, {
+            title: "2026年学业指导中心招新",
+            organizer: "学业指导中心",
+        });
+        const original = await screen(4, { title: "学业指导中心纳新", organizer: "学业指导中心" });
+        const ticket = await screen(5, {
+            title: "第四届校园音乐节",
+            organizer: "体艺部",
+            date: "2026-09-24T18:30",
+        });
+        const guide = await screen(6, {
+            title: "第四届校园音乐节",
+            organizer: "体艺部、人民日报",
+            date: "2026-09-24T19:00",
+        });
+        const otherClub = await screen(7, { title: "星辰汇纳新", organizer: "另一个社团" });
+        assert.equal(countdown.event_id, first.event_id);
+        assert.equal(original.event_id, repost.event_id);
+        assert.equal(guide.event_id, ticket.event_id);
+        assert.notEqual(otherClub.event_id, first.event_id);
+        assert.equal((await db.get("SELECT COUNT(*) AS n FROM events")).n, 4);
+        assert.equal(service.eventDedupKey("2026-2027学年 活动报名通知"), "");
+    } finally {
+        await db.close();
+    }
+});
