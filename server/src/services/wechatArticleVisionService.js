@@ -108,13 +108,9 @@ async function describeImage(db, article, image, run = callJson) {
         model: result.config?.model || result.modelStatus?.model || "qwen3.8-27b",
     };
 }
-function summarize(state) {
-    const entries = Object.values(state.images);
-    state.processed = entries.filter((x) => ["completed", "skipped"].includes(x.status)).length;
-    state.failed = entries.filter((x) => x.status === "failed").length;
-    state.status =
-        state.processed === state.total ? "completed" : state.failed ? "retrying" : "processing";
-    const choices = entries
+// Relevant posters/photos, best first; QR codes, logos and extreme strips are excluded.
+function imageChoices(state) {
+    return Object.values(state?.images || {})
         .filter(
             (x) =>
                 x.status === "completed" &&
@@ -124,6 +120,14 @@ function summarize(state) {
                 x.width / x.height <= 2.8
         )
         .sort((a, b) => b.score - a.score);
+}
+function summarize(state) {
+    const entries = Object.values(state.images);
+    state.processed = entries.filter((x) => ["completed", "skipped"].includes(x.status)).length;
+    state.failed = entries.filter((x) => x.status === "failed").length;
+    state.status =
+        state.processed === state.total ? "completed" : state.failed ? "retrying" : "processing";
+    const choices = imageChoices(state);
     state.selected_image = choices[0]?.url || "";
     state.selection_reason = choices[0]?.reason || "";
     state.uncertain = entries.some((x) => x.uncertain || x.animated);
@@ -243,6 +247,7 @@ function publicVision(state) {
     };
 }
 module.exports = {
+    imageChoices,
     enrichArticle,
     readVision,
     publicVision,
