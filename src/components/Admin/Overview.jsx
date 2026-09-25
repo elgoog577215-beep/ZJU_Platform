@@ -12,8 +12,27 @@ import {
   Inbox,
   MessageSquare,
   ArrowRight,
+  Activity,
+  Users,
+  UploadCloud,
+  MousePointerClick,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import api from "../../services/api";
 import { useSettings } from "../../context/SettingsContext";
@@ -37,6 +56,12 @@ const DEFAULT_STATS = {
     hottestEvents: [],
   },
   system: { uptime: 0, nodeVersion: "", platform: "" },
+};
+
+const DEFAULT_SITE_METRICS = {
+  summary: {},
+  growth: {},
+  trend: [],
 };
 
 const toneMeta = {
@@ -78,6 +103,16 @@ const toneMeta = {
 };
 
 const getTone = (tone = "indigo") => toneMeta[tone] || toneMeta.indigo;
+
+const CHART_COLORS = {
+  views: "#818cf8",
+  visitors: "#2dd4bf",
+  eventViews: "#38bdf8",
+  registrations: "#34d399",
+  uploads: "#fbbf24",
+};
+
+const ASSET_PIE_COLORS = ["#818cf8", "#38bdf8", "#fb7185", "#2dd4bf", "#34d399"];
 
 const StatCard = ({
   title,
@@ -200,7 +235,7 @@ const QuickAction = ({
       }`}
     >
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
+        className={`flex h-10 w-10 items-center justify-center rounded-md ${
           isDayMode ? meta.icon.day : meta.icon.dark
         }`}
       >
@@ -305,17 +340,388 @@ const SystemRow = ({ label, value, isDayMode, icon: Icon }) => (
   </div>
 );
 
+const GrowthBadge = ({ change, isDayMode }) => {
+  if (change === undefined || change === null) return null;
+  const positive = change >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+        positive
+          ? isDayMode
+            ? "bg-emerald-50 text-emerald-700"
+            : "bg-emerald-500/10 text-emerald-300"
+          : isDayMode
+            ? "bg-rose-50 text-rose-600"
+            : "bg-rose-500/10 text-rose-300"
+      }`}
+    >
+      {positive ? "↑" : "↓"} {Math.abs(change)}%
+    </span>
+  );
+};
+
+const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange }) => {
+  const axisColor = isDayMode ? "#64748b" : "#94a3b8";
+  const gridColor = isDayMode ? "rgba(100, 116, 139, 0.18)" : "rgba(255, 255, 255, 0.08)";
+  const tooltipStyle = {
+    backgroundColor: isDayMode ? "#ffffff" : "rgba(15, 23, 42, 0.96)",
+    border: `1px solid ${isDayMode ? "rgba(100, 116, 139, 0.25)" : "rgba(255, 255, 255, 0.12)"}`,
+    borderRadius: "10px",
+    color: isDayMode ? "#0f172a" : "#e2e8f0",
+    fontSize: "12px",
+  };
+
+  const data = range === "7d" ? trend.slice(-7) : trend;
+
+  const series = [
+    { key: "views", label: "站点访问", color: CHART_COLORS.views },
+    { key: "visitors", label: "独立访客", color: CHART_COLORS.visitors },
+    { key: "eventViews", label: "活动浏览", color: CHART_COLORS.eventViews },
+    { key: "registrations", label: "活动报名", color: CHART_COLORS.registrations },
+  ];
+
+  const totalInRange = (key) =>
+    data.reduce((sum, item) => sum + Number(item?.[key] || 0), 0);
+
+  return (
+    <AdminPanel
+      title="访问与报名趋势"
+      description="站点流量、活动浏览与报名的按天走势，用于判断内容节奏与活动效果。"
+      action={
+        <div
+          className={`flex overflow-hidden rounded-lg border text-xs ${
+            isDayMode ? "border-slate-200" : "border-white/15"
+          }`}
+        >
+          {[
+            { key: "7d", label: "近 7 天" },
+            { key: "30d", label: "近 30 天" },
+          ].map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => onRangeChange(option.key)}
+              className={`px-3 py-1.5 transition-colors ${
+                range === option.key
+                  ? isDayMode
+                    ? "bg-slate-900 text-white"
+                    : "bg-white text-slate-950"
+                  : isDayMode
+                    ? "text-slate-500 hover:bg-slate-50"
+                    : "text-gray-400 hover:bg-white/5"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      }
+    >
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          {
+            label: `今日访问`,
+            value: summary.todayViews,
+            icon: MousePointerClick,
+            tone: "indigo",
+          },
+          {
+            label: "今日独立访客",
+            value: summary.todayVisitors,
+            icon: Users,
+            tone: "sky",
+          },
+          {
+            label: "今日内容上传",
+            value: summary.todayUploads,
+            icon: UploadCloud,
+            tone: "amber",
+          },
+          {
+            label: "累计独立访客",
+            value: summary.totalVisitors,
+            icon: Activity,
+            tone: "emerald",
+          },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className={`rounded-xl border p-3 ${
+              isDayMode
+                ? "border-slate-200/70 bg-white/[0.6]"
+                : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span
+                className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              >
+                {item.label}
+              </span>
+              <item.icon
+                size={14}
+                className={isDayMode ? "text-slate-400" : "text-gray-500"}
+              />
+            </div>
+            <div
+              className={`mt-1.5 text-xl font-bold tabular-nums ${
+                isDayMode ? "text-slate-950" : "text-white"
+              }`}
+            >
+              {new Intl.NumberFormat("zh-CN").format(Number(item.value || 0))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+        {series.map((item) => (
+          <span
+            key={item.key}
+            className={`flex items-center gap-1.5 ${
+              isDayMode ? "text-slate-600" : "text-gray-300"
+            }`}
+          >
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: item.color }}
+            />
+            {item.label}
+            <span className="tabular-nums opacity-70">
+              {new Intl.NumberFormat("zh-CN").format(totalInRange(item.key))}
+            </span>
+          </span>
+        ))}
+        <span className={isDayMode ? "text-slate-400" : "text-gray-500"}>
+          访问环比 <GrowthBadge change={growth?.viewsChange} isDayMode={isDayMode} />
+        </span>
+      </div>
+
+      <div className="h-72 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="gradientViews" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={CHART_COLORS.views} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={CHART_COLORS.views} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fill: axisColor, fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: gridColor }}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fill: axisColor, fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={44}
+              allowDecimals={false}
+            />
+            <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: axisColor }} />
+            <Area
+              type="monotone"
+              dataKey="views"
+              name="站点访问"
+              stroke={CHART_COLORS.views}
+              strokeWidth={2}
+              fill="url(#gradientViews)"
+            />
+            <Area
+              type="monotone"
+              dataKey="visitors"
+              name="独立访客"
+              stroke={CHART_COLORS.visitors}
+              strokeWidth={1.5}
+              fill="transparent"
+            />
+            <Area
+              type="monotone"
+              dataKey="eventViews"
+              name="活动浏览"
+              stroke={CHART_COLORS.eventViews}
+              strokeWidth={1.5}
+              fill="transparent"
+            />
+            <Area
+              type="monotone"
+              dataKey="registrations"
+              name="活动报名"
+              stroke={CHART_COLORS.registrations}
+              strokeWidth={1.5}
+              fill="transparent"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </AdminPanel>
+  );
+};
+
+const AssetCompositionPanel = ({ stats, isDayMode, formatNumber }) => {
+  const data = [
+    { name: "文章", key: "articles", value: stats.counts?.articles || 0 },
+    { name: "图片", key: "photos", value: stats.counts?.photos || 0 },
+    { name: "视频", key: "videos", value: stats.counts?.videos || 0 },
+    { name: "音频", key: "music", value: stats.counts?.music || 0 },
+    { name: "活动", key: "events", value: stats.counts?.events || 0 },
+  ].filter((item) => item.value > 0);
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+
+  return (
+    <AdminPanel
+      title="内容构成"
+      description="五类内容资产的占比分布，帮助判断内容结构是否均衡。"
+    >
+      {total > 0 ? (
+        <>
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius="58%"
+                  outerRadius="85%"
+                  paddingAngle={3}
+                  strokeWidth={0}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={entry.key}
+                      fill={ASSET_PIE_COLORS[index % ASSET_PIE_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value, name) => [
+                    `${formatNumber(value)} 项（${Math.round((value / total) * 100)}%）`,
+                    name,
+                  ]}
+                  contentStyle={{
+                    backgroundColor: isDayMode ? "#ffffff" : "rgba(15, 23, 42, 0.96)",
+                    border: `1px solid ${isDayMode ? "rgba(100, 116, 139, 0.25)" : "rgba(255, 255, 255, 0.12)"}`,
+                    borderRadius: "10px",
+                    color: isDayMode ? "#0f172a" : "#e2e8f0",
+                    fontSize: "12px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+            {data.map((entry, index) => (
+              <span
+                key={entry.key}
+                className={`flex items-center gap-1.5 ${
+                  isDayMode ? "text-slate-600" : "text-gray-300"
+                }`}
+              >
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor: ASSET_PIE_COLORS[index % ASSET_PIE_COLORS.length],
+                  }}
+                />
+                {entry.name} {formatNumber(entry.value)}
+              </span>
+            ))}
+          </div>
+        </>
+      ) : (
+        <AdminInlineNote>暂无内容数据，发布内容后会在这里看到构成分布。</AdminInlineNote>
+      )}
+    </AdminPanel>
+  );
+};
+
+const HotEventsChart = ({ hotEvents, isDayMode, formatNumber }) => {
+  const axisColor = isDayMode ? "#64748b" : "#94a3b8";
+  const gridColor = isDayMode ? "rgba(100, 116, 139, 0.18)" : "rgba(255, 255, 255, 0.08)";
+
+  const data = hotEvents.map((event) => ({
+    name: event.title?.length > 12 ? `${event.title.slice(0, 12)}…` : event.title || "未命名",
+    fullName: event.title || "未命名",
+    访问: Number(event.views || 0),
+    报名: Number(event.registrations || 0),
+  }));
+
+  if (data.length === 0) {
+    return (
+      <AdminInlineNote>暂无活动热度数据，可先进入活动管理检查活动信息。</AdminInlineNote>
+    );
+  }
+
+  return (
+    <div className="h-64 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 4, right: 16, bottom: 0, left: 8 }}
+          barGap={2}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+          <XAxis
+            type="number"
+            tick={{ fill: axisColor, fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            allowDecimals={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tick={{ fill: axisColor, fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: gridColor }}
+            width={110}
+          />
+          <Tooltip
+            formatter={(value, key, item) => {
+              const payload = item?.payload;
+              return [
+                `${formatNumber(value)}${payload?.fullName ? ` — ${payload.fullName}` : ""}`,
+                key,
+              ];
+            }}
+            contentStyle={{
+              backgroundColor: isDayMode ? "#ffffff" : "rgba(15, 23, 42, 0.96)",
+              border: `1px solid ${isDayMode ? "rgba(100, 116, 139, 0.25)" : "rgba(255, 255, 255, 0.12)"}`,
+              borderRadius: "10px",
+              color: isDayMode ? "#0f172a" : "#e2e8f0",
+              fontSize: "12px",
+            }}
+          />
+          <Legend wrapperStyle={{ fontSize: 12, color: axisColor }} />
+          <Bar dataKey="访问" fill={CHART_COLORS.eventViews} radius={[0, 4, 4, 0]} barSize={10} />
+          <Bar dataKey="报名" fill={CHART_COLORS.registrations} radius={[0, 4, 4, 0]} barSize={10} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
 const Overview = ({ onChangeTab }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const [stats, setStats] = useState(DEFAULT_STATS);
+  const [siteMetrics, setSiteMetrics] = useState(DEFAULT_SITE_METRICS);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState("30d");
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await api.get("/stats");
-      const data = response.data || {};
+      const [statsResponse, metricsResponse] = await Promise.all([
+        api.get("/stats"),
+        api.get("/site-metrics?days=30").catch(() => null),
+      ]);
+      const data = statsResponse.data || {};
       setStats({
         ...DEFAULT_STATS,
         ...data,
@@ -327,6 +733,15 @@ const Overview = ({ onChangeTab }) => {
         },
         system: { ...DEFAULT_STATS.system, ...(data.system || {}) },
       });
+      if (metricsResponse?.data) {
+        setSiteMetrics({
+          summary: metricsResponse.data.summary || {},
+          growth: metricsResponse.data.growth || {},
+          trend: Array.isArray(metricsResponse.data.trend)
+            ? metricsResponse.data.trend
+            : [],
+        });
+      }
     } catch (error) {
       const errorMessage =
         error.response?.status === 403
@@ -419,7 +834,6 @@ const Overview = ({ onChangeTab }) => {
     [stats.counts],
   );
   const hotEvents = stats.eventAnalytics?.hottestEvents || [];
-  const topEvent = hotEvents[0];
 
   if (loading) {
     return (
@@ -432,7 +846,7 @@ const Overview = ({ onChangeTab }) => {
   return (
     <AdminPageShell
       title={t("admin.tabs.overview", "总览")}
-      description="后台首页按真实运营顺序组织：先处理风险与待办，再进入内容、活动和社区模块。"
+      description="后台首页按真实运营顺序组织：先看趋势，再处理风险与待办，最后进入内容、活动和社区模块。"
       actions={
         <>
           <AdminButton tone="subtle" onClick={fetchStats}>
@@ -571,6 +985,15 @@ const Overview = ({ onChangeTab }) => {
         </div>
       </AdminPanel>
 
+      <TrendPanel
+        trend={siteMetrics.trend}
+        summary={siteMetrics.summary}
+        growth={siteMetrics.growth}
+        isDayMode={isDayMode}
+        range={range}
+        onRangeChange={setRange}
+      />
+
       <AdminPanel
         title="内容资产"
         description="文章、图片、视频、音频和活动都放在这里看总量与待审状态。"
@@ -592,7 +1015,13 @@ const Overview = ({ onChangeTab }) => {
         </div>
       </AdminPanel>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.5fr)]">
+        <AssetCompositionPanel
+          stats={stats}
+          isDayMode={isDayMode}
+          formatNumber={formatNumber}
+        />
+
         <AdminPanel
           title="活动运营"
           description="用访问、报名和热门活动判断接下来要推什么。"
@@ -638,60 +1067,24 @@ const Overview = ({ onChangeTab }) => {
               isDayMode ? "border-slate-200/70" : "border-white/10"
             }`}
           >
-            {topEvent ? (
-              <div className="space-y-3">
-                <div
-                  className={`text-sm font-semibold ${
-                    isDayMode ? "text-slate-950" : "text-white"
-                  }`}
-                >
-                  当前最热活动
-                </div>
-                {hotEvents.slice(0, 3).map((event) => (
-                  <button
-                    key={event.id}
-                    type="button"
-                    onClick={() => onChangeTab("events")}
-                    className={`flex w-full flex-col gap-2 rounded-[6px] border px-3 py-3 text-left transition-colors md:flex-row md:items-center md:justify-between ${
-                      isDayMode
-                        ? "border-slate-200/70 bg-slate-50 hover:bg-white"
-                        : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div
-                        className={`truncate text-sm font-semibold ${
-                          isDayMode ? "text-slate-950" : "text-white"
-                        }`}
-                      >
-                        {event.title}
-                      </div>
-                      <div
-                        className={`mt-1 text-xs ${
-                          isDayMode ? "text-slate-500" : "text-gray-500"
-                        }`}
-                      >
-                        {event.date || "未设置活动时间"}
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 gap-4 text-xs">
-                      <span className={isDayMode ? "text-indigo-600" : "text-indigo-300"}>
-                        {formatNumber(event.views)} 访问
-                      </span>
-                      <span className={isDayMode ? "text-emerald-700" : "text-emerald-300"}>
-                        {formatNumber(event.registrations)} 报名
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <AdminInlineNote>暂无活动热度数据，可先进入活动管理检查活动信息。</AdminInlineNote>
-            )}
+            <div
+              className={`mb-3 text-sm font-semibold ${
+                isDayMode ? "text-slate-950" : "text-white"
+              }`}
+            >
+              热门活动 Top 5
+            </div>
+            <HotEventsChart
+              hotEvents={hotEvents}
+              isDayMode={isDayMode}
+              formatNumber={formatNumber}
+            />
           </div>
         </AdminPanel>
+      </div>
 
-        <AdminPanel title="系统状态" description="只保留排查后台时真正需要的信息。">
+      <AdminPanel title="系统状态" description="只保留排查后台时真正需要的信息。">
+        <div className="grid grid-cols-1 gap-x-8 md:grid-cols-3">
           <SystemRow
             label="Node 版本"
             value={stats.system.nodeVersion}
@@ -708,8 +1101,8 @@ const Overview = ({ onChangeTab }) => {
             icon={Clock}
             isDayMode={isDayMode}
           />
-        </AdminPanel>
-      </div>
+        </div>
+      </AdminPanel>
     </AdminPageShell>
   );
 };

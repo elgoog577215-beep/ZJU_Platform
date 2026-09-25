@@ -4,6 +4,10 @@ import {
   DEFAULT_BACKGROUND_SCENE,
   isBackgroundSceneId,
 } from '../constants/backgroundScenes';
+import {
+  THEME_APPEARANCE_DEFAULTS,
+  applyThemeAppearance,
+} from '../constants/themeAppearance';
 
 const DEFAULT_SETTINGS = {
   pagination_enabled: 'false',
@@ -48,7 +52,7 @@ const writeStorage = (key, value) => {
 };
 
 const normalizeSettings = (nextSettings = {}) => {
-  const merged = { ...DEFAULT_SETTINGS, ...nextSettings };
+  const merged = { ...THEME_APPEARANCE_DEFAULTS, ...DEFAULT_SETTINGS, ...nextSettings };
 
   return {
     ...merged,
@@ -178,6 +182,11 @@ export const SettingsProvider = ({ children }) => {
     document.documentElement.style.colorScheme = uiMode === 'day' ? 'light' : 'dark';
     document.body.dataset.theme = uiMode;
   }, [uiMode]);
+
+  // 外观个性化：把主题色 / 通透度 / 毛玻璃 / 背景色注入为 CSS 变量，全站实时生效
+  useEffect(() => {
+    applyThemeAppearance({ uiMode, settings });
+  }, [uiMode, settings]);
 
   const value = useMemo(
     () => ({

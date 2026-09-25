@@ -1,8 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Key, Globe, Sun, Save, FileText } from "lucide-react";
+import { Key, Globe, Save, FileText, Palette } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
+import {
+  ACCENT_PRESETS,
+  THEME_APPEARANCE_DEFAULTS,
+  THEME_APPEARANCE_KEYS,
+  applyThemeAppearance,
+} from "../../constants/themeAppearance";
 import {
   AdminButton,
   AdminInlineNote,
@@ -13,7 +19,7 @@ import {
 } from "./AdminUI";
 
 const SettingsManager = () => {
-  const { updateSetting: updateGlobalSetting } = useSettings();
+  const { updateSetting: updateGlobalSetting, uiMode: siteUiMode } = useSettings();
   const { isDayMode } = useAdminTheme();
   const [settings, setSettings] = useState({});
   const [initialSettings, setInitialSettings] = useState({});
@@ -39,7 +45,14 @@ const SettingsManager = () => {
   }, []);
 
   const handleChange = (key, value) => {
-    setSettings((previous) => ({ ...previous, [key]: value }));
+    setSettings((previous) => {
+      const next = { ...previous, [key]: value };
+      // 外观项拖动/选择时即时预览全站效果，落库仍走“保存修改”
+      if (THEME_APPEARANCE_KEYS.includes(key)) {
+        applyThemeAppearance({ uiMode: siteUiMode, settings: next });
+      }
+      return next;
+    });
   };
 
   const handleSave = async (key, value) => {
@@ -62,6 +75,17 @@ const SettingsManager = () => {
     }
     return result;
   }, [initialSettings, settings]);
+
+  // 外观项展示值：后端未配置时回落到默认值
+  const appearanceValues = useMemo(() => {
+    const result = {};
+    for (const key of THEME_APPEARANCE_KEYS) {
+      const value = settings[key];
+      result[key] =
+        value === undefined || value === "" ? THEME_APPEARANCE_DEFAULTS[key] : value;
+    }
+    return result;
+  }, [settings]);
 
   const fieldClassName = `rect-surface-soft border p-3 ${isDayMode ? "border-slate-200/70 bg-white/[0.7]" : "border-white/10 bg-white/[0.03]"}`;
   const labelClassName = `mb-2 block text-sm font-medium ${isDayMode ? "text-slate-600" : "text-gray-400"}`;
@@ -141,10 +165,132 @@ const SettingsManager = () => {
 
       <AdminPanel
         title="外观设置"
-        description="背景参数会实时影响站点公共视觉。建议改动后回前台检查实际效果。"
-        action={<Sun size={18} className="text-indigo-300" />}
+        description="主题色、通透度与背景参数会实时影响站点公共视觉，拖动即可预览，确认后点击保存。"
+        action={<Palette size={18} className="text-indigo-300" />}
       >
         <div className={sectionGridClassName}>
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>主题强调色</label>
+            <div className="flex flex-wrap items-center gap-2">
+              {ACCENT_PRESETS.map((preset) => {
+                const active =
+                  String(appearanceValues.theme_accent || "").toLowerCase() ===
+                  preset.value.toLowerCase();
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    title={preset.name}
+                    onClick={() => handleChange("theme_accent", preset.value)}
+                    className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
+                      active
+                        ? isDayMode
+                          ? "border-slate-900"
+                          : "border-white"
+                        : "border-transparent"
+                    }`}
+                    style={{ backgroundColor: preset.value }}
+                  />
+                );
+              })}
+              <input
+                type="color"
+                value={appearanceValues.theme_accent || "#818cf8"}
+                onChange={(event) => handleChange("theme_accent", event.target.value)}
+                className="h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0"
+                title="自定义颜色"
+              />
+              <div className="ml-auto">{fieldAction("theme_accent")}</div>
+            </div>
+            <p className={helpClassName}>
+              影响全站按钮、链接、选中态等强调色，当前值 {appearanceValues.theme_accent || "跟随主题默认"}。
+            </p>
+          </div>
+
+          <div className={fieldClassName}>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-400">
+                  卡片通透度 ({appearanceValues.theme_card_opacity}%)
+                </label>
+                <input
+                  type="range"
+                  min="20"
+                  max="100"
+                  step="5"
+                  value={appearanceValues.theme_card_opacity}
+                  onChange={(event) =>
+                    handleChange("theme_card_opacity", event.target.value)
+                  }
+                  className="mt-3 w-full"
+                />
+                <p className={helpClassName}>
+                  数值越低卡片越通透，可透出背景与毛玻璃效果；100% 为主题默认。
+                </p>
+              </div>
+              {fieldAction("theme_card_opacity")}
+            </div>
+          </div>
+
+          <div className={fieldClassName}>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-400">
+                  毛玻璃强度 ({appearanceValues.theme_glass_blur}px)
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="40"
+                  step="2"
+                  value={appearanceValues.theme_glass_blur}
+                  onChange={(event) =>
+                    handleChange("theme_glass_blur", event.target.value)
+                  }
+                  className="mt-3 w-full"
+                />
+                <p className={helpClassName}>
+                  控制导航、弹层等玻璃背板的模糊程度，0 为关闭毛玻璃。
+                </p>
+              </div>
+              {fieldAction("theme_glass_blur")}
+            </div>
+          </div>
+
+          <div className={fieldClassName}>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-400">
+                  暗色模式背景色
+                </label>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={appearanceValues.theme_bg_color || "#020617"}
+                    onChange={(event) => handleChange("theme_bg_color", event.target.value)}
+                    className="h-9 w-12 cursor-pointer rounded-md border-0 bg-transparent p-0"
+                    title="选择背景色"
+                  />
+                  <input
+                    type="text"
+                    value={appearanceValues.theme_bg_color || ""}
+                    placeholder="留空使用默认 (#020617)"
+                    onChange={(event) => handleChange("theme_bg_color", event.target.value)}
+                    className="theme-admin-input flex-1 rounded-xl p-2 font-mono text-sm"
+                  />
+                  <AdminButton
+                    tone="subtle"
+                    onClick={() => handleChange("theme_bg_color", "")}
+                  >
+                    重置
+                  </AdminButton>
+                </div>
+                <p className={helpClassName}>仅对暗色模式生效，亮色模式始终使用白色背景。</p>
+              </div>
+              {fieldAction("theme_bg_color")}
+            </div>
+          </div>
+
           <div className={fieldClassName}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="flex-1">
@@ -219,6 +365,11 @@ const SettingsManager = () => {
               {fieldAction("background_vignette")}
             </div>
           </div>
+        </div>
+        <div className="mt-4">
+          <AdminInlineNote>
+            外观项支持拖动实时预览；点击“保存修改”后对所有访客生效。刷新页面即可看到全站应用效果。
+          </AdminInlineNote>
         </div>
       </AdminPanel>
 
