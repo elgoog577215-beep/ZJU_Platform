@@ -80,7 +80,7 @@ const MobileNavbar = () => {
             path: "/events",
             icon: Calendar,
             label: t("nav.mobile_events"),
-            ariaLabel: t("nav.events"),
+            ariaLabel: t("nav.mobile_events"),
         },
         {
             key: "articles",
