@@ -1,435 +1,1252 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { resourcePermission } = require("../utils/userPermissions");
 
 // Middleware
-const { upload, avatarUpload } = require('../middleware/upload');
+const { upload, avatarUpload } = require("../middleware/upload");
 
 // Controllers
-const resourceController = require('../controllers/resourceController');
-const favoriteController = require('../controllers/favoriteController');
-const settingsController = require('../controllers/settingsController');
-const systemController = require('../controllers/systemController');
-const fsController = require('../controllers/fsController');
-const eventController = require('../controllers/eventController');
-const eventAssistantController = require('../controllers/eventAssistantController');
-const aiAssistantController = require('../controllers/aiAssistantController');
-const aiModelConfigController = require('../controllers/aiModelConfigController');
-const userController = require('../controllers/userController');
-const profileController = require('../controllers/profileController');
-const profileCardController = require('../controllers/profileCardController');
-const messageController = require('../controllers/messageController');
-const tagController = require('../controllers/tagController');
-const notificationController = require('../controllers/notificationController');
-const commentController = require('../controllers/commentController');
-const communityController = require('../controllers/communityController');
-const cliController = require('../controllers/cliController');
-const newsController = require('../controllers/newsController');
-const hackathonController = require('../controllers/hackathonController');
-const competitionController = require('../controllers/competitionController');
-const futureLearningController = require('../controllers/futureLearningController');
-const wechatParseController = require('../controllers/wechatParseController');
-const wechatMpAdminController = require('../controllers/wechatMpAdminController');
-const ecosystemPartnerController = require('../controllers/ecosystemPartnerController');
-const eventAttributionMigrationController = require('../controllers/eventAttributionMigrationController');
-const mediaCategoryController = require('../controllers/mediaCategoryController');
-const projectCardController = require('../controllers/projectCardController');
-const { logger } = require('../utils/logger');
-const { verifyNativeUploadToken } = require('../services/nativeUploadSessionService');
+const resourceController = require("../controllers/resourceController");
+const eventImportController = require("../controllers/eventImportController");
+const favoriteController = require("../controllers/favoriteController");
+const settingsController = require("../controllers/settingsController");
+const systemController = require("../controllers/systemController");
+const adminAccessController = require("../controllers/adminAccessController");
+const fsController = require("../controllers/fsController");
+const eventController = require("../controllers/eventController");
+const eventAssistantController = require("../controllers/eventAssistantController");
+const aiAssistantController = require("../controllers/aiAssistantController");
+const aiModelConfigController = require("../controllers/aiModelConfigController");
+const userController = require("../controllers/userController");
+const navigationController = require("../controllers/navigationController");
+const profileController = require("../controllers/profileController");
+const profileCardController = require("../controllers/profileCardController");
+const messageController = require("../controllers/messageController");
+const tagController = require("../controllers/tagController");
+const notificationController = require("../controllers/notificationController");
+const commentController = require("../controllers/commentController");
+const communityController = require("../controllers/communityController");
+const cliController = require("../controllers/cliController");
+const newsController = require("../controllers/newsController");
+const hackathonController = require("../controllers/hackathonController");
+const competitionController = require("../controllers/competitionController");
+const futureLearningController = require("../controllers/futureLearningController");
+const wechatParseController = require("../controllers/wechatParseController");
+const wechatMpAdminController = require("../controllers/wechatMpAdminController");
+const wechatWereadAdminController = require("../controllers/wechatWereadAdminController");
+const wechatReadRssAdminController = require("../controllers/wechatReadRssAdminController");
+const ecosystemPartnerController = require("../controllers/ecosystemPartnerController");
+const eventAttributionMigrationController = require("../controllers/eventAttributionMigrationController");
+const mediaCategoryController = require("../controllers/mediaCategoryController");
+const projectCardController = require("../controllers/projectCardController");
+const { logger } = require("../utils/logger");
+const { verifyNativeUploadToken } = require("../services/nativeUploadSessionService");
+const {
+    normalizeSalonEventPayload,
+    normalizeSalonEventQuery,
+} = require("../utils/salonEventContract");
 
-const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
-const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation, resourceValidation } = require('../middleware/validate');
-const authController = require('../controllers/authController');
+const {
+    authenticateToken,
+    isAdmin,
+    isScopedAdmin,
+    requireAdminPermission,
+    requireAnyAdminPermission,
+    canUpdateSetting,
+    optionalAuth,
+} = require("../middleware/auth");
+const {
+    validate,
+    registerValidation,
+    loginValidation,
+    changePasswordValidation,
+    settingsValidation,
+    resourceValidation,
+} = require("../middleware/validate");
+const authController = require("../controllers/authController");
 // FIX: BUG-04 — Import bruteForceProtection middleware
-const { bruteForceProtection, customRateLimit } = require('../middleware/security');
+const { bruteForceProtection, customRateLimit } = require("../middleware/security");
 
 // Note: Rate limiting is configured globally in server/index.js
 // No need for additional rate limiters here to avoid double-counting
 const communityPostCreateLimiter = customRateLimit({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 12,
-  keyGenerator: (req) => req.user?.id ? `community-post:${req.user.id}` : `community-post:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: '发帖过于频繁，请稍后再试',
-      retryAfter: 10 * 60,
-    });
-  },
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 12,
+    keyGenerator: (req) =>
+        req.user?.id ? `community-post:${req.user.id}` : `community-post:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "发帖过于频繁，请稍后再试",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const communityCommentCreateLimiter = customRateLimit({
-  windowMs: 5 * 60 * 1000,
-  maxRequests: 30,
-  keyGenerator: (req) => req.user?.id ? `community-comment:${req.user.id}` : `community-comment:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: '回复过于频繁，请稍后再试',
-      retryAfter: 5 * 60,
-    });
-  },
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 30,
+    keyGenerator: (req) =>
+        req.user?.id ? `community-comment:${req.user.id}` : `community-comment:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "回复过于频繁，请稍后再试",
+            retryAfter: 5 * 60,
+        });
+    },
+});
+
+const salonEventCreateLimiter = customRateLimit({
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 12,
+    keyGenerator: (req) => (req.user?.id ? `salon-event:${req.user.id}` : `salon-event:${req.ip}`),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "沙龙活动发布过于频繁，请稍后再试",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const projectCreateLimiter = customRateLimit({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 10,
-  keyGenerator: (req) => req.user?.id ? `project-create:${req.user.id}` : `project-create:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: '发布过于频繁，请稍后再试',
-      retryAfter: 10 * 60,
-    });
-  },
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 10,
+    keyGenerator: (req) =>
+        req.user?.id ? `project-create:${req.user.id}` : `project-create:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "发布过于频繁，请稍后再试",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const wechatMiniappBindLimiter = customRateLimit({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 20,
-  keyGenerator: (req) => req.user?.id ? `wechat-miniapp-bind:${req.user.id}` : `wechat-miniapp-bind:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: 'Too many WeChat binding attempts, please try again later.',
-      errorCode: 'WECHAT_BIND_RATE_LIMITED',
-      retryAfter: 10 * 60,
-    });
-  },
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 20,
+    keyGenerator: (req) =>
+        req.user?.id ? `wechat-miniapp-bind:${req.user.id}` : `wechat-miniapp-bind:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many WeChat binding attempts, please try again later.",
+            errorCode: "WECHAT_BIND_RATE_LIMITED",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const nativeUploadSessionLimiter = customRateLimit({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 30,
-  keyGenerator: (req) => req.user?.id ? `native-upload-session:${req.user.id}` : `native-upload-session:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: 'Too many native upload attempts, please try again later.',
-      errorCode: 'NATIVE_UPLOAD_RATE_LIMITED',
-      retryAfter: 10 * 60,
-    });
-  },
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 30,
+    keyGenerator: (req) =>
+        req.user?.id ? `native-upload-session:${req.user.id}` : `native-upload-session:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many native upload attempts, please try again later.",
+            errorCode: "NATIVE_UPLOAD_RATE_LIMITED",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const nativePosterSessionLimiter = customRateLimit({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 20,
-  keyGenerator: (req) => `native-poster-session:${req.ip}`,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: 'Too many native poster save attempts, please try again later.',
-      errorCode: 'NATIVE_POSTER_RATE_LIMITED',
-      retryAfter: 10 * 60,
-    });
-  },
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 20,
+    keyGenerator: (req) => `native-poster-session:${req.ip}`,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many native poster save attempts, please try again later.",
+            errorCode: "NATIVE_POSTER_RATE_LIMITED",
+            retryAfter: 10 * 60,
+        });
+    },
 });
 
 const authenticateNativeUploadSession = (req, res, next) => {
-  try {
-    req.nativeUploadSession = verifyNativeUploadToken(req.headers['x-native-upload-token']);
-    next();
-  } catch (error) {
-    res.status(error.statusCode || 401).json({
-      error: error.message || 'Invalid native upload token',
-      errorCode: error.errorCode || 'NATIVE_UPLOAD_TOKEN_INVALID',
-    });
-  }
+    try {
+        req.nativeUploadSession = verifyNativeUploadToken(req.headers["x-native-upload-token"]);
+        next();
+    } catch (error) {
+        res.status(error.statusCode || 401).json({
+            error: error.message || "Invalid native upload token",
+            errorCode: error.errorCode || "NATIVE_UPLOAD_TOKEN_INVALID",
+        });
+    }
 };
 
 const importCommunityDocumentUpload = (req, res, next) => {
-  upload.single('document')(req, res, (error) => {
-    if (error) {
-      error.statusCode = 400;
-      return next(error);
-    }
-    return next();
-  });
+    upload.single("document")(req, res, (error) => {
+        if (error) {
+            error.statusCode = 400;
+            return next(error);
+        }
+        return next();
+    });
 };
 
 const cliDocumentUpload = (req, res, next) => {
-  upload.single('file')(req, res, (error) => {
-    if (error) {
-      error.statusCode = 400;
-      return next(error);
-    }
-    return next();
-  });
+    upload.single("file")(req, res, (error) => {
+        if (error) {
+            error.statusCode = 400;
+            return next(error);
+        }
+        return next();
+    });
 };
 
 // Auth Routes
-router.post('/auth/register', validate(registerValidation), authController.register);
+router.post("/auth/register", validate(registerValidation), authController.register);
 // FIX: BUG-04 — Mount bruteForceProtection on login routes
-router.post('/auth/login', bruteForceProtection, validate(loginValidation), authController.login);
-router.post('/auth/admin-login', bruteForceProtection, authController.adminLogin);
-router.post('/auth/wechat-miniapp/login', bruteForceProtection, authController.wechatMiniappLogin);
-router.get('/auth/wechat-miniapp/status', authenticateToken, authController.getWechatMiniappStatus);
-router.post('/auth/wechat-miniapp/bind-ticket', authenticateToken, wechatMiniappBindLimiter, authController.createWechatMiniappBindTicket);
-router.post('/auth/wechat-miniapp/bind', wechatMiniappBindLimiter, authController.wechatMiniappBind);
-router.get('/auth/me', authenticateToken, authController.me);
-router.post('/auth/change-password', authenticateToken, validate(changePasswordValidation), authController.changePassword);
-router.put('/auth/profile', authenticateToken, (req, res) => {
+router.post("/auth/login", bruteForceProtection, validate(loginValidation), authController.login);
+router.post("/auth/admin-login", bruteForceProtection, authController.adminLogin);
+router.post("/auth/wechat-miniapp/login", bruteForceProtection, authController.wechatMiniappLogin);
+router.get("/auth/wechat-miniapp/status", authenticateToken, authController.getWechatMiniappStatus);
+router.post(
+    "/auth/wechat-miniapp/bind-ticket",
+    authenticateToken,
+    wechatMiniappBindLimiter,
+    authController.createWechatMiniappBindTicket
+);
+router.post(
+    "/auth/wechat-miniapp/bind",
+    wechatMiniappBindLimiter,
+    authController.wechatMiniappBind
+);
+router.get("/auth/me", authenticateToken, authController.me);
+router.get(
+    "/admin/capabilities",
+    authenticateToken,
+    isScopedAdmin,
+    adminAccessController.getCapabilities
+);
+router.get(
+    "/admin/publishing-profiles",
+    authenticateToken,
+    adminAccessController.getPublishingProfiles
+);
+router.get("/admin/access", authenticateToken, isAdmin, adminAccessController.listAccess);
+router.put("/admin/access/:id", authenticateToken, isAdmin, adminAccessController.updateAccess);
+router.post(
+    "/auth/change-password",
+    authenticateToken,
+    validate(changePasswordValidation),
+    authController.changePassword
+);
+router.put("/auth/profile", authenticateToken, (req, res) => {
     // Alias to userController.updateUser but forcing the ID to be the logged-in user
     req.params.id = req.user.id;
     userController.updateUser(req, res);
 });
-router.get('/users/me/overview', authenticateToken, userController.getOwnOverview);
-router.post('/users/me/avatar', authenticateToken, avatarUpload.single('avatar'), userController.uploadOwnAvatar);
-router.get('/users/me/identity-claims', authenticateToken, userController.listOwnIdentityClaims);
-router.post('/users/me/identity-claims', authenticateToken, userController.createOwnIdentityClaim);
-router.put('/users/me/identity-claims/:claimId', authenticateToken, userController.updateOwnIdentityClaim);
-router.get('/users/me/outcome-links', authenticateToken, userController.listOwnOutcomeLinks);
-router.put('/users/me/outcome-links/:linkId', authenticateToken, userController.updateOwnOutcomeLink);
-router.put('/users/me/profile-card', authenticateToken, profileCardController.updateOwnProfileCard);
-router.get('/users/me/profiles', authenticateToken, profileController.listOwnProfiles);
-router.put('/profiles/:handle', authenticateToken, profileController.updateOwnProfile);
+router.get("/users/me/overview", authenticateToken, userController.getOwnOverview);
+router.get("/users/me/navigation-shortcuts", authenticateToken, navigationController.getShortcuts);
+router.put("/users/me/navigation-shortcuts", authenticateToken, navigationController.saveShortcuts);
+router.post(
+    "/users/me/avatar",
+    authenticateToken,
+    avatarUpload.single("avatar"),
+    userController.uploadOwnAvatar
+);
+router.get("/users/me/identity-claims", authenticateToken, userController.listOwnIdentityClaims);
+router.post("/users/me/identity-claims", authenticateToken, userController.createOwnIdentityClaim);
+router.put(
+    "/users/me/identity-claims/:claimId",
+    authenticateToken,
+    userController.updateOwnIdentityClaim
+);
+router.get("/users/me/outcome-links", authenticateToken, userController.listOwnOutcomeLinks);
+router.put(
+    "/users/me/outcome-links/:linkId",
+    authenticateToken,
+    userController.updateOwnOutcomeLink
+);
+router.put("/users/me/profile-card", authenticateToken, profileCardController.updateOwnProfileCard);
+router.get("/users/me/profiles", authenticateToken, profileController.listOwnProfiles);
+router.put("/profiles/:handle", authenticateToken, profileController.updateOwnProfile);
 
 // User Management Routes (Admin)
-router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
-router.get('/admin/user-organizations', authenticateToken, isAdmin, userController.getAdminUserOrganizations);
-router.put('/admin/users/:id', authenticateToken, isAdmin, userController.updateUser);
-router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
-router.post('/admin/outcome-links', authenticateToken, isAdmin, userController.adminCreateOutcomeLink);
-router.put('/admin/outcome-links/:linkId', authenticateToken, isAdmin, userController.adminUpdateOutcomeLink);
-router.get('/admin/profiles', authenticateToken, isAdmin, profileController.listAdminProfiles);
-router.put('/admin/profiles/:id', authenticateToken, isAdmin, profileController.updateAdminProfile);
-router.get('/admin/profiles/:id/members', authenticateToken, isAdmin, profileController.listAdminProfileMembers);
-router.put('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.upsertAdminProfileMember);
-router.delete('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.deleteAdminProfileMember);
-router.get('/admin/event-attribution/candidates', authenticateToken, isAdmin, eventAttributionMigrationController.previewCandidates);
-router.post('/admin/event-attribution/apply', authenticateToken, isAdmin, eventAttributionMigrationController.applyCandidates);
-router.get('/admin/event-attribution/logs', authenticateToken, isAdmin, eventAttributionMigrationController.listLogs);
+router.get("/admin/users", authenticateToken, isAdmin, userController.getAllUsers);
+router.get(
+    "/admin/user-organizations",
+    authenticateToken,
+    isAdmin,
+    userController.getAdminUserOrganizations
+);
+router.put("/admin/users/:id", authenticateToken, isAdmin, userController.updateUser);
+router.delete("/admin/users/:id", authenticateToken, isAdmin, userController.deleteUser);
+router.post("/admin/users/bulk", authenticateToken, isAdmin, userController.bulkUpdateUsers);
+router.post(
+    "/admin/outcome-links",
+    authenticateToken,
+    isAdmin,
+    userController.adminCreateOutcomeLink
+);
+router.put(
+    "/admin/outcome-links/:linkId",
+    authenticateToken,
+    isAdmin,
+    userController.adminUpdateOutcomeLink
+);
+router.get("/admin/profiles", authenticateToken, isAdmin, profileController.listAdminProfiles);
+router.put("/admin/profiles/:id", authenticateToken, isAdmin, profileController.updateAdminProfile);
+router.get(
+    "/admin/profiles/:id/members",
+    authenticateToken,
+    isAdmin,
+    profileController.listAdminProfileMembers
+);
+router.put(
+    "/admin/profiles/:id/members/:userId",
+    authenticateToken,
+    isAdmin,
+    profileController.upsertAdminProfileMember
+);
+router.delete(
+    "/admin/profiles/:id/members/:userId",
+    authenticateToken,
+    isAdmin,
+    profileController.deleteAdminProfileMember
+);
+router.get(
+    "/admin/event-attribution/candidates",
+    authenticateToken,
+    isAdmin,
+    eventAttributionMigrationController.previewCandidates
+);
+router.post(
+    "/admin/event-attribution/apply",
+    authenticateToken,
+    isAdmin,
+    eventAttributionMigrationController.applyCandidates
+);
+router.get(
+    "/admin/event-attribution/logs",
+    authenticateToken,
+    isAdmin,
+    eventAttributionMigrationController.listLogs
+);
 
 // Public Profile Routes
-router.get('/profiles', optionalAuth, profileController.listProfiles);
-router.get('/profiles/:handle', optionalAuth, profileController.getProfile);
-router.get('/profiles/:handle/feed', optionalAuth, profileController.getProfileFeed);
-router.get('/users/:id/profile', optionalAuth, userController.getPublicProfile);
-router.get('/users/:id/profile-card', optionalAuth, profileCardController.getUserProfileCard);
-router.get('/users/:id/resources', optionalAuth, userController.getUserResources);
-router.get('/users/:id/competition-works', optionalAuth, userController.getUserCompetitionWorks);
-router.post('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
-router.delete('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
-router.get('/users/:id/followers', optionalAuth, userController.listFollowers);
-router.get('/users/:id/following', optionalAuth, userController.listFollowing);
-router.get('/users/following/ids', authenticateToken, userController.getFollowingIds);
-router.get('/users/following/feed', authenticateToken, userController.getFollowingFeed);
-router.get('/users/recommendations/follow', authenticateToken, userController.getFollowRecommendations);
+router.get("/profiles", optionalAuth, profileController.listProfiles);
+router.get("/profiles/:handle", optionalAuth, profileController.getProfile);
+router.get("/profiles/:handle/feed", optionalAuth, profileController.getProfileFeed);
+router.get("/users/:id/profile", optionalAuth, userController.getPublicProfile);
+router.get("/users/:id/profile-card", optionalAuth, profileCardController.getUserProfileCard);
+router.get("/users/:id/resources", optionalAuth, userController.getUserResources);
+router.get("/users/:id/competition-works", optionalAuth, userController.getUserCompetitionWorks);
+router.post("/users/:id/follow", authenticateToken, userController.toggleFollowUser);
+router.delete("/users/:id/follow", authenticateToken, userController.toggleFollowUser);
+router.get("/users/:id/followers", optionalAuth, userController.listFollowers);
+router.get("/users/:id/following", optionalAuth, userController.listFollowing);
+router.get("/users/following/ids", authenticateToken, userController.getFollowingIds);
+router.get("/users/following/feed", authenticateToken, userController.getFollowingFeed);
+router.get(
+    "/users/recommendations/follow",
+    authenticateToken,
+    userController.getFollowRecommendations
+);
 
 // Notification Routes
-router.get('/notifications', authenticateToken, notificationController.getNotifications);
-router.put('/notifications/:id/read', authenticateToken, notificationController.markAsRead);
-router.delete('/notifications/:id', authenticateToken, notificationController.deleteNotification);
+router.get("/notifications", authenticateToken, notificationController.getNotifications);
+router.put("/notifications/:id/read", authenticateToken, notificationController.markAsRead);
+router.delete("/notifications/:id", authenticateToken, notificationController.deleteNotification);
 
 // Comment Routes
-router.get('/comments', commentController.getComments);
-router.post('/comments', authenticateToken, commentController.createComment);
-router.delete('/comments/:id', authenticateToken, commentController.deleteComment);
+router.get("/comments", commentController.getComments);
+router.post("/comments", authenticateToken, commentController.createComment);
+router.delete("/comments/:id", authenticateToken, commentController.deleteComment);
 
 // Community Routes
-router.get('/community/posts', optionalAuth, communityController.listPosts);
-router.get('/community/material-courses', optionalAuth, communityController.listMaterialCourses);
-router.get('/community/material-types', optionalAuth, communityController.listMaterialTypes);
-router.get('/community/posts/:id', optionalAuth, communityController.getPost);
-router.post('/community/posts/import-document', authenticateToken, importCommunityDocumentUpload, communityController.importPostDocument);
-router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);
-router.put('/community/posts/:id', authenticateToken, communityController.updatePost);
-router.delete('/community/posts/:id', authenticateToken, communityController.deletePost);
-router.post('/community/posts/:id/restore', authenticateToken, communityController.restorePost);
-router.post('/community/posts/:id/report', authenticateToken, communityController.reportPostContent);
-router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
-router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
-router.post('/community/posts/:id/comments', authenticateToken, communityCommentCreateLimiter, communityController.createPostComment);
-router.delete('/community/posts/:id/comments/:commentId', authenticateToken, communityController.deletePostComment);
-router.put('/community/posts/:id/status', authenticateToken, communityController.updatePostStatus);
-router.put('/community/posts/:id/solve', authenticateToken, communityController.solvePost);
-router.post('/community/posts/:id/join', authenticateToken, communityController.joinTeamPost);
-router.delete('/community/posts/:id/join', authenticateToken, communityController.leaveTeamPost);
-router.get('/community/posts/:id/members', optionalAuth, communityController.listTeamMembers);
-router.get('/community/search', optionalAuth, communityController.searchPosts);
+const listSalonEvents = resourceController.getAllHandler("events", 12);
+const createSalonEvent = resourceController.createHandler(
+    "events",
+    resourceController.fields.events
+);
+
+router.get("/community/salon-events", optionalAuth, (req, res, next) => {
+    req.query = normalizeSalonEventQuery(req.query);
+    return listSalonEvents(req, res, next);
+});
+router.post(
+    "/community/salon-events",
+    authenticateToken,
+    salonEventCreateLimiter,
+    (req, _res, next) => {
+        req.body = normalizeSalonEventPayload(req.body);
+        next();
+    },
+    validate(resourceValidation),
+    createSalonEvent
+);
+router.get("/community/posts", optionalAuth, communityController.listPosts);
+router.get("/community/material-courses", optionalAuth, communityController.listMaterialCourses);
+router.get("/community/material-types", optionalAuth, communityController.listMaterialTypes);
+router.get("/community/posts/:id", optionalAuth, communityController.getPost);
+router.post(
+    "/community/posts/import-document",
+    authenticateToken,
+    importCommunityDocumentUpload,
+    communityController.importPostDocument
+);
+router.post(
+    "/community/posts",
+    authenticateToken,
+    communityPostCreateLimiter,
+    communityController.createPost
+);
+router.put("/community/posts/:id", authenticateToken, communityController.updatePost);
+router.delete("/community/posts/:id", authenticateToken, communityController.deletePost);
+router.post("/community/posts/:id/restore", authenticateToken, communityController.restorePost);
+router.post(
+    "/community/posts/:id/report",
+    authenticateToken,
+    communityController.reportPostContent
+);
+router.post("/community/posts/:id/like", authenticateToken, communityController.togglePostLike);
+router.get("/community/posts/:id/comments", optionalAuth, communityController.listPostComments);
+router.post(
+    "/community/posts/:id/comments",
+    authenticateToken,
+    communityCommentCreateLimiter,
+    communityController.createPostComment
+);
+router.delete(
+    "/community/posts/:id/comments/:commentId",
+    authenticateToken,
+    communityController.deletePostComment
+);
+router.put("/community/posts/:id/status", authenticateToken, communityController.updatePostStatus);
+router.put("/community/posts/:id/solve", authenticateToken, communityController.solvePost);
+router.post("/community/posts/:id/join", authenticateToken, communityController.joinTeamPost);
+router.delete("/community/posts/:id/join", authenticateToken, communityController.leaveTeamPost);
+router.get("/community/posts/:id/members", optionalAuth, communityController.listTeamMembers);
+router.get("/community/search", optionalAuth, communityController.searchPosts);
 
 // CLI Publishing Routes
-router.post('/cli/import', authenticateToken, cliDocumentUpload, cliController.importCliFile);
-router.post('/cli/publish', authenticateToken, communityPostCreateLimiter, cliDocumentUpload, cliController.publishCliFile);
-router.get('/cli/submissions', authenticateToken, cliController.listCliSubmissions);
+router.post("/cli/import", authenticateToken, cliDocumentUpload, cliController.importCliFile);
+router.post(
+    "/cli/publish",
+    authenticateToken,
+    communityPostCreateLimiter,
+    cliDocumentUpload,
+    cliController.publishCliFile
+);
+router.get("/cli/submissions", authenticateToken, cliController.listCliSubmissions);
 
 // Community Groups
-router.get('/community/groups', optionalAuth, communityController.listGroups);
-router.get('/community/groups/:id', optionalAuth, communityController.getGroup);
-router.post('/community/groups', authenticateToken, communityController.createGroup);
-router.put('/community/groups/:id', authenticateToken, communityController.updateGroup);
-router.delete('/community/groups/:id', authenticateToken, communityController.deleteGroup);
+router.get("/community/groups", optionalAuth, communityController.listGroups);
+router.get("/community/groups/:id", optionalAuth, communityController.getGroup);
+router.post("/community/groups", authenticateToken, communityController.createGroup);
+router.put("/community/groups/:id", authenticateToken, communityController.updateGroup);
+router.delete("/community/groups/:id", authenticateToken, communityController.deleteGroup);
 
 // News
-router.get('/news', optionalAuth, newsController.listNews);
-router.get('/news/:id', optionalAuth, newsController.getNews);
-router.get('/news/:id/source-health', optionalAuth, newsController.checkNewsSourceHealth);
-router.post('/news', authenticateToken, newsController.createNews);
-router.post('/news/import', authenticateToken, newsController.importNews);
-router.put('/news/:id', authenticateToken, newsController.updateNews);
-router.put('/news/:id/review', authenticateToken, isAdmin, newsController.reviewNews);
-router.delete('/news/:id', authenticateToken, newsController.deleteNews);
-router.post('/news/:id/restore', authenticateToken, newsController.restoreNews);
+router.get("/news", optionalAuth, newsController.listNews);
+router.get("/news/:id", optionalAuth, newsController.getNews);
+router.get("/news/:id/source-health", optionalAuth, newsController.checkNewsSourceHealth);
+router.post("/news", authenticateToken, newsController.createNews);
+router.post("/news/import", authenticateToken, newsController.importNews);
+router.put("/news/:id", authenticateToken, newsController.updateNews);
+router.put(
+    "/news/:id/review",
+    authenticateToken,
+    requireAnyAdminPermission("admin.content.manage", "admin.review.manage"),
+    newsController.reviewNews
+);
+router.delete("/news/:id", authenticateToken, newsController.deleteNews);
+router.post("/news/:id/restore", authenticateToken, newsController.restoreNews);
 
 // Admin Community Routes
-router.get('/admin/community/stats', authenticateToken, isAdmin, communityController.adminCommunityStats);
-router.get('/admin/community/metrics', authenticateToken, isAdmin, communityController.adminCommunityMetrics);
-router.post('/community/metrics/track', optionalAuth, communityController.trackCommunityMetric);
-router.put('/admin/community/posts/:id/review', authenticateToken, isAdmin, communityController.reviewPost);
-router.post('/admin/community/posts/batch-review', authenticateToken, isAdmin, communityController.batchReviewPosts);
+router.get(
+    "/admin/community/stats",
+    authenticateToken,
+    requireAdminPermission("admin.content.manage"),
+    communityController.adminCommunityStats
+);
+router.get(
+    "/admin/community/metrics",
+    authenticateToken,
+    requireAdminPermission("admin.content.manage"),
+    communityController.adminCommunityMetrics
+);
+router.post("/community/metrics/track", optionalAuth, communityController.trackCommunityMetric);
+router.put(
+    "/admin/community/posts/:id/review",
+    authenticateToken,
+    requireAdminPermission("admin.content.manage"),
+    communityController.reviewPost
+);
+router.post(
+    "/admin/community/posts/batch-review",
+    authenticateToken,
+    requireAdminPermission("admin.content.manage"),
+    communityController.batchReviewPosts
+);
 
 // Favorite Routes
-router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);
-router.get('/favorites', authenticateToken, favoriteController.getFavorites);
-router.get('/favorites/check', authenticateToken, favoriteController.checkFavoriteStatus);
+router.post("/favorites/toggle", authenticateToken, favoriteController.toggleFavorite);
+router.get("/favorites", authenticateToken, favoriteController.getFavorites);
+router.get("/favorites/check", authenticateToken, favoriteController.checkFavoriteStatus);
 
 // Project plaza / project cards
-router.get('/projects', optionalAuth, projectCardController.listProjects);
-router.get('/projects/:id/share-card.png', projectCardController.getProjectShareCard);
-router.get('/projects/:id', optionalAuth, projectCardController.getProject);
-router.post('/projects', authenticateToken, projectCreateLimiter, projectCardController.createProject);
-router.put('/projects/:id', authenticateToken, projectCardController.updateProject);
-router.delete('/projects/:id', authenticateToken, projectCardController.deleteProject);
-router.post('/projects/:id/report', authenticateToken, projectCardController.reportProject);
-router.put('/admin/projects/:id/takedown', authenticateToken, isAdmin, projectCardController.takedownProject);
+router.get("/projects", optionalAuth, projectCardController.listProjects);
+router.get("/projects/:id/share-card.png", projectCardController.getProjectShareCard);
+router.get("/projects/:id", optionalAuth, projectCardController.getProject);
+router.post(
+    "/projects",
+    authenticateToken,
+    projectCreateLimiter,
+    projectCardController.createProject
+);
+router.put("/projects/:id", authenticateToken, projectCardController.updateProject);
+router.delete("/projects/:id", authenticateToken, projectCardController.deleteProject);
+router.post("/projects/:id/report", authenticateToken, projectCardController.reportProject);
+router.get(
+    "/admin/projects",
+    authenticateToken,
+    requireAdminPermission("admin.projects.manage"),
+    projectCardController.listAdminProjects
+);
+router.put(
+    "/admin/projects/:id/takedown",
+    authenticateToken,
+    requireAdminPermission("admin.projects.manage"),
+    projectCardController.takedownProject
+);
+router.put(
+    "/admin/projects/:id/restore",
+    authenticateToken,
+    requireAdminPermission("admin.projects.manage"),
+    projectCardController.restoreProject
+);
 
 // System Routes
-router.get('/search', systemController.searchContent);
-router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
-router.get('/site-metrics', systemController.getSiteMetrics);
-router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
-router.get('/uploads/image-variant', systemController.getImageVariant);
-router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
-router.post('/native-upload-sessions', authenticateToken, nativeUploadSessionLimiter, systemController.createNativeUploadSessionHandler);
-router.get('/native-upload-sessions/:sessionId', authenticateToken, systemController.getNativeUploadSessionHandler);
-router.post('/native-poster-sessions', nativePosterSessionLimiter, systemController.createNativePosterSessionHandler);
-router.get('/native-poster-sessions/:sessionId/image', systemController.getNativePosterSessionImageHandler);
-router.post('/upload/native', authenticateNativeUploadSession, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleNativeUpload);
-router.post('/upload/native/cancel', authenticateNativeUploadSession, systemController.cancelNativeUpload);
-router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);
-router.get('/admin/wechat-mp/status', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpStatus);
-router.post('/admin/wechat-mp/login/start', authenticateToken, isAdmin, wechatMpAdminController.startWechatMpLogin);
-router.get('/admin/wechat-mp/login/status', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpLoginStatus);
-router.post('/admin/wechat-mp/login/cancel', authenticateToken, isAdmin, wechatMpAdminController.cancelWechatMpLogin);
-router.post('/admin/wechat-mp/accounts/search', authenticateToken, isAdmin, wechatMpAdminController.searchWechatMpAccounts);
-router.post('/admin/wechat-mp/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpArticles);
-router.post('/admin/wechat-mp/article-content', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpArticleContent);
-router.post('/admin/wechat-mp/import-payload', authenticateToken, isAdmin, wechatMpAdminController.buildWechatMpImportPayload);
-router.post('/admin/wechat-mp/parse', authenticateToken, isAdmin, wechatMpAdminController.parseWechatMpArticle);
-router.get('/admin/wechat-mp/ingest', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestOverview);
-router.get('/admin/wechat-mp/ingest/settings', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestSettings);
-router.put('/admin/wechat-mp/ingest/settings', authenticateToken, isAdmin, wechatMpAdminController.updateWechatMpIngestSettings);
-router.get('/admin/wechat-mp/ingest/accounts', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestAccounts);
-router.post('/admin/wechat-mp/ingest/accounts', authenticateToken, isAdmin, wechatMpAdminController.upsertWechatMpIngestAccount);
-router.put('/admin/wechat-mp/ingest/accounts/:id', authenticateToken, isAdmin, wechatMpAdminController.upsertWechatMpIngestAccount);
-router.delete('/admin/wechat-mp/ingest/accounts/:id', authenticateToken, isAdmin, wechatMpAdminController.deleteWechatMpIngestAccount);
-router.post('/admin/wechat-mp/ingest/accounts/import', authenticateToken, isAdmin, upload.single('file'), wechatMpAdminController.importWechatMpIngestAccounts);
-router.post('/admin/wechat-mp/ingest/run', authenticateToken, isAdmin, wechatMpAdminController.startWechatMpIngestRun);
-router.get('/admin/wechat-mp/ingest/runs', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestRuns);
-router.post('/admin/wechat-mp/ingest/articles/:id/parse', authenticateToken, isAdmin, wechatMpAdminController.extractWechatMpIngestArticle);
-router.get('/admin/wechat-mp/ingest/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestArticles);
-router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
-router.get('/featured', systemController.getFeaturedContent);
-router.post('/events/crawl', authenticateToken, isAdmin, systemController.crawlEvents);
-router.get('/audit-logs', authenticateToken, isAdmin, systemController.getAuditLogs);
-router.get('/admin/pending', authenticateToken, isAdmin, systemController.getPendingContent);
-router.get('/admin/ai-model-configs', authenticateToken, isAdmin, aiModelConfigController.listConfigs);
-router.post('/admin/ai-model-configs', authenticateToken, isAdmin, aiModelConfigController.createConfig);
-router.put('/admin/ai-model-configs/:id', authenticateToken, isAdmin, aiModelConfigController.updateConfig);
-router.delete('/admin/ai-model-configs/:id', authenticateToken, isAdmin, aiModelConfigController.deleteConfig);
-router.post('/admin/ai-model-configs/:id/test', authenticateToken, isAdmin, aiModelConfigController.testConfig);
-router.get('/admin/ai-assistant/overview', authenticateToken, isAdmin, aiAssistantController.getOverview);
-router.post('/admin/ai-assistant/event-governance/scan', authenticateToken, isAdmin, aiAssistantController.scanEventGovernance);
-router.post('/admin/ai-assistant/event-governance/apply', authenticateToken, isAdmin, aiAssistantController.applyEventGovernance);
+router.get("/search", systemController.searchContent);
+router.get(
+    "/stats",
+    authenticateToken,
+    requireAdminPermission("admin.dashboard.read"),
+    systemController.getStats
+);
+router.get("/site-metrics", systemController.getSiteMetrics);
+router.post("/site-metrics/visit", optionalAuth, systemController.trackVisit);
+router.get("/uploads/image-variant", systemController.getImageVariant);
+router.post(
+    "/upload",
+    authenticateToken,
+    upload.fields([
+        { name: "file", maxCount: 1 },
+        { name: "cover", maxCount: 1 },
+    ]),
+    systemController.handleUpload
+);
+router.post(
+    "/native-upload-sessions",
+    authenticateToken,
+    nativeUploadSessionLimiter,
+    systemController.createNativeUploadSessionHandler
+);
+router.get(
+    "/native-upload-sessions/:sessionId",
+    authenticateToken,
+    systemController.getNativeUploadSessionHandler
+);
+router.post(
+    "/native-poster-sessions",
+    nativePosterSessionLimiter,
+    systemController.createNativePosterSessionHandler
+);
+router.get(
+    "/native-poster-sessions/:sessionId/image",
+    systemController.getNativePosterSessionImageHandler
+);
+router.post(
+    "/upload/native",
+    authenticateNativeUploadSession,
+    upload.fields([
+        { name: "file", maxCount: 1 },
+        { name: "cover", maxCount: 1 },
+    ]),
+    systemController.handleNativeUpload
+);
+router.post(
+    "/upload/native/cancel",
+    authenticateNativeUploadSession,
+    systemController.cancelNativeUpload
+);
+router.post(
+    "/resources/parse-wechat",
+    authenticateToken,
+    wechatParseController.parseWeChatResource
+);
+// Separate maintenance surface for the persistent WeRead collector.
+router.get("/admin/weread", authenticateToken, isAdmin, wechatWereadAdminController.overview);
+router.get(
+    "/admin/weread/sources/:id/articles",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.articles
+);
+router.patch(
+    "/admin/weread/control",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.control
+);
+router.post(
+    "/admin/weread/import",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.importNow
+);
+router.post(
+    "/admin/weread/login",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.startLogin
+);
+router.get(
+    "/admin/weread/login",
+    authenticateToken,
+    isAdmin,
+    wechatWereadAdminController.loginStatus
+);
+router.get(
+    "/admin/wechat-mp/status",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.getWechatMpStatus
+);
+router.get(
+    "/admin/wechat-rss",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getOverview
+);
+router.post(
+    "/admin/wechat-rss/login/start",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.startLogin
+);
+router.get(
+    "/admin/wechat-rss/login/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getLoginStatus
+);
+router.post(
+    "/admin/wechat-rss/login/cancel",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.cancelLogin
+);
+router.get(
+    "/admin/wechat-rss/accounts",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listAccounts
+);
+router.patch(
+    "/admin/wechat-rss/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.updateAccount
+);
+router.delete(
+    "/admin/wechat-rss/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteAccount
+);
+router.get(
+    "/admin/wechat-rss/feeds",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listFeeds
+);
+router.post(
+    "/admin/wechat-rss/feeds/discover",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.discoverFeed
+);
+router.post(
+    "/admin/wechat-rss/feeds",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.addFeed
+);
+router.patch(
+    "/admin/wechat-rss/feeds/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.updateFeed
+);
+router.delete(
+    "/admin/wechat-rss/feeds/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteFeed
+);
+router.post(
+    "/admin/wechat-rss/feeds/refresh-all",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.refreshAllFeeds
+);
+router.post(
+    "/admin/wechat-rss/feeds/:id/refresh",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.refreshFeed
+);
+router.get(
+    "/admin/wechat-rss/refresh/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getRefreshStatus
+);
+router.get(
+    "/admin/wechat-rss/articles",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listArticles
+);
+router.get(
+    "/admin/wechat-rss/feeds/:id/articles",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.listArticles
+);
+router.delete(
+    "/admin/wechat-rss/articles/:id",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.deleteArticle
+);
+router.post(
+    "/admin/wechat-rss/feeds/:id/history",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.startHistory
+);
+router.post(
+    "/admin/wechat-rss/history/cancel",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.cancelHistory
+);
+router.get(
+    "/admin/wechat-rss/history/status",
+    authenticateToken,
+    isAdmin,
+    wechatReadRssAdminController.getHistoryStatus
+);
+router.post(
+    "/admin/wechat-mp/login/start",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.startWechatMpLogin
+);
+router.get(
+    "/admin/wechat-mp/login/status",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.getWechatMpLoginStatus
+);
+router.post(
+    "/admin/wechat-mp/login/cancel",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.cancelWechatMpLogin
+);
+router.post(
+    "/admin/wechat-mp/accounts/search",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.searchWechatMpAccounts
+);
+router.post(
+    "/admin/wechat-mp/articles",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.listWechatMpArticles
+);
+router.post(
+    "/admin/wechat-mp/article-content",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.getWechatMpArticleContent
+);
+router.post(
+    "/admin/wechat-mp/import-payload",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.buildWechatMpImportPayload
+);
+router.post(
+    "/admin/wechat-mp/parse",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.parseWechatMpArticle
+);
+router.get(
+    "/admin/wechat-mp/ingest",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.getWechatMpIngestOverview
+);
+router.get(
+    "/admin/wechat-mp/ingest/settings",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.getWechatMpIngestSettings
+);
+router.put(
+    "/admin/wechat-mp/ingest/settings",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.updateWechatMpIngestSettings
+);
+router.get(
+    "/admin/wechat-mp/ingest/accounts",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.listWechatMpIngestAccounts
+);
+router.post(
+    "/admin/wechat-mp/ingest/accounts",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.upsertWechatMpIngestAccount
+);
+router.patch(
+    "/admin/wechat-mp/ingest/accounts/:id/enabled",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.updateWechatMpIngestAccountEnabled
+);
+router.put(
+    "/admin/wechat-mp/ingest/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.upsertWechatMpIngestAccount
+);
+router.delete(
+    "/admin/wechat-mp/ingest/accounts/:id",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.deleteWechatMpIngestAccount
+);
+router.post(
+    "/admin/wechat-mp/ingest/accounts/import",
+    authenticateToken,
+    isAdmin,
+    upload.single("file"),
+    wechatMpAdminController.importWechatMpIngestAccounts
+);
+router.post(
+    "/admin/wechat-mp/ingest/run",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.startWechatMpIngestRun
+);
+router.get(
+    "/admin/wechat-mp/ingest/runs",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.listWechatMpIngestRuns
+);
+router.post(
+    "/admin/wechat-mp/ingest/articles/:id/parse",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.extractWechatMpIngestArticle
+);
+router.get(
+    "/admin/wechat-mp/ingest/articles",
+    authenticateToken,
+    isAdmin,
+    wechatMpAdminController.listWechatMpIngestArticles
+);
+router.get("/db/backup", authenticateToken, isAdmin, systemController.downloadDbBackup);
+router.get("/featured", systemController.getFeaturedContent);
+router.post("/events/crawl", authenticateToken, isAdmin, systemController.crawlEvents);
+router.get("/audit-logs", authenticateToken, isAdmin, systemController.getAuditLogs);
+router.get(
+    "/admin/pending",
+    authenticateToken,
+    requireAnyAdminPermission("admin.review.manage", "admin.events.manage", "admin.content.manage"),
+    systemController.getPendingContent
+);
+router.get(
+    "/admin/ai-model-configs",
+    authenticateToken,
+    isAdmin,
+    aiModelConfigController.listConfigs
+);
+router.post(
+    "/admin/ai-model-configs",
+    authenticateToken,
+    isAdmin,
+    aiModelConfigController.createConfig
+);
+router.put(
+    "/admin/ai-model-configs/:id",
+    authenticateToken,
+    isAdmin,
+    aiModelConfigController.updateConfig
+);
+router.delete(
+    "/admin/ai-model-configs/:id",
+    authenticateToken,
+    isAdmin,
+    aiModelConfigController.deleteConfig
+);
+router.post(
+    "/admin/ai-model-configs/:id/test",
+    authenticateToken,
+    isAdmin,
+    aiModelConfigController.testConfig
+);
+router.get(
+    "/admin/ai-assistant/overview",
+    authenticateToken,
+    isAdmin,
+    aiAssistantController.getOverview
+);
+router.post(
+    "/admin/ai-assistant/event-governance/scan",
+    authenticateToken,
+    isAdmin,
+    aiAssistantController.scanEventGovernance
+);
+router.post(
+    "/admin/ai-assistant/event-governance/apply",
+    authenticateToken,
+    isAdmin,
+    aiAssistantController.applyEventGovernance
+);
 
 // Settings Routes
-router.get('/settings', settingsController.getSettings);
-router.post('/settings', authenticateToken, isAdmin, validate(settingsValidation), settingsController.updateSetting);
+router.get("/settings", settingsController.getSettings);
+router.post(
+    "/settings",
+    authenticateToken,
+    canUpdateSetting,
+    validate(settingsValidation),
+    settingsController.updateSetting
+);
 
 // Ecosystem Partner Routes
-router.get('/ecosystem-partners', ecosystemPartnerController.listPublicPartners);
-router.get('/admin/ecosystem-partners', authenticateToken, isAdmin, ecosystemPartnerController.listAdminPartners);
-router.post('/admin/ecosystem-partners', authenticateToken, isAdmin, ecosystemPartnerController.createPartner);
-router.put('/admin/ecosystem-partners/:id', authenticateToken, isAdmin, ecosystemPartnerController.updatePartner);
-router.delete('/admin/ecosystem-partners/:id', authenticateToken, isAdmin, ecosystemPartnerController.deletePartner);
+router.get("/ecosystem-partners", ecosystemPartnerController.listPublicPartners);
+router.get(
+    "/admin/ecosystem-partners",
+    authenticateToken,
+    requireAdminPermission("admin.partners.manage"),
+    ecosystemPartnerController.listAdminPartners
+);
+router.post(
+    "/admin/ecosystem-partners",
+    authenticateToken,
+    requireAdminPermission("admin.partners.manage"),
+    ecosystemPartnerController.createPartner
+);
+router.put(
+    "/admin/ecosystem-partners/:id",
+    authenticateToken,
+    requireAdminPermission("admin.partners.manage"),
+    ecosystemPartnerController.updatePartner
+);
+router.delete(
+    "/admin/ecosystem-partners/:id",
+    authenticateToken,
+    requireAdminPermission("admin.partners.manage"),
+    ecosystemPartnerController.deletePartner
+);
 
 // File System Routes
-router.get('/fs/list', authenticateToken, isAdmin, fsController.listFiles);
-router.get('/fs/content', authenticateToken, isAdmin, fsController.getFileContent);
-router.post('/fs/content', authenticateToken, isAdmin, fsController.saveFileContent);
+router.get("/fs/list", authenticateToken, isAdmin, fsController.listFiles);
+router.get("/fs/content", authenticateToken, isAdmin, fsController.getFileContent);
+router.post("/fs/content", authenticateToken, isAdmin, fsController.saveFileContent);
 
 // Competition Outcome Routes
-router.get('/competitions/current/outcome', optionalAuth, competitionController.getCurrentOutcome);
-router.post('/competitions/current/media', authenticateToken, competitionController.submitCurrentMedia);
-router.post('/competitions/current/works', authenticateToken, competitionController.submitCurrentWork);
+router.get("/competitions", optionalAuth, competitionController.listPublicCompetitions);
+router.get("/competitions/current/outcome", optionalAuth, competitionController.getCurrentOutcome);
+router.get(
+    "/competitions/:competitionSlug/outcome",
+    optionalAuth,
+    competitionController.getCurrentOutcome
+);
+router.post(
+    "/competitions/current/media",
+    authenticateToken,
+    competitionController.submitCurrentMedia
+);
+router.post(
+    "/competitions/:competitionSlug/media",
+    authenticateToken,
+    competitionController.submitCurrentMedia
+);
+router.post(
+    "/competitions/current/works",
+    authenticateToken,
+    competitionController.submitCurrentWork
+);
+router.post(
+    "/competitions/:competitionSlug/works",
+    authenticateToken,
+    competitionController.submitCurrentWork
+);
 
-router.get('/admin/competitions', authenticateToken, isAdmin, competitionController.listCompetitions);
-router.post('/admin/competitions', authenticateToken, isAdmin, competitionController.createCompetition);
-router.put('/admin/competitions/:id', authenticateToken, isAdmin, competitionController.updateCompetition);
-router.delete('/admin/competitions/:id', authenticateToken, isAdmin, competitionController.deleteCompetition);
-router.put('/admin/competitions/:id/feature', authenticateToken, isAdmin, competitionController.featureCompetition);
+router.get(
+    "/admin/competitions",
+    authenticateToken,
+    isAdmin,
+    competitionController.listCompetitions
+);
+router.post(
+    "/admin/competitions",
+    authenticateToken,
+    isAdmin,
+    competitionController.createCompetition
+);
+router.put(
+    "/admin/competitions/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.updateCompetition
+);
+router.delete(
+    "/admin/competitions/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.deleteCompetition
+);
+router.put(
+    "/admin/competitions/:id/feature",
+    authenticateToken,
+    isAdmin,
+    competitionController.featureCompetition
+);
 
-router.get('/admin/competition-media', authenticateToken, isAdmin, competitionController.listAdminMedia);
-router.post('/admin/competition-media', authenticateToken, isAdmin, competitionController.createAdminMedia);
-router.put('/admin/competition-media/:id', authenticateToken, isAdmin, competitionController.updateAdminMedia);
-router.delete('/admin/competition-media/:id', authenticateToken, isAdmin, competitionController.deleteAdminMedia);
-router.put('/admin/competition-media/:id/review', authenticateToken, isAdmin, competitionController.reviewAdminMedia);
+router.get(
+    "/admin/competition-media",
+    authenticateToken,
+    isAdmin,
+    competitionController.listAdminMedia
+);
+router.get(
+    "/admin/competition-media-links",
+    authenticateToken,
+    isAdmin,
+    competitionController.listAdminMediaLinks
+);
+router.put(
+    "/admin/competition-media-links/:id/role",
+    authenticateToken,
+    isAdmin,
+    competitionController.updateAdminMediaLinkRole
+);
+router.post(
+    "/admin/competition-media",
+    authenticateToken,
+    isAdmin,
+    competitionController.createAdminMedia
+);
+router.put(
+    "/admin/competition-media/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.updateAdminMedia
+);
+router.delete(
+    "/admin/competition-media/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.deleteAdminMedia
+);
+router.put(
+    "/admin/competition-media/:id/review",
+    authenticateToken,
+    isAdmin,
+    competitionController.reviewAdminMedia
+);
 
-router.get('/admin/competition-works', authenticateToken, isAdmin, competitionController.listAdminWorks);
-router.post('/admin/competition-works', authenticateToken, isAdmin, competitionController.createAdminWork);
-router.put('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.updateAdminWork);
-router.delete('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.deleteAdminWork);
-router.put('/admin/competition-works/:id/review', authenticateToken, isAdmin, competitionController.reviewAdminWork);
+router.get(
+    "/admin/competition-works",
+    authenticateToken,
+    isAdmin,
+    competitionController.listAdminWorks
+);
+router.post(
+    "/admin/competition-works",
+    authenticateToken,
+    isAdmin,
+    competitionController.createAdminWork
+);
+router.put(
+    "/admin/competition-works/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.updateAdminWork
+);
+router.delete(
+    "/admin/competition-works/:id",
+    authenticateToken,
+    isAdmin,
+    competitionController.deleteAdminWork
+);
+router.put(
+    "/admin/competition-works/:id/review",
+    authenticateToken,
+    isAdmin,
+    competitionController.reviewAdminWork
+);
 
-router.get('/media-categories', mediaCategoryController.listPublicCategories);
-router.get('/admin/media-categories', authenticateToken, isAdmin, mediaCategoryController.listAdminCategories);
-router.post('/admin/media-categories', authenticateToken, isAdmin, mediaCategoryController.createCategory);
-router.put('/admin/media-categories/:id', authenticateToken, isAdmin, mediaCategoryController.updateCategory);
-router.delete('/admin/media-categories/:id', authenticateToken, isAdmin, mediaCategoryController.deleteCategory);
+router.get("/media-categories", mediaCategoryController.listPublicCategories);
+router.get(
+    "/admin/media-categories",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    mediaCategoryController.listAdminCategories
+);
+router.post(
+    "/admin/media-categories",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    mediaCategoryController.createCategory
+);
+router.put(
+    "/admin/media-categories/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    mediaCategoryController.updateCategory
+);
+router.delete(
+    "/admin/media-categories/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    mediaCategoryController.deleteCategory
+);
 
 // Resource Routes (Generic)
-const resources = ['photos', 'music', 'videos', 'articles', 'events'];
+const resources = ["photos", "music", "videos", "articles", "events"];
 
 // Allow article owners to restore their own soft-deleted drafts/submissions.
-router.post('/articles/:id/recover', authenticateToken, resourceController.restoreOwnHandler('articles'));
+router.post(
+    "/articles/:id/recover",
+    authenticateToken,
+    resourceController.restoreOwnHandler("articles")
+);
 
 // Specific routes that shouldn't be overridden by the loop
 // Event Registration Routes
-router.post('/events/assistant', optionalAuth, eventAssistantController.handleEventAssistant);
-router.post('/events/assistant/feedback', authenticateToken, eventAssistantController.handleEventAssistantFeedback);
-router.post('/events/assistant/action', optionalAuth, eventAssistantController.handleEventAssistantAction);
-router.get('/events/assistant/preferences', authenticateToken, eventAssistantController.getEventAssistantPreferences);
-router.put('/events/assistant/preferences', authenticateToken, eventAssistantController.updateEventAssistantPreferences);
-router.get('/events/distinct-options', resourceController.getEventDistinctOptions);
-router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
-router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
-router.post('/events/:id/view', optionalAuth, eventController.trackEventView);
+router.post("/events/assistant", optionalAuth, eventAssistantController.handleEventAssistant);
+router.post(
+    "/events/assistant/feedback",
+    authenticateToken,
+    eventAssistantController.handleEventAssistantFeedback
+);
+router.post(
+    "/events/assistant/action",
+    optionalAuth,
+    eventAssistantController.handleEventAssistantAction
+);
+router.get(
+    "/events/assistant/preferences",
+    authenticateToken,
+    eventAssistantController.getEventAssistantPreferences
+);
+router.put(
+    "/events/assistant/preferences",
+    authenticateToken,
+    eventAssistantController.updateEventAssistantPreferences
+);
+router.get(
+    "/events/assistant/profile",
+    authenticateToken,
+    eventAssistantController.getEventAssistantProfile
+);
+router.delete(
+    "/events/assistant/profile",
+    authenticateToken,
+    eventAssistantController.resetEventAssistantProfile
+);
+router.get("/events/distinct-options", resourceController.getEventDistinctOptions);
+router.post("/events/:id/register", authenticateToken, eventController.registerEvent);
+router.get("/events/:id/registration", authenticateToken, eventController.getRegistrationStatus);
+router.post("/events/:id/view", optionalAuth, eventController.trackEventView);
 
 // Contact / Messages Routes
-router.post('/contact', messageController.submitMessage);
-router.get('/admin/messages', authenticateToken, isAdmin, messageController.getMessages);
-router.delete('/admin/messages/:id', authenticateToken, isAdmin, messageController.deleteMessage);
-router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageController.markAsRead);
+router.post("/contact", messageController.submitMessage);
+router.get("/admin/messages", authenticateToken, isAdmin, messageController.getMessages);
+router.delete("/admin/messages/:id", authenticateToken, isAdmin, messageController.deleteMessage);
+router.put("/admin/messages/:id/read", authenticateToken, isAdmin, messageController.markAsRead);
 
 // Hackathon Registration Routes
-router.post('/hackathon/assistant', optionalAuth, hackathonController.handleHackathonAssistant);
-router.post('/hackathon/register', hackathonController.registerHackathon);
-router.get('/admin/hackathon/registrations', authenticateToken, isAdmin, hackathonController.getRegistrations);
-router.delete('/admin/hackathon/registrations/:id', authenticateToken, isAdmin, hackathonController.deleteRegistration);
+router.get("/hackathon/schedule", hackathonController.getHackathonScheduleConfig);
+router.get("/hackathon/template", hackathonController.getHackathonTemplateConfig);
+router.post("/hackathon/assistant", optionalAuth, hackathonController.handleHackathonAssistant);
+router.post("/hackathon/register", hackathonController.registerHackathon);
+router.put(
+    "/admin/hackathon/schedule",
+    authenticateToken,
+    isAdmin,
+    hackathonController.updateHackathonScheduleConfig
+);
+router.put(
+    "/admin/hackathon/template",
+    authenticateToken,
+    isAdmin,
+    hackathonController.updateHackathonTemplateConfig
+);
+router.get(
+    "/admin/hackathon/registrations",
+    authenticateToken,
+    isAdmin,
+    hackathonController.getRegistrations
+);
+router.delete(
+    "/admin/hackathon/registrations/:id",
+    authenticateToken,
+    isAdmin,
+    hackathonController.deleteRegistration
+);
 
 // Future Learning Center Registration Routes
-router.post('/future-learning/register', futureLearningController.registerFutureLearning);
-router.get('/admin/future-learning/registrations', authenticateToken, isAdmin, futureLearningController.getRegistrations);
-router.put('/admin/future-learning/registrations/:id', authenticateToken, isAdmin, futureLearningController.updateRegistration);
-router.delete('/admin/future-learning/registrations/:id', authenticateToken, isAdmin, futureLearningController.deleteRegistration);
+router.post("/future-learning/register", futureLearningController.registerFutureLearning);
+router.get(
+    "/admin/future-learning/registrations",
+    authenticateToken,
+    isAdmin,
+    futureLearningController.getRegistrations
+);
+router.put(
+    "/admin/future-learning/registrations/:id",
+    authenticateToken,
+    isAdmin,
+    futureLearningController.updateRegistration
+);
+router.delete(
+    "/admin/future-learning/registrations/:id",
+    authenticateToken,
+    isAdmin,
+    futureLearningController.deleteRegistration
+);
 
 // Client-side error reporting
-router.post('/errors', (req, res) => {
+router.post("/errors", (req, res) => {
     const { errors } = req.body || {};
 
     if (!Array.isArray(errors)) {
         return res.status(400).json({
-            error: 'Invalid payload',
-            message: '`errors` must be an array'
+            error: "Invalid payload",
+            message: "`errors` must be an array",
         });
     }
 
     if (errors.length > 0) {
-        logger.warn('Client errors reported', {
+        logger.warn("Client errors reported", {
             count: errors.length,
             sample: errors.slice(0, 3).map((error) => ({
                 type: error?.type,
@@ -439,9 +1256,9 @@ router.post('/errors', (req, res) => {
                 lineno: error?.lineno,
                 colno: error?.colno,
                 stack: error?.stack,
-                timestamp: error?.timestamp
+                timestamp: error?.timestamp,
             })),
-            ip: req.ip
+            ip: req.ip,
         });
     }
 
@@ -449,68 +1266,130 @@ router.post('/errors', (req, res) => {
 });
 
 // Tag Routes
-router.get('/tags', tagController.getTags);
-router.post('/tags', authenticateToken, isAdmin, tagController.createTag);
-router.put('/tags/:id', authenticateToken, isAdmin, tagController.updateTag);
-router.delete('/tags/:id', authenticateToken, isAdmin, tagController.deleteTag);
-router.post('/tags/sync', authenticateToken, isAdmin, tagController.syncTags);
+router.get("/tags", tagController.getTags);
+router.post(
+    "/tags",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.createTag
+);
+router.put(
+    "/tags/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.updateTag
+);
+router.delete(
+    "/tags/:id",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.deleteTag
+);
+router.post(
+    "/tags/sync",
+    authenticateToken,
+    requireAdminPermission("admin.taxonomy.manage"),
+    tagController.syncTags
+);
 
-resources.forEach(resource => {
+// Pre-structured articles enter the normal event ownership and review chain.
+router.post(
+    "/events/import",
+    authenticateToken,
+    eventImportController.receive,
+    eventImportController.prepare,
+    eventImportController.submit
+);
+
+resources.forEach((resource) => {
     // Get All
     router.get(`/${resource}`, optionalAuth, resourceController.getAllHandler(resource));
-    
+
     // Get One
     router.get(`/${resource}/:id`, optionalAuth, resourceController.getOneHandler(resource));
 
     // Get Related
-    router.get(`/${resource}/:id/related`, optionalAuth, resourceController.getRelatedHandler(resource));
-    
+    router.get(
+        `/${resource}/:id/related`,
+        optionalAuth,
+        resourceController.getRelatedHandler(resource)
+    );
+
     // Get Distinct Values for a Field
     router.get(`/${resource}/distinct/:field`, resourceController.getDistinctValues(resource));
 
     // FIX: BUG-22 — Add input validation middleware for resource create/update
     // Create
-    router.post(`/${resource}`, authenticateToken, validate(resourceValidation), resourceController.createHandler(resource, resourceController.fields[resource]));
+    router.post(
+        `/${resource}`,
+        authenticateToken,
+        validate(resourceValidation),
+        resourceController.createHandler(resource, resourceController.fields[resource])
+    );
 
     // Update
-    router.put(`/${resource}/:id`, authenticateToken, validate(resourceValidation), resourceController.updateHandler(resource, resourceController.fields[resource]));
-    
+    router.put(
+        `/${resource}/:id`,
+        authenticateToken,
+        validate(resourceValidation),
+        resourceController.updateHandler(resource, resourceController.fields[resource])
+    );
+
     // Delete (Soft Delete)
-    router.delete(`/${resource}/:id`, authenticateToken, resourceController.deleteHandler(resource));
+    router.delete(
+        `/${resource}/:id`,
+        authenticateToken,
+        resourceController.deleteHandler(resource)
+    );
 
     // Permanent Delete
-    router.delete(`/${resource}/:id/permanent`, authenticateToken, isAdmin, resourceController.permanentDeleteHandler(resource));
+    router.delete(
+        `/${resource}/:id/permanent`,
+        authenticateToken,
+        requireAdminPermission(resourcePermission(resource)),
+        resourceController.permanentDeleteHandler(resource)
+    );
 
     // Restore
-    router.post(`/${resource}/:id/restore`, authenticateToken, isAdmin, resourceController.restoreHandler(resource));
+    router.post(
+        `/${resource}/:id/restore`,
+        authenticateToken,
+        requireAdminPermission(resourcePermission(resource)),
+        resourceController.restoreHandler(resource)
+    );
 
     // Update Status
-    router.put(`/${resource}/:id/status`, authenticateToken, isAdmin, resourceController.updateStatus(resource));
+    router.put(
+        `/${resource}/:id/status`,
+        authenticateToken,
+        requireAnyAdminPermission(resourcePermission(resource), "admin.review.manage"),
+        resourceController.updateStatus(resource)
+    );
 });
 
 // Performance Metrics Endpoint
-router.post('/analytics/performance', (req, res) => {
+router.post("/analytics/performance", (req, res) => {
     // Store performance metrics (in production, send to analytics service)
     const metric = req.body;
-    
+
     // Log slow metrics for monitoring
     if (metric.value > 1000 || metric.duration > 1000) {
-        console.warn('[Performance] Slow metric detected:', metric);
+        console.warn("[Performance] Slow metric detected:", metric);
     }
-    
+
     res.status(204).send();
 });
 
 // Health check endpoint with performance info
-router.get('/health', (req, res) => {
+router.get("/health", (req, res) => {
     const health = {
-        status: 'healthy',
+        status: "healthy",
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || "1.0.0",
     };
-    
+
     res.json(health);
 });
 

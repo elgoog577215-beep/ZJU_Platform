@@ -1,8 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Key, Globe, Save, FileText, Palette } from "lucide-react";
+import {
+  Key,
+  Globe,
+  Save,
+  FileText,
+  Palette,
+  LayoutTemplate,
+  ShieldCheck,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
+import PageContentEditor from "./PageContentEditor";
 import {
   ACCENT_PRESETS,
   THEME_APPEARANCE_DEFAULTS,
@@ -18,6 +27,37 @@ import {
   useAdminTheme,
 } from "./AdminUI";
 
+const SETTINGS_SECTIONS = [
+  { id: "core", label: "站点与安全", icon: ShieldCheck },
+  { id: "appearance", label: "外观定制", icon: Palette },
+  { id: "pages", label: "页面文案", icon: FileText },
+  { id: "content", label: "页面内容", icon: LayoutTemplate },
+];
+
+const SettingsSectionNav = ({ value, onChange }) => (
+  <div className="mb-4 flex flex-wrap gap-2">
+    {SETTINGS_SECTIONS.map((section) => {
+      const SectionIcon = section.icon;
+      const isActive = value === section.id;
+      return (
+        <button
+          key={section.id}
+          type="button"
+          onClick={() => onChange(section.id)}
+          className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+            isActive
+              ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-400/40"
+              : "rect-surface-soft text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <SectionIcon size={16} />
+          {section.label}
+        </button>
+      );
+    })}
+  </div>
+);
+
 const SettingsManager = () => {
   const { updateSetting: updateGlobalSetting, uiMode: siteUiMode } = useSettings();
   const { isDayMode } = useAdminTheme();
@@ -25,6 +65,7 @@ const SettingsManager = () => {
   const [initialSettings, setInitialSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState("");
+  const [settingsSection, setSettingsSection] = useState("core");
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -113,6 +154,10 @@ const SettingsManager = () => {
       title="系统设置"
       description="这里只调整当前后端已经支持的配置项。字段显示为“已修改未保存”时，表示仅存在前端草稿。"
     >
+      <SettingsSectionNav value={settingsSection} onChange={setSettingsSection} />
+
+      {settingsSection === "core" && (
+        <>
       <AdminPanel
         title="安全设置"
         description="邀请码不会通过读取接口返回，所以这里只支持重新设置，不显示旧值。"
@@ -162,7 +207,11 @@ const SettingsManager = () => {
           </div>
         </div>
       </AdminPanel>
+        </>
+      )}
 
+      {settingsSection === "appearance" && (
+        <>
       <AdminPanel
         title="外观设置"
         description="主题色、通透度与背景参数会实时影响站点公共视觉，拖动即可预览，确认后点击保存。"
@@ -372,7 +421,11 @@ const SettingsManager = () => {
           </AdminInlineNote>
         </div>
       </AdminPanel>
+        </>
+      )}
 
+      {settingsSection === "pages" && (
+        <>
       <AdminPanel
         title="关于页面"
         description="关于页面的所有内容均可在此编辑，修改后前台实时生效。"
@@ -980,6 +1033,17 @@ const SettingsManager = () => {
           </AdminInlineNote>
         </div>
       </AdminPanel>
+        </>
+      )}
+
+      {settingsSection === "content" && (
+        <div className="flex flex-col gap-4">
+          <AdminInlineNote tone="info">
+            页面内容此前是独立菜单，现在已并入设置中心。这里编辑的是站点各页面的静态文案与配置。
+          </AdminInlineNote>
+          <PageContentEditor />
+        </div>
+      )}
     </AdminPageShell>
   );
 };

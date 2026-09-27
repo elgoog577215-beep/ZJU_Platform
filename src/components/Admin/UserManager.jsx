@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  ShieldOff,
   Trash2,
   User,
   Users,
@@ -98,6 +99,9 @@ const UserManager = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
 
   const currentLanguage = i18n.resolvedLanguage || i18n.language || "zh";
 
@@ -345,6 +349,135 @@ const UserManager = () => {
     }
   };
 
+  const selectedCount = selectedIds.length;
+  const visibleIds = useMemo(() => filteredUsers.map((user) => user.id), [filteredUsers]);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelect = (id) => {
+    setSelectedIds((previous) =>
+      previous.includes(id)
+        ? previous.filter((item) => item !== id)
+        : [...previous, id],
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((previous) =>
+      allVisibleSelected
+        ? previous.filter((id) => !visibleIds.includes(id))
+        : [...new Set([...previous, ...visibleIds])],
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setConfirmBatchDelete(false);
+  };
+
+  const runBatchAction = async (action, value) => {
+    if (selectedIds.length === 0) return;
+    setBatchBusy(true);
+    try {
+      const response = await api.post("/admin/users/bulk", {
+        ids: selectedIds,
+        action,
+        value,
+      });
+      const updated = Number(response.data?.updated) || 0;
+      const skipped = Number(response.data?.skipped) || 0;
+      if (action === "delete") {
+        toast.success(
+          skipped > 0
+            ? t("admin.user_manager_ui.batch_delete_partial", {
+                updated,
+                skipped,
+              }) || `已删除 ${updated} 个账号，${skipped} 个被跳过`
+            : t("admin.user_manager_ui.batch_delete_success", { count: updated }) ||
+                `已删除 ${updated} 个账号`,
+        );
+      } else {
+        toast.success(
+          skipped > 0
+            ? `已更新 ${updated} 个账号，${skipped} 个被跳过`
+            : `已更新 ${updated} 个账号`,
+        );
+      }
+      clearSelection();
+      await fetchUsers({ preserveCurrent: true });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error ||
+          t("admin.user_manager_ui.update_fail") ||
+          "批量操作失败",
+      );
+    } finally {
+      setBatchBusy(false);
+      setConfirmBatchDelete(false);
+    }
+  };
+
+  const renderBatchBar = () => {
+    if (selectedCount === 0) return null;
+    return (
+      <div
+        className={`mb-3 flex flex-wrap items-center gap-2 rounded-[8px] border p-3 ${
+          isDayMode
+            ? "border-indigo-300/60 bg-indigo-50"
+            : "border-indigo-400/30 bg-indigo-500/10"
+        }`}
+      >
+        <span className="text-sm font-semibold">
+          已选择 <span className="tabular-nums">{selectedCount}</span> 个账号
+        </span>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <AdminButton
+            tone="subtle"
+            disabled={batchBusy}
+            onClick={() => runBatchAction("review_permission", "trusted")}
+          >
+            <ShieldCheck size={16} />
+            设为可信任审核
+          </AdminButton>
+          <AdminButton
+            tone="subtle"
+            disabled={batchBusy}
+            onClick={() => runBatchAction("review_permission", "normal")}
+          >
+            <ShieldOff size={16} />
+            恢复普通审核
+          </AdminButton>
+          {confirmBatchDelete ? (
+            <>
+              <AdminButton
+                tone="danger"
+                disabled={batchBusy}
+                onClick={() => runBatchAction("delete")}
+              >
+                <Trash2 size={16} />
+                确认删除 {selectedCount} 个
+              </AdminButton>
+              <AdminButton tone="subtle" onClick={() => setConfirmBatchDelete(false)}>
+                取消
+              </AdminButton>
+            </>
+          ) : (
+            <AdminButton tone="danger" onClick={() => setConfirmBatchDelete(true)}>
+              <Trash2 size={16} />
+              批量删除
+            </AdminButton>
+          )}
+          <AdminButton tone="subtle" onClick={clearSelection}>
+            <X size={16} />
+            清空选择
+          </AdminButton>
+        </div>
+      </div>
+    );
+  };
+
+  const checkboxClassName = "h-4 w-4 cursor-pointer accent-indigo-500";
+
   const badgeClass = (tone) => {
     const map = {
       violet: isDayMode ? "border-violet-500/[0.18] bg-violet-500/10 text-violet-700" : "border-violet-500/20 bg-violet-500/15 text-violet-300",
@@ -419,7 +552,16 @@ const UserManager = () => {
           className={`rounded-[8px] border p-4 ${isDayMode ? "border-slate-200/70 bg-white/[0.78]" : "border-white/10 bg-white/[0.03]"}`}
         >
           <div className="flex items-start justify-between gap-3">
-            {renderUserIdentity(user)}
+            <div className="flex min-w-0 items-start gap-3">
+              <input
+                type="checkbox"
+                aria-label={`选择 ${user.username || user.id}`}
+                className={`${checkboxClassName} mt-1`}
+                checked={selectedIds.includes(user.id)}
+                onChange={() => toggleSelect(user.id)}
+              />
+              {renderUserIdentity(user)}
+            </div>
             <AdminIconButton label={t("admin.user_manager_ui.edit_user")} onClick={() => handleEdit(user)}>
               <Edit2 size={16} />
             </AdminIconButton>
@@ -474,6 +616,7 @@ const UserManager = () => {
           })}
         </AdminInlineNote>
       ) : null}
+      {renderBatchBar()}
 
       {filteredUsers.length === 0 ? (
         <AdminEmptyState
@@ -495,6 +638,15 @@ const UserManager = () => {
           <AdminTableShell minWidth={1120}>
             <thead>
               <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.16em]">
+                <th className="p-4">
+                  <input
+                    type="checkbox"
+                    aria-label="选择当前列表中的全部账号"
+                    className={checkboxClassName}
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                  />
+                </th>
                 <th className="p-4">{t("admin.user_manager_ui.col_user")}</th>
                 <th className="p-4">{t("admin.user_manager_ui.col_role")}</th>
                 <th className="p-4">{t("admin.user_manager_ui.col_account_type")}</th>
@@ -508,6 +660,15 @@ const UserManager = () => {
             <tbody className="theme-admin-table-body divide-y">
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="theme-admin-row">
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      aria-label={`选择 ${user.username || user.id}`}
+                      className={checkboxClassName}
+                      checked={selectedIds.includes(user.id)}
+                      onChange={() => toggleSelect(user.id)}
+                    />
+                  </td>
                   <td className="p-4">{renderUserIdentity(user)}</td>
                   <td className="p-4">{renderRoleBadge(user.role)}</td>
                   <td className="p-4">{renderAccountTypeBadge(user)}</td>
