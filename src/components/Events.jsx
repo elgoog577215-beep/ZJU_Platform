@@ -567,11 +567,11 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
             {...motionProps}
             data-testid="event-card"
             onClick={() => onClick(event)}
-            className={`event-mobile-row group relative grid min-h-[140px] cursor-pointer grid-cols-[106px_minmax(0,1fr)] gap-4 border-b py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+            className={`event-mobile-row group relative grid min-h-[140px] cursor-pointer grid-cols-[88px_minmax(0,1fr)] min-[390px]:grid-cols-[96px_minmax(0,1fr)] gap-3 border-b py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                 isDayMode ? "border-slate-200/80 text-slate-950" : "border-white/[0.08] text-white"
             }`}
         >
-            <div className="relative h-[106px] overflow-hidden rounded-[12px] bg-slate-900 min-[390px]:h-[110px]">
+            <div className="relative h-[96px] overflow-hidden rounded-[12px] bg-slate-900 min-[390px]:h-[104px]">
                 <SmartImage
                     src={getEventCoverUrl(event)}
                     alt={event.title}
@@ -634,13 +634,16 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
                     </div>
                 </div>
 
-                {event.target_audience && (
-                    <div
-                        className={`mt-auto truncate pt-2 text-[10px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
-                    >
-                        {formatEventAudience(event.target_audience)}
-                    </div>
-                )}
+                {event.target_audience &&
+                    !["浙江大学在校学生", "全校", "全体学生", "全校学生"].includes(
+                        event.target_audience.trim()
+                    ) && (
+                        <div
+                            className={`mt-auto truncate pt-2 text-[10px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                        >
+                            {formatEventAudience(event.target_audience)}
+                        </div>
+                    )}
             </div>
         </motion.article>
     );
@@ -1731,7 +1734,7 @@ END:VCALENDAR`;
                         aria-label={t("nav.more", "更多")}
                         aria-haspopup="dialog"
                         onClick={() => window.dispatchEvent(new Event("open-mobile-more-menu"))}
-                        className={`inline-flex h-9 w-9 items-center justify-center border-b border-transparent transition-[border-color,color] ${
+                        className={`inline-flex h-11 w-11 items-center justify-center border-b border-transparent transition-[border-color,color] ${
                             isDayMode
                                 ? "text-slate-600 hover:border-blue-500/60 hover:text-slate-950"
                                 : "text-slate-300 hover:border-indigo-400/70 hover:text-white"
@@ -1759,7 +1762,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] ${isDayMode ? "bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
+                            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] ${isDayMode ? "bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
                         >
                             <Plus size={19} strokeWidth={3} />
                         </motion.button>
@@ -1790,7 +1793,7 @@ END:VCALENDAR`;
                                     aria-selected={active}
                                     aria-pressed={active}
                                     onClick={() => handleMobileCategoryChange(tab.value)}
-                                    className={`inline-flex min-h-10 shrink-0 snap-start items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors ${
+                                    className={`inline-flex min-h-11 shrink-0 snap-start items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors ${
                                         active
                                             ? isDayMode
                                                 ? "border-blue-500 text-blue-700"
@@ -1824,7 +1827,7 @@ END:VCALENDAR`;
                         onClick={() => {
                             setIsMobileFilterOpen(true);
                         }}
-                        className={`inline-flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
+                        className={`inline-flex h-11 items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors ${isDayMode ? "text-slate-600 hover:text-slate-950" : "text-slate-300 hover:text-white"}`}
                     >
                         <SlidersHorizontal size={17} />
                         <span className="truncate">

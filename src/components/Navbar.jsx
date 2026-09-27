@@ -448,7 +448,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                         aria-label={t("nav.more", "更多")}
                         aria-expanded={isMobileMoreOpen}
                         onClick={() => setIsMobileMoreOpen(true)}
-                        className={`motion-press rect-icon-button inline-flex h-9 w-9 items-center justify-center p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
+                        className={`motion-press rect-icon-button inline-flex h-11 w-11 items-center justify-center p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
                     >
                         <Menu size={18} aria-hidden="true" />
                     </button>
@@ -468,7 +468,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
                             aria-label={t("common.upload", "上传")}
                             data-testid="mobile-upload-action"
                             onClick={handleUploadClick}
-                            className="motion-press rect-button-primary ml-1 inline-flex h-9 w-9 items-center justify-center p-0 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
+                            className="motion-press rect-button-primary ml-1 inline-flex h-11 w-11 items-center justify-center p-0 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
                         >
                             <Plus size={19} strokeWidth={3} />
                         </button>

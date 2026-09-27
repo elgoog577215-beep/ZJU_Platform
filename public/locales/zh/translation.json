@@ -2126,6 +2126,8 @@
         "title": "活动集合",
         "subtitle": "从讲座、竞赛和志愿活动，到项目招募与 AI 实践，在信息共享平台找到下一次行动。",
         "organizations": {
+            "mobile_directory": "全部组织",
+            "mobile_search": "搜索组织名称",
             "aria": "社团活动筛选",
             "kicker": "合作社团",
             "title": "一起共创校园活动的社团",
