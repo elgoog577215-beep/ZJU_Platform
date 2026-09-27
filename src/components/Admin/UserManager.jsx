@@ -447,6 +447,22 @@ const UserManager = () => {
             <ShieldOff size={16} />
             恢复普通审核
           </AdminButton>
+          <AdminButton
+            tone="subtle"
+            disabled={batchBusy}
+            onClick={() => runBatchAction("account_type", "organization")}
+          >
+            <Building2 size={16} />
+            转为组织账号
+          </AdminButton>
+          <AdminButton
+            tone="subtle"
+            disabled={batchBusy}
+            onClick={() => runBatchAction("account_type", "personal")}
+          >
+            <User size={16} />
+            转为个人账号
+          </AdminButton>
           {confirmBatchDelete ? (
             <>
               <AdminButton

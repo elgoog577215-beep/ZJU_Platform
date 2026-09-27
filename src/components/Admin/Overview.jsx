@@ -361,6 +361,7 @@ const GrowthBadge = ({ change, isDayMode }) => {
 };
 
 const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange }) => {
+  const [hiddenKeys, setHiddenKeys] = useState([]);
   const axisColor = isDayMode ? "#64748b" : "#94a3b8";
   const gridColor = isDayMode ? "rgba(100, 116, 139, 0.18)" : "rgba(255, 255, 255, 0.08)";
   const tooltipStyle = {
@@ -383,10 +384,20 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
   const totalInRange = (key) =>
     data.reduce((sum, item) => sum + Number(item?.[key] || 0), 0);
 
+  const toggleSeries = (key) => {
+    setHiddenKeys((previous) => {
+      if (previous.includes(key)) {
+        return previous.filter((item) => item !== key);
+      }
+      if (series.length - previous.length <= 1) return previous;
+      return [...previous, key];
+    });
+  };
+
   return (
     <AdminPanel
       title="访问与报名趋势"
-      description="站点流量、活动浏览与报名的按天走势，用于判断内容节奏与活动效果。"
+      description="站点流量、活动浏览与报名的按天走势，用于判断内容节奏与活动效果。点击上方图例可隐藏/显示某条曲线，量级差异大时可单独查看。"
       action={
         <div
           className={`flex overflow-hidden rounded-lg border text-xs ${
@@ -474,24 +485,36 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
         ))}
       </div>
 
-      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-        {series.map((item) => (
-          <span
-            key={item.key}
-            className={`flex items-center gap-1.5 ${
-              isDayMode ? "text-slate-600" : "text-gray-300"
-            }`}
-          >
-            <span
-              className="inline-block h-2 w-2 rounded-full"
-              style={{ backgroundColor: item.color }}
-            />
-            {item.label}
-            <span className="tabular-nums opacity-70">
-              {new Intl.NumberFormat("zh-CN").format(totalInRange(item.key))}
-            </span>
-          </span>
-        ))}
+      <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+        {series.map((item) => {
+          const hidden = hiddenKeys.includes(item.key);
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => toggleSeries(item.key)}
+              title={hidden ? "点击重新显示该曲线" : "点击隐藏该曲线"}
+              className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 transition-colors ${
+                hidden
+                  ? isDayMode
+                    ? "border-slate-200 text-slate-400 line-through"
+                    : "border-white/10 text-gray-500 line-through"
+                  : isDayMode
+                    ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    : "border-white/10 bg-white/[0.04] text-gray-300 hover:bg-white/10"
+              }`}
+            >
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: item.color, opacity: hidden ? 0.35 : 1 }}
+              />
+              {item.label}
+              <span className="tabular-nums opacity-70">
+                {new Intl.NumberFormat("zh-CN").format(totalInRange(item.key))}
+              </span>
+            </button>
+          );
+        })}
         <span className={isDayMode ? "text-slate-400" : "text-gray-500"}>
           访问环比 <GrowthBadge change={growth?.viewsChange} isDayMode={isDayMode} />
         </span>
@@ -529,6 +552,7 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
               stroke={CHART_COLORS.views}
               strokeWidth={2}
               fill="url(#gradientViews)"
+              hide={hiddenKeys.includes("views")}
             />
             <Area
               type="monotone"
@@ -537,6 +561,7 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
               stroke={CHART_COLORS.visitors}
               strokeWidth={1.5}
               fill="transparent"
+              hide={hiddenKeys.includes("visitors")}
             />
             <Area
               type="monotone"
@@ -545,6 +570,7 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
               stroke={CHART_COLORS.eventViews}
               strokeWidth={1.5}
               fill="transparent"
+              hide={hiddenKeys.includes("eventViews")}
             />
             <Area
               type="monotone"
@@ -553,6 +579,7 @@ const TrendPanel = ({ trend, summary, growth, isDayMode, range, onRangeChange })
               stroke={CHART_COLORS.registrations}
               strokeWidth={1.5}
               fill="transparent"
+              hide={hiddenKeys.includes("registrations")}
             />
           </AreaChart>
         </ResponsiveContainer>
