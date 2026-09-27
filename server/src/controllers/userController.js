@@ -1032,6 +1032,95 @@ const deleteUser = async (req, res, next) => {
     }
 };
 
+const REVIEW_PERMISSION_VALUES = ["normal", "trusted", "admin"];
+const ACCOUNT_TYPE_VALUES = ["personal", "organization"];
+const MAX_BATCH_SIZE = 200;
+
+const bulkUpdateUsers = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const { ids, action, value } = req.body || {};
+
+        const requestedIds = Array.isArray(ids)
+            ? [
+                  ...new Set(
+                      ids.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)
+                  ),
+              ]
+            : [];
+        if (requestedIds.length === 0) {
+            return res.status(400).json({ error: "No valid users selected" });
+        }
+        if (requestedIds.length > MAX_BATCH_SIZE) {
+            return res
+                .status(400)
+                .json({ error: `Batch size is limited to ${MAX_BATCH_SIZE} users` });
+        }
+
+        // Never allow an administrator to act on their own account through batch tools.
+        const targetIds = requestedIds.filter((id) => id !== Number(req.user.id));
+        const skipped = requestedIds.length - targetIds.length;
+        if (targetIds.length === 0) {
+            return res
+                .status(400)
+                .json({ error: "Cannot apply batch actions to your own account" });
+        }
+
+        const placeholders = targetIds.map(() => "?").join(",");
+
+        if (action === "delete") {
+            // Foreign keys cascade only relationships of accounts actually deleted.
+            // Admin accounts are protected: revoke platform access before deleting them.
+            const result = await db.run(
+                `DELETE FROM users WHERE id IN (${placeholders}) AND role != 'admin'`,
+                targetIds
+            );
+            return res.json({
+                message: `Deleted ${result.changes} user(s)`,
+                updated: result.changes,
+                skipped: skipped + (targetIds.length - result.changes),
+                protectedAdmins: targetIds.length - result.changes,
+            });
+        }
+
+        if (action === "review_permission") {
+            const nextValue = String(value || "");
+            if (!REVIEW_PERMISSION_VALUES.includes(nextValue)) {
+                return res.status(400).json({ error: "Invalid review permission value" });
+            }
+            const result = await db.run(
+                `UPDATE users SET review_permission = ? WHERE id IN (${placeholders}) AND role != 'admin'`,
+                [nextValue, ...targetIds]
+            );
+            return res.json({
+                message: `Updated ${result.changes} user(s)`,
+                updated: result.changes,
+                skipped: skipped + (targetIds.length - result.changes),
+            });
+        }
+
+        if (action === "account_type") {
+            const nextValue = String(value || "");
+            if (!ACCOUNT_TYPE_VALUES.includes(nextValue)) {
+                return res.status(400).json({ error: "Invalid account type value" });
+            }
+            const result = await db.run(
+                `UPDATE users SET account_type = ? WHERE id IN (${placeholders}) AND role != 'admin'`,
+                [nextValue, ...targetIds]
+            );
+            return res.json({
+                message: `Updated ${result.changes} user(s)`,
+                updated: result.changes,
+                skipped: skipped + (targetIds.length - result.changes),
+            });
+        }
+
+        return res.status(400).json({ error: "Unsupported batch action" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getPublicProfile = async (req, res, next) => {
     try {
         const db = await getDb();
@@ -1861,6 +1950,7 @@ module.exports = {
     adminUpdateOutcomeLink,
     createCandidateLinksForWork,
     deleteUser,
+    bulkUpdateUsers,
     getPublicProfile,
     getUserResources,
     getUserCompetitionWorks,

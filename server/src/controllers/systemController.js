@@ -145,10 +145,15 @@ const getSiteMetrics = async (req, res, next) => {
     try {
         const db = await getDb();
         const today = getDateKey();
-        const recentDateKeys = generateRecentDateKeys(7);
-        const sevenDaysAgo = recentDateKeys[0];
-        const previousWindowStart = getDateKey(new Date(Date.now() - 13 * 24 * 60 * 60 * 1000));
-        const previousWindowEnd = getDateKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+        const requestedDays = Number.parseInt(req.query?.days, 10);
+        const trendDays = [7, 14, 30].includes(requestedDays) ? requestedDays : 7;
+        const recentDateKeys = generateRecentDateKeys(trendDays);
+        const windowStart = recentDateKeys[0];
+        // 上一周期用于计算环比增长率，窗口长度与当前周期一致
+        const previousWindowStart = getDateKey(
+            new Date(Date.now() - (trendDays * 2 - 1) * 24 * 60 * 60 * 1000)
+        );
+        const previousWindowEnd = windowStart;
         const contentTables = ["photos", "music", "videos", "articles", "events"];
 
         const contentStats = await Promise.all(
@@ -242,7 +247,7 @@ const getSiteMetrics = async (req, res, next) => {
             GROUP BY date_key
             ORDER BY date_key ASC
         `,
-                [sevenDaysAgo]
+                [windowStart]
             )
             .catch(() => []);
 
@@ -255,7 +260,7 @@ const getSiteMetrics = async (req, res, next) => {
             GROUP BY date_key
             ORDER BY date_key ASC
         `,
-                [sevenDaysAgo]
+                [windowStart]
             )
             .catch(() => []);
 
@@ -278,7 +283,34 @@ const getSiteMetrics = async (req, res, next) => {
             GROUP BY date_key
             ORDER BY date_key ASC
         `,
-                [sevenDaysAgo]
+                [windowStart]
+            )
+            .catch(() => []);
+
+        const eventViewsTrendRows = await db
+            .all(
+                `
+            SELECT date_key, COUNT(*) as views
+            FROM event_view_events
+            WHERE date_key >= ?
+            GROUP BY date_key
+            ORDER BY date_key ASC
+        `,
+                [windowStart]
+            )
+            .catch(() => []);
+
+        const registrationsTrendRows = await db
+            .all(
+                `
+            SELECT substr(created_at, 1, 10) as date_key, COUNT(*) as count
+            FROM event_registrations
+            WHERE created_at IS NOT NULL
+              AND substr(created_at, 1, 10) >= ?
+            GROUP BY substr(created_at, 1, 10)
+            ORDER BY date_key ASC
+        `,
+                [windowStart]
             )
             .catch(() => []);
 
@@ -309,7 +341,7 @@ const getSiteMetrics = async (req, res, next) => {
             FROM site_visit_events
             WHERE date_key >= ?
         `,
-                [sevenDaysAgo]
+                [windowStart]
             )
             .catch(() => ({ count: 0 }));
 
@@ -340,7 +372,7 @@ const getSiteMetrics = async (req, res, next) => {
                 SELECT COUNT(*) as upload_count FROM events WHERE deleted_at IS NULL AND substr(created_at, 1, 10) >= ?
             )
         `,
-                [sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo, sevenDaysAgo]
+                [windowStart, windowStart, windowStart, windowStart, windowStart]
             )
             .catch(() => ({ count: 0 }));
 
@@ -380,6 +412,12 @@ const getSiteMetrics = async (req, res, next) => {
             uniqueVisitorsTrendRows.map((row) => [row.date_key, row.visitors])
         );
         const uploadsTrendMap = new Map(uploadTrendRows.map((row) => [row.date_key, row.uploads]));
+        const eventViewsTrendMap = new Map(
+            eventViewsTrendRows.map((row) => [row.date_key, row.views])
+        );
+        const registrationsTrendMap = new Map(
+            registrationsTrendRows.map((row) => [row.date_key, row.count])
+        );
 
         const trend = recentDateKeys.map((dateKey) => ({
             date: dateKey,
@@ -387,6 +425,8 @@ const getSiteMetrics = async (req, res, next) => {
             views: visitsTrendMap.get(dateKey) || 0,
             visitors: visitorsTrendMap.get(dateKey) || 0,
             uploads: uploadsTrendMap.get(dateKey) || 0,
+            eventViews: eventViewsTrendMap.get(dateKey) || 0,
+            registrations: registrationsTrendMap.get(dateKey) || 0,
         }));
 
         const growthRate = (current, previous) => {
@@ -422,6 +462,7 @@ const getSiteMetrics = async (req, res, next) => {
                 activeCreators: activeCreatorsRow?.count || 0,
             },
             growth: {
+                periodDays: trendDays,
                 views7d: currentPeriodViews?.count || 0,
                 uploads7d: currentPeriodUploads?.count || 0,
                 viewsChange: growthRate(

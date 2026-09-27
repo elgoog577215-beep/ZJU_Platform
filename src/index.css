@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+.theme-appearance-preview {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
@@ -43,7 +44,8 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-:root[data-theme="day"] {
+:root[data-theme="day"],
+.theme-appearance-preview[data-theme="day"] {
     color-scheme: light;
     background-color: #ffffff;
     color: #0f172a;
@@ -299,14 +301,14 @@ img {
     /* Premium Glass Effect */
     .glass-panel {
         background: var(--theme-bg-soft);
-        backdrop-filter: blur(24px);
+        backdrop-filter: blur(var(--theme-glass-blur, 24px));
         border: 1px solid var(--theme-border);
         box-shadow: var(--theme-shadow);
     }
 
     .glass-panel-heavy {
         background: var(--theme-surface-strong);
-        backdrop-filter: blur(24px);
+        backdrop-filter: blur(var(--theme-glass-blur, 24px));
         border: 1px solid var(--theme-border-strong);
     }
 
@@ -394,7 +396,7 @@ img {
 
     .theme-overlay-backdrop {
         background: var(--theme-overlay-soft);
-        backdrop-filter: blur(18px);
+        backdrop-filter: blur(var(--theme-glass-blur, 18px));
     }
 
     .theme-dialog {

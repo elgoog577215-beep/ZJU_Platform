@@ -8,6 +8,7 @@ import {
     RefreshCw,
     Search,
     ShieldCheck,
+    ShieldOff,
     Trash2,
     User,
     Users,
@@ -99,6 +100,9 @@ const UserManager = () => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [batchBusy, setBatchBusy] = useState(false);
+    const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
 
     const currentLanguage = i18n.resolvedLanguage || i18n.language || "zh";
 
@@ -377,6 +381,140 @@ const UserManager = () => {
         }
     };
 
+    const selectedCount = selectedIds.length;
+    const visibleIds = useMemo(
+        () => filteredUsers.slice(0, 200).map((user) => user.id),
+        [filteredUsers]
+    );
+    const allVisibleSelected =
+        visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+
+    const toggleSelect = (id) => {
+        if (batchBusy) return;
+        if (!selectedIds.includes(id) && selectedIds.length >= 200) {
+            toast.error(t("admin.user_manager_ui.batch_limit"));
+            return;
+        }
+        setConfirmBatchDelete(false);
+        setSelectedIds((previous) =>
+            previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]
+        );
+    };
+
+    const toggleSelectAllVisible = () => {
+        if (batchBusy) return;
+        setConfirmBatchDelete(false);
+        setSelectedIds((previous) =>
+            allVisibleSelected
+                ? previous.filter((id) => !visibleIds.includes(id))
+                : [...new Set([...previous, ...visibleIds])].slice(0, 200)
+        );
+    };
+
+    const clearSelection = () => {
+        setSelectedIds([]);
+        setConfirmBatchDelete(false);
+    };
+
+    const runBatchAction = async (action, value) => {
+        if (selectedIds.length === 0 || batchBusy) return;
+        setBatchBusy(true);
+        try {
+            const response = await api.post("/admin/users/bulk", {
+                ids: selectedIds,
+                action,
+                value,
+            });
+            const updated = Number(response.data?.updated) || 0;
+            const skipped = Number(response.data?.skipped) || 0;
+            toast.success(t("admin.user_manager_ui.batch_result", { updated, skipped }));
+            clearSelection();
+            await fetchUsers({ preserveCurrent: true });
+        } catch (error) {
+            toast.error(error.response?.data?.error || t("admin.user_manager_ui.update_fail"));
+        } finally {
+            setBatchBusy(false);
+            setConfirmBatchDelete(false);
+        }
+    };
+
+    const renderBatchBar = () => {
+        if (selectedCount === 0) return null;
+        return (
+            <div
+                className={`mb-3 flex flex-wrap items-center gap-2 rounded-[8px] border p-3 ${
+                    isDayMode
+                        ? "border-indigo-300/60 bg-indigo-50"
+                        : "border-indigo-400/30 bg-indigo-500/10"
+                }`}
+            >
+                <span className="text-sm font-semibold">
+                    {t("admin.user_manager_ui.batch_selected", { count: selectedCount })}
+                </span>
+                <div className="ml-auto flex flex-wrap gap-2">
+                    <AdminButton
+                        tone="subtle"
+                        disabled={batchBusy}
+                        onClick={() => runBatchAction("review_permission", "trusted")}
+                    >
+                        <ShieldCheck size={16} />
+                        {t("admin.user_manager_ui.batch_trusted", { count: selectedCount })}
+                    </AdminButton>
+                    <AdminButton
+                        tone="subtle"
+                        disabled={batchBusy}
+                        onClick={() => runBatchAction("review_permission", "normal")}
+                    >
+                        <ShieldOff size={16} />
+                        {t("admin.user_manager_ui.batch_normal", { count: selectedCount })}
+                    </AdminButton>
+                    <AdminButton
+                        tone="subtle"
+                        disabled={batchBusy}
+                        onClick={() => runBatchAction("account_type", "organization")}
+                    >
+                        <Building2 size={16} />
+                        {t("admin.user_manager_ui.batch_organization", { count: selectedCount })}
+                    </AdminButton>
+                    <AdminButton
+                        tone="subtle"
+                        disabled={batchBusy}
+                        onClick={() => runBatchAction("account_type", "personal")}
+                    >
+                        <User size={16} />
+                        {t("admin.user_manager_ui.batch_personal", { count: selectedCount })}
+                    </AdminButton>
+                    {confirmBatchDelete ? (
+                        <>
+                            <AdminButton
+                                tone="danger"
+                                disabled={batchBusy}
+                                onClick={() => runBatchAction("delete")}
+                            >
+                                <Trash2 size={16} />
+                                {t("admin.user_manager_ui.batch_confirm", { count: selectedCount })}
+                            </AdminButton>
+                            <AdminButton tone="subtle" onClick={() => setConfirmBatchDelete(false)}>
+                                {t("admin.user_manager_ui.batch_cancel")}
+                            </AdminButton>
+                        </>
+                    ) : (
+                        <AdminButton tone="danger" onClick={() => setConfirmBatchDelete(true)}>
+                            <Trash2 size={16} />
+                            {t("admin.user_manager_ui.batch_delete", { count: selectedCount })}
+                        </AdminButton>
+                    )}
+                    <AdminButton tone="subtle" onClick={clearSelection}>
+                        <X size={16} />
+                        {t("admin.user_manager_ui.batch_clear", { count: selectedCount })}
+                    </AdminButton>
+                </div>
+            </div>
+        );
+    };
+
+    const checkboxClassName = "h-4 w-4 cursor-pointer accent-indigo-500";
+
     const badgeClass = (tone) => {
         const map = {
             violet: isDayMode
@@ -475,7 +613,18 @@ const UserManager = () => {
                     className={`rounded-[8px] border p-4 ${isDayMode ? "border-slate-200/70 bg-white/[0.78]" : "border-white/10 bg-white/[0.03]"}`}
                 >
                     <div className="flex items-start justify-between gap-3">
-                        {renderUserIdentity(user)}
+                        <div className="flex min-w-0 items-start gap-3">
+                            <input
+                                type="checkbox"
+                                aria-label={t("admin.user_manager_ui.batch_select_user", {
+                                    name: user.username || user.id,
+                                })}
+                                className={`${checkboxClassName} mt-1`}
+                                checked={selectedIds.includes(user.id)}
+                                onChange={() => toggleSelect(user.id)}
+                            />
+                            {renderUserIdentity(user)}
+                        </div>
                         <AdminIconButton
                             label={t("admin.user_manager_ui.edit_user")}
                             onClick={() => handleEdit(user)}
@@ -539,6 +688,7 @@ const UserManager = () => {
                     })}
                 </AdminInlineNote>
             ) : null}
+            {renderBatchBar()}
 
             {filteredUsers.length === 0 ? (
                 <AdminEmptyState
@@ -560,6 +710,15 @@ const UserManager = () => {
                     <AdminTableShell minWidth={1120}>
                         <thead>
                             <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.16em]">
+                                <th className="p-4">
+                                    <input
+                                        type="checkbox"
+                                        aria-label={t("admin.user_manager_ui.batch_select_all")}
+                                        className={checkboxClassName}
+                                        checked={allVisibleSelected}
+                                        onChange={toggleSelectAllVisible}
+                                    />
+                                </th>
                                 <th className="p-4">{t("admin.user_manager_ui.col_user")}</th>
                                 <th className="p-4">{t("admin.user_manager_ui.col_role")}</th>
                                 <th className="p-4">
@@ -579,6 +738,18 @@ const UserManager = () => {
                         <tbody className="theme-admin-table-body divide-y">
                             {filteredUsers.map((user) => (
                                 <tr key={user.id} className="theme-admin-row">
+                                    <td className="p-4">
+                                        <input
+                                            type="checkbox"
+                                            aria-label={t(
+                                                "admin.user_manager_ui.batch_select_user",
+                                                { name: user.username || user.id }
+                                            )}
+                                            className={checkboxClassName}
+                                            checked={selectedIds.includes(user.id)}
+                                            onChange={() => toggleSelect(user.id)}
+                                        />
+                                    </td>
                                     <td className="p-4">{renderUserIdentity(user)}</td>
                                     <td className="p-4">{renderRoleBadge(user.role)}</td>
                                     <td className="p-4">{renderAccountTypeBadge(user)}</td>

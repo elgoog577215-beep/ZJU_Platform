@@ -2759,7 +2759,8 @@
             "tabs": {
                 "general": "基础与安全",
                 "appearance": "公共外观",
-                "about": "关于站点"
+                "about": "关于站点",
+                "content": "页面内容"
             },
             "actions": {
                 "saving": "保存中...",
@@ -2794,7 +2795,7 @@
             },
             "appearance": {
                 "title": "公共外观",
-                "description": "实时预览并统一调整全站公共背景。",
+                "description": "预览并统一调整全站背景、强调色和面板。",
                 "preview": "实时预览",
                 "preview_mode_label": "切换背景预览主题",
                 "preview_modes": {
@@ -2805,7 +2806,7 @@
                 "preview_title": "正文内容始终保持清晰",
                 "saved": "所有设置已保存",
                 "unsaved": "{{count}} 项未保存",
-                "save": "保存公共背景",
+                "save": "保存公共外观",
                 "reset": "恢复推荐值",
                 "fields": {
                     "background_brightness": "背景亮度",
@@ -3361,7 +3362,20 @@
             "delete_title": "确认删除用户",
             "delete_desc": "即将删除 {{username}}，该操作不可撤销。后端会阻止删除当前登录账号。",
             "delete_confirm": "确认删除",
-            "deleting": "删除中..."
+            "deleting": "删除中...",
+            "batch_result": "已处理 {{updated}} 个账号，跳过 {{skipped}} 个",
+            "batch_selected": "已选择 {{count}} 个账号",
+            "batch_trusted": "设为可信任审核",
+            "batch_normal": "恢复普通审核",
+            "batch_organization": "转为组织账号",
+            "batch_personal": "转为个人账号",
+            "batch_confirm": "确认删除 {{count}} 个",
+            "batch_delete": "批量删除",
+            "batch_clear": "清空选择",
+            "batch_cancel": "取消",
+            "batch_select_user": "选择 {{name}}",
+            "batch_select_all": "选择当前列表（最多 200 个账号）",
+            "batch_limit": "每次最多选择 200 个账号"
         },
         "pending_review_ui": {
             "load_fail": "加载待审核项目失败",
@@ -4090,6 +4104,34 @@
                 "response_too_large": "响应超过大小限制"
             },
             "visionQueued": "图片文字识别与配图：等待处理"
+        },
+        "charts": {
+            "trend_title": "访问与报名趋势",
+            "trend_help": "按天查看站点流量、活动浏览和报名；点击图例可隐藏或显示曲线。",
+            "days": "近 {{count}} 天",
+            "load_error": "统计加载失败，请重试。",
+            "todayViews": "今日访问",
+            "todayVisitors": "今日独立访客",
+            "todayUploads": "今日内容上传",
+            "totalVisitors": "累计访客人次",
+            "views": "站点访问",
+            "visitors": "每日独立访客",
+            "eventViews": "活动浏览",
+            "registrations": "活动报名",
+            "growth": "访问环比（前 {{count}} 天）：{{value}}%",
+            "composition": "内容构成",
+            "hot_events": "活动热度"
+        },
+        "theme": {
+            "title": "主题与面板",
+            "theme_accent": "强调色",
+            "theme_bg_color": "暗色背景色",
+            "theme_card_opacity": "面板不透明度",
+            "theme_glass_blur": "毛玻璃模糊",
+            "default": "主题默认",
+            "color": "使用 {{value}}",
+            "preview": "主题预览",
+            "preview_help": "调整仅在此处预览，保存后应用到全站。"
         }
     },
     "not_found": {

@@ -35,3 +35,21 @@ test("settings validation still rejects unknown keys", async () => {
     const errors = await validateSettingsPayload({ key: "background_css", value: "url(x)" });
     assert.equal(errors[0]?.msg, "Invalid setting key");
 });
+
+test("theme colors reject CSS injection while allowing defaults and hex colors", async () => {
+    for (const key of ["theme_accent", "theme_bg_color"]) {
+        for (const value of ["", "#abc", "#A1B2C3"]) {
+            assert.deepEqual(await validateSettingsPayload({ key, value }), []);
+        }
+        for (const value of ["red; background:url(x)", "red", {}, 123]) {
+            assert.ok((await validateSettingsPayload({ key, value })).length > 0);
+        }
+    }
+});
+
+test("numeric theme settings preserve zero blur and reject coercion of empty values", async () => {
+    assert.deepEqual(await validateSettingsPayload({ key: "theme_glass_blur", value: "0" }), []);
+    for (const value of ["", false, [], {}]) {
+        assert.ok((await validateSettingsPayload({ key: "theme_glass_blur", value })).length > 0);
+    }
+});

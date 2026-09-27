@@ -15,6 +15,10 @@ import {
     useAdminTheme,
 } from "./AdminUI";
 
+import PageContentEditor from "./PageContentEditor";
+import ThemeAppearanceControls from "./ThemeAppearanceControls";
+import { THEME_APPEARANCE_DEFAULTS, THEME_APPEARANCE_KEYS } from "../../constants/themeAppearance";
+
 const ABOUT_GROUPS = [
     {
         id: "identity",
@@ -120,6 +124,7 @@ const formatAppearanceValue = (value) => `${Math.round(value * 100)}%`;
 const AppearanceSettingsWorkspace = ({
     appearancePreviewMode,
     appearanceValues,
+    settings,
     dirtyCount,
     isDayMode,
     onChange,
@@ -265,6 +270,12 @@ const AppearanceSettingsWorkspace = ({
                     })}
                 </div>
 
+                <ThemeAppearanceControls
+                    settings={settings}
+                    onChange={onChange}
+                    mode={appearancePreviewMode}
+                    disabled={saving}
+                />
                 <div className="mt-5 flex flex-col-reverse gap-2 border-t border-[var(--theme-border)] pt-4 sm:flex-row sm:justify-end">
                     <AdminButton tone="subtle" onClick={onReset} disabled={saving}>
                         <RotateCcw size={16} />
@@ -304,7 +315,7 @@ const SettingsManager = () => {
         setLoadError(false);
         try {
             const response = await api.get("/settings");
-            const nextSettings = response.data || {};
+            const nextSettings = { ...THEME_APPEARANCE_DEFAULTS, ...(response.data || {}) };
             setSettings(nextSettings);
             setInitialSettings(nextSettings);
         } catch {
@@ -352,13 +363,15 @@ const SettingsManager = () => {
             ),
         [settings]
     );
-    const dirtyAppearanceKeys = APPEARANCE_FIELDS.filter((field) => dirtyMap[field.key]).map(
-        (field) => field.key
-    );
+    const dirtyAppearanceKeys = [
+        ...APPEARANCE_FIELDS.map((field) => field.key),
+        ...THEME_APPEARANCE_KEYS,
+    ].filter((key) => dirtyMap[key]);
 
     const handleResetAppearance = () => {
         setSettings((previous) => ({
             ...previous,
+            ...THEME_APPEARANCE_DEFAULTS,
             ...Object.fromEntries(
                 APPEARANCE_FIELDS.map((field) => [field.key, String(field.recommended)])
             ),
@@ -477,7 +490,7 @@ const SettingsManager = () => {
                     role="tablist"
                     aria-label={t("admin.settings_console.navigation")}
                 >
-                    {["general", "appearance", "about"].map((id) => (
+                    {["general", "appearance", "about", "content"].map((id) => (
                         <FilterChip
                             key={id}
                             role="tab"
@@ -604,6 +617,7 @@ const SettingsManager = () => {
                     <AppearanceSettingsWorkspace
                         appearancePreviewMode={appearancePreviewMode}
                         appearanceValues={appearanceValues}
+                        settings={settings}
                         dirtyCount={dirtyAppearanceKeys.length}
                         isDayMode={isDayMode}
                         onChange={handleChange}
@@ -615,6 +629,8 @@ const SettingsManager = () => {
                     />
                 </AdminPanel>
             ) : null}
+
+            {activeSection === "content" ? <PageContentEditor /> : null}
 
             {activeSection === "about" ? (
                 <AdminPanel

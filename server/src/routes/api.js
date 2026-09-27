@@ -272,6 +272,7 @@ router.get(
 );
 router.put("/admin/users/:id", authenticateToken, isAdmin, userController.updateUser);
 router.delete("/admin/users/:id", authenticateToken, isAdmin, userController.deleteUser);
+router.post("/admin/users/bulk", authenticateToken, isAdmin, userController.bulkUpdateUsers);
 router.post(
     "/admin/outcome-links",
     authenticateToken,

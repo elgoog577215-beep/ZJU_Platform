@@ -2694,7 +2694,8 @@
             "tabs": {
                 "general": "General & Security",
                 "appearance": "Public Appearance",
-                "about": "About Page"
+                "about": "About Page",
+                "content": "Page content"
             },
             "actions": {
                 "saving": "Saving...",
@@ -2729,7 +2730,7 @@
             },
             "appearance": {
                 "title": "Public Appearance",
-                "description": "Preview and tune the shared public background in one place.",
+                "description": "Preview and adjust the site background, accent color and panels.",
                 "preview": "Live preview",
                 "preview_mode_label": "Switch background preview theme",
                 "preview_modes": {
@@ -2740,7 +2741,7 @@
                 "preview_title": "Foreground content stays clear",
                 "saved": "All settings saved",
                 "unsaved": "{{count}} unsaved",
-                "save": "Save public background",
+                "save": "Save public appearance",
                 "reset": "Restore recommended",
                 "fields": {
                     "background_brightness": "Background brightness",
@@ -3305,7 +3306,20 @@
             "delete_title": "Confirm User Deletion",
             "delete_desc": "You are about to delete {{username}}. This cannot be undone. The backend blocks deleting the currently signed-in account.",
             "delete_confirm": "Delete User",
-            "deleting": "Deleting..."
+            "deleting": "Deleting...",
+            "batch_result": "Processed {{updated}} accounts; skipped {{skipped}}",
+            "batch_selected": "{{count}} accounts selected",
+            "batch_trusted": "Set trusted review",
+            "batch_normal": "Set normal review",
+            "batch_organization": "Set organization account",
+            "batch_personal": "Set personal account",
+            "batch_confirm": "Confirm deleting {{count}} accounts",
+            "batch_delete": "Delete selected",
+            "batch_clear": "Clear selection",
+            "batch_cancel": "Cancel",
+            "batch_select_user": "Select {{name}}",
+            "batch_select_all": "Select this list (up to 200 accounts)",
+            "batch_limit": "Select up to 200 accounts at a time"
         },
         "pending_review_ui": {
             "loading": "Loading pending items...",
@@ -4034,6 +4048,34 @@
                 "response_too_large": "Response exceeded size limit"
             },
             "visionQueued": "Image OCR and selection: queued"
+        },
+        "charts": {
+            "trend_title": "Visits and registrations",
+            "trend_help": "View daily site traffic, event views and registrations. Toggle a series using its legend.",
+            "days": "Last {{count}} days",
+            "load_error": "Unable to load metrics. Please retry.",
+            "todayViews": "Visits today",
+            "todayVisitors": "Visitors today",
+            "todayUploads": "Uploads today",
+            "totalVisitors": "Cumulative daily visitors",
+            "views": "Site visits",
+            "visitors": "Daily visitors",
+            "eventViews": "Event views",
+            "registrations": "Registrations",
+            "growth": "Visits vs. previous {{count}} days: {{value}}%",
+            "composition": "Content composition",
+            "hot_events": "Event popularity"
+        },
+        "theme": {
+            "title": "Theme and panels",
+            "theme_accent": "Accent color",
+            "theme_bg_color": "Dark background color",
+            "theme_card_opacity": "Panel opacity",
+            "theme_glass_blur": "Glass blur",
+            "default": "Theme default",
+            "color": "Use {{value}}",
+            "preview": "Theme preview",
+            "preview_help": "Changes preview here. Save to apply across the site."
         }
     },
     "not_found": {

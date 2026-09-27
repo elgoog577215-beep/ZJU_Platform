@@ -38,6 +38,8 @@ const changePasswordValidation = [
 ];
 
 const APPEARANCE_SETTING_RANGES = {
+    theme_card_opacity: { min: 20, max: 100 },
+    theme_glass_blur: { min: 0, max: 40 },
     background_brightness: { min: 0.5, max: 1.4 },
     background_opacity: { min: 0.25, max: 1 },
     background_bloom: { min: 0, max: 1.5 },
@@ -101,6 +103,8 @@ const EDITABLE_SETTING_KEYS = [
     "about_final_desc",
     "about_final_note",
     ...Object.keys(APPEARANCE_SETTING_RANGES),
+    "theme_accent",
+    "theme_bg_color",
 ];
 
 const settingsValidation = [
@@ -109,11 +113,21 @@ const settingsValidation = [
         .exists({ values: "null" })
         .withMessage("Value is required")
         .custom((value, { req }) => {
+            if (["theme_accent", "theme_bg_color"].includes(req.body.key)) {
+                if (typeof value !== "string" || !/^(?:#[0-9a-f]{3}|#[0-9a-f]{6})?$/i.test(value)) {
+                    throw new Error("Theme color must be empty or a hex color");
+                }
+                return true;
+            }
             const range = APPEARANCE_SETTING_RANGES[req.body.key];
             if (!range) return true;
 
             const numericValue = Number(value);
-            if (!Number.isFinite(numericValue)) {
+            if (
+                !["number", "string"].includes(typeof value) ||
+                String(value).trim() === "" ||
+                !Number.isFinite(numericValue)
+            ) {
                 throw new Error("Appearance setting must be numeric");
             }
             if (numericValue < range.min || numericValue > range.max) {

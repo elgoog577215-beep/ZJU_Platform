@@ -12,6 +12,8 @@ import {
     useAdminTheme,
 } from "./AdminUI";
 
+import { VisitTrends, ContentComposition, HotEventsChart } from "./OverviewCharts";
+
 const DEFAULT_STATS = {
     counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
     breakdown: {},
@@ -199,6 +201,8 @@ const Overview = ({ onChangeTab, allowedTabs, isPlatformAdmin = true }) => {
                 </div>
             </AdminPanel>
 
+            <VisitTrends refreshKey={stats} />
+
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
                 <AdminPanel title={t("admin.overview_ui.priority", "当前工作")}>
                     <div className="divide-y divide-[rgba(128,146,167,0.14)]">
@@ -230,6 +234,7 @@ const Overview = ({ onChangeTab, allowedTabs, isPlatformAdmin = true }) => {
                 </AdminPanel>
 
                 <AdminPanel title={t("admin.overview_ui.inventory", "内容状态")}>
+                    <ContentComposition counts={stats.counts} />
                     <div className="grid grid-cols-[minmax(0,1fr)_64px_64px_64px] gap-2 border-b border-[rgba(128,146,167,0.14)] pb-2 text-xs">
                         <span className={mutedTextClass}>
                             {t("admin.overview_ui.type", "类型")}
@@ -290,6 +295,7 @@ const Overview = ({ onChangeTab, allowedTabs, isPlatformAdmin = true }) => {
                     </AdminButton>
                 }
             >
+                <HotEventsChart events={hotEvents} />
                 {hotEvents.length > 0 ? (
                     <div className="divide-y divide-[rgba(128,146,167,0.14)]">
                         {hotEvents.slice(0, 3).map((event) => (

@@ -643,7 +643,7 @@ test.describe("admin console refinement", () => {
                 request.method() === "POST" &&
                 request.postDataJSON().key === "background_opacity"
         );
-        await page.getByRole("button", { name: "保存公共背景" }).click();
+        await page.getByRole("button", { name: "保存公共外观" }).click();
         await settingsRequest;
         await expect(page.getByText("所有设置已保存")).toBeVisible();
 
