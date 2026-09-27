@@ -1,35 +1,34 @@
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+const sqlite3 = require("sqlite3");
+const { open } = require("sqlite");
 
-const { runEventAssistantTurn } = require('../src/utils/eventAssistant');
+const { runEventAssistantTurn } = require("../src/utils/eventAssistant");
+const { resolveTaskRuntimePolicy } = require("../src/services/unifiedAiRuntimeService");
 const {
-  resolveTaskRuntimePolicy,
-} = require('../src/services/unifiedAiRuntimeService');
-const {
-  getProfileCoverage,
-  refreshEventProfileIndex,
-} = require('../src/services/eventAiProfileService');
+    getProfileCoverage,
+    refreshEventProfileIndex,
+} = require("../src/services/eventAiProfileService");
 
 const assert = (condition, message) => {
-  if (!condition) {
-    throw new Error(message);
-  }
+    if (!condition) {
+        throw new Error(message);
+    }
 };
 
 const daysFromNow = (days, hour = 14) => {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  date.setHours(hour, 0, 0, 0);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00`;
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    date.setHours(hour, 0, 0, 0);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00`;
 };
 
-const openMemoryDb = () => open({
-  filename: ':memory:',
-  driver: sqlite3.Database
-});
+const openMemoryDb = () =>
+    open({
+        filename: ":memory:",
+        driver: sqlite3.Database,
+    });
 
 const setupSchema = async (db) => {
-  await db.exec(`
+    await db.exec(`
     CREATE TABLE users (
       id INTEGER PRIMARY KEY,
       username TEXT,
@@ -156,288 +155,338 @@ const setupSchema = async (db) => {
 };
 
 const seedEvents = async (db) => {
-  await db.run(
-    `
+    await db.run(
+        `
       INSERT INTO events (
         title, date, end_date, location, image, description, content, score,
         target_audience, organizer, volunteer_time, status, deleted_at,
         category, views, featured, likes
       ) VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, 'approved', NULL, ?, ?, ?, ?)
     `,
-    [
-      'AI 创新应用工作坊',
-      daysFromNow(3, 19),
-      daysFromNow(3, 21),
-      '紫金港校区 创意空间',
-      '面向对 AI 应用和项目实践感兴趣的学生，现场完成小组实践。',
-      '<p>AI practice</p>',
-      '综测 0.5',
-      '全校学生',
-      '计算机学院',
-      '',
-      'lecture',
-      12,
-      0,
-      2
-    ]
-  );
+        [
+            "AI 创新应用工作坊",
+            daysFromNow(3, 19),
+            daysFromNow(3, 21),
+            "紫金港校区 创意空间",
+            "面向对 AI 应用和项目实践感兴趣的学生，现场完成小组实践。",
+            "<p>AI practice</p>",
+            "综测 0.5",
+            "全校学生",
+            "计算机学院",
+            "",
+            "lecture",
+            12,
+            0,
+            2,
+        ]
+    );
 
-  await db.run(
-    `
+    await db.run(
+        `
       INSERT INTO events (
         title, date, end_date, location, image, description, content, score,
         target_audience, organizer, volunteer_time, status, deleted_at,
         category, views, featured, likes
       ) VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, 'approved', NULL, ?, ?, ?, ?)
     `,
-    [
-      '经典音乐分享会',
-      daysFromNow(2, 15),
-      daysFromNow(2, 17),
-      '玉泉校区 小剧场',
-      '古典音乐赏析和社交交流。',
-      '<p>music</p>',
-      '',
-      '全校学生',
-      '艺术社',
-      '',
-      'culture_sports',
-      100,
-      1,
-      12
-    ]
-  );
+        [
+            "经典音乐分享会",
+            daysFromNow(2, 15),
+            daysFromNow(2, 17),
+            "玉泉校区 小剧场",
+            "古典音乐赏析和社交交流。",
+            "<p>music</p>",
+            "",
+            "全校学生",
+            "艺术社",
+            "",
+            "culture_sports",
+            100,
+            1,
+            12,
+        ]
+    );
 
-  await db.run(
-    `
+    await db.run(
+        `
       INSERT INTO events (
         title, date, end_date, location, image, description, content, score,
         target_audience, organizer, volunteer_time, status, deleted_at,
         category, views, featured, likes
       ) VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, 'approved', NULL, ?, ?, ?, ?)
     `,
-    [
-      '志愿服务说明会',
-      daysFromNow(5, 10),
-      daysFromNow(5, 11),
-      '紫金港校区 学生活动中心',
-      '介绍公益服务项目和志愿时长认定。',
-      '<p>volunteer</p>',
-      '',
-      '本科生',
-      '青年志愿者协会',
-      '2 小时',
-      'volunteer',
-      30,
-      0,
-      3
-    ]
-  );
+        [
+            "志愿服务说明会",
+            daysFromNow(5, 10),
+            daysFromNow(5, 11),
+            "紫金港校区 学生活动中心",
+            "介绍公益服务项目和志愿时长认定。",
+            "<p>volunteer</p>",
+            "",
+            "本科生",
+            "青年志愿者协会",
+            "2 小时",
+            "volunteer",
+            30,
+            0,
+            3,
+        ]
+    );
 };
 
-const buildModelRunner = (runtimePolicyChecks = []) => async ({ task, messages, runtimePolicy }) => {
-  runtimePolicyChecks.push({ task, runtimePolicy });
-  if (task === 'event_recommendation_intent') {
-    return {
-      query_summary: '用户想在紫金港参加 AI 相关且有综测收益的活动',
-      topics: ['AI', '人工智能', '实践'],
-      campuses: ['紫金港'],
-      organizers: ['计算机学院'],
-      audiences: ['全校学生'],
-      benefits: ['score'],
-      categories: ['lecture'],
-      date_constraints: [],
-      format: 'offline',
-      hard_constraints: ['紫金港', '计算机学院', '综测'],
-      allow_historical: false,
-      needs_clarification: false,
-      clarification_question: '',
-      confidence: 0.93
-    };
-  }
+const buildModelRunner =
+    (runtimePolicyChecks = []) =>
+    async ({ task, messages, runtimePolicy }) => {
+        runtimePolicyChecks.push({ task, runtimePolicy });
+        if (task === "event_recommendation_intent") {
+            return {
+                query_summary: "用户想在紫金港参加 AI 相关且有综测收益的活动",
+                topics: ["AI", "人工智能", "实践"],
+                campuses: ["紫金港"],
+                organizers: ["计算机学院"],
+                audiences: ["全校学生"],
+                benefits: ["score"],
+                categories: ["lecture"],
+                date_constraints: [],
+                format: "offline",
+                hard_constraints: ["紫金港", "计算机学院", "综测"],
+                allow_historical: false,
+                needs_clarification: false,
+                clarification_question: "",
+                confidence: 0.93,
+            };
+        }
 
-  if (task === 'event_profile') {
-    const payload = JSON.parse(messages[1].content);
-    const event = payload.event || {};
-    const isAi = String(event.title || '').includes('AI');
-    return {
-      summary: isAi ? 'AI 应用实践活动，适合想做项目并获得综测的学生。' : '普通校园活动。',
-      category: isAi ? 'lecture' : event.category || 'other',
-      topics: isAi ? ['AI', '人工智能', '实践'] : [event.title],
-      campuses: String(event.location || '').includes('紫金港') ? ['紫金港'] : [],
-      organizers: event.organizer ? [event.organizer] : [],
-      audiences: event.target_audience ? [event.target_audience] : [],
-      benefits: String(event.score || '').includes('综测') ? ['score'] : [],
-      time_preference_terms: [],
-      confidence: isAi ? 0.92 : 0.62,
-      rationale: isAi ? '标题、描述和收益都匹配 AI 与综测需求。' : '候选活动画像。'
-    };
-  }
+        if (task === "event_profile") {
+            const payload = JSON.parse(messages[1].content);
+            const event = payload.event || {};
+            const isAi = String(event.title || "").includes("AI");
+            return {
+                summary: isAi
+                    ? "AI 应用实践活动，适合想做项目并获得综测的学生。"
+                    : "普通校园活动。",
+                category: isAi ? "lecture" : event.category || "other",
+                topics: isAi ? ["AI", "人工智能", "实践"] : [event.title],
+                campuses: String(event.location || "").includes("紫金港") ? ["紫金港"] : [],
+                organizers: event.organizer ? [event.organizer] : [],
+                audiences: event.target_audience ? [event.target_audience] : [],
+                benefits: String(event.score || "").includes("综测") ? ["score"] : [],
+                time_preference_terms: [],
+                confidence: isAi ? 0.92 : 0.62,
+                rationale: isAi ? "标题、描述和收益都匹配 AI 与综测需求。" : "候选活动画像。",
+            };
+        }
 
-  if (task === 'event_recommendation_rerank') {
-    const payload = JSON.parse(messages[1].content);
-    const aiEvent = payload.candidates.find((candidate) => String(candidate.title).includes('AI'));
-    const fallback = payload.candidates.filter((candidate) => candidate.id !== aiEvent?.id);
-    return {
-      summary: 'AI 优先选择了同时匹配主题、校区和综测收益的活动。',
-      recommendations: [
-        {
-          id: aiEvent.id,
-          rank: 1,
-          confidence: 0.96,
-          reason: '它同时匹配 AI 主题、紫金港校区和综测收益，是最贴近需求的选择。',
-          matched_signals: ['AI 主题', '紫金港', '综测']
-        },
-        ...fallback.slice(0, 2).map((candidate, index) => ({
-          id: candidate.id,
-          rank: index + 2,
-          confidence: 0.68 - index * 0.05,
-          reason: '它与部分校园参与需求接近，可作为次相关备选。',
-          matched_signals: ['校园活动']
-        }))
-      ]
-      ,
-      reasoning_trace: {
-        ranking_basis: ['硬约束优先', 'AI 主题匹配', '综测收益匹配'],
-        uncertainty: ['未指定具体日期'],
-        action_evidence_used: false
-      }
-    };
-  }
+        if (task === "event_recommendation_rerank") {
+            const payload = JSON.parse(messages[1].content);
+            const aiEvent = payload.candidates.find((candidate) =>
+                String(candidate.title).includes("AI")
+            );
+            const fallback = payload.candidates.filter((candidate) => candidate.id !== aiEvent?.id);
+            return {
+                summary: "AI 优先选择了同时匹配主题、校区和综测收益的活动。",
+                recommendations: [
+                    {
+                        id: aiEvent.id,
+                        rank: 1,
+                        confidence: 0.96,
+                        reason: "它同时匹配 AI 主题、紫金港校区和综测收益，是最贴近需求的选择。",
+                        matched_signals: ["AI 主题", "紫金港", "综测"],
+                    },
+                    ...fallback.slice(0, 2).map((candidate, index) => ({
+                        id: candidate.id,
+                        rank: index + 2,
+                        confidence: 0.68 - index * 0.05,
+                        reason: "它与部分校园参与需求接近，可作为次相关备选。",
+                        matched_signals: ["校园活动"],
+                    })),
+                ],
+                reasoning_trace: {
+                    ranking_basis: ["硬约束优先", "AI 主题匹配", "综测收益匹配"],
+                    uncertainty: ["未指定具体日期"],
+                    action_evidence_used: false,
+                },
+            };
+        }
 
-  throw new Error(`Unexpected AI task: ${task}`);
-};
+        throw new Error(`Unexpected AI task: ${task}`);
+    };
 
 const main = async () => {
-  const db = await openMemoryDb();
-  try {
-    await setupSchema(db);
-    await seedEvents(db);
-    const runtimePolicyChecks = [];
-
-    const result = await runEventAssistantTurn({
-      db,
-      query: '我想在紫金港参加 AI 相关活动，最好有综测',
-      allowHistoricalFallback: false,
-      modelRunner: buildModelRunner(runtimePolicyChecks),
-      now: new Date()
-    });
-
-    assert(result.type === 'recommend', 'Expected AI recommendation response.');
-    assert(result.modelStatus?.used === true, 'Expected modelStatus.used to be true.');
-    assert(
-      result.modelStatus.tasks?.includes('event_recommendation_intent'),
-      'Expected intent task in model status.'
-    );
-    assert(
-      result.modelStatus.tasks?.includes('event_recommendation_rerank'),
-      'Expected rerank task in model status.'
-    );
-    assert(
-      result.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
-      'Expected model rerank to place the AI practice activity first.'
-    );
-    assert(
-      result.recommendations[0]?.confidence >= 0.9,
-      'Expected model confidence to be carried to the client response.'
-    );
-    assert(
-      result.reasoningTrace?.rankingBasis?.includes('硬约束优先'),
-      'Expected ranking basis from model reasoning trace.'
-    );
-    assert(
-      result.reasoningTrace?.uncertainty?.includes('未指定具体日期'),
-      'Expected uncertainty from model reasoning trace.'
-    );
-    assert(
-      result.modelStatus.profileStats.generated >= 1,
-      'Injected model runner should still exercise profile generation in tests.'
-    );
-
-    const storedProfiles = await db.get('SELECT COUNT(*) AS count FROM event_ai_profiles');
-    assert(Number(storedProfiles.count) >= 1, 'Expected event AI profiles to be stored.');
-    const eventRuns = await db.all(
-      "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_recommendation' ORDER BY id ASC"
-    );
-    assert(eventRuns.length >= 1, 'Expected event recommendation runs to be recorded.');
-    const eventRunSummary = JSON.parse(eventRuns[0].summary_json);
-    assert(eventRunSummary.modelUsed === true, 'Expected event run summary to record model usage.');
-    assert(eventRunSummary.recommendationCount >= 1, 'Expected event run summary to record recommendation count.');
-    assert(eventRunSummary.runtimeTelemetry.taskCount >= 2, 'Expected event run summary to record runtime telemetry.');
-    assert(
-      eventRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
-      'Expected event runtime telemetry to include token budget estimates.'
-    );
-    assert(
-      eventRunSummary.runtimeTelemetry.tasks.includes('event_recommendation_rerank'),
-      'Expected event runtime telemetry to include rerank task.'
-    );
-    assert(!eventRuns[0].summary_json.includes('紫金港'), 'Run summaries must not store raw user query text.');
-    const intentPolicy = runtimePolicyChecks.find((item) => item.task === 'event_recommendation_intent')?.runtimePolicy;
-    const profilePolicy = runtimePolicyChecks.find((item) => item.task === 'event_profile')?.runtimePolicy;
-    const rerankPolicy = runtimePolicyChecks.find((item) => item.task === 'event_recommendation_rerank')?.runtimePolicy;
-    assert(
-      JSON.stringify(intentPolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_recommendation_intent')),
-      'Intent task should use central runtime policy defaults.'
-    );
-    assert(
-      JSON.stringify(profilePolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_profile')),
-      'Event profile policy should be applied.'
-    );
-    assert(
-      JSON.stringify(rerankPolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_recommendation_rerank')),
-      'Rerank policy should be applied.'
-    );
-
-    const refreshDb = await openMemoryDb();
+    const db = await openMemoryDb();
     try {
-      await setupSchema(refreshDb);
-      await seedEvents(refreshDb);
-      const refreshChecks = [];
-      const refresh = await refreshEventProfileIndex(refreshDb, {
-        limit: 3,
-        force: true,
-        modelRunner: buildModelRunner(refreshChecks),
-      });
-      assert(refresh.summary.generated === 3, 'Refresh command should generate profiles proactively.');
-      assert(refresh.summary.modelUsedCount === 3, 'Refresh command should use the model when enabled.');
-      assert(refresh.coverage.coverageRatio === 1, 'Refresh command should report full profile coverage.');
-      assert(refresh.coverage.staleCount === 0, 'Freshly rebuilt profile coverage should not be stale.');
-      assert(refresh.coverage.missingCount === 0, 'Freshly rebuilt profile coverage should not be missing profiles.');
-      assert(refresh.summary.staleCount === 0, 'Refresh summary should expose stale profile count.');
-      assert(refresh.summary.missingCount === 0, 'Refresh summary should expose missing profile count.');
-      const run = await refreshDb.get(
-        "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_profile_index' AND action = 'refresh'"
-      );
-      assert(run, 'Refresh command should record an assistant run summary.');
-      const refreshRunSummary = JSON.parse(run.summary_json);
-      assert(
-        Object.prototype.hasOwnProperty.call(refreshRunSummary, 'staleCount'),
-        'Refresh run summary should persist stale profile count.'
-      );
-      assert(
-        Object.prototype.hasOwnProperty.call(refreshRunSummary, 'missingCount'),
-        'Refresh run summary should persist missing profile count.'
-      );
-      assert(
-        refreshRunSummary.runtimeTelemetry.taskCount === 3,
-        'Refresh run summary should include per-profile runtime telemetry.'
-      );
-      assert(
-        refreshRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
-        'Refresh runtime telemetry should include token budget estimates.'
-      );
-      assert(!run.summary_json.includes('AI practice'), 'Refresh run summary must not store raw event content.');
-    } finally {
-      await refreshDb.close();
-    }
+        await setupSchema(db);
+        await seedEvents(db);
+        const runtimePolicyChecks = [];
 
-    const staleDb = await openMemoryDb();
-    try {
-      await setupSchema(staleDb);
-      await seedEvents(staleDb);
-      await staleDb.run(
-        `
+        const result = await runEventAssistantTurn({
+            db,
+            query: "我想在紫金港参加 AI 相关活动，最好有综测",
+            allowHistoricalFallback: false,
+            modelRunner: buildModelRunner(runtimePolicyChecks),
+            now: new Date(),
+        });
+
+        assert(result.type === "recommend", "Expected AI recommendation response.");
+        assert(result.modelStatus?.used === true, "Expected modelStatus.used to be true.");
+        assert(
+            result.modelStatus.tasks?.includes("event_recommendation_intent"),
+            "Expected intent task in model status."
+        );
+        assert(
+            result.modelStatus.tasks?.includes("event_recommendation_rerank"),
+            "Expected rerank task in model status."
+        );
+        assert(
+            result.recommendations[0]?.event?.title === "AI 创新应用工作坊",
+            "Expected model rerank to place the AI practice activity first."
+        );
+        assert(
+            result.recommendations[0]?.confidence >= 0.9,
+            "Expected model confidence to be carried to the client response."
+        );
+        assert(
+            result.reasoningTrace?.rankingBasis?.includes("硬约束优先"),
+            "Expected ranking basis from model reasoning trace."
+        );
+        assert(
+            result.reasoningTrace?.uncertainty?.includes("未指定具体日期"),
+            "Expected uncertainty from model reasoning trace."
+        );
+        assert(
+            result.modelStatus.profileStats.generated >= 1,
+            "Injected model runner should still exercise profile generation in tests."
+        );
+
+        const storedProfiles = await db.get("SELECT COUNT(*) AS count FROM event_ai_profiles");
+        assert(Number(storedProfiles.count) >= 1, "Expected event AI profiles to be stored.");
+        const eventRuns = await db.all(
+            "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_recommendation' ORDER BY id ASC"
+        );
+        assert(eventRuns.length >= 1, "Expected event recommendation runs to be recorded.");
+        const eventRunSummary = JSON.parse(eventRuns[0].summary_json);
+        assert(
+            eventRunSummary.modelUsed === true,
+            "Expected event run summary to record model usage."
+        );
+        assert(
+            eventRunSummary.recommendationCount >= 1,
+            "Expected event run summary to record recommendation count."
+        );
+        assert(
+            eventRunSummary.runtimeTelemetry.taskCount >= 2,
+            "Expected event run summary to record runtime telemetry."
+        );
+        assert(
+            eventRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
+            "Expected event runtime telemetry to include token budget estimates."
+        );
+        assert(
+            eventRunSummary.runtimeTelemetry.tasks.includes("event_recommendation_rerank"),
+            "Expected event runtime telemetry to include rerank task."
+        );
+        assert(
+            !eventRuns[0].summary_json.includes("紫金港"),
+            "Run summaries must not store raw user query text."
+        );
+        const intentPolicy = runtimePolicyChecks.find(
+            (item) => item.task === "event_recommendation_intent"
+        )?.runtimePolicy;
+        const profilePolicy = runtimePolicyChecks.find(
+            (item) => item.task === "event_profile"
+        )?.runtimePolicy;
+        const rerankPolicy = runtimePolicyChecks.find(
+            (item) => item.task === "event_recommendation_rerank"
+        )?.runtimePolicy;
+        assert(
+            JSON.stringify(intentPolicy) ===
+                JSON.stringify(resolveTaskRuntimePolicy("event_recommendation_intent")),
+            "Intent task should use central runtime policy defaults."
+        );
+        assert(
+            JSON.stringify(profilePolicy) ===
+                JSON.stringify(resolveTaskRuntimePolicy("event_profile")),
+            "Event profile policy should be applied."
+        );
+        assert(
+            JSON.stringify(rerankPolicy) ===
+                JSON.stringify(resolveTaskRuntimePolicy("event_recommendation_rerank")),
+            "Rerank policy should be applied."
+        );
+
+        const refreshDb = await openMemoryDb();
+        try {
+            await setupSchema(refreshDb);
+            await seedEvents(refreshDb);
+            const refreshChecks = [];
+            const refresh = await refreshEventProfileIndex(refreshDb, {
+                limit: 3,
+                force: true,
+                modelRunner: buildModelRunner(refreshChecks),
+            });
+            assert(
+                refresh.summary.generated === 3,
+                "Refresh command should generate profiles proactively."
+            );
+            assert(
+                refresh.summary.modelUsedCount === 3,
+                "Refresh command should use the model when enabled."
+            );
+            assert(
+                refresh.coverage.coverageRatio === 1,
+                "Refresh command should report full profile coverage."
+            );
+            assert(
+                refresh.coverage.staleCount === 0,
+                "Freshly rebuilt profile coverage should not be stale."
+            );
+            assert(
+                refresh.coverage.missingCount === 0,
+                "Freshly rebuilt profile coverage should not be missing profiles."
+            );
+            assert(
+                refresh.summary.staleCount === 0,
+                "Refresh summary should expose stale profile count."
+            );
+            assert(
+                refresh.summary.missingCount === 0,
+                "Refresh summary should expose missing profile count."
+            );
+            const run = await refreshDb.get(
+                "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_profile_index' AND action = 'refresh'"
+            );
+            assert(run, "Refresh command should record an assistant run summary.");
+            const refreshRunSummary = JSON.parse(run.summary_json);
+            assert(
+                Object.prototype.hasOwnProperty.call(refreshRunSummary, "staleCount"),
+                "Refresh run summary should persist stale profile count."
+            );
+            assert(
+                Object.prototype.hasOwnProperty.call(refreshRunSummary, "missingCount"),
+                "Refresh run summary should persist missing profile count."
+            );
+            assert(
+                refreshRunSummary.runtimeTelemetry.taskCount === 3,
+                "Refresh run summary should include per-profile runtime telemetry."
+            );
+            assert(
+                refreshRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
+                "Refresh runtime telemetry should include token budget estimates."
+            );
+            assert(
+                !run.summary_json.includes("AI practice"),
+                "Refresh run summary must not store raw event content."
+            );
+        } finally {
+            await refreshDb.close();
+        }
+
+        const staleDb = await openMemoryDb();
+        try {
+            await setupSchema(staleDb);
+            await seedEvents(staleDb);
+            await staleDb.run(
+                `
           INSERT INTO event_ai_profiles (
             event_id,
             source_hash,
@@ -448,78 +497,93 @@ const main = async () => {
             refreshed_at
           ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `,
-        [1, 'stale-source-hash', '{}', 'old profile', 'other', 'ready']
-      );
-      const staleCoverage = await getProfileCoverage(staleDb);
-      assert(staleCoverage.staleCount === 1, 'Coverage should count source-changed stale profiles.');
-      assert(staleCoverage.missingCount === 2, 'Coverage should count missing AI profiles.');
-      assert(
-        staleCoverage.reasonCounts.source_changed === 1,
-        'Coverage should explain stale profile reasons.'
-      );
-      assert(
-        staleCoverage.reasonCounts.missing_profile === 2,
-        'Coverage should explain missing profile reasons.'
-      );
+                [1, "stale-source-hash", "{}", "old profile", "other", "ready"]
+            );
+            const staleCoverage = await getProfileCoverage(staleDb);
+            assert(
+                staleCoverage.staleCount === 1,
+                "Coverage should count source-changed stale profiles."
+            );
+            assert(staleCoverage.missingCount === 2, "Coverage should count missing AI profiles.");
+            assert(
+                staleCoverage.reasonCounts.source_changed === 1,
+                "Coverage should explain stale profile reasons."
+            );
+            assert(
+                staleCoverage.reasonCounts.missing_profile === 2,
+                "Coverage should explain missing profile reasons."
+            );
+        } finally {
+            await staleDb.close();
+        }
+
+        const fallbackDb = await openMemoryDb();
+        try {
+            await setupSchema(fallbackDb);
+            await seedEvents(fallbackDb);
+            const fallback = await runEventAssistantTurn({
+                db: fallbackDb,
+                query: "我想在紫金港参加 AI 相关活动，最好有综测",
+                allowHistoricalFallback: false,
+                modelRunner: async ({ task }) => {
+                    if (task === "event_recommendation_intent") {
+                        const error = new Error("simulated empty model output");
+                        error.code = "AI_RUNTIME_EMPTY_CONTENT";
+                        throw error;
+                    }
+                    if (task === "event_profile") {
+                        return {
+                            summary: "活动画像备用测试",
+                            category: "lecture",
+                            topics: ["AI"],
+                            campuses: ["紫金港"],
+                            organizers: [],
+                            audiences: ["全校学生"],
+                            benefits: ["score"],
+                            confidence: 0.7,
+                            rationale: "test",
+                        };
+                    }
+                    throw new Error(`Unexpected fallback task: ${task}`);
+                },
+                now: new Date(),
+            });
+
+            assert(
+                fallback.type === "recommend",
+                "Expected fallback recommendation when intent model fails."
+            );
+            assert(
+                fallback.modelStatus?.fallbackUsed === true,
+                "Expected fallback status to be explicit."
+            );
+            assert(
+                fallback.modelStatus?.used === false,
+                "Fallback recommendation must not pretend model rerank succeeded."
+            );
+            assert(
+                fallback.recommendations.length >= 1,
+                "Expected fallback recommendations to be visible."
+            );
+            assert(
+                fallback.recommendations[0]?.event?.title === "AI 创新应用工作坊",
+                "Expected fallback semantic ranking to still put the AI practice activity first."
+            );
+            assert(
+                fallback.modelStatus.profileStats.fallback >= 1,
+                "Expected fallback path to use lightweight local profile indexing."
+            );
+        } finally {
+            await fallbackDb.close();
+        }
+
+        console.log("Unified AI runtime check passed.");
     } finally {
-      await staleDb.close();
+        await db.close();
     }
-
-    const fallbackDb = await openMemoryDb();
-    try {
-      await setupSchema(fallbackDb);
-      await seedEvents(fallbackDb);
-      const fallback = await runEventAssistantTurn({
-        db: fallbackDb,
-        query: '我想在紫金港参加 AI 相关活动，最好有综测',
-        allowHistoricalFallback: false,
-        modelRunner: async ({ task }) => {
-          if (task === 'event_recommendation_intent') {
-            const error = new Error('simulated empty model output');
-            error.code = 'AI_RUNTIME_EMPTY_CONTENT';
-            throw error;
-          }
-          if (task === 'event_profile') {
-            return {
-              summary: '活动画像备用测试',
-              category: 'lecture',
-              topics: ['AI'],
-              campuses: ['紫金港'],
-              organizers: [],
-              audiences: ['全校学生'],
-              benefits: ['score'],
-              confidence: 0.7,
-              rationale: 'test'
-            };
-          }
-          throw new Error(`Unexpected fallback task: ${task}`);
-        },
-        now: new Date()
-      });
-
-      assert(fallback.type === 'recommend', 'Expected fallback recommendation when intent model fails.');
-      assert(fallback.modelStatus?.fallbackUsed === true, 'Expected fallback status to be explicit.');
-      assert(fallback.modelStatus?.used === false, 'Fallback recommendation must not pretend model rerank succeeded.');
-      assert(fallback.recommendations.length >= 1, 'Expected fallback recommendations to be visible.');
-      assert(
-        fallback.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
-        'Expected fallback semantic ranking to still put the AI practice activity first.'
-      );
-      assert(
-        fallback.modelStatus.profileStats.fallback >= 1,
-        'Expected fallback path to use lightweight local profile indexing.'
-      );
-    } finally {
-      await fallbackDb.close();
-    }
-
-    console.log('Unified AI runtime check passed.');
-  } finally {
-    await db.close();
-  }
 };
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
 });

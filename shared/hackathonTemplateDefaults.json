@@ -1,0 +1,163 @@
+{
+    "version": 1,
+    "revision": 1,
+    "updatedAt": null,
+    "navigation": {
+        "registrationVisible": true,
+        "resultsVisible": true
+    },
+    "results": {
+        "competitionSlug": "ai-full-stack-hackathon-outcome"
+    },
+    "event": {
+        "key": "zhekesong-current",
+        "brand": "AI Build Arena 2026",
+        "title": "AI 全栈极速黑客松",
+        "subtitle": "5 小时、1 个人、0 路演",
+        "description": "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
+        "startAt": "2026-05-10T09:00",
+        "endAt": "2026-05-10T14:00",
+        "timezone": "Asia/Shanghai",
+        "location": "北2-112",
+        "format": "个人赛",
+        "duration": "5 小时",
+        "prizeValue": "17,500",
+        "prizeUnit": "￥",
+        "registrationOpen": true,
+        "highlights": [
+            {
+                "id": "hours",
+                "value": "5",
+                "unit": "小时",
+                "code": "HOURS",
+                "label": "极速交付",
+                "detail": "限定时间内完成真实可运行 AI 应用"
+            },
+            {
+                "id": "solo",
+                "value": "1",
+                "unit": "个人",
+                "code": "SOLO",
+                "label": "独立参赛",
+                "detail": "强调独立构思、构建、调试和交付"
+            },
+            {
+                "id": "pitch",
+                "value": "0",
+                "unit": "路演",
+                "code": "PITCH",
+                "label": "只看作品",
+                "detail": "减少包装，把判断交给可运行成果"
+            }
+        ]
+    },
+    "rules": [
+        {
+            "id": "ai_native",
+            "title": "AI 原生开发",
+            "description": "允许并鼓励使用 Codex、Claude、Cursor、Trae 等工具完成全栈开发。",
+            "enabled": true
+        },
+        {
+            "id": "ship_fast",
+            "title": "5 小时从 0 到 1",
+            "description": "现场完成一个可运行、可体验、能说明问题的 AI 应用。",
+            "enabled": true
+        },
+        {
+            "id": "work_first",
+            "title": "0 路演",
+            "description": "不比表达包装，只看作品完成度、真实体验和创新性。",
+            "enabled": true
+        }
+    ],
+    "form": {
+        "title": "报名信息",
+        "description": "填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。",
+        "requiredHint": "所有带 * 的字段均为必填",
+        "submitLabel": "提交报名",
+        "successMessage": "报名成功！请等待后续通知",
+        "privacyNotice": "姓名、学号和项目经历会用于报名核验；AI 工具只帮助赛事组了解现场支持需求。",
+        "fields": [
+            {
+                "id": "name",
+                "label": "姓名",
+                "type": "text",
+                "placeholder": "请输入姓名",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "studentId",
+                "label": "学号",
+                "type": "text",
+                "placeholder": "请输入学号",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "major",
+                "label": "专业",
+                "type": "text",
+                "placeholder": "请输入专业",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "grade",
+                "label": "年级",
+                "type": "select",
+                "placeholder": "请选择年级",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": [
+                    { "value": "freshman", "label": "大一" },
+                    { "value": "sophomore", "label": "大二" },
+                    { "value": "junior", "label": "大三" },
+                    { "value": "senior", "label": "大四" },
+                    { "value": "master", "label": "硕士" },
+                    { "value": "phd", "label": "博士" }
+                ]
+            },
+            {
+                "id": "aiTools",
+                "label": "常用 AI 工具",
+                "type": "multi_select",
+                "placeholder": "可多选",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "full",
+                "options": [
+                    { "value": "codex", "label": "Codex" },
+                    { "value": "claude", "label": "Claude" },
+                    { "value": "cursor", "label": "Cursor" },
+                    { "value": "trae", "label": "Trae" },
+                    { "value": "other", "label": "其他" }
+                ]
+            },
+            {
+                "id": "experience",
+                "label": "AI 项目经历",
+                "type": "textarea",
+                "placeholder": "简述一下你使用 AI 开发项目的经历...",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "full",
+                "options": []
+            }
+        ]
+    }
+}

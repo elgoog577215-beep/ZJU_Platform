@@ -1,59 +1,253 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const sqlite3 = require("sqlite3");
+const { open } = require("sqlite");
 
-const service = require('../src/services/wechatMpScheduledIngestService');
+const service = require("../src/services/wechatMpScheduledIngestService");
 
-const createDb = () => open({ filename: ':memory:', driver: sqlite3.Database });
+const createDb = () => open({ filename: ":memory:", driver: sqlite3.Database });
 
-test('WeChat MP scheduled ingest settings keep conservative defaults', async () => {
-  const db = await createDb();
-  try {
-    const defaults = await service.getIngestSettings(db);
-    assert.equal(defaults.enabled, false);
-    assert.equal(defaults.token_health_enabled, true);
-    assert.equal(defaults.token_health_interval_hours, 12);
-    assert.equal(defaults.daily_run_time, '03:30');
-    assert.deepEqual(defaults.query_delay_range, [95, 125]);
-    assert.deepEqual(defaults.page_pause_range, [10, 25]);
-    assert.equal(defaults.page_pause_seconds, 10);
-    assert.deepEqual(defaults.content_delay_range, [10, 20]);
-    assert.equal(defaults.auto_parse, true);
-
-    const updated = await service.updateIngestSettings(db, {
-      enabled: true,
-      daily_run_time: '7:05',
-      timezone: 'Bad/Timezone',
-      query_delay_range: '',
-      page_pause_range: [2, 4],
-      content_delay_range: [1, 2],
-      count_per_page: 10,
-      max_pages: 2,
-      token_health_enabled: false,
-      token_health_interval_hours: 24,
-    });
-
-    assert.equal(updated.enabled, true);
-    assert.equal(updated.daily_run_time, '07:05');
-    assert.equal(updated.timezone, 'Asia/Shanghai');
-    assert.deepEqual(updated.query_delay_range, [95, 125]);
-    assert.deepEqual(updated.page_pause_range, [2, 4]);
-    assert.equal(updated.page_pause_seconds, 2);
-    assert.deepEqual(updated.content_delay_range, [1, 2]);
-    assert.equal(updated.count_per_page, 10);
-    assert.equal(updated.max_pages, 2);
-    assert.equal(updated.token_health_enabled, false);
-    assert.equal(updated.token_health_interval_hours, 24);
-  } finally {
-    await db.close();
-  }
+test("WeRead pending metadata survives until its asynchronous body becomes available", async () => {
+    const db = await createDb();
+    let ready = false;
+    let calls = 0;
+    try {
+        await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
+        await service.upsertIngestAccount(db, {
+            name: "延迟正文",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_456",
+        });
+        const wereadApi = {
+            async fetchArticles() {
+                return {
+                    articles: [
+                        {
+                            title: "待补正文",
+                            link: "https://mp.weixin.qq.com/s/pending",
+                            collector_content_status: ready ? "ready" : "pending",
+                            create_time: ready ? "2026-09-21T02:00:00+00:00" : "",
+                            time_text: ready ? "2026-09-21T02:00:00+00:00" : "",
+                        },
+                    ],
+                };
+            },
+            async fetchArticleContent() {
+                calls++;
+                return {
+                    contentText: "后来抓到的正文",
+                    contentHtml: "<p>后来抓到的正文</p>",
+                    content_status: "fetched",
+                };
+            },
+        };
+        let result = await service.executeIngestRun(db, { wereadApi });
+        assert.equal(result.new_articles, 1);
+        assert.equal(result.failed_count, 0);
+        assert.equal(calls, 0);
+        ready = true;
+        result = await service.executeIngestRun(db, { wereadApi });
+        assert.equal(result.new_articles, 0);
+        assert.equal(calls, 1);
+        assert.equal(
+            (await db.get("SELECT content_text FROM wechat_mp_ingest_articles")).content_text,
+            "后来抓到的正文"
+        );
+        const row = await db.get("SELECT create_time, time_text FROM wechat_mp_ingest_articles");
+        assert.equal(row.create_time, "2026-09-21T02:00:00+00:00");
+        assert.equal(row.time_text, "2026-09-21T02:00:00+00:00");
+    } finally {
+        await db.close();
+    }
 });
 
-test('WeChat MP scheduled ingest migrates legacy pacing defaults without breaking custom page pause', async () => {
-  const db = await createDb();
-  try {
-    await db.exec(`
+test("WeRead live source imports from cache once and never calls either legacy collector", async () => {
+    const db = await createDb();
+    let contentCalls = 0;
+    try {
+        await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
+        await service.upsertIngestAccount(db, {
+            name: "读书来源",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_123",
+        });
+        const wereadApi = {
+            async fetchArticles() {
+                return {
+                    articles: [
+                        {
+                            title: "最新文章",
+                            link: "https://mp.weixin.qq.com/s/a_b~c",
+                            create_time: "",
+                            time_text: "",
+                        },
+                    ],
+                };
+            },
+            async fetchArticleContent() {
+                contentCalls++;
+                return {
+                    contentText: "已采集正文",
+                    contentHtml: "<p>已采集正文</p>",
+                    images: [],
+                    content_status: "fetched",
+                };
+            },
+        };
+        const forbidden = {
+            async fetchArticles() {
+                throw new Error("legacy collector must not run");
+            },
+        };
+        const options = {
+            wereadApi,
+            wechatApi: forbidden,
+            rssApi: forbidden,
+            settings: await service.getIngestSettings(db),
+        };
+        const first = await service.executeIngestRun(db, options);
+        const second = await service.executeIngestRun(db, options);
+        assert.equal(first.status, "completed");
+        assert.equal(first.new_articles, 1);
+        assert.equal(second.new_articles, 0);
+        assert.equal(contentCalls, 1);
+        const rows = await db.all("SELECT * FROM wechat_mp_ingest_articles");
+        assert.equal(rows.length, 1);
+        assert.equal(rows[0].create_time, "");
+        assert.equal(rows[0].content_text, "已采集正文");
+    } finally {
+        await db.close();
+    }
+});
+
+test("corrected WeRead short links keep the existing article and review candidate", async () => {
+    const db = await createDb();
+    let link = "https://mp.weixin.qq.com/s/a~b";
+    try {
+        await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
+        await service.upsertIngestAccount(db, {
+            name: "链接修复",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_321",
+        });
+        const wereadApi = {
+            async fetchArticles() {
+                return {
+                    articles: [{ title: "同一文章", link, collector_content_status: "pending" }],
+                };
+            },
+        };
+        await service.executeIngestRun(db, { wereadApi });
+        const original = await db.get("SELECT * FROM wechat_mp_ingest_articles");
+        await db.exec("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, link TEXT)");
+        await db.run("INSERT INTO events (id, link) VALUES (900, ?)", [link]);
+        await db.run(
+            "UPDATE wechat_mp_ingest_articles SET event_id = 900, activity_status = 'pending_review' WHERE id = ?",
+            [original.id]
+        );
+        link = "https://mp.weixin.qq.com/s/a_b";
+        const result = await service.executeIngestRun(db, { wereadApi });
+        const rows = await db.all("SELECT * FROM wechat_mp_ingest_articles");
+        assert.equal(result.new_articles, 0);
+        assert.equal(rows.length, 1);
+        assert.equal(rows[0].id, original.id);
+        assert.equal(rows[0].event_id, 900);
+        assert.equal(rows[0].link, link);
+        assert.equal((await db.get("SELECT link FROM events WHERE id = 900")).link, link);
+    } finally {
+        await db.close();
+    }
+});
+
+test("frequent cache imports leave enabled legacy sources for their daily run", async () => {
+    const db = await createDb();
+    try {
+        await service.updateIngestSettings(db, { query_delay_range: [0, 0], auto_parse: false });
+        await service.upsertIngestAccount(db, {
+            name: "缓存",
+            source_type: "weread_mp",
+            rss_feed_id: "MP_WXS_123",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "旧源",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_456",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "后台",
+            source_type: "wechat_mp",
+            fakeid: "789",
+        });
+        const forbidden = {
+            async fetchArticles() {
+                throw new Error("legacy source queried");
+            },
+        };
+        const result = await service.executeIngestRun(db, {
+            sourceTypes: ["weread_mp"],
+            wereadApi: {
+                async fetchArticles() {
+                    return { articles: [] };
+                },
+            },
+            rssApi: forbidden,
+            wechatApi: forbidden,
+        });
+        assert.equal(result.status, "completed");
+        assert.equal(result.total_accounts, 1);
+        assert.equal(result.failed_count, 0);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP scheduled ingest settings keep conservative defaults", async () => {
+    const db = await createDb();
+    try {
+        const defaults = await service.getIngestSettings(db);
+        assert.equal(defaults.enabled, false);
+        assert.equal(defaults.token_health_enabled, true);
+        assert.equal(defaults.token_health_interval_hours, 12);
+        assert.equal(defaults.daily_run_time, "03:30");
+        assert.deepEqual(defaults.query_delay_range, [95, 125]);
+        assert.deepEqual(defaults.page_pause_range, [10, 25]);
+        assert.equal(defaults.page_pause_seconds, 10);
+        assert.deepEqual(defaults.content_delay_range, [10, 20]);
+        assert.equal(defaults.auto_parse, true);
+
+        const updated = await service.updateIngestSettings(db, {
+            enabled: true,
+            daily_run_time: "7:05",
+            timezone: "Bad/Timezone",
+            query_delay_range: "",
+            page_pause_range: [2, 4],
+            content_delay_range: [1, 2],
+            count_per_page: 10,
+            max_pages: 2,
+            token_health_enabled: false,
+            token_health_interval_hours: 24,
+        });
+
+        assert.equal(updated.enabled, true);
+        assert.equal(updated.daily_run_time, "07:05");
+        assert.equal(updated.timezone, "Asia/Shanghai");
+        assert.deepEqual(updated.query_delay_range, [95, 125]);
+        assert.deepEqual(updated.page_pause_range, [2, 4]);
+        assert.equal(updated.page_pause_seconds, 2);
+        assert.deepEqual(updated.content_delay_range, [1, 2]);
+        assert.equal(updated.count_per_page, 10);
+        assert.equal(updated.max_pages, 2);
+        assert.equal(updated.token_health_enabled, false);
+        assert.equal(updated.token_health_interval_hours, 24);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP scheduled ingest migrates legacy pacing defaults without breaking custom page pause", async () => {
+    const db = await createDb();
+    try {
+        await db.exec(`
       CREATE TABLE wechat_mp_ingest_settings (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         enabled INTEGER DEFAULT 0,
@@ -73,266 +267,311 @@ test('WeChat MP scheduled ingest migrates legacy pacing defaults without breakin
       ) VALUES (1, 1, '06:10', 'Asia/Shanghai', '[55,120]', 2, '[3,8]', 20, 1, 1);
     `);
 
-    const migrated = await service.getIngestSettings(db);
-    assert.deepEqual(migrated.query_delay_range, [95, 125]);
-    assert.deepEqual(migrated.page_pause_range, [2, 2]);
-    assert.equal(migrated.page_pause_seconds, 2);
-    assert.deepEqual(migrated.content_delay_range, [10, 20]);
-  } finally {
-    await db.close();
-  }
+        const migrated = await service.getIngestSettings(db);
+        assert.deepEqual(migrated.query_delay_range, [95, 125]);
+        assert.deepEqual(migrated.page_pause_range, [2, 2]);
+        assert.equal(migrated.page_pause_seconds, 2);
+        assert.deepEqual(migrated.content_delay_range, [10, 20]);
+    } finally {
+        await db.close();
+    }
 });
 
-test('WeChat MP account list parser accepts JSON, CSV, TSV, and simple lines', () => {
-  assert.deepEqual(
-    service.parseAccountListContent(JSON.stringify({
-      accounts: [
-        { name: '浙江大学', fakeid: 'fake-1', keywords: ['活动', '讲座'] },
-      ],
-    }), 'accounts.json'),
-    [{
-      name: '浙江大学',
-      alias: '',
-      fakeid: 'fake-1',
-      keywords: ['活动', '讲座'],
-      enabled: true,
-      fetch_content: true,
-      count_per_page: 20,
-      max_pages: 1,
-    }],
-  );
-
-  const csv = '公众号名称,fakeid,关键词,启用\n求是学院,fake-2,"通知,讲座",是';
-  assert.equal(service.parseAccountListContent(csv, 'accounts.csv')[0].name, '求是学院');
-  assert.deepEqual(service.parseAccountListContent(csv, 'accounts.csv')[0].keywords, ['通知', '讲座']);
-
-  const tsv = 'name\tfakeid\tkeywords\nZJU News\tfake-3\tAI;Campus';
-  assert.equal(service.parseAccountListContent(tsv, 'accounts.tsv')[0].fakeid, 'fake-3');
-
-  const simple = '浙江大学本科生院,fake-4,,竞赛';
-  assert.equal(service.parseAccountListContent(simple, 'accounts.txt')[0].name, '浙江大学本科生院');
-});
-
-test('WeChat MP account upsert keeps list idempotent', async () => {
-  const db = await createDb();
-  try {
-    const first = await service.upsertIngestAccount(db, {
-      name: '浙江大学',
-      fakeid: 'fake-1',
-      keywords: '活动,讲座',
-    });
-    const second = await service.upsertIngestAccount(db, {
-      name: '浙江大学',
-      fakeid: 'fake-1',
-      keywords: '通知',
-      enabled: false,
-    });
-    assert.equal(first.id, second.id);
-    assert.equal(second.enabled, false);
-    assert.deepEqual(second.keywords, ['通知']);
-
-    const accounts = await service.listIngestAccounts(db);
-    assert.equal(accounts.length, 1);
-
-    await service.deleteIngestAccount(db, second.id);
-    assert.equal((await service.listIngestAccounts(db)).length, 0);
-  } finally {
-    await db.close();
-  }
-});
-
-test('WeChat MP incremental run saves new articles, bodies, and avoids duplicates', async () => {
-  const db = await createDb();
-  const sleeps = [];
-  const contentCalls = [];
-  const parseCalls = [];
-  try {
-    await service.updateIngestSettings(db, {
-      query_delay_range: [1, 1],
-      page_pause_range: [0.5, 0.5],
-      content_delay_range: [0.25, 0.25],
-      count_per_page: 2,
-      max_pages: 1,
-      fetch_content: true,
-      auto_parse: true,
-    });
-    await service.upsertIngestAccount(db, { name: '账号一', fakeid: 'fake-1', keywords: '活动' });
-    await service.upsertIngestAccount(db, { name: '账号二', fakeid: 'fake-2', keywords: '通知' });
-
-    const testRuntime = {
-      random: () => 0,
-      sleep: async (ms) => { sleeps.push(ms); },
-    };
-    const wechatApi = {
-      async fetchArticles({ accountName, fakeid, pacing, runtime }) {
-        assert.deepEqual(pacing.query_delay_range, [1, 1]);
-        assert.deepEqual(pacing.page_pause_range, [0.5, 0.5]);
-        assert.equal(pacing.page_pause_seconds, 0.5);
-        assert.equal(runtime.sleep, testRuntime.sleep);
-        return {
-          articles: [
+test("WeChat MP account list parser accepts JSON, CSV, TSV, and simple lines", () => {
+    assert.deepEqual(
+        service.parseAccountListContent(
+            JSON.stringify({
+                accounts: [{ name: "浙江大学", fakeid: "fake-1", keywords: ["活动", "讲座"] }],
+            }),
+            "accounts.json"
+        ),
+        [
             {
-              title: `${accountName} 第一篇`,
-              link: `https://mp.weixin.qq.com/s/${fakeid}-1`,
-              summary: 'summary',
-              author: accountName,
-              cover: 'https://mmbiz.qpic.cn/cover.png',
+                name: "浙江大学",
+                alias: "",
+                fakeid: "fake-1",
+                source_type: "wechat_mp",
+                rss_feed_id: "",
+                keywords: ["活动", "讲座"],
+                enabled: true,
+                fetch_content: true,
+                count_per_page: 20,
+                max_pages: 1,
             },
-            {
-              title: `${accountName} 第二篇`,
-              link: `https://mp.weixin.qq.com/s/${fakeid}-2`,
-              summary: 'summary',
-              author: accountName,
-            },
-          ],
-        };
-      },
-      async fetchArticleContent({ url }) {
-        contentCalls.push(url);
-        return {
-          contentText: `正文 ${url}`,
-          contentHtml: `<p>${url}</p>`,
-          images: ['https://mmbiz.qpic.cn/body.png'],
-          content_status: 'fetched',
-        };
-      },
-    };
-    const parser = async (article) => {
-      parseCalls.push(article);
-      return {
-        title: article.title,
-        date: '2026-07-20T10:00',
-        category: 'lecture',
-        content: '<p>活动候选</p>',
-        aiMeta: { provider: 'test', model: 'test-model' },
-      };
-    };
+        ]
+    );
 
-    const firstRun = await service.executeIngestRun(db, {
-      triggerType: 'manual',
-      settings: await service.getIngestSettings(db),
-      runtime: testRuntime,
-      wechatApi,
-      parser,
-    });
-    assert.equal(firstRun.status, 'completed');
-    assert.equal(firstRun.total_accounts, 2);
-    assert.equal(firstRun.total_articles, 4);
-    assert.equal(firstRun.new_articles, 4);
-    assert.equal(firstRun.fetched_contents, 4);
-    assert.equal(firstRun.extracted_articles, 4);
-    assert.equal(firstRun.extraction_failed_count, 0);
-    assert.deepEqual(sleeps, [250, 1000, 250]);
-    assert.equal(contentCalls.length, 4);
+    const csv = '公众号名称,fakeid,关键词,启用\n求是学院,fake-2,"通知,讲座",是';
+    assert.equal(service.parseAccountListContent(csv, "accounts.csv")[0].name, "求是学院");
+    assert.deepEqual(service.parseAccountListContent(csv, "accounts.csv")[0].keywords, [
+        "通知",
+        "讲座",
+    ]);
 
-    sleeps.length = 0;
-    contentCalls.length = 0;
-    const secondRun = await service.executeIngestRun(db, {
-      triggerType: 'manual',
-      settings: await service.getIngestSettings(db),
-      runtime: testRuntime,
-      wechatApi,
-      parser,
-    });
-    assert.equal(secondRun.status, 'completed');
-    assert.equal(secondRun.new_articles, 0);
-    assert.equal(secondRun.fetched_contents, 0);
-    assert.equal(secondRun.extracted_articles, 0);
-    assert.deepEqual(sleeps, [1000]);
-    assert.equal(contentCalls.length, 0);
+    const tsv = "name\tfakeid\tkeywords\nZJU News\tfake-3\tAI;Campus";
+    assert.equal(service.parseAccountListContent(tsv, "accounts.tsv")[0].fakeid, "fake-3");
 
-    const articles = await service.listIngestArticles(db, { limit: 10 });
-    assert.equal(articles.length, 4);
-    assert.equal(articles.every((article) => article.content_status === 'fetched'), true);
-    assert.equal(articles.every((article) => article.extraction_status === 'completed'), true);
-    assert.equal(articles.every((article) => article.extracted_event?.category === 'lecture'), true);
-    assert.equal(parseCalls.length, 4);
-  } finally {
-    await db.close();
-  }
+    const simple = "浙江大学本科生院,fake-4,,竞赛";
+    assert.equal(
+        service.parseAccountListContent(simple, "accounts.txt")[0].name,
+        "浙江大学本科生院"
+    );
 });
 
-test('WeChat MP automatic extraction retries failures and can be disabled', async () => {
-  const db = await createDb();
-  let parseCalls = 0;
-  const wechatApi = {
-    async fetchArticles() {
-      return {
-        articles: [{
-          title: '待提取文章',
-          link: 'https://mp.weixin.qq.com/s/retry',
-          author: '测试公众号',
-        }],
-      };
-    },
-    async fetchArticleContent() {
-      return { contentText: '正文内容', content_status: 'fetched' };
-    },
-  };
-  try {
-    await service.updateIngestSettings(db, {
-      query_delay_range: [0, 0],
-      content_delay_range: [0, 0],
-      auto_parse: true,
-    });
-    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'retry-fake' });
+test("WeChat MP account upsert keeps list idempotent", async () => {
+    const db = await createDb();
+    try {
+        const first = await service.upsertIngestAccount(db, {
+            name: "浙江大学",
+            fakeid: "fake-1",
+            keywords: "活动,讲座",
+        });
+        const second = await service.upsertIngestAccount(db, {
+            name: "浙江大学",
+            fakeid: "fake-1",
+            keywords: "通知",
+            enabled: false,
+        });
+        assert.equal(first.id, second.id);
+        assert.equal(second.enabled, false);
+        assert.deepEqual(second.keywords, ["通知"]);
 
-    const failingRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser: async () => {
-        parseCalls += 1;
-        throw new Error('模型暂时不可用');
-      },
-    });
-    assert.equal(failingRun.status, 'completed');
-    assert.equal(failingRun.extraction_failed_count, 1);
-    assert.equal((await service.listIngestArticles(db))[0].extraction_status, 'failed');
+        const accounts = await service.listIngestAccounts(db);
+        assert.equal(accounts.length, 1);
 
-    const recoveredRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser: async () => {
-        parseCalls += 1;
-        return { title: '恢复后的活动候选', category: 'competition' };
-      },
-    });
-    assert.equal(recoveredRun.extracted_articles, 1);
-    assert.equal((await service.listIngestArticles(db))[0].extracted_event?.title, '恢复后的活动候选');
-    assert.equal(parseCalls, 2);
-
-    await service.updateIngestSettings(db, { auto_parse: false });
-    const disabledRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser: async () => {
-        parseCalls += 1;
-        return { title: '不应调用' };
-      },
-    });
-    assert.equal(disabledRun.extracted_articles, 0);
-    assert.equal(parseCalls, 2);
-  } finally {
-    await db.close();
-  }
+        await service.deleteIngestAccount(db, second.id);
+        assert.equal((await service.listIngestAccounts(db)).length, 0);
+    } finally {
+        await db.close();
+    }
 });
 
-test('WeChat MP activity screening only creates pending events for confident candidates', async () => {
-  const db = await createDb();
-  const articles = [
-    {
-      title: '校园活动报名',
-      link: 'https://mp.weixin.qq.com/s/activity-candidate',
-      author: '测试公众号',
-    },
-    {
-      title: '校园成果新闻',
-      link: 'https://mp.weixin.qq.com/s/news-recap',
-      author: '测试公众号',
-    },
-  ];
-  try {
-    await db.exec(`
+test("WeChat MP account enable toggle changes only the enabled state", async () => {
+    const db = await createDb();
+    try {
+        const account = await service.upsertIngestAccount(db, {
+            name: "可切换公众号",
+            fakeid: "toggle-fake",
+            keywords: ["活动"],
+            fetch_content: false,
+            count_per_page: 7,
+            max_pages: 2,
+        });
+
+        const disabled = await service.setIngestAccountEnabled(db, account.id, false);
+        assert.equal(disabled.enabled, false);
+        assert.equal(disabled.name, account.name);
+        assert.deepEqual(disabled.keywords, account.keywords);
+        assert.equal(disabled.fetch_content, account.fetch_content);
+        assert.equal(disabled.count_per_page, account.count_per_page);
+        assert.equal(disabled.max_pages, account.max_pages);
+
+        const enabled = await service.setIngestAccountEnabled(db, account.id, true);
+        assert.equal(enabled.enabled, true);
+        assert.equal(enabled.name, account.name);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS sources are listed and executed before direct WeChat sources", async () => {
+    const db = await createDb();
+    const calls = [];
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "直连来源",
+            fakeid: "direct-source",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_PRIMARY",
+        });
+
+        const accounts = await service.listIngestAccounts(db, { includeDisabled: false });
+        assert.deepEqual(
+            accounts.map((account) => account.source_type),
+            ["wewe_rss", "wechat_mp"]
+        );
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles() {
+                    calls.push("wewe_rss");
+                    return { articles: [] };
+                },
+            },
+            wechatApi: {
+                async fetchArticles() {
+                    calls.push("wechat_mp");
+                    return { articles: [] };
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.deepEqual(calls, ["wewe_rss", "wechat_mp"]);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP incremental run saves new articles, bodies, and avoids duplicates", async () => {
+    const db = await createDb();
+    const sleeps = [];
+    const contentCalls = [];
+    const parseCalls = [];
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [1, 1],
+            page_pause_range: [0.5, 0.5],
+            content_delay_range: [0.25, 0.25],
+            count_per_page: 2,
+            max_pages: 1,
+            fetch_content: true,
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "账号一",
+            fakeid: "fake-1",
+            keywords: "活动",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "账号二",
+            fakeid: "fake-2",
+            keywords: "通知",
+        });
+
+        const testRuntime = {
+            random: () => 0,
+            sleep: async (ms) => {
+                sleeps.push(ms);
+            },
+        };
+        const wechatApi = {
+            async fetchArticles({ accountName, fakeid, pacing, runtime }) {
+                assert.deepEqual(pacing.query_delay_range, [1, 1]);
+                assert.deepEqual(pacing.page_pause_range, [0.5, 0.5]);
+                assert.equal(pacing.page_pause_seconds, 0.5);
+                assert.equal(runtime.sleep, testRuntime.sleep);
+                return {
+                    articles: [
+                        {
+                            title: `${accountName} 第一篇`,
+                            link: `https://mp.weixin.qq.com/s/${fakeid}-1`,
+                            summary: "summary",
+                            author: accountName,
+                            cover: "https://mmbiz.qpic.cn/cover.png",
+                        },
+                        {
+                            title: `${accountName} 第二篇`,
+                            link: `https://mp.weixin.qq.com/s/${fakeid}-2`,
+                            summary: "summary",
+                            author: accountName,
+                        },
+                    ],
+                };
+            },
+            async fetchArticleContent({ url }) {
+                contentCalls.push(url);
+                return {
+                    contentText: `正文 ${url}`,
+                    contentHtml: `<p>${url}</p>`,
+                    coverImage: "/uploads/covers/wechat-cover.jpg",
+                    images: ["https://mmbiz.qpic.cn/body.png"],
+                    content_status: "fetched",
+                };
+            },
+        };
+        const parser = async (article) => {
+            parseCalls.push(article);
+            return {
+                title: article.title,
+                date: "2026-07-20T10:00",
+                category: "lecture",
+                content: "<p>活动候选</p>",
+                aiMeta: { provider: "test", model: "test-model" },
+            };
+        };
+
+        const firstRun = await service.executeIngestRun(db, {
+            triggerType: "manual",
+            settings: await service.getIngestSettings(db),
+            runtime: testRuntime,
+            wechatApi,
+            parser,
+        });
+        assert.equal(firstRun.status, "completed");
+        assert.equal(firstRun.total_accounts, 2);
+        assert.equal(firstRun.total_articles, 4);
+        assert.equal(firstRun.new_articles, 4);
+        assert.equal(firstRun.fetched_contents, 4);
+        assert.equal(firstRun.extracted_articles, 4);
+        assert.equal(firstRun.extraction_failed_count, 0);
+        assert.equal(firstRun.progress_stage, "completed");
+        assert.equal(firstRun.progress_percent, 100);
+        assert.equal(firstRun.processed_accounts, 2);
+        assert.equal(firstRun.processed_articles, 4);
+        assert.deepEqual(sleeps, [250, 1000, 250]);
+        assert.equal(contentCalls.length, 4);
+
+        sleeps.length = 0;
+        contentCalls.length = 0;
+        const secondRun = await service.executeIngestRun(db, {
+            triggerType: "manual",
+            settings: await service.getIngestSettings(db),
+            runtime: testRuntime,
+            wechatApi,
+            parser,
+        });
+        assert.equal(secondRun.status, "completed");
+        assert.equal(secondRun.new_articles, 0);
+        assert.equal(secondRun.fetched_contents, 0);
+        assert.equal(secondRun.extracted_articles, 0);
+        assert.deepEqual(sleeps, [1000]);
+        assert.equal(contentCalls.length, 0);
+
+        const articles = await service.listIngestArticles(db, { limit: 10 });
+        assert.equal(articles.length, 4);
+        assert.equal(
+            articles.every((article) => article.content_status === "fetched"),
+            true
+        );
+        assert.equal(
+            articles.every((article) => article.extraction_status === "completed"),
+            true
+        );
+        assert.equal(
+            articles.every((article) => article.extracted_event?.category === "lecture"),
+            true
+        );
+        assert.equal(parseCalls.length, 4);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP ingest prefers localized covers and repairs linked events", async () => {
+    const db = await createDb();
+    let fetchContentCalls = 0;
+    let parseCalls = 0;
+    const article = {
+        title: "英语四新专项赛选拔赛",
+        link: "https://mp.weixin.qq.com/s/localized-cover",
+        summary: "报名通知",
+        author: "测试公众号",
+        cover: "https://mmbiz.qpic.cn/list-cover.png",
+    };
+
+    try {
+        await db.exec(`
       CREATE TABLE events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
@@ -343,114 +582,344 @@ test('WeChat MP activity screening only creates pending events for confident can
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
       )
     `);
-    await service.updateIngestSettings(db, {
-      query_delay_range: [0, 0],
-      content_delay_range: [0, 0],
-      auto_parse: true,
-    });
-    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'activity-fake' });
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, { name: "测试公众号", fakeid: "cover-fake" });
 
-    const wechatApi = {
-      async fetchArticles() {
-        return { articles };
-      },
-      async fetchArticleContent({ url }) {
-        return { contentText: `正文 ${url}`, content_status: 'fetched' };
-      },
-    };
-    const parser = async (article) => {
-      const candidate = article.title.includes('活动');
-      return {
-        title: article.title,
-        date: '2026-07-20T10:00',
-        category: 'lecture',
-        content: '<p>活动详情</p>',
-        is_activity_candidate: candidate,
-        activity_confidence: candidate ? 0.92 : 0.98,
-        activity_reason: candidate ? '包含明确报名和参与安排' : '文章是成果报道，不是参与型活动',
-      };
-    };
+        const wechatApi = {
+            async fetchArticles() {
+                return { articles: [article] };
+            },
+            async fetchArticleContent() {
+                fetchContentCalls += 1;
+                return {
+                    contentText: "包含报名时间和参与方式的活动正文",
+                    contentHtml: "<p>活动详情</p>",
+                    coverImage: "/uploads/covers/wechat-local-cover.jpg",
+                    images: ["/uploads/covers/wechat-local-cover.jpg"],
+                    content_status: "fetched",
+                };
+            },
+        };
+        const parser = async () => {
+            parseCalls += 1;
+            return {
+                title: article.title,
+                date: "2026-07-20T10:00",
+                category: "competition",
+                content: "<p>活动详情</p>",
+                is_activity_candidate: true,
+                activity_confidence: 0.95,
+                activity_reason: "包含明确报名和参与安排",
+            };
+        };
 
-    const firstRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser,
-    });
-    assert.equal(firstRun.status, 'completed');
+        const firstRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+            governanceTrigger: async () => {},
+        });
+        assert.equal(firstRun.status, "completed");
 
-    const events = await db.all('SELECT * FROM events ORDER BY id');
-    assert.equal(events.length, 1);
-    assert.equal(events[0].title, '校园活动报名');
-    assert.equal(events[0].status, 'pending');
-    assert.equal(events[0].uploader_id, null);
+        let stored = (await service.listIngestArticles(db))[0];
+        let events = await db.all("SELECT * FROM events");
+        assert.equal(stored.cover, "/uploads/covers/wechat-local-cover.jpg");
+        assert.equal(events[0].image, "/uploads/covers/wechat-local-cover.jpg");
 
-    const storedArticles = await service.listIngestArticles(db, { limit: 10 });
-    const accepted = storedArticles.find((article) => article.title === '校园活动报名');
-    const rejected = storedArticles.find((article) => article.title === '校园成果新闻');
-    assert.equal(accepted.activity_status, 'accepted');
-    assert.equal(accepted.event_id, events[0].id);
-    assert.equal(rejected.activity_status, 'rejected');
-    assert.match(rejected.activity_reason, /成果报道/);
+        await db.run("UPDATE wechat_mp_ingest_articles SET cover = ? WHERE id = ?", [
+            article.cover,
+            stored.id,
+        ]);
+        await db.run("UPDATE events SET image = ? WHERE id = ?", [article.cover, events[0].id]);
 
-    const secondRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser,
-    });
-    assert.equal(secondRun.status, 'completed');
-    assert.equal((await db.all('SELECT id FROM events')).length, 1);
-  } finally {
-    await db.close();
-  }
+        const repairedRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+            governanceTrigger: async () => {},
+        });
+        assert.equal(repairedRun.status, "completed");
+        assert.equal(fetchContentCalls, 2);
+        assert.equal(parseCalls, 1);
+
+        stored = (await service.listIngestArticles(db))[0];
+        events = await db.all("SELECT * FROM events");
+        assert.equal(stored.cover, "/uploads/covers/wechat-local-cover.jpg");
+        assert.equal(events[0].image, "/uploads/covers/wechat-local-cover.jpg");
+    } finally {
+        await db.close();
+    }
 });
 
-test('WeChat MP retries failed activity writes without parsing the article again', async () => {
-  const db = await createDb();
-  let parseCalls = 0;
-  const article = {
-    title: '活动报名通知',
-    link: 'https://mp.weixin.qq.com/s/recover-activity-write',
-    author: '测试公众号',
-  };
-  const wechatApi = {
-    async fetchArticles() {
-      return { articles: [article] };
-    },
-    async fetchArticleContent() {
-      return { contentText: '包含报名时间和参与方式的活动正文', content_status: 'fetched' };
-    },
-  };
-  const parser = async () => {
-    parseCalls += 1;
-    return {
-      title: article.title,
-      date: '2026-07-20T10:00',
-      category: 'lecture',
-      content: '<p>活动详情</p>',
-      is_activity_candidate: true,
-      activity_confidence: 0.92,
-      activity_reason: '包含明确报名和参与安排',
+test("WeChat MP ingest localizes a list cover when article content has no local cover", async () => {
+    const db = await createDb();
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, { name: "人民日报", fakeid: "people-daily" });
+        const localized = [];
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi: {
+                async fetchArticles() {
+                    return {
+                        articles: [
+                            {
+                                title: "人民日报测试文章",
+                                link: "https://mp.weixin.qq.com/s/people-daily-test",
+                                cover: "https://mmbiz.qpic.cn/list-cover.jpg",
+                            },
+                        ],
+                    };
+                },
+                async fetchArticleContent() {
+                    return {
+                        contentText: "测试正文",
+                        contentHtml: "<p>测试正文</p>",
+                        coverImage: "https://mmbiz.qpic.cn/content-cover.jpg",
+                        images: [],
+                        content_status: "fetched",
+                    };
+                },
+            },
+            localizeImages: async (body) => {
+                localized.push(body.coverImage);
+                return { ...body, coverImage: "/uploads/covers/people-daily-test.jpg" };
+            },
+        });
+        assert.equal(result.status, "completed");
+        const stored = (await service.listIngestArticles(db))[0];
+        assert.equal(stored.cover, "/uploads/covers/people-daily-test.jpg");
+        assert.deepEqual(localized, ["https://mmbiz.qpic.cn/list-cover.jpg"]);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP automatic extraction retries failures and can be disabled", async () => {
+    const db = await createDb();
+    let parseCalls = 0;
+    const wechatApi = {
+        async fetchArticles() {
+            return {
+                articles: [
+                    {
+                        title: "待提取文章",
+                        link: "https://mp.weixin.qq.com/s/retry",
+                        author: "测试公众号",
+                    },
+                ],
+            };
+        },
+        async fetchArticleContent() {
+            return { contentText: "正文内容", content_status: "fetched" };
+        },
     };
-  };
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, { name: "测试公众号", fakeid: "retry-fake" });
 
-  try {
-    await service.updateIngestSettings(db, {
-      query_delay_range: [0, 0],
-      content_delay_range: [0, 0],
-      auto_parse: true,
-    });
-    await service.upsertIngestAccount(db, { name: '测试公众号', fakeid: 'recovery-fake' });
+        const failingRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser: async () => {
+                parseCalls += 1;
+                throw new Error("模型暂时不可用");
+            },
+        });
+        assert.equal(failingRun.status, "completed");
+        assert.equal(failingRun.extraction_failed_count, 1);
+        assert.equal((await service.listIngestArticles(db))[0].extraction_status, "failed");
 
-    const firstRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser,
-    });
-    assert.equal(firstRun.status, 'completed');
-    assert.equal(parseCalls, 1);
-    assert.equal((await service.listIngestArticles(db))[0].activity_status, 'failed');
+        const recoveredRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser: async () => {
+                parseCalls += 1;
+                return { title: "恢复后的活动候选", category: "competition" };
+            },
+        });
+        assert.equal(recoveredRun.extracted_articles, 1);
+        assert.equal(
+            (await service.listIngestArticles(db))[0].extracted_event?.title,
+            "恢复后的活动候选"
+        );
+        assert.equal(parseCalls, 2);
 
-    await db.exec(`
+        await service.updateIngestSettings(db, { auto_parse: false });
+        const disabledRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser: async () => {
+                parseCalls += 1;
+                return { title: "不应调用" };
+            },
+        });
+        assert.equal(disabledRun.extracted_articles, 0);
+        assert.equal(parseCalls, 2);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP activity screening only creates pending events for confident candidates", async () => {
+    const db = await createDb();
+    const articles = [
+        {
+            title: "校园活动报名",
+            link: "https://mp.weixin.qq.com/s/activity-candidate",
+            author: "测试公众号",
+        },
+        {
+            title: "校园成果新闻",
+            link: "https://mp.weixin.qq.com/s/news-recap",
+            author: "测试公众号",
+        },
+    ];
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, { name: "测试公众号", fakeid: "activity-fake" });
+
+        const wechatApi = {
+            async fetchArticles() {
+                return { articles };
+            },
+            async fetchArticleContent({ url }) {
+                return { contentText: `正文 ${url}`, content_status: "fetched" };
+            },
+        };
+        const parser = async (article) => {
+            const candidate = article.title.includes("活动");
+            return {
+                title: article.title,
+                date: "2026-07-20T10:00",
+                category: "lecture",
+                content: "<p>活动详情</p>",
+                is_activity_candidate: candidate,
+                activity_confidence: candidate ? 0.92 : 0.98,
+                activity_reason: candidate
+                    ? "包含明确报名和参与安排"
+                    : "文章是成果报道，不是参与型活动",
+            };
+        };
+        const governanceCalls = [];
+
+        const firstRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+            governanceTrigger: async (triggerDb, payload) => {
+                governanceCalls.push({ triggerDb, payload });
+            },
+        });
+        assert.equal(firstRun.status, "completed");
+
+        const events = await db.all("SELECT * FROM events ORDER BY id");
+        assert.equal(events.length, 1);
+        assert.equal(events[0].title, "校园活动报名");
+        assert.equal(events[0].status, "pending");
+        assert.equal(events[0].uploader_id, null);
+
+        const storedArticles = await service.listIngestArticles(db, { limit: 10 });
+        const accepted = storedArticles.find((article) => article.title === "校园活动报名");
+        const rejected = storedArticles.find((article) => article.title === "校园成果新闻");
+        assert.equal(accepted.activity_status, "accepted");
+        assert.equal(accepted.event_id, events[0].id);
+        assert.equal(governanceCalls.length, 1);
+        assert.equal(governanceCalls[0].triggerDb, db);
+        assert.deepEqual(governanceCalls[0].payload, {
+            eventId: events[0].id,
+            userId: null,
+            source: "automatic_wechat_ingest",
+        });
+        assert.equal(rejected.activity_status, "rejected");
+        assert.match(rejected.activity_reason, /成果报道/);
+
+        const secondRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+        });
+        assert.equal(secondRun.status, "completed");
+        assert.equal((await db.all("SELECT id FROM events")).length, 1);
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeChat MP retries failed activity writes without parsing the article again", async () => {
+    const db = await createDb();
+    let parseCalls = 0;
+    const article = {
+        title: "活动报名通知",
+        link: "https://mp.weixin.qq.com/s/recover-activity-write",
+        author: "测试公众号",
+    };
+    const wechatApi = {
+        async fetchArticles() {
+            return { articles: [article] };
+        },
+        async fetchArticleContent() {
+            return { contentText: "包含报名时间和参与方式的活动正文", content_status: "fetched" };
+        },
+    };
+    const parser = async () => {
+        parseCalls += 1;
+        return {
+            title: article.title,
+            date: "2026-07-20T10:00",
+            category: "lecture",
+            content: "<p>活动详情</p>",
+            is_activity_candidate: true,
+            activity_confidence: 0.92,
+            activity_reason: "包含明确报名和参与安排",
+        };
+    };
+
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            content_delay_range: [0, 0],
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, { name: "测试公众号", fakeid: "recovery-fake" });
+
+        const firstRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+        });
+        assert.equal(firstRun.status, "completed");
+        assert.equal(parseCalls, 1);
+        assert.equal((await service.listIngestArticles(db))[0].activity_status, "failed");
+
+        await db.exec(`
       CREATE TABLE events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
@@ -462,26 +931,410 @@ test('WeChat MP retries failed activity writes without parsing the article again
       )
     `);
 
-    const recoveredRun = await service.executeIngestRun(db, {
-      settings: await service.getIngestSettings(db),
-      wechatApi,
-      parser,
-    });
-    assert.equal(recoveredRun.status, 'completed');
-    assert.equal(parseCalls, 1);
+        const recoveredRun = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            wechatApi,
+            parser,
+        });
+        assert.equal(recoveredRun.status, "completed");
+        assert.equal(parseCalls, 1);
 
-    const stored = (await service.listIngestArticles(db))[0];
-    const events = await db.all('SELECT * FROM events');
-    assert.equal(stored.activity_status, 'accepted');
-    assert.equal(events.length, 1);
-    assert.equal(events[0].status, 'pending');
-  } finally {
-    await db.close();
-  }
+        const stored = (await service.listIngestArticles(db))[0];
+        const events = await db.all("SELECT * FROM events");
+        assert.equal(stored.activity_status, "accepted");
+        assert.equal(events.length, 1);
+        assert.equal(events[0].status, "pending");
+    } finally {
+        await db.close();
+    }
 });
 
-test('WeChat MP scheduler key respects configured timezone', () => {
-  const key = service.getZonedDateTimeKey(new Date('2026-07-10T19:30:00.000Z'), 'Asia/Shanghai');
-  assert.equal(key.dateKey, '2026-07-11');
-  assert.equal(key.timeKey, '03:30');
+test("WeChat MP scheduler key respects configured timezone", () => {
+    const key = service.getZonedDateTimeKey(new Date("2026-07-10T19:30:00.000Z"), "Asia/Shanghai");
+    assert.equal(key.dateKey, "2026-07-11");
+    assert.equal(key.timeKey, "03:30");
+});
+
+test("WeChat MP ingest recovers stale running jobs without touching active jobs", async () => {
+    const db = await createDb();
+    try {
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        await db.run(
+            `
+      INSERT INTO wechat_mp_ingest_runs (
+        trigger_type, status, progress_stage, progress_percent, last_heartbeat_at, started_at
+      ) VALUES ('scheduled', 'running', 'fetching_content', 42,
+        datetime('now', '-45 minutes'), datetime('now', '-45 minutes'))
+    `
+        );
+        await db.run(
+            `
+      INSERT INTO wechat_mp_ingest_runs (
+        trigger_type, status, progress_stage, progress_percent, last_heartbeat_at
+      ) VALUES ('manual', 'running', 'fetching_accounts', 5, datetime('now'))
+    `
+        );
+
+        const runs = await service.listIngestRuns(db, { limit: 10 });
+        const staleRun = runs.find((run) => run.trigger_type === "scheduled");
+        const activeRun = runs.find((run) => run.trigger_type === "manual");
+        assert.equal(staleRun.status, "failed");
+        assert.equal(staleRun.progress_stage, "failed");
+        assert.equal(staleRun.progress_percent, 42);
+        assert.equal(staleRun.error, "采集任务因服务重启或长时间无响应而中止");
+        assert.equal(activeRun.status, "running");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS sources reuse the public original-article pipeline without MP login", async () => {
+    const db = await createDb();
+    const rssCalls = [];
+    const rssContentCalls = [];
+    let directWechatCalls = 0;
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [1, 1],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "RSS 测试公众号",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_TEST",
+            count_per_page: 5,
+            max_pages: 2,
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles(options) {
+                    rssCalls.push(options);
+                    return {
+                        articles: [
+                            {
+                                title: "RSS 公众号活动通知",
+                                link: "https://mp.weixin.qq.com/s/rss-pipeline",
+                                author: "RSS 测试公众号",
+                                cover: "/uploads/covers/rss-pipeline.jpg",
+                                content_text: "活动正文内容",
+                                content_html: "<p>活动正文内容</p>",
+                                images: ["https://mmbiz.qpic.cn/rss-body.jpg"],
+                                content_status: "fetched",
+                            },
+                        ],
+                    };
+                },
+                async fetchArticleContent(options) {
+                    rssContentCalls.push(options);
+                    return {
+                        url: options.url,
+                        contentText: "活动正文内容",
+                        contentHtml: "<p>活动正文内容</p>",
+                        coverImage: "/uploads/covers/rss-pipeline.jpg",
+                        images: ["/uploads/covers/rss-body.jpg"],
+                        content_status: "fetched",
+                    };
+                },
+            },
+            wechatApi: {
+                async fetchArticles() {
+                    directWechatCalls += 1;
+                    throw new Error("RSS source must not call direct WeChat API");
+                },
+                async fetchArticleContent() {
+                    directWechatCalls += 1;
+                    throw new Error("RSS source must not fetch original article body");
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.total_articles, 1);
+        assert.equal(result.new_articles, 1);
+        assert.equal(result.fetched_contents, 1);
+        assert.equal(directWechatCalls, 0);
+        assert.equal(rssCalls.length, 1);
+        assert.equal(rssContentCalls.length, 1);
+        assert.equal(rssContentCalls[0].url, "https://mp.weixin.qq.com/s/rss-pipeline");
+        assert.equal(rssContentCalls[0].feedId, "MP_WXS_TEST");
+        assert.deepEqual(rssCalls[0], {
+            feedId: "MP_WXS_TEST",
+            count: 5,
+            maxPages: 2,
+            mode: "",
+            pacing: { page_pause_seconds: 1 },
+            runtime: undefined,
+        });
+
+        const accounts = await service.listIngestAccounts(db);
+        const articles = await service.listIngestArticles(db);
+        assert.equal(accounts[0].source_type, "wewe_rss");
+        assert.equal(accounts[0].rss_feed_id, "MP_WXS_TEST");
+        assert.equal(articles[0].content_text, "活动正文内容");
+        assert.equal(articles[0].content_status, "fetched");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS image-led articles remain candidates but skip AI extraction", async () => {
+    const db = await createDb();
+    let parserCalls = 0;
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [0, 0],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: true,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "图片 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "MP_WXS_IMAGE_ONLY",
+            count_per_page: 1,
+            max_pages: 1,
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles() {
+                    return {
+                        articles: [
+                            {
+                                title: "海报文章",
+                                link: "https://mp.weixin.qq.com/s/image-only",
+                                cover: "/uploads/covers/image-only-cover.jpg",
+                                author: "图片来源",
+                            },
+                        ],
+                    };
+                },
+                async fetchArticleContent({ url }) {
+                    return {
+                        url,
+                        contentText: "左右滑动查看更多 文案 审核",
+                        contentHtml:
+                            '<div><img src="/uploads/covers/one.jpg"><img src="/uploads/covers/two.jpg"></div>',
+                        images: ["/uploads/covers/one.jpg", "/uploads/covers/two.jpg"],
+                        coverImage: "/uploads/covers/image-only-cover.jpg",
+                        content_status: "image_only",
+                    };
+                },
+            },
+            parser: async () => {
+                parserCalls += 1;
+                return { description: "不应调用" };
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.total_articles, 1);
+        assert.equal(result.fetched_contents, 1);
+        assert.equal(result.extracted_articles, 0);
+        assert.equal(result.extraction_failed_count, 0);
+        assert.equal(parserCalls, 0);
+
+        const article = (await service.listIngestArticles(db))[0];
+        assert.equal(article.content_status, "image_only");
+        assert.equal(article.extraction_status, "skipped");
+        assert.equal(article.activity_status, "not_screened");
+    } finally {
+        await db.close();
+    }
+});
+
+test("WeRead RSS source failures are recorded while later sources continue", async () => {
+    const db = await createDb();
+    const calls = [];
+    try {
+        await service.updateIngestSettings(db, {
+            query_delay_range: [0, 0],
+            page_pause_range: [1, 1],
+            content_delay_range: [0, 0],
+            fetch_content: true,
+            auto_parse: false,
+        });
+        await service.upsertIngestAccount(db, {
+            name: "失败 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_FAIL",
+        });
+        await service.upsertIngestAccount(db, {
+            name: "成功 RSS 来源",
+            source_type: "wewe_rss",
+            rss_feed_id: "RSS_OK",
+        });
+
+        const result = await service.executeIngestRun(db, {
+            settings: await service.getIngestSettings(db),
+            rssApi: {
+                async fetchArticles({ feedId }) {
+                    calls.push(feedId);
+                    if (feedId === "RSS_FAIL") throw new Error("feed timeout");
+                    return {
+                        articles: [
+                            {
+                                title: "成功来源文章",
+                                link: "https://mp.weixin.qq.com/s/rss-ok",
+                                content_text: "成功来源正文",
+                                content_status: "fetched",
+                            },
+                        ],
+                    };
+                },
+                async fetchArticleContent({ url }) {
+                    return {
+                        url,
+                        contentText: "成功来源正文",
+                        contentHtml: "<p>成功来源正文</p>",
+                        content_status: "fetched",
+                    };
+                },
+            },
+        });
+
+        assert.equal(result.status, "completed");
+        assert.equal(result.processed_accounts, 2);
+        assert.equal(result.failed_count, 1);
+        assert.equal(result.new_articles, 1);
+        assert.match(result.error, /失败 RSS 来源: feed timeout/);
+        assert.deepEqual(calls.sort(), ["RSS_FAIL", "RSS_OK"]);
+    } finally {
+        await db.close();
+    }
+});
+
+test("student summary events lead with the main image and keep other chosen images", async () => {
+    const fs = require("node:fs/promises");
+    const path = require("node:path");
+    const db = await createDb();
+    const articleId = 987654321;
+    const visionFile = path.resolve(__dirname, "../data/wechat-vision", `${articleId}.json`);
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        await fs.mkdir(path.dirname(visionFile), { recursive: true });
+        const image = (url, kind, score) => ({
+            url,
+            kind,
+            score,
+            status: "completed",
+            width: 1080,
+            height: 1440,
+        });
+        await fs.writeFile(
+            visionFile,
+            JSON.stringify({
+                images: {
+                    a: image("/uploads/covers/qr.png", "qr", 1),
+                    b: image("/uploads/covers/poster.jpg", "poster", 0.99),
+                    c: image("/uploads/covers/photo.jpg", "photo", 0.8),
+                    d: image("/uploads/covers/low.jpg", "photo", 0.3),
+                },
+            })
+        );
+        const article = {
+            id: articleId,
+            title: "讲座报名",
+            link: "https://mp.weixin.qq.com/s/summary",
+            cover: "/uploads/covers/poster.jpg",
+            create_time: "2026-09-21T02:58:33+00:00",
+        };
+        const result = await service.screenArticleActivity(
+            db,
+            article,
+            {
+                title: "讲座",
+                description: "卡片摘要",
+                is_activity_candidate: true,
+                activity_confidence: 0.95,
+                student_summary: {
+                    highlight: "线下参加可获二课分",
+                    key_info: [{ label: "时间", value: "9月24日 15:00" }],
+                    sections: [],
+                },
+            },
+            { governanceTrigger: async () => {} }
+        );
+        assert.equal(result.status, "accepted");
+        const event = await db.get("SELECT image, description, content FROM events");
+        assert.equal(event.image, "/uploads/covers/poster.jpg");
+        assert.equal(event.description, "卡片摘要");
+        assert.ok(event.content.startsWith('<p><img src="/uploads/covers/poster.jpg"'));
+        assert.match(event.content, /9月24日（周四） 15:00/);
+        assert.ok(event.content.indexOf("photo.jpg") > event.content.indexOf("二课分"));
+        assert.equal(event.content.match(/poster\.jpg/g).length, 1);
+        assert.doesNotMatch(event.content, /qr\.png|low\.jpg/);
+    } finally {
+        await fs.rm(visionFile, { force: true });
+        await db.close();
+    }
+});
+
+test("posts announcing the same happening share one review event", async () => {
+    const db = await createDb();
+    try {
+        await db.exec(`
+      CREATE TABLE events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, date TEXT, end_date TEXT, location TEXT, tags TEXT,
+        status TEXT DEFAULT 'approved', image TEXT, description TEXT, content TEXT,
+        link TEXT, featured INTEGER DEFAULT 0, score TEXT, target_audience TEXT,
+        organizer TEXT, volunteer_time TEXT, category TEXT, is_college_notice INTEGER DEFAULT 0,
+        notice_type TEXT, source_college TEXT, uploader_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, deleted_at DATETIME
+      )
+    `);
+        await service.ensureWechatMpScheduledIngestSchema(db);
+        const screen = (id, parsed) =>
+            service.screenArticleActivity(
+                db,
+                { id, title: parsed.title, link: `https://mp.weixin.qq.com/s/post-${id}` },
+                { is_activity_candidate: true, activity_confidence: 0.9, ...parsed },
+                { governanceTrigger: async () => {} }
+            );
+        const first = await screen(1, { title: "星辰汇纳新", organizer: "浙江大学星辰汇" });
+        const countdown = await screen(2, { title: "星辰汇纳新报名", organizer: "浙江大学星辰汇" });
+        const repost = await screen(3, {
+            title: "2026年学业指导中心招新",
+            organizer: "学业指导中心",
+        });
+        const original = await screen(4, { title: "学业指导中心纳新", organizer: "学业指导中心" });
+        const ticket = await screen(5, {
+            title: "第四届校园音乐节",
+            organizer: "体艺部",
+            date: "2026-09-24T18:30",
+        });
+        const guide = await screen(6, {
+            title: "第四届校园音乐节",
+            organizer: "体艺部、人民日报",
+            date: "2026-09-24T19:00",
+        });
+        const otherClub = await screen(7, { title: "星辰汇纳新", organizer: "另一个社团" });
+        assert.equal(countdown.event_id, first.event_id);
+        assert.equal(original.event_id, repost.event_id);
+        assert.equal(guide.event_id, ticket.event_id);
+        assert.notEqual(otherClub.event_id, first.event_id);
+        assert.equal((await db.get("SELECT COUNT(*) AS n FROM events")).n, 4);
+        assert.equal(service.eventDedupKey("2026-2027学年 活动报名通知"), "");
+    } finally {
+        await db.close();
+    }
 });

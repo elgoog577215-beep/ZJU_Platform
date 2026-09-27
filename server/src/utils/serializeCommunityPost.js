@@ -8,8 +8,8 @@
  * in the signature for future redaction use cases.
  */
 function serializeCommunityPost(post /* , viewer */) {
-  if (!post) return post;
-  return { ...post };
+    if (!post) return post;
+    return { ...post };
 }
 
 module.exports = { serializeCommunityPost };

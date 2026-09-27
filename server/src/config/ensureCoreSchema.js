@@ -1,5 +1,5 @@
 async function ensureCoreSchema(db) {
-  await db.exec(`
+    await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -89,6 +89,7 @@ async function ensureCoreSchema(db) {
       tags TEXT,
       content TEXT,
       content_blocks TEXT,
+      source_url TEXT,
       cover TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
@@ -124,6 +125,30 @@ async function ensureCoreSchema(db) {
       source_college TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME
+    );
+
+    CREATE TABLE IF NOT EXISTS project_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      intro TEXT,
+      content TEXT,
+      progress TEXT DEFAULT 'idea',
+      need_tags TEXT DEFAULT '[]',
+      tech_tags TEXT DEFAULT '[]',
+      repo_url TEXT,
+      deployment_provider TEXT,
+      deployment_url TEXT,
+      contact_wechat TEXT,
+      contact_email TEXT,
+      cover_url TEXT,
+      images_json TEXT DEFAULT '[]',
+      status TEXT DEFAULT 'published',
+      likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS competitions (
@@ -163,13 +188,29 @@ async function ensureCoreSchema(db) {
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS competition_media_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      competition_id INTEGER NOT NULL,
+      resource_type TEXT NOT NULL CHECK (resource_type IN ('photo', 'video')),
+      resource_id INTEGER NOT NULL,
+      role TEXT DEFAULT 'archive' CHECK (role IN ('official_film', 'highlight', 'archive')),
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(competition_id, resource_type, resource_id),
+      FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS competition_works (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       competition_id INTEGER NOT NULL,
+      project_id INTEGER,
       title TEXT NOT NULL,
       author TEXT NOT NULL,
       summary TEXT NOT NULL,
       git_url TEXT,
+      deployment_provider TEXT,
+      deployment_url TEXT,
       award TEXT,
       rank TEXT,
       cover_url TEXT,
@@ -190,9 +231,19 @@ async function ensureCoreSchema(db) {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME,
       FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE,
+      FOREIGN KEY (project_id) REFERENCES project_cards(id) ON DELETE SET NULL,
       FOREIGN KEY (uploader_id) REFERENCES users(id) ON DELETE SET NULL,
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_project_cards_feed
+      ON project_cards(status, progress, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_project_cards_user
+      ON project_cards(user_id);
+    CREATE INDEX IF NOT EXISTS idx_competition_media_links_event
+      ON competition_media_links(competition_id, resource_type, role, sort_order, resource_id);
+    CREATE INDEX IF NOT EXISTS idx_competition_media_links_resource
+      ON competition_media_links(resource_type, resource_id, competition_id);
 
     CREATE TABLE IF NOT EXISTS user_identity_claims (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -288,9 +339,9 @@ async function ensureCoreSchema(db) {
     );
   `);
 
-  console.log('✅ Core schema ready');
+    console.log("✅ Core schema ready");
 }
 
 module.exports = {
-  ensureCoreSchema
+    ensureCoreSchema,
 };

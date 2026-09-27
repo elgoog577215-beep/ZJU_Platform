@@ -1,31 +1,31 @@
 const createEventExplanationService = ({
-  buildClarificationResponse,
-  buildFallbackRecommendationResponse,
-  buildAiRecommendationResponse,
-  buildReasoningTrace,
-  buildIntentSummary,
+    buildClarificationResponse,
+    buildFallbackRecommendationResponse,
+    buildAiRecommendationResponse,
+    buildReasoningTrace,
+    buildIntentSummary,
 }) => ({
-  buildClarification(options) {
-    return buildClarificationResponse(options);
-  },
+    buildClarification(options) {
+        return buildClarificationResponse(options);
+    },
 
-  buildFallbackRecommendation(options) {
-    return buildFallbackRecommendationResponse(options);
-  },
+    buildFallbackRecommendation(options) {
+        return buildFallbackRecommendationResponse(options);
+    },
 
-  buildAiRecommendation(options) {
-    return buildAiRecommendationResponse(options);
-  },
+    buildAiRecommendation(options) {
+        return buildAiRecommendationResponse(options);
+    },
 
-  buildReasoningTrace(options) {
-    return buildReasoningTrace(options);
-  },
+    buildReasoningTrace(options) {
+        return buildReasoningTrace(options);
+    },
 
-  buildIntentSummary(intent, profile) {
-    return buildIntentSummary(intent, profile);
-  },
+    buildIntentSummary(intent, profile) {
+        return buildIntentSummary(intent, profile);
+    },
 });
 
 module.exports = {
-  createEventExplanationService,
+    createEventExplanationService,
 };

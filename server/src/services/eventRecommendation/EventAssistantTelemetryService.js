@@ -1,16 +1,16 @@
 const createEventAssistantTelemetryService = ({
-  recordEventAssistantRun,
-  logInvalidModelOutput,
+    recordEventAssistantRun,
+    logInvalidModelOutput,
 }) => ({
-  recordRun(db, response, userId) {
-    return recordEventAssistantRun(db, response, userId);
-  },
+    recordRun(db, response, userId) {
+        return recordEventAssistantRun(db, response, userId);
+    },
 
-  logInvalidModelOutput(payload) {
-    return logInvalidModelOutput(payload);
-  },
+    logInvalidModelOutput(payload) {
+        return logInvalidModelOutput(payload);
+    },
 });
 
 module.exports = {
-  createEventAssistantTelemetryService,
+    createEventAssistantTelemetryService,
 };
