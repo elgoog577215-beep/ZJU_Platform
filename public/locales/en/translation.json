@@ -2123,7 +2123,7 @@
         "title": "Event Collection",
         "subtitle": "Find your next action across talks, competitions, volunteering, project calls, and AI practice on the information-sharing platform.",
         "organizations": {
-            "mobile_directory": "All organizations",
+            "mobile_directory": "All orgs",
             "mobile_search": "Search organization names",
             "aria": "Organization event filter",
             "kicker": "Partner organizations",
