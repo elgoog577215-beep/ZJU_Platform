@@ -105,7 +105,8 @@
             "users": "Utilisateurs",
             "community": "Communauté",
             "messages": "Messages",
-            "settings": "Paramètres"
+            "settings": "Paramètres",
+            "audit_logs": "Journaux d'audit"
         },
         "descriptions": {
             "overview": "Indicateurs clés, tâches et raccourcis",

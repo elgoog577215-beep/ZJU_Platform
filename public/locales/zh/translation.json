@@ -2424,7 +2424,8 @@
             "projects": "项目广场",
             "partners": "生态合作方",
             "futureLearning": "产学项目",
-            "mediaCategories": "影像分类"
+            "mediaCategories": "影像分类",
+            "audit_logs": "审计日志"
         },
         "domains": {
             "overview": "运营总览",

@@ -19,6 +19,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ResourceHints } from "./components/ResourceHints";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
+import { useVisitTracking } from "./hooks/useVisitTracking";
 import { routeTransition, useReducedMotion } from "./utils/animations";
 import {
     getMiniProgramNavInset,
@@ -350,6 +351,8 @@ const AppContent = () => {
             }
         },
     });
+
+    useVisitTracking(location.pathname, { enabled: !isAdminRoute });
 
     useEffect(() => {
         if (typeof navigator === "undefined") return;
