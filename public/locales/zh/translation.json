@@ -2761,7 +2761,11 @@
                 "general": "基础与安全",
                 "appearance": "公共外观",
                 "about": "关于站点",
-                "content": "页面内容"
+                "content": "页面内容",
+                "intelligence": "能力与模型",
+                "collection": "内容采集",
+                "taxonomy": "分类字典",
+                "maintenance": "系统维护"
             },
             "actions": {
                 "saving": "保存中...",

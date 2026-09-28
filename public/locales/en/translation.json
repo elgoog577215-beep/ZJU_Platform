@@ -2696,7 +2696,11 @@
                 "general": "General & Security",
                 "appearance": "Public Appearance",
                 "about": "About Page",
-                "content": "Page content"
+                "content": "Page content",
+                "intelligence": "Capabilities & models",
+                "collection": "Content collection",
+                "taxonomy": "Taxonomy",
+                "maintenance": "Maintenance"
             },
             "actions": {
                 "saving": "Saving...",
