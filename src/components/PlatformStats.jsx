@@ -10,7 +10,6 @@ import {
     Handshake,
     Network,
     Orbit,
-    Trees,
     Trophy,
     Users,
     Zap,
@@ -409,21 +408,6 @@ const PlatformStats = ({ hero } = {}) => {
         },
         {
             index: "03",
-            code: "LEARN",
-            title: t("home.platform.handle_learning_title", "Future Learning Center"),
-            short: t("home.platform.handle_learning_short", "Scenario Base"),
-            loop: t("home.platform.handle_learning_loop", "Open Scenarios"),
-            icon: Trees,
-            description: t(
-                "home.platform.handle_learning_desc",
-                "Open real learning scenarios and interdisciplinary topics with space, coordination, and long-term operations."
-            ),
-            route: "/future-learning",
-            accent: isDayMode ? "text-teal-700" : "text-teal-300",
-            iconBg: isDayMode ? "bg-teal-500" : "bg-teal-300",
-        },
-        {
-            index: "04",
             code: "BUILD",
             title: t("home.platform.handle_hackathon_title", "Rapid Hackathon"),
             short: t("home.platform.handle_hackathon_short", "Outcome Recognition"),
@@ -1108,7 +1092,7 @@ const PlatformStats = ({ hero } = {}) => {
                                     </div>
                                 </div>
 
-                                <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-4">
+                                <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-3 xl:gap-4">
                                     {enterpriseLogos.map((logo) => (
                                         <button
                                             key={logo.id || logo.src || logo.name}

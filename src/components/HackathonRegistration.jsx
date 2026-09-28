@@ -1114,13 +1114,6 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                     {t("hackathon.cooperation.continue_registration", "继续报名")}
                                     <Send className="h-4 w-4" />
                                 </button>
-                                <Link
-                                    to="/future-learning"
-                                    className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
-                                >
-                                    {t("hackathon.cooperation.contact", "联系赛事合作")}
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
                             </div>
                         </div>
                     </div>

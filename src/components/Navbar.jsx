@@ -140,7 +140,6 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
         if (pathname === "/") return t("nav.home");
         if (pathname.startsWith("/hackathon")) return t("nav.hackathon");
         if (pathname.startsWith("/events")) return t("nav.events");
-        if (pathname.startsWith("/future-learning")) return t("nav.future_learning");
         if (pathname.startsWith("/articles")) return t("nav.articles");
         if (pathname.startsWith("/gallery")) return t("nav.gallery");
         if (pathname.startsWith("/videos")) return t("nav.videos");

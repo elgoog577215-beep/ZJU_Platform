@@ -113,7 +113,6 @@ const loadEcosystemPartnerDirectory = () => import("./components/EcosystemPartne
 const loadAppDownload = () => import("./components/AppDownload");
 const loadHackathonSeasonOne = () => import("./components/HackathonSeasonOne");
 const loadHackathonWorks = () => import("./components/HackathonWorksRedirect");
-const loadFutureLearningCenter = () => import("./components/FutureLearningCenter");
 const loadAdminDashboard = () => import("./components/Admin/AdminDashboard");
 const loadAdminAccessGate = () => import("./components/Admin/AdminAccessGate");
 const loadNotFound = () => import("./components/NotFound");
@@ -135,7 +134,6 @@ const EcosystemPartnerDirectory = lazyRoute(loadEcosystemPartnerDirectory);
 const AppDownload = lazyRoute(loadAppDownload);
 const HackathonSeasonOne = lazyRoute(loadHackathonSeasonOne);
 const HackathonWorks = lazyRoute(loadHackathonWorks);
-const FutureLearningCenter = lazyRoute(loadFutureLearningCenter);
 const AdminDashboard = lazyRoute(loadAdminDashboard);
 const AdminAccessGate = lazyRoute(loadAdminAccessGate);
 const NotFound = lazyRoute(loadNotFound);
@@ -606,14 +604,6 @@ const AppContent = () => {
                                 element={
                                     <PageTransition>
                                         <HackathonWorks />
-                                    </PageTransition>
-                                }
-                            />
-                            <Route
-                                path="/future-learning"
-                                element={
-                                    <PageTransition>
-                                        <FutureLearningCenter />
                                     </PageTransition>
                                 }
                             />

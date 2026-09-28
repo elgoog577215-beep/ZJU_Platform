@@ -11,7 +11,6 @@ import {
     GraduationCap,
     Handshake,
     Landmark,
-    Mail,
     Network,
     Rocket,
     Smartphone,
@@ -388,16 +387,6 @@ const About = ({ showAppDownload = true }) => {
             action: t("about.ecosystem.join.org_cta", "进入项目广场"),
             route: "/projects",
             icon: Network,
-        },
-        {
-            title: t("about.ecosystem.join.enterprise_title", "需求与合作"),
-            description: t(
-                "about.ecosystem.join.enterprise_desc",
-                "提供真实产业需求，共建课程与赛事，连接算力、专业咨询、资本与孵化资源。"
-            ),
-            action: t("about.ecosystem.join.enterprise_cta", "联系合作"),
-            route: "/future-learning",
-            icon: BriefcaseIcon,
         },
     ];
 
@@ -1228,17 +1217,10 @@ const About = ({ showAppDownload = true }) => {
                                     <Smartphone className="h-4 w-4" />
                                     {t("about.ecosystem.join.platform_cta", "浏览活动集合")}
                                 </Link>
-                                <Link
-                                    to="/future-learning"
-                                    className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
-                                >
-                                    <Mail className="h-4 w-4" />
-                                    {t("about.ecosystem.join.contact_cta", "联系合作")}
-                                </Link>
                             </div>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                             {joinCards.map((item) => {
                                 const Icon = item.icon;
                                 return (
@@ -1274,7 +1256,5 @@ const About = ({ showAppDownload = true }) => {
         </div>
     );
 };
-
-const BriefcaseIcon = Building2;
 
 export default About;
