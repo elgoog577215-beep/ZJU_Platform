@@ -7,7 +7,6 @@ import {
     ArrowRight,
     BookOpen,
     Building2,
-    CalendarDays,
     Download,
     GraduationCap,
     Handshake,
@@ -351,7 +350,6 @@ const About = ({ showAppDownload = true }) => {
         { key: "hackathon", code: "HACKATHON", route: "/hackathon", icon: Trophy, tone: "amber" },
         { key: "grow", code: "LEARNING", route: "/articles", icon: GraduationCap, tone: "emerald" },
         { key: "project", code: "PROJECTS", route: "/projects", icon: Building2, tone: "violet" },
-        { key: "info", code: "PLATFORM", route: "/", icon: CalendarDays, tone: "cyan" },
     ].map((item, index) => ({
         ...item,
         index: String(index + 1).padStart(2, "0"),
@@ -891,7 +889,7 @@ const About = ({ showAppDownload = true }) => {
                             </p>
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:min-h-[25rem] lg:grid-cols-3 xl:grid-cols-5 lg:gap-4 2xl:gap-6">
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:min-h-[25rem] lg:grid-cols-4 lg:gap-4 2xl:gap-6">
                             {businessLines.map((item) => {
                                 const Icon = item.icon;
                                 const isAmber = item.tone === "amber";
