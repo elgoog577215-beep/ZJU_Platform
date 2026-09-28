@@ -2419,7 +2419,8 @@
             "projects": "Project Plaza",
             "partners": "Ecosystem Partners",
             "futureLearning": "Industry Projects",
-            "mediaCategories": "Media Categories"
+            "mediaCategories": "Media Categories",
+            "audit_logs": "Audit logs"
         },
         "domains": {
             "overview": "Operations Overview",

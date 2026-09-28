@@ -149,7 +149,8 @@
             "users": "ユーザー",
             "community": "コミュニティ",
             "messages": "メッセージ",
-            "settings": "設定"
+            "settings": "設定",
+            "audit_logs": "監査ログ"
         },
         "descriptions": {
             "overview": "主要指標、タスク、よく使う入口",

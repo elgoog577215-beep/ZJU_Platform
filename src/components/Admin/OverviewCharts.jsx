@@ -167,7 +167,10 @@ export function ContentComposition({ counts }) {
     const { t } = useTranslation();
     const data = Object.entries(counts)
         .filter(([, value]) => Number(value) > 0)
-        .map(([key, value]) => ({ name: t(`admin.tabs.${key}`), value: Number(value) }));
+        .map(([key, value]) => ({
+            name: t(`admin.tabs.${key}`, { defaultValue: key }),
+            value: Number(value),
+        }));
     if (!data.length) return null;
     return (
         <div className="h-48 min-w-0" aria-label={t("admin.charts.composition")}>

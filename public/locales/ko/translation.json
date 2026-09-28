@@ -149,7 +149,8 @@
             "users": "사용자",
             "community": "커뮤니티",
             "messages": "메시지",
-            "settings": "설정"
+            "settings": "설정",
+            "audit_logs": "감사 로그"
         },
         "descriptions": {
             "overview": "주요 지표, 작업, 자주 쓰는 바로가기",
