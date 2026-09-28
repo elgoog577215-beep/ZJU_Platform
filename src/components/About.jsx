@@ -690,7 +690,7 @@ const About = ({ showAppDownload = true }) => {
                                         }}
                                         aria-label={t(
                                             "about.ecosystem.support.open_category",
-                                            "查看{{category}}支持方",
+                                            "查看{{category}}名录",
                                             { category: group.title }
                                         )}
                                         className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 lg:hover:-translate-y-1.5 2xl:p-7 ${palette.card}`}
@@ -703,7 +703,7 @@ const About = ({ showAppDownload = true }) => {
                                         <div className="relative z-10 flex h-full flex-col">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div
-                                                    className={`flex items-center gap-2 font-mono text-xs font-black uppercase 2xl:text-sm ${palette.accent}`}
+                                                    className={`flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs font-black uppercase 2xl:text-sm ${palette.accent}`}
                                                 >
                                                     <span className="hidden sm:inline">
                                                         {group.code}
@@ -717,13 +717,13 @@ const About = ({ showAppDownload = true }) => {
                                                     <span>
                                                         {t(
                                                             "about.ecosystem.support.category_count",
-                                                            "{{count}} 家",
+                                                            "{{count}} 项",
                                                             { count: group.partners.length }
                                                         )}
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
+                                                    className={`flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
                                                 >
                                                     <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>
@@ -737,7 +737,7 @@ const About = ({ showAppDownload = true }) => {
                                                 {group.headline}
                                             </p>
                                             <p
-                                                className={`mt-3 hidden text-sm leading-6 sm:block ${palette.textSoft}`}
+                                                className={`mb-5 mt-3 hidden text-sm leading-6 sm:block ${palette.textSoft}`}
                                             >
                                                 {group.description}
                                             </p>
@@ -788,7 +788,7 @@ const About = ({ showAppDownload = true }) => {
                                                                                 className={`max-h-5 w-auto max-w-full object-contain sm:max-h-6 ${!isDayMode && logoKey.includes("huawei") ? "brightness-0 invert" : ""}`}
                                                                             />
                                                                         ) : (
-                                                                            <span className="line-clamp-1 text-center text-[11px] font-black">
+                                                                            <span className="line-clamp-2 text-center text-[11px] font-black">
                                                                                 {isEnglish
                                                                                     ? partner.name_en ||
                                                                                       partner.name
@@ -830,19 +830,10 @@ const About = ({ showAppDownload = true }) => {
                                                 className={`mt-3 flex items-center justify-between gap-3 border-t pt-3 text-xs font-black ${palette.divider} ${palette.accent}`}
                                             >
                                                 <span>
-                                                    <span className="sm:hidden">
-                                                        {t(
-                                                            "about.ecosystem.support.enter_category",
-                                                            "进入分类"
-                                                        )}
-                                                    </span>
-                                                    <span className="hidden sm:inline">
-                                                        {t(
-                                                            "about.ecosystem.support.open_category",
-                                                            "查看{{category}}支持方",
-                                                            { category: group.title }
-                                                        )}
-                                                    </span>
+                                                    {t(
+                                                        "about.ecosystem.support.enter_category",
+                                                        "查看名录"
+                                                    )}
                                                 </span>
                                                 <ArrowRight
                                                     size={17}

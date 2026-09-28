@@ -976,16 +976,18 @@
                 "organization_headline": "Campus collaboration and open source",
                 "organization_desc": "Bring campus clubs together with DeepSeek Club, ModelScope and Guancha for exchange, learning and collaborative projects.",
                 "view_all": "View all supporters",
-                "category_count": "{{count}} supporters",
-                "open_category": "View {{category}} supporters",
-                "enter_category": "Open category",
+                "category_count": "{{count}} partners",
+                "open_category": "Explore {{category}}",
+                "enter_category": "Explore partners",
                 "facilities_label": "Compute, devices and spaces",
                 "facilities": {
                     "compute": "8 × RTX 4090",
                     "devices": "Latest Huawei devices",
                     "office": "2 office spaces",
                     "exchange": "3 exchange spaces"
-                }
+                },
+                "category_count_one": "{{count}} partner",
+                "category_count_other": "{{count}} partners"
             },
             "supporter_directory": {
                 "meta_title": "Ecosystem Supporters | Tuozhe AI Ecosystem",

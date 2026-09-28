@@ -1022,16 +1022,18 @@
                 "organization_headline": "校园协作与开源共创",
                 "organization_desc": "联合校内社团和深求、魔搭、观猹等开源社区，开展交流、学习培养与项目协作。",
                 "view_all": "查看全部支持方",
-                "category_count": "{{count}} 家",
-                "open_category": "查看{{category}}支持方",
-                "enter_category": "进入分类",
+                "category_count": "{{count}} 项",
+                "open_category": "查看{{category}}名录",
+                "enter_category": "查看名录",
                 "facilities_label": "算力、设备与空间",
                 "facilities": {
                     "compute": "8 × RTX 4090",
                     "devices": "最新华为设备",
                     "office": "2 处办公空间",
                     "exchange": "3 处交流空间"
-                }
+                },
+                "category_count_one": "{{count}} 项",
+                "category_count_other": "{{count}} 项"
             },
             "supporter_directory": {
                 "meta_title": "生态支持方｜拓浙AI生态",
