@@ -2933,6 +2933,12 @@
                     "about_final_desc": "结尾描述",
                     "about_final_note": "结尾备注"
                 }
+            },
+            "acknowledgements": {
+                "title": "底部鸣谢",
+                "description": "管理全站页脚展示的鸣谢名单。",
+                "names": "鸣谢名单",
+                "help": "每行一个姓名，按行序展示；调整行序即可排序，清空并保存可隐藏鸣谢。最多 50 人，每行最多 60 个字符。"
             }
         },
         "project_manager": {

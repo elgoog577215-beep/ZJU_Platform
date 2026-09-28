@@ -4,8 +4,12 @@ import { useSettings } from "../context/SettingsContext";
 const Footer = () => {
     const { t } = useTranslation();
     const currentYear = new Date().getFullYear();
-    const { uiMode } = useSettings();
+    const { uiMode, settings } = useSettings();
     const isDayMode = uiMode === "day";
+    const acknowledgements = String(settings.footer_acknowledgements ?? "")
+        .split(/\r?\n/)
+        .map((name) => name.trim())
+        .filter(Boolean);
 
     return (
         <footer
@@ -43,18 +47,18 @@ const Footer = () => {
                             year: currentYear,
                         })}
                     </p>
-                    <p
-                        className={`flex flex-wrap justify-center gap-x-3 text-xs leading-6 md:justify-start ${isDayMode ? "text-slate-600" : "text-slate-400"}`}
-                    >
-                        <span>{t("footer.developer_acknowledgements")}：</span>
-                        {["应奇", "周子涵", "邬铭轩", "蔡博恒", "项思涵", "黄冬桂", "葛开文"].map(
-                            (name) => (
-                                <span key={name} className="whitespace-nowrap">
+                    {acknowledgements.length > 0 && (
+                        <p
+                            className={`flex flex-wrap justify-center gap-x-3 text-xs leading-6 md:justify-start ${isDayMode ? "text-slate-600" : "text-slate-400"}`}
+                        >
+                            <span>{t("footer.developer_acknowledgements")}：</span>
+                            {acknowledgements.map((name, index) => (
+                                <span key={`${index}-${name}`} className="whitespace-nowrap">
                                     {name}
                                 </span>
-                            )
-                        )}
-                    </p>
+                            ))}
+                        </p>
+                    )}
                 </div>
 
                 <a

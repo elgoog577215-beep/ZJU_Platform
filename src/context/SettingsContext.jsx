@@ -1,8 +1,10 @@
 import { createContext, useState, useEffect, useContext, useMemo, useCallback } from "react";
 import api from "../services/api";
 import { THEME_APPEARANCE_DEFAULTS, applyThemeAppearance } from "../constants/themeAppearance";
+import footerAcknowledgements from "../../shared/footerAcknowledgements.json";
 
 const DEFAULT_SETTINGS = {
+    footer_acknowledgements: footerAcknowledgements.join("\n"),
     pagination_enabled: "false",
     language: "zh",
     site_title: "拓浙AI生态 | TUOZHE AI ECOSYSTEM",

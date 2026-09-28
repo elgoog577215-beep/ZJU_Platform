@@ -80,6 +80,7 @@ const requireAnyAdminPermission =
             ? next()
             : res.status(403).json({ error: "Admin permission required" });
 const PAGE_CONTENT_KEYS = new Set([
+    "footer_acknowledgements",
     "site_title",
     "favicon_url",
     "hero_title",

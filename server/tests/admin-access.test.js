@@ -96,6 +96,38 @@ test("admin module permissions are granular, revocable and never inherited from 
             request(`/admin/access/${id}`, actor, { method: "PUT", body: JSON.stringify(body) });
 
         await t.test(
+            "footer acknowledgements persist in order and require page management permission",
+            async () => {
+                const key = "footer_acknowledgements";
+                const defaults = require("../../shared/footerAcknowledgements.json").join("\n");
+                assert.equal((await request("/settings", null)).body[key], defaults);
+                const save = (actor, value) =>
+                    request("/settings", actor, {
+                        method: "POST",
+                        body: JSON.stringify({ key, value }),
+                    });
+                assert.equal((await save(null, "denied")).status, 401);
+                assert.equal((await save(4, "denied")).status, 403);
+                const names = "Second person\nFirst person";
+                assert.equal((await save(3, names)).status, 200);
+                assert.equal((await request("/settings", null)).body[key], names);
+                assert.equal(
+                    (await db.get("SELECT value FROM settings WHERE key = ?", [key])).value,
+                    names
+                );
+                assert.equal((await save(3, ["wrong type"])).status, 400);
+                assert.equal((await request("/settings", null)).body[key], names);
+                await db.run("UPDATE users SET admin_permissions = '[]' WHERE id = 3");
+                assert.equal((await save(3, "revoked")).status, 403);
+                assert.equal((await save(1, "")).status, 200);
+                assert.equal((await request("/settings", null)).body[key], "");
+                await db.run("UPDATE users SET admin_permissions = ? WHERE id = 3", [
+                    JSON.stringify([...permissions.ADMIN_PERMISSION_KEYS]),
+                ]);
+            }
+        );
+
+        await t.test(
             "WeRead maintenance endpoints require platform administrator authority",
             async () => {
                 for (const [route, method] of [

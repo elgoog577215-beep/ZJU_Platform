@@ -50,6 +50,7 @@ const EDITABLE_SETTING_KEYS = [
     "site_title",
     "site_description",
     "site_name",
+    "footer_acknowledgements",
     "allow_registrations",
     "maintenance_mode",
     "theme_color",
@@ -113,6 +114,19 @@ const settingsValidation = [
         .exists({ values: "null" })
         .withMessage("Value is required")
         .custom((value, { req }) => {
+            if (req.body.key === "footer_acknowledgements") {
+                if (typeof value !== "string" || value.length > 4000) {
+                    throw new Error("Acknowledgements must be text under 4000 characters");
+                }
+                const names = value
+                    .split(/\r?\n/)
+                    .map((name) => name.trim())
+                    .filter(Boolean);
+                if (names.length > 50 || names.some((name) => name.length > 60)) {
+                    throw new Error("Use at most 50 names, each under 60 characters");
+                }
+                return true;
+            }
             if (["theme_accent", "theme_bg_color"].includes(req.body.key)) {
                 if (typeof value !== "string" || !/^(?:#[0-9a-f]{3}|#[0-9a-f]{6})?$/i.test(value)) {
                     throw new Error("Theme color must be empty or a hex color");

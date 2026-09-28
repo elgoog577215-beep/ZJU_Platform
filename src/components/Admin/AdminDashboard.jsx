@@ -462,6 +462,7 @@ const AdminDashboard = () => {
             "media-categories": ["admin.taxonomy.manage"],
             tags: ["admin.taxonomy.manage"],
             pages: ["admin.pages.manage"],
+            settings: ["admin.pages.manage"],
             partners: ["admin.partners.manage"],
             projects: ["admin.projects.manage"],
         };

@@ -316,7 +316,9 @@ const SettingsManager = ({ capabilities } = {}) => {
     const [savingKey, setSavingKey] = useState("");
     const [activeSection, setActiveSection] = useState("general");
     const isPlatformAdmin = Boolean(capabilities?.isPlatformAdmin);
-    const sections = isPlatformAdmin ? [...BASE_SECTIONS, ...SYSTEM_SECTIONS] : BASE_SECTIONS;
+    const sections = isPlatformAdmin
+        ? [...BASE_SECTIONS, ...SYSTEM_SECTIONS]
+        : ["general", "content"];
     const [activeAboutGroup, setActiveAboutGroup] = useState("identity");
     const [appearancePreviewMode, setAppearancePreviewMode] = useState("day");
 
@@ -348,7 +350,8 @@ const SettingsManager = ({ capabilities } = {}) => {
     const handleSave = async (key, value) => {
         setSavingKey(key);
         try {
-            await updateGlobalSetting(key, value);
+            const response = await updateGlobalSetting(key, value);
+            if (!response?.data?.success) throw new Error("Setting update was not confirmed");
             setInitialSettings((previous) => ({ ...previous, [key]: value }));
             toast.success(t("admin.settings_console.toasts.save_success"));
         } catch {
@@ -517,79 +520,116 @@ const SettingsManager = ({ capabilities } = {}) => {
         >
             {activeSection === "general" ? (
                 <>
-                    <AdminPanel
-                        title={t("admin.settings_console.security.title")}
-                        description={t("admin.settings_console.security.description")}
-                        action={<Key size={18} className="text-indigo-300" />}
-                    >
-                        <div className="grid gap-3 lg:grid-cols-2">
-                            <div className={fieldClassName}>
-                                <label className={labelClassName} htmlFor="setting-invite-code">
-                                    {t("admin.settings_console.security.invite_code")}
-                                </label>
-                                <div className="flex flex-col gap-3 lg:flex-row">
-                                    <input
-                                        id="setting-invite-code"
-                                        type="text"
-                                        value={settings.invite_code || ""}
-                                        onChange={(event) =>
-                                            handleChange("invite_code", event.target.value)
-                                        }
-                                        placeholder={t(
-                                            "admin.settings_console.security.invite_placeholder"
-                                        )}
-                                        className="theme-admin-input flex-1 rounded-xl p-3"
-                                    />
-                                    {fieldAction("invite_code")}
-                                </div>
-                                <p className={helpClassName}>
-                                    {t("admin.settings_console.security.invite_help")}
-                                </p>
-                            </div>
-                        </div>
-                    </AdminPanel>
-
-                    <AdminPanel
-                        title={t("admin.settings_console.site.title")}
-                        description={t("admin.settings_console.site.description")}
-                        action={<Globe size={18} className="text-indigo-300" />}
-                    >
-                        <div className="grid gap-3 lg:grid-cols-2">
-                            <div className={fieldClassName}>
-                                <label className={labelClassName} htmlFor="setting-site-name">
-                                    {t("admin.settings_console.site.name")}
-                                </label>
-                                <div className="flex flex-col gap-3 lg:flex-row">
-                                    <input
-                                        id="setting-site-name"
-                                        type="text"
-                                        value={settings.site_name || ""}
-                                        onChange={(event) =>
-                                            handleChange("site_name", event.target.value)
-                                        }
-                                        className="theme-admin-input flex-1 rounded-xl p-3"
-                                    />
-                                    {fieldAction("site_name")}
-                                </div>
-                            </div>
-                        </div>
-                    </AdminPanel>
-
-                    <AdminPanel
-                        title={t("admin.settings_console.template.title")}
-                        description={t("admin.settings_console.template.description")}
-                        action={<FileText size={18} className="text-indigo-300" />}
-                    >
-                        <AdminInlineNote tone="info">
-                            {t("admin.settings_console.template.note")}
-                            <a
-                                href="/admin?tab=hackathon"
-                                className="ml-2 inline-flex font-semibold underline underline-offset-4"
+                    {isPlatformAdmin && (
+                        <>
+                            <AdminPanel
+                                title={t("admin.settings_console.security.title")}
+                                description={t("admin.settings_console.security.description")}
+                                action={<Key size={18} className="text-indigo-300" />}
                             >
-                                {t("admin.settings_console.template.action")}
-                            </a>
-                        </AdminInlineNote>
+                                <div className="grid gap-3 lg:grid-cols-2">
+                                    <div className={fieldClassName}>
+                                        <label
+                                            className={labelClassName}
+                                            htmlFor="setting-invite-code"
+                                        >
+                                            {t("admin.settings_console.security.invite_code")}
+                                        </label>
+                                        <div className="flex flex-col gap-3 lg:flex-row">
+                                            <input
+                                                id="setting-invite-code"
+                                                type="text"
+                                                value={settings.invite_code || ""}
+                                                onChange={(event) =>
+                                                    handleChange("invite_code", event.target.value)
+                                                }
+                                                placeholder={t(
+                                                    "admin.settings_console.security.invite_placeholder"
+                                                )}
+                                                className="theme-admin-input flex-1 rounded-xl p-3"
+                                            />
+                                            {fieldAction("invite_code")}
+                                        </div>
+                                        <p className={helpClassName}>
+                                            {t("admin.settings_console.security.invite_help")}
+                                        </p>
+                                    </div>
+                                </div>
+                            </AdminPanel>
+
+                            <AdminPanel
+                                title={t("admin.settings_console.site.title")}
+                                description={t("admin.settings_console.site.description")}
+                                action={<Globe size={18} className="text-indigo-300" />}
+                            >
+                                <div className="grid gap-3 lg:grid-cols-2">
+                                    <div className={fieldClassName}>
+                                        <label
+                                            className={labelClassName}
+                                            htmlFor="setting-site-name"
+                                        >
+                                            {t("admin.settings_console.site.name")}
+                                        </label>
+                                        <div className="flex flex-col gap-3 lg:flex-row">
+                                            <input
+                                                id="setting-site-name"
+                                                type="text"
+                                                value={settings.site_name || ""}
+                                                onChange={(event) =>
+                                                    handleChange("site_name", event.target.value)
+                                                }
+                                                className="theme-admin-input flex-1 rounded-xl p-3"
+                                            />
+                                            {fieldAction("site_name")}
+                                        </div>
+                                    </div>
+                                </div>
+                            </AdminPanel>
+                        </>
+                    )}
+                    <AdminPanel
+                        title={t("admin.settings_console.acknowledgements.title")}
+                        description={t("admin.settings_console.acknowledgements.description")}
+                    >
+                        <label className={labelClassName} htmlFor="setting-footer-acknowledgements">
+                            {t("admin.settings_console.acknowledgements.names")}
+                        </label>
+                        <div className="flex flex-col items-start gap-3 lg:flex-row">
+                            <textarea
+                                id="setting-footer-acknowledgements"
+                                value={settings.footer_acknowledgements ?? ""}
+                                onChange={(event) =>
+                                    handleChange("footer_acknowledgements", event.target.value)
+                                }
+                                rows={7}
+                                maxLength={4000}
+                                aria-describedby="footer-acknowledgements-help"
+                                className="theme-admin-input w-full flex-1 rounded-xl p-3"
+                            />
+                            {fieldAction("footer_acknowledgements")}
+                        </div>
+                        <p id="footer-acknowledgements-help" className={helpClassName}>
+                            {t("admin.settings_console.acknowledgements.help")}
+                        </p>
                     </AdminPanel>
+
+                    {isPlatformAdmin && (
+                        <AdminPanel
+                            title={t("admin.settings_console.template.title")}
+                            description={t("admin.settings_console.template.description")}
+                            action={<FileText size={18} className="text-indigo-300" />}
+                        >
+                            <AdminInlineNote tone="info">
+                                {t("admin.settings_console.template.note")}
+                                <a
+                                    href="/admin?tab=hackathon"
+                                    className="ml-2 inline-flex font-semibold underline underline-offset-4"
+                                >
+                                    {t("admin.settings_console.template.action")}
+                                </a>
+                            </AdminInlineNote>
+                        </AdminPanel>
+                    )}
                 </>
             ) : null}
 

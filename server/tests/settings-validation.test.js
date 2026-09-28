@@ -10,6 +10,25 @@ const validateSettingsPayload = async (body) => {
     return validationResult(request).array();
 };
 
+test("footer names allow ordered text or an empty list and reject oversized or non-text values", async () => {
+    const key = "footer_acknowledgements";
+    for (const value of ["", "应奇\n周子涵", Array(50).fill("A".repeat(60)).join("\n")]) {
+        assert.deepEqual(await validateSettingsPayload({ key, value }), []);
+    }
+    for (const value of [
+        null,
+        {},
+        [],
+        false,
+        123,
+        "A".repeat(61),
+        Array(51).fill("A").join("\n"),
+        " ".repeat(4001),
+    ]) {
+        assert.ok((await validateSettingsPayload({ key, value })).length > 0);
+    }
+});
+
 test("appearance settings accept every supported value at its safe boundaries", async () => {
     for (const [key, range] of Object.entries(APPEARANCE_SETTING_RANGES)) {
         assert.deepEqual(await validateSettingsPayload({ key, value: range.min }), []);

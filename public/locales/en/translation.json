@@ -2805,6 +2805,12 @@
                     "about_final_desc": "Closing description",
                     "about_final_note": "Closing note"
                 }
+            },
+            "acknowledgements": {
+                "title": "Footer acknowledgements",
+                "description": "Manage the acknowledgement list shown in the site footer.",
+                "names": "Names",
+                "help": "Enter one name per line, in display order. Reorder lines to change the order; clear and save to hide acknowledgements. Up to 50 names, 60 characters per line."
             }
         },
         "project_manager": {
