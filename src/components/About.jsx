@@ -301,37 +301,37 @@ const About = ({ showAppDownload = true }) => {
     const supportGroupConfig = {
         college: {
             code: "CAMPUS",
-            headline: t("about.ecosystem.support.school_headline", "跨学科教学与科研协作"),
+            headline: t("about.ecosystem.support.school_headline", "课程、科研与场景"),
             description: t(
                 "about.ecosystem.support.school_desc",
-                "联动创新创业、管理、法律、人文、医学、海洋、控制与信电等领域，连接教学、科研与实践场景。"
+                "未来学习中心与相关学院提供课程共建、科研问题和重点场景，使真实课题进入校园实践。"
             ),
             icon: Landmark,
         },
         enterprise: {
             code: "ENTERPRISE",
-            headline: t("about.ecosystem.support.enterprise_headline", "技术、场景与人才机会"),
+            headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
             description: t(
                 "about.ecosystem.support.enterprise_desc",
-                "连接模型、云资源、开发工具与行业场景，通过赛事和项目对接企业评审、实习与人才机会。"
+                "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。"
             ),
             icon: Building2,
         },
         capital: {
             code: "CAPITAL",
-            headline: t("about.ecosystem.support.capital_headline", "从项目孵化到产业对接"),
+            headline: t("about.ecosystem.support.capital_headline", "创业辅导与资源对接"),
             description: t(
                 "about.ecosystem.support.capital_desc",
-                "连接时代强鹰、创业元空间、ZTVP等孵化资源，以及五源资本、真格基金，推动创业辅导、产品验证与融资对接。"
+                "五源资本及浙大系资本为优秀项目提供路演、创业辅导和资源对接。"
             ),
             icon: Handshake,
         },
         club: {
             code: "COMMUNITY",
-            headline: t("about.ecosystem.support.organization_headline", "校园协作与开源共创"),
+            headline: t("about.ecosystem.support.organization_headline", "招募、培训与执行"),
             description: t(
                 "about.ecosystem.support.organization_desc",
-                "联合校内社团和深求、魔搭、观猹等开源社区，开展交流、学习培养与项目协作。"
+                "学生组织和社团负责成员招募、学习培训、活动执行与赛后复盘。"
             ),
             icon: Network,
         },
@@ -616,7 +616,7 @@ const About = ({ showAppDownload = true }) => {
                                         {t("about.ecosystem.support.title_1", "汇聚多方资源，")}
                                     </span>
                                     <span className="block">
-                                        {t("about.ecosystem.support.title_2", "支撑人才成长。")}
+                                        {t("about.ecosystem.support.title_2", "支撑真实实践。")}
                                     </span>
                                 </h2>
                             </div>
@@ -626,7 +626,7 @@ const About = ({ showAppDownload = true }) => {
                                 >
                                     {t(
                                         "about.ecosystem.support.desc",
-                                        "连接学院、企业、资本与孵化机构、社团和开源社区，以技术、场景、空间与协作支持人才培养和项目实践。"
+                                        "学校提供场景与空间，企业提供真实课题和技术资源，学生组织负责招募与执行，产业和资本伙伴承接后续项目。"
                                     )}
                                 </p>
                                 <Link
@@ -655,7 +655,7 @@ const About = ({ showAppDownload = true }) => {
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:min-h-[clamp(28rem,56vh,42rem)] lg:grid-cols-4 lg:gap-5 2xl:gap-7">
+                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
                             {supportGroups.map((group) => {
                                 const Icon = group.icon;
                                 const isEnterprise = group.id === "enterprise";
@@ -690,7 +690,7 @@ const About = ({ showAppDownload = true }) => {
                                         }}
                                         aria-label={t(
                                             "about.ecosystem.support.open_category",
-                                            "查看{{category}}名录",
+                                            "查看{{category}}支持方",
                                             { category: group.title }
                                         )}
                                         className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 lg:hover:-translate-y-1.5 2xl:p-7 ${palette.card}`}
@@ -703,7 +703,7 @@ const About = ({ showAppDownload = true }) => {
                                         <div className="relative z-10 flex h-full flex-col">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div
-                                                    className={`flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs font-black uppercase 2xl:text-sm ${palette.accent}`}
+                                                    className={`flex items-center gap-2 font-mono text-xs font-black uppercase 2xl:text-sm ${palette.accent}`}
                                                 >
                                                     <span className="hidden sm:inline">
                                                         {group.code}
@@ -717,13 +717,13 @@ const About = ({ showAppDownload = true }) => {
                                                     <span>
                                                         {t(
                                                             "about.ecosystem.support.category_count",
-                                                            "{{count}} 项",
+                                                            "{{count}} 家",
                                                             { count: group.partners.length }
                                                         )}
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className={`flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
+                                                    className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
                                                 >
                                                     <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>
@@ -737,7 +737,7 @@ const About = ({ showAppDownload = true }) => {
                                                 {group.headline}
                                             </p>
                                             <p
-                                                className={`mb-5 mt-3 hidden text-sm leading-6 sm:block ${palette.textSoft}`}
+                                                className={`mt-3 hidden text-sm leading-6 sm:line-clamp-2 ${palette.textSoft}`}
                                             >
                                                 {group.description}
                                             </p>
@@ -788,7 +788,7 @@ const About = ({ showAppDownload = true }) => {
                                                                                 className={`max-h-5 w-auto max-w-full object-contain sm:max-h-6 ${!isDayMode && logoKey.includes("huawei") ? "brightness-0 invert" : ""}`}
                                                                             />
                                                                         ) : (
-                                                                            <span className="line-clamp-2 text-center text-[11px] font-black">
+                                                                            <span className="line-clamp-1 text-center text-[11px] font-black">
                                                                                 {isEnglish
                                                                                     ? partner.name_en ||
                                                                                       partner.name
@@ -830,10 +830,19 @@ const About = ({ showAppDownload = true }) => {
                                                 className={`mt-3 flex items-center justify-between gap-3 border-t pt-3 text-xs font-black ${palette.divider} ${palette.accent}`}
                                             >
                                                 <span>
-                                                    {t(
-                                                        "about.ecosystem.support.enter_category",
-                                                        "查看名录"
-                                                    )}
+                                                    <span className="sm:hidden">
+                                                        {t(
+                                                            "about.ecosystem.support.enter_category",
+                                                            "进入分类"
+                                                        )}
+                                                    </span>
+                                                    <span className="hidden sm:inline">
+                                                        {t(
+                                                            "about.ecosystem.support.open_category",
+                                                            "查看{{category}}支持方",
+                                                            { category: group.title }
+                                                        )}
+                                                    </span>
                                                 </span>
                                                 <ArrowRight
                                                     size={17}
@@ -845,18 +854,6 @@ const About = ({ showAppDownload = true }) => {
                                     </Link>
                                 );
                             })}
-                        </div>
-                        <div className={`mt-5 border-t pt-4 ${palette.border}`}>
-                            <p className={`text-xs font-bold ${palette.textSoft}`}>
-                                {t("about.ecosystem.support.facilities_label")}
-                            </p>
-                            <ul className="mt-2 grid grid-cols-2 gap-x-5 gap-y-2 text-sm font-bold sm:grid-cols-4 sm:text-base">
-                                {["compute", "devices", "office", "exchange"].map((key) => (
-                                    <li key={key}>
-                                        {t(`about.ecosystem.support.facilities.${key}`)}
-                                    </li>
-                                ))}
-                            </ul>
                         </div>
                     </div>
                 </motion.section>
