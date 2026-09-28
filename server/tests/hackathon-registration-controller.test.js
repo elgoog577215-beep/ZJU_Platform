@@ -153,7 +153,10 @@ test("hackathon controller stores and returns configurable form answers", async 
             if (error) throw error;
         });
         assert.equal(listResponse.body.length, 2);
-        assert.equal(listResponse.body[0].form_data.diet, "none");
+        // Both rows can share a created_at timestamp; verify answers by registration identity.
+        const byId = new Map(listResponse.body.map((row) => [row.id, row]));
+        assert.equal(byId.get(registerResponse.body.id).form_data.diet, "vegetarian");
+        assert.equal(byId.get(secondRegisterResponse.body.id).form_data.diet, "none");
     } finally {
         console.warn = originalWarn;
         await pool.close();
