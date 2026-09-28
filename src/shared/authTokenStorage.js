@@ -11,32 +11,51 @@ const storageAvailable = (storage) => {
     }
 };
 
-const getSessionStorage = () => (typeof window !== "undefined" ? window.sessionStorage : null);
-const getLocalStorage = () => (typeof window !== "undefined" ? window.localStorage : null);
+const getStorage = (name) => {
+    try {
+        return typeof window !== "undefined" ? window[name] : null;
+    } catch {
+        return null;
+    }
+};
+
+const readToken = (storage) => {
+    try {
+        return storage?.getItem(TOKEN_KEY) || "";
+    } catch {
+        return "";
+    }
+};
+
+const removeToken = (storage) => {
+    try {
+        storage?.removeItem(TOKEN_KEY);
+    } catch {
+        // Storage can be blocked independently in embedded/private browsers.
+    }
+};
 
 export const getStoredAuthToken = () => {
-    const session = getSessionStorage();
-    const local = getLocalStorage();
-    return session?.getItem(TOKEN_KEY) || local?.getItem(TOKEN_KEY) || "";
+    return readToken(getStorage("sessionStorage")) || readToken(getStorage("localStorage"));
 };
 
 export const storeAuthToken = (token, { persistent = false } = {}) => {
-    const session = getSessionStorage();
-    const local = getLocalStorage();
+    const session = getStorage("sessionStorage");
+    const local = getStorage("localStorage");
 
     if (persistent && local && storageAvailable(local)) {
         local.setItem(TOKEN_KEY, token);
-        session?.removeItem(TOKEN_KEY);
+        removeToken(session);
         return;
     }
 
     if (session && storageAvailable(session)) {
         session.setItem(TOKEN_KEY, token);
     }
-    local?.removeItem(TOKEN_KEY);
+    removeToken(local);
 };
 
 export const clearStoredAuthToken = () => {
-    getSessionStorage()?.removeItem(TOKEN_KEY);
-    getLocalStorage()?.removeItem(TOKEN_KEY);
+    removeToken(getStorage("sessionStorage"));
+    removeToken(getStorage("localStorage"));
 };

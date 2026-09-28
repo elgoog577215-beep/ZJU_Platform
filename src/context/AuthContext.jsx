@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
+import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from "react";
 import api from "../services/api";
 import { showSuccess, showError } from "../utils/notify";
 import errorMonitor from "../utils/errorMonitor";
@@ -8,7 +8,6 @@ import {
     getStoredAuthToken,
     storeAuthToken,
 } from "../shared/authTokenStorage";
-import { isHarmonyAppWebView } from "../utils/harmonyAppEnv";
 
 const AuthContext = createContext();
 
@@ -19,6 +18,15 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(() => !!getStoredAuthToken());
     const [sessionError, setSessionError] = useState(false);
+    const sessionRequest = useRef(0);
+
+    const clearSession = useCallback(() => {
+        clearStoredAuthToken();
+        delete api.defaults.headers.common["Authorization"];
+        setUser(null);
+        errorMonitor.setUser(null);
+        setSessionError(false);
+    }, []);
 
     const getAuthErrorMessage = (err, fallbackKey) => {
         const data = err?.response?.data;
@@ -41,9 +49,13 @@ export const AuthProvider = ({ children }) => {
     };
 
     const retrySession = useCallback(async () => {
+        const requestId = ++sessionRequest.current;
         const token = getStoredAuthToken();
         setSessionError(false);
         if (!token) {
+            delete api.defaults.headers.common["Authorization"];
+            setUser(null);
+            errorMonitor.setUser(null);
             setLoading(false);
             return;
         }
@@ -51,64 +63,111 @@ export const AuthProvider = ({ children }) => {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         try {
             const res = await api.get("/auth/me", { timeout: 10000, noRetry: true, silent: true });
-            if (getStoredAuthToken() === token) setUser(res.data);
+            if (requestId === sessionRequest.current && getStoredAuthToken() === token) {
+                setUser(res.data);
+                errorMonitor.setUser(res.data);
+            }
         } catch (err) {
-            if (getStoredAuthToken() !== token) return;
+            if (requestId !== sessionRequest.current || getStoredAuthToken() !== token) return;
             if ([401, 403].includes(err.response?.status)) {
-                clearStoredAuthToken();
-                delete api.defaults.headers.common["Authorization"];
-                setUser(null);
+                clearSession();
             } else {
                 setSessionError(true);
             }
         } finally {
-            setLoading(false);
+            if (requestId === sessionRequest.current) setLoading(false);
         }
-    }, []);
+    }, [clearSession]);
 
     useEffect(() => {
         retrySession();
+        return () => {
+            sessionRequest.current += 1;
+        };
+    }, [retrySession]);
+
+    useEffect(() => {
+        if (!sessionError) return;
+        const recover = () => retrySession();
+        window.addEventListener("online", recover);
+        window.addEventListener("focus", recover);
+        return () => {
+            window.removeEventListener("online", recover);
+            window.removeEventListener("focus", recover);
+        };
+    }, [sessionError, retrySession]);
+
+    useEffect(() => {
+        const syncSession = (event) => {
+            let local;
+            try {
+                local = window.localStorage;
+            } catch {
+                return;
+            }
+            if (event.storageArea === local && (!event.key || event.key === "token")) {
+                // Do not display the previous account while another tab changes the session.
+                setUser(null);
+                retrySession();
+            }
+        };
+        window.addEventListener("storage", syncSession);
+        return () => window.removeEventListener("storage", syncSession);
     }, [retrySession]);
 
     const login = async (username, password, options = {}) => {
+        const requestId = ++sessionRequest.current;
         try {
             const res = await api.post(
                 "/auth/login",
                 { username, password },
                 { timeout: 15000, noRetry: true }
             );
+            if (requestId !== sessionRequest.current) return false;
             const { token, user } = res.data;
             storeAuthToken(token, {
-                persistent: options.remember === true || isHarmonyAppWebView(),
+                persistent: options.remember !== false,
             });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             setUser(user);
+            setSessionError(false);
+            setLoading(false);
             errorMonitor.setUser(user);
             showSuccess(t("auth.welcome_back_user", { username: user.username }));
             return true;
         } catch (err) {
+            if (requestId !== sessionRequest.current) return false;
             errorMonitor.report(err, { action: "login", username });
             showError(getAuthErrorMessage(err, "auth.login_failed"));
             return false;
+        } finally {
+            if (requestId === sessionRequest.current) setLoading(false);
         }
     };
 
     const register = async (username, password, options = {}) => {
+        const requestId = ++sessionRequest.current;
         try {
             const res = await api.post("/auth/register", { username, password });
+            if (requestId !== sessionRequest.current) return false;
             const { token, user } = res.data;
             storeAuthToken(token, {
-                persistent: options.remember === true || isHarmonyAppWebView(),
+                persistent: options.remember !== false,
             });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             setUser(user);
+            setSessionError(false);
+            setLoading(false);
             errorMonitor.setUser(user);
             showSuccess(t("auth.welcome_user", { username: user.username }));
             return true;
         } catch (err) {
+            if (requestId !== sessionRequest.current) return false;
             errorMonitor.report(err, { action: "register", username });
             showError(getAuthErrorMessage(err, "auth.registration_failed"));
             return false;
+        } finally {
+            if (requestId === sessionRequest.current) setLoading(false);
         }
     };
 
@@ -118,12 +177,18 @@ export const AuthProvider = ({ children }) => {
             return false;
         }
 
+        const requestId = ++sessionRequest.current;
+        setSessionError(false);
+        setUser(null);
+        setLoading(true);
         try {
             storeAuthToken(token, {
-                persistent: options.remember === true || isHarmonyAppWebView(),
+                persistent: options.remember !== false,
             });
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-            const res = await api.get("/auth/me");
+            const res = await api.get("/auth/me", { timeout: 10000, noRetry: true, silent: true });
+            if (requestId !== sessionRequest.current || getStoredAuthToken() !== token)
+                return false;
             setUser(res.data);
             errorMonitor.setUser(res.data);
 
@@ -134,30 +199,30 @@ export const AuthProvider = ({ children }) => {
 
             return true;
         } catch (err) {
-            clearStoredAuthToken();
-            delete api.defaults.headers.common["Authorization"];
-            setUser(null);
+            if (requestId !== sessionRequest.current || getStoredAuthToken() !== token)
+                return false;
+            if ([401, 403].includes(err.response?.status)) {
+                clearSession();
+            } else {
+                setSessionError(true);
+            }
             errorMonitor.report(err, { action: "loginWithToken", source: options.source });
             showError(getAuthErrorMessage(err, "auth.login_failed"));
             return false;
+        } finally {
+            if (requestId === sessionRequest.current) setLoading(false);
         }
     };
 
     const logout = () => {
-        clearStoredAuthToken();
-        delete api.defaults.headers.common["Authorization"];
-        setUser(null);
-        errorMonitor.setUser(null);
+        sessionRequest.current += 1;
+        clearSession();
+        setLoading(false);
         showSuccess(t("auth.logout_success"));
     };
 
     const refreshUser = async () => {
-        try {
-            const res = await api.get("/auth/me");
-            setUser(res.data);
-        } catch (err) {
-            // 静默失败，不影响用户体验
-        }
+        await retrySession();
     };
 
     return (

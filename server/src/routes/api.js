@@ -237,6 +237,22 @@ router.put("/auth/profile", authenticateToken, (req, res) => {
     userController.updateUser(req, res);
 });
 router.get("/users/me/overview", authenticateToken, userController.getOwnOverview);
+router.get("/users/me/navigation-workspace", authenticateToken, navigationController.getWorkspace);
+router.put("/users/me/navigation-workspace", authenticateToken, navigationController.saveWorkspace);
+router.get("/navigation/collections", optionalAuth, navigationController.listCollections);
+router.get("/navigation/collections/:id", optionalAuth, navigationController.getCollection);
+router.post(
+    "/navigation/collections",
+    authenticateToken,
+    communityPostCreateLimiter,
+    navigationController.createCollection
+);
+router.patch(
+    "/navigation/collections/:id",
+    authenticateToken,
+    navigationController.updateCollection
+);
+
 router.get("/users/me/navigation-shortcuts", authenticateToken, navigationController.getShortcuts);
 router.put("/users/me/navigation-shortcuts", authenticateToken, navigationController.saveShortcuts);
 router.post(

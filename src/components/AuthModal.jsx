@@ -24,6 +24,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [remember, setRemember] = useState(true);
     const [loading, setLoading] = useState(false);
     const [wechatLoading, setWechatLoading] = useState(false);
     const [error, setError] = useState("");
@@ -48,8 +49,8 @@ const AuthModal = ({ isOpen, onClose }) => {
 
         setLoading(true);
         const success = isLogin
-            ? await login(username, password)
-            : await register(username, password);
+            ? await login(username, password, { remember })
+            : await register(username, password, { remember });
 
         setLoading(false);
         if (success) {
@@ -69,7 +70,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             const redirectPath =
                 `${window.location.pathname}${window.location.search}${window.location.hash}` ||
                 "/events";
-            await navigateToMiniProgramPage(buildWechatLoginBridgeUrl(redirectPath));
+            await navigateToMiniProgramPage(buildWechatLoginBridgeUrl(redirectPath, { remember }));
         } catch (err) {
             setError(t("auth.wechat_bridge_unavailable"));
         } finally {
@@ -200,6 +201,18 @@ const AuthModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                         </div>
+
+                        <label
+                            className={`flex min-h-[44px] cursor-pointer items-center gap-2 text-sm ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={remember}
+                                onChange={(event) => setRemember(event.target.checked)}
+                                className="h-4 w-4 accent-violet-600"
+                            />
+                            {t("auth.remember")}
+                        </label>
 
                         <button
                             type="submit"

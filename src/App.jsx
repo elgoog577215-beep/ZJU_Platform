@@ -31,6 +31,8 @@ import {
 import { isAppRuntime as detectAppRuntime } from "./utils/displayMode";
 import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
+import { WECHAT_LOGIN_REMEMBER_QUERY } from "./utils/wechatMiniProgramBridge";
+import { getStoredAuthToken } from "./shared/authTokenStorage";
 
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
@@ -261,6 +263,7 @@ const MiniProgramAuthReturn = () => {
         const returnKey = `${location.pathname}${location.search}${location.hash || ""}`;
         const params = new URLSearchParams(location.search);
         const token = params.get(WECHAT_LOGIN_TOKEN_QUERY);
+        const remember = params.get(WECHAT_LOGIN_REMEMBER_QUERY) !== "0";
         const loginError = params.get(WECHAT_LOGIN_ERROR_QUERY);
         const bindResult = params.get(WECHAT_BIND_QUERY);
         const bindError = params.get(WECHAT_BIND_ERROR_QUERY);
@@ -275,6 +278,7 @@ const MiniProgramAuthReturn = () => {
         consumedReturnRef.current = returnKey;
 
         params.delete(WECHAT_LOGIN_TOKEN_QUERY);
+        params.delete(WECHAT_LOGIN_REMEMBER_QUERY);
         params.delete(WECHAT_LOGIN_ERROR_QUERY);
         params.delete(WECHAT_BIND_QUERY);
         params.delete(WECHAT_BIND_ERROR_QUERY);
@@ -308,8 +312,8 @@ const MiniProgramAuthReturn = () => {
             return;
         }
 
-        loginWithToken(token, { source: "wechat-miniapp" }).then((success) => {
-            if (!success) {
+        loginWithToken(token, { source: "wechat-miniapp", remember }).then((success) => {
+            if (!success && !getStoredAuthToken()) {
                 window.dispatchEvent(new Event("open-auth-modal"));
             }
         });

@@ -62,6 +62,7 @@
         "delete": "删除评论"
     },
     "auth": {
+        "remember": "在此设备保持登录（7 天）",
         "welcome_back": "欢迎回来",
         "welcome_back_user": "欢迎回来，{{username}}！",
         "welcome_user": "欢迎，{{username}}！",

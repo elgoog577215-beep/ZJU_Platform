@@ -1,4 +1,5 @@
 const WECHAT_JSSDK_URL = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+export const WECHAT_LOGIN_REMEMBER_QUERY = "wechat_login_remember";
 
 let jssdkLoadPromise = null;
 
@@ -76,11 +77,18 @@ const normalizeWebUrl = (value) => {
     }
 };
 
-export const buildWechatLoginBridgeUrl = (redirectPath = "/events") =>
-    buildWechatLoginBridgeUrlWithParams({
+export const buildWechatLoginBridgeUrl = (redirectPath = "/events", { remember } = {}) => {
+    let redirect = redirectPath || "/events";
+    if (typeof remember === "boolean") {
+        const url = new URL(redirect, "https://local.invalid");
+        url.searchParams.set(WECHAT_LOGIN_REMEMBER_QUERY, remember ? "1" : "0");
+        redirect = `${url.pathname}${url.search}${url.hash}`;
+    }
+    return buildWechatLoginBridgeUrlWithParams({
         mode: "login",
-        redirect: redirectPath || "/events",
+        redirect,
     });
+};
 
 export const buildWechatBindBridgeUrl = ({ redirectPath = "/events", ticket }) =>
     buildWechatLoginBridgeUrlWithParams({

@@ -62,6 +62,7 @@
         "install_app_hint": "Open the TUOZHE AI ECOSYSTEM like an app."
     },
     "auth": {
+        "remember": "Keep me signed in on this device (7 days)",
         "welcome_back": "Welcome Back",
         "welcome_back_user": "Welcome back, {{username}}!",
         "welcome_user": "Welcome, {{username}}!",
