@@ -655,7 +655,7 @@ const About = ({ showAppDownload = true }) => {
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
+                        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-8 lg:min-h-[clamp(28rem,56vh,42rem)] lg:grid-cols-4 lg:gap-5 2xl:gap-7">
                             {supportGroups.map((group) => {
                                 const Icon = group.icon;
                                 const isEnterprise = group.id === "enterprise";
