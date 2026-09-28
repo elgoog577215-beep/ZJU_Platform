@@ -5,7 +5,7 @@ STORY: Find a tool, course or paper, then continue into community and real proje
 FIRST VIEWPORT: Existing global tabs, search and expandable category groups, a three-column directory.
 FORM: User-approved campus directory reference: dense link grids, generous group spacing.
 */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -92,7 +92,14 @@ function WorkspaceHome({ user, authLoading }) {
     const [version, setVersion] = useState(recovered?.version || 0);
     const [draft, updateDraft] = useState(recovered?.groups || null);
     function setDraft(groups) {
-        writeDraft(user?.id, groups ? { groups, version } : null);
+        writeDraft(
+            user?.id,
+            groups ? { groups, version, pendingLink: pendingLinkRef.current } : null
+        );
+        if (!groups) {
+            pendingLinkRef.current = null;
+            setPendingLinkState(null);
+        }
         updateDraft(groups);
     }
     const [loadState, setLoadState] = useState(user ? "loading" : "ready");
@@ -101,6 +108,17 @@ function WorkspaceHome({ user, authLoading }) {
     const [problem, setProblem] = useState("");
     const [conflict, setConflict] = useState(false);
     const [sharing, setSharing] = useState(false);
+    const [pendingLink, setPendingLinkState] = useState(recovered?.pendingLink || null);
+    const pendingLinkRef = useRef(pendingLink);
+    const setPendingLink = useCallback(
+        (value) => {
+            pendingLinkRef.current = value;
+            setPendingLinkState(value);
+            const cached = readDraft(user?.id);
+            if (cached) writeDraft(user?.id, { ...cached, pendingLink: value });
+        },
+        [user?.id]
+    );
     const importRef = useRef(null);
     const view = params.get("view") === "plaza" ? "plaza" : "home";
     const login = () => window.dispatchEvent(new Event("open-auth-modal"));
@@ -358,7 +376,7 @@ function WorkspaceHome({ user, authLoading }) {
                         <h1 id="directory-title">{t("title")}</h1>
                         <p>{t("subtitle")}</p>
                     </div>
-                    {view === "home" && !draft && !sharing && (
+                    {view === "home" && !sharing && (
                         <div className="directory-search-area">
                             <form
                                 role="search"
@@ -371,6 +389,7 @@ function WorkspaceHome({ user, authLoading }) {
                                 <input
                                     ref={inputRef}
                                     type="search"
+                                    disabled={!!draft}
                                     aria-label={t("searchLabel")}
                                     placeholder={t("search")}
                                     value={input}
@@ -391,6 +410,7 @@ function WorkspaceHome({ user, authLoading }) {
                                     <button
                                         type="button"
                                         aria-label={t("clear")}
+                                        disabled={!!draft}
                                         onClick={() => {
                                             setInput("");
                                             updateFilters("", category, true);
@@ -443,7 +463,12 @@ function WorkspaceHome({ user, authLoading }) {
                                         <>
                                             <button
                                                 className="workspace-button primary"
-                                                disabled={busy || conflict || loadState !== "ready"}
+                                                disabled={
+                                                    busy ||
+                                                    conflict ||
+                                                    !!pendingLink ||
+                                                    loadState !== "ready"
+                                                }
                                                 onClick={() => saveGroups(draft)}
                                             >
                                                 {t(busy ? "custom.saving" : "custom.save")}
@@ -482,7 +507,9 @@ function WorkspaceHome({ user, authLoading }) {
                                     {!draft && (
                                         <button
                                             className="workspace-button"
-                                            disabled={busy || loadState !== "ready"}
+                                            disabled={
+                                                busy || !!pendingLink || loadState !== "ready"
+                                            }
                                             onClick={() =>
                                                 version ? setSharing(true) : saveGroups(saved, true)
                                             }
@@ -500,20 +527,22 @@ function WorkspaceHome({ user, authLoading }) {
                                 </summary>
                                 <div className="workspace-export-menu">
                                     <button
-                                        disabled={busy || loadState !== "ready"}
+                                        disabled={busy || !!pendingLink || loadState !== "ready"}
                                         onClick={() => exportGroups("html")}
                                     >
                                         {t("custom.exportBookmarks")}
                                     </button>
                                     <button
-                                        disabled={busy || loadState !== "ready"}
+                                        disabled={busy || !!pendingLink || loadState !== "ready"}
                                         onClick={() => exportGroups("json")}
                                     >
                                         {t("custom.exportBackup")}
                                     </button>
                                     {user && (
                                         <button
-                                            disabled={busy || loadState !== "ready"}
+                                            disabled={
+                                                busy || !!pendingLink || loadState !== "ready"
+                                            }
                                             onClick={() => importRef.current?.click()}
                                         >
                                             {t("custom.importBackup")}
@@ -576,7 +605,7 @@ function WorkspaceHome({ user, authLoading }) {
                             <p>{t("custom.editHelp")}</p>
                             <button
                                 className="workspace-button"
-                                disabled={busy}
+                                disabled={busy || !!pendingLink}
                                 onClick={() => {
                                     if (window.confirm(t("custom.resetConfirm"))) {
                                         setDraft(defaultGroups());
@@ -588,6 +617,10 @@ function WorkspaceHome({ user, authLoading }) {
                             </button>
                         </div>
                         <WorkspaceEditor
+                            icons={icons}
+                            appearance={uiMode}
+                            form={pendingLink}
+                            setForm={setPendingLink}
                             groups={draft}
                             onChange={setDraft}
                             disabled={busy}

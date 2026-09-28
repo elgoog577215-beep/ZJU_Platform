@@ -21,6 +21,14 @@ The system SHALL persist ordered URL groups for the authenticated account with o
 - **WHEN** the submitted version is stale
 - **THEN** the server returns a conflict without overwriting the saved workspace
 
+#### Scenario: Edit the homepage in place
+
+- **WHEN** a user enters homepage edit mode
+- **THEN** groups and links remain in the homepage grid, with drag handles, dashed insertion targets and local link forms
+- **AND** pointer, touch and keyboard ordering update only the draft until it is saved
+- **AND** dragging can be cancelled without changing the order, and reduced motion is respected
+- **AND** unfinished link inputs survive internal navigation with the account draft
+
 ### Requirement: Portable bookmarks
 
 The system SHALL export ordered bookmark HTML and a versioned JSON backup.
