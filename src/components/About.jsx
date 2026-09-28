@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -133,6 +134,7 @@ const About = ({ showAppDownload = true }) => {
     const isEnglish = i18n.resolvedLanguage?.startsWith("en") || i18n.language?.startsWith("en");
     const [activeBusinessCode, setActiveBusinessCode] = useState(null);
     const detailCloseButtonRef = useRef(null);
+    const detailPanelRef = useRef(null);
     const businessTriggerRefs = useRef({});
     const [heroStageRef, heroStageFrame] = useAboutHeroScale();
 
@@ -151,6 +153,19 @@ const About = ({ showAppDownload = true }) => {
 
         const handleKeyDown = (event) => {
             if (event.key === "Escape") closeBusinessDetails();
+            if (event.key === "Tab") {
+                const controls = detailPanelRef.current?.querySelectorAll("button, a[href]");
+                if (!controls?.length) return;
+                const first = controls[0];
+                const last = controls[controls.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -274,29 +289,10 @@ const About = ({ showAppDownload = true }) => {
           };
 
     const pageSections = [
-        ["01", "#about-hero"],
-        ["02", "#resource-support"],
-        ["03", "#business-lines"],
-        ["04", "#join-ecosystem"],
-    ];
-
-    const proofStats = [
-        {
-            value: "4000+",
-            label: t("about.ecosystem.stats.users", "注册用户"),
-        },
-        {
-            value: "1500+",
-            label: t("about.ecosystem.stats.daily_views", "日均浏览"),
-        },
-        {
-            value: "1000+",
-            label: t("about.ecosystem.stats.events", "累计活动"),
-        },
-        {
-            value: "300",
-            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名人数"),
-        },
+        ["01", "#about-hero", "identity"],
+        ["02", "#resource-support", "support"],
+        ["03", "#business-lines", "business"],
+        ["04", "#join-ecosystem", "join"],
     ];
 
     const supporterGroupMap = new Map(
@@ -317,7 +313,7 @@ const About = ({ showAppDownload = true }) => {
             headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
             description: t(
                 "about.ecosystem.support.enterprise_desc",
-                "合作企业提供真实题目、行业场景、模型、云资源、工具、评审与人才机会。"
+                "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。"
             ),
             icon: Building2,
         },
@@ -351,194 +347,55 @@ const About = ({ showAppDownload = true }) => {
     }));
 
     const businessLines = [
-        {
-            index: "01",
-            code: "PLATFORM",
-            title: t("about.ecosystem.business.info_title", "信息共享平台"),
-            short: t("about.ecosystem.business.info_short", "活动 / 学习资料 / 科创赛事"),
-            description: t(
-                "about.ecosystem.business.info_desc",
-                "聚合学院、社团和合作方发布的活动、学习资料与科创赛事，减少校园信息差。"
-            ),
-            metric: t("about.ecosystem.business.info_metric", "聚合 · 发现 · 参与"),
-            route: "/events",
-            cta: t("about.ecosystem.business.info_cta", "查看活动"),
-            icon: CalendarDays,
-            tone: "cyan",
-            detailEyebrow: t("about.ecosystem.business.info_detail_eyebrow", "线上入口"),
-            detailDesc: t(
-                "about.ecosystem.business.info_detail_desc",
-                "拓途浙享定位为浙江大学信息聚合平台，把分散在学院、社团和合作方渠道中的信息放进同一入口。"
-            ),
-            detailItems: [
-                t(
-                    "about.ecosystem.business.info_detail_item_1",
-                    "活动聚合：学院、社团、二课分与志愿活动"
-                ),
-                t(
-                    "about.ecosystem.business.info_detail_item_2",
-                    "学习资料：AI 资料、新生手册与期末复习"
-                ),
-                t(
-                    "about.ecosystem.business.info_detail_item_3",
-                    "科创赛事：黑客松、创业沙龙与成果展示"
-                ),
-            ],
-            detailResult: t(
-                "about.ecosystem.business.info_detail_result",
-                "让优质信息被及时看到，也让学习和实践有清晰入口。"
-            ),
-        },
-        {
-            index: "02",
-            code: "COMMUNITY",
-            title: t("about.ecosystem.business.grow_title", "智能体协会与 AI 社区"),
-            short: t("about.ecosystem.business.grow_short", "AI 学习 / 项目实践 / 人才连接"),
-            description: t(
-                "about.ecosystem.business.grow_desc",
-                "面向零基础新生与 AI 极客，提供 AI 编程、AI+文科学习、项目陪跑和技术交流。"
-            ),
-            metric: t("about.ecosystem.business.grow_metric", "学习 → 项目 → 发展"),
-            route: "/articles",
-            cta: t("about.ecosystem.business.grow_cta", "进入 AI 社区"),
-            icon: GraduationCap,
-            tone: "emerald",
-            detailEyebrow: t("about.ecosystem.business.grow_detail_eyebrow", "AI+X 人才培养"),
-            detailDesc: t(
-                "about.ecosystem.business.grow_detail_desc",
-                "以 AI+X 人才培养为目标，按新手、技术、导师三类角色组织学习与协作，连接技术、创业、科研三条发展方向。"
-            ),
-            detailItems: [
-                t(
-                    "about.ecosystem.business.grow_detail_item_1",
-                    "AI 学习：AI 编程、AI+文科与基础项目复现"
-                ),
-                t(
-                    "about.ecosystem.business.grow_detail_item_2",
-                    "项目实践：SQTP、赛前训练与企业真实项目"
-                ),
-                t(
-                    "about.ecosystem.business.grow_detail_item_3",
-                    "技术交流：社群、沙龙、经验输出与社区共建"
-                ),
-            ],
-            detailResult: t(
-                "about.ecosystem.business.grow_detail_result",
-                "让成员从基础学习走向独立项目，并继续连接实习、创业或科研机会。"
-            ),
-        },
-        {
-            index: "03",
-            code: "HACKATHON",
-            title: t("about.ecosystem.business.hackathon_title", "浙客松"),
-            description: t(
-                "about.ecosystem.business.hackathon_desc",
-                "围绕产业真实问题组织跨学科实战，通过开发、验证和展示识别作品与人才。"
-            ),
-            short: t(
-                "about.ecosystem.business.hackathon_short",
-                "真实赛题 / 跨学科共创 / 赛后承接"
-            ),
-            metric: t("about.ecosystem.business.hackathon_metric", "破界 · 共创 · 涌现"),
-            route: "/hackathon",
-            cta: t("about.ecosystem.business.hackathon_cta", "查看浙客松"),
-            icon: Trophy,
-            tone: "amber",
-            detailEyebrow: t(
-                "about.ecosystem.business.hackathon_detail_eyebrow",
-                "赛事、人才与成果"
-            ),
-            detailDesc: t(
-                "about.ecosystem.business.hackathon_detail_desc",
-                "赛题需明确真实问题、数据和边界；AI 社区提供赛前训练与组队；团队完成开发后进入商业化验证与 Demo Day。"
-            ),
-            detailItems: [
-                t(
-                    "about.ecosystem.business.hackathon_detail_item_1",
-                    "赛前：赛题准入、技术训练与跨学科组队"
-                ),
-                t(
-                    "about.ecosystem.business.hackathon_detail_item_2",
-                    "开发：提交可演示、可测试、可评价的成果"
-                ),
-                t(
-                    "about.ecosystem.business.hackathon_detail_item_3",
-                    "赛后：优秀项目连接企业、资本、实习和孵化"
-                ),
-            ],
-            detailResult: t(
-                "about.ecosystem.business.hackathon_detail_result",
-                "首届浙客松 300 人报名、100 人参赛；相关作品与人才继续进入项目档案和后续合作。"
-            ),
-        },
-        {
-            index: "04",
-            code: "PROJECTS",
-            title: t("about.ecosystem.business.project_title", "奇鹰科技"),
-            short: t("about.ecosystem.business.project_short", "产业实践与技术转化"),
-            description: t(
-                "about.ecosystem.business.project_desc",
-                "承接产业真实需求，组织方案设计、开发测试、交付验收和成果转化。"
-            ),
-            metric: t("about.ecosystem.business.project_metric", "需求 → 交付 → 沉淀"),
-            route: "/projects",
-            cta: t("about.ecosystem.business.project_cta", "查看项目"),
-            icon: Building2,
-            tone: "violet",
-            detailEyebrow: t("about.ecosystem.business.project_detail_eyebrow", "产业侧承接"),
-            detailDesc: t(
-                "about.ecosystem.business.project_detail_desc",
-                "产业界提出真实需求，项目从场景理解与需求澄清开始，经过方案设计、开发测试和场景验收，再沉淀为可复用能力。"
-            ),
-            detailItems: [
-                t(
-                    "about.ecosystem.business.project_detail_item_1",
-                    "需求进入：企业、政府、教授与学院提出真实课题"
-                ),
-                t(
-                    "about.ecosystem.business.project_detail_item_2",
-                    "团队实践：招募成员、推进进度并记录项目过程"
-                ),
-                t(
-                    "about.ecosystem.business.project_detail_item_3",
-                    "成果承接：连接认证、实习、就业或项目孵化"
-                ),
-            ],
-            detailResult: t(
-                "about.ecosystem.business.project_detail_result",
-                "让技术与人才从校园项目进入真实产业场景。"
-            ),
-        },
-    ];
+        { key: "community", code: "COMMUNITY", route: "/events", icon: Users, tone: "cyan" },
+        { key: "hackathon", code: "HACKATHON", route: "/hackathon", icon: Trophy, tone: "amber" },
+        { key: "grow", code: "LEARNING", route: "/articles", icon: GraduationCap, tone: "emerald" },
+        { key: "project", code: "PROJECTS", route: "/projects", icon: Building2, tone: "violet" },
+        { key: "info", code: "PLATFORM", route: "/", icon: CalendarDays, tone: "cyan" },
+    ].map((item, index) => ({
+        ...item,
+        index: String(index + 1).padStart(2, "0"),
+        title: t(`about.ecosystem.business.${item.key}_title`),
+        short: t(`about.ecosystem.business.${item.key}_short`),
+        description: t(`about.ecosystem.business.${item.key}_desc`),
+        metric: t(`about.ecosystem.business.${item.key}_metric`),
+        cta: t(`about.ecosystem.business.${item.key}_cta`),
+        detailEyebrow: t(`about.ecosystem.business.${item.key}_detail_eyebrow`),
+        detailDesc: t(`about.ecosystem.business.${item.key}_detail_desc`),
+        detailItems: [1, 2, 3].map((number) =>
+            t(`about.ecosystem.business.${item.key}_detail_item_${number}`)
+        ),
+        detailResult: t(`about.ecosystem.business.${item.key}_detail_result`),
+    }));
 
     const activeBusiness = businessLines.find((item) => item.code === activeBusinessCode);
 
     const joinCards = [
         {
-            title: t("about.ecosystem.join.student_title", "学生"),
+            title: t("about.ecosystem.join.student_title", "交流与学习"),
             description: t(
                 "about.ecosystem.join.student_desc",
-                "从活动聚合找到机会，进入 AI 社区学习，参加 SQTP、产业项目和浙客松，形成作品与实践记录。"
+                "通过社群、沙龙与赛事寻找同频伙伴，结合学习资料与项目实践提升能力。"
             ),
-            action: t("about.ecosystem.join.student_cta", "浏览活动集合"),
+            action: t("about.ecosystem.join.student_cta", "查看活动机会"),
             route: "/events",
             icon: Users,
         },
         {
-            title: t("about.ecosystem.join.org_title", "组织与社团"),
+            title: t("about.ecosystem.join.org_title", "参与或发起项目"),
             description: t(
                 "about.ecosystem.join.org_desc",
-                "发布活动、学习资料和项目招募，参与社群运营、技术沙龙与赛事执行。"
+                "参与产业联培，也可以自主立项。先了解项目需求，再寻找适合自己的合作方式。"
             ),
-            action: t("about.ecosystem.join.org_cta", "查看组织目录"),
-            route: "/profiles",
+            action: t("about.ecosystem.join.org_cta", "进入项目广场"),
+            route: "/projects",
             icon: Network,
         },
         {
-            title: t("about.ecosystem.join.enterprise_title", "企业与课题方"),
+            title: t("about.ecosystem.join.enterprise_title", "需求与合作"),
             description: t(
                 "about.ecosystem.join.enterprise_desc",
-                "提供真实课题、技术资源或评审支持，共建课程、项目与浙客松赛事。"
+                "提供真实产业需求，共建课程与赛事，连接算力、专业咨询、资本与孵化资源。"
             ),
             action: t("about.ecosystem.join.enterprise_cta", "联系合作"),
             route: "/future-learning",
@@ -547,7 +404,7 @@ const About = ({ showAppDownload = true }) => {
     ];
 
     const sectionBaseClass =
-        "relative flex scroll-mt-14 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:scroll-mt-16 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:scroll-mt-0 lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+        "relative flex scroll-mt-14 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:scroll-mt-16 sm:px-6 sm:py-20 lg:min-h-[100svh] lg:scroll-mt-0 lg:snap-start lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
     const heroStageShellStyle = heroStageFrame.height
         ? { height: `${heroStageFrame.height}px` }
         : undefined;
@@ -563,13 +420,13 @@ const About = ({ showAppDownload = true }) => {
     return (
         <div
             data-about-scroll-root
-            className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory ${palette.page}`}
+            className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-proximity ${palette.page}`}
         >
             <SEO
-                title={t("about.ecosystem.meta_title", "拓浙AI生态")}
+                title={t("about.ecosystem.meta_title", "生态介绍")}
                 description={t(
                     "about.ecosystem.meta_desc",
-                    "拓浙 AI 生态以浙江大学为起点，连接信息共享、AI+X 人才培养、浙客松实战与产业实践。"
+                    "拓浙AI生态从浙江大学出发，聚集与培养人才，打造AI时代产学研新范式。通过社区交流、学习培养与项目实践，连接人才、产业与资源。"
                 )}
             />
 
@@ -577,10 +434,12 @@ const About = ({ showAppDownload = true }) => {
                 aria-label={t("about.ecosystem.pagination_aria", "关于页面分页")}
                 className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
             >
-                {pageSections.map(([label, href]) => (
+                {pageSections.map(([label, href, key]) => (
                     <a
                         key={href}
                         href={href}
+                        aria-label={`${label} · ${t(`about.ecosystem.nav.${key}`)}`}
+                        title={t(`about.ecosystem.nav.${key}`)}
                         className={`group flex h-14 w-14 items-center justify-center border text-sm font-black transition duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
                             isDayMode
                                 ? "border-slate-200 bg-white/74 text-slate-500 hover:border-cyan-500/40 hover:text-cyan-700"
@@ -651,29 +510,34 @@ const About = ({ showAppDownload = true }) => {
                             <p
                                 className={`mt-4 max-w-4xl text-[15px] font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
                             >
-                                <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                                    {t("about.ecosystem.hero.strong", "连接学习、实践与产业。")}
+                                <strong
+                                    className={`mb-3 block text-xl leading-relaxed sm:text-2xl ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                >
+                                    {t(
+                                        "about.ecosystem.hero.strong",
+                                        "聚集与培养人才，打造AI时代产学研新范式"
+                                    )}
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
-                                    "拓浙 AI 生态以浙江大学为起点，面向零基础新生与 AI 极客，通过信息共享、AI+X 学习、浙客松实战和产业项目，连接学生、学校与企业。"
+                                    "从浙江大学出发，让不同专业的人因共同兴趣相聚，在交流中碰撞想法、寻找伙伴，在真实项目中学习、创造与成长。"
                                 )}
                             </p>
 
                             <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:gap-3.5 lg:mt-8">
-                                <Link
-                                    to="/events"
+                                <a
+                                    href="#business-lines"
                                     className={`inline-flex min-h-12 items-center justify-center gap-2.5 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
                                 >
                                     <Rocket className="h-5 w-5" />
-                                    {t("about.ecosystem.hero.primary_cta", "发现生态机会")}
-                                </Link>
+                                    {t("about.ecosystem.hero.primary_cta", "了解生态")}
+                                </a>
                                 <a
-                                    href="#business-lines"
+                                    href="#join-ecosystem"
                                     className={`inline-flex min-h-12 items-center justify-center gap-2.5 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
                                 >
                                     <BookOpen className="h-5 w-5" />
-                                    {t("about.ecosystem.hero.secondary_cta", "了解运行方式")}
+                                    {t("about.ecosystem.hero.secondary_cta", "参与共建")}
                                 </a>
                             </div>
                         </motion.div>
@@ -692,7 +556,7 @@ const About = ({ showAppDownload = true }) => {
                                     className={`flex items-center justify-between text-xs font-black uppercase 2xl:text-sm ${palette.label}`}
                                 >
                                     <span>{t("about.ecosystem.brief.eyebrow", "生态起点")}</span>
-                                    <span>{t("about.ecosystem.brief.status", "ZJU Origin")}</span>
+                                    <span>{t("about.ecosystem.brief.status", "源自浙大")}</span>
                                 </div>
                                 <div className="py-8">
                                     <p className="max-w-3xl text-5xl font-black leading-[0.98] 2xl:text-7xl">
@@ -708,7 +572,7 @@ const About = ({ showAppDownload = true }) => {
                                     >
                                         {t(
                                             "about.ecosystem.brief.desc",
-                                            "平台打破信息差，AI 社区组织学习与项目实践，浙客松用真实赛题检验能力，产业项目把人才与技术带进真实场景。"
+                                            "人因共同兴趣与有意思的事情相聚，在交流中碰撞想法，在项目中学习成长。我们将个体汇聚成群像，让影响力与资源继续赋能每一个人。"
                                         )}
                                     </p>
                                 </div>
@@ -723,40 +587,11 @@ const About = ({ showAppDownload = true }) => {
                                 </div>
                             </div>
                         </motion.aside>
-
-                        <motion.div
-                            {...heroReveal(shouldAnimate, 0.18)}
-                            className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-4 xl:col-span-2 ${
-                                isDayMode
-                                    ? "border-cyan-500/18 bg-cyan-500/18"
-                                    : "border-cyan-300/18 bg-cyan-300/18"
-                            }`}
-                        >
-                            {proofStats.map((item) => (
-                                <div
-                                    key={item.label}
-                                    className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
-                                        isDayMode ? "bg-white/82" : "bg-[#0b1718]/86"
-                                    }`}
-                                >
-                                    <div
-                                        className={`text-[1.35rem] font-black leading-none sm:text-3xl lg:text-[2.55rem] xl:text-[2.9rem] 2xl:text-[3.75rem] ${palette.accent}`}
-                                    >
-                                        {item.value}
-                                    </div>
-                                    <p
-                                        className={`mt-1.5 break-words text-[9px] font-bold leading-3 sm:mt-2 sm:text-xs lg:text-xs lg:leading-4 2xl:text-sm 2xl:leading-5 ${palette.textMuted}`}
-                                    >
-                                        {item.label}
-                                    </p>
-                                </div>
-                            ))}
-                        </motion.div>
                     </div>
                 </div>
             </section>
 
-            <main>
+            <div>
                 <motion.section
                     id="resource-support"
                     {...sectionReveal(shouldAnimate)}
@@ -774,7 +609,7 @@ const About = ({ showAppDownload = true }) => {
                         <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
                             <div className="max-w-[960px]">
                                 <p className={`text-sm font-black uppercase ${palette.label}`}>
-                                    资源与合作
+                                    {t("about.ecosystem.nav.support")}
                                 </p>
                                 <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                     <span className="block">
@@ -1036,14 +871,14 @@ const About = ({ showAppDownload = true }) => {
                     <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
                         <div className="max-w-5xl">
                             <p className={`text-sm font-black uppercase ${palette.label}`}>
-                                {t("about.ecosystem.business.eyebrow", "四项业务")}
+                                {t("about.ecosystem.business.eyebrow", "我们具体做什么")}
                             </p>
                             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_1", "从信息共享，")}
+                                    {t("about.ecosystem.business.title_1", "从相遇交流，")}
                                 </span>
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_2", "到产业转化。")}
+                                    {t("about.ecosystem.business.title_2", "到共同做成事情。")}
                                 </span>
                             </h2>
                             <p
@@ -1051,12 +886,12 @@ const About = ({ showAppDownload = true }) => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "拓途浙享打破信息差，智能体协会与 AI 社区负责学习培养，浙客松以赛事检验能力，奇鹰科技承接产业实践与技术转化。"
+                                    "社群与沙龙聚人，浙客松发现人才与项目，学习培养与项目实践支持成长，信息平台连接日常机会。"
                                 )}
                             </p>
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(22rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-4 2xl:gap-6">
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:min-h-[25rem] lg:grid-cols-3 xl:grid-cols-5 lg:gap-4 2xl:gap-6">
                             {businessLines.map((item) => {
                                 const Icon = item.icon;
                                 const isAmber = item.tone === "amber";
@@ -1118,7 +953,7 @@ const About = ({ showAppDownload = true }) => {
                                                 ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
                                                 : { duration: 0 }
                                         }
-                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
+                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-[25rem] lg:p-4 2xl:p-7 ${borderClass} ${palette.card}`}
                                     >
                                         <div
                                             className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
@@ -1138,14 +973,14 @@ const About = ({ showAppDownload = true }) => {
                                                     <Icon className="h-6 w-6" />
                                                 </div>
                                             </div>
-                                            <h3 className="mt-5 text-2xl font-black leading-tight sm:text-3xl lg:text-2xl 2xl:text-4xl">
+                                            <h3 className="mt-5 text-2xl font-black leading-tight sm:text-3xl lg:text-xl 2xl:text-3xl">
                                                 {item.title}
                                             </h3>
                                             <p className={`mt-2 text-sm font-black ${accentClass}`}>
                                                 {item.short}
                                             </p>
                                             <p
-                                                className={`mt-4 line-clamp-2 text-sm leading-6 ${palette.textSoft}`}
+                                                className={`mt-4 mb-5 text-sm leading-6 ${palette.textSoft}`}
                                             >
                                                 {item.description}
                                             </p>
@@ -1162,7 +997,7 @@ const About = ({ showAppDownload = true }) => {
                                                         )}
                                                     </div>
                                                     <div
-                                                        className={`mt-2 text-lg font-black ${accentClass}`}
+                                                        className={`mt-2 text-sm font-black ${accentClass}`}
                                                     >
                                                         {item.metric}
                                                     </div>
@@ -1181,161 +1016,167 @@ const About = ({ showAppDownload = true }) => {
                     </div>
                 </motion.section>
 
-                <AnimatePresence>
-                    {activeBusiness ? (
-                        <motion.div
-                            className={`fixed inset-0 z-[90] flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10 ${
-                                isDayMode ? "bg-slate-950/64" : "bg-black/84"
-                            }`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={shouldAnimate ? { duration: 0.28 } : { duration: 0 }}
-                            onClick={closeBusinessDetails}
-                        >
+                {createPortal(
+                    <AnimatePresence>
+                        {activeBusiness ? (
                             <motion.div
-                                layoutId={`business-card-${activeBusiness.code}`}
-                                role="dialog"
-                                aria-modal="true"
-                                aria-labelledby={`business-detail-title-${activeBusiness.code}`}
-                                onClick={(event) => event.stopPropagation()}
-                                transition={
-                                    shouldAnimate
-                                        ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
-                                        : { duration: 0 }
-                                }
-                                className={`relative flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl min-h-0 flex-col overscroll-contain overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:max-h-[min(820px,calc(100dvh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.detailPanel} ${
-                                    activeBusiness.tone === "amber"
-                                        ? isDayMode
-                                            ? "border-amber-400/70"
-                                            : "border-amber-300/70"
-                                        : activeBusiness.tone === "emerald"
-                                          ? "border-emerald-400/65"
-                                          : activeBusiness.tone === "violet"
-                                            ? isDayMode
-                                                ? "border-violet-500/70"
-                                                : "border-violet-300/70"
-                                            : isDayMode
-                                              ? "border-cyan-500/70"
-                                              : "border-cyan-300/70"
+                                className={`fixed inset-0 z-[90] flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10 ${
+                                    isDayMode ? "bg-slate-950/64" : "bg-black/84"
                                 }`}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={shouldAnimate ? { duration: 0.28 } : { duration: 0 }}
+                                onClick={closeBusinessDetails}
                             >
-                                <div className="flex items-start justify-between gap-5">
-                                    <div>
-                                        <div
-                                            className={`font-mono text-sm font-black uppercase ${
-                                                activeBusiness.tone === "amber"
-                                                    ? palette.altAccent
-                                                    : activeBusiness.tone === "emerald"
-                                                      ? isDayMode
-                                                          ? "text-emerald-700"
-                                                          : "text-emerald-200"
-                                                      : activeBusiness.tone === "violet"
-                                                        ? isDayMode
-                                                            ? "text-violet-700"
-                                                            : "text-violet-200"
-                                                        : palette.accent
-                                            }`}
-                                        >
-                                            {activeBusiness.index} / {activeBusiness.code}
+                                <motion.div
+                                    layoutId={`business-card-${activeBusiness.code}`}
+                                    ref={detailPanelRef}
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby={`business-detail-title-${activeBusiness.code}`}
+                                    onClick={(event) => event.stopPropagation()}
+                                    transition={
+                                        shouldAnimate
+                                            ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
+                                            : { duration: 0 }
+                                    }
+                                    className={`relative flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl min-h-0 flex-col overscroll-contain overflow-y-auto rounded-sm border p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:max-h-[min(820px,calc(100dvh-5rem))] sm:p-9 sm:pb-9 lg:p-12 ${palette.detailPanel} ${
+                                        activeBusiness.tone === "amber"
+                                            ? isDayMode
+                                                ? "border-amber-400/70"
+                                                : "border-amber-300/70"
+                                            : activeBusiness.tone === "emerald"
+                                              ? "border-emerald-400/65"
+                                              : activeBusiness.tone === "violet"
+                                                ? isDayMode
+                                                    ? "border-violet-500/70"
+                                                    : "border-violet-300/70"
+                                                : isDayMode
+                                                  ? "border-cyan-500/70"
+                                                  : "border-cyan-300/70"
+                                    }`}
+                                >
+                                    <div className="flex items-start justify-between gap-5">
+                                        <div>
+                                            <div
+                                                className={`font-mono text-sm font-black uppercase ${
+                                                    activeBusiness.tone === "amber"
+                                                        ? palette.altAccent
+                                                        : activeBusiness.tone === "emerald"
+                                                          ? isDayMode
+                                                              ? "text-emerald-700"
+                                                              : "text-emerald-200"
+                                                          : activeBusiness.tone === "violet"
+                                                            ? isDayMode
+                                                                ? "text-violet-700"
+                                                                : "text-violet-200"
+                                                            : palette.accent
+                                                }`}
+                                            >
+                                                {activeBusiness.index} / {activeBusiness.code}
+                                            </div>
+                                            <p
+                                                className={`mt-4 text-sm font-black uppercase ${palette.label}`}
+                                            >
+                                                {activeBusiness.detailEyebrow}
+                                            </p>
+                                            <h2
+                                                id={`business-detail-title-${activeBusiness.code}`}
+                                                className="mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl"
+                                            >
+                                                {activeBusiness.title}
+                                            </h2>
                                         </div>
-                                        <p
-                                            className={`mt-4 text-sm font-black uppercase ${palette.label}`}
+                                        <button
+                                            ref={detailCloseButtonRef}
+                                            type="button"
+                                            onClick={closeBusinessDetails}
+                                            aria-label={t(
+                                                "about.ecosystem.business.close_detail",
+                                                "关闭详情"
+                                            )}
+                                            className={`flex h-11 w-11 shrink-0 items-center justify-center border transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.secondary}`}
                                         >
-                                            {activeBusiness.detailEyebrow}
-                                        </p>
-                                        <h2
-                                            id={`business-detail-title-${activeBusiness.code}`}
-                                            className="mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl"
-                                        >
-                                            {activeBusiness.title}
-                                        </h2>
+                                            <X className="h-5 w-5" />
+                                        </button>
                                     </div>
-                                    <button
-                                        ref={detailCloseButtonRef}
-                                        type="button"
-                                        onClick={closeBusinessDetails}
-                                        aria-label={t(
-                                            "about.ecosystem.business.close_detail",
-                                            "关闭详情"
-                                        )}
-                                        className={`flex h-11 w-11 shrink-0 items-center justify-center border transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.secondary}`}
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
 
-                                <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.68fr)] lg:gap-12">
-                                    <div>
-                                        <p
-                                            className={`max-w-3xl text-base leading-8 sm:text-lg sm:leading-9 ${palette.textSoft}`}
+                                    <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.68fr)] lg:gap-12">
+                                        <div>
+                                            <p
+                                                className={`max-w-3xl text-base leading-8 sm:text-lg sm:leading-9 ${palette.textSoft}`}
+                                            >
+                                                {activeBusiness.detailDesc}
+                                            </p>
+                                            <div
+                                                className={`mt-8 border-t pt-6 ${palette.divider}`}
+                                            >
+                                                <p
+                                                    className={`text-xs font-black uppercase ${palette.textMuted}`}
+                                                >
+                                                    {t(
+                                                        "about.ecosystem.business.detail_structure",
+                                                        "具体做什么"
+                                                    )}
+                                                </p>
+                                                <div className="mt-4 grid gap-3">
+                                                    {activeBusiness.detailItems.map(
+                                                        (detailItem, index) => (
+                                                            <div
+                                                                key={detailItem}
+                                                                className={`flex gap-4 border p-4 sm:p-5 ${
+                                                                    isDayMode
+                                                                        ? "border-slate-200 bg-white/70"
+                                                                        : "border-white/10 bg-white/[0.04]"
+                                                                }`}
+                                                            >
+                                                                <span
+                                                                    className={`font-mono text-sm font-black ${palette.accent}`}
+                                                                >
+                                                                    0{index + 1}
+                                                                </span>
+                                                                <span className="text-sm font-bold leading-6 sm:text-base sm:leading-7">
+                                                                    {detailItem}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={`border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 ${palette.divider}`}
                                         >
-                                            {activeBusiness.detailDesc}
-                                        </p>
-                                        <div className={`mt-8 border-t pt-6 ${palette.divider}`}>
                                             <p
                                                 className={`text-xs font-black uppercase ${palette.textMuted}`}
                                             >
                                                 {t(
-                                                    "about.ecosystem.business.detail_structure",
-                                                    "具体做什么"
+                                                    "about.ecosystem.business.detail_result_label",
+                                                    "接下来去哪里"
                                                 )}
                                             </p>
-                                            <div className="mt-4 grid gap-3">
-                                                {activeBusiness.detailItems.map(
-                                                    (detailItem, index) => (
-                                                        <div
-                                                            key={detailItem}
-                                                            className={`flex gap-4 border p-4 sm:p-5 ${
-                                                                isDayMode
-                                                                    ? "border-slate-200 bg-white/70"
-                                                                    : "border-white/10 bg-white/[0.04]"
-                                                            }`}
-                                                        >
-                                                            <span
-                                                                className={`font-mono text-sm font-black ${palette.accent}`}
-                                                            >
-                                                                0{index + 1}
-                                                            </span>
-                                                            <span className="text-sm font-bold leading-6 sm:text-base sm:leading-7">
-                                                                {detailItem}
-                                                            </span>
-                                                        </div>
-                                                    )
-                                                )}
-                                            </div>
+                                            <p
+                                                className={`mt-4 text-xl font-black leading-8 ${palette.accent}`}
+                                            >
+                                                {activeBusiness.detailResult}
+                                            </p>
+                                            <Link
+                                                to={activeBusiness.route}
+                                                onClick={closeBusinessDetails}
+                                                className={`mt-8 inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.primary}`}
+                                            >
+                                                {activeBusiness.cta}
+                                                <ArrowRight className="h-4 w-4" />
+                                            </Link>
                                         </div>
                                     </div>
-                                    <div
-                                        className={`border-t pt-6 lg:border-l lg:border-t-0 lg:pl-8 ${palette.divider}`}
-                                    >
-                                        <p
-                                            className={`text-xs font-black uppercase ${palette.textMuted}`}
-                                        >
-                                            {t(
-                                                "about.ecosystem.business.detail_result_label",
-                                                "接下来去哪里"
-                                            )}
-                                        </p>
-                                        <p
-                                            className={`mt-4 text-xl font-black leading-8 ${palette.accent}`}
-                                        >
-                                            {activeBusiness.detailResult}
-                                        </p>
-                                        <Link
-                                            to={activeBusiness.route}
-                                            onClick={closeBusinessDetails}
-                                            className={`mt-8 inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.primary}`}
-                                        >
-                                            {activeBusiness.cta}
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Link>
-                                    </div>
-                                </div>
+                                </motion.div>
                             </motion.div>
-                        </motion.div>
-                    ) : null}
-                </AnimatePresence>
+                        ) : null}
+                    </AnimatePresence>,
+                    document.body
+                )}
 
                 <motion.section
                     id="join-ecosystem"
@@ -1368,7 +1209,7 @@ const About = ({ showAppDownload = true }) => {
                             >
                                 {t(
                                     "about.ecosystem.join.desc",
-                                    "学生可以找机会、学 AI、做项目；组织可以发布活动和招募；企业与学院可以提交真实问题、共建课程或赛事。"
+                                    "从交流与学习开始，参与真实项目，或带着想法、需求与资源一起建设生态。"
                                 )}
                             </p>
 
@@ -1431,7 +1272,7 @@ const About = ({ showAppDownload = true }) => {
                         </div>
                     </div>
                 </motion.section>
-            </main>
+            </div>
         </div>
     );
 };
