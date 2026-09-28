@@ -957,68 +957,46 @@
             },
             "support": {
                 "title_1": "Bring resources together.",
-                "title_2": "Support real-world practice.",
-                "desc": "Schools provide spaces and real settings. Companies provide briefs and technology. Student organizations handle recruitment and execution. Industry and capital partners help projects continue.",
+                "title_2": "Help talent grow.",
+                "desc": "Connect campus units, companies, investors, incubators, clubs and open-source communities with the technology, contexts and spaces needed for learning and practice.",
                 "school_title": "Campus Support",
-                "school_headline": "Courses, research, and settings",
-                "school_desc": "The Future Learning Center and partner schools provide course collaboration, research questions, and key settings that bring real briefs into campus practice.",
-                "school_items": {
-                    "future_learning": "Future Learning Center",
-                    "management": "School of Management",
-                    "innovation": "Innovation & Entrepreneurship College",
-                    "medical": "School of Basic Medical Sciences"
-                },
+                "school_headline": "Interdisciplinary learning and research",
+                "school_desc": "Connect entrepreneurship, management, law, humanities, medicine, ocean science, control and information engineering with teaching, research and practice.",
                 "enterprise_title": "Enterprise Partners",
-                "enterprise_headline": "Briefs, technology, and talent",
-                "enterprise_desc": "Enterprise and technology partners provide real briefs, models, cloud resources, tools, judges, internships, and recruitment opportunities.",
+                "enterprise_headline": "Technology, contexts and talent",
+                "enterprise_desc": "Connect models, cloud resources, developer tools and industry contexts with company reviews, internships and talent opportunities through competitions and projects.",
                 "technology_headline": "Models, tools, and engineering resources",
                 "technology_desc": "Technology partners provide models, cloud resources, development tools, and engineering experience that move learning into real development.",
                 "industry_headline": "Real problems and industry settings",
                 "industry_desc": "Industry partners bring real needs, business constraints, and validation settings into courses, competitions, and project work.",
-                "enterprise_items": {
-                    "getui": "Getui",
-                    "aliyun": "Alibaba Cloud",
-                    "minimax": "MiniMax",
-                    "stepfun": "StepFun",
-                    "modelscope": "ModelScope",
-                    "qoder": "Qoder",
-                    "bonjour": "Bonjour",
-                    "huawei": "Huawei",
-                    "qwen": "Qwen",
-                    "chuangfeifan": "Chuang Feifan"
-                },
-                "capital_title": "Capital Partners",
-                "capital_headline": "Startup guidance and connections",
-                "capital_desc": "5Y Capital and ZJU-linked capital resources support pitch opportunities, startup guidance, and follow-up connections for strong projects.",
-                "capital_items": {
-                    "five_source": "5Y Capital"
-                },
-                "organization_title": "Organization Partners",
-                "organization_headline": "Recruitment, training, and execution",
-                "organization_desc": "Student organizations and clubs handle member recruitment, learning programs, event execution, and post-event review.",
-                "organization_items": {
-                    "qiangying": "Qiangying Club",
-                    "xlab": "XLAB",
-                    "ai_association": "AI Association",
-                    "ai_research": "AI Research Club",
-                    "embedded_ai": "Embedded AI Association",
-                    "kab": "KAB Entrepreneurship Club"
-                },
+                "capital_title": "Capital & Incubation",
+                "capital_headline": "From incubation to industry",
+                "capital_desc": "Connect incubation resources at Shidai Qiangying, ZJU Startup Space and ZTVP with investors including 5Y Capital and ZhenFund for venture guidance, product validation and funding discussions.",
+                "organization_title": "Clubs & Open Source",
+                "organization_headline": "Campus collaboration and open source",
+                "organization_desc": "Bring campus clubs together with DeepSeek Club, ModelScope and Guancha for exchange, learning and collaborative projects.",
                 "view_all": "View all supporters",
                 "category_count": "{{count}} supporters",
                 "open_category": "View {{category}} supporters",
-                "enter_category": "Open category"
+                "enter_category": "Open category",
+                "facilities_label": "Compute, devices and spaces",
+                "facilities": {
+                    "compute": "8 × RTX 4090",
+                    "devices": "Latest Huawei devices",
+                    "office": "2 office spaces",
+                    "exchange": "3 exchange spaces"
+                }
             },
             "supporter_directory": {
                 "meta_title": "Ecosystem Supporters | Tuozhe AI Ecosystem",
-                "meta_desc": "Explore the campus, enterprise, capital, and organization partners supporting the Tuozhe AI Ecosystem.",
+                "meta_desc": "Explore campus, enterprise, investment, incubation, club and open-source resources in the Tuozhe AI ecosystem.",
                 "back": "Back to Ecosystem",
                 "eyebrow": "Ecosystem Support Network",
                 "registry_label": "Supporter Registry",
                 "title": "Ecosystem Supporters",
                 "title_1": "Shared support.",
                 "title_2": "Real practice.",
-                "desc": "From campus courses and research settings to enterprise technology, industry resources, capital, and student organizations, these supporters keep learning, competitions, and real projects moving.",
+                "desc": "Connect campus units, companies, investors, incubators, clubs and open-source communities with the technology, contexts and spaces needed for learning and practice.",
                 "search_label": "Search supporters",
                 "search_placeholder": "Search names, collaboration areas, or support",
                 "clear_search": "Clear search",
@@ -1039,15 +1017,15 @@
                 "view_groups": {
                     "college": "Campus Support",
                     "enterprise": "Enterprise Partners",
-                    "capital": "Capital Partners",
-                    "club": "Organization Partners"
+                    "capital": "Capital & Incubation",
+                    "club": "Clubs & Open Source"
                 },
                 "categories": {
                     "college": "Colleges & Campus Units",
                     "technology_enterprise": "Technology Companies",
                     "industry_enterprise": "Industry Companies",
                     "capital": "Capital & Incubation",
-                    "club": "Clubs & Organizations"
+                    "club": "Clubs & Open Source"
                 }
             },
             "business": {

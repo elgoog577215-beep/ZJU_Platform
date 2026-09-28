@@ -1,3 +1,4 @@
+import ecosystemResources from "../../shared/ecosystemResources.json";
 import campusOrganizations from "../../shared/campusOrganizations.json";
 
 export const ECOSYSTEM_PARTNER_CATEGORIES = [
@@ -52,8 +53,8 @@ export const ECOSYSTEM_SUPPORT_CATEGORIES = [
     },
     {
         id: "club",
-        label: "社团与组织",
-        labelEn: "Clubs & Organizations",
+        label: "社团与开源社区",
+        labelEn: "Clubs & Open Source",
         shortLabel: "社团",
         code: "Community",
     },
@@ -81,16 +82,16 @@ export const ECOSYSTEM_SUPPORT_VIEW_GROUPS = [
     {
         id: "capital",
         categoryIds: ["capital"],
-        label: "资本合作",
-        labelEn: "Capital Partners",
+        label: "资本与孵化",
+        labelEn: "Capital & Incubation",
         shortLabel: "资本",
         code: "Capital",
     },
     {
         id: "club",
         categoryIds: ["club"],
-        label: "组织合作",
-        labelEn: "Organization Partners",
+        label: "社团与开源社区",
+        labelEn: "Clubs & Open Source",
         shortLabel: "组织",
         code: "Community",
     },
@@ -134,7 +135,7 @@ const withOrganizationLogo = (partner) => {
     };
 };
 
-export const defaultEcosystemPartners = [
+const legacyEcosystemPartners = [
     {
         id: "default-school-future-learning",
         profile_handle: "partner-1",
@@ -719,6 +720,52 @@ export const defaultEcosystemPartners = [
                       : partnerScope === CORE_PARTNER_SCOPE,
         });
     });
+
+// Share the verified resource roster with the one-time server import. This is only
+// the offline fallback; successful API responses remain authoritative.
+const resourceNames = (partner) =>
+    [partner.name, partner.name_en, ...(partner.event_organizer_aliases || [])]
+        .filter(Boolean)
+        .map((name) => name.trim().toLowerCase());
+const findResource = (partner) => {
+    const names = new Set(resourceNames(partner));
+    return ecosystemResources.find((resource) =>
+        resourceNames(resource).some((name) => names.has(name))
+    );
+};
+export const defaultEcosystemPartners = [
+    ...legacyEcosystemPartners.map((partner) => {
+        const resource = findResource(partner);
+        return resource
+            ? {
+                  ...partner,
+                  support_category: resource.support_category,
+                  partner_scope: CORE_PARTNER_SCOPE,
+                  featured: true,
+                  event_organizer_aliases: [
+                      ...new Set([
+                          ...resourceNames(partner),
+                          resource.name,
+                          resource.name_en,
+                          ...resource.event_organizer_aliases,
+                      ]),
+                  ],
+              }
+            : partner;
+    }),
+    ...ecosystemResources
+        .filter(
+            (resource) =>
+                !legacyEcosystemPartners.some((partner) => findResource(partner) === resource)
+        )
+        .map((resource) => ({
+            ...resource,
+            id: `default-${resource.id}`,
+            partner_scope: CORE_PARTNER_SCOPE,
+            enabled: true,
+            featured: true,
+        })),
+];
 
 const categoryOrder = new Map(
     ECOSYSTEM_PARTNER_CATEGORIES.map((category, index) => [category.id, index])

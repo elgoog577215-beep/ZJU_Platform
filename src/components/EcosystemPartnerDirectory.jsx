@@ -51,7 +51,7 @@ const categoryFallbackLabels = {
     technology_enterprise: "技术企业",
     industry_enterprise: "行业企业",
     capital: "资本与孵化",
-    club: "社团与组织",
+    club: "社团与开源社区",
 };
 
 const stageMeta = {
@@ -78,8 +78,8 @@ const stageMeta = {
     },
     club: {
         code: "COMMUNITY FLOW",
-        description: "招募、协作与长期执行",
-        descriptionEn: "Recruiting, collaboration and delivery",
+        description: "校园协作与开源共创",
+        descriptionEn: "Campus collaboration and open source",
         layoutClass: "support-stage-card--club xl:col-span-7",
         previewLimit: 4,
     },
@@ -525,6 +525,7 @@ const EcosystemPartnerDirectory = () => {
                 return [
                     partner.name,
                     partner.name_en,
+                    ...(partner.event_organizer_aliases || []),
                     partner.description,
                     partner.description_en,
                     partner.cooperation_direction,

@@ -301,37 +301,37 @@ const About = ({ showAppDownload = true }) => {
     const supportGroupConfig = {
         college: {
             code: "CAMPUS",
-            headline: t("about.ecosystem.support.school_headline", "课程、科研与场景"),
+            headline: t("about.ecosystem.support.school_headline", "跨学科教学与科研协作"),
             description: t(
                 "about.ecosystem.support.school_desc",
-                "未来学习中心与相关学院提供课程共建、科研问题和重点场景，使真实课题进入校园实践。"
+                "联动创新创业、管理、法律、人文、医学、海洋、控制与信电等领域，连接教学、科研与实践场景。"
             ),
             icon: Landmark,
         },
         enterprise: {
             code: "ENTERPRISE",
-            headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
+            headline: t("about.ecosystem.support.enterprise_headline", "技术、场景与人才机会"),
             description: t(
                 "about.ecosystem.support.enterprise_desc",
-                "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。"
+                "连接模型、云资源、开发工具与行业场景，通过赛事和项目对接企业评审、实习与人才机会。"
             ),
             icon: Building2,
         },
         capital: {
             code: "CAPITAL",
-            headline: t("about.ecosystem.support.capital_headline", "创业辅导与资源对接"),
+            headline: t("about.ecosystem.support.capital_headline", "从项目孵化到产业对接"),
             description: t(
                 "about.ecosystem.support.capital_desc",
-                "五源资本及浙大系资本为优秀项目提供路演、创业辅导和资源对接。"
+                "连接时代强鹰、创业元空间、ZTVP等孵化资源，以及五源资本、真格基金，推动创业辅导、产品验证与融资对接。"
             ),
             icon: Handshake,
         },
         club: {
             code: "COMMUNITY",
-            headline: t("about.ecosystem.support.organization_headline", "招募、培训与执行"),
+            headline: t("about.ecosystem.support.organization_headline", "校园协作与开源共创"),
             description: t(
                 "about.ecosystem.support.organization_desc",
-                "学生组织和社团负责成员招募、学习培训、活动执行与赛后复盘。"
+                "联合校内社团和深求、魔搭、观猹等开源社区，开展交流、学习培养与项目协作。"
             ),
             icon: Network,
         },
@@ -616,7 +616,7 @@ const About = ({ showAppDownload = true }) => {
                                         {t("about.ecosystem.support.title_1", "汇聚多方资源，")}
                                     </span>
                                     <span className="block">
-                                        {t("about.ecosystem.support.title_2", "支撑真实实践。")}
+                                        {t("about.ecosystem.support.title_2", "支撑人才成长。")}
                                     </span>
                                 </h2>
                             </div>
@@ -626,7 +626,7 @@ const About = ({ showAppDownload = true }) => {
                                 >
                                     {t(
                                         "about.ecosystem.support.desc",
-                                        "学校提供场景与空间，企业提供真实课题和技术资源，学生组织负责招募与执行，产业和资本伙伴承接后续项目。"
+                                        "连接学院、企业、资本与孵化机构、社团和开源社区，以技术、场景、空间与协作支持人才培养和项目实践。"
                                     )}
                                 </p>
                                 <Link
@@ -737,7 +737,7 @@ const About = ({ showAppDownload = true }) => {
                                                 {group.headline}
                                             </p>
                                             <p
-                                                className={`mt-3 hidden text-sm leading-6 sm:line-clamp-2 ${palette.textSoft}`}
+                                                className={`mt-3 hidden text-sm leading-6 sm:block ${palette.textSoft}`}
                                             >
                                                 {group.description}
                                             </p>
@@ -854,6 +854,18 @@ const About = ({ showAppDownload = true }) => {
                                     </Link>
                                 );
                             })}
+                        </div>
+                        <div className={`mt-5 border-t pt-4 ${palette.border}`}>
+                            <p className={`text-xs font-bold ${palette.textSoft}`}>
+                                {t("about.ecosystem.support.facilities_label")}
+                            </p>
+                            <ul className="mt-2 grid grid-cols-2 gap-x-5 gap-y-2 text-sm font-bold sm:grid-cols-4 sm:text-base">
+                                {["compute", "devices", "office", "exchange"].map((key) => (
+                                    <li key={key}>
+                                        {t(`about.ecosystem.support.facilities.${key}`)}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
                 </motion.section>

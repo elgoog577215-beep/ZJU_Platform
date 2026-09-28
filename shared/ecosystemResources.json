@@ -1,0 +1,339 @@
+[
+    {
+        "id": "resource-college-1",
+        "name": "创新创业学院",
+        "name_en": "College of Innovation and Entrepreneurship",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学创新创业学院"],
+        "sort_order": 10
+    },
+    {
+        "id": "resource-college-2",
+        "name": "未来学习中心",
+        "name_en": "Future Learning Center",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学未来学习中心"],
+        "sort_order": 20
+    },
+    {
+        "id": "resource-college-3",
+        "name": "管理学院",
+        "name_en": "School of Management",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学管理学院"],
+        "sort_order": 30
+    },
+    {
+        "id": "resource-college-4",
+        "name": "光华法学院",
+        "name_en": "Guanghua Law School",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学光华法学院"],
+        "sort_order": 40
+    },
+    {
+        "id": "resource-college-5",
+        "name": "历史学院",
+        "name_en": "School of History",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学历史学院"],
+        "sort_order": 50
+    },
+    {
+        "id": "resource-college-6",
+        "name": "传媒与国际文化学院",
+        "name_en": "College of Media and International Culture",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学传媒与国际文化学院"],
+        "sort_order": 60
+    },
+    {
+        "id": "resource-college-7",
+        "name": "海洋学院",
+        "name_en": "Ocean College",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学海洋学院"],
+        "sort_order": 70
+    },
+    {
+        "id": "resource-college-8",
+        "name": "基础医学院",
+        "name_en": "School of Basic Medical Sciences",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学基础医学院"],
+        "sort_order": 80
+    },
+    {
+        "id": "resource-college-9",
+        "name": "医学院",
+        "name_en": "School of Medicine",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["浙江大学医学院"],
+        "sort_order": 90
+    },
+    {
+        "id": "resource-college-10",
+        "name": "控制学院",
+        "name_en": "College of Control Science and Engineering",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["控制科学与工程学院", "浙江大学控制学院"],
+        "sort_order": 100
+    },
+    {
+        "id": "resource-college-11",
+        "name": "信电学院",
+        "name_en": "College of Information Science and Electronic Engineering",
+        "category": "school",
+        "support_category": "college",
+        "event_organizer_aliases": ["信息与电子工程学院", "浙江大学信电学院"],
+        "sort_order": 110
+    },
+    {
+        "id": "resource-technology_enterprise-1",
+        "name": "阿里云",
+        "name_en": "Alibaba Cloud",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 10
+    },
+    {
+        "id": "resource-technology_enterprise-2",
+        "name": "华为中国区",
+        "name_en": "Huawei China",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": ["华为", "Huawei"],
+        "sort_order": 20
+    },
+    {
+        "id": "resource-technology_enterprise-3",
+        "name": "高客服务",
+        "name_en": "Gaoke Services",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 30
+    },
+    {
+        "id": "resource-technology_enterprise-4",
+        "name": "千问",
+        "name_en": "Qwen",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": ["通义千问"],
+        "sort_order": 40
+    },
+    {
+        "id": "resource-technology_enterprise-5",
+        "name": "商汤小浣熊",
+        "name_en": "SenseTime Code Raccoon",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 50
+    },
+    {
+        "id": "resource-technology_enterprise-6",
+        "name": "天猫校园",
+        "name_en": "Tmall Campus",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 60
+    },
+    {
+        "id": "resource-technology_enterprise-7",
+        "name": "MiniMax",
+        "name_en": "MiniMax",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 70
+    },
+    {
+        "id": "resource-technology_enterprise-8",
+        "name": "Qoder",
+        "name_en": "Qoder",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 80
+    },
+    {
+        "id": "resource-technology_enterprise-9",
+        "name": "阶跃星辰",
+        "name_en": "StepFun",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": ["阶跃 StepFun", "阶跃"],
+        "sort_order": 90
+    },
+    {
+        "id": "resource-technology_enterprise-10",
+        "name": "每日互动",
+        "name_en": "Getui",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 100
+    },
+    {
+        "id": "resource-technology_enterprise-11",
+        "name": "Bonjour",
+        "name_en": "Bonjour",
+        "category": "enterprise",
+        "support_category": "technology_enterprise",
+        "event_organizer_aliases": [],
+        "sort_order": 110
+    },
+    {
+        "id": "resource-capital-1",
+        "name": "时代强鹰",
+        "name_en": "Shidai Qiangying",
+        "category": "enterprise",
+        "support_category": "capital",
+        "event_organizer_aliases": [],
+        "sort_order": 10
+    },
+    {
+        "id": "resource-capital-2",
+        "name": "浙江大学创业元空间",
+        "name_en": "ZJU Startup Space",
+        "category": "enterprise",
+        "support_category": "capital",
+        "event_organizer_aliases": ["创业元空间"],
+        "sort_order": 20
+    },
+    {
+        "id": "resource-capital-3",
+        "name": "浙江大学管理学院科技创业中心（ZTVP）",
+        "name_en": "ZJU Technology Venture Program",
+        "category": "enterprise",
+        "support_category": "capital",
+        "event_organizer_aliases": ["ZTVP", "浙江大学管理学院科技创业中心"],
+        "sort_order": 30
+    },
+    {
+        "id": "resource-capital-4",
+        "name": "五源资本",
+        "name_en": "5Y Capital",
+        "category": "enterprise",
+        "support_category": "capital",
+        "event_organizer_aliases": [],
+        "sort_order": 40
+    },
+    {
+        "id": "resource-capital-5",
+        "name": "真格基金",
+        "name_en": "ZhenFund",
+        "category": "enterprise",
+        "support_category": "capital",
+        "event_organizer_aliases": [],
+        "sort_order": 50
+    },
+    {
+        "id": "resource-club-1",
+        "name": "深求社区（deepseek.club）",
+        "name_en": "DeepSeek Club",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": [
+            "深求社区",
+            "deepseek.club",
+            "浙江大学深求社区（deepseek.club）"
+        ],
+        "sort_order": 10
+    },
+    {
+        "id": "resource-club-2",
+        "name": "魔搭社区",
+        "name_en": "ModelScope",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["ModelScope 魔搭社区", "浙江大学魔搭社区"],
+        "sort_order": 20
+    },
+    {
+        "id": "resource-club-3",
+        "name": "观猹社区",
+        "name_en": "Guancha Community",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["浙江大学观猹社区"],
+        "sort_order": 30
+    },
+    {
+        "id": "resource-club-4",
+        "name": "求是强鹰俱乐部",
+        "name_en": "Qiushi Qiangying Club",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["强鹰俱乐部", "浙江大学求是强鹰俱乐部"],
+        "sort_order": 40
+    },
+    {
+        "id": "resource-club-5",
+        "name": "人工智能协会",
+        "name_en": "ZJU AI Association",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["ZJUAI", "浙江大学人工智能协会", "浙江大学人工智能协会"],
+        "sort_order": 50
+    },
+    {
+        "id": "resource-club-6",
+        "name": "KAB创业俱乐部",
+        "name_en": "KAB Entrepreneurship Club",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["KAB", "KAB 创业俱乐部", "浙江大学KAB创业俱乐部"],
+        "sort_order": 60
+    },
+    {
+        "id": "resource-club-7",
+        "name": "AIRA创研会",
+        "name_en": "AIRA",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["AIRA", "AI 创研会", "浙江大学AIRA创研会"],
+        "sort_order": 70
+    },
+    {
+        "id": "resource-club-8",
+        "name": "嵌入式人工智能协会",
+        "name_en": "Embedded AI Association",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["EAI", "浙江大学嵌入式人工智能协会"],
+        "sort_order": 80
+    },
+    {
+        "id": "resource-club-9",
+        "name": "XLAB",
+        "name_en": "XLAB",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["浙江大学XLAB"],
+        "sort_order": 90
+    },
+    {
+        "id": "resource-club-10",
+        "name": "MBA跨界创新俱乐部",
+        "name_en": "MBA Cross-disciplinary Innovation Club",
+        "category": "organization",
+        "support_category": "club",
+        "event_organizer_aliases": ["浙江大学MBA跨界创新俱乐部"],
+        "sort_order": 100
+    }
+]
