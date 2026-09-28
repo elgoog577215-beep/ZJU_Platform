@@ -69,6 +69,10 @@ const isSafeExternalUrl = (value) => {
     }
 };
 
+const FRESHMAN_LIBRARY_IMA_URL =
+    String(import.meta.env.VITE_AI_COMMUNITY_FRESHMAN_IMA_URL || "").trim() ||
+    "https://ima.qq.com/wiki/?shareId=328b9905bd4cd9cc4a6e65d9abc4d41036113a0772c6028fceaa89719d44889f";
+
 const LAW_LIBRARY_IMA_URL =
     "https://ima.qq.com/wiki/?shareId=05579b671bdaf0d35ebffb11a54e96b822861bbda6c3632dda0c6cefc5730cc7";
 
@@ -206,7 +210,7 @@ const ToolbarButton = ({
 
 export const CommunityWorkspaceToolbar = ({ activeKey, isDayMode, onUpload }) => {
     const { t } = useTranslation();
-    const freshmanUrl = String(import.meta.env.VITE_AI_COMMUNITY_FRESHMAN_IMA_URL || "").trim();
+    const freshmanUrl = FRESHMAN_LIBRARY_IMA_URL;
     const hasFreshmanUrl = isSafeExternalUrl(freshmanUrl);
 
     return (
@@ -272,7 +276,7 @@ export const CommunityWorkspaceBackButton = ({ isDayMode, onBack }) => {
 
 export const FreshmanLibraryIntro = ({ isDayMode }) => {
     const { t } = useTranslation();
-    const configuredUrl = String(import.meta.env.VITE_AI_COMMUNITY_FRESHMAN_IMA_URL || "").trim();
+    const configuredUrl = FRESHMAN_LIBRARY_IMA_URL;
     const hasValidUrl = isSafeExternalUrl(configuredUrl);
 
     return (
