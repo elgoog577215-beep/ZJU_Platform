@@ -17,6 +17,11 @@ import {
 
 import PageContentEditor from "./PageContentEditor";
 import ThemeAppearanceControls from "./ThemeAppearanceControls";
+import AiAssistantManager from "./AiAssistantManager";
+import WeChatMpImportManager from "./WeChatMpImportManager";
+import TagManager from "./TagManager";
+import MediaCategoryManager from "./MediaCategoryManager";
+import EventAttributionMigrationManager from "./EventAttributionMigrationManager";
 import { THEME_APPEARANCE_DEFAULTS, THEME_APPEARANCE_KEYS } from "../../constants/themeAppearance";
 
 const ABOUT_GROUPS = [
@@ -297,7 +302,10 @@ const AppearanceSettingsWorkspace = ({
     );
 };
 
-const SettingsManager = () => {
+const BASE_SECTIONS = ["general", "appearance", "about", "content"];
+const SYSTEM_SECTIONS = ["intelligence", "collection", "taxonomy", "maintenance"];
+
+const SettingsManager = ({ capabilities } = {}) => {
     const { t } = useTranslation();
     const { updateSetting: updateGlobalSetting } = useSettings();
     const { isDayMode } = useAdminTheme();
@@ -307,6 +315,8 @@ const SettingsManager = () => {
     const [loadError, setLoadError] = useState(false);
     const [savingKey, setSavingKey] = useState("");
     const [activeSection, setActiveSection] = useState("general");
+    const isPlatformAdmin = Boolean(capabilities?.isPlatformAdmin);
+    const sections = isPlatformAdmin ? [...BASE_SECTIONS, ...SYSTEM_SECTIONS] : BASE_SECTIONS;
     const [activeAboutGroup, setActiveAboutGroup] = useState("identity");
     const [appearancePreviewMode, setAppearancePreviewMode] = useState("day");
 
@@ -490,7 +500,7 @@ const SettingsManager = () => {
                     role="tablist"
                     aria-label={t("admin.settings_console.navigation")}
                 >
-                    {["general", "appearance", "about", "content"].map((id) => (
+                    {sections.map((id) => (
                         <FilterChip
                             key={id}
                             role="tab"
@@ -631,6 +641,21 @@ const SettingsManager = () => {
             ) : null}
 
             {activeSection === "content" ? <PageContentEditor /> : null}
+
+            {isPlatformAdmin && activeSection === "intelligence" ? <AiAssistantManager /> : null}
+
+            {isPlatformAdmin && activeSection === "collection" ? <WeChatMpImportManager /> : null}
+
+            {isPlatformAdmin && activeSection === "taxonomy" ? (
+                <div className="space-y-6">
+                    <TagManager />
+                    <MediaCategoryManager />
+                </div>
+            ) : null}
+
+            {isPlatformAdmin && activeSection === "maintenance" ? (
+                <EventAttributionMigrationManager />
+            ) : null}
 
             {activeSection === "about" ? (
                 <AdminPanel

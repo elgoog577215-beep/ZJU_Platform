@@ -625,7 +625,7 @@ const AdminDashboard = () => {
             case "tags":
                 return <TagManager />;
             case "settings":
-                return <SettingsManager />;
+                return <SettingsManager capabilities={capabilities} />;
             case "intelligence":
                 return <AiAssistantManager />;
             case "weread-collector":
