@@ -47,11 +47,13 @@ const Footer = () => {
                         className={`flex flex-wrap justify-center gap-x-3 text-xs leading-6 md:justify-start ${isDayMode ? "text-slate-600" : "text-slate-400"}`}
                     >
                         <span>{t("footer.developer_acknowledgements")}：</span>
-                        {["应奇", "邬铭轩", "周子涵", "项思涵"].map((name) => (
-                            <span key={name} className="whitespace-nowrap">
-                                {name}
-                            </span>
-                        ))}
+                        {["应奇", "周子涵", "邬铭轩", "蔡博恒", "项思涵", "黄冬桂", "葛开文"].map(
+                            (name) => (
+                                <span key={name} className="whitespace-nowrap">
+                                    {name}
+                                </span>
+                            )
+                        )}
                     </p>
                 </div>
 
