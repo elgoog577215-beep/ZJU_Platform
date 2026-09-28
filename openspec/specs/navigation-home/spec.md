@@ -38,17 +38,16 @@ The system SHALL export ordered bookmark HTML and a versioned JSON backup.
 - **WHEN** a valid JSON backup is imported
 - **THEN** it is validated and shown as an editable draft before saving
 
-### Requirement: Explicit public sharing
+### Requirement: Deferred public sharing
 
-The system SHALL create share snapshots only from selected saved groups and enforce existing review permissions.
+The system SHALL keep the URL plaza unavailable until its release is explicitly enabled, while retaining existing collection data.
 
-#### Scenario: Publish a selection
+#### Scenario: Browse the homepage
 
-- **WHEN** an account submits selected group IDs from its saved workspace
-- **THEN** only those groups enter the share snapshot and private edits do not modify it
+- **WHEN** a visitor opens the homepage, including a previous `?view=plaza` link
+- **THEN** the homepage shows no plaza tabs or sharing controls and provides an edit action at the upper right
 
-#### Scenario: Reuse and withdraw
+#### Scenario: Access collection APIs before release
 
-- **WHEN** another user adds an approved collection
-- **THEN** its groups are appended to a draft without replacing existing groups
-- **AND** later withdrawal prevents further public discovery without deleting saved copies
+- **WHEN** any client reads, creates or changes a navigation collection
+- **THEN** the production API returns 404 with no-store headers without exposing or mutating collections

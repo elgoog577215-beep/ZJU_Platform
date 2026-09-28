@@ -33,22 +33,18 @@ import {
     Folder,
     Settings2,
     Download,
-    Share2,
 } from "lucide-react";
 import { useSettings } from "../../context/SettingsContext";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import WorkspaceEditor from "./WorkspaceEditor";
-import NavigationPlaza from "./NavigationPlaza";
-import ShareWorkspace from "./ShareWorkspace";
 import {
     readDraft,
     writeDraft,
     keepAccountDraft,
     defaultGroups,
     validateWorkspace,
-    copyGroups,
     nameOf,
     readBackup,
     backupText,
@@ -107,7 +103,6 @@ function WorkspaceHome({ user, authLoading }) {
     const [message, setMessage] = useState(recovered ? t("custom.draftRecovered") : "");
     const [problem, setProblem] = useState("");
     const [conflict, setConflict] = useState(false);
-    const [sharing, setSharing] = useState(false);
     const [pendingLink, setPendingLinkState] = useState(recovered?.pendingLink || null);
     const pendingLinkRef = useRef(pendingLink);
     const setPendingLink = useCallback(
@@ -120,7 +115,6 @@ function WorkspaceHome({ user, authLoading }) {
         [user?.id]
     );
     const importRef = useRef(null);
-    const view = params.get("view") === "plaza" ? "plaza" : "home";
     const login = () => window.dispatchEvent(new Event("open-auth-modal"));
     useEffect(() => {
         if (!user) return;
@@ -175,7 +169,7 @@ function WorkspaceHome({ user, authLoading }) {
             setBusy(false);
         }
     }
-    async function saveGroups(groups, shareAfter = false) {
+    async function saveGroups(groups) {
         if (busy) return;
         let valid;
         try {
@@ -198,25 +192,12 @@ function WorkspaceHome({ user, authLoading }) {
             setDraft(null);
             setConflict(false);
             setMessage(t("custom.saved"));
-            if (shareAfter) setSharing(true);
         } catch (err) {
             setConflict(err.response?.status === 409);
             setProblem(t(err.response?.status === 409 ? "custom.conflict" : "custom.saveError"));
         } finally {
             setBusy(false);
         }
-    }
-    function changeView(next) {
-        if (busy) return;
-        if (draft && !window.confirm(t("custom.discardConfirm"))) return;
-        setDraft(null);
-        setSharing(false);
-        setProblem("");
-        setMessage("");
-        const nextParams = new URLSearchParams(params);
-        if (next === "plaza") nextParams.set("view", "plaza");
-        else nextParams.delete("view");
-        setParams(nextParams);
     }
     function exportGroups(type) {
         try {
@@ -239,33 +220,10 @@ function WorkspaceHome({ user, authLoading }) {
             const groups = readBackup(await file.text());
             if (draft && !window.confirm(t("custom.discardConfirm"))) return;
             setDraft(groups);
-            setSharing(false);
             setProblem("");
             setMessage(t("custom.imported"));
         } catch {
             setProblem(t("custom.invalidBackup"));
-        }
-    }
-    function addCollection(groups) {
-        if (!user) {
-            login();
-            return;
-        }
-        if (loadState !== "ready") {
-            setProblem(t("custom.loadError"));
-            return;
-        }
-        try {
-            const next = validateWorkspace([...(draft || saved), ...copyGroups(groups)]);
-            setDraft(next);
-            setSharing(false);
-            setProblem("");
-            setMessage(t("custom.addedDraft"));
-            const nextParams = new URLSearchParams(params);
-            nextParams.delete("view");
-            setParams(nextParams);
-        } catch {
-            setProblem(t("custom.limitError"));
         }
     }
     const directory = saved.map((group) => ({
@@ -376,77 +334,10 @@ function WorkspaceHome({ user, authLoading }) {
                         <h1 id="directory-title">{t("title")}</h1>
                         <p>{t("subtitle")}</p>
                     </div>
-                    {view === "home" && !sharing && (
-                        <div className="directory-search-area">
-                            <form
-                                role="search"
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    updateFilters(input, category);
-                                }}
-                            >
-                                <Search size={20} aria-hidden="true" />
-                                <input
-                                    ref={inputRef}
-                                    type="search"
-                                    disabled={!!draft}
-                                    aria-label={t("searchLabel")}
-                                    placeholder={t("search")}
-                                    value={input}
-                                    onChange={(event) => {
-                                        setInput(event.target.value);
-                                        updateFilters(event.target.value, category, true);
-                                    }}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Escape") {
-                                            setInput("");
-                                            updateFilters("", category, true);
-                                        }
-                                    }}
-                                    autoComplete="off"
-                                    spellCheck="false"
-                                />
-                                {input ? (
-                                    <button
-                                        type="button"
-                                        aria-label={t("clear")}
-                                        disabled={!!draft}
-                                        onClick={() => {
-                                            setInput("");
-                                            updateFilters("", category, true);
-                                            inputRef.current?.focus();
-                                        }}
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                ) : (
-                                    <kbd title={t("shortcut")}>/</kbd>
-                                )}
-                            </form>
-                        </div>
-                    )}
-                </section>
-                <div className={`workspace-toolbar ${draft ? "is-editing" : ""}`}>
-                    <div className="workspace-tabs" aria-label={t("custom.homeViews")}>
-                        <button
-                            type="button"
-                            aria-pressed={view === "home"}
-                            disabled={busy}
-                            onClick={() => changeView("home")}
+                    <div className="directory-intro-tools">
+                        <div
+                            className={`workspace-actions directory-header-actions ${draft ? "is-editing" : ""}`}
                         >
-                            {t(user ? "custom.myHome" : "custom.defaultHome")}
-                        </button>
-                        <button
-                            type="button"
-                            aria-pressed={view === "plaza"}
-                            disabled={busy}
-                            onClick={() => changeView("plaza")}
-                        >
-                            {t("custom.plaza")}
-                        </button>
-                    </div>
-                    {view === "home" && !sharing && (
-                        <div className="workspace-actions">
                             {!user ? (
                                 <button
                                     type="button"
@@ -455,7 +346,7 @@ function WorkspaceHome({ user, authLoading }) {
                                     onClick={login}
                                 >
                                     <Settings2 size={16} />
-                                    {t("custom.loginToCustomize")}
+                                    {t("custom.edit")}
                                 </button>
                             ) : (
                                 <>
@@ -504,52 +395,44 @@ function WorkspaceHome({ user, authLoading }) {
                                             {t("custom.edit")}
                                         </button>
                                     )}
-                                    {!draft && (
-                                        <button
-                                            className="workspace-button"
-                                            disabled={
-                                                busy || !!pendingLink || loadState !== "ready"
-                                            }
-                                            onClick={() =>
-                                                version ? setSharing(true) : saveGroups(saved, true)
-                                            }
-                                        >
-                                            <Share2 size={16} />
-                                            {t("custom.share")}
-                                        </button>
-                                    )}
                                 </>
                             )}
-                            <details className="workspace-export">
-                                <summary>
-                                    <Download size={16} />
-                                    {t("custom.importExport")}
-                                </summary>
-                                <div className="workspace-export-menu">
-                                    <button
-                                        disabled={busy || !!pendingLink || loadState !== "ready"}
-                                        onClick={() => exportGroups("html")}
-                                    >
-                                        {t("custom.exportBookmarks")}
-                                    </button>
-                                    <button
-                                        disabled={busy || !!pendingLink || loadState !== "ready"}
-                                        onClick={() => exportGroups("json")}
-                                    >
-                                        {t("custom.exportBackup")}
-                                    </button>
-                                    {user && (
+                            {draft && (
+                                <details className="workspace-export">
+                                    <summary>
+                                        <Download size={16} />
+                                        {t("custom.importExport")}
+                                    </summary>
+                                    <div className="workspace-export-menu">
                                         <button
                                             disabled={
                                                 busy || !!pendingLink || loadState !== "ready"
                                             }
-                                            onClick={() => importRef.current?.click()}
+                                            onClick={() => exportGroups("html")}
                                         >
-                                            {t("custom.importBackup")}
+                                            {t("custom.exportBookmarks")}
                                         </button>
-                                    )}
-                                </div>
-                            </details>
+                                        <button
+                                            disabled={
+                                                busy || !!pendingLink || loadState !== "ready"
+                                            }
+                                            onClick={() => exportGroups("json")}
+                                        >
+                                            {t("custom.exportBackup")}
+                                        </button>
+                                        {user && (
+                                            <button
+                                                disabled={
+                                                    busy || !!pendingLink || loadState !== "ready"
+                                                }
+                                                onClick={() => importRef.current?.click()}
+                                            >
+                                                {t("custom.importBackup")}
+                                            </button>
+                                        )}
+                                    </div>
+                                </details>
+                            )}
                             <input
                                 ref={importRef}
                                 hidden
@@ -558,8 +441,55 @@ function WorkspaceHome({ user, authLoading }) {
                                 onChange={importGroups}
                             />
                         </div>
-                    )}
-                </div>
+                        <div className="directory-search-area">
+                            <form
+                                role="search"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    updateFilters(input, category);
+                                }}
+                            >
+                                <Search size={20} aria-hidden="true" />
+                                <input
+                                    ref={inputRef}
+                                    type="search"
+                                    disabled={!!draft}
+                                    aria-label={t("searchLabel")}
+                                    placeholder={t("search")}
+                                    value={input}
+                                    onChange={(event) => {
+                                        setInput(event.target.value);
+                                        updateFilters(event.target.value, category, true);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Escape") {
+                                            setInput("");
+                                            updateFilters("", category, true);
+                                        }
+                                    }}
+                                    autoComplete="off"
+                                    spellCheck="false"
+                                />
+                                {input ? (
+                                    <button
+                                        type="button"
+                                        aria-label={t("clear")}
+                                        disabled={!!draft}
+                                        onClick={() => {
+                                            setInput("");
+                                            updateFilters("", category, true);
+                                            inputRef.current?.focus();
+                                        }}
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                ) : (
+                                    <kbd title={t("shortcut")}>/</kbd>
+                                )}
+                            </form>
+                        </div>
+                    </div>
+                </section>
                 {message && (
                     <p className="workspace-notice" role="status">
                         {message}
@@ -584,22 +514,7 @@ function WorkspaceHome({ user, authLoading }) {
                     </div>
                 )}
                 {loadState === "loading" && <p role="status">{t("custom.loading")}</p>}
-                {view === "plaza" ? (
-                    <NavigationPlaza user={user} english={english} onAdd={addCollection} />
-                ) : sharing ? (
-                    <ShareWorkspace
-                        groups={saved}
-                        version={version}
-                        english={english}
-                        onClose={() => setSharing(false)}
-                        onShared={(status) => {
-                            setSharing(false);
-                            setMessage(
-                                t(status === "approved" ? "custom.shared" : "custom.submitted")
-                            );
-                        }}
-                    />
-                ) : draft ? (
+                {draft ? (
                     <>
                         <div className="workspace-edit-heading">
                             <p>{t("custom.editHelp")}</p>

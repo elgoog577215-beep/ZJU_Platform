@@ -374,7 +374,6 @@
 }
 
 /* Account tools inherit the directory's approved day and night surfaces. */
-.workspace-toolbar,
 .workspace-actions,
 .workspace-tabs,
 .workspace-section-heading,
@@ -384,11 +383,6 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-}
-.workspace-toolbar {
-    justify-content: space-between;
-    padding-block: 4px 24px;
-    border-bottom: 1px solid var(--directory-card-border);
 }
 .workspace-tabs {
     gap: 4px;
@@ -684,14 +678,6 @@
     }
 }
 @media (max-width: 640px) {
-    .workspace-toolbar {
-        align-items: flex-start;
-        gap: 16px;
-    }
-    .workspace-toolbar > .workspace-actions {
-        width: 100%;
-        gap: 8px;
-    }
     .workspace-group-choices,
     .workspace-collections {
         grid-template-columns: 1fr;
@@ -716,19 +702,6 @@
     }
     .workspace-tabs button {
         padding-inline: 10px;
-    }
-}
-.workspace-toolbar.is-editing {
-    position: sticky;
-    top: 70px;
-    z-index: 20;
-    padding: 12px;
-    margin-inline: -12px;
-    background: var(--directory-input);
-}
-@media (max-width: 640px) {
-    .workspace-toolbar.is-editing {
-        top: 60px;
     }
 }
 
@@ -1109,4 +1082,47 @@
     padding: 0;
     min-height: 0;
     background: transparent;
+}
+
+.directory-intro-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+.directory-header-actions {
+    justify-content: flex-end;
+    gap: 8px;
+}
+.directory-header-actions .workspace-export-menu {
+    left: auto;
+    right: 0;
+}
+@media (max-width: 820px) {
+    .directory-intro {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px 16px;
+    }
+    .directory-intro-tools {
+        display: contents;
+    }
+    .directory-intro-copy {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .directory-header-actions {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start;
+    }
+    .directory-search-area {
+        grid-column: 1 / -1;
+    }
+    .directory-intro:has(.is-editing) .directory-intro-copy {
+        grid-column: 1 / -1;
+    }
+    .directory-header-actions.is-editing {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
 }

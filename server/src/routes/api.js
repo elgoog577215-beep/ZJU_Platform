@@ -239,19 +239,11 @@ router.put("/auth/profile", authenticateToken, (req, res) => {
 router.get("/users/me/overview", authenticateToken, userController.getOwnOverview);
 router.get("/users/me/navigation-workspace", authenticateToken, navigationController.getWorkspace);
 router.put("/users/me/navigation-workspace", authenticateToken, navigationController.saveWorkspace);
-router.get("/navigation/collections", optionalAuth, navigationController.listCollections);
-router.get("/navigation/collections/:id", optionalAuth, navigationController.getCollection);
-router.post(
-    "/navigation/collections",
-    authenticateToken,
-    communityPostCreateLimiter,
-    navigationController.createCollection
-);
-router.patch(
-    "/navigation/collections/:id",
-    authenticateToken,
-    navigationController.updateCollection
-);
+// URL collections are deferred: keep stored data, but expose no public or publishing API.
+router.use("/navigation/collections", (_req, res) => {
+    res.set("Cache-Control", "no-store");
+    res.status(404).json({ error: "not_found" });
+});
 
 router.get("/users/me/navigation-shortcuts", authenticateToken, navigationController.getShortcuts);
 router.put("/users/me/navigation-shortcuts", authenticateToken, navigationController.saveShortcuts);
