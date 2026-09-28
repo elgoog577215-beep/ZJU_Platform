@@ -219,7 +219,9 @@
             "organization": "组织名称",
             "org_placeholder": "请输入组织名称",
             "invite_code_hint": "邀请码 (修改组织需填写)",
-            "org_help": "注意：加入或修改组织信息需要有效的邀请码。"
+            "org_help": "注意：加入或修改组织信息需要有效的邀请码。",
+            "nickname_help": "允许中英文、数字、下划线；留空则清空。",
+            "nickname_placeholder": "2-20 字符，可选；不填则显示账号名"
         },
         "edit_profile": "编辑资料",
         "avatar": "头像链接",
@@ -496,7 +498,8 @@
             },
             "profile_card": "个人名片",
             "untitled": "未命名"
-        }
+        },
+        "unknown_user": "用户"
     },
     "nav": {
         "home": "首页",
@@ -558,7 +561,8 @@
         "wallpaper_saved": "已保存到本机",
         "wallpaper_enabled": "已启用",
         "appearance_hint": "日间/夜间影响全站配色与文字对比度",
-        "wallpaper_static_home_note": "首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。"
+        "wallpaper_static_home_note": "首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。",
+        "unread_count": "{{count}} 条未读通知"
     },
     "community": {
         "seo_description": "浙江大学 AI资料：学习、技术与协作资料。",
@@ -883,7 +887,35 @@
         "material_type_count": "{{count}} 份",
         "material_course_placeholder": "可选，如：微积分 / 大学物理",
         "material_teacher_placeholder": "可选",
-        "material_semester_placeholder": "如：2025-2026 秋冬"
+        "material_semester_placeholder": "如：2025-2026 秋冬",
+        "anonymous_author_no_profile": "匿名作者无主页",
+        "detail": "内容详情",
+        "file_attachment": "附件",
+        "group_entry": "社群入口",
+        "group_entry_desc": "相关社群正在持续讨论这个问题，点击可直接查看。",
+        "import": "导入",
+        "join_related_group": "加入相关社群",
+        "news_copy_search": "复制标题+来源",
+        "news_copy_search_hint": "已复制“标题 + 来源”，可直接粘贴搜索",
+        "news_import_duplicated": "该链接已导入，无需重复导入",
+        "news_import_failed": "导入失败，请检查链接后重试",
+        "news_import_placeholder": "粘贴新闻链接进行导入",
+        "news_import_success": "已导入草稿，请编辑确认后发布",
+        "news_import_url_required": "请先输入新闻链接",
+        "news_source_checking": "正在检测原文链接...",
+        "news_source_unreachable": "原文链接可能已失效，建议使用标题搜索来源站点。",
+        "next_actions": "下一步",
+        "open_related_help": "查看相关求助",
+        "post_import_document_confirm": "导入文档会替换当前正文内容，是否继续？",
+        "post_import_document_hint": "支持 PDF / DOC / DOCX / MD，一键填充正文",
+        "post_import_empty": "文档没有可导入的正文内容",
+        "read_article": "查看文章详情",
+        "read_related_article": "去看相关文章",
+        "report": "举报",
+        "solved_recommend": "已解决推荐阅读",
+        "solved_recommend_desc": "该问题已解决，可继续阅读相关文章深入了解。",
+        "video_not_supported": "您的浏览器不支持视频播放",
+        "view_author_profile": "查看作者主页"
     },
     "search": {
         "placeholder": "搜索内容...",
@@ -894,7 +926,22 @@
         "footer_hint": "使用 ↑↓ 键导航，Enter 键选择",
         "brand_search": "拓途浙享智能搜索",
         "ai_search": "全站 AI 搜索",
-        "result_meta": "{{time}}ms · {{count}} 条结果"
+        "result_meta": "{{time}}ms · {{count}} 条结果",
+        "ai_enhance": "使用 AI 增强推荐",
+        "ai_enhance_short": "AI 增强",
+        "ai_loading_detail": "正在结合语义和兴趣画像扩展结果…",
+        "ai_recommendation": "AI 推荐",
+        "ai_thinking": "推荐中",
+        "for_you": "为你推荐",
+        "instant_results": "即时结果",
+        "instant_search": "即时搜索",
+        "most_relevant": "最相关",
+        "no_ai_recommendations": "暂时没有更合适的活动推荐，可以换个主题再试。",
+        "progressive_complete": "已展示即时结果 · AI 已结合你的兴趣扩展",
+        "progressive_status": "已展示即时结果 · AI 正在结合你的兴趣扩展",
+        "recommend_now": "按当前条件推荐",
+        "refine_hint": "可以修改上方查询，或先按当前条件查看推荐。",
+        "unified_footer_hint": "↑↓ 选择结果 · Enter 使用 AI 增强"
     },
     "hero": {
         "title": "捕捉",
@@ -1425,7 +1472,17 @@
         "submitting": "提交中...",
         "result_count": "{{count}} 项",
         "processing": "处理中...",
-        "no_data": "暂无数据"
+        "no_data": "暂无数据",
+        "anonymous": "匿名用户",
+        "back": "返回",
+        "edit_event": "编辑活动",
+        "error_loading_viewer": "加载查看器失败",
+        "error_occurred": "发生错误",
+        "publish": "发布",
+        "selected_count": "已选 {{count}} 项",
+        "tba": "待定",
+        "upload_music": "上传音乐",
+        "volume": "音量"
     },
     "upload": {
         "title_required": "标题不能为空",
@@ -1474,7 +1531,11 @@
         "location_placeholder": "输入地点...",
         "date_placeholder": "选择日期...",
         "popular_tags": "常用标签",
-        "size_placeholder": "例如: 1920x1080"
+        "size_placeholder": "例如: 1920x1080",
+        "artist_placeholder": "输入艺术家...",
+        "required_location": "请填写活动地点",
+        "required_start_date": "请填写开始时间",
+        "uploading": "上传中"
     },
     "sort_filter": {
         "newest": "最新发布",
@@ -1483,7 +1544,8 @@
         "title": "选择排序方式",
         "title_option": "标题排序",
         "date_asc": "日期 (最早)",
-        "date_desc": "日期 (最晚)"
+        "date_desc": "日期 (最晚)",
+        "choose_option": "选择 {{label}}"
     },
     "advanced_filter": {
         "title": "筛选属性",
@@ -1559,7 +1621,8 @@
         "cover_alt": "{{title}} 封面",
         "select_track": "选择一首曲目",
         "to_start": "开始聆听",
-        "progress": "播放进度"
+        "progress": "播放进度",
+        "seek": "播放进度"
     },
     "articles": {
         "title": "AI专栏",
@@ -4411,7 +4474,12 @@
             "dev": "开发中",
             "live": "已上线",
             "pause": "暂停"
-        }
+        },
+        "coach_body": "选择“转发给朋友”",
+        "coach_title": "点击右上角 ···",
+        "miniapp_card_share": "分享小程序卡片",
+        "miniapp_share_short": "分享",
+        "use_top_right_share": "请点击右上角 ···，选择转发给朋友"
     },
     "profile_share_poster": {
         "site_name": "拓浙AI生态",
@@ -4929,6 +4997,10 @@
             "empty_title": "暂无公开内容",
             "empty_desc": "这个主体还没有发布或关联到当前分类下的公开内容。",
             "page_indicator": "第 {{page}} / {{total}} 页"
-        }
+        },
+        "default_personal": "默认个人身份",
+        "organizer_auto_match": "按主办方文本自动匹配",
+        "organizer_profile": "主办主体",
+        "publisher_identity": "发布身份"
     }
 }
