@@ -287,10 +287,29 @@ const About = ({ showAppDownload = true }) => {
           };
 
     const pageSections = [
-        ["01", "#about-hero", "identity"],
-        ["02", "#resource-support", "support"],
-        ["03", "#business-lines", "business"],
-        ["04", "#join-ecosystem", "join"],
+        ["01", "#about-hero"],
+        ["02", "#resource-support"],
+        ["03", "#business-lines"],
+        ["04", "#join-ecosystem"],
+    ];
+
+    const proofStats = [
+        {
+            value: "4000+",
+            label: t("about.ecosystem.stats.users", "注册用户"),
+        },
+        {
+            value: "1500+",
+            label: t("about.ecosystem.stats.daily_views", "日均浏览"),
+        },
+        {
+            value: "1000+",
+            label: t("about.ecosystem.stats.events", "累计活动"),
+        },
+        {
+            value: "300",
+            label: t("about.ecosystem.stats.hackathon", "首届浙客松报名人数"),
+        },
     ];
 
     const supporterGroupMap = new Map(
@@ -311,7 +330,7 @@ const About = ({ showAppDownload = true }) => {
             headline: t("about.ecosystem.support.enterprise_headline", "赛题、技术与人才机会"),
             description: t(
                 "about.ecosystem.support.enterprise_desc",
-                "合作企业和技术社区提供真实题目、模型、云资源、工具、评审、实习与校招机会。"
+                "合作企业提供真实题目、行业场景、模型、云资源、工具、评审与人才机会。"
             ),
             icon: Building2,
         },
@@ -391,7 +410,7 @@ const About = ({ showAppDownload = true }) => {
     ];
 
     const sectionBaseClass =
-        "relative flex scroll-mt-14 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:scroll-mt-16 sm:px-6 sm:py-20 lg:min-h-[100svh] lg:scroll-mt-0 lg:snap-start lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+        "relative flex scroll-mt-14 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:scroll-mt-16 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:scroll-mt-0 lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
     const heroStageShellStyle = heroStageFrame.height
         ? { height: `${heroStageFrame.height}px` }
         : undefined;
@@ -407,13 +426,13 @@ const About = ({ showAppDownload = true }) => {
     return (
         <div
             data-about-scroll-root
-            className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-proximity ${palette.page}`}
+            className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory ${palette.page}`}
         >
             <SEO
-                title={t("about.ecosystem.meta_title", "生态介绍")}
+                title={t("about.ecosystem.meta_title", "拓浙AI生态")}
                 description={t(
                     "about.ecosystem.meta_desc",
-                    "拓浙AI生态从浙江大学出发，聚集与培养人才，打造AI时代产学研新范式。通过社区交流、学习培养与项目实践，连接人才、产业与资源。"
+                    "拓浙 AI 生态以浙江大学为起点，连接信息共享、AI+X 人才培养、浙客松实战与产业实践。"
                 )}
             />
 
@@ -421,12 +440,10 @@ const About = ({ showAppDownload = true }) => {
                 aria-label={t("about.ecosystem.pagination_aria", "关于页面分页")}
                 className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
             >
-                {pageSections.map(([label, href, key]) => (
+                {pageSections.map(([label, href]) => (
                     <a
                         key={href}
                         href={href}
-                        aria-label={`${label} · ${t(`about.ecosystem.nav.${key}`)}`}
-                        title={t(`about.ecosystem.nav.${key}`)}
                         className={`group flex h-14 w-14 items-center justify-center border text-sm font-black transition duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
                             isDayMode
                                 ? "border-slate-200 bg-white/74 text-slate-500 hover:border-cyan-500/40 hover:text-cyan-700"
@@ -497,17 +514,12 @@ const About = ({ showAppDownload = true }) => {
                             <p
                                 className={`mt-4 max-w-4xl text-[15px] font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
                             >
-                                <strong
-                                    className={`mb-3 block text-xl leading-relaxed sm:text-2xl ${isDayMode ? "text-slate-950" : "text-white"}`}
-                                >
-                                    {t(
-                                        "about.ecosystem.hero.strong",
-                                        "聚集与培养人才，打造AI时代产学研新范式"
-                                    )}
+                                <strong className={isDayMode ? "text-slate-950" : "text-white"}>
+                                    {t("about.ecosystem.hero.strong", "连接学习、实践与产业。")}
                                 </strong>{" "}
                                 {t(
                                     "about.ecosystem.hero.desc",
-                                    "从浙江大学出发，让不同专业的人因共同兴趣相聚，在交流中碰撞想法、寻找伙伴，在真实项目中学习、创造与成长。"
+                                    "拓浙 AI 生态以浙江大学为起点，面向零基础新生与 AI 极客，通过信息共享、AI+X 学习、浙客松实战和产业项目，连接学生、学校与企业。"
                                 )}
                             </p>
 
@@ -543,7 +555,7 @@ const About = ({ showAppDownload = true }) => {
                                     className={`flex items-center justify-between text-xs font-black uppercase 2xl:text-sm ${palette.label}`}
                                 >
                                     <span>{t("about.ecosystem.brief.eyebrow", "生态起点")}</span>
-                                    <span>{t("about.ecosystem.brief.status", "源自浙大")}</span>
+                                    <span>{t("about.ecosystem.brief.status", "ZJU Origin")}</span>
                                 </div>
                                 <div className="py-8">
                                     <p className="max-w-3xl text-5xl font-black leading-[0.98] 2xl:text-7xl">
@@ -559,7 +571,7 @@ const About = ({ showAppDownload = true }) => {
                                     >
                                         {t(
                                             "about.ecosystem.brief.desc",
-                                            "人因共同兴趣与有意思的事情相聚，在交流中碰撞想法，在项目中学习成长。我们将个体汇聚成群像，让影响力与资源继续赋能每一个人。"
+                                            "平台打破信息差，AI 社区组织学习与项目实践，浙客松用真实赛题检验能力，产业项目把人才与技术带进真实场景。"
                                         )}
                                     </p>
                                 </div>
@@ -574,6 +586,35 @@ const About = ({ showAppDownload = true }) => {
                                 </div>
                             </div>
                         </motion.aside>
+
+                        <motion.div
+                            {...heroReveal(shouldAnimate, 0.18)}
+                            className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-4 xl:col-span-2 ${
+                                isDayMode
+                                    ? "border-cyan-500/18 bg-cyan-500/18"
+                                    : "border-cyan-300/18 bg-cyan-300/18"
+                            }`}
+                        >
+                            {proofStats.map((item) => (
+                                <div
+                                    key={item.label}
+                                    className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
+                                        isDayMode ? "bg-white/82" : "bg-[#0b1718]/86"
+                                    }`}
+                                >
+                                    <div
+                                        className={`text-[1.35rem] font-black leading-none sm:text-3xl lg:text-[2.55rem] xl:text-[2.9rem] 2xl:text-[3.75rem] ${palette.accent}`}
+                                    >
+                                        {item.value}
+                                    </div>
+                                    <p
+                                        className={`mt-1.5 break-words text-[9px] font-bold leading-3 sm:mt-2 sm:text-xs lg:text-xs lg:leading-4 2xl:text-sm 2xl:leading-5 ${palette.textMuted}`}
+                                    >
+                                        {item.label}
+                                    </p>
+                                </div>
+                            ))}
+                        </motion.div>
                     </div>
                 </div>
             </section>
@@ -596,7 +637,7 @@ const About = ({ showAppDownload = true }) => {
                         <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
                             <div className="max-w-[960px]">
                                 <p className={`text-sm font-black uppercase ${palette.label}`}>
-                                    {t("about.ecosystem.nav.support")}
+                                    资源与合作
                                 </p>
                                 <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                     <span className="block">
@@ -858,14 +899,14 @@ const About = ({ showAppDownload = true }) => {
                     <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
                         <div className="max-w-5xl">
                             <p className={`text-sm font-black uppercase ${palette.label}`}>
-                                {t("about.ecosystem.business.eyebrow", "我们具体做什么")}
+                                {t("about.ecosystem.business.eyebrow", "四项业务")}
                             </p>
                             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_1", "从相遇交流，")}
+                                    {t("about.ecosystem.business.title_1", "从信息共享，")}
                                 </span>
                                 <span className="block">
-                                    {t("about.ecosystem.business.title_2", "到共同做成事情。")}
+                                    {t("about.ecosystem.business.title_2", "到产业转化。")}
                                 </span>
                             </h2>
                             <p
@@ -873,12 +914,12 @@ const About = ({ showAppDownload = true }) => {
                             >
                                 {t(
                                     "about.ecosystem.business.desc",
-                                    "社群与沙龙聚人，浙客松发现人才与项目，学习培养与项目实践支持成长，信息平台连接日常机会。"
+                                    "拓途浙享打破信息差，智能体协会与 AI 社区负责学习培养，浙客松以赛事检验能力，奇鹰科技承接产业实践与技术转化。"
                                 )}
                             </p>
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:min-h-[25rem] lg:grid-cols-4 lg:gap-4 2xl:gap-6">
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(22rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-4 2xl:gap-6">
                             {businessLines.map((item) => {
                                 const Icon = item.icon;
                                 const isAmber = item.tone === "amber";
@@ -940,7 +981,7 @@ const About = ({ showAppDownload = true }) => {
                                                 ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
                                                 : { duration: 0 }
                                         }
-                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-[25rem] lg:p-4 2xl:p-7 ${borderClass} ${palette.card}`}
+                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
                                     >
                                         <div
                                             className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
@@ -960,14 +1001,14 @@ const About = ({ showAppDownload = true }) => {
                                                     <Icon className="h-6 w-6" />
                                                 </div>
                                             </div>
-                                            <h3 className="mt-5 text-2xl font-black leading-tight sm:text-3xl lg:text-xl 2xl:text-3xl">
+                                            <h3 className="mt-5 text-2xl font-black leading-tight sm:text-3xl lg:text-2xl 2xl:text-4xl">
                                                 {item.title}
                                             </h3>
                                             <p className={`mt-2 text-sm font-black ${accentClass}`}>
                                                 {item.short}
                                             </p>
                                             <p
-                                                className={`mt-4 mb-5 text-sm leading-6 ${palette.textSoft}`}
+                                                className={`mt-4 line-clamp-2 text-sm leading-6 ${palette.textSoft}`}
                                             >
                                                 {item.description}
                                             </p>
@@ -984,7 +1025,7 @@ const About = ({ showAppDownload = true }) => {
                                                         )}
                                                     </div>
                                                     <div
-                                                        className={`mt-2 text-sm font-black ${accentClass}`}
+                                                        className={`mt-2 text-lg font-black ${accentClass}`}
                                                     >
                                                         {item.metric}
                                                     </div>
@@ -1196,7 +1237,7 @@ const About = ({ showAppDownload = true }) => {
                             >
                                 {t(
                                     "about.ecosystem.join.desc",
-                                    "从交流与学习开始，参与真实项目，或带着想法、需求与资源一起建设生态。"
+                                    "学生可以找机会、学 AI、做项目；组织可以发布活动和招募；企业与学院可以提交真实问题、共建课程或赛事。"
                                 )}
                             </p>
 
