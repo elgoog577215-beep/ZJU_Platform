@@ -248,11 +248,7 @@
         "name_en": "DeepSeek Club",
         "category": "organization",
         "support_category": "club",
-        "event_organizer_aliases": [
-            "深求社区",
-            "deepseek.club",
-            "浙江大学深求社区（deepseek.club）"
-        ],
+        "event_organizer_aliases": ["深求社区", "deepseek.club"],
         "sort_order": 10
     },
     {
@@ -261,7 +257,7 @@
         "name_en": "ModelScope",
         "category": "organization",
         "support_category": "club",
-        "event_organizer_aliases": ["ModelScope 魔搭社区", "浙江大学魔搭社区"],
+        "event_organizer_aliases": ["ModelScope 魔搭社区"],
         "sort_order": 20
     },
     {
@@ -270,7 +266,7 @@
         "name_en": "Guancha Community",
         "category": "organization",
         "support_category": "club",
-        "event_organizer_aliases": ["浙江大学观猹社区"],
+        "event_organizer_aliases": [],
         "sort_order": 30
     },
     {
