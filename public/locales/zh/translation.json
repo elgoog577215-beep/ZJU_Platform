@@ -5070,7 +5070,60 @@
         "default_personal": "默认个人身份",
         "organizer_auto_match": "按主办方文本自动匹配",
         "organizer_profile": "主办主体",
-        "publisher_identity": "发布身份"
+        "publisher_identity": "发布身份",
+        "yeshuang": {
+            "name": "夜霜",
+            "welcome": "欢迎来到我的小世界。",
+            "description": "看看风景，翻翻表情。今天也允许自己浪费一点时间。",
+            "snow": "下一场雪",
+            "snow_message": "送你一场只在这里落下的雪。",
+            "gallery": "角色画廊",
+            "gallery_title": "夜霜的不同模样",
+            "gallery_hint": "选择一张，换上首屏。",
+            "invitation": "右边的小夜霜，可以戳。",
+            "pause": "暂停动效",
+            "resume": "继续动效",
+            "choose_scene": "切换夜霜场景",
+            "touch": "戳戳夜霜，切换表情",
+            "touch_hint": "戳我一下",
+            "secret_hint": "小彩蛋，藏在第五次戳戳里。",
+            "secret": "被你发现了！这场雪和这颗心，都送给你。",
+            "secret_badge": "已收集：夜霜的一点偏爱",
+            "scenes": {
+                "moon": "月下霜白",
+                "midnight": "蓝调墨夜",
+                "silver": "银发微光",
+                "portrait": "黑裙侧影"
+            },
+            "art_alt": {
+                "moon": "银发夜霜站在月光与冰晶环绕的拱门前",
+                "midnight": "蓝色光线下，黑发夜霜托腮望向镜头",
+                "silver": "银发夜霜的近景立绘",
+                "portrait": "黑色长裙夜霜的完整人物立绘"
+            },
+            "moods": {
+                "peek": {
+                    "label": "探头的夜霜",
+                    "message": "让我看看，谁来啦？"
+                },
+                "pat": {
+                    "label": "被摸头的夜霜",
+                    "message": "好吧，再摸一下。"
+                },
+                "heart": {
+                    "label": "比心的夜霜",
+                    "message": "给你一颗小小的心。"
+                },
+                "study": {
+                    "label": "认真学习的夜霜",
+                    "message": "玩够了，一起学习吧。"
+                },
+                "sleepy": {
+                    "label": "打哈欠的夜霜",
+                    "message": "困了就歇一会儿。"
+                }
+            }
+        }
     },
     "aix": {
         "loading": "加载中…",

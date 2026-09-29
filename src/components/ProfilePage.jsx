@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     ArrowLeft,
@@ -30,6 +30,8 @@ import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import UserSystemOverview from "./profile/UserSystemOverview";
 import ProfileSharePoster from "./ProfileSharePoster";
 import { useTranslation } from "react-i18next";
+
+const YeshuangPlayground = lazy(() => import("./profile/YeshuangPlayground"));
 
 const TYPE_META = {
     person: { labelKey: "profiles.types.person", icon: User, tone: "sky" },
@@ -288,6 +290,10 @@ const ProfilePage = ({ forcedHandle = null }) => {
     const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
     const [profileCard, setProfileCard] = useState(null);
     const [sharePosterOpen, setSharePosterOpen] = useState(false);
+    const hasYeshuangPlayground =
+        profile?.type === "person" &&
+        Number(profile.id) === 280 &&
+        Number(profile.owner_user_id) === 281;
 
     useEffect(() => {
         if (!handle) return undefined;
@@ -642,23 +648,29 @@ const ProfilePage = ({ forcedHandle = null }) => {
                         isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.035]"
                     }`}
                 >
-                    <div
-                        className={`h-28 md:h-36 ${
-                            profile.cover_url
-                                ? ""
-                                : isDayMode
-                                  ? "bg-[linear-gradient(120deg,#e0f2fe,#f8fafc,#dcfce7)]"
-                                  : "bg-[linear-gradient(120deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18),rgba(16,185,129,0.12))]"
-                        }`}
-                    >
-                        {profile.cover_url ? (
-                            <img
-                                src={profile.cover_url}
-                                alt=""
-                                className="h-full w-full object-cover"
-                            />
-                        ) : null}
-                    </div>
+                    {hasYeshuangPlayground ? (
+                        <Suspense fallback={<div className="min-h-[690px] md:min-h-[539px]" />}>
+                            <YeshuangPlayground key={profile.id} isDayMode={isDayMode} />
+                        </Suspense>
+                    ) : (
+                        <div
+                            className={`h-28 md:h-36 ${
+                                profile.cover_url
+                                    ? ""
+                                    : isDayMode
+                                      ? "bg-[linear-gradient(120deg,#e0f2fe,#f8fafc,#dcfce7)]"
+                                      : "bg-[linear-gradient(120deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18),rgba(16,185,129,0.12))]"
+                            }`}
+                        >
+                            {profile.cover_url ? (
+                                <img
+                                    src={profile.cover_url}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : null}
+                        </div>
+                    )}
 
                     <div className="grid gap-5 p-4 md:grid-cols-[auto_1fr_auto] md:gap-6 md:p-6">
                         <ProfileMark
