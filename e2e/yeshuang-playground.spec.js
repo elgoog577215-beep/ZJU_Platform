@@ -48,7 +48,7 @@ test("Yeshuang scenes, gallery, expressions and motion controls work", async ({ 
     await world.getByRole("button", { name: "蓝调墨夜", exact: true }).click();
     await expect(world.locator(".ys-scene-image")).toHaveAttribute("src", /midnight.webp$/);
     for (let index = 0; index < 5; index++) {
-        await world.getByRole("button", { name: "戳戳夜霜，切换表情", exact: true }).click();
+        await world.getByRole("button", { name: "戳我一下，切换夜霜表情", exact: true }).click();
     }
     await expect(world.getByRole("status")).toContainText("被你发现了");
     await world.getByRole("button", { name: "角色画廊", exact: true }).click();
