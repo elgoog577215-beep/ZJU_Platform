@@ -4983,14 +4983,12 @@
             "scenes": {
                 "moon": "Moonlit frost",
                 "midnight": "Midnight blue",
-                "silver": "Silver light",
-                "portrait": "Black dress"
+                "silver": "Silver light"
             },
             "art_alt": {
                 "moon": "Silver-haired Yeshuang in a moonlit arch surrounded by ice crystals",
                 "midnight": "Black-haired Yeshuang resting her chin on her hand in blue light",
-                "silver": "A close-up portrait of silver-haired Yeshuang",
-                "portrait": "Full-length character artwork of Yeshuang in a black dress"
+                "silver": "A close-up portrait of silver-haired Yeshuang"
             },
             "moods": {
                 "peek": {

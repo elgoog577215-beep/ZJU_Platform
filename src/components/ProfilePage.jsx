@@ -294,6 +294,9 @@ const ProfilePage = ({ forcedHandle = null }) => {
         profile?.type === "person" &&
         Number(profile.id) === 280 &&
         Number(profile.owner_user_id) === 281;
+    const displayedProfile = hasYeshuangPlayground
+        ? { ...profile, avatar_url: "/images/profiles/yeshuang/heart.webp", logo_url: "" }
+        : profile;
 
     useEffect(() => {
         if (!handle) return undefined;
@@ -674,7 +677,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
                     <div className="grid gap-5 p-4 md:grid-cols-[auto_1fr_auto] md:gap-6 md:p-6">
                         <ProfileMark
-                            profile={profile}
+                            profile={displayedProfile}
                             isDayMode={isDayMode}
                             displayName={displayName}
                         />
@@ -1355,7 +1358,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
             </div>
             {sharePosterOpen ? (
                 <ProfileSharePoster
-                    profile={profile}
+                    profile={displayedProfile}
                     profileCard={profileCard}
                     displayName={displayName}
                     metaLabel={metaLabel}

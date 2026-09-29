@@ -6,7 +6,7 @@ import { motionTokens, useReducedMotion } from "../../utils/animations";
 import "./YeshuangPlayground.css";
 
 const ASSET_ROOT = "/images/profiles/yeshuang";
-const SCENES = ["moon", "midnight", "silver", "portrait"];
+const SCENES = ["moon", "midnight", "silver"];
 const MOODS = ["peek", "pat", "heart", "study", "sleepy"];
 
 // Visual-only customization, scoped to the verified production profile and owner.
@@ -83,8 +83,8 @@ const YeshuangPlayground = ({ isDayMode }) => {
                         key={scene}
                         src={`${ASSET_ROOT}/${scene}.webp`}
                         alt=""
-                        width={scene === "portrait" ? 850 : 1440}
-                        height={scene === "portrait" ? 1133 : scene === "moon" ? 810 : 960}
+                        width={1440}
+                        height={scene === "moon" ? 810 : 960}
                         className={`ys-scene-image ys-scene-image--${scene}`}
                         fetchPriority="high"
                     />

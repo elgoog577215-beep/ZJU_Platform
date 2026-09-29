@@ -53,8 +53,14 @@ test("Yeshuang scenes, gallery, expressions and motion controls work", async ({ 
     await expect(world.getByRole("status")).toContainText("被你发现了");
     await world.getByRole("button", { name: "角色画廊", exact: true }).click();
     await expect(page.locator("#yeshuang-gallery")).toBeVisible();
-    await page.locator("#yeshuang-gallery").getByRole("button", { name: "黑裙侧影" }).click();
-    await expect(world.locator(".ys-scene-image")).toHaveAttribute("src", /portrait.webp$/);
+    await expect(page.locator("#yeshuang-gallery button")).toHaveCount(3);
+    await expect(page.getByText("黑裙侧影", { exact: true })).toHaveCount(0);
+    await page.locator("#yeshuang-gallery").getByRole("button", { name: "银发微光" }).click();
+    await expect(world.locator(".ys-scene-image")).toHaveAttribute("src", /silver.webp$/);
+    await expect(page.getByRole("img", { name: "yeshuang", exact: true })).toHaveAttribute(
+        "src",
+        "/images/profiles/yeshuang/heart.webp"
+    );
     await world.getByRole("button", { name: "角色画廊", exact: true }).click();
     await expect(page.locator("#yeshuang-gallery")).toBeHidden();
 });

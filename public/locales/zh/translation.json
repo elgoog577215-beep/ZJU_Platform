@@ -5092,14 +5092,12 @@
             "scenes": {
                 "moon": "月下霜白",
                 "midnight": "蓝调墨夜",
-                "silver": "银发微光",
-                "portrait": "黑裙侧影"
+                "silver": "银发微光"
             },
             "art_alt": {
                 "moon": "银发夜霜站在月光与冰晶环绕的拱门前",
                 "midnight": "蓝色光线下，黑发夜霜托腮望向镜头",
-                "silver": "银发夜霜的近景立绘",
-                "portrait": "黑色长裙夜霜的完整人物立绘"
+                "silver": "银发夜霜的近景立绘"
             },
             "moods": {
                 "peek": {

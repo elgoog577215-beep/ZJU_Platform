@@ -43,11 +43,6 @@
     object-fit: cover;
     object-position: 72% center;
 }
-.ys-scene-image--portrait {
-    object-fit: contain;
-    object-position: 70% center;
-    background: #23242a;
-}
 .ys-intro {
     position: relative;
     padding: 62px 0 50px 48px;
@@ -269,7 +264,7 @@
 }
 .ys-gallery-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
 }
 .ys-gallery-grid button {
