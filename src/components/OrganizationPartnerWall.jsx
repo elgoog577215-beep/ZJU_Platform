@@ -282,7 +282,7 @@ const OrganizationPartnerWall = ({
                                                     ? "text-blue-600"
                                                     : "text-indigo-200"
                                                 : isDayMode
-                                                  ? "text-slate-400"
+                                                  ? "text-slate-600"
                                                   : "text-slate-500"
                                         }`}
                                     >

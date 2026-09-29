@@ -115,7 +115,7 @@ const EventFilterPanel = ({
     const nightControlActiveClass =
         "border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
     const desktopControlClass = isDayMode
-        ? "border-slate-200/90 bg-white/[0.82] text-blue-950/70 shadow-[0_2px_8px_rgba(15,23,42,0.05)] hover:border-blue-300/90 hover:bg-blue-50/70 hover:text-blue-950"
+        ? "event-day-control"
         : "border-white/[0.10] bg-white/[0.035] text-indigo-100/90 shadow-[0_3px_12px_rgba(0,0,0,0.16)] hover:border-indigo-300/35 hover:bg-indigo-300/[0.07] hover:text-white";
     const nightFocusClass = isDayMode
         ? "focus-visible:ring-blue-400/70"
@@ -124,10 +124,10 @@ const EventFilterPanel = ({
         `relative h-10 shrink-0 rounded-[8px] px-3.5 text-sm font-bold transition-[background-color,color,box-shadow] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
             active
                 ? isDayMode
-                    ? "bg-white text-blue-900 shadow-[0_2px_8px_rgba(15,23,42,0.07)]"
+                    ? "bg-blue-100 text-blue-900"
                     : "bg-white/[0.075] text-indigo-50 shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
                 : isDayMode
-                  ? "text-slate-500 hover:bg-white/70 hover:text-blue-900"
+                  ? "text-slate-700 hover:bg-blue-50 hover:text-blue-900"
                   : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
         }`;
 
@@ -353,7 +353,7 @@ const EventFilterPanel = ({
                     <div
                         className={`relative w-fit max-w-full min-w-0 overflow-hidden rounded-[12px] border p-1 ${
                             isDayMode
-                                ? "border-slate-200/80 bg-slate-950/[0.025]"
+                                ? "border-slate-300 bg-slate-50/95"
                                 : "border-white/[0.10] bg-white/[0.035]"
                         }`}
                     >

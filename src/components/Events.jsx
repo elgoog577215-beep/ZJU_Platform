@@ -1658,7 +1658,7 @@ END:VCALENDAR`;
                 aiTriggerRef.current = event.currentTarget;
                 setIsAiSearchOpen((open) => !open);
             }}
-            className={`event-ai-toggle inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${isDayMode ? "border-slate-200 bg-white text-blue-800 hover:bg-blue-50" : "border-white/15 bg-slate-900/80 text-indigo-100 hover:bg-slate-800"}`}
+            className={`event-ai-toggle inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${isDayMode ? "event-day-control" : "border-white/15 bg-slate-900/80 text-indigo-100 hover:bg-slate-800"}`}
         >
             <Sparkles size={16} />
             {t("nav.ai_search")}
@@ -1762,7 +1762,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] ${isDayMode ? "bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
+                            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] ${isDayMode ? "theme-on-dark bg-blue-600 text-white" : "bg-indigo-400 text-slate-950"}`}
                         >
                             <Plus size={19} strokeWidth={3} />
                         </motion.button>
@@ -1861,7 +1861,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "text-slate-600 hover:border-blue-500/60 hover:text-blue-800" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
+                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "event-day-control rounded-[10px] border !px-3" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
                         >
                             <Upload size={18} className="md:w-5 md:h-5" />{" "}
                             {t("common.create_event")}
@@ -1922,7 +1922,9 @@ END:VCALENDAR`;
                 >
                     <div
                         className={`text-left text-sm font-medium ${
-                            isDayMode ? "text-slate-500" : "text-gray-400"
+                            isDayMode
+                                ? "rounded-[8px] bg-slate-50/95 px-3 py-2 text-slate-700"
+                                : "text-gray-400"
                         }`}
                     >
                         {t("events.result_count", { count: displayEvents.length })}
@@ -1930,7 +1932,9 @@ END:VCALENDAR`;
                     {!isCollegeNoticeFilter && (
                         <div
                             className={`inline-flex items-center gap-1 border-b ${
-                                isDayMode ? "border-slate-200/80" : "border-white/10"
+                                isDayMode
+                                    ? "rounded-[10px] border border-slate-300 bg-slate-50/95 p-1"
+                                    : "border-white/10"
                             }`}
                             role="group"
                             aria-label={t("events.view_mode.aria")}
@@ -1948,10 +1952,10 @@ END:VCALENDAR`;
                                         className={`inline-flex min-h-9 items-center gap-2 border-b-2 px-2.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                             active
                                                 ? isDayMode
-                                                    ? "border-blue-600 text-blue-700"
+                                                    ? "rounded-[6px] border-blue-700 bg-blue-100 text-blue-900"
                                                     : "border-indigo-300 text-white"
                                                 : isDayMode
-                                                  ? "border-transparent text-slate-500 hover:text-slate-900"
+                                                  ? "rounded-[6px] border-transparent text-slate-700 hover:bg-blue-50 hover:text-slate-900"
                                                   : "border-transparent text-gray-400 hover:text-white"
                                         }`}
                                     >
