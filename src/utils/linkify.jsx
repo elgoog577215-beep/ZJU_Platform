@@ -20,7 +20,7 @@ import React from "react";
 
 // The capture-group form lets String.prototype.split keep the URL chunks
 // alongside the surrounding text, so we can interleave <a> and text nodes.
-export const URL_REGEX = /(https?:\/\/[^\s<>"'，。；：！？,]+)/g;
+export const URL_REGEX = /(https?:\/\/[^\s<>"'，。；：！？（）【】,]+)/g;
 
 // Characters that commonly trail a URL in prose but aren't part of it.
 const TRAILING_PUNCT = /[.,;:!?)\]}>"'，。；：！？）】»]+$/;
@@ -110,8 +110,9 @@ function linkifyNode(node) {
 
 function linkifyTextNode(textNode) {
     const value = textNode.nodeValue;
+    // Every text node must start matching from the beginning.
+    URL_REGEX.lastIndex = 0;
     if (!value || !URL_REGEX.test(value)) return;
-    // Reset regex state — URL_REGEX uses /g flag so lastIndex persists.
     URL_REGEX.lastIndex = 0;
 
     const parts = value.split(URL_REGEX);

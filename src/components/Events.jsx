@@ -490,7 +490,7 @@ const EventCard = memo(({ event, index, onClick, reduceMotion, isDayMode }) => {
                     <div className="flex min-w-0 items-center gap-2">
                         <MapPin size={14} className="shrink-0" />
                         <span className="truncate">
-                            {event.location || t("common.online", "线上")}
+                            {event.location || t("events.location_unspecified")}
                         </span>
                     </div>
                 </div>
@@ -629,7 +629,7 @@ const MobileReferenceEventCard = memo(({ event, index, onClick, reduceMotion, is
                     <div className="flex min-w-0 items-center gap-1.5">
                         <MapPin size={13} className="shrink-0" />
                         <span className="truncate">
-                            {event.location || t("common.online", "线上")}
+                            {event.location || t("events.location_unspecified")}
                         </span>
                     </div>
                 </div>
@@ -761,7 +761,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                             }
                         />
                         <span className="truncate">
-                            {event.location || t("common.online", "线上")}
+                            {event.location || t("events.location_unspecified")}
                         </span>
                     </span>
                     {event.organizer && (
@@ -2897,11 +2897,16 @@ END:VCALENDAR`;
                                                         {/* Render HTML content safely */}
                                                         <div
                                                             data-testid="event-detail-content"
-                                                            className={`prose prose-lg max-w-none leading-relaxed [overflow-wrap:anywhere] ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
+                                                            className={`prose prose-base max-w-none leading-relaxed [overflow-wrap:anywhere] prose-h3:text-lg prose-h3:mb-3 prose-h4:text-base prose-p:my-3 prose-li:my-1 [&_details]:mt-6 [&_details]:border-t [&_details]:border-current/15 [&_details]:pt-4 [&_summary]:cursor-pointer [&_summary]:font-semibold [&_summary]:py-2 ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
                                                             dangerouslySetInnerHTML={{
                                                                 __html: formatEventContent(
                                                                     selectedEvent.content,
-                                                                    selectedEvent.description
+                                                                    selectedEvent.description,
+                                                                    {
+                                                                        backgroundLabel: t(
+                                                                            "events.background_details"
+                                                                        ),
+                                                                    }
                                                                 ),
                                                             }}
                                                         />
@@ -3019,7 +3024,8 @@ END:VCALENDAR`;
                                                         )}
 
                                                         <div
-                                                            className={`flex items-start gap-2.5 group order-1 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                            data-testid="event-schedule"
+                                                            className={`flex items-start gap-2.5 group order-1 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                         >
                                                             <div
                                                                 className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-blue-100 text-blue-700" : "bg-orange-500/5 border-0 border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}
@@ -3040,7 +3046,7 @@ END:VCALENDAR`;
                                                                 >
                                                                     {formatDateTime(
                                                                         selectedEvent.date
-                                                                    )}
+                                                                    ) || t("common.tba")}
                                                                     {selectedEvent.end_date &&
                                                                         !isSameDay(
                                                                             selectedEvent.date,
@@ -3048,11 +3054,25 @@ END:VCALENDAR`;
                                                                         ) &&
                                                                         `-${formatDateTime(selectedEvent.end_date)}`}
                                                                 </span>
+                                                                {selectedEvent.registration_deadline && (
+                                                                    <p className="mt-2 text-sm leading-snug">
+                                                                        <span className="font-semibold">
+                                                                            {t(
+                                                                                "events.registration_deadline_label"
+                                                                            )}
+                                                                            ：
+                                                                        </span>
+                                                                        {formatDateTime(
+                                                                            selectedEvent.registration_deadline
+                                                                        )}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
 
                                                         <div
-                                                            className={`flex items-start gap-2.5 group order-3 col-span-2 rounded-lg px-3 py-3 border-0 max-h-20 overflow-hidden transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                                            data-testid="event-location"
+                                                            className={`flex items-start gap-2.5 group order-3 col-span-2 rounded-lg px-3 py-3 border-0 transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                                                         >
                                                             <div
                                                                 className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border-0 border-sky-100 text-sky-700" : "bg-indigo-500/5 border-0 border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}
@@ -3072,7 +3092,9 @@ END:VCALENDAR`;
                                                                     className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
                                                                 >
                                                                     {selectedEvent.location ||
-                                                                        t("common.online")}
+                                                                        t(
+                                                                            "events.location_unspecified"
+                                                                        )}
                                                                 </p>
                                                             </div>
                                                         </div>

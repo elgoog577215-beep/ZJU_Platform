@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import wenqin from "./fixtures/wenqin-recruitment.json" with { type: "json" };
 
 const sourceUrl = "http://www.xlzx.zju.edu.cn/2026/0917/c55627a3204493/page.htm";
 const event = {
@@ -20,7 +21,7 @@ const event = {
     status: "approved",
 };
 
-async function openDetail(page, mode) {
+async function openDetail(page, mode, fixture = event) {
     await page.addInitScript((value) => {
         localStorage.setItem("ui_mode_v3", value);
         localStorage.setItem("i18nextLng", "zh");
@@ -31,17 +32,112 @@ async function openDetail(page, mode) {
             return route.fulfill({ json: { pagination_enabled: "false", language: "zh" } });
         if (path === "/api/auth/me")
             return route.fulfill({ status: 401, json: { error: "unauthorized" } });
-        if (path === "/api/events/328") return route.fulfill({ json: event });
+        if (path === `/api/events/${fixture.id}`) return route.fulfill({ json: fixture });
         if (path === "/api/events")
             return route.fulfill({
-                json: { data: [event], pagination: { page: 1, total: 1, totalPages: 1 } },
+                json: { data: [fixture], pagination: { page: 1, total: 1, totalPages: 1 } },
             });
         return route.fulfill({ json: [] });
     });
-    await page.goto("/events?id=328");
+    await page.goto(`/events?id=${fixture.id}`);
     await expect(page.locator("html")).toHaveAttribute("data-theme", mode);
     await expect(page.getByTestId("event-detail-content")).toBeVisible();
 }
+
+for (const mode of ["day", "dark"]) {
+    for (const width of [390, 1440]) {
+        test(`recruitment puts participation first at ${width}px in ${mode} mode`, async ({
+            page,
+        }, testInfo) => {
+            await page.setViewportSize({ width, height: 1000 });
+            await openDetail(page, mode, {
+                ...wenqin,
+                date: null,
+                registration_deadline: "2026-10-08",
+                location: null,
+            });
+            const body = page.getByTestId("event-detail-content");
+            await expect(body.locator(":scope > h3")).toHaveText([
+                "纳新有什么要求呢？",
+                "怎么报名参加？",
+                "在文琴键盘的日常是怎么样的？",
+            ]);
+            await expect(body).toContainText("文件大小不要超过 300 MB");
+            await expect(body).toContainText("姓名-年级-专业-电话");
+            await expect(body).toContainText("报名截止一周内");
+            await expect(body).toContainText("演奏自选曲目 + 视奏");
+            await expect(body.locator("ol")).toHaveCount(2);
+            await expect(body.locator("ol > li")).toHaveCount(8);
+            await expect(body.getByRole("link")).toHaveAttribute(
+                "href",
+                "https://pan.zju.edu.cn/collection/1fc5e071382f420d23189260e39f8119"
+            );
+            await expect(body.locator("details")).not.toHaveAttribute("open");
+            await expect(body.getByText("指导老师", { exact: true })).toBeHidden();
+            await expect(page.getByTestId("event-schedule")).toContainText("待定");
+            await expect(page.getByTestId("event-schedule")).toContainText("报名截止：10.8");
+            await expect(page.getByTestId("event-location")).toContainText("地点未公布");
+            await body.scrollIntoViewIfNeeded();
+            await body.screenshot({ path: testInfo.outputPath("recruitment.png") });
+            await body.locator("summary").click();
+            await expect(body.getByText("指导老师", { exact: true })).toBeVisible();
+            const missing = await body.evaluate((el, original) => {
+                const visible = el.textContent.replace(/\s/g, "");
+                return original
+                    .split(/\r?\n/)
+                    .filter((line) => line.trim() && !/^Q\d+$|^\d{1,2}$|^\d+\.\s/.test(line))
+                    .filter((line) => !visible.includes(line.replace(/\s/g, "")));
+            }, wenqin.content);
+            expect(missing).toEqual([]);
+            expect(await body.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+        });
+    }
+}
+
+test("unrecognized Q&A stays intact; explicit online locations and separate dates remain", async ({
+    page,
+}) => {
+    await openDetail(page, "day", {
+        ...event,
+        location: "线上",
+        registration_deadline: "2026-10-01T18:00",
+    });
+    await expect(page.getByTestId("event-location")).toContainText("线上");
+    await expect(page.getByTestId("event-schedule")).toContainText("10.14 10:00");
+    await expect(page.getByTestId("event-schedule")).toContainText("10.1 18:00");
+    const result = await page.evaluate(async () => {
+        const { parseEventFaq, formatEventContent } = await import("/src/utils/eventContent.js");
+        const invalid = [
+            "Q1\n什么是音乐？\n介绍",
+            "Q1\n怎么报名？\n方式\nQ1\n有要求吗？\n条件",
+            "Q1\n普通标题\n内容\nQ2\n怎么报名？\n内容",
+            "Q1\n这是什么？\n介绍\nQ2\n有用吗？\n是的",
+        ];
+        return {
+            parsed: invalid.map(parseEventFaq),
+            rich: formatEventContent("<h3>原有排版</h3><p>Q1</p>", "", { backgroundLabel: "补充" }),
+            links: formatEventContent(
+                "https://example.org/a（说明）\n\nhttps://example.org/b（说明）"
+            ),
+        };
+    });
+    expect(result.parsed).toEqual([null, null, null, null]);
+    expect(result.rich).toBe("<h3>原有排版</h3><p>Q1</p>");
+    expect(result.links).toContain('href="https://example.org/a"');
+    expect(result.links).toContain('href="https://example.org/b"');
+});
+
+test("participation conditions in introductory sections are never collapsed", async ({ page }) => {
+    await openDetail(page, "day", {
+        ...event,
+        content:
+            "报名截止：2026年10月8日\nQ1\n是一个什么样的团体？\n介绍。仅限本科生，费用100元。\nQ2\n怎么报名参加？\n请上传视频。",
+    });
+    const body = page.getByTestId("event-detail-content");
+    await expect(body.getByText("报名截止：2026年10月8日", { exact: true })).toBeVisible();
+    await expect(body.getByText("介绍。仅限本科生，费用100元。", { exact: true })).toBeVisible();
+    await expect(body.locator("details")).toHaveCount(0);
+});
 
 for (const mode of ["day", "dark"]) {
     for (const width of [390, 1440]) {
