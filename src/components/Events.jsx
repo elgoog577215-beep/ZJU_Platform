@@ -46,7 +46,7 @@ import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import EventAssistantPanel from "./EventAssistantPanel";
-import DOMPurify from "dompurify";
+import { formatEventContent } from "../utils/eventContent";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import {
@@ -2896,11 +2896,12 @@ END:VCALENDAR`;
                                                         </h3>
                                                         {/* Render HTML content safely */}
                                                         <div
-                                                            className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
+                                                            data-testid="event-detail-content"
+                                                            className={`prose prose-lg max-w-none leading-relaxed [overflow-wrap:anywhere] ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
                                                             dangerouslySetInnerHTML={{
-                                                                __html: DOMPurify.sanitize(
-                                                                    selectedEvent.content ||
-                                                                        `<p>${selectedEvent.description}</p>`
+                                                                __html: formatEventContent(
+                                                                    selectedEvent.content,
+                                                                    selectedEvent.description
                                                                 ),
                                                             }}
                                                         />
