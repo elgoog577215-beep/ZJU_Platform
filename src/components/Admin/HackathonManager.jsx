@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
 import { registrationOpen } from "../../utils/hackathonAiX";
+import { getEventUrl } from "../../utils/hackathonRoute";
 import { formatHackathonAnswer } from "../../data/hackathonTemplate";
 import api from "../../services/api";
 import {
@@ -839,7 +840,7 @@ const HackathonManager = () => {
                                 className="text-cyan-500 underline underline-offset-4"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={`/hackathon?event=${encodeURIComponent(selectedEventKey)}&view=intro`}
+                                href={getEventUrl(selectedEventKey)}
                             >
                                 {t("admin.hackathon_manager.flow.preview")}
                             </a>

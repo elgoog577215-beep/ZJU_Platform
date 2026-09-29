@@ -1,75 +1,50 @@
-export const HACKATHON_WORKSPACE_VIEWS = ["register", "projects", "media", "showcase"];
-
-export const isHackathonWorkspaceView = (value) =>
-    HACKATHON_WORKSPACE_VIEWS.includes(String(value || ""));
-
-// Retired project-center links lead to the event results. Project IDs are not work IDs.
-export const getLegacyProjectsUrl = (location = {}) => {
-    const source = new URLSearchParams(location.search || "");
-    const params = new URLSearchParams({ view: "results" });
-    for (const key of ["event", "competition", "work"]) {
-        if (source.get(key)) params.set(key, source.get(key));
-    }
-    if (!params.has("event") && !params.has("competition"))
-        params.set("event", "zhekesong-current");
-    return `/hackathon?${params}#showcase-works`;
-};
-
-export const getHackathonViewFromLocation = (location = {}, fallback = "register") => {
-    const params = new URLSearchParams(location.search || "");
-    const requestedView = params.get("view");
-    const pathname = String(location.pathname || "");
-
-    if (pathname.includes("/showcase") || pathname.includes("/works")) {
-        return "showcase";
-    }
-    if (isHackathonWorkspaceView(requestedView)) return requestedView;
-    return isHackathonWorkspaceView(fallback) ? fallback : "register";
-};
-
-export const getDefaultHackathonView = (template = {}, now = new Date()) => {
-    const event = template.event || {};
-    const start = Date.parse(event.startAt || "");
-    const end = Date.parse(event.endAt || event.startAt || "");
-    const nowTime = now instanceof Date ? now.getTime() : Date.parse(now);
-    const hasNow = Number.isFinite(nowTime);
-
-    if (Number.isFinite(end) && hasNow && nowTime > end) {
-        return template.navigation?.resultsVisible === false ? "projects" : "showcase";
-    }
-    if (event.registrationOpen || (Number.isFinite(start) && hasNow && nowTime < start)) {
-        return "register";
-    }
-    return "projects";
-};
-
-export const getHackathonMediaView = (search = "", fallback = "live") => {
-    const value = new URLSearchParams(search || "").get("mediaView");
-    return value === "featured" || value === "live" ? value : fallback;
-};
-
-export default getHackathonViewFromLocation;
+import eventRoutes from "../../shared/hackathonRoutes.json" with { type: "json" };
 
 export const EVENT_VIEWS = ["intro", "challenges", "media", "results"];
-export const getEventUrl = (eventKey, view = "intro") =>
-    `/hackathon?${new URLSearchParams({ event: eventKey, view: view === "register" ? "intro" : view })}`;
 
-export const getEventView = (location = {}) => {
-    const view = new URLSearchParams(location.search || "").get("view");
-    if (/\/(showcase|works)$/.test(location.pathname || "") || view === "showcase")
-        return "results";
-    if (view === "register") return "register";
-    return EVENT_VIEWS.includes(view) ? view : "intro";
+const readEventPath = (location = {}) => {
+    const pathname = String(location.pathname || "").replace(/\/+$/, "");
+    if (!pathname.startsWith("/hackathon/")) return null;
+    const segments = pathname.slice("/hackathon/".length).split("/");
+    try {
+        const slug = decodeURIComponent(segments[0]);
+        const eventKey = eventRoutes.find((route) => route.path === slug)?.eventKey || slug;
+        const view = segments[1] || "intro";
+        return { eventKey, view, invalid: segments.length > 2 || !EVENT_VIEWS.includes(view) };
+    } catch {
+        return { invalid: true };
+    }
 };
 
-// Old work shares predate the event picker; their implicit edition is always the first.
-export const getLegacyWorksUrl = (location = {}) => {
+export const getEventKey = (location = {}) => readEventPath(location)?.eventKey;
+export const getEventView = (location = {}) => readEventPath(location)?.view || "intro";
+
+export const getEventUrl = (eventKey, view = "intro", { search = "", hash = "" } = {}) => {
+    const edition =
+        eventRoutes.find(
+            (route) => route.eventKey === eventKey || route.competitionSlug === eventKey
+        )?.path || eventKey;
+    const pathname = `/hackathon/${encodeURIComponent(edition)}${view === "intro" ? "" : `/${view}`}`;
+    const params = new URLSearchParams(search);
+    return `${pathname}${params.size ? `?${params}` : ""}${hash}`;
+};
+
+export const resolveEventLocation = (location = {}, schedule = {}) => {
+    const path = readEventPath(location);
     const params = new URLSearchParams(location.search || "");
-    const work = params.get("work") || params.get("id");
-    params.delete("id");
-    params.set("view", "results");
-    if (!params.has("event") && !params.has("competition"))
-        params.set("event", "zhekesong-current");
-    if (work) params.set("work", work);
-    return `/hackathon?${params}#showcase-works`;
+    // Routing belongs to the path. Former query routes and page aliases are retired.
+    if (path?.invalid || ["event", "competition", "view"].some((key) => params.has(key)))
+        return null;
+    const pathname = String(location.pathname || "").replace(/\/+$/, "");
+    if (!path && pathname !== "/hackathon") return null;
+    const events = schedule.events || [];
+    const template = path
+        ? events.find(
+              (item) =>
+                  item.event.key === path.eventKey || item.results.competitionSlug === path.eventKey
+          )
+        : events.find((item) => item.event.key === schedule.activeEventKey) || events[0];
+    if (!template) return null;
+    const view = getEventView(location);
+    return { template, view, url: getEventUrl(template.event.key, view, location) };
 };

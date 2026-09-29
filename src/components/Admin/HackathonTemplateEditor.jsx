@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import HackathonProgramEditor from "./HackathonProgramEditor";
+import { getEventUrl } from "../../utils/hackathonRoute";
 
 import {
-    getFirstAvailableHackathonView,
     getHackathonScheduleEvent,
     normalizeHackathonSchedule,
     normalizeHackathonTemplate,
@@ -430,9 +430,7 @@ const HackathonTemplateEditor = ({ onTemplateChange, initialEventKey, focusSecti
                 action={
                     <div className="flex flex-wrap gap-2">
                         <a
-                            href={`/hackathon?event=${encodeURIComponent(selectedEventKey)}&view=${
-                                getFirstAvailableHackathonView(draft, "register") || "showcase"
-                            }`}
+                            href={getEventUrl(selectedEventKey)}
                             target="_blank"
                             rel="noreferrer"
                             className="theme-button-secondary rect-button inline-flex min-h-[40px] items-center gap-2 px-3.5 py-2 text-sm font-semibold"

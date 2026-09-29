@@ -663,7 +663,7 @@ const EcosystemPartnerManager = () => {
                             tone="subtle"
                             onClick={() =>
                                 window.open(
-                                    "/hackathon/showcase#partners",
+                                    "/hackathon/1/results#showcase-support",
                                     "_blank",
                                     "noopener,noreferrer"
                                 )

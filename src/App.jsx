@@ -33,7 +33,7 @@ import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
 import { WECHAT_LOGIN_REMEMBER_QUERY } from "./utils/wechatMiniProgramBridge";
 import { getStoredAuthToken } from "./shared/authTokenStorage";
-import { getLegacyProjectsUrl } from "./utils/hackathonRoute";
+import { getEventKey } from "./utils/hackathonRoute";
 
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
@@ -113,7 +113,6 @@ const loadAbout = () => import("./components/About");
 const loadEcosystemPartnerDirectory = () => import("./components/EcosystemPartnerDirectory");
 const loadAppDownload = () => import("./components/AppDownload");
 const loadHackathonSeasonOne = () => import("./components/HackathonEventRouter");
-const loadHackathonWorks = () => import("./components/HackathonWorksRedirect");
 const loadAdminDashboard = () => import("./components/Admin/AdminDashboard");
 const loadAdminAccessGate = () => import("./components/Admin/AdminAccessGate");
 const loadNotFound = () => import("./components/NotFound");
@@ -133,7 +132,6 @@ const About = lazyRoute(loadAbout);
 const EcosystemPartnerDirectory = lazyRoute(loadEcosystemPartnerDirectory);
 const AppDownload = lazyRoute(loadAppDownload);
 const HackathonSeasonOne = lazyRoute(loadHackathonSeasonOne);
-const HackathonWorks = lazyRoute(loadHackathonWorks);
 const AdminDashboard = lazyRoute(loadAdminDashboard);
 const AdminAccessGate = lazyRoute(loadAdminAccessGate);
 const NotFound = lazyRoute(loadNotFound);
@@ -324,8 +322,8 @@ const AppContent = () => {
     const isAdminRoute = location.pathname.startsWith("/admin");
     const isAiXEventRoute =
         import.meta.env.DEV &&
-        location.pathname === "/hackathon" &&
-        new URLSearchParams(location.search).get("event") === "zhekesong-ai-x-2026";
+        location.pathname.startsWith("/hackathon") &&
+        getEventKey(location) === "zhekesong-ai-x-2026";
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
@@ -590,26 +588,10 @@ const AppContent = () => {
                             />
                             <Route path="/app" element={<Navigate to="/download" replace />} />
                             <Route
-                                path="/hackathon"
+                                path="/hackathon/*"
                                 element={
                                     <PageTransition>
                                         <HackathonSeasonOne />
-                                    </PageTransition>
-                                }
-                            />
-                            <Route
-                                path="/hackathon/showcase"
-                                element={
-                                    <PageTransition>
-                                        <HackathonSeasonOne />
-                                    </PageTransition>
-                                }
-                            />
-                            <Route
-                                path="/hackathon/works"
-                                element={
-                                    <PageTransition>
-                                        <HackathonWorks />
                                     </PageTransition>
                                 }
                             />
@@ -655,10 +637,6 @@ const AppContent = () => {
                                 }
                             />
                             <Route path="/user/:id" element={<LegacyUserRedirect />} />
-                            <Route
-                                path="/projects"
-                                element={<Navigate replace to={getLegacyProjectsUrl(location)} />}
-                            />
                             <Route
                                 path="*"
                                 element={

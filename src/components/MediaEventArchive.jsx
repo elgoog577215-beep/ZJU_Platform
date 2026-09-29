@@ -17,6 +17,7 @@ import {
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import Lightbox from "./Lightbox";
 import SEO from "./SEO";
+import { getEventUrl } from "../utils/hackathonRoute";
 import SmartImage from "./SmartImage";
 import { useSettings } from "../context/SettingsContext";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
@@ -493,8 +494,8 @@ const MediaEventArchive = ({
                                 <a
                                     href={
                                         embedded && eventKey
-                                            ? `/hackathon?event=${encodeURIComponent(eventKey)}&view=results`
-                                            : `/hackathon?competition=${encodeURIComponent(selectedArchive.slug)}&view=results`
+                                            ? getEventUrl(eventKey, "results")
+                                            : getEventUrl(selectedArchive.slug, "results")
                                     }
                                 >
                                     {t("media_archive.view_projects", "查看赛事成果")}

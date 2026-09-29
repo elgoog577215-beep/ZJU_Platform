@@ -12,6 +12,7 @@ import {
     shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
 import { getProjectShareCardUrl } from "../utils/projectShareCard";
+import { getEventUrl } from "../utils/hackathonRoute";
 
 const clampList = (items, limit) =>
     Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : [];
@@ -34,12 +35,12 @@ const safeFilePart = (value) =>
 const buildProjectUrl = (project) => {
     const eventRecord = project?.competitions?.[0];
     const url = new URL(
-        project?.source_type === "competition_work" ? "/hackathon" : "/projects",
+        project?.source_type === "competition_work"
+            ? getEventUrl(eventRecord?.slug || "zhekesong-current", "results")
+            : "/projects",
         window.location.origin
     );
     if (project?.source_type === "competition_work" && eventRecord) {
-        url.searchParams.set("view", "showcase");
-        url.searchParams.set("competition", eventRecord.slug);
         url.searchParams.set("work", String(eventRecord.work_id));
         url.hash = "showcase-works";
     } else {

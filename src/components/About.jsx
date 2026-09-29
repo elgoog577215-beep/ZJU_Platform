@@ -23,6 +23,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
 import { startRouteViewTransition } from "../utils/routeViewTransition";
+import { getEventUrl } from "../utils/hackathonRoute";
 import SEO from "./SEO";
 
 const preloadSupporterDirectory = () => import("./EcosystemPartnerDirectory");
@@ -370,7 +371,7 @@ const About = ({ showAppDownload = true }) => {
         {
             key: "project",
             code: "PROJECTS",
-            route: "/hackathon?event=zhekesong-current&view=results",
+            route: getEventUrl("zhekesong-current", "results"),
             icon: Building2,
             tone: "violet",
         },
@@ -410,7 +411,7 @@ const About = ({ showAppDownload = true }) => {
                 "参与产业联培，也可以自主立项。先了解项目需求，再寻找适合自己的合作方式。"
             ),
             action: t("about.ecosystem.join.org_cta", "查看赛事成果"),
-            route: "/hackathon?event=zhekesong-current&view=results",
+            route: getEventUrl("zhekesong-current", "results"),
             icon: Network,
         },
     ];

@@ -1,12 +1,11 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
-import { getHackathonScheduleEvent } from "../data/hackathonTemplate";
 import "./HackathonAiX.css";
 import { AIX_EVENT_KEY } from "../utils/hackathonAiX";
-import { getLegacyProjectsUrl, getEventView } from "../utils/hackathonRoute";
+import { getEventKey, resolveEventLocation } from "../utils/hackathonRoute";
 const AiXEvent = import.meta.env.DEV ? lazy(() => import("./HackathonAiX")) : null;
 const EventWorkspace = lazy(() => import("./HackathonWorkspace"));
 export default function HackathonEventRouter() {
@@ -14,8 +13,8 @@ export default function HackathonEventRouter() {
     const { schedule, loading, error, reload } = useHackathonSchedule(settings);
     const location = useLocation();
     const { t } = useTranslation();
-    const params = new URLSearchParams(location.search);
-    const currentKey = new URLSearchParams(location.search).get("event");
+    const currentKey = getEventKey(location);
+    const resolved = resolveEventLocation(location, schedule);
     useEffect(() => {
         if (currentKey !== AIX_EVENT_KEY) return;
         const timer = window.setInterval(() => {
@@ -30,11 +29,7 @@ export default function HackathonEventRouter() {
                 {t("aix.loading")}
             </div>
         );
-    if (
-        error ||
-        (params.has("event") &&
-            !schedule.events.some((item) => item.event.key === params.get("event")))
-    )
+    if (error)
         return (
             <div className="hx-event p-12" role="alert">
                 <p>{t("aix.loadFailed")}</p>
@@ -43,35 +38,19 @@ export default function HackathonEventRouter() {
                 </button>
             </div>
         );
-    // Preserve existing first-event deep links even when the active event changes.
-    if (
-        /\/(showcase|works)$/.test(location.pathname) &&
-        !params.has("event") &&
-        !params.has("competition")
-    ) {
-        params.set("event", "zhekesong-current");
-        return <Navigate replace to={`${location.pathname}?${params}${location.hash}`} />;
-    }
-    const byCompetition = schedule.events.find(
-        (item) => item.results.competitionSlug === params.get("competition")
-    );
-    const template = getHackathonScheduleEvent(
-        schedule,
-        params.get("event") || byCompetition?.event.key
-    );
-    if (params.get("view") === "projects") {
-        return <Navigate replace to={getLegacyProjectsUrl(location)} />;
-    }
-    const view = getEventView(location);
-    if (
-        params.get("event") !== template.event.key ||
-        params.get("view") !== view ||
-        location.pathname !== "/hackathon"
-    ) {
-        params.set("event", template.event.key);
-        params.set("view", view);
-        params.delete("competition");
-        return <Navigate replace to={`/hackathon?${params}${location.hash}`} />;
+    if (!resolved)
+        return (
+            <div className="hx-event p-12" role="alert">
+                <h1>{t("not_found.title")}</h1>
+                <p>{t("not_found.description")}</p>
+                <Link className="hx-outline mt-6" to="/hackathon">
+                    {t("nav.hackathon")}
+                </Link>
+            </div>
+        );
+    const { template, url } = resolved;
+    if (`${location.pathname}${location.search}${location.hash}` !== url) {
+        return <Navigate replace to={url} state={location.state} />;
     }
     return (
         <Suspense

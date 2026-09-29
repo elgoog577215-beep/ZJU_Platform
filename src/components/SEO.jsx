@@ -37,7 +37,11 @@ const SEO = ({ title, description, image, url, type = "website", article = {} })
             : `${pageTitle} | ${siteName}`;
     const seoDescription = description || defaultDescription;
     const seoImage = toAbsoluteUrl(siteUrl, image);
-    const seoUrl = url || siteUrl;
+    const eventPath =
+        typeof window !== "undefined" && window.location.pathname.startsWith("/hackathon/")
+            ? window.location.pathname
+            : "";
+    const seoUrl = url || `${siteUrl}${eventPath}`;
 
     return (
         <Helmet>

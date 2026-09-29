@@ -4,7 +4,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import { AIX_VIEWS, registrationOpen, resolveAiXView, eventTimestamp } from "../utils/hackathonAiX";
+import { AIX_VIEWS, registrationOpen, eventTimestamp } from "../utils/hackathonAiX";
+import { getEventUrl, getEventView } from "../utils/hackathonRoute";
 import HackathonAiXRegistration from "./HackathonAiXRegistration";
 import SEO from "./SEO";
 import Overview from "./hackathon-aix/Overview";
@@ -18,7 +19,7 @@ export default function HackathonAiX({ template, schedule }) {
     const { user, loading: authLoading } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const view = resolveAiXView(new URLSearchParams(location.search).get("view"));
+    const view = getEventView(location);
     const [now, setNow] = useState(Date.now);
     const [modal, setModal] = useState(false);
     const resumeRegistration = useRef(false);
@@ -27,9 +28,8 @@ export default function HackathonAiX({ template, schedule }) {
     const [registrationError, setRegistrationError] = useState(false);
     const [retry, setRetry] = useState(0);
     const event = template.event;
-    const projectsUrl = `/hackathon?event=${encodeURIComponent(event.key)}&view=results`;
-    const switchView = (nextView) =>
-        navigate(`/hackathon?event=${encodeURIComponent(event.key)}&view=${nextView}`);
+    const projectsUrl = getEventUrl(event.key, "results");
+    const switchView = (nextView) => navigate(getEventUrl(event.key, nextView));
     useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 30000);
         return () => window.clearInterval(timer);
@@ -101,9 +101,7 @@ export default function HackathonAiX({ template, schedule }) {
                     <select
                         id="hx-event-select"
                         value={event.key}
-                        onChange={(e) =>
-                            navigate(`/hackathon?event=${encodeURIComponent(e.target.value)}`)
-                        }
+                        onChange={(e) => navigate(getEventUrl(e.target.value, view))}
                     >
                         {[...schedule.events].reverse().map((item) => (
                             <option key={item.event.key} value={item.event.key}>
@@ -119,7 +117,7 @@ export default function HackathonAiX({ template, schedule }) {
                     {AIX_VIEWS.map((item) => (
                         <Link
                             key={item}
-                            to={`/hackathon?event=${encodeURIComponent(event.key)}&view=${item}`}
+                            to={getEventUrl(event.key, item)}
                             aria-current={view === item ? "page" : undefined}
                         >
                             {t(`aix.tabs.${item}`)}

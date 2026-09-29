@@ -1,161 +1,80 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { getEventKey, getEventView, getEventUrl, resolveEventLocation } from "./hackathonRoute.js";
 
-import {
-    getDefaultHackathonView,
-    getEventView,
-    getEventUrl,
-    getLegacyWorksUrl,
-    getLegacyProjectsUrl,
-    getHackathonMediaView,
-    getHackathonViewFromLocation,
-    isHackathonWorkspaceView,
-} from "./hackathonRoute.js";
+const schedule = {
+    activeEventKey: "zhekesong-ai-x-2026",
+    events: [
+        {
+            event: { key: "zhekesong-current" },
+            results: { competitionSlug: "ai-full-stack-hackathon-outcome" },
+        },
+        {
+            event: { key: "zhekesong-ai-x-2026" },
+            results: { competitionSlug: "zhekesong-ai-x-2026" },
+        },
+        { event: { key: "future-event" }, results: { competitionSlug: "future-competition" } },
+    ],
+};
+const locationOf = (url) => new URL(url, "https://example.test");
 
-test("retired project links preserve event context without confusing project and work IDs", () => {
-    const url = new URL(
-        getLegacyProjectsUrl({
-            search: "?competition=season-two&id=42&work=9&create=1&submit=1&photo=17",
-            hash: "#old",
-        }),
-        "https://example.test"
-    );
-    assert.equal(url.pathname, "/hackathon");
-    assert.equal(url.searchParams.get("competition"), "season-two");
-    assert.equal(url.searchParams.get("view"), "results");
-    assert.equal(url.searchParams.get("work"), "9");
-    for (const key of ["id", "create", "submit", "photo", "event"])
-        assert.equal(url.searchParams.has(key), false);
-    const generic = new URL(getLegacyProjectsUrl({ search: "?id=42" }), "https://example.test");
-    assert.equal(generic.searchParams.get("event"), "zhekesong-current");
-    assert.equal(generic.searchParams.has("work"), false);
-    assert.equal(
-        new URL(
-            getLegacyProjectsUrl({ search: "?event=zhekesong-ai-x-2026" }),
-            "https://example.test"
-        ).searchParams.get("event"),
-        "zhekesong-ai-x-2026"
-    );
-});
-
-test("hackathon route defaults to registration and preserves explicit outcome links", () => {
-    assert.equal(getHackathonViewFromLocation({ pathname: "/hackathon", search: "" }), "register");
-    assert.equal(
-        getHackathonViewFromLocation({ pathname: "/hackathon", search: "?event=current" }),
-        "register"
-    );
-    assert.equal(
-        getHackathonViewFromLocation({ pathname: "/hackathon", search: "?view=showcase" }),
-        "showcase"
-    );
-    assert.equal(
-        getHackathonViewFromLocation({ pathname: "/hackathon/showcase", search: "" }),
-        "showcase"
-    );
-    assert.equal(
-        getHackathonViewFromLocation({ pathname: "/hackathon/works", search: "?view=projects" }),
-        "showcase"
-    );
-});
-
-test("hackathon route accepts all stable workspace stages and rejects unknown values", () => {
-    for (const view of ["register", "projects", "media", "showcase"]) {
-        assert.equal(
-            getHackathonViewFromLocation({ pathname: "/hackathon", search: `?view=${view}` }),
-            view
-        );
-        assert.equal(isHackathonWorkspaceView(view), true);
+test("edition paths and their pages remain stable when the active event or order changes", () => {
+    for (const [eventKey, path] of [
+        ["zhekesong-current", "1"],
+        ["zhekesong-ai-x-2026", "2"],
+        ["future-event", "future-event"],
+    ]) {
+        for (const view of ["intro", "challenges", "media", "results"]) {
+            const url = getEventUrl(eventKey, view);
+            assert.equal(url, `/hackathon/${path}${view === "intro" ? "" : `/${view}`}`);
+            const location = locationOf(url);
+            assert.equal(getEventKey(location), eventKey);
+            assert.equal(getEventView(location), view);
+            const resolved = resolveEventLocation(location, {
+                ...schedule,
+                events: [...schedule.events].reverse(),
+            });
+            assert.equal(resolved.template.event.key, eventKey);
+            assert.equal(resolved.url, url);
+        }
     }
-    assert.equal(
-        getHackathonViewFromLocation(
-            { pathname: "/hackathon", search: "?view=missing" },
-            "projects"
-        ),
-        "projects"
-    );
-    assert.equal(isHackathonWorkspaceView("missing"), false);
+    assert.equal(resolveEventLocation(locationOf("/hackathon"), schedule).url, "/hackathon/2");
 });
 
-test("hackathon default stage follows the selected event lifecycle", () => {
-    const base = { navigation: { resultsVisible: true } };
+test("current media and work links retain selection and anchors", () => {
+    const paths = [
+        "/hackathon/1/media?photo=17&mediaView=featured#photos",
+        "/hackathon/1/results?work=9#showcase-works",
+    ];
+    for (const path of paths)
+        assert.equal(resolveEventLocation(locationOf(path), schedule).url, path);
     assert.equal(
-        getDefaultHackathonView(
-            {
-                ...base,
-                event: {
-                    startAt: "2026-09-01T09:00:00+08:00",
-                    endAt: "2026-09-01T18:00:00+08:00",
-                    registrationOpen: true,
-                },
-            },
-            new Date("2026-08-20T10:00:00+08:00")
-        ),
-        "register"
+        getEventUrl("ai-full-stack-hackathon-outcome", "results", { search: "work=42" }),
+        "/hackathon/1/results?work=42"
     );
     assert.equal(
-        getDefaultHackathonView(
-            {
-                ...base,
-                event: {
-                    startAt: "2026-08-20T09:00:00+08:00",
-                    endAt: "2026-08-20T18:00:00+08:00",
-                    registrationOpen: false,
-                },
-            },
-            new Date("2026-08-20T10:00:00+08:00")
-        ),
-        "projects"
-    );
-    assert.equal(
-        getDefaultHackathonView(
-            {
-                ...base,
-                event: {
-                    startAt: "2026-08-01T09:00:00+08:00",
-                    endAt: "2026-08-01T18:00:00+08:00",
-                    registrationOpen: false,
-                },
-            },
-            new Date("2026-08-20T10:00:00+08:00")
-        ),
-        "showcase"
+        resolveEventLocation(locationOf("/hackathon/1/media/"), schedule).url,
+        "/hackathon/1/media"
     );
 });
 
-test("media subview is namespaced away from the workspace view", () => {
-    assert.equal(getHackathonMediaView("?view=media&mediaView=featured"), "featured");
-    assert.equal(getHackathonMediaView("?view=showcase&mediaView=live"), "live");
-    assert.equal(getHackathonMediaView("?view=featured"), "live");
-});
-
-// Backward-compatible links must keep photo/work context when the shell changes.
-test("event navigation retains first registration and historical result aliases", () => {
-    assert.equal(getEventView({ search: "?event=zhekesong-current&view=register" }), "register");
-    assert.equal(getEventView({ search: "?view=showcase&work=42" }), "results");
-    assert.equal(getEventView({ pathname: "/hackathon/showcase" }), "results");
-    assert.equal(getEventView({ pathname: "/hackathon/works" }), "results");
-    assert.equal(getEventView({ search: "?view=media&mediaView=featured&photo=17" }), "media");
-    assert.equal(getEventView({ search: "?view=unknown" }), "intro");
-    assert.equal(
-        getEventUrl("zhekesong-current", "register"),
-        "/hackathon?event=zhekesong-current&view=intro"
-    );
-});
-
-test("legacy work shares never follow the currently active edition", () => {
-    const first = new URL(getLegacyWorksUrl({ search: "?id=23" }), "https://example.test");
-    assert.equal(first.searchParams.get("event"), "zhekesong-current");
-    assert.equal(first.searchParams.get("work"), "23");
-    assert.equal(first.searchParams.get("view"), "results");
-    const explicit = new URL(
-        getLegacyWorksUrl({ search: "?event=zhekesong-ai-x-2026&work=7" }),
-        "https://example.test"
-    );
-    assert.equal(explicit.searchParams.get("event"), "zhekesong-ai-x-2026");
-    const scoped = new URL(
-        getLegacyWorksUrl({ search: "?competition=another-event&id=8" }),
-        "https://example.test"
-    );
-    assert.equal(scoped.searchParams.get("competition"), "another-event");
-    assert.equal(scoped.searchParams.has("event"), false);
+test("retired query routes, former page aliases and unknown editions are not supported", () => {
+    for (const path of [
+        "/projects",
+        "/hackathon/showcase",
+        "/hackathon/works?id=23",
+        "/hackathon?event=zhekesong-current&view=register",
+        "/hackathon?view=showcase&work=42",
+        "/hackathon?competition=ai-full-stack-hackathon-outcome",
+        "/hackathon/1/register",
+        "/hackathon/1/showcase",
+        "/hackathon/1/projects",
+        "/hackathon/1/media?view=results",
+        "/hackathon/999",
+        "/hackathon/1/missing",
+        "/hackathon/1/media/extra",
+        "/hackathon/%ZZ",
+    ]) {
+        assert.equal(resolveEventLocation(locationOf(path), schedule), null, path);
+    }
 });

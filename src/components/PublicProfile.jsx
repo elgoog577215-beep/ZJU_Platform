@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SmartImage from "./SmartImage";
+import { getEventUrl } from "../utils/hackathonRoute";
 import {
     User,
     Users,
@@ -1398,7 +1399,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             help: `/articles?postTab=help&post=${item.id}`,
             materials: `/articles?postTab=materials&post=${item.id}`,
             team: `/articles?postTab=team&post=${item.id}`,
-            competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
+            competition_work:
+                item.target_path ||
+                getEventUrl(item.competition_slug || "zhekesong-current", "results", {
+                    search: new URLSearchParams({ work: item.id }),
+                }),
             project: `/projects?fromfav=1&id=${item.id}`,
         }[typeKey];
         if (!path) return;

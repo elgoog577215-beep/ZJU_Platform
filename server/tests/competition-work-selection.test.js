@@ -32,6 +32,7 @@ test("only explicitly selected, approved and consenting works reach public event
     } = require("../src/config/migrations/competitionWorkSelection");
     const ctl = require("../src/controllers/competitionController");
     const projects = require("../src/controllers/projectCardController");
+    const users = require("../src/controllers/userController");
     const previousLog = console.log,
         previousWarn = console.warn;
     console.log = () => {};
@@ -81,6 +82,27 @@ test("only explicitly selected, approved and consenting works reach public event
             [approved]
         );
         assert.equal(result.body.stats.works, 1);
+        const { lastID: claim } = await db.run(
+            "INSERT INTO user_identity_claims(user_id,type,display_name,normalized_name) VALUES(?,'person','Author','author')",
+            [user]
+        );
+        await db.run(
+            "INSERT INTO competition_work_identity_links(work_id,claim_id,user_id,status,matched_text) VALUES(?,?,?,'confirmed','Author')",
+            [approved, claim, user]
+        );
+        const profileWorks = () => run(users.getUserCompetitionWorks, { params: { id: user } });
+        assert.equal(
+            (await profileWorks()).body[0].target_path,
+            `/hackathon/selection-event/results?work=${approved}`
+        );
+        await db.run("UPDATE competitions SET slug='ai-full-stack-hackathon-outcome' WHERE id=?", [
+            event,
+        ]);
+        assert.equal(
+            (await profileWorks()).body[0].target_path,
+            `/hackathon/1/results?work=${approved}`
+        );
+        await db.run("UPDATE competitions SET slug='selection-event' WHERE id=?", [event]);
         // Public project projection must apply the same selection condition.
         const list = await run(projects.listProjects, { query: {} });
         const records = Array.isArray(list.body) ? list.body : list.body.items;

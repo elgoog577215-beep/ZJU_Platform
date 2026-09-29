@@ -14,6 +14,7 @@ import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import api from "../services/api";
 import { normalizeExternalImageUrl } from "../utils/imageUtils";
+import { getEventUrl } from "../utils/hackathonRoute";
 
 const FALLBACK_HERO = "/images/hero-campus-day-4k.jpg";
 const FALLBACK_PHOTO = "/images/hero-landscape-day-4k.jpg";
@@ -234,7 +235,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput, compact = false }) 
     );
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
-    const workspaceMediaHref = `/hackathon?event=${encodeURIComponent(event.key)}&view=media`;
+    const workspaceMediaHref = getEventUrl(event.key, "media");
     const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
     const titleParts = [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")];
     const eventDescription = useEnglishContent

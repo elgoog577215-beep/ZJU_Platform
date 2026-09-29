@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUpRight, MapPin, CalendarDays } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { eventTimestamp, stageState } from "../../utils/hackathonAiX";
+import { getEventUrl } from "../../utils/hackathonRoute";
 
 /*
 THESIS: A hackathon is people building together. Real, attributed photography carries that proof.
@@ -64,7 +65,7 @@ export default function Overview({ template, state, now, switchView }) {
                     </div>
                     <Link
                         className="hx-photo-main"
-                        to="/hackathon?event=zhekesong-current&view=showcase"
+                        to={getEventUrl("zhekesong-current", "results")}
                         aria-label={t("aix.previousEdition")}
                     >
                         <img
@@ -82,7 +83,7 @@ export default function Overview({ template, state, now, switchView }) {
                             <span>{t("aix.previousEditionTitle")}</span>
                         </div>
                         <Link
-                            to="/hackathon?event=zhekesong-current&view=showcase"
+                            to={getEventUrl("zhekesong-current", "results")}
                             className="hx-photo-detail"
                             aria-label={t("aix.previousEdition")}
                         >

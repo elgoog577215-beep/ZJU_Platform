@@ -1,4 +1,5 @@
 const { resultsPublishedSql } = require("../services/competitionPublication");
+const hackathonRoutes = require("../../../shared/hackathonRoutes.json");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
@@ -387,6 +388,9 @@ const buildUploadUrl = (file) => {
 };
 
 const serializeCompetitionWorkForProfile = (row, includeReviewState = false) => {
+    const eventPath =
+        hackathonRoutes.find((route) => route.competitionSlug === row.competition_slug)?.path ||
+        row.competition_slug;
     const item = {
         id: row.id,
         link_id: row.link_id,
@@ -398,12 +402,15 @@ const serializeCompetitionWorkForProfile = (row, includeReviewState = false) => 
         likes: 0,
         competition_id: row.competition_id,
         competition_title: row.competition_title,
+        competition_slug: row.competition_slug,
         author: row.author,
         summary: row.summary,
         award: row.award,
         rank: row.rank,
         public_consent: row.public_consent === undefined ? true : Boolean(row.public_consent),
-        target_path: `/hackathon?view=showcase&work=${row.id}`,
+        target_path: eventPath
+            ? `/hackathon/${encodeURIComponent(eventPath)}/results?work=${row.id}`
+            : null,
         uploader_id: row.uploader_id,
         uploader_name: row.uploader_name,
         uploader_avatar: row.uploader_avatar,
@@ -1628,7 +1635,7 @@ const listOwnOutcomeLinks = async (req, res, next) => {
              l.confidence, l.created_at AS linked_at, l.updated_at AS link_updated_at,
              ic.id AS identity_claim_id, ic.type AS bound_identity_type,
              ic.display_name AS bound_identity_name,
-             cw.*, c.title AS competition_title,
+             cw.*, c.title AS competition_title, c.slug AS competition_slug,
              COALESCE(u.nickname, u.username) AS uploader_name,
              u.avatar AS uploader_avatar
       FROM competition_work_identity_links l
@@ -1686,7 +1693,7 @@ const updateOwnOutcomeLink = async (req, res, next) => {
              l.confidence, l.created_at AS linked_at, l.updated_at AS link_updated_at,
              ic.id AS identity_claim_id, ic.type AS bound_identity_type,
              ic.display_name AS bound_identity_name,
-             cw.*, c.title AS competition_title,
+             cw.*, c.title AS competition_title, c.slug AS competition_slug,
              COALESCE(u.nickname, u.username) AS uploader_name,
              u.avatar AS uploader_avatar
       FROM competition_work_identity_links l
@@ -1781,7 +1788,7 @@ const getUserCompetitionWorks = async (req, res, next) => {
         const isAdmin = req.user?.role === "admin";
         const includeReviewState = Boolean(isOwner || isAdmin);
         let query = `
-      SELECT cw.*, c.title AS competition_title,
+      SELECT cw.*, c.title AS competition_title, c.slug AS competition_slug,
              l.id AS link_id,
              l.status AS binding_status,
              l.matched_text,
@@ -1876,7 +1883,7 @@ const getUserResources = async (req, res, next) => {
         allResources = [...allResources, ...posts];
 
         let worksQuery = `
-          SELECT cw.*, c.title AS competition_title,
+          SELECT cw.*, c.title AS competition_title, c.slug AS competition_slug,
                  l.id AS link_id,
                  l.status AS binding_status,
                  l.matched_text,
