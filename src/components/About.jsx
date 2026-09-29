@@ -724,7 +724,7 @@ const About = ({ showAppDownload = true }) => {
                                         className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out motion-safe:hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
                                     >
                                         <div
-                                            className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none opacity-50 ${palette.watermark}`}
+                                            className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none transition-transform duration-500 group-hover:-translate-x-2 ${palette.watermark}`}
                                         >
                                             {group.code}
                                         </div>
@@ -984,7 +984,7 @@ const About = ({ showAppDownload = true }) => {
                                         className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 motion-safe:hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
                                     >
                                         <div
-                                            className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none opacity-50 ${palette.watermark}`}
+                                            className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
                                         >
                                             {item.code}
                                         </div>
