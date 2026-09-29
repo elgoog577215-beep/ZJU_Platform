@@ -66,6 +66,9 @@ import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { shareViaNativeMiniProgram, shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
+// Temporarily hide the public AI assistant; keep its implementation for restoration.
+const EVENT_ASSISTANT_ENABLED = false;
+
 const EVENT_CARD_GRID_CLASS =
     "grid grid-cols-1 items-stretch justify-center gap-y-0 md:grid-cols-[repeat(2,minmax(0,19.5rem))] md:gap-x-7 md:gap-y-10 xl:grid-cols-[repeat(3,minmax(0,19.5rem))] xl:gap-x-8 xl:gap-y-12 2xl:grid-cols-[repeat(4,minmax(0,19.5rem))] 2xl:gap-x-8 2xl:gap-y-12";
 const EVENT_CONTENT_WIDTH_CLASS = "mx-auto w-full max-w-[84rem]";
@@ -1630,6 +1633,8 @@ END:VCALENDAR`;
     }, []);
 
     useEffect(() => {
+        if (!EVENT_ASSISTANT_ENABLED) return;
+
         const handleKey = (event) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
                 event.preventDefault();
@@ -1818,7 +1823,7 @@ END:VCALENDAR`;
                 </nav>
 
                 <div
-                    className={`mb-3 grid grid-cols-2 border-y md:hidden ${
+                    className={`mb-3 grid ${EVENT_ASSISTANT_ENABLED ? "grid-cols-2" : "grid-cols-1"} border-y md:hidden ${
                         isDayMode ? "border-slate-200/80" : "border-white/10"
                     }`}
                 >
@@ -1838,7 +1843,7 @@ END:VCALENDAR`;
                         </span>
                         <ChevronDown size={15} />
                     </motion.button>
-                    {renderAiSearchButton()}
+                    {EVENT_ASSISTANT_ENABLED && renderAiSearchButton()}
                 </div>
 
                 <div
@@ -1878,11 +1883,11 @@ END:VCALENDAR`;
                         onFiltersChange={setFilters}
                         sort={sort}
                         hideSort
-                        trailingAction={renderAiSearchButton()}
+                        trailingAction={EVENT_ASSISTANT_ENABLED ? renderAiSearchButton() : null}
                     />
                 </div>
 
-                {isAiSearchOpen && (
+                {EVENT_ASSISTANT_ENABLED && isAiSearchOpen && (
                     <section
                         id="event-ai-search"
                         aria-label={t("nav.ai_search")}
