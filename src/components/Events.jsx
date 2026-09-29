@@ -726,7 +726,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
 
                 <div
                     className={`mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs lg:gap-x-4 lg:text-[15px] ${
-                        isDayMode ? "text-slate-500" : "text-gray-400"
+                        isDayMode ? "text-slate-700" : "text-gray-400"
                     }`}
                 >
                     <span className="inline-flex min-w-0 items-center gap-1.5 lg:gap-2">
@@ -756,7 +756,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                             size={14}
                             className={
                                 isDayMode
-                                    ? "h-[17px] w-[17px] shrink-0 text-slate-400"
+                                    ? "h-[17px] w-[17px] shrink-0 text-slate-500"
                                     : "h-[17px] w-[17px] shrink-0 text-indigo-400"
                             }
                         />
@@ -770,7 +770,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                                 size={14}
                                 className={
                                     isDayMode
-                                        ? "shrink-0 text-slate-400"
+                                        ? "shrink-0 text-slate-500"
                                         : "shrink-0 text-indigo-400"
                                 }
                             />
@@ -797,7 +797,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                 {event.description && (
                     <p
                         className={`mt-2 line-clamp-2 text-[13px] leading-5 lg:max-w-3xl ${
-                            isDayMode ? "text-slate-500" : "text-gray-400"
+                            isDayMode ? "text-slate-700" : "text-gray-400"
                         }`}
                     >
                         {event.description}
@@ -805,7 +805,7 @@ const EventListRow = memo(({ event, index, onClick, reduceMotion, isDayMode }) =
                 )}
 
                 <div
-                    className={`mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pt-3 text-[11px] ${isDayMode ? "text-slate-500" : "text-slate-400"}`}
+                    className={`mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pt-3 text-[11px] ${isDayMode ? "text-slate-700" : "text-slate-400"}`}
                 >
                     {isCollegeNoticeEvent(event) && (
                         <span
@@ -1861,7 +1861,7 @@ END:VCALENDAR`;
                                 }
                                 setIsUploadOpen(true);
                             }}
-                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "event-day-control rounded-[10px] border !px-3" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
+                            className={`group flex shrink-0 items-center gap-2 border-b border-transparent px-1 py-2 text-sm font-bold transition-[border-color,color] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "text-blue-950 hover:border-blue-700 hover:text-blue-800" : "text-slate-300 hover:border-cyan-300/60 hover:text-white"}`}
                         >
                             <Upload size={18} className="md:w-5 md:h-5" />{" "}
                             {t("common.create_event")}
@@ -1922,9 +1922,7 @@ END:VCALENDAR`;
                 >
                     <div
                         className={`text-left text-sm font-medium ${
-                            isDayMode
-                                ? "rounded-[8px] bg-slate-50/95 px-3 py-2 text-slate-700"
-                                : "text-gray-400"
+                            isDayMode ? "event-results-count text-slate-800" : "text-gray-400"
                         }`}
                     >
                         {t("events.result_count", { count: displayEvents.length })}
@@ -1933,7 +1931,7 @@ END:VCALENDAR`;
                         <div
                             className={`inline-flex items-center gap-1 border-b ${
                                 isDayMode
-                                    ? "rounded-[10px] border border-slate-300 bg-slate-50/95 p-1"
+                                    ? "rounded-[8px] border border-white/55 bg-slate-50/50 p-1 backdrop-blur-xl"
                                     : "border-white/10"
                             }`}
                             role="group"
@@ -1952,7 +1950,7 @@ END:VCALENDAR`;
                                         className={`inline-flex min-h-9 items-center gap-2 border-b-2 px-2.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                             active
                                                 ? isDayMode
-                                                    ? "rounded-[6px] border-blue-700 bg-blue-100 text-blue-900"
+                                                    ? "rounded-[6px] border-blue-700 bg-white/60 text-blue-900"
                                                     : "border-indigo-300 text-white"
                                                 : isDayMode
                                                   ? "rounded-[6px] border-transparent text-slate-700 hover:bg-blue-50 hover:text-slate-900"
@@ -2119,7 +2117,9 @@ END:VCALENDAR`;
                     ))}
                 </div>
             ) : isCollegeNoticeFilter && !isMobileViewport ? (
-                <div className={`${EVENT_CONTENT_WIDTH_CLASS} flex flex-col gap-3`}>
+                <div
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} event-reading-surface flex flex-col gap-3`}
+                >
                     {displayEvents.map((event, index) => (
                         <CollegeNoticeRow
                             key={event.id}
@@ -2132,7 +2132,9 @@ END:VCALENDAR`;
                     ))}
                 </div>
             ) : viewMode === "list" && !isMobileViewport ? (
-                <div className={`${EVENT_CONTENT_WIDTH_CLASS} flex flex-col gap-3`}>
+                <div
+                    className={`${EVENT_CONTENT_WIDTH_CLASS} event-reading-surface flex flex-col gap-3`}
+                >
                     {displayEvents.map((event, index) => (
                         <EventListRow
                             key={event.id}
@@ -2145,7 +2147,9 @@ END:VCALENDAR`;
                     ))}
                 </div>
             ) : (
-                <div className={`${EVENT_CARD_GRID_CLASS} ${EVENT_CONTENT_WIDTH_CLASS}`}>
+                <div
+                    className={`${EVENT_CARD_GRID_CLASS} ${EVENT_CONTENT_WIDTH_CLASS} ${isMobileViewport ? "event-reading-surface" : ""}`}
+                >
                     {displayEvents.map((event, index) => (
                         <React.Fragment key={event.id}>
                             {isMobileViewport ? (

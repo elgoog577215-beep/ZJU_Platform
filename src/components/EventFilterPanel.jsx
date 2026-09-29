@@ -124,7 +124,7 @@ const EventFilterPanel = ({
         `relative h-10 shrink-0 rounded-[8px] px-3.5 text-sm font-bold transition-[background-color,color,box-shadow] focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
             active
                 ? isDayMode
-                    ? "bg-blue-100 text-blue-900"
+                    ? "bg-white/70 text-blue-900"
                     : "bg-white/[0.075] text-indigo-50 shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
                 : isDayMode
                   ? "text-slate-700 hover:bg-blue-50 hover:text-blue-900"
@@ -353,7 +353,7 @@ const EventFilterPanel = ({
                     <div
                         className={`relative w-fit max-w-full min-w-0 overflow-hidden rounded-[12px] border p-1 ${
                             isDayMode
-                                ? "border-slate-300 bg-slate-50/95"
+                                ? "border-white/55 bg-slate-50/45 backdrop-blur-xl"
                                 : "border-white/[0.10] bg-white/[0.035]"
                         }`}
                     >
