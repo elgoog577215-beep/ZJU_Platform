@@ -990,6 +990,11 @@ router.post(
     authenticateToken,
     competitionController.submitCurrentMedia
 );
+router.get(
+    "/competitions/:competitionSlug/media",
+    optionalAuth,
+    competitionController.getEventMedia
+);
 router.post(
     "/competitions/:competitionSlug/media",
     authenticateToken,
@@ -1111,6 +1116,13 @@ router.put(
     competitionController.reviewAdminWork
 );
 
+router.put(
+    "/admin/competition-works/:id/featured",
+    authenticateToken,
+    isAdmin,
+    competitionController.setAdminWorkFeatured
+);
+
 router.get("/media-categories", mediaCategoryController.listPublicCategories);
 router.get(
     "/admin/media-categories",
@@ -1195,7 +1207,14 @@ router.put("/admin/messages/:id/read", authenticateToken, isAdmin, messageContro
 router.get("/hackathon/schedule", hackathonController.getHackathonScheduleConfig);
 router.get("/hackathon/template", hackathonController.getHackathonTemplateConfig);
 router.post("/hackathon/assistant", optionalAuth, hackathonController.handleHackathonAssistant);
-router.post("/hackathon/register", hackathonController.registerHackathon);
+router.get("/hackathon/registration", authenticateToken, hackathonController.getMyRegistration);
+router.post("/hackathon/register", optionalAuth, hackathonController.registerHackathon);
+router.get(
+    "/admin/hackathon/schedule",
+    authenticateToken,
+    isAdmin,
+    hackathonController.getHackathonScheduleConfig
+);
 router.put(
     "/admin/hackathon/schedule",
     authenticateToken,

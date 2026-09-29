@@ -387,7 +387,11 @@ export const useParallax = (speed = 0.5) => {
 };
 
 export const useReducedMotion = () => {
-    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+        () =>
+            typeof window !== "undefined" &&
+            Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+    );
 
     useEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) {

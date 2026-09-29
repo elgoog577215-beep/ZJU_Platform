@@ -4,26 +4,26 @@ slug: "src-components-hackathonseasonone-jsx"
 primary_target: "src/components/HackathonSeasonOne.jsx"
 related_targets:
     [
+        "src/components/HackathonWorkspace.jsx",
+        "src/components/HackathonWorkspace.css",
+        "src/components/HackathonEventRouter.jsx",
         "src/components/HackathonOutcomeShowcase.jsx",
         "src/components/MediaEventArchive.jsx",
-        "src/components/ProjectPlaza.jsx",
-        "src/components/Navbar.jsx",
-        "src/components/MobileNavbar.jsx",
-        "src/components/SearchPalette.jsx",
+        "src/components/HackathonEventPicker.jsx",
     ]
 ---
 
-# Hackathon Event Workspace
+# First-edition event workspace
 
-- Scope: `/hackathon` cross-event workspace with registration, media and showcase stages, plus a projects link to the independent `/projects?competition=<slug>` page.
+- Scope: first edition, AI全栈极速黑客松. Second-edition UI is explicitly deferred by the user on 2026-09-29.
 - Mode: Operate.
-- Audience: participants, organizers, photographers, judges and visitors returning to current or past hackathons.
-- Job: choose one event, understand its lifecycle, and move through registration, project submission, live/featured media and final outcomes without losing context.
-- Primary action: continue the task owned by the selected stage while keeping the selected event stable.
-- Proof/content: published event schedule, registration state, public project evidence, canonical photos and featured media, awards and outcome records.
-- Constraints: the outer workspace owns event selection for its embedded stages; four entry points remain stable while scrolling; URL owns event and stage; projects open the independent page with competition scope and an event return link; legacy project, media, works and showcase links stay compatible; zh/en, coherent day/night shells and 390px support; stage content keeps its own theme rather than inheriting shell overrides; no fabricated event data.
-- Direction: use the About page's restrained site-level surface language for the cross-event shell: deep neutral with cyan at night, white with teal and minimal shadow by day. The event context, four-stage control, and desktop event index are compact typographic navigation rather than cards or glowing timelines; registration, project, media and showcase surfaces retain their incumbent backgrounds and visual identity.
-- Global navigation: keep the four primary destinations as typography inside one quiet shared track; pair AI Search and Download App as equal-geometry actions while preserving Download App as the stronger fill.
-- Global search: use one theme-aware translucent glass surface over an independent dimmed, blurred scrim; keep input, results, empty state and keyboard help readable without stacking decorative cards. Night glass stays neutral blue-black instead of inheriting event greens.
-- Memorable moment: the left event index and top four-stage rail remain one calm command surface while each event reveals its own visual world below.
-- Unresolved decisions: production currently exposes only one scheduled event, so the multi-event layout is code-verified but still needs real multi-event production data.
+- Job: browse this historical event's introduction, rules, media and results; view selected works inside its results.
+- Confirmed direction: neat alignment and the original angular cyan technology style. The original registration body is the accepted visual reference. Later X-themed media/results do not define the first-edition identity.
+- Structure: preserve the existing global website navigation and mobile bottom navigation. The event toolbar is a secondary tab row below the global header, with a custom event picker and registration action; no duplicated brand, language control or footer, and no left sidebar. Four fixed tabs: 介绍 / 赛题 / 图片视频 / 成果. The independent project center is retired; legacy links lead to event results. Archived signup is closed.
+- Identity: event key and canonical competition scope own the data. Never move first-edition photos or awards to the second edition because their old presentation used X imagery.
+- Visual rules: deep blue-black background, cyan accents, square corners, 1280px maximum content width; desktop gutters 20–56px; 42px maximum content-page title, 24px section title, 16px body, 14px navigation/detail. Original registration composition stays intact.
+- Routing: preserve register, showcase, works, project, photo and work deep links; keep zh/en navigation, keyboard focus, and 390px viewport usability.
+- Validation: local preview uses existing public read-only APIs. Build/route checks are separate from user acceptance; no push or deploy.
+
+- Publication: public works require approval, consent, operator selection and published event results. Selection order never assigns an award or rank.
+- Responsive acceptance: 320/390/768/1440px event views, mobile work detail, registration fields, keyboard event switching and reduced motion.

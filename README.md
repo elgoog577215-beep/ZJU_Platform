@@ -52,7 +52,9 @@ npm run dev
 
 - 前端：<http://localhost:5180>
 - 后端健康检查：<http://localhost:5181/api/health>
-- 前端开发服务器会把 `/api` 和 `/uploads` 代理到后端。
+- `npm run dev` 固定把 `/api` 和 `/uploads` 代理到本地 `127.0.0.1:5181`，并以开发模式启动后端，关闭自动采集、Token 检查和画像后台任务。页面联调不使用线上接口额度。
+- 后端支持 `SERVER_HOST` 指定监听地址，`BACKGROUND_TASKS_DISABLED=1` 关闭后台任务；未设置时保持原启动行为。
+- 若手动启动前端，请检查 `VITE_API_PROXY_TARGET`，避免继承指向线上站点的旧环境变量。
 
 也可以分别启动：
 

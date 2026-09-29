@@ -214,8 +214,6 @@ const CompetitionOutcomeUploadModal = ({
 
     const validateForm = () => {
         if (form.type === "work") {
-            if (!form.projectId && !isAdmin)
-                return t("outcome_upload.validation.project_required", "请先选择参赛项目");
             if (!form.workTitle.trim())
                 return t("outcome_upload.validation.work_title_required", "作品名称不能为空");
             if (!form.author.trim())
@@ -496,31 +494,23 @@ const CompetitionOutcomeUploadModal = ({
                                             >
                                                 {t(
                                                     "outcome_upload.project_select_label",
-                                                    "选择长期项目"
+                                                    "关联已有项目（可选）"
                                                 )}
                                             </label>
                                             <p className={`mt-1 text-xs leading-5 ${mutedClass}`}>
                                                 {t(
                                                     "outcome_upload.project_select_hint",
-                                                    "项目留在项目广场持续更新，本次提交保存独立赛事快照。"
+                                                    "本次提交保存独立赛事快照，审核通过并由管理员精选后公开展示。"
                                                 )}
                                             </p>
                                         </div>
-                                        <a
-                                            href={`/projects?competition=${encodeURIComponent(
-                                                competitionSlug || ""
-                                            )}&create=1`}
-                                            className="outcome-upload-create-project shrink-0 text-xs font-black text-cyan-400 underline underline-offset-4"
-                                        >
-                                            {t("outcome_upload.create_project", "新建项目")}
-                                        </a>
                                     </div>
                                     <select
                                         id="outcome-project-select"
                                         value={form.projectId}
                                         onChange={(event) => selectProject(event.target.value)}
                                         className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        required={!isAdmin}
+                                        required={false}
                                         disabled={projectsLoading}
                                     >
                                         <option value="">
@@ -531,7 +521,7 @@ const CompetitionOutcomeUploadModal = ({
                                                   )
                                                 : t(
                                                       "outcome_upload.project_select_placeholder",
-                                                      "请选择一个项目"
+                                                      "直接提交赛事作品"
                                                   )}
                                         </option>
                                         {projectOptions.map((project) => (
@@ -547,7 +537,7 @@ const CompetitionOutcomeUploadModal = ({
                                         <p className={`text-xs ${mutedClass}`}>
                                             {t(
                                                 "outcome_upload.projects_empty",
-                                                "你还没有可参赛的项目，请先创建项目。"
+                                                "直接填写下方作品信息即可提交。"
                                             )}
                                         </p>
                                     ) : null}

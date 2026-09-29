@@ -48,7 +48,7 @@ const Portal = ({ children }) => {
 const AuthModal = lazy(() => import("./AuthModal"));
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
-const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
+const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden = false }) => {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -248,6 +248,8 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true }) => {
 
     return (
         <motion.nav
+            data-site-navbar
+            style={chromeHidden ? { display: "none" } : undefined}
             variants={navEntrance}
             initial={prefersReducedMotion ? false : "initial"}
             animate={prefersReducedMotion ? undefined : "animate"}

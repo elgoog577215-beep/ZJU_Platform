@@ -1,3 +1,4 @@
+const { resultsPublishedSql } = require("../services/competitionPublication");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
@@ -1799,8 +1800,7 @@ const getUserCompetitionWorks = async (req, res, next) => {
         AND (c.deleted_at IS NULL OR c.id IS NULL)
     `;
         if (!includeReviewState) {
-            query +=
-                " AND l.status = 'confirmed' AND cw.status = 'approved' AND COALESCE(cw.public_consent, 1) = 1";
+            query += ` AND l.status = 'confirmed' AND cw.status = 'approved' AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}`;
         }
         query +=
             " ORDER BY datetime(COALESCE(cw.created_at, cw.updated_at, '1970-01-01')) DESC, cw.id DESC";
@@ -1895,7 +1895,7 @@ const getUserResources = async (req, res, next) => {
             AND (c.deleted_at IS NULL OR c.id IS NULL)
             AND l.status = 'confirmed'
             AND cw.status = 'approved'
-            AND COALESCE(cw.public_consent, 1) = 1
+            AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}
         `;
         worksQuery += " ORDER BY cw.id DESC";
         const competitionWorks = await db.all(worksQuery, [id]);

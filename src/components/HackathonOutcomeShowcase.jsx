@@ -3,18 +3,16 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, ExternalLink, Github, Play, Upload, X } from "lucide-react";
+import { ArrowRight, ExternalLink, Github, Play, X } from "lucide-react";
 
 import SEO from "./SEO";
 import SmartImage from "./SmartImage";
 import { normalizeHackathonTemplate } from "../data/hackathonTemplate";
-import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
 import { getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import api from "../services/api";
-import { getCompetitionPhase } from "../utils/competitionPhase";
 import { normalizeExternalImageUrl } from "../utils/imageUtils";
 
 const FALLBACK_HERO = "/images/hero-campus-day-4k.jpg";
@@ -25,8 +23,8 @@ const formatDate = (value) => {
     return match ? `${match[1]}.${match[2]}.${match[3]}` : String(value || "");
 };
 
-const normalizeRank = (rank, index) => {
-    const value = String(rank || index + 1).trim();
+const normalizeRank = (rank) => {
+    const value = String(rank || "").trim();
     return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
 };
 
@@ -34,7 +32,7 @@ const stripWorkAwardPrefix = (title) =>
     String(title || "").replace(/^(?:冠军作品|亚军作品|季军作品)[：:]\s*/u, "");
 
 const getPodiumRank = (work) => {
-    const rank = Number.parseInt(work?.rank, 10);
+    const rank = /^\d+$/.test(String(work?.rank || "")) ? Number(work.rank) : null;
     return rank >= 1 && rank <= 3 ? rank : null;
 };
 
@@ -56,22 +54,19 @@ const getLocalizedHonorTitle = (work, t) => {
 const normalizeWork = (work, index, t) => ({
     ...work,
     id: work.id || `fallback-${index + 1}`,
-    rank: normalizeRank(work.rank, index),
-    award: work.award || work.honor_title || t("hackathon.outcome_archive.fallback_award"),
+    rank: normalizeRank(work.rank),
+    award: work.award || work.honor_title || "",
     honorTitle:
-        work.honor_title ||
-        work.honorTitle ||
-        work.award ||
-        t("hackathon.outcome_archive.fallback_honor"),
+        work.honor_title || work.honorTitle || work.award || t("eventWorkspace.selectedWorks"),
     title:
         work.title ||
         t("hackathon.outcome_archive.fallback_title", {
-            rank: normalizeRank(work.rank, index),
+            rank: normalizeRank(work.rank),
         }),
     displayTitle: stripWorkAwardPrefix(
         work.title ||
             t("hackathon.outcome_archive.fallback_title", {
-                rank: normalizeRank(work.rank, index),
+                rank: normalizeRank(work.rank),
             })
     ),
     author: work.author || work.uploader_name || t("hackathon.outcome_archive.fallback_author"),
@@ -150,12 +145,6 @@ const WorkDetail = ({ work, t, compact = false, summaryOnly = false }) => {
                                 <ExternalLink className="h-3.5 w-3.5" />
                             </a>
                         ) : null}
-                        {work.projectId ? (
-                            <Link to={`/projects?id=${encodeURIComponent(work.projectId)}`}>
-                                {t("hackathon.outcome_archive.open_project", "打开项目名片")}
-                                <ArrowRight className="h-3.5 w-3.5" />
-                            </Link>
-                        ) : null}
                     </div>
                 </div>
             </div>
@@ -163,7 +152,7 @@ const WorkDetail = ({ work, t, compact = false, summaryOnly = false }) => {
     );
 };
 
-const MobileWorkDetail = ({ work, open, onClose, t }) => {
+const MobileWorkDetail = ({ work, open, onClose, t, firstEdition = false }) => {
     useBackClose(open, onClose);
     useBodyScrollLock(open);
     if (!open || !work || typeof document === "undefined") return null;
@@ -173,7 +162,7 @@ const MobileWorkDetail = ({ work, open, onClose, t }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="outcome-mobile-work"
+                className={`outcome-mobile-work ${firstEdition ? "is-first-edition" : ""}`}
                 role="dialog"
                 aria-modal="true"
                 aria-label={t("hackathon.outcome_archive.work_dialog", {
@@ -234,7 +223,7 @@ const OutcomeField = ({ className = "" }) => (
     </picture>
 );
 
-const HackathonOutcomeShowcase = ({ template: templateInput }) => {
+const HackathonOutcomeShowcase = ({ template: templateInput, compact = false }) => {
     const { t, i18n } = useTranslation();
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
@@ -245,9 +234,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     );
     const event = template.event;
     const competitionSlug = template.results.competitionSlug;
-    const workspaceProjectsHref = `/hackathon?event=${encodeURIComponent(event.key)}&view=projects`;
     const workspaceMediaHref = `/hackathon?event=${encodeURIComponent(event.key)}&view=media`;
-    const competitionIsLive = getCompetitionPhase(event) === "live";
     const useEnglishContent = i18n.resolvedLanguage?.startsWith("en");
     const titleParts = [t("hackathon.hero.title_line_1"), t("hackathon.hero.title_line_2")];
     const eventDescription = useEnglishContent
@@ -256,12 +243,14 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     const eventLocation = useEnglishContent ? t("hackathon.event.location") : event.location;
     const [outcome, setOutcome] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [videoOpen, setVideoOpen] = useState(false);
     const [mobileWorkOpen, setMobileWorkOpen] = useState(false);
     const { groups: partnerGroups, enterpriseLogos } = useEcosystemPartners();
 
     const loadOutcome = useCallback(async () => {
         setLoading(true);
+        setLoadError(false);
         try {
             const response = await api.get(
                 `/competitions/${encodeURIComponent(competitionSlug)}/outcome`,
@@ -269,6 +258,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
             );
             setOutcome(response.data || null);
         } catch {
+            setLoadError(true);
             setOutcome(null);
         } finally {
             setLoading(false);
@@ -299,25 +289,27 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
         [outcome]
     );
     const officialVideo = outcome?.media?.promo_videos?.[0] || null;
-    const works = useMemo(() => {
-        const source =
-            Array.isArray(outcome?.works) && outcome.works.length > 0
-                ? outcome.works
-                : fallbackPodiumWorks;
-        const usingFallback = source === fallbackPodiumWorks;
-        return source.map((work, index) =>
-            normalizeWork(
-                usingFallback
-                    ? { ...work, award: "", honorTitle: "", title: "", author: "" }
-                    : work,
-                index,
-                t
-            )
-        );
-    }, [outcome, t]);
+    const works = useMemo(
+        () =>
+            (Array.isArray(outcome?.works) ? outcome.works : []).map((work, index) =>
+                normalizeWork(work, index, t)
+            ),
+        [outcome, t]
+    );
     const requestedWork = String(searchParams.get("work") || "").trim();
     const selectedWork =
         works.find((work) => String(work.id) === requestedWork) || works[0] || null;
+    useEffect(() => {
+        if (
+            !loading &&
+            requestedWork &&
+            works.some((work) => String(work.id) === requestedWork) &&
+            window.matchMedia("(max-width: 767px)").matches
+        ) {
+            setMobileWorkOpen(true);
+        }
+    }, [loading, requestedWork, works]);
+
     const podium = works.slice(0, 3);
     const remainingWorks = works.slice(3);
 
@@ -367,9 +359,24 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
     );
     const useEnglishPartnerNames = useEnglishContent;
 
+    if (compact && (loading || loadError))
+        return (
+            <section className="hx-content">
+                <h1>{t("eventWorkspace.resultsTitle")}</h1>
+                <div className="hx-empty" role={loadError ? "alert" : "status"}>
+                    <p>{t(loadError ? "aix.loadFailed" : "aix.loading")}</p>
+                    {loadError && (
+                        <button className="hx-outline" onClick={loadOutcome}>
+                            {t("aix.retry")}
+                        </button>
+                    )}
+                </div>
+            </section>
+        );
+
     return (
         <div
-            className={`hackathon-outcome showcase-compact-flow ${isDayMode ? "is-day" : "is-dark"}`}
+            className={`hackathon-outcome showcase-compact-flow ${compact ? "is-structured" : ""} ${isDayMode ? "is-day" : "is-dark"}`}
             data-showcase-page
         >
             <SEO
@@ -387,124 +394,222 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
               the title, event facts, real photo, and actions without hiding the background.
               Form: selective rounding only on media and controls; lists and statistics stay open.
             */}
-            <picture className="outcome-x-field" aria-hidden="true">
-                <source media="(max-width: 767px)" srcSet="/images/hackathon/x-field-mobile.webp" />
-                <img src="/images/hackathon/x-field-desktop.webp" alt="" />
-            </picture>
+            {!compact && (
+                <picture className="outcome-x-field" aria-hidden="true">
+                    <source
+                        media="(max-width: 767px)"
+                        srcSet="/images/hackathon/x-field-mobile.webp"
+                    />
+                    <img src="/images/hackathon/x-field-desktop.webp" alt="" />
+                </picture>
+            )}
 
             <main className="hackathon-outcome-inner">
-                <section
-                    id="showcase-overview"
-                    className="outcome-overview"
-                    aria-labelledby="outcome-title"
-                >
-                    <div className="outcome-overview-grid">
-                        <div className="outcome-hero-copy">
-                            <h1 id="outcome-title">
-                                {titleParts.map((part, index) => (
-                                    <span
-                                        key={part}
-                                        className={
-                                            index === titleParts.length - 1 ? "is-accent" : ""
-                                        }
-                                    >
-                                        {part}
-                                    </span>
-                                ))}
-                            </h1>
-                            <h2 className="sr-only" id="overview-heading">
-                                {t("hackathon.outcome_archive.overview")}
-                            </h2>
-                            <div className="outcome-title-rule" aria-hidden="true" />
-                            <p className="outcome-date-line">
-                                {formatDate(event.startAt)} · {eventLocation}
-                            </p>
-                            <p className="outcome-overview-name">
-                                {t("hackathon.outcome_archive.overview")}
-                            </p>
-                            <p className="outcome-description">{eventDescription}</p>
-                            <div className="outcome-stat-grid">
-                                {eventStats.map((stat) => (
-                                    <div key={stat.id}>
-                                        <strong>
-                                            {stat.value}
-                                            <small>{stat.unit}</small>
-                                        </strong>
-                                        <span>{stat.label}</span>
+                {compact ? (
+                    <header className="outcome-result-header">
+                        <p>{event.title}</p>
+                        <h1>{t("eventWorkspace.resultsTitle")}</h1>
+                    </header>
+                ) : (
+                    <>
+                        {/* Keep the standalone archive presentation available. */}{" "}
+                        <section
+                            id="showcase-overview"
+                            className="outcome-overview"
+                            aria-labelledby="outcome-title"
+                        >
+                            <div className="outcome-overview-grid">
+                                <div className="outcome-hero-copy">
+                                    <h1 id="outcome-title">
+                                        {titleParts.map((part, index) => (
+                                            <span
+                                                key={part}
+                                                className={
+                                                    index === titleParts.length - 1
+                                                        ? "is-accent"
+                                                        : ""
+                                                }
+                                            >
+                                                {part}
+                                            </span>
+                                        ))}
+                                    </h1>
+                                    <h2 className="sr-only" id="overview-heading">
+                                        {t("hackathon.outcome_archive.overview")}
+                                    </h2>
+                                    <div className="outcome-title-rule" aria-hidden="true" />
+                                    <p className="outcome-date-line">
+                                        {formatDate(event.startAt)} · {eventLocation}
+                                    </p>
+                                    <p className="outcome-overview-name">
+                                        {t("hackathon.outcome_archive.overview")}
+                                    </p>
+                                    <p className="outcome-description">{eventDescription}</p>
+                                    <div className="outcome-stat-grid">
+                                        {eventStats.map((stat) => (
+                                            <div key={stat.id}>
+                                                <strong>
+                                                    {stat.value}
+                                                    <small>{stat.unit}</small>
+                                                </strong>
+                                                <span>{stat.label}</span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                    <div className="outcome-primary-actions">
+                                        <a href="#showcase-works">
+                                            {t(
+                                                "hackathon.outcome_archive.browse_projects",
+                                                "查看精选作品"
+                                            )}
+                                            <ArrowRight className="h-4 w-4" />
+                                        </a>
+                                    </div>
+                                </div>
+                                <div className="outcome-film">
+                                    <div className="outcome-film-frame">
+                                        <button
+                                            type="button"
+                                            onClick={() => officialVideo && setVideoOpen(true)}
+                                            disabled={!officialVideo}
+                                            aria-label={t("hackathon.outcome_archive.play_film")}
+                                        >
+                                            <SmartImage
+                                                src={normalizeExternalImageUrl(heroCover, 1400)}
+                                                alt={t("hackathon.outcome_archive.film_alt")}
+                                                type="video"
+                                                priority
+                                                className="h-full w-full"
+                                                imageClassName="h-full w-full object-cover"
+                                            />
+                                            {officialVideo ? (
+                                                <span className="outcome-film-play">
+                                                    <Play className="h-6 w-6" fill="currentColor" />
+                                                </span>
+                                            ) : null}
+                                        </button>
+                                    </div>
+                                    <div className="outcome-film-caption">
+                                        <span>{t("hackathon.outcome_archive.official_film")}</span>
+                                        <strong>
+                                            {officialVideo?.title ||
+                                                t("hackathon.outcome_archive.film_pending")}
+                                        </strong>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="outcome-primary-actions">
-                                {competitionIsLive ? (
-                                    <Link to={`${workspaceProjectsHref}&submit=1`}>
-                                        <Upload className="h-4 w-4" />
-                                        {t(
-                                            "hackathon.outcome_archive.submit_project",
-                                            "提交参赛项目"
-                                        )}
-                                    </Link>
-                                ) : null}
-                                <Link to={workspaceProjectsHref}>
-                                    {t(
-                                        "hackathon.outcome_archive.browse_projects",
-                                        "进入本场项目广场"
-                                    )}
+                            <div className="outcome-next-section">
+                                <div>
+                                    <span aria-hidden="true">02</span>
+                                    <strong>{t("hackathon.outcome_archive.archive_title")}</strong>
+                                </div>
+                                <Link to={workspaceMediaHref}>
+                                    {t("hackathon.outcome_archive.view_all_photos", {
+                                        count: outcome?.stats?.stage_photos || photos.length,
+                                    })}
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </div>
-                        </div>
-                        <div className="outcome-film">
-                            <div className="outcome-film-frame">
-                                <button
-                                    type="button"
-                                    onClick={() => officialVideo && setVideoOpen(true)}
-                                    disabled={!officialVideo}
-                                    aria-label={t("hackathon.outcome_archive.play_film")}
-                                >
-                                    <SmartImage
-                                        src={normalizeExternalImageUrl(heroCover, 1400)}
-                                        alt={t("hackathon.outcome_archive.film_alt")}
-                                        type="video"
-                                        priority
-                                        className="h-full w-full"
-                                        imageClassName="h-full w-full object-cover"
-                                    />
-                                    {officialVideo ? (
-                                        <span className="outcome-film-play">
-                                            <Play className="h-6 w-6" fill="currentColor" />
-                                        </span>
-                                    ) : null}
-                                </button>
-                            </div>
-                            <div className="outcome-film-caption">
-                                <span>{t("hackathon.outcome_archive.official_film")}</span>
-                                <strong>
-                                    {officialVideo?.title ||
-                                        t("hackathon.outcome_archive.film_pending")}
-                                </strong>
-                            </div>
-                        </div>
+                        </section>
+                    </>
+                )}
+
+                <section
+                    id="showcase-works"
+                    className="outcome-works"
+                    aria-labelledby="works-heading"
+                >
+                    {!compact && <OutcomeField className="is-works" />}
+                    <div className="outcome-section-topline">
+                        <SectionNumber
+                            number="01"
+                            eyebrow={t("hackathon.outcome_archive.works_eyebrow")}
+                            title={t("hackathon.outcome_archive.works_title")}
+                            id="works-heading"
+                        />
                     </div>
-                    <div className="outcome-next-section">
-                        <div>
-                            <span aria-hidden="true">02</span>
-                            <strong>{t("hackathon.outcome_archive.archive_title")}</strong>
+                    <div className="outcome-works-layout">
+                        <div className="outcome-podium">
+                            {podium.length > 0 ? (
+                                <h3>{t("eventWorkspace.selectedWorks")}</h3>
+                            ) : (
+                                <p>{t("eventWorkspace.noWorks")}</p>
+                            )}
+                            {podium.map((work) => (
+                                <button
+                                    key={work.id}
+                                    type="button"
+                                    onClick={() => selectWork(work)}
+                                    className={selectedWork?.id === work.id ? "is-selected" : ""}
+                                >
+                                    <div className="outcome-podium-thumb">
+                                        <SmartImage
+                                            src={normalizeExternalImageUrl(work.cover, 500)}
+                                            alt={work.title}
+                                            type="image"
+                                            className="h-full w-full"
+                                            imageClassName="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <span>{work.rank}</span>
+                                    <div>
+                                        <em>{work.award || work.honorTitle}</em>
+                                        <strong>{work.displayTitle || work.title}</strong>
+                                        <small>{work.author}</small>
+                                    </div>
+                                </button>
+                            ))}
                         </div>
-                        <Link to={workspaceMediaHref}>
-                            {t("hackathon.outcome_archive.view_all_photos", {
-                                count: outcome?.stats?.stage_photos || photos.length,
-                            })}
-                            <ArrowRight className="h-4 w-4" />
-                        </Link>
+                        <WorkDetail work={selectedWork} t={t} summaryOnly />
+                        <div className="outcome-ranking">
+                            <h3>
+                                {t("hackathon.outcome_archive.complete_ranking", {
+                                    count: works.length,
+                                })}
+                            </h3>
+                            <div>
+                                {(remainingWorks.length > 0 ? remainingWorks : podium).map(
+                                    (work) => (
+                                        <button
+                                            key={work.id}
+                                            type="button"
+                                            onClick={() => selectWork(work)}
+                                            className={
+                                                selectedWork?.id === work.id ? "is-selected" : ""
+                                            }
+                                        >
+                                            <div className="outcome-ranking-thumb">
+                                                <SmartImage
+                                                    src={normalizeExternalImageUrl(work.cover, 360)}
+                                                    alt=""
+                                                    type="image"
+                                                    className="h-full w-full"
+                                                    imageClassName="h-full w-full object-cover"
+                                                />
+                                            </div>
+                                            <span>{work.rank}</span>
+                                            <div>
+                                                <strong>{work.displayTitle || work.title}</strong>
+                                                <small>{work.author}</small>
+                                            </div>
+                                            <ArrowRight className="h-4 w-4" />
+                                        </button>
+                                    )
+                                )}
+                            </div>
+                            <p className="outcome-ranking-hint">
+                                {t("hackathon.outcome_archive.ranking_hint")}
+                                <ArrowRight className="h-3.5 w-3.5" />
+                            </p>
+                        </div>
                     </div>
                 </section>
-
                 <section
                     id="showcase-archive"
                     className="outcome-archive"
                     aria-labelledby="archive-heading"
                 >
-                    <OutcomeField className="is-archive" />
+                    {!compact && <OutcomeField className="is-archive" />}
                     {photos.length > 0 ? (
                         <>
                             <div className="outcome-archive-stage">
@@ -586,115 +691,9 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                         </>
                     )}
                 </section>
-
-                <section
-                    id="showcase-works"
-                    className="outcome-works"
-                    aria-labelledby="works-heading"
-                >
-                    <OutcomeField className="is-works" />
-                    <div className="outcome-section-topline">
-                        <SectionNumber
-                            number="03"
-                            eyebrow={t("hackathon.outcome_archive.works_eyebrow")}
-                            title={t("hackathon.outcome_archive.works_title")}
-                            id="works-heading"
-                        />
-                        <Link
-                            to={`${workspaceProjectsHref}${competitionIsLive ? "&submit=1" : ""}`}
-                        >
-                            {competitionIsLive
-                                ? t("hackathon.outcome_archive.submit_work")
-                                : t(
-                                      "hackathon.outcome_archive.browse_projects",
-                                      "进入本场项目广场"
-                                  )}
-                            {competitionIsLive ? (
-                                <Upload className="h-4 w-4" />
-                            ) : (
-                                <ArrowRight className="h-4 w-4" />
-                            )}
-                        </Link>
-                    </div>
-                    <div className="outcome-works-layout">
-                        <div className="outcome-podium">
-                            <h3>{t("hackathon.outcome_archive.top_three")}</h3>
-                            {podium.map((work, index) => (
-                                <button
-                                    key={work.id}
-                                    type="button"
-                                    onClick={() => selectWork(work)}
-                                    className={selectedWork?.id === work.id ? "is-selected" : ""}
-                                >
-                                    <div className="outcome-podium-thumb">
-                                        <SmartImage
-                                            src={normalizeExternalImageUrl(work.cover, 500)}
-                                            alt={work.title}
-                                            type="image"
-                                            className="h-full w-full"
-                                            imageClassName="h-full w-full object-cover"
-                                        />
-                                    </div>
-                                    <span>{work.rank}</span>
-                                    <div>
-                                        <em>
-                                            {t(
-                                                `hackathon.outcome_archive.podium_award_${index + 1}`
-                                            )}
-                                        </em>
-                                        <strong>{work.displayTitle || work.title}</strong>
-                                        <small>
-                                            {work.award} · {work.author}
-                                        </small>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                        <WorkDetail work={selectedWork} t={t} summaryOnly />
-                        <div className="outcome-ranking">
-                            <h3>
-                                {t("hackathon.outcome_archive.complete_ranking", {
-                                    count: works.length,
-                                })}
-                            </h3>
-                            <div>
-                                {(remainingWorks.length > 0 ? remainingWorks : podium).map(
-                                    (work) => (
-                                        <button
-                                            key={work.id}
-                                            type="button"
-                                            onClick={() => selectWork(work)}
-                                            className={
-                                                selectedWork?.id === work.id ? "is-selected" : ""
-                                            }
-                                        >
-                                            <div className="outcome-ranking-thumb">
-                                                <SmartImage
-                                                    src={normalizeExternalImageUrl(work.cover, 360)}
-                                                    alt=""
-                                                    type="image"
-                                                    className="h-full w-full"
-                                                    imageClassName="h-full w-full object-cover"
-                                                />
-                                            </div>
-                                            <span>{work.rank}</span>
-                                            <div>
-                                                <strong>{work.displayTitle || work.title}</strong>
-                                                <small>{work.author}</small>
-                                            </div>
-                                            <ArrowRight className="h-4 w-4" />
-                                        </button>
-                                    )
-                                )}
-                            </div>
-                            <p className="outcome-ranking-hint">
-                                {t("hackathon.outcome_archive.ranking_hint")}
-                                <ArrowRight className="h-3.5 w-3.5" />
-                            </p>
-                        </div>
-                    </div>
+                {!compact && (
                     <footer id="showcase-support" className="outcome-credits">
-                        <OutcomeField className="is-support" />
+                        {!compact && <OutcomeField className="is-support" />}
                         <div className="outcome-credits-head">
                             <div className="outcome-credits-index">
                                 <span>{t("hackathon.outcome_archive.support_eyebrow")}</span>
@@ -824,7 +823,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                             </div>
                         </div>
                     </footer>
-                </section>
+                )}
             </main>
 
             <VideoDialog
@@ -834,6 +833,7 @@ const HackathonOutcomeShowcase = ({ template: templateInput }) => {
                 t={t}
             />
             <MobileWorkDetail
+                firstEdition={compact}
                 work={selectedWork}
                 open={mobileWorkOpen}
                 onClose={closeMobileWork}

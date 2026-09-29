@@ -1,0 +1,177 @@
+{
+    "version": 1,
+    "revision": 1,
+    "updatedAt": null,
+    "navigation": {
+        "registrationVisible": true,
+        "resultsVisible": true
+    },
+    "results": {
+        "competitionSlug": "zhekesong-ai-x-2026"
+    },
+    "event": {
+        "key": "zhekesong-ai-x-2026",
+        "brand": "AI跨学科创新论坛暨",
+        "title": "AI+X破界黑客松",
+        "subtitle": "破界 · 共创 · 涌现",
+        "description": "面向不同专业的真实问题，组建跨学科团队，用 AI 完成可运行、可验证的应用。",
+        "startAt": "2026-10-18T09:00",
+        "endAt": "2026-10-24T17:00",
+        "timezone": "Asia/Shanghai",
+        "location": "浙江大学紫金港校区",
+        "format": "1–5 人组队",
+        "duration": "初赛 · 复赛 · 决赛",
+        "prizeValue": "待公布",
+        "prizeUnit": "",
+        "registrationOpen": true,
+        "highlights": [],
+        "program": {
+            "registrationClosesAt": "2026-10-18T09:00:00+08:00",
+            "stages": [
+                {
+                    "id": "initial",
+                    "opensAt": "2026-10-18T11:00:00+08:00",
+                    "closesAt": "2026-10-18T17:00:00+08:00"
+                },
+                {
+                    "id": "semifinal",
+                    "opensAt": "2026-10-19T00:00:00+08:00",
+                    "closesAt": "2026-10-23T00:00:00+08:00"
+                },
+                {
+                    "id": "final",
+                    "opensAt": "2026-10-24T13:30:00+08:00",
+                    "closesAt": "2026-10-24T15:30:00+08:00"
+                }
+            ],
+            "challenges": [],
+            "reports": []
+        }
+    },
+    "rules": [
+        {
+            "id": "cross_discipline",
+            "title": "跨学科组队与真实应用",
+            "description": "面向浙江大学各专业学生，支持 1–5 人组队，以可运行的 AI 应用参与比赛。",
+            "enabled": true
+        }
+    ],
+    "form": {
+        "title": "赛事报名",
+        "description": "面向浙江大学各专业学生，支持 1–5 人组队。每位参赛者填写自己的报名信息。",
+        "requiredHint": "所有带 * 的字段均为必填",
+        "submitLabel": "提交报名",
+        "successMessage": "报名已提交，可在右上角查看报名信息。",
+        "privacyNotice": "信息仅用于赛事报名核验、通知和现场组织。",
+        "fields": [
+            {
+                "id": "name",
+                "label": "姓名",
+                "type": "text",
+                "placeholder": "请输入姓名",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "studentId",
+                "label": "学号",
+                "type": "text",
+                "placeholder": "请输入学号",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "major",
+                "label": "专业",
+                "type": "text",
+                "placeholder": "请输入专业",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "grade",
+                "label": "年级",
+                "type": "select",
+                "placeholder": "请选择年级",
+                "required": true,
+                "enabled": true,
+                "system": true,
+                "width": "half",
+                "options": [
+                    {
+                        "value": "freshman",
+                        "label": "大一"
+                    },
+                    {
+                        "value": "sophomore",
+                        "label": "大二"
+                    },
+                    {
+                        "value": "junior",
+                        "label": "大三"
+                    },
+                    {
+                        "value": "senior",
+                        "label": "大四"
+                    },
+                    {
+                        "value": "master",
+                        "label": "硕士"
+                    },
+                    {
+                        "value": "phd",
+                        "label": "博士"
+                    }
+                ]
+            },
+            {
+                "id": "track",
+                "label": "意向赛道",
+                "type": "select",
+                "placeholder": "请选择",
+                "required": true,
+                "enabled": true,
+                "width": "half",
+                "options": [
+                    {
+                        "value": "campus",
+                        "label": "校园赛道"
+                    },
+                    {
+                        "value": "industry",
+                        "label": "产业赛道"
+                    }
+                ]
+            },
+            {
+                "id": "contact",
+                "label": "联系邮箱",
+                "type": "email",
+                "placeholder": "填写可接收赛事通知的邮箱",
+                "required": true,
+                "enabled": true,
+                "width": "half",
+                "options": []
+            },
+            {
+                "id": "team",
+                "label": "队伍名称",
+                "type": "text",
+                "placeholder": "暂未组队可留空",
+                "required": false,
+                "enabled": true,
+                "width": "full",
+                "options": []
+            }
+        ]
+    }
+}

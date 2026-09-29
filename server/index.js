@@ -54,6 +54,8 @@ app.disable("x-powered-by");
 // 端口配置：优先使用环境变量，否则使用 5181
 const PORT = process.env.PORT || 5181;
 const NODE_ENV = process.env.NODE_ENV || "development";
+const SERVER_HOST = process.env.SERVER_HOST || undefined;
+const backgroundTasksEnabled = process.env.BACKGROUND_TASKS_DISABLED !== "1";
 
 // ====================
 // Logging Configuration
@@ -378,14 +380,16 @@ const startServer = async () => {
         // Initialize database
         const db = await getDb();
         await runMigrations(db);
-        startWechatMpTokenHealthScheduler({ getDb });
-        startWechatMpIngestScheduler({ getDb });
-        startUserEventAiProfileScheduler({ getDb });
+        if (backgroundTasksEnabled) {
+            startWechatMpTokenHealthScheduler({ getDb });
+            startWechatMpIngestScheduler({ getDb });
+            startUserEventAiProfileScheduler({ getDb });
+        }
 
         // 尝试启动服务器，如果端口被占用则尝试下一个端口
         const startOnPort = (port) => {
             return new Promise((resolve, reject) => {
-                const server = app.listen(port, () => {
+                const server = app.listen(port, SERVER_HOST, () => {
                     console.log(`
 🚀 Server running on port ${port}
 📊 Environment: ${NODE_ENV}
@@ -427,12 +431,13 @@ const startServer = async () => {
             }
         }
 
-        refreshEventAiSearchIndex(db).catch((error) => {
-            console.error(
-                "[EventAssistant] Background search index refresh failed:",
-                error.message
-            );
-        });
+        if (backgroundTasksEnabled)
+            refreshEventAiSearchIndex(db).catch((error) => {
+                console.error(
+                    "[EventAssistant] Background search index refresh failed:",
+                    error.message
+                );
+            });
     } catch (error) {
         console.error("❌ Failed to start server:", error);
         process.exit(1);

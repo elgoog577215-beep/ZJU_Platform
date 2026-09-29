@@ -3,14 +3,16 @@ export const HACKATHON_WORKSPACE_VIEWS = ["register", "projects", "media", "show
 export const isHackathonWorkspaceView = (value) =>
     HACKATHON_WORKSPACE_VIEWS.includes(String(value || ""));
 
-// Retire the embedded project route without losing project actions or share context.
-export const getHackathonProjectUrl = (competitionSlug, location = {}) => {
-    const params = new URLSearchParams(location.search || "");
-    ["event", "view", "mediaView", "photo"].forEach((key) => params.delete(key));
-    if (competitionSlug) params.set("competition", competitionSlug);
-    else params.delete("competition");
-    const search = params.toString();
-    return `/projects${search ? `?${search}` : ""}${location.hash || ""}`;
+// Retired project-center links lead to the event results. Project IDs are not work IDs.
+export const getLegacyProjectsUrl = (location = {}) => {
+    const source = new URLSearchParams(location.search || "");
+    const params = new URLSearchParams({ view: "results" });
+    for (const key of ["event", "competition", "work"]) {
+        if (source.get(key)) params.set(key, source.get(key));
+    }
+    if (!params.has("event") && !params.has("competition"))
+        params.set("event", "zhekesong-current");
+    return `/hackathon?${params}#showcase-works`;
 };
 
 export const getHackathonViewFromLocation = (location = {}, fallback = "register") => {
@@ -47,3 +49,27 @@ export const getHackathonMediaView = (search = "", fallback = "live") => {
 };
 
 export default getHackathonViewFromLocation;
+
+export const EVENT_VIEWS = ["intro", "challenges", "media", "results"];
+export const getEventUrl = (eventKey, view = "intro") =>
+    `/hackathon?${new URLSearchParams({ event: eventKey, view: view === "register" ? "intro" : view })}`;
+
+export const getEventView = (location = {}) => {
+    const view = new URLSearchParams(location.search || "").get("view");
+    if (/\/(showcase|works)$/.test(location.pathname || "") || view === "showcase")
+        return "results";
+    if (view === "register") return "register";
+    return EVENT_VIEWS.includes(view) ? view : "intro";
+};
+
+// Old work shares predate the event picker; their implicit edition is always the first.
+export const getLegacyWorksUrl = (location = {}) => {
+    const params = new URLSearchParams(location.search || "");
+    const work = params.get("work") || params.get("id");
+    params.delete("id");
+    params.set("view", "results");
+    if (!params.has("event") && !params.has("competition"))
+        params.set("event", "zhekesong-current");
+    if (work) params.set("work", work);
+    return `/hackathon?${params}#showcase-works`;
+};

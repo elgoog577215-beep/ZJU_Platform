@@ -67,6 +67,9 @@ test("hackathon controller stores and returns configurable form answers", async 
         `);
 
         const template = JSON.parse(JSON.stringify(DEFAULT_HACKATHON_TEMPLATE));
+        // This case tests successful configurable registration, so keep its fixture upcoming.
+        template.event.startAt = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16);
+        template.event.endAt = new Date(Date.now() + 8 * 86400000).toISOString().slice(0, 16);
         template.form.fields.push({
             id: "diet",
             label: "饮食需求",
@@ -116,8 +119,12 @@ test("hackathon controller stores and returns configurable form answers", async 
         const secondTemplate = JSON.parse(JSON.stringify(saved));
         secondTemplate.event.key = "zhekesong-second";
         secondTemplate.event.title = "第二场浙客松";
-        secondTemplate.event.startAt = "2026-12-12T09:00";
-        secondTemplate.event.endAt = "2026-12-12T14:00";
+        secondTemplate.event.startAt = new Date(Date.now() + 14 * 86400000)
+            .toISOString()
+            .slice(0, 16);
+        secondTemplate.event.endAt = new Date(Date.now() + 15 * 86400000)
+            .toISOString()
+            .slice(0, 16);
         secondTemplate.results.competitionSlug = "zhekesong-second";
         await saveHackathonSchedule(db, {
             activeEventKey: saved.event.key,

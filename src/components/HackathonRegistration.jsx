@@ -927,9 +927,12 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                             <button
                                 type="button"
                                 onClick={scrollToForm}
+                                disabled={!event.registrationOpen}
                                 className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.primary}`}
                             >
-                                {t("hackathon.cta.register_now", "立即报名")}
+                                {event.registrationOpen
+                                    ? t("hackathon.cta.register_now", "立即报名")
+                                    : t("aix.register.closed")}
                                 <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                             </button>
                         </div>

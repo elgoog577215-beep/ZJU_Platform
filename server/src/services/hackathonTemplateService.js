@@ -152,6 +152,46 @@ const normalizeFields = (fields) => {
     return normalized;
 };
 
+const normalizeProgram = (input = {}) => {
+    const safeUrl = (value) => {
+        try {
+            const url = new URL(value);
+            return ["http:", "https:"].includes(url.protocol) ? url.href.slice(0, 1600) : "";
+        } catch {
+            return "";
+        }
+    };
+    return {
+        registrationClosesAt: text(input.registrationClosesAt, 40),
+        stages: (Array.isArray(input.stages) ? input.stages : []).slice(0, 3).map((stage) => ({
+            id: text(stage.id, 40),
+            opensAt: text(stage.opensAt, 40),
+            closesAt: text(stage.closesAt, 40),
+        })),
+        challenges: (Array.isArray(input.challenges) ? input.challenges : [])
+            .slice(0, 60)
+            .map((item) => ({
+                id: text(item.id, 80),
+                stage: text(item.stage, 40),
+                track: text(item.track, 40),
+                title: text(item.title, 200),
+                description: text(item.description, 5000),
+                briefUrl: safeUrl(item.briefUrl),
+                submissionUrl: safeUrl(item.submissionUrl),
+                published: item.published === true,
+            })),
+        reports: (Array.isArray(input.reports) ? input.reports : []).slice(0, 60).map((item) => ({
+            id: text(item.id, 80),
+            title: text(item.title, 200),
+            speaker: text(item.speaker, 160),
+            forum: text(item.forum, 160),
+            summary: text(item.summary, 10000),
+            url: safeUrl(item.url),
+            published: item.published === true,
+        })),
+    };
+};
+
 const normalizeHackathonTemplate = (input = {}) => {
     const source = input && typeof input === "object" ? input : {};
     const eventSource = source.event && typeof source.event === "object" ? source.event : {};
@@ -199,6 +239,9 @@ const normalizeHackathonTemplate = (input = {}) => {
             prizeUnit: text(eventSource.prizeUnit, 20, defaultEvent.prizeUnit),
             registrationOpen: booleanValue(eventSource.registrationOpen, true),
             highlights: normalizeHighlights(eventSource.highlights),
+            ...(eventSource.program && typeof eventSource.program === "object"
+                ? { program: normalizeProgram(eventSource.program) }
+                : {}),
         },
         rules: normalizeRules(source.rules),
         form: {
@@ -281,6 +324,26 @@ const validateTemplate = (template) => {
     }
     if (template.rules.filter((rule) => rule.enabled).length === 0) {
         errors.push({ field: "rules", message: "至少需要启用一条比赛规则" });
+    }
+    if (template.event.program) {
+        const program = template.event.program;
+        if (
+            program.registrationClosesAt &&
+            !Number.isFinite(Date.parse(program.registrationClosesAt))
+        )
+            errors.push({
+                field: "event.program.registrationClosesAt",
+                message: "请输入有效的报名截止时间",
+            });
+        for (const stage of program.stages) {
+            if (
+                !["initial", "semifinal", "final"].includes(stage.id) ||
+                !Number.isFinite(Date.parse(stage.opensAt)) ||
+                !Number.isFinite(Date.parse(stage.closesAt)) ||
+                Date.parse(stage.opensAt) >= Date.parse(stage.closesAt)
+            )
+                errors.push({ field: "event.program.stages", message: "比赛阶段或时间无效" });
+        }
     }
     for (const field of template.form.fields) {
         if (

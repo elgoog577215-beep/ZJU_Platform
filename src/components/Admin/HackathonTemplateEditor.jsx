@@ -14,6 +14,7 @@ import {
     Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import HackathonProgramEditor from "./HackathonProgramEditor";
 
 import {
     getFirstAvailableHackathonView,
@@ -109,7 +110,7 @@ const buildSchedulePayload = (schedule, selectedEventKey, draft) =>
         ),
     });
 
-const HackathonTemplateEditor = ({ onTemplateChange }) => {
+const HackathonTemplateEditor = ({ onTemplateChange, initialEventKey, focusSection = "event" }) => {
     const { isDayMode, mutedTextClass } = useAdminTheme();
     const [scheduleDraft, setScheduleDraft] = useState(null);
     const [selectedEventKey, setSelectedEventKey] = useState("");
@@ -118,17 +119,26 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [outcomeArchives, setOutcomeArchives] = useState([]);
+    useEffect(() => {
+        if (!loading)
+            document
+                .getElementById(`hackathon-config-${focusSection}`)
+                ?.scrollIntoView({ block: "start" });
+    }, [loading, focusSection]);
 
     useEffect(() => {
         let active = true;
         Promise.all([
-            api.get("/hackathon/schedule"),
+            api.get("/admin/hackathon/schedule"),
             api.get("/admin/competitions").catch(() => ({ data: [] })),
         ])
             .then(([scheduleResponse, archivesResponse]) => {
                 if (!active) return;
                 const schedule = normalizeHackathonSchedule(scheduleResponse.data);
-                const selected = getHackathonScheduleEvent(schedule, schedule.activeEventKey);
+                const selected = getHackathonScheduleEvent(
+                    schedule,
+                    initialEventKey || schedule.activeEventKey
+                );
                 setOutcomeArchives(
                     Array.isArray(archivesResponse.data) ? archivesResponse.data : []
                 );
@@ -443,7 +453,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
             >
                 <AdminInlineNote tone="info">
                     每个日程节点都是一份独立模板，包含比赛信息、规则、报名表单和页面开关。
-                    发布后，前台会按开始时间自动排序并生成同侧时间轴。
+                    发布后，前台按赛事和栏目呈现对应内容。作品审核通过后仍需单独精选，才会在前台展示。
                 </AdminInlineNote>
             </AdminPanel>
 
@@ -525,6 +535,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
                 </div>
             </AdminPanel>
 
+            <div id="hackathon-config-event" className="scroll-mt-24" />
             <AdminPanel
                 title="比赛信息"
                 description="维护标题、时间、地点、比赛形式和首屏关键数据。"
@@ -643,7 +654,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
                             <span>
                                 <span className="block text-sm font-semibold">显示赛事报名页</span>
                                 <span className={`mt-1 block text-xs ${mutedTextClass}`}>
-                                    关闭后前台“赛事报名”不可点击
+                                    关闭报名入口，赛事介绍仍可查看
                                 </span>
                             </span>
                         </label>
@@ -659,7 +670,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
                             <span>
                                 <span className="block text-sm font-semibold">显示比赛结果页</span>
                                 <span className={`mt-1 block text-xs ${mutedTextClass}`}>
-                                    关闭后前台“比赛结果”不可点击
+                                    关闭后成果页显示待公布，精选作品和获奖信息暂不发布
                                 </span>
                             </span>
                         </label>
@@ -789,6 +800,16 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
                 </div>
             </AdminPanel>
 
+            <div id="hackathon-config-program" className="scroll-mt-24" />
+            {draft.event.program && (
+                <HackathonProgramEditor
+                    program={draft.event.program}
+                    onChange={(value) => updateEvent("program", value)}
+                    inputClass={inputClass}
+                    fieldClass={fieldClass}
+                />
+            )}
+
             <AdminPanel
                 title="比赛规则与形式"
                 description="规则可以启用、停用、排序或新增；前台赛制区会按这里的顺序展示。"
@@ -878,6 +899,7 @@ const HackathonTemplateEditor = ({ onTemplateChange }) => {
                 </div>
             </AdminPanel>
 
+            <div id="hackathon-config-form" className="scroll-mt-24" />
             <AdminPanel
                 title="报名表单"
                 description="支持文本、邮箱、电话、数字、单选、多选和确认勾选，可设置必填、宽度与顺序。"

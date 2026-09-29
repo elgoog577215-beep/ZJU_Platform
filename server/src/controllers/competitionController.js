@@ -1,4 +1,6 @@
+const { resultsPublishedSql } = require("../services/competitionPublication");
 const { getDb } = require("../config/db");
+const { getHackathonSchedule } = require("../services/hackathonTemplateService");
 const { createNotification } = require("./notificationController");
 const { createCandidateLinksForWork } = require("./userController");
 const { canBypassReview } = require("../utils/userPermissions");
@@ -206,6 +208,7 @@ const sortFeaturedPhotos = (items) =>
 
 const serializeWork = (row) => ({
     ...row,
+    featured: Boolean(row.featured),
     sort_order: toInteger(row.sort_order, 0),
     public_consent: row.public_consent === undefined ? true : Boolean(row.public_consent),
 });
@@ -525,7 +528,7 @@ const getCurrentOutcome = async (req, res, next) => {
          LEFT JOIN user_identity_claims ic ON ic.id = l.claim_id
          WHERE cw.competition_id = ?
            AND cw.status = 'approved'
-           AND COALESCE(cw.public_consent, 1) = 1
+           AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}
            AND cw.deleted_at IS NULL
          GROUP BY cw.id
          ORDER BY
@@ -598,11 +601,16 @@ const getCurrentOutcome = async (req, res, next) => {
             ...competitionVideoRows.map(serializeCompetitionMediaOutcome),
             ...(useLegacyVideoFallback ? legacyVideoRows.map(serializeVideoOutcome) : []),
         ]).slice(0, promoVideoLimit);
-        const works = workRows.map(serializePublicWork);
+        const schedule = await getHackathonSchedule(db);
+        const eventTemplate = schedule.events.find(
+            (item) => item.results.competitionSlug === competition.slug
+        );
+        const resultsPublished = eventTemplate?.navigation?.resultsVisible !== false;
+        const works = resultsPublished ? workRows.map(serializePublicWork) : [];
         const worksCountRow = await db.get(
             `SELECT COUNT(*) AS count FROM competition_works
              WHERE competition_id = ? AND status = 'approved'
-               AND COALESCE(public_consent, 1) = 1 AND deleted_at IS NULL`,
+               AND COALESCE(public_consent, 1) = 1 AND featured = 1 AND deleted_at IS NULL`,
             [competition.id]
         );
 
@@ -626,7 +634,7 @@ const getCurrentOutcome = async (req, res, next) => {
                     toInteger(mediaStatsRow?.stage_photos, 0) +
                     (useLegacyPhotoFallback ? toInteger(legacyStatsRow?.stage_photos, 0) : 0),
                 featured_photos: featuredPhotos.length,
-                works: toInteger(worksCountRow?.count, works.length),
+                works: resultsPublished ? toInteger(worksCountRow?.count, works.length) : 0,
             },
         });
     } catch (error) {
@@ -738,8 +746,26 @@ const submitCurrentWork = async (req, res, next) => {
         }
 
         const projectId = toInteger(req.body.project_id || req.body.projectId, 0) || null;
-        if (!projectId && req.user?.role !== "admin") {
-            return sendBadRequest(res, "请先选择一个自己拥有的项目再提交参赛作品");
+        if (req.user?.role !== "admin") {
+            const schedule = await getHackathonSchedule(db);
+            const template = schedule.events.find(
+                (item) => item.results.competitionSlug === competition.slug
+            );
+            const now = Date.now();
+            const stages = template?.event.program?.stages || [];
+            if (
+                template &&
+                (now >= Date.parse(template.event.endAt) ||
+                    now < Date.parse(template.event.startAt) ||
+                    (stages.length &&
+                        !stages.some(
+                            (stage) =>
+                                now >= Date.parse(stage.opensAt) &&
+                                now <= Date.parse(stage.closesAt)
+                        )))
+            ) {
+                return sendBadRequest(res, "当前不在作品提交时间内");
+            }
         }
 
         let project = null;
@@ -785,8 +811,8 @@ const submitCurrentWork = async (req, res, next) => {
                 project?.deployment_provider,
             deploymentUrl
         );
-        const award = nullableText(req.body.award, 140);
-        const rank = nullableText(req.body.rank, 40);
+        const award = req.user?.role === "admin" ? nullableText(req.body.award, 140) : null;
+        const rank = req.user?.role === "admin" ? nullableText(req.body.rank, 40) : null;
         const coverUrl = nullableText(
             req.body.cover_url || req.body.coverUrl || project?.cover_url,
             1000
@@ -890,7 +916,7 @@ const listPublicCompetitions = async (_req, res, next) => {
                 AND cm.status = 'approved' AND cm.deleted_at IS NULL) AS promo_video_count,
             (SELECT COUNT(*) FROM competition_works cw
               WHERE cw.competition_id = c.id AND cw.status = 'approved'
-                AND COALESCE(cw.public_consent, 1) = 1 AND cw.deleted_at IS NULL) AS works_count,
+                AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")} AND cw.deleted_at IS NULL) AS works_count,
             COALESCE(
               c.cover_image,
               (SELECT p.url
@@ -1714,6 +1740,42 @@ const updateAdminWork = async (req, res, next) => {
     }
 };
 
+// Selection is an editorial action, separate from moderation and awards.
+const setAdminWorkFeatured = async (req, res, next) => {
+    try {
+        if (typeof req.body.featured !== "boolean")
+            return sendBadRequest(res, "精选状态必须为布尔值");
+        const db = await getDb();
+        const id = toInteger(req.params.id, 0);
+        const work = await db.get(
+            "SELECT * FROM competition_works WHERE id = ? AND deleted_at IS NULL",
+            [id]
+        );
+        if (!work) return res.status(404).json({ error: "作品不存在" });
+        if (req.body.featured && (work.status !== "approved" || !work.public_consent))
+            return sendBadRequest(res, "只有审核通过且同意公开的作品才能精选展示");
+        // Recheck eligibility in the write so a concurrent rejection cannot publish a work.
+        const result = await db.run(
+            `UPDATE competition_works SET featured = ?, updated_at = datetime('now')
+             WHERE id = ? AND deleted_at IS NULL
+               AND (? = 0 OR (status = 'approved' AND public_consent = 1))`,
+            [Number(req.body.featured), id, Number(req.body.featured)]
+        );
+        if (!result.changes) return res.status(409).json({ error: "作品状态已变化，请刷新后重试" });
+        await createAuditLog(
+            db,
+            req.user.id,
+            "competition_works",
+            id,
+            req.body.featured ? "feature" : "unfeature",
+            null
+        );
+        return res.json({ id, featured: req.body.featured });
+    } catch (error) {
+        return next(error);
+    }
+};
+
 const deleteAdminWork = async (req, res, next) => {
     try {
         const db = await getDb();
@@ -1751,13 +1813,14 @@ const reviewAdminWork = async (req, res, next) => {
 
         await db.run(
             `UPDATE competition_works
-       SET status = ?,
+       SET featured = CASE WHEN ? = 'approved' THEN featured ELSE 0 END,
+           status = ?,
            reviewed_by = ?,
            reviewed_at = datetime('now'),
            review_note = ?,
            updated_at = datetime('now')
        WHERE id = ?`,
-            [status, req.user.id, reason, id]
+            [status, status, req.user.id, reason, id]
         );
 
         await createAuditLog(db, req.user?.id, "competition_works", id, status, reason);
@@ -1805,7 +1868,30 @@ const listPendingCompetitionItems = async (db) => {
     });
 };
 
+const getEventMedia = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const competition = await getOutcomeCompetition(db, req);
+        if (!competition) return res.status(404).json({ error: "赛事不存在" });
+        const data = await require("../services/competitionMediaFeed").getCompetitionMediaFeed(
+            db,
+            competition.id,
+            {
+                type: req.query.type === "videos" ? "videos" : "photos",
+                offset: clampInteger(req.query.offset, 0, 0, 1000000),
+                limit: clampInteger(req.query.limit, 36, 1, 120),
+                category: trimText(req.query.category, 120),
+            }
+        );
+        res.setHeader("Cache-Control", "no-store");
+        res.json(data);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
+    getEventMedia,
     getCurrentOutcome,
     listPublicCompetitions,
     submitCurrentMedia,
@@ -1827,5 +1913,6 @@ module.exports = {
     updateAdminWork,
     deleteAdminWork,
     reviewAdminWork,
+    setAdminWorkFeatured,
     listPendingCompetitionItems,
 };

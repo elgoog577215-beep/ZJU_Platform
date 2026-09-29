@@ -85,6 +85,8 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
             [secondResult.lastID, userResult.lastID]
         );
 
+        // These fixtures represent works explicitly selected by the event operator.
+        await db.run("UPDATE competition_works SET featured = 1 WHERE status = 'approved'");
         const firstResponse = await runController(competitionController.getCurrentOutcome, {
             params: { competitionSlug: "event-one-outcome" },
             query: {},

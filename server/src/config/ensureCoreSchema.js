@@ -221,6 +221,7 @@ async function ensureCoreSchema(db) {
       experience TEXT,
       story_file_url TEXT,
       public_consent INTEGER DEFAULT 1,
+      featured INTEGER NOT NULL DEFAULT 0,
       sort_order INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER,

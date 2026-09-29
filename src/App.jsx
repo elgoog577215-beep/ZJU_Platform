@@ -33,6 +33,7 @@ import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
 import { WECHAT_LOGIN_REMEMBER_QUERY } from "./utils/wechatMiniProgramBridge";
 import { getStoredAuthToken } from "./shared/authTokenStorage";
+import { getLegacyProjectsUrl } from "./utils/hackathonRoute";
 
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
@@ -111,7 +112,7 @@ const loadEvents = () => import("./components/Events");
 const loadAbout = () => import("./components/About");
 const loadEcosystemPartnerDirectory = () => import("./components/EcosystemPartnerDirectory");
 const loadAppDownload = () => import("./components/AppDownload");
-const loadHackathonSeasonOne = () => import("./components/HackathonSeasonOne");
+const loadHackathonSeasonOne = () => import("./components/HackathonEventRouter");
 const loadHackathonWorks = () => import("./components/HackathonWorksRedirect");
 const loadAdminDashboard = () => import("./components/Admin/AdminDashboard");
 const loadAdminAccessGate = () => import("./components/Admin/AdminAccessGate");
@@ -119,7 +120,6 @@ const loadNotFound = () => import("./components/NotFound");
 const loadProfilePage = () => import("./components/ProfilePage");
 const loadPublicProfile = () => import("./components/PublicProfile");
 const loadProfileDirectory = () => import("./components/ProfileDirectory");
-const loadProjectPlaza = () => import("./components/ProjectPlaza");
 const loadCustomCursor = () => import("./components/CustomCursor");
 const loadScrollProgress = () => import("./components/ScrollProgress");
 const loadScrollToTop = () => import("./components/ScrollToTop");
@@ -140,7 +140,6 @@ const NotFound = lazyRoute(loadNotFound);
 const ProfilePage = lazyRoute(loadProfilePage);
 const PublicProfile = lazyRoute(loadPublicProfile);
 const ProfileDirectory = lazyRoute(loadProfileDirectory);
-const ProjectPlaza = lazyRoute(loadProjectPlaza);
 const CustomCursor = lazyRoute(loadCustomCursor);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
@@ -149,7 +148,6 @@ const PerformancePanel = lazyRoute(loadPerformancePanel);
 const preloadRouteLoaders = [
     loadEvents,
     loadArticles,
-    loadProjectPlaza,
     loadProfileDirectory,
     loadHackathonSeasonOne,
     loadEcosystemPartnerDirectory,
@@ -324,6 +322,10 @@ const AppContent = () => {
     const location = useLocation();
     const { t } = useTranslation();
     const isAdminRoute = location.pathname.startsWith("/admin");
+    const isAiXEventRoute =
+        import.meta.env.DEV &&
+        location.pathname === "/hackathon" &&
+        new URLSearchParams(location.search).get("event") === "zhekesong-ai-x-2026";
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
@@ -458,7 +460,11 @@ const AppContent = () => {
                     {t("common.skip_to_main")}
                 </a>
                 <ErrorBoundary variant="inline" silent>
-                    <Navbar miniProgramMode={isMiniProgramMode} showAppDownload={showAppDownload} />
+                    <Navbar
+                        chromeHidden={isAiXEventRoute}
+                        miniProgramMode={isMiniProgramMode}
+                        showAppDownload={showAppDownload}
+                    />
                 </ErrorBoundary>
                 {!isAdminRoute &&
                     cursorEnabled &&
@@ -488,7 +494,7 @@ const AppContent = () => {
                 <main
                     id="main-content"
                     className={`flex-grow ${
-                        isImmersiveRoute || isEventsRoute || isHomeRoute
+                        isImmersiveRoute || isEventsRoute || isHomeRoute || isAiXEventRoute
                             ? "pb-0"
                             : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"
                     }`}
@@ -651,11 +657,7 @@ const AppContent = () => {
                             <Route path="/user/:id" element={<LegacyUserRedirect />} />
                             <Route
                                 path="/projects"
-                                element={
-                                    <PageTransition>
-                                        <ProjectPlaza />
-                                    </PageTransition>
-                                }
+                                element={<Navigate replace to={getLegacyProjectsUrl(location)} />}
                             />
                             <Route
                                 path="*"
@@ -671,7 +673,7 @@ const AppContent = () => {
 
                 {!isAdminRoute && !isImmersiveRoute && <Footer />}
 
-                {!isAdminRoute && <MobileNavbar />}
+                {!isAdminRoute && !isAiXEventRoute && <MobileNavbar />}
                 {!isImmersiveRoute && hasDesktopPointer && shouldMountDeferredUi && (
                     <ErrorBoundary variant="inline" silent>
                         <Suspense fallback={null}>

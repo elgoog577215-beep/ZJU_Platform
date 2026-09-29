@@ -1,0 +1,212 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+test("AI+X seed preserves the old event; registration is authenticated, isolated and durable", async () => {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "hackathon-aix-"));
+    process.env.DATABASE_FILE = path.join(temp, "test.sqlite");
+    process.env.NODE_ENV = "test";
+    const { getDb, pool } = require("../src/config/db");
+    const { migrateHackathonAiX } = require("../src/config/migrations/hackathonAiX");
+    const { DEFAULT_HACKATHON_TEMPLATE } = require("../src/services/hackathonTemplateService");
+    const controller = require("../src/controllers/hackathonController");
+    const response = () => ({
+        statusCode: 200,
+        body: null,
+        status(value) {
+            this.statusCode = value;
+            return this;
+        },
+        json(value) {
+            this.body = value;
+            return this;
+        },
+        setHeader() {},
+    });
+    const next = (error) => {
+        throw error;
+    };
+    try {
+        const db = await getDb();
+        await db.exec(`CREATE TABLE settings (key TEXT PRIMARY KEY,value TEXT);
+        CREATE TABLE users(id INTEGER PRIMARY KEY);
+        INSERT INTO users(id) VALUES (1),(2);
+        CREATE TABLE competitions(id INTEGER PRIMARY KEY, slug TEXT UNIQUE, title TEXT, subtitle TEXT, description TEXT, event_date TEXT, is_featured INTEGER, status TEXT);
+        CREATE TABLE hackathon_registrations(id INTEGER PRIMARY KEY,event_key TEXT,name TEXT,student_id TEXT,major TEXT,grade TEXT,ai_tools TEXT,experience TEXT,form_data_json TEXT,template_revision INTEGER,created_at TEXT, UNIQUE(event_key,student_id));`);
+        const old = JSON.parse(JSON.stringify(DEFAULT_HACKATHON_TEMPLATE));
+        old.operatorNote = "preserve";
+        old.event.endAt = "2000-01-01T14:00";
+        await db.run("INSERT INTO settings VALUES('hackathon_schedule_config', ?)", [
+            JSON.stringify({ events: [old], activeEventKey: old.event.key, revision: 3 }),
+        ]);
+        await db.run("INSERT INTO competitions(slug,title) VALUES(?,?)", [
+            old.results.competitionSlug,
+            "original untouched",
+        ]);
+        process.env.NODE_ENV = "production";
+        await migrateHackathonAiX(db);
+        assert.equal(
+            JSON.parse(
+                (await db.get("SELECT value FROM settings WHERE key='hackathon_schedule_config'"))
+                    .value
+            ).events.length,
+            1
+        );
+        process.env.NODE_ENV = "test";
+        await migrateHackathonAiX(db);
+        await migrateHackathonAiX(db);
+        const schedule = JSON.parse(
+            (await db.get("SELECT value FROM settings WHERE key='hackathon_schedule_config'")).value
+        );
+        assert.equal(schedule.events.length, 2);
+        assert.deepEqual(schedule.events[0], old);
+        assert.equal(
+            (
+                await db.get("SELECT title FROM competitions WHERE slug=?", [
+                    old.results.competitionSlug,
+                ])
+            ).title,
+            "original untouched"
+        );
+        const eventKey = schedule.activeEventKey;
+        // The test is independent of wall clock and must keep the production cutoff unchanged.
+        schedule.events[1].event.endAt = "2099-01-02T17:00";
+        schedule.events[1].event.program.registrationClosesAt = "2099-01-01T00:00:00+08:00";
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
+        const program = schedule.events[1].event.program;
+        program.stages[0].opensAt = "2000-01-01T00:00:00Z";
+        program.stages[1].opensAt = "2099-01-01T00:00:00Z";
+        program.challenges = [
+            { id: "open", stage: "initial", track: "campus", title: "Released", published: true },
+            {
+                id: "future",
+                stage: "semifinal",
+                track: "industry",
+                title: "Future",
+                published: true,
+            },
+            { id: "draft", stage: "initial", track: "campus", title: "Draft", published: false },
+        ];
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
+        const publicResponse = response();
+        await controller.getHackathonScheduleConfig(
+            { path: "/hackathon/schedule" },
+            publicResponse,
+            next
+        );
+        assert.deepEqual(
+            publicResponse.body.events
+                .find((item) => item.event.key === eventKey)
+                .event.program.challenges.map((item) => item.id),
+            ["open"]
+        );
+        const adminResponse = response();
+        await controller.getHackathonScheduleConfig(
+            { path: "/admin/hackathon/schedule" },
+            adminResponse,
+            next
+        );
+        assert.equal(
+            adminResponse.body.events.find((item) => item.event.key === eventKey).event.program
+                .challenges.length,
+            3
+        );
+        const settingsResponse = response();
+        await require("../src/controllers/settingsController").getSettings(
+            {},
+            settingsResponse,
+            next
+        );
+        assert.equal(settingsResponse.body.hackathon_schedule_config, undefined);
+        assert.equal(settingsResponse.body.hackathon_template_config, undefined);
+        const answers = {
+            name: "Test participant",
+            studentId: "TEST-001",
+            major: "Test",
+            grade: "junior",
+            track: "campus",
+            contact: "test@example.test",
+            team: "",
+        };
+        let res = response();
+        const beforeHistoricalAttempt = await db.get(
+            "SELECT COUNT(*) AS count FROM hackathon_registrations"
+        );
+        await controller.registerHackathon(
+            { body: { eventKey: old.event.key, answers } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 403);
+        assert.equal(res.body.code, "HACKATHON_REGISTRATION_CLOSED");
+        assert.deepEqual(
+            await db.get("SELECT COUNT(*) AS count FROM hackathon_registrations"),
+            beforeHistoricalAttempt
+        );
+        res = response();
+        await controller.registerHackathon({ body: { eventKey, answers } }, res, next);
+        assert.equal(res.statusCode, 401);
+        res = response();
+        await controller.registerHackathon(
+            { user: { id: 1 }, body: { eventKey: "missing", answers } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 404);
+        res = response();
+        await controller.registerHackathon(
+            { user: { id: 1 }, body: { eventKey, answers } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 201);
+        res = response();
+        await controller.getMyRegistration(
+            { user: { id: 1 }, query: { event: eventKey } },
+            res,
+            next
+        );
+        assert.deepEqual(res.body.registration.answers, answers);
+        res = response();
+        await controller.getMyRegistration(
+            { user: { id: 2 }, query: { event: eventKey } },
+            res,
+            next
+        );
+        assert.equal(res.body.registration, null);
+        res = response();
+        await controller.registerHackathon(
+            { user: { id: 1 }, body: { eventKey, answers: { ...answers, studentId: "TEST-002" } } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 409);
+        res = response();
+        await controller.registerHackathon(
+            { user: { id: 2 }, body: { eventKey, answers } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 409);
+        schedule.events[1].event.program.registrationClosesAt = "2000-01-01T00:00:00Z";
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
+        res = response();
+        await controller.registerHackathon(
+            { user: { id: 2 }, body: { eventKey, answers: { ...answers, studentId: "TEST-002" } } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 403);
+    } finally {
+        await pool.close();
+        fs.rmSync(temp, { recursive: true, force: true });
+    }
+});

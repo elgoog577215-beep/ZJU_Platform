@@ -194,6 +194,8 @@ test("hackathon work submissions bind owned projects without leaking removed pro
             );
         }
 
+        // Public-discovery fixtures are approved and explicitly selected, not all submissions.
+        await db.run("UPDATE competition_works SET featured = 1 WHERE status = 'approved'");
         const eventProjects = await runController(projectController.listProjects, {
             query: { competition: "event-a" },
             user: null,

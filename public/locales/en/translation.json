@@ -1081,7 +1081,7 @@
                 "project_short": "Industry collaboration / Member-led ideas",
                 "project_desc": "Join an industry project or start your own; develop and test it together.",
                 "project_metric": "Ideas · Development · Validation",
-                "project_cta": "Explore projects",
+                "project_cta": "View event results",
                 "project_detail_eyebrow": "Two paths, shared support",
                 "project_detail_desc": "Industry projects come from member organizations and partner companies, with members developing products and solutions. Independent projects begin with members’ ideas or continue work started at Zhekesong. The ecosystem connects resources and support; project teams lead the development.",
                 "project_detail_item_1": "Industry projects: co-develop products and solutions for real business needs",
@@ -1128,7 +1128,7 @@
                 "student_cta": "Explore opportunities",
                 "org_title": "Join or start a project",
                 "org_desc": "Join real projects from member organizations and partner companies, or initiate your own idea and connect with computing and incubation support as needed.",
-                "org_cta": "Explore projects",
+                "org_cta": "View event results",
                 "enterprise_title": "Needs & partnerships",
                 "enterprise_desc": "Bring real industry needs, co-develop courses and events, or connect compute, expert advice, capital and incubation resources.",
                 "enterprise_cta": "Contact us"
@@ -1993,7 +1993,7 @@
             "submit": "Submit Outcome",
             "submit_project": "Submit Project",
             "view_works": "View Winning Works",
-            "browse_projects": "Enter Event Project Plaza",
+            "browse_projects": "View selected works",
             "browse_projects_short": "Event Project Plaza",
             "play_film": "Play Official Film",
             "film_alt": "Official event film cover",
@@ -2015,7 +2015,7 @@
             "podium_title_2": "Runner-up Work: {{title}}",
             "podium_title_3": "Third-place Work: {{title}}",
             "podium_creator": "TOP {{rank}} Awarded Builder",
-            "complete_ranking": "Complete Index · {{count}} works",
+            "complete_ranking": "Selected works ({{count}})",
             "ranking_hint": "Scroll for every work detail",
             "prize_pool": "Prize Pool",
             "fallback_award": "Winning Work",
@@ -2452,8 +2452,8 @@
             "navigation": "ZJUX management sections",
             "tabs": {
                 "registrations": "Registrations",
-                "works": "Work review {{count}}",
-                "media": "Live Photos & Picks",
+                "works": "Work review and selection",
+                "media": "Photos and videos",
                 "template": "Event settings"
             },
             "results": {
@@ -2466,8 +2466,8 @@
                 "save_failed": "Failed to save judging result"
             },
             "media": {
-                "title": "Live Photos & Picks ({{count}})",
-                "description": "Every approved photo enters the live stream. Select post-event highlights here without duplicating the original.",
+                "title": "Photos and videos ({{count}})",
+                "description": "Review event media, select highlight photos and choose the official video.",
                 "filter_aria": "Filter event photos by competition",
                 "all_events": "All Competitions",
                 "empty_title": "No Event Photos",
@@ -2477,7 +2477,49 @@
                 "remove_action": "Remove from Picks",
                 "featured": "Added to event picks",
                 "removed": "Removed from event picks",
-                "update_failed": "Failed to update featured state"
+                "update_failed": "Failed to update featured state",
+                "review_saved": "Media review updated",
+                "approve": "Approve",
+                "reject": "Reject",
+                "video_role": "Video placement",
+                "archive": "Event video",
+                "highlight": "Highlight video",
+                "official_film": "Official film"
+            },
+            "flow": {
+                "title": "Event workflow",
+                "event": "Current event",
+                "preview": "Preview event",
+                "description": "Manage preparation, competition and results for one event. Save and publish configuration changes; select works separately for public display.",
+                "setup": "Introduction and publication",
+                "setupHint": "Edit event details, page availability and results publication.",
+                "registration": "Registration",
+                "registrationHint": "Configure registration dates and fields; view and export registrations for this event.",
+                "challenges": "Challenges and submissions",
+                "challengesHint": "Publish challenges by stage and track; set submission links and deadlines.",
+                "media": "Photos and videos",
+                "mediaHint": "Review event media and choose highlight photos for the results page.",
+                "results": "Results",
+                "resultsHint": "Review and select works, edit ranks and awards. Publish talks and forum reports in event settings.",
+                "configure": "Configure",
+                "manage": "Manage",
+                "open": "Registration open",
+                "closed": "Registration closed",
+                "challengeCount": "Challenges marked for publication: {{count}}",
+                "mediaCount": "Event media: {{count}}",
+                "workCount": "Selected works: {{count}}"
+            },
+            "selection": {
+                "feature": "Select for display",
+                "remove": "Remove selection",
+                "published": "Selected; visible when event results are published",
+                "removed": "Removed from public display",
+                "failed": "Could not update selection. Please retry.",
+                "description": "{{approved}} approved, {{featured}} selected. Public display requires approval, consent and selection.",
+                "filter": "Filter display status",
+                "all": "All display states",
+                "featured": "Selected",
+                "hidden": "Not selected"
             }
         },
         "status": {
@@ -4177,13 +4219,13 @@
         "submitting": "Submitting",
         "pending_review": "Enters review after submission",
         "login_required": "Please log in before uploading competition outcomes",
-        "project_select_label": "Select Long-term Project",
-        "project_select_hint": "The project keeps evolving in Project Plaza while this submission preserves an event snapshot.",
+        "project_select_label": "Link an existing project (optional)",
+        "project_select_hint": "Submissions are saved as event snapshots. Only approved works selected by an administrator are shown publicly.",
         "create_project": "Create Project",
         "projects_loading": "Loading your projects…",
-        "project_select_placeholder": "Select a project",
+        "project_select_placeholder": "Submit an event work directly",
         "project_draft": "Draft",
-        "projects_empty": "You have no projects ready to enter. Create one first.",
+        "projects_empty": "Fill in the work details below to submit.",
         "types": {
             "photo": "Field Photo",
             "photo_destination": "Event Photos",
@@ -4303,7 +4345,7 @@
         "videos": "Videos",
         "works": "Works",
         "upload": "Upload Event Media",
-        "view_projects": "Enter Event Project Plaza",
+        "view_projects": "View event results",
         "view_works": "View Event Works",
         "loading": "Loading event archive…",
         "empty_title": "This archive is being prepared",
@@ -4917,5 +4959,228 @@
             "empty_desc": "This profile has not published or been linked to public content in this category.",
             "page_indicator": "Page {{page}} / {{total}}"
         }
+    },
+    "aix": {
+        "loading": "Loading…",
+        "series": "Zhekesong / Events",
+        "history": "Past event",
+        "navigation": "Event navigation",
+        "close": "Close",
+        "yes": "Yes",
+        "no": "No",
+        "retry": "Retry",
+        "loadFailed": "Unable to load this content. Please try again.",
+        "tabs": {
+            "intro": "Overview",
+            "challenges": "Challenges",
+            "media": "Photos / Videos",
+            "results": "Results"
+        },
+        "state": {
+            "upcoming": "Upcoming",
+            "live": "In progress",
+            "ended": "Ended"
+        },
+        "forumKicker": "AI Interdisciplinary Innovation Forum &",
+        "heroTitle": "Break Boundaries",
+        "eventFullTitle": "AI Interdisciplinary Innovation Forum & AI+X Hackathon",
+        "motto": "Break boundaries · Build together · Create",
+        "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
+        "date": "Oct 18–24, 2026",
+        "location": "Zijingang Campus, Zhejiang University",
+        "team": "ZJU students · Teams of 1–5",
+        "tracksKicker": "Two tracks",
+        "tracksTitle": "Bring AI into the real world",
+        "viewChallenges": "View challenges",
+        "tracks": {
+            "campus": {
+                "title": "Campus track",
+                "description": "Combine AI with disciplinary knowledge to address academic and campus needs.",
+                "topics": "History · Law · Ocean · Healthcare · Education"
+            },
+            "industry": {
+                "title": "Industry track",
+                "description": "Build useful AI products and tools around practical business needs.",
+                "topics": "Office productivity · Content · Marketing"
+            }
+        },
+        "forumsKicker": "Two forums",
+        "forumsTitle": "From building to launching",
+        "forumsDescription": "Forums are open to the public. Speakers and rooms will be announced once confirmed.",
+        "forums": {
+            "technology": {
+                "date": "10.18",
+                "title": "Technology forum",
+                "description": "Morning talks and an evening AI Coding roundtable on methods and practical development."
+            },
+            "entrepreneurship": {
+                "date": "10.24",
+                "title": "Entrepreneurship forum",
+                "description": "Discussions on AI ventures and industry applications, followed by final pitches and awards."
+            }
+        },
+        "agendaTitle": "Event schedule",
+        "planned": "Provisional · Subject to official notices",
+        "agenda": {
+            "launch": {
+                "date": "10.11",
+                "title": "Event announcement",
+                "description": "Event information and participation guidance published."
+            },
+            "initial": {
+                "date": "10.18",
+                "title": "First round · Tech forum",
+                "description": "Challenges at 11:00. Build in the afternoon; submit a demo and project description by 17:00. Evening AI Coding roundtable and semifinal announcement."
+            },
+            "semifinal": {
+                "date": "10.19–22",
+                "title": "Online semifinal",
+                "description": "Develop, test and refine. Submissions close at midnight on October 22."
+            },
+            "shortlist": {
+                "date": "10.23",
+                "title": "Finalists announced",
+                "description": "Finalist list and instructions published."
+            },
+            "final": {
+                "date": "10.24",
+                "title": "Final · Venture forum",
+                "description": "Morning forum. Project pitches 13:30–15:30; awards 16:00–16:30."
+            }
+        },
+        "challengeKicker": "First round → Semifinal → Final",
+        "challengeDescription": "Browse requirements by stage. Official challenges for both tracks will be published here.",
+        "stagesLabel": "Competition stages",
+        "deadline": "Submission deadline",
+        "challengePending": "Challenges to be announced",
+        "releaseTime": "First-round challenges are scheduled for October 18 at 11:00.",
+        "nextStageNotice": "Requirements and submission links will open after the official announcement.",
+        "submissionPending": "Submission link coming soon",
+        "submissionClosed": "Submissions closed for this stage",
+        "submitWork": "Submit work",
+        "readBrief": "Read full brief",
+        "requirements": "What to prepare",
+        "allProjects": "View event results",
+        "stages": {
+            "initial": {
+                "title": "First round",
+                "date": "10.18",
+                "description": "Receive the on-site challenge and build a working first version.",
+                "materials": "Submit a working demo and a project description covering the problem, core features and progress."
+            },
+            "semifinal": {
+                "title": "Semifinal",
+                "date": "10.19–10.22",
+                "description": "Selected teams continue development, testing and refinement online.",
+                "materials": "Prepare a project description, user guide and demo materials. Submit source code as required by your track. Platform links will be included in official notices."
+            },
+            "final": {
+                "title": "Final",
+                "date": "10.24",
+                "description": "Finalists pitch on site, demonstrating implementation, value and results.",
+                "materials": "Prepare pitch slides, a project poster and a working demo. Pitch order and detailed rules will be announced."
+            }
+        },
+        "resultsKicker": "After the event",
+        "resultsDescription": "Award winners, projects, speeches and forum highlights in one place.",
+        "awards": "Winners & projects",
+        "awardsPending": "Results to be announced",
+        "awardsDescription": "Results will be published after the final. Browse all public projects using the link above.",
+        "viewProject": "View project",
+        "reports": "Speeches & forum sharing",
+        "reportsPending": "Published after the event",
+        "reportsDescription": "Guest speeches, technology and entrepreneurship forum contributions, and the event recap.",
+        "readMore": "Read more",
+        "highlights": "Event highlights",
+        "allMedia": "View all photos / videos",
+        "highlightsPending": "Highlights coming soon",
+        "highlightsDescription": "Selected photographs of the event, guest discussions, pitches and awards from this edition’s media archive.",
+        "register": {
+            "title": "Register",
+            "registered": "Registered · View",
+            "retry": "Retry status",
+            "closed": "Registration closed",
+            "description": "Open to ZJU students from all majors. Each participant enters their own details. * Required.",
+            "success": "Your registration has been saved. Refer to official notices for event arrangements.",
+            "saved": "Registration successful",
+            "loginHint": "Sign in to register and access your registration details at any time.",
+            "login": "Sign in & continue",
+            "failed": "Submission failed. Check your connection and try again. Your entries have been kept.",
+            "choose": "Please select",
+            "privacy": "Your information is used only for event verification, notices and organization.",
+            "submit": "Submit registration",
+            "submitting": "Submitting…"
+        },
+        "fields": {
+            "name": "Name",
+            "studentId": "Student ID",
+            "major": "Major",
+            "grade": "Year",
+            "track": "Preferred track",
+            "contact": "Contact email",
+            "team": "Team name (optional)"
+        },
+        "options": {
+            "freshman": "Year 1",
+            "sophomore": "Year 2",
+            "junior": "Year 3",
+            "senior": "Year 4",
+            "master": "Master’s",
+            "phd": "PhD",
+            "campus": "Campus",
+            "industry": "Industry"
+        },
+        "brand": "ZHEKESONG",
+        "backToSite": "Back to TUOZHE AI",
+        "explore": "Explore the event",
+        "agendaHeadline": "From an idea to a breakthrough",
+        "media": {
+            "live": "Photo stream · Updates every 30 seconds",
+            "kicker": "On the ground",
+            "description": "From opening to awards: conversations, creation and everything in between.",
+            "upload": "Upload event media",
+            "photos": "Photos",
+            "videos": "Videos",
+            "category": "Photo category",
+            "all": "All scenes",
+            "latest": "Newest first",
+            "empty": "The story is about to begin",
+            "emptyDescription": "Photos and videos from this edition will appear here as the event unfolds.",
+            "previous": "Previous",
+            "next": "Next",
+            "original": "View original",
+            "more": "Load more"
+        },
+        "galleryStatement": "Different disciplines.",
+        "galleryStatementEnd": "One shared possibility.",
+        "scheduledRelease": "Scheduled release",
+        "heroTitleLine1": "BOUNDARY",
+        "heroTitleLine2": "HACKATHON",
+        "editionLabel": "EDITION 02 · 2026",
+        "previousEdition": "From our first edition",
+        "previousEditionTitle": "AI Full-Stack Hackathon · May 2026",
+        "buildingAlt": "Participants building projects at the first AI Full-Stack Hackathon",
+        "discussionAlt": "Participants discussing a project at the first edition"
+    },
+    "eventWorkspace": {
+        "skip": "Skip to event content",
+        "allProjects": "All projects",
+        "rulesTitle": "Challenge & rules",
+        "rulesArchive": "This event has ended. The original rules are archived below; submitted work is available in All projects.",
+        "tabs": {
+            "intro": "Overview",
+            "challenges": "Challenges",
+            "media": "Photos / videos",
+            "results": "Results"
+        },
+        "resultsTitle": "Event results",
+        "mediaArchive": "Past event · Photos / videos",
+        "mediaDescription": "Photos, highlights and video records from this event.",
+        "noWorks": "Selected works will be announced here",
+        "viewResults": "View results",
+        "switchEvent": "Switch event",
+        "resultsPending": "Event results will be announced here",
+        "selectedWorks": "Selected works",
+        "preparing": "Event in preparation"
     }
 }

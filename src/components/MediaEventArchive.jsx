@@ -428,10 +428,15 @@ const MediaEventArchive = ({
                 image={selectedArchive?.archive_cover || undefined}
             />
 
-            <picture className="media-x-field" aria-hidden="true">
-                <source media="(max-width: 767px)" srcSet="/images/hackathon/x-field-mobile.webp" />
-                <img src="/images/hackathon/x-field-desktop.webp" alt="" />
-            </picture>
+            {eventKey !== "zhekesong-current" && (
+                <picture className="media-x-field" aria-hidden="true">
+                    <source
+                        media="(max-width: 767px)"
+                        srcSet="/images/hackathon/x-field-mobile.webp"
+                    />
+                    <img src="/images/hackathon/x-field-desktop.webp" alt="" />
+                </picture>
+            )}
 
             <div className="media-event-inner">
                 {!embedded ? (
@@ -448,7 +453,9 @@ const MediaEventArchive = ({
                     <div>
                         <p className="media-event-kicker">
                             {embedded
-                                ? t("media_archive.workspace_kicker", "当前赛事 · 赛事影像")
+                                ? eventKey === "zhekesong-current"
+                                    ? t("eventWorkspace.mediaArchive")
+                                    : t("media_archive.workspace_kicker", "当前赛事 · 赛事影像")
                                 : t("media_archive.event_record")}
                         </p>
                         <h1>
@@ -457,7 +464,9 @@ const MediaEventArchive = ({
                                 : selectedArchive?.title || t("media_archive.title")}
                         </h1>
                         <p className="media-event-description">
-                            {selectedArchive?.description || t("media_archive.description")}
+                            {embedded
+                                ? t("eventWorkspace.mediaDescription")
+                                : selectedArchive?.description || t("media_archive.description")}
                         </p>
                     </div>
                     <div className="media-event-summary">
@@ -484,11 +493,11 @@ const MediaEventArchive = ({
                                 <a
                                     href={
                                         embedded && eventKey
-                                            ? `/hackathon?event=${encodeURIComponent(eventKey)}&view=projects`
-                                            : `/projects?competition=${encodeURIComponent(selectedArchive.slug)}`
+                                            ? `/hackathon?event=${encodeURIComponent(eventKey)}&view=results`
+                                            : `/hackathon?competition=${encodeURIComponent(selectedArchive.slug)}&view=results`
                                     }
                                 >
-                                    {t("media_archive.view_projects", "进入本场项目广场")}
+                                    {t("media_archive.view_projects", "查看赛事成果")}
                                     <ArrowRight className="h-4 w-4" />
                                 </a>
                             </>

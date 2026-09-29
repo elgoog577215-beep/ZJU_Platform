@@ -1,0 +1,855 @@
+/* First edition: one aligned event shell, angular cyan surfaces, no X artwork. */
+.hx-workspace {
+    --hx-bg: #060c12;
+    --hx-surface: #0c1721;
+    --hx-text: #edf5fa;
+    --hx-muted: #9bafbf;
+    --hx-line: #273b49;
+    --hx-accent: #67e8f9;
+    --hx-accent-text: #67e8f9;
+    --event-width: 1280px;
+    --event-gutter: clamp(20px, 4vw, 56px);
+    --event-nav-height: 80px;
+}
+.hx-workspace :is(.hx-primary, .hx-outline) {
+    border-radius: 0;
+    min-height: 42px;
+    padding: 8px 18px;
+    font-size: 14px;
+}
+.hx-workspace .hx-primary {
+    color: #06141b;
+}
+.hx-workspace .hx-primary:hover:not(:disabled) {
+    background: #a5f3fc;
+    border-color: #a5f3fc;
+}
+.hx-workspace .hx-primary:disabled {
+    background: transparent;
+    border-color: var(--hx-line);
+    color: var(--hx-muted);
+    opacity: 1;
+}
+.hx-workspace .hx-content {
+    width: min(var(--event-width), calc(100% - var(--event-gutter) * 2));
+    padding: 48px 0 80px;
+    margin: 0 auto;
+}
+.hx-workspace .hx-page-heading {
+    margin-bottom: 32px;
+}
+.hx-workspace .hx-page-heading h1 {
+    font-size: clamp(30px, 3vw, 42px);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+}
+.hx-workspace .hx-page-heading p {
+    max-width: 60em;
+}
+.hx-workspace .hx-rule-list {
+    border-top: 1px solid var(--hx-line);
+    margin: 32px 0;
+}
+.hx-workspace .hx-rule-list article {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 20px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--hx-line);
+}
+.hx-workspace .hx-rule-list article > span {
+    color: var(--hx-accent);
+    font:
+        20px/1.5 ui-monospace,
+        monospace;
+}
+.hx-workspace .hx-rule-list h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+.hx-workspace .hx-rule-list p {
+    color: var(--hx-muted);
+}
+.hx-workspace .hx-footer {
+    width: min(var(--event-width), calc(100% - var(--event-gutter) * 2));
+    margin-inline: auto;
+    padding-inline: 0;
+}
+.hx-skip {
+    position: fixed;
+    top: -100px;
+    left: 20px;
+    padding: 12px 18px;
+    background: #67e8f9;
+    color: #06141b;
+    z-index: 100;
+}
+.hx-skip:focus {
+    top: 12px;
+}
+/* The archive retains original data and work deep links, within the first-edition grid. */
+.hx-edition-one :is(.hackathon-outcome, .media-event-archive) {
+    --x-lime: #67e8f9;
+    --x-lime-soft: #a5f3fc;
+    --x-ink: #060c12;
+    --x-surface: #0c1721;
+    --x-text: #edf5fa;
+    --x-muted: #9bafbf;
+}
+.hx-edition-one :is(.outcome-x-field, .outcome-section-field, .media-x-field) {
+    display: none;
+}
+.hx-edition-one .hackathon-outcome.showcase-compact-flow {
+    padding: 48px 0 64px;
+    min-height: 0;
+}
+.hx-edition-one .hackathon-outcome-inner {
+    width: min(var(--event-width), calc(100% - var(--event-gutter) * 2));
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-result-header {
+    margin-bottom: 40px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-result-header p {
+    color: var(--hx-muted);
+    margin-bottom: 10px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-result-header h1 {
+    font-size: clamp(30px, 3vw, 42px);
+    line-height: 1.3;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-works {
+    padding: 0 0 48px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive {
+    padding: 32px 0 48px;
+    min-height: 0;
+    border-top: 1px solid var(--hx-line);
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-heading {
+    align-items: center;
+    gap: 16px;
+    padding: 24px 0;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-heading > span {
+    font-size: 24px;
+    line-height: 1;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-heading h2 {
+    font-size: 24px;
+    line-height: 1.4;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-heading p {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-topline {
+    border-color: var(--hx-line);
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-section-topline > a {
+    font-size: 14px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > h3 {
+    font-size: 15px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button {
+    padding: 0 0 20px;
+    transform: none;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium-thumb {
+    aspect-ratio: 16 / 10;
+}
+.hx-edition-one
+    :is(
+        .outcome-podium-thumb,
+        .outcome-podium-thumb > *,
+        .outcome-ranking-thumb,
+        .outcome-film-frame,
+        .media-archive-photo-button,
+        .media-archive-video
+    ) {
+    border-radius: 0;
+    clip-path: none;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 32px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-intro {
+    padding-top: 0;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-intro .outcome-section-heading {
+    display: flex;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    .outcome-archive-intro
+    .outcome-section-heading
+    > div {
+    margin: 0;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-intro > a {
+    min-width: 0;
+    min-height: 44px;
+    margin-top: 20px;
+    border: 1px solid var(--hx-line);
+    border-radius: 0;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-feature > a,
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-feature > a > div,
+.hx-workspace .hackathon-outcome.is-structured .outcome-photo-strip figure > a {
+    clip-path: none;
+    border-radius: 0;
+    background: var(--hx-line);
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-photo-strip {
+    margin-top: 24px;
+    gap: 24px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-credits {
+    margin-top: 48px;
+}
+.hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-inner {
+    width: min(var(--event-width), calc(100% - var(--event-gutter) * 2));
+    margin-inline: auto;
+}
+.hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-header {
+    padding: 48px 0 32px;
+    gap: 32px;
+}
+.hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-header h1 {
+    font-size: clamp(30px, 3vw, 42px);
+    max-width: none;
+}
+.hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-section {
+    padding-inline: 0;
+}
+.hx-workspace.hx-edition-one .media-archive-photo-grid {
+    gap: 24px;
+}
+.hx-workspace.hx-edition-one .media-archive-caption h3 {
+    font-size: 14px;
+}
+@media (max-width: 760px) {
+    .hx-workspace .hx-content,
+    .hx-edition-one .hackathon-outcome.showcase-compact-flow {
+        padding-top: 28px;
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-podium {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-podium > button {
+        grid-template-columns: 80px minmax(0, 1fr);
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-podium-thumb {
+        grid-column: 1 / -1;
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-archive-stage {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-photo-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .hx-workspace .hackathon-outcome.is-structured .outcome-section-topline {
+        flex-wrap: wrap;
+    }
+    .hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-header {
+        padding-top: 28px;
+    }
+    .hx-workspace.hx-edition-one .media-archive-photo-grid {
+        gap: 16px;
+    }
+    .hx-workspace .hx-footer {
+        align-items: flex-start;
+    }
+}
+.hx-workspace {
+    --site-nav-height: 76px;
+    padding-top: var(--site-nav-height);
+}
+@media (max-width: 767px) {
+    .hx-workspace {
+        padding-bottom: var(--mobile-content-bottom-padding);
+    }
+}
+.hx-workspace {
+    min-height: 100dvh;
+    isolation: isolate;
+    color: var(--hx-text);
+    background: var(--hx-bg);
+    color-scheme: dark;
+    font:
+        400 16px/1.65 "PingFang SC",
+        "Microsoft YaHei",
+        system-ui,
+        sans-serif;
+}
+.hx-workspace .hx-eventbar :is(a, button, select):focus-visible {
+    outline: 2px solid var(--hx-accent);
+    outline-offset: 3px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button,
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button:first-of-type {
+    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 16px;
+    padding: 0 0 20px;
+    background: transparent;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button.is-selected {
+    border-color: var(--hx-accent);
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button .outcome-podium-thumb {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    clip-path: none;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button > span {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    font-size: 32px;
+    line-height: 1.2;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    .outcome-podium
+    > button
+    > div:not(.outcome-podium-thumb) {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button strong {
+    font-size: 18px;
+    line-height: 1.4;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > button :is(small, p) {
+    font-size: 13px;
+    line-height: 1.6;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    :is(.outcome-section-topline > a, .outcome-archive-intro > a) {
+    border: 1px solid var(--hx-line);
+    border-radius: 0;
+    min-height: 42px;
+    background: transparent;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-podium > h3 {
+    border-color: var(--hx-line);
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    .outcome-archive-intro
+    .outcome-section-heading
+    > span {
+    font-size: 24px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-archive-intro .outcome-section-heading h2 {
+    font-size: 24px;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    :is(.outcome-work-detail-image, .outcome-work-detail-actions a) {
+    border-radius: 0;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-work-detail :is(dt, h4) {
+    font-size: 14px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-work-detail :is(dd, section p, blockquote) {
+    font-size: 16px;
+    line-height: 1.75;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-work-detail-actions a {
+    font-size: 14px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-ranking button strong {
+    font-size: 16px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-ranking button small {
+    font-size: 13px;
+}
+
+/* The mobile work viewer is portalled outside the event root. */
+.outcome-mobile-work.is-first-edition {
+    --x-ink: #060c12;
+    --x-text: #edf5fa;
+    --x-lime: #67e8f9;
+    --x-lime-soft: #a5f3fc;
+    --x-surface: #0c1721;
+    --x-muted: #9bafbf;
+}
+.outcome-mobile-work.is-first-edition
+    :is(
+        .outcome-mobile-work-bar button,
+        .outcome-work-detail-image,
+        .outcome-work-detail-actions a
+    ) {
+    border-radius: 0;
+}
+.outcome-mobile-work.is-first-edition .outcome-work-detail :is(dt, h4) {
+    font-size: 14px;
+}
+.outcome-mobile-work.is-first-edition .outcome-work-detail :is(dd, section p, blockquote) {
+    font-size: 16px;
+    line-height: 1.75;
+}
+.outcome-mobile-work.is-first-edition .outcome-work-detail-actions a {
+    font-size: 14px;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-work-detail-head,
+.outcome-mobile-work.is-first-edition :is(.outcome-mobile-work-bar, .outcome-work-detail-head) {
+    border-color: #273b49;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-credits-index > strong {
+    font-size: 32px;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-credits-lead > div > strong {
+    font-size: 24px;
+    line-height: 1.4;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-credits-lead h3 {
+    font-size: 24px;
+    line-height: 1.4;
+    letter-spacing: 0;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    .outcome-credits-lead
+    > p:not(.outcome-credits-deck) {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.7;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    :is(.outcome-enterprise-stage h4, .outcome-support-network-intro h4) {
+    font-size: 20px;
+    line-height: 1.4;
+}
+.hx-workspace .hackathon-outcome.is-structured .outcome-enterprise-stage > header > strong {
+    font-size: 24px;
+    line-height: 1.2;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    :is(
+        .outcome-credits-deck,
+        .outcome-support-network-intro p,
+        .outcome-credits-groups section > p
+    ) {
+    font-size: 14px;
+    line-height: 1.7;
+}
+.hx-workspace
+    .hackathon-outcome.is-structured
+    :is(
+        .outcome-credits-index > span,
+        .outcome-credits-index > small,
+        .outcome-credits-groups header p,
+        .outcome-credits-groups small
+    ) {
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+}
+
+/* Independent controls float over each page; the gaps remain transparent. */
+.hx-workspace .hx-eventbar {
+    position: sticky;
+    top: var(--site-nav-height);
+    z-index: 40;
+    width: min(var(--event-width), calc(100% - var(--event-gutter) * 2));
+    height: var(--event-nav-height);
+    margin: 0 auto calc(-1 * var(--event-nav-height));
+    padding: 16px 0 20px;
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto minmax(210px, 1fr);
+    grid-template-rows: 44px;
+    align-items: center;
+    gap: 16px;
+    border: 0;
+    background: transparent;
+    pointer-events: none;
+}
+.hx-workspace .hx-eventbar > * {
+    min-width: 0;
+    pointer-events: auto;
+}
+.hx-workspace .hx-event-picker {
+    grid-area: 1 / 1;
+    display: block;
+}
+.hx-workspace .hx-event-picker select {
+    width: 100%;
+    max-width: 320px;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--hx-line);
+    border-radius: 4px;
+    background: #101c25;
+    color: var(--hx-text);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+}
+.hx-workspace .hx-nav {
+    grid-area: 1 / 2;
+    display: flex;
+    width: auto;
+    height: 44px;
+    gap: 8px;
+}
+.hx-workspace .hx-nav a {
+    justify-content: center;
+    min-height: 44px;
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--hx-line);
+    border-radius: 4px;
+    background: #101c25;
+    color: #b8c8d4;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease;
+}
+.hx-workspace .hx-nav a:hover {
+    border-color: #517487;
+    background: #182a36;
+    color: var(--hx-text);
+}
+.hx-workspace .hx-nav a[aria-current="page"] {
+    border-color: #67e8f9;
+    background: #67e8f9;
+    color: #06141b;
+    font-weight: 600;
+}
+.hx-workspace .hx-nav a[aria-current]::after {
+    content: none;
+}
+.hx-workspace .hx-event-actions {
+    grid-area: 1 / 3;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+}
+.hx-workspace .hx-event-actions :is(a, button) {
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #101c25;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+}
+.hx-workspace .hx-event-actions .hx-primary:not(:disabled) {
+    background: var(--hx-accent);
+}
+.hx-workspace .hx-event-actions .hx-primary:disabled {
+    background: #101c25;
+    color: var(--hx-muted);
+    cursor: default;
+}
+.hx-workspace .hx-event-actions .hx-outline:hover {
+    background: #182a36;
+    border-color: #517487;
+}
+.hx-workspace .hx-event-status {
+    display: none;
+}
+.hx-workspace .hx-page,
+.hx-workspace [data-registration-page] {
+    min-height: calc(100dvh - var(--site-nav-height));
+}
+.hx-workspace [data-registration-page] {
+    height: calc(100dvh - var(--site-nav-height));
+}
+.hx-workspace #hackathon-hero {
+    padding-top: max(124px, calc(var(--event-nav-height) + 24px));
+}
+.hx-workspace #hx-event-content > .hx-content,
+.hx-workspace .hackathon-outcome.showcase-compact-flow,
+.hx-workspace.hx-edition-one .media-event-archive[data-embedded="true"] .media-event-header {
+    padding-top: calc(var(--event-nav-height) + 32px);
+}
+.hx-workspace #hx-event-content,
+.hx-edition-one :is(.outcome-archive, .outcome-works, .outcome-support) {
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 16px);
+}
+@media (max-width: 1100px) {
+    .hx-workspace {
+        --event-nav-height: 132px;
+    }
+    .hx-workspace .hx-eventbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: 44px 44px;
+        gap: 12px 16px;
+    }
+    .hx-workspace .hx-event-actions {
+        grid-area: 1 / 2;
+    }
+    .hx-workspace .hx-nav {
+        grid-area: 2 / 1 / 3 / -1;
+        justify-self: center;
+    }
+}
+@media (max-width: 767px) {
+    .hx-workspace {
+        --event-nav-height: 120px;
+        --event-gutter: 16px;
+    }
+    .hx-workspace .hx-eventbar {
+        padding: 12px 0;
+        gap: 8px;
+    }
+    .hx-workspace .hx-event-picker select {
+        max-width: none;
+        padding-inline: 8px;
+        font-size: 12px;
+    }
+    .hx-workspace .hx-event-actions {
+        gap: 6px;
+    }
+    .hx-workspace .hx-event-actions :is(a, button) {
+        padding-inline: 8px;
+        font-size: 12px;
+    }
+    .hx-workspace .hx-nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1.05fr 1.2fr 1.45fr 0.9fr;
+        gap: 6px;
+    }
+    .hx-workspace .hx-nav a {
+        min-width: 0;
+        padding-inline: 6px;
+        font-size: 13px;
+        white-space: normal;
+        text-align: center;
+    }
+    .hx-workspace [data-registration-page] {
+        height: calc(100dvh - var(--site-nav-height) - var(--mobile-content-bottom-padding));
+        min-height: 0;
+    }
+    .hx-workspace [data-registration-page] > section {
+        padding-top: calc(var(--event-nav-height) + 24px);
+    }
+}
+@media (max-width: 380px) {
+    .hx-workspace .hx-nav a {
+        padding-inline: 4px;
+        font-size: 12px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hx-workspace .hx-nav a {
+        transition: none;
+    }
+}
+
+/* Event picker: the same type scale and touch targets as the secondary tabs. */
+.hx-workspace .hx-event-picker {
+    position: relative;
+}
+.hx-picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    max-width: 360px;
+    padding: 9px 12px;
+    border: 1px solid var(--hx-line);
+    background: #101c25;
+    color: var(--hx-text);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+    text-align: left;
+}
+.hx-picker-trigger > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.hx-picker-trigger > svg {
+    flex: none;
+}
+.hx-picker-trigger[aria-expanded="true"] {
+    border-color: var(--hx-accent);
+}
+.hx-picker-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+    width: min(400px, calc(100vw - 32px));
+    max-height: min(420px, 60dvh);
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid var(--hx-line);
+    background: #101c25;
+    color: var(--hx-text);
+}
+.hx-picker-heading {
+    margin: 0;
+    padding: 8px 12px 12px;
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.hx-picker-menu [role="option"] {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px;
+    min-height: 72px;
+    text-align: left;
+    border: 0;
+    background: transparent;
+}
+.hx-picker-menu [role="option"] + [role="option"] {
+    border-top: 1px solid var(--hx-line);
+}
+.hx-picker-menu [role="option"]:is(:hover, [aria-selected="true"]) {
+    background: #192f3b;
+}
+.hx-picker-copy {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+.hx-picker-copy strong {
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.hx-picker-copy > span {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--hx-muted);
+}
+.hx-picker-menu svg {
+    color: var(--hx-accent);
+    flex: none;
+}
+.hx-workspace .hx-eventbar {
+    grid-template-columns: minmax(180px, 1fr) auto minmax(100px, 1fr);
+}
+@media (max-width: 1100px) {
+    .hx-workspace .hx-eventbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+}
+@media (max-width: 767px) {
+    .hx-picker-trigger {
+        padding-inline: 10px;
+        font-size: 13px;
+    }
+}
+
+/* Preserve the registration composition while sizing it for the available event viewport. */
+.hx-workspace [data-registration-page] {
+    scroll-snap-type: y proximity;
+}
+.hx-workspace [data-registration-page] > section {
+    min-height: calc(100svh - var(--site-nav-height));
+    scroll-snap-stop: normal;
+    padding-inline: var(--event-gutter);
+}
+.hx-workspace [data-registration-page] > section > .mx-auto {
+    max-width: var(--event-width);
+}
+.hx-workspace #hackathon-hero > .relative.mx-auto {
+    min-height: 0;
+    gap: clamp(28px, 4vw, 56px);
+    padding-top: 12px;
+    padding-bottom: 64px;
+}
+.hx-workspace #hackathon-hero h1 {
+    font-size: clamp(42px, 6vw, 88px);
+    line-height: 1.1;
+}
+.hx-workspace [data-registration-page] h2 {
+    font-size: clamp(30px, 4vw, 56px);
+    line-height: 1.15;
+}
+.hx-workspace [data-registration-page] :is(input, select, textarea) {
+    max-width: 100%;
+    min-width: 0;
+}
+.hx-workspace [data-registration-page] :is(h1, h2, h3, p, a) {
+    overflow-wrap: anywhere;
+}
+.hx-workspace .hx-rule-list article {
+    grid-template-columns: 44px minmax(0, 1fr);
+}
+.hx-workspace .hx-content :is(h1, h2, h3, p) {
+    overflow-wrap: anywhere;
+}
+@media (max-width: 767px) {
+    .hx-workspace [data-registration-page] {
+        scroll-snap-type: none;
+    }
+    .hx-workspace [data-registration-page] > section {
+        min-height: auto;
+        padding-bottom: 48px;
+    }
+    .hx-workspace #hackathon-hero > .relative.mx-auto {
+        padding-bottom: 12px;
+        gap: 32px;
+    }
+    .hx-workspace #hackathon-hero h1 {
+        font-size: clamp(38px, 10.8vw, 56px);
+    }
+    .hx-workspace [data-registration-page] :is(input, select, textarea) {
+        font-size: 16px;
+    }
+    .hx-workspace .hx-rule-list article {
+        gap: 12px;
+        padding-block: 24px;
+    }
+    .hx-workspace .hx-rule-list h2 {
+        font-size: 20px;
+    }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+    .hx-workspace .hx-eventbar {
+        position: relative;
+        top: 0;
+    }
+    .hx-workspace [data-registration-page] {
+        height: auto;
+        overflow-y: visible;
+    }
+    .hx-workspace [data-registration-page] > section {
+        min-height: 0;
+    }
+}

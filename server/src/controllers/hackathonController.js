@@ -21,6 +21,43 @@ const registerHackathon = async (req, res, next) => {
         const db = await getDb();
         const eventKey = sanitizeText(req.body?.eventKey, 80);
         const template = await getHackathonTemplate(db, eventKey);
+        if (eventKey && template.event.key !== eventKey) {
+            return res.status(404).json({ error: "赛事不存在" });
+        }
+        const accountRequired = template.event.key === "zhekesong-ai-x-2026";
+        if (accountRequired && !req.user?.id) {
+            return res
+                .status(401)
+                .json({ error: "请先登录后报名", code: "HACKATHON_LOGIN_REQUIRED" });
+        }
+        // Editor-local event timestamps are Asia/Shanghai, not the server's local timezone.
+        const rawEndAt = template.event.endAt || "";
+        const endAt = Date.parse(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(rawEndAt) ? `${rawEndAt}:00+08:00` : rawEndAt
+        );
+        if (Number.isFinite(endAt) && Date.now() >= endAt) {
+            return res.status(403).json({
+                error: "本届赛事已结束，报名已截止",
+                code: "HACKATHON_REGISTRATION_CLOSED",
+            });
+        }
+        const registrationClosesAt = template.event.program?.registrationClosesAt;
+        if (registrationClosesAt && Date.now() >= Date.parse(registrationClosesAt)) {
+            return res
+                .status(403)
+                .json({ error: "报名已截止", code: "HACKATHON_REGISTRATION_CLOSED" });
+        }
+        if (
+            accountRequired &&
+            (await db.get(
+                "SELECT id FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
+                [template.event.key, req.user.id]
+            ))
+        ) {
+            return res
+                .status(409)
+                .json({ error: "你已报名该赛事", code: "HACKATHON_ALREADY_REGISTERED" });
+        }
         if (!template.navigation.registrationVisible || !template.event.registrationOpen) {
             return res.status(403).json({
                 error: "当前赛事报名尚未开放",
@@ -69,8 +106,8 @@ const registerHackathon = async (req, res, next) => {
 
         const result = await db.run(
             `INSERT INTO hackathon_registrations
-                (event_key, name, student_id, major, grade, ai_tools, experience, form_data_json, template_revision, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                (event_key, name, student_id, major, grade, ai_tools, experience, form_data_json, template_revision, created_at${accountRequired ? ", user_id" : ""})
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?${accountRequired ? ", ?" : ""})`,
             [
                 template.event.key,
                 name,
@@ -82,6 +119,7 @@ const registerHackathon = async (req, res, next) => {
                 JSON.stringify(answers),
                 template.revision,
                 new Date().toISOString(),
+                ...(accountRequired ? [req.user.id] : []),
             ]
         );
 
@@ -91,23 +129,78 @@ const registerHackathon = async (req, res, next) => {
             message: "报名成功",
         });
     } catch (error) {
+        if (error.code === "SQLITE_CONSTRAINT" || error.code?.startsWith("SQLITE_CONSTRAINT_")) {
+            return res.status(409).json({
+                error: "该账号或学号已报名，请勿重复提交",
+                code: "HACKATHON_ALREADY_REGISTERED",
+            });
+        }
         next(error);
     }
 };
 
-const getHackathonTemplateConfig = async (req, res, next) => {
+const getMyRegistration = async (req, res, next) => {
     try {
         const db = await getDb();
-        res.json(await getHackathonTemplate(db, req.query?.event));
+        const eventKey = sanitizeText(req.query?.event, 80);
+        if (!eventKey) return res.status(400).json({ error: "请指定赛事" });
+        const row = await db.get(
+            "SELECT id, event_key, form_data_json, created_at FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
+            [eventKey, req.user.id]
+        );
+        res.setHeader("Cache-Control", "no-store");
+        res.json({
+            registration: row
+                ? {
+                      id: row.id,
+                      eventKey: row.event_key,
+                      answers: JSON.parse(row.form_data_json || "{}"),
+                      createdAt: row.created_at,
+                  }
+                : null,
+        });
     } catch (error) {
         next(error);
     }
 };
 
-const getHackathonScheduleConfig = async (_req, res, next) => {
+const publicTemplate = (template) => {
+    if (!template.event.program) return template;
+    const program = template.event.program;
+    return {
+        ...template,
+        event: {
+            ...template.event,
+            program: {
+                ...program,
+                challenges: program.challenges.filter((item) => {
+                    const stage = program.stages.find((value) => value.id === item.stage);
+                    return item.published && stage && Date.parse(stage.opensAt) <= Date.now();
+                }),
+                reports: program.reports.filter((item) => item.published),
+            },
+        },
+    };
+};
+
+const getHackathonTemplateConfig = async (req, res, next) => {
     try {
         const db = await getDb();
-        res.json(await getHackathonSchedule(db));
+        res.json(publicTemplate(await getHackathonTemplate(db, req.query?.event)));
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getHackathonScheduleConfig = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const schedule = await getHackathonSchedule(db);
+        res.json(
+            req.path?.startsWith("/admin/")
+                ? schedule
+                : { ...schedule, events: schedule.events.map(publicTemplate) }
+        );
     } catch (error) {
         next(error);
     }
@@ -233,6 +326,7 @@ const handleHackathonAssistant = async (req, res) => {
 };
 
 module.exports = {
+    getMyRegistration,
     getHackathonScheduleConfig,
     getHackathonTemplateConfig,
     updateHackathonScheduleConfig,

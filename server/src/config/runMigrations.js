@@ -2909,6 +2909,8 @@ async function runMigrations(db) {
     await require("./migrations/navigationShortcuts").migrateNavigationShortcuts(db);
     await require("./migrations/campusOrganizations").migrateCampusOrganizations(db);
     await require("./migrations/ecosystemResources").migrateEcosystemResources(db);
+    await require("./migrations/hackathonAiX").migrateHackathonAiX(db);
+    await require("./migrations/competitionWorkSelection").migrateCompetitionWorkSelection(db);
 }
 
 module.exports = {

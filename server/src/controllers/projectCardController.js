@@ -1,3 +1,4 @@
+const { resultsPublishedSql } = require("../services/competitionPublication");
 const { isPlatformAdmin } = require("../utils/userPermissions");
 const { getDb } = require("../config/db");
 const { renderProjectShareCard } = require("../services/projectShareCardService");
@@ -113,7 +114,7 @@ const loadCompetitionSummaries = async (db, projectIds) => {
            JOIN competitions c ON c.id = cw.competition_id
           WHERE cw.project_id IN (${placeholders})
             AND cw.status = 'approved'
-            AND COALESCE(cw.public_consent, 1) = 1
+            AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}
             AND cw.deleted_at IS NULL
             AND c.deleted_at IS NULL
             AND c.status != 'draft'
@@ -331,7 +332,7 @@ const listProjects = async (req, res, next) => {
                                 FROM competition_works cw
                                WHERE cw.competition_id = c.id
                                  AND cw.status = 'approved'
-                                 AND COALESCE(cw.public_consent, 1) = 1
+                                 AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}
                                  AND cw.deleted_at IS NULL
                           ) AS approved_project_count
                      FROM competitions c
@@ -354,7 +355,7 @@ const listProjects = async (req, res, next) => {
                      WHERE cw.project_id = p.id
                        AND cw.competition_id = ?
                        AND cw.status = 'approved'
-                       AND COALESCE(cw.public_consent, 1) = 1
+                       AND COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}
                        AND cw.deleted_at IS NULL
                 )`
             );
@@ -395,7 +396,7 @@ const listProjects = async (req, res, next) => {
         if (!mine && !need && (!progress || progress === "live")) {
             const legacyWhere = [
                 "cw.status = 'approved'",
-                "COALESCE(cw.public_consent, 1) = 1",
+                `COALESCE(cw.public_consent, 1) = 1 AND cw.featured = 1 AND ${resultsPublishedSql("cw")}`,
                 "cw.deleted_at IS NULL",
                 "c.deleted_at IS NULL",
                 "c.status != 'draft'",
@@ -583,7 +584,7 @@ const getProjectShareCard = async (req, res, next) => {
                       JOIN competitions event ON event.id = work.competition_id
                      WHERE work.project_id = p.id
                        AND work.status = 'approved'
-                       AND COALESCE(work.public_consent, 1) = 1
+                       AND COALESCE(work.public_consent, 1) = 1 AND work.featured = 1 AND ${resultsPublishedSql("work")}
                        AND work.deleted_at IS NULL
                        AND event.deleted_at IS NULL
                        AND event.status != 'draft'

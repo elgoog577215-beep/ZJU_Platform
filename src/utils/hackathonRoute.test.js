@@ -3,37 +3,39 @@ import assert from "node:assert/strict";
 
 import {
     getDefaultHackathonView,
-    getHackathonProjectUrl,
+    getEventView,
+    getEventUrl,
+    getLegacyWorksUrl,
+    getLegacyProjectsUrl,
     getHackathonMediaView,
     getHackathonViewFromLocation,
     isHackathonWorkspaceView,
 } from "./hackathonRoute.js";
 
-test("project entry uses the independent page scoped to the resolved event", () => {
-    assert.equal(getHackathonProjectUrl("season-two"), "/projects?competition=season-two");
-    assert.equal(getHackathonProjectUrl(""), "/projects");
+test("retired project links preserve event context without confusing project and work IDs", () => {
     const url = new URL(
-        getHackathonProjectUrl("season/two", {
-            search: "?event=old&view=projects&competition=old&mediaView=live&photo=17&id=42&submit=1&create=1&fromfav=1&work=9",
-            hash: "#project-details",
+        getLegacyProjectsUrl({
+            search: "?competition=season-two&id=42&work=9&create=1&submit=1&photo=17",
+            hash: "#old",
         }),
         "https://example.test"
     );
-    assert.equal(url.pathname, "/projects");
-    assert.equal(url.searchParams.get("competition"), "season/two");
-    for (const key of ["event", "view", "mediaView", "photo"]) {
+    assert.equal(url.pathname, "/hackathon");
+    assert.equal(url.searchParams.get("competition"), "season-two");
+    assert.equal(url.searchParams.get("view"), "results");
+    assert.equal(url.searchParams.get("work"), "9");
+    for (const key of ["id", "create", "submit", "photo", "event"])
         assert.equal(url.searchParams.has(key), false);
-    }
-    for (const [key, value] of Object.entries({
-        id: "42",
-        submit: "1",
-        create: "1",
-        fromfav: "1",
-        work: "9",
-    })) {
-        assert.equal(url.searchParams.get(key), value);
-    }
-    assert.equal(url.hash, "#project-details");
+    const generic = new URL(getLegacyProjectsUrl({ search: "?id=42" }), "https://example.test");
+    assert.equal(generic.searchParams.get("event"), "zhekesong-current");
+    assert.equal(generic.searchParams.has("work"), false);
+    assert.equal(
+        new URL(
+            getLegacyProjectsUrl({ search: "?event=zhekesong-ai-x-2026" }),
+            "https://example.test"
+        ).searchParams.get("event"),
+        "zhekesong-ai-x-2026"
+    );
 });
 
 test("hackathon route defaults to registration and preserves explicit outcome links", () => {
@@ -124,4 +126,36 @@ test("media subview is namespaced away from the workspace view", () => {
     assert.equal(getHackathonMediaView("?view=media&mediaView=featured"), "featured");
     assert.equal(getHackathonMediaView("?view=showcase&mediaView=live"), "live");
     assert.equal(getHackathonMediaView("?view=featured"), "live");
+});
+
+// Backward-compatible links must keep photo/work context when the shell changes.
+test("event navigation retains first registration and historical result aliases", () => {
+    assert.equal(getEventView({ search: "?event=zhekesong-current&view=register" }), "register");
+    assert.equal(getEventView({ search: "?view=showcase&work=42" }), "results");
+    assert.equal(getEventView({ pathname: "/hackathon/showcase" }), "results");
+    assert.equal(getEventView({ pathname: "/hackathon/works" }), "results");
+    assert.equal(getEventView({ search: "?view=media&mediaView=featured&photo=17" }), "media");
+    assert.equal(getEventView({ search: "?view=unknown" }), "intro");
+    assert.equal(
+        getEventUrl("zhekesong-current", "register"),
+        "/hackathon?event=zhekesong-current&view=intro"
+    );
+});
+
+test("legacy work shares never follow the currently active edition", () => {
+    const first = new URL(getLegacyWorksUrl({ search: "?id=23" }), "https://example.test");
+    assert.equal(first.searchParams.get("event"), "zhekesong-current");
+    assert.equal(first.searchParams.get("work"), "23");
+    assert.equal(first.searchParams.get("view"), "results");
+    const explicit = new URL(
+        getLegacyWorksUrl({ search: "?event=zhekesong-ai-x-2026&work=7" }),
+        "https://example.test"
+    );
+    assert.equal(explicit.searchParams.get("event"), "zhekesong-ai-x-2026");
+    const scoped = new URL(
+        getLegacyWorksUrl({ search: "?competition=another-event&id=8" }),
+        "https://example.test"
+    );
+    assert.equal(scoped.searchParams.get("competition"), "another-event");
+    assert.equal(scoped.searchParams.has("event"), false);
 });

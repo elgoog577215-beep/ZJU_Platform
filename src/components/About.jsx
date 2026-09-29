@@ -367,7 +367,13 @@ const About = ({ showAppDownload = true }) => {
         { key: "community", code: "COMMUNITY", route: "/events", icon: Users, tone: "cyan" },
         { key: "hackathon", code: "HACKATHON", route: "/hackathon", icon: Trophy, tone: "amber" },
         { key: "grow", code: "LEARNING", route: "/articles", icon: GraduationCap, tone: "emerald" },
-        { key: "project", code: "PROJECTS", route: "/projects", icon: Building2, tone: "violet" },
+        {
+            key: "project",
+            code: "PROJECTS",
+            route: "/hackathon?event=zhekesong-current&view=results",
+            icon: Building2,
+            tone: "violet",
+        },
     ].map((item, index) => ({
         ...item,
         index: String(index + 1).padStart(2, "0"),
@@ -403,8 +409,8 @@ const About = ({ showAppDownload = true }) => {
                 "about.ecosystem.join.org_desc",
                 "参与产业联培，也可以自主立项。先了解项目需求，再寻找适合自己的合作方式。"
             ),
-            action: t("about.ecosystem.join.org_cta", "进入项目广场"),
-            route: "/projects",
+            action: t("about.ecosystem.join.org_cta", "查看赛事成果"),
+            route: "/hackathon?event=zhekesong-current&view=results",
             icon: Network,
         },
     ];
