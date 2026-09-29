@@ -1708,6 +1708,8 @@ END:VCALENDAR`;
               whileTap: { opacity: 0.72 },
               transition: { type: "spring", stiffness: 520, damping: 34 },
           };
+    // A static day header lets its frosted controls sample the landscape behind it.
+    const PageHeader = isDayMode ? "div" : motion.div;
     const pageHeaderMotion =
         isMobileViewport || prefersReducedMotion
             ? { initial: false }
@@ -1723,8 +1725,8 @@ END:VCALENDAR`;
             <SEO title={t("events.meta_title")} description={t("events.meta_desc")} />
             {null}
 
-            <motion.div
-                {...pageHeaderMotion}
+            <PageHeader
+                {...(isDayMode ? {} : pageHeaderMotion)}
                 className="relative z-40 mb-3 text-center md:mb-4 md:pt-0"
             >
                 <div className="mb-3 grid grid-cols-[88px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
@@ -2062,7 +2064,7 @@ END:VCALENDAR`;
                     ) : null,
                     document.body
                 )}
-            </motion.div>
+            </PageHeader>
 
             {error && !isLoadMoreError ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
