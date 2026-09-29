@@ -240,11 +240,11 @@ const About = ({ showAppDownload = true }) => {
               textMuted: "text-slate-500",
               label: "text-cyan-700",
               border: "border-slate-200/80",
-              panel: "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
+              panel: "border-slate-200 bg-white/[0.88] shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
               panelStrong:
-                  "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
+                  "border-cyan-500/20 bg-white/[0.92] shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
               detailPanel: "border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.28)]",
-              card: "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
+              card: "border-slate-200 bg-white/[0.88] shadow-[0_12px_32px_rgba(15,23,42,0.045)]",
               accent: "text-cyan-700",
               accentBg: "bg-cyan-500",
               altAccent: "text-amber-700",
@@ -252,7 +252,7 @@ const About = ({ showAppDownload = true }) => {
               primary:
                   "bg-cyan-600 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-700",
               secondary:
-                  "border-slate-300 bg-white/78 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
+                  "border-slate-300 bg-white/[0.78] text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
               divider: "border-slate-200",
               watermark: "text-slate-900/[0.045]",
               grid: "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
@@ -263,16 +263,16 @@ const About = ({ showAppDownload = true }) => {
               section:
                   "bg-[linear-gradient(118deg,rgba(34,211,238,0.08)_0%,transparent_38%),linear-gradient(180deg,rgba(5,9,10,0.98)_0%,rgba(9,24,23,0.92)_100%)]",
               final: "bg-[linear-gradient(120deg,rgba(34,211,238,0.1)_0%,transparent_38%),linear-gradient(135deg,#050809_0%,#0b1a1a_52%,#060b0c_100%)]",
-              textSoft: "text-white/76",
-              textMuted: "text-white/54",
+              textSoft: "text-white/[0.76]",
+              textMuted: "text-white/[0.54]",
               label: "text-cyan-300",
-              border: "border-white/12",
-              panel: "border-white/12 bg-[#121c1d]/90 shadow-[0_28px_90px_rgba(0,0,0,0.38),0_0_60px_rgba(34,211,238,0.08)]",
+              border: "border-white/[0.12]",
+              panel: "border-white/[0.12] bg-[#121c1d]/90 shadow-[0_28px_90px_rgba(0,0,0,0.38),0_0_60px_rgba(34,211,238,0.08)]",
               panelStrong:
-                  "border-cyan-200/30 bg-[#0b1718]/88 shadow-[0_36px_120px_rgba(0,0,0,0.52),0_0_86px_rgba(34,211,238,0.09)]",
+                  "border-cyan-200/30 bg-[#0b1718]/[0.88] shadow-[0_36px_120px_rgba(0,0,0,0.52),0_0_86px_rgba(34,211,238,0.09)]",
               detailPanel:
-                  "border-white/18 bg-[#081213] shadow-[0_36px_120px_rgba(0,0,0,0.68),0_0_86px_rgba(34,211,238,0.1)]",
-              card: "border-white/12 bg-[linear-gradient(180deg,rgba(19,29,30,0.92),rgba(11,21,21,0.72))]",
+                  "border-white/[0.18] bg-[#081213] shadow-[0_36px_120px_rgba(0,0,0,0.68),0_0_86px_rgba(34,211,238,0.1)]",
+              card: "border-white/[0.12] bg-[linear-gradient(180deg,rgba(19,29,30,0.92),rgba(11,21,21,0.72))]",
               accent: "text-cyan-300",
               accentBg: "bg-cyan-300",
               altAccent: "text-amber-200",
@@ -280,8 +280,8 @@ const About = ({ showAppDownload = true }) => {
               primary:
                   "bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white",
               secondary:
-                  "border-white/18 bg-white/[0.06] text-white hover:border-cyan-300/70 hover:bg-cyan-300/12",
-              divider: "border-white/12",
+                  "border-white/[0.18] bg-white/[0.06] text-white hover:border-cyan-300/70 hover:bg-cyan-300/[0.12]",
+              divider: "border-white/[0.12]",
               watermark: "text-white/[0.072]",
               grid: "opacity-[0.2] [background-image:linear-gradient(rgba(103,232,249,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.14)_1px,transparent_1px)]",
           };
@@ -446,8 +446,8 @@ const About = ({ showAppDownload = true }) => {
                         href={href}
                         className={`group flex h-14 w-14 items-center justify-center border text-sm font-black transition duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
                             isDayMode
-                                ? "border-slate-200 bg-white/74 text-slate-500 hover:border-cyan-500/40 hover:text-cyan-700"
-                                : "border-white/10 bg-white/[0.045] text-white/42 hover:border-cyan-300/50 hover:text-cyan-200"
+                                ? "border-slate-200 bg-white/[0.74] text-slate-500 hover:border-cyan-500/40 hover:text-cyan-700"
+                                : "border-white/10 bg-white/[0.045] text-white/60 hover:border-cyan-300/50 hover:text-cyan-200"
                         }`}
                     >
                         <span className="transition group-hover:scale-110">{label}</span>
@@ -483,7 +483,7 @@ const About = ({ showAppDownload = true }) => {
                             <div
                                 className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-black uppercase sm:px-3.5 sm:py-2 sm:text-sm ${palette.label} ${
                                     isDayMode
-                                        ? "border-cyan-500/30 bg-cyan-500/8"
+                                        ? "border-cyan-500/30 bg-cyan-500/[0.08]"
                                         : "border-cyan-300/30 bg-cyan-300/[0.07]"
                                 }`}
                             >
@@ -579,7 +579,7 @@ const About = ({ showAppDownload = true }) => {
                                     className={`border-l-2 py-5 pl-5 text-sm font-black uppercase tracking-normal 2xl:text-base ${
                                         isDayMode
                                             ? "border-cyan-500 text-slate-500"
-                                            : "border-cyan-300 text-white/52"
+                                            : "border-cyan-300 text-white/[0.52]"
                                     }`}
                                 >
                                     {t("about.ecosystem.brief.signature", "破界 / 共创 / 涌现")}
@@ -591,15 +591,15 @@ const About = ({ showAppDownload = true }) => {
                             {...heroReveal(shouldAnimate, 0.18)}
                             className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-4 xl:col-span-2 ${
                                 isDayMode
-                                    ? "border-cyan-500/18 bg-cyan-500/18"
-                                    : "border-cyan-300/18 bg-cyan-300/18"
+                                    ? "border-cyan-500/[0.18] bg-cyan-500/[0.18]"
+                                    : "border-cyan-300/[0.18] bg-cyan-300/[0.18]"
                             }`}
                         >
                             {proofStats.map((item) => (
                                 <div
                                     key={item.label}
                                     className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
-                                        isDayMode ? "bg-white/82" : "bg-[#0b1718]/86"
+                                        isDayMode ? "bg-white/[0.82]" : "bg-[#0b1718]/[0.86]"
                                     }`}
                                 >
                                     <div
@@ -721,10 +721,10 @@ const About = ({ showAppDownload = true }) => {
                                             "查看{{category}}支持方",
                                             { category: group.title }
                                         )}
-                                        className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 lg:hover:-translate-y-1.5 2xl:p-7 ${palette.card}`}
+                                        className={`group relative flex min-h-[238px] flex-col overflow-hidden border p-4 outline-none transition duration-300 ease-out motion-safe:hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-cyan-400/80 active:scale-[0.995] sm:min-h-[300px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
                                     >
                                         <div
-                                            className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none transition-transform duration-500 group-hover:-translate-x-2 ${palette.watermark}`}
+                                            className={`pointer-events-none absolute -bottom-5 -right-3 text-[clamp(4.2rem,7vw,8.5rem)] font-black uppercase leading-none opacity-50 ${palette.watermark}`}
                                         >
                                             {group.code}
                                         </div>
@@ -751,7 +751,7 @@ const About = ({ showAppDownload = true }) => {
                                                     </span>
                                                 </div>
                                                 <div
-                                                    className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} text-slate-950 transition-transform duration-300 group-hover:scale-105`}
+                                                    className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 ${group.id === "capital" ? palette.altAccentBg : palette.accentBg} shrink-0 text-slate-950`}
                                                 >
                                                     <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>
@@ -780,7 +780,7 @@ const About = ({ showAppDownload = true }) => {
                                                                 .map((partner) => (
                                                                     <span
                                                                         key={partner.id}
-                                                                        className={`flex min-h-8 items-center justify-center px-1.5 text-center text-[10px] font-black leading-tight ${isDayMode ? "bg-white/72 text-slate-800" : "bg-white/[0.045] text-white/82"}`}
+                                                                        className={`flex min-h-8 items-center justify-center px-1.5 text-center text-[10px] font-black leading-tight ${isDayMode ? "bg-white/[0.72] text-slate-800" : "bg-white/[0.045] text-white/[0.82]"}`}
                                                                     >
                                                                         {isEnglish
                                                                             ? partner.name_en ||
@@ -805,7 +805,7 @@ const About = ({ showAppDownload = true }) => {
                                                                         key={partner.id}
                                                                         className={`flex min-h-[38px] items-center justify-center px-2 py-1.5 ${
                                                                             isDayMode
-                                                                                ? "bg-white/72"
+                                                                                ? "bg-white/[0.72]"
                                                                                 : "bg-white/[0.04]"
                                                                         }`}
                                                                     >
@@ -840,8 +840,8 @@ const About = ({ showAppDownload = true }) => {
                                                                 key={partner.id}
                                                                 className={`flex min-h-9 min-w-0 items-center justify-center break-words px-2 py-1.5 text-center text-xs font-black leading-tight ${
                                                                     isDayMode
-                                                                        ? "bg-white/72 text-slate-800"
-                                                                        : "bg-white/[0.045] text-white/82"
+                                                                        ? "bg-white/[0.72] text-slate-800"
+                                                                        : "bg-white/[0.045] text-white/[0.82]"
                                                                 }`}
                                                             >
                                                                 {isEnglish
@@ -875,7 +875,7 @@ const About = ({ showAppDownload = true }) => {
                                                 <ArrowRight
                                                     size={17}
                                                     aria-hidden="true"
-                                                    className="shrink-0 transition-transform duration-300 group-hover:translate-x-1.5"
+                                                    className="shrink-0 transition-transform duration-300 motion-safe:group-hover:translate-x-1"
                                                 />
                                             </div>
                                         </div>
@@ -981,10 +981,10 @@ const About = ({ showAppDownload = true }) => {
                                                 ? { duration: 0.48, ease: [0.16, 1, 0.3, 1] }
                                                 : { duration: 0 }
                                         }
-                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
+                                        className={`group relative flex min-h-[280px] w-full flex-col overflow-hidden rounded-sm border p-5 text-left transition duration-300 motion-safe:hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-5 2xl:p-7 ${borderClass} ${palette.card}`}
                                     >
                                         <div
-                                            className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
+                                            className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none opacity-50 ${palette.watermark}`}
                                         >
                                             {item.code}
                                         </div>
@@ -996,7 +996,7 @@ const About = ({ showAppDownload = true }) => {
                                                     {item.index} / {item.code}
                                                 </div>
                                                 <div
-                                                    className={`flex h-12 w-12 items-center justify-center ${iconBgClass} text-slate-950`}
+                                                    className={`flex h-12 w-12 shrink-0 items-center justify-center ${iconBgClass} text-slate-950`}
                                                 >
                                                     <Icon className="h-6 w-6" />
                                                 </div>
@@ -1049,7 +1049,7 @@ const About = ({ showAppDownload = true }) => {
                         {activeBusiness ? (
                             <motion.div
                                 className={`fixed inset-0 z-[90] flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-6 lg:p-10 ${
-                                    isDayMode ? "bg-slate-950/64" : "bg-black/84"
+                                    isDayMode ? "bg-slate-950/[0.64]" : "bg-black/[0.84]"
                                 }`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -1224,7 +1224,7 @@ const About = ({ showAppDownload = true }) => {
                             <p className={`text-sm font-black uppercase ${palette.label}`}>
                                 {t("about.ecosystem.join.eyebrow", "参与方式")}
                             </p>
-                            <h2 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-7xl">
+                            <h2 className="mt-3 max-w-4xl text-balance text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
                                 <span className="block">
                                     {t("about.ecosystem.join.title_1", "找到参与入口，")}
                                 </span>
@@ -1268,7 +1268,7 @@ const About = ({ showAppDownload = true }) => {
                                     <Link
                                         key={item.title}
                                         to={item.route}
-                                        className={`group relative min-h-[200px] overflow-hidden border p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] lg:min-h-[190px] xl:min-h-[280px] ${palette.card}`}
+                                        className={`group relative flex min-h-[200px] flex-col overflow-hidden border p-5 transition duration-300 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/80 sm:min-h-[260px] lg:min-h-[190px] xl:min-h-[280px] ${palette.card}`}
                                     >
                                         <div
                                             className={`flex h-11 w-11 items-center justify-center ${palette.accentBg} text-slate-950`}
@@ -1282,7 +1282,7 @@ const About = ({ showAppDownload = true }) => {
                                             {item.description}
                                         </p>
                                         <div
-                                            className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}
+                                            className={`mt-auto inline-flex items-center gap-2 pt-5 text-sm font-black ${palette.accent}`}
                                         >
                                             {item.action}
                                             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
