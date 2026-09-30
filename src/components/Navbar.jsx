@@ -118,8 +118,12 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
         { key: "home", path: "/" },
         { key: "events", path: "/events" },
         { key: "articles", path: "/articles" },
-        { key: "hackathon", path: "/hackathon" },
-        { key: "about", path: "/about" },
+        ...(isDesktopViewport
+            ? [
+                  { key: "hackathon", path: "/hackathon" },
+                  { key: "about", path: "/about" },
+              ]
+            : []),
         ...(!miniProgramMode && canAccessAdmin ? [{ key: "admin", path: "/admin" }] : []),
     ];
     const isNavItemActive = (path) => {

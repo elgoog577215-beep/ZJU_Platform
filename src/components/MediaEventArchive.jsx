@@ -22,6 +22,7 @@ import SmartImage from "./SmartImage";
 import { useSettings } from "../context/SettingsContext";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import api from "../services/api";
 import { getCompetitionPhase } from "../utils/competitionPhase";
 import { getThumbnailUrl, normalizeExternalImageUrl } from "../utils/imageUtils";
@@ -187,6 +188,7 @@ const MediaEventArchive = ({
     const { t } = useTranslation();
     const { settings, uiMode } = useSettings();
     const { schedule } = useHackathonSchedule(settings);
+    const isMobileViewport = useMediaQuery("(max-width: 767px)");
     const isDayMode = uiMode === "day";
     const [searchParams, setSearchParams] = useSearchParams();
     const requestedSlug = String(
@@ -489,7 +491,7 @@ const MediaEventArchive = ({
                             <Upload className="h-4 w-4" />
                             {t("media_archive.upload")}
                         </button>
-                        {selectedArchive ? (
+                        {selectedArchive && !isMobileViewport ? (
                             <>
                                 <a
                                     href={
