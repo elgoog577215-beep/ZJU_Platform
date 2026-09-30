@@ -5512,9 +5512,7 @@
             "technology": "技术资源"
         },
         "curated": "按现场内容编排",
-        "recap": "回顾",
-        "viewRecap": "查看赛后回顾",
-        "closingTitle": "比赛已结束，作品继续开放",
-        "closingIntro": "首届 AI 全栈极速黑客松已于 5 月 10 日结束。这里保留参赛作品、开发经验和现场影像，继续交流不同的解题思路。"
+        "viewRegistration": "查看报名信息",
+        "registrationHistory": "本届比赛已结束，报名表作为历史信息保留，不再接受提交。"
     }
 }

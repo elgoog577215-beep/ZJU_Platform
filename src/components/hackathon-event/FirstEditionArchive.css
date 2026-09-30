@@ -240,37 +240,3 @@
 .hx-workspace .hx-first-media .hx-gallery > button img {
     aspect-ratio: 4/3;
 }
-.hx-first-closing {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
-    gap: 48px;
-    align-items: center;
-    min-height: var(--event-viewport-height);
-    padding: 64px var(--event-gutter);
-    scroll-snap-align: start;
-}
-.hx-first-closing h2 {
-    font-size: clamp(30px, 3.2vw, 46px);
-    line-height: 1.4;
-    margin: 20px 0;
-}
-.hx-first-closing p:not(.hx-overline) {
-    color: var(--hx-muted);
-    line-height: 1.85;
-    max-width: 50ch;
-}
-.hx-first-closing img {
-    width: 100%;
-    object-fit: contain;
-}
-.hx-first-closing figcaption {
-    margin-top: 12px;
-    color: var(--hx-muted);
-    font-size: 14px;
-}
-@media (max-width: 1000px) {
-    .hx-first-closing {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-}

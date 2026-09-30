@@ -5403,9 +5403,7 @@
             "technology": "Technical resources"
         },
         "curated": "Curated event archive",
-        "recap": "Recap",
-        "viewRecap": "View the event recap",
-        "closingTitle": "The event has ended. The projects live on.",
-        "closingIntro": "The first AI Full-Stack Hackathon took place on May 10. Explore the submitted projects, development reflections and event photos, and discover different approaches to the challenge."
+        "viewRegistration": "View registration details",
+        "registrationHistory": "This event has ended. The registration form is retained for reference and no longer accepts submissions."
     }
 }

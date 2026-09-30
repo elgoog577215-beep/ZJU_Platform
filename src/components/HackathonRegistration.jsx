@@ -1,4 +1,3 @@
-import FirstEditionClosing from "./hackathon-event/FirstEditionClosing";
 import { getFirstEditionPartnerGroups } from "../data/firstEditionPartners";
 import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -521,12 +520,7 @@ const HackathonRegistration = ({
         },
         {
             id: "registration-form",
-            label: t(
-                isFirstEdition && !event.registrationOpen
-                    ? "firstEdition.recap"
-                    : "hackathon.nav.register",
-                "报名"
-            ),
+            label: t("hackathon.nav.register", "报名"),
             icon: Send,
             index: 3,
         },
@@ -1238,7 +1232,7 @@ const HackathonRegistration = ({
                                 >
                                     {t(
                                         isFirstEdition && !event.registrationOpen
-                                            ? "firstEdition.viewRecap"
+                                            ? "firstEdition.viewRegistration"
                                             : "hackathon.cooperation.continue_registration",
                                         "继续报名"
                                     )}
@@ -1321,300 +1315,73 @@ const HackathonRegistration = ({
                 </div>
             </MotionSection>
 
-            {isFirstEdition && !event.registrationOpen ? (
-                <FirstEditionClosing template={resolvedTemplate} />
-            ) : (
-                <section
-                    id="registration-form"
-                    className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
-                >
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
-                    <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
-                        APPLY
-                    </div>
-                    <div className="mx-auto grid min-w-0 w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] 2xl:gap-20">
-                        <div className="relative z-10 min-w-0">
-                            <div className="max-w-[760px]">
-                                <p
-                                    className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}
-                                >
-                                    Register
-                                </p>
-                                <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.25rem]">
-                                    {formConfig.title}
-                                </h2>
-                                <p
-                                    className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
-                                >
-                                    {formConfig.description}
-                                </p>
-
-                                <div
-                                    className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
-                                >
-                                    {[
-                                        [t("hackathon.event.format_label", "形式"), event.format],
-                                        [
-                                            t("hackathon.event.duration_label", "时长"),
-                                            event.duration,
-                                        ],
-                                        [t("common.location", "地点"), event.location],
-                                    ].map(([label, value]) => (
-                                        <div
-                                            key={label}
-                                            className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
-                                                isDayMode ? "bg-white/82" : "bg-white/[0.055]"
-                                            }`}
-                                        >
-                                            <span
-                                                className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
-                                            >
-                                                {label}
-                                            </span>
-                                            <span className="text-lg font-black tracking-tight">
-                                                {value}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className={`mt-5 border p-5 ${palette.panel}`}>
-                                    <div className="flex items-start gap-3">
-                                        <Bot
-                                            className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`}
-                                        />
-                                        <p className={`text-base leading-8 ${palette.textSoft}`}>
-                                            {resolvedTemplate.event.program
-                                                ? t("aix.team")
-                                                : t(
-                                                      "hackathon.form.tool_hint",
-                                                      "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
-                                                  )}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            {!resolvedTemplate.event.program && (
-                                <div className="mt-6 hidden max-w-[680px] lg:block">
-                                    <HackathonAiCoachPanel
-                                        isDayMode={isDayMode}
-                                        palette={palette}
-                                        t={t}
-                                        query={coachQuery}
-                                        setQuery={setCoachQuery}
-                                        result={coachResult}
-                                        isLoading={isCoachLoading}
-                                        onAsk={askHackathonCoach}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        <MotionDiv
-                            {...(shouldAnimate
-                                ? {
-                                      initial: { opacity: 0, y: 24 },
-                                      whileInView: { opacity: 1, y: 0 },
-                                      viewport: { once: true, margin: "-80px" },
-                                      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-                                  }
-                                : {})}
-                            className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
-                        >
-                            <div
-                                className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"}`}
+            <section
+                id="registration-form"
+                className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
+            >
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
+                <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
+                    APPLY
+                </div>
+                <div className="mx-auto grid min-w-0 w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] 2xl:gap-20">
+                    <div className="relative z-10 min-w-0">
+                        <div className="max-w-[760px]">
+                            <p
+                                className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}
                             >
-                                <div>
-                                    <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
-                                        {formConfig.title}
-                                    </h3>
-                                    <p className={`mt-2 text-base ${palette.textMuted}`}>
-                                        {registration
-                                            ? t("aix.register.success")
-                                            : formConfig.requiredHint}
-                                    </p>
-                                </div>
-                                <div
-                                    className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
-                                >
-                                    <Trophy className={`h-7 w-7 ${palette.accent}`} />
-                                </div>
+                                Register
+                            </p>
+                            <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.25rem]">
+                                {formConfig.title}
+                            </h2>
+                            <p
+                                className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
+                            >
+                                {formConfig.description}
+                            </p>
+
+                            <div
+                                className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
+                            >
+                                {[
+                                    [t("hackathon.event.format_label", "形式"), event.format],
+                                    [t("hackathon.event.duration_label", "时长"), event.duration],
+                                    [t("common.location", "地点"), event.location],
+                                ].map(([label, value]) => (
+                                    <div
+                                        key={label}
+                                        className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
+                                            isDayMode ? "bg-white/82" : "bg-white/[0.055]"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
+                                        >
+                                            {label}
+                                        </span>
+                                        <span className="text-lg font-black tracking-tight">
+                                            {value}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                {requiresLogin && (
-                                    <p
-                                        role={registrationError ? "alert" : "status"}
-                                        className={palette.textSoft}
-                                    >
-                                        {t(
-                                            registration
-                                                ? "aix.register.success"
-                                                : registrationLoading
-                                                  ? "aix.loading"
-                                                  : registrationError
-                                                    ? "aix.register.statusFailed"
-                                                    : !user
-                                                      ? "aix.register.loginHint"
-                                                      : "aix.register.privacy"
-                                        )}
+                            <div className={`mt-5 border p-5 ${palette.panel}`}>
+                                <div className="flex items-start gap-3">
+                                    <Bot className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`} />
+                                    <p className={`text-base leading-8 ${palette.textSoft}`}>
+                                        {resolvedTemplate.event.program
+                                            ? t("aix.team")
+                                            : t(
+                                                  "hackathon.form.tool_hint",
+                                                  "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
+                                              )}
                                     </p>
-                                )}
-                                <fieldset
-                                    disabled={
-                                        isSubmitting || Boolean(registration) || registrationLoading
-                                    }
-                                    className="grid gap-5 md:grid-cols-2 xl:gap-6"
-                                >
-                                    {activeFormFields.map((field) => (
-                                        <div
-                                            key={field.id}
-                                            className={
-                                                field.width === "half"
-                                                    ? "min-w-0"
-                                                    : "min-w-0 md:col-span-2"
-                                            }
-                                        >
-                                            <DynamicRegistrationField
-                                                field={field}
-                                                value={formData[field.id]}
-                                                error={formErrors[field.id]}
-                                                palette={palette}
-                                                isDayMode={isDayMode}
-                                                onChange={(value) => updateAnswer(field.id, value)}
-                                                onToggle={(option) =>
-                                                    handleMultiSelectToggle(field.id, option)
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                </fieldset>
-
-                                <div
-                                    className={
-                                        "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
-                                        palette.line
-                                    }
-                                >
-                                    <div className={"border px-5 py-4 " + palette.chip}>
-                                        <p className="text-base font-black">
-                                            {t("hackathon.form.before_submit", "提交前确认")}
-                                        </p>
-                                        <p
-                                            className={
-                                                "mt-2 text-sm leading-6 " + palette.textMuted
-                                            }
-                                        >
-                                            {formConfig.privacyNotice}
-                                        </p>
-                                        {!event.registrationOpen ? (
-                                            <p className="mt-4 font-semibold text-amber-400">
-                                                {t(
-                                                    "hackathon.form.registration_preview",
-                                                    "当前赛事报名尚未开放，表单仅供预览。"
-                                                )}
-                                            </p>
-                                        ) : null}
-                                    </div>
-
-                                    <div className="flex flex-col gap-4">
-                                        <button
-                                            type="submit"
-                                            disabled={
-                                                isSubmitting ||
-                                                registrationLoading ||
-                                                Boolean(registration) ||
-                                                !event.registrationOpen
-                                            }
-                                            className={
-                                                "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
-                                                palette.primary
-                                            }
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                                    {t("common.submitting", "提交中...")}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {registration
-                                                        ? t("aix.register.saved")
-                                                        : registrationLoading
-                                                          ? t("aix.loading")
-                                                          : registrationError
-                                                            ? t("aix.register.retry")
-                                                            : requiresLogin && !user
-                                                              ? t("aix.register.login")
-                                                              : event.registrationOpen
-                                                                ? formConfig.submitLabel
-                                                                : t(
-                                                                      "hackathon.form.registration_closed",
-                                                                      "报名未开放"
-                                                                  )}
-                                                    <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                                                </>
-                                            )}
-                                        </button>
-
-                                        {!resolvedTemplate.event.program && (
-                                            <div>
-                                                <label
-                                                    className={
-                                                        "mb-3 block text-base font-black " +
-                                                        palette.textSoft
-                                                    }
-                                                >
-                                                    {t(
-                                                        "hackathon.form.official_group",
-                                                        "官方微信群"
-                                                    )}
-                                                    <span
-                                                        className={
-                                                            "ml-2 font-normal " + palette.textMuted
-                                                        }
-                                                    >
-                                                        {t("hackathon.form.optional", "可选")}
-                                                    </span>
-                                                </label>
-                                                <div
-                                                    className={
-                                                        "flex items-center gap-4 border p-3 " +
-                                                        (isDayMode
-                                                            ? "border-slate-200 bg-white/80"
-                                                            : "border-white/10 bg-white/[0.04]")
-                                                    }
-                                                >
-                                                    <img
-                                                        src={officialWechatGroupImage}
-                                                        alt={t(
-                                                            "hackathon.form.official_group_qr",
-                                                            "官方微信群二维码"
-                                                        )}
-                                                        className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
-                                                        loading="lazy"
-                                                    />
-                                                    <p
-                                                        className={
-                                                            "hidden text-sm font-semibold leading-6 xl:block " +
-                                                            palette.textMuted
-                                                        }
-                                                    >
-                                                        {t(
-                                                            "hackathon.form.official_group_desc",
-                                                            "扫码加入群聊，后续通知和现场信息会在群内同步。"
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
-                            </form>
-                        </MotionDiv>
-
+                            </div>
+                        </div>
                         {!resolvedTemplate.event.program && (
-                            <div className="relative z-10 lg:hidden">
+                            <div className="mt-6 hidden max-w-[680px] lg:block">
                                 <HackathonAiCoachPanel
                                     isDayMode={isDayMode}
                                     palette={palette}
@@ -1628,8 +1395,223 @@ const HackathonRegistration = ({
                             </div>
                         )}
                     </div>
-                </section>
-            )}
+
+                    <MotionDiv
+                        {...(shouldAnimate
+                            ? {
+                                  initial: { opacity: 0, y: 24 },
+                                  whileInView: { opacity: 1, y: 0 },
+                                  viewport: { once: true, margin: "-80px" },
+                                  transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+                              }
+                            : {})}
+                        className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
+                    >
+                        <div
+                            className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"}`}
+                        >
+                            <div>
+                                <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
+                                    {formConfig.title}
+                                </h3>
+                                <p className={`mt-2 text-base ${palette.textMuted}`}>
+                                    {registration
+                                        ? t("aix.register.success")
+                                        : formConfig.requiredHint}
+                                </p>
+                            </div>
+                            <div
+                                className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
+                            >
+                                <Trophy className={`h-7 w-7 ${palette.accent}`} />
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            {requiresLogin && (
+                                <p
+                                    role={registrationError ? "alert" : "status"}
+                                    className={palette.textSoft}
+                                >
+                                    {t(
+                                        registration
+                                            ? "aix.register.success"
+                                            : registrationLoading
+                                              ? "aix.loading"
+                                              : registrationError
+                                                ? "aix.register.statusFailed"
+                                                : !user
+                                                  ? "aix.register.loginHint"
+                                                  : "aix.register.privacy"
+                                    )}
+                                </p>
+                            )}
+                            <fieldset
+                                disabled={
+                                    isSubmitting || Boolean(registration) || registrationLoading
+                                }
+                                className="grid gap-5 md:grid-cols-2 xl:gap-6"
+                            >
+                                {activeFormFields.map((field) => (
+                                    <div
+                                        key={field.id}
+                                        className={
+                                            field.width === "half"
+                                                ? "min-w-0"
+                                                : "min-w-0 md:col-span-2"
+                                        }
+                                    >
+                                        <DynamicRegistrationField
+                                            field={field}
+                                            value={formData[field.id]}
+                                            error={formErrors[field.id]}
+                                            palette={palette}
+                                            isDayMode={isDayMode}
+                                            onChange={(value) => updateAnswer(field.id, value)}
+                                            onToggle={(option) =>
+                                                handleMultiSelectToggle(field.id, option)
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </fieldset>
+
+                            <div
+                                className={
+                                    "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
+                                    palette.line
+                                }
+                            >
+                                <div className={"border px-5 py-4 " + palette.chip}>
+                                    <p className="text-base font-black">
+                                        {t("hackathon.form.before_submit", "提交前确认")}
+                                    </p>
+                                    <p className={"mt-2 text-sm leading-6 " + palette.textMuted}>
+                                        {formConfig.privacyNotice}
+                                    </p>
+                                    {!event.registrationOpen ? (
+                                        <p className="mt-4 font-semibold text-amber-400">
+                                            {t(
+                                                isFirstEdition
+                                                    ? "firstEdition.registrationHistory"
+                                                    : "hackathon.form.registration_preview",
+                                                "当前赛事报名尚未开放，表单仅供预览。"
+                                            )}
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                <div className="flex flex-col gap-4">
+                                    <button
+                                        type="submit"
+                                        disabled={
+                                            isSubmitting ||
+                                            registrationLoading ||
+                                            Boolean(registration) ||
+                                            !event.registrationOpen
+                                        }
+                                        className={
+                                            "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
+                                            palette.primary
+                                        }
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                {t("common.submitting", "提交中...")}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {registration
+                                                    ? t("aix.register.saved")
+                                                    : registrationLoading
+                                                      ? t("aix.loading")
+                                                      : registrationError
+                                                        ? t("aix.register.retry")
+                                                        : requiresLogin && !user
+                                                          ? t("aix.register.login")
+                                                          : event.registrationOpen
+                                                            ? formConfig.submitLabel
+                                                            : t(
+                                                                  isFirstEdition
+                                                                      ? "aix.register.closed"
+                                                                      : "hackathon.form.registration_closed",
+                                                                  "报名已截止"
+                                                              )}
+                                                <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {!resolvedTemplate.event.program && (
+                                        <div>
+                                            <label
+                                                className={
+                                                    "mb-3 block text-base font-black " +
+                                                    palette.textSoft
+                                                }
+                                            >
+                                                {t("hackathon.form.official_group", "官方微信群")}
+                                                <span
+                                                    className={
+                                                        "ml-2 font-normal " + palette.textMuted
+                                                    }
+                                                >
+                                                    {t("hackathon.form.optional", "可选")}
+                                                </span>
+                                            </label>
+                                            <div
+                                                className={
+                                                    "flex items-center gap-4 border p-3 " +
+                                                    (isDayMode
+                                                        ? "border-slate-200 bg-white/80"
+                                                        : "border-white/10 bg-white/[0.04]")
+                                                }
+                                            >
+                                                <img
+                                                    src={officialWechatGroupImage}
+                                                    alt={t(
+                                                        "hackathon.form.official_group_qr",
+                                                        "官方微信群二维码"
+                                                    )}
+                                                    className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
+                                                    loading="lazy"
+                                                />
+                                                <p
+                                                    className={
+                                                        "hidden text-sm font-semibold leading-6 xl:block " +
+                                                        palette.textMuted
+                                                    }
+                                                >
+                                                    {t(
+                                                        "hackathon.form.official_group_desc",
+                                                        "扫码加入群聊，后续通知和现场信息会在群内同步。"
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </form>
+                    </MotionDiv>
+
+                    {!resolvedTemplate.event.program && (
+                        <div className="relative z-10 lg:hidden">
+                            <HackathonAiCoachPanel
+                                isDayMode={isDayMode}
+                                palette={palette}
+                                t={t}
+                                query={coachQuery}
+                                setQuery={setCoachQuery}
+                                result={coachResult}
+                                isLoading={isCoachLoading}
+                                onAsk={askHackathonCoach}
+                            />
+                        </div>
+                    )}
+                </div>
+            </section>
         </div>
     );
 };
