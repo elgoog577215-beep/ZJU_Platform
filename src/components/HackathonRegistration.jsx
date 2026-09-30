@@ -1220,7 +1220,7 @@ const HackathonRegistration = ({ template, onSectionChange, onRegister, programC
                         <p className="mt-6 max-w-2xl text-lg leading-8">
                             {t("aix.register.description")}
                         </p>
-                        <p className="mt-4 text-cyan-300">{t("aix.planned")}</p>
+                        <p className={`mt-4 ${palette.accent}`}>{t("aix.planned")}</p>
                         <button
                             className="hx-primary mt-8"
                             onClick={onRegister}

@@ -1096,3 +1096,12 @@
 .hx-program-summary h2 {
     font-weight: 900;
 }
+
+:root[data-theme="day"] .hx-program-summary {
+    --hx-surface: var(--theme-surface);
+    --hx-text: var(--theme-text-primary);
+    --hx-muted: var(--theme-text-secondary);
+    --hx-line: var(--theme-border-strong);
+    --hx-accent: #0e7490;
+    color: var(--hx-text);
+}
