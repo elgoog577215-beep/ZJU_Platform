@@ -5,12 +5,12 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { registrationOpen, eventTimestamp } from "../utils/hackathonAiX";
-import HackathonAiXRegistration from "./HackathonAiXRegistration";
+import HackathonRegistrationDialog from "./HackathonRegistrationDialog";
 import SEO from "./SEO";
 import HackathonEventPicker from "./HackathonEventPicker";
-import HackathonSeasonOne from "./HackathonSeasonOne";
+import HackathonEventContent from "./HackathonEventContent";
 import { EVENT_VIEWS, getEventView, getEventUrl } from "../utils/hackathonRoute";
-import "./HackathonAiX.css";
+import "./HackathonShared.css";
 import "./HackathonWorkspace.css";
 // Event identity, navigation and signup belong to one shell. Edition bodies own their content.
 export default function HackathonWorkspace({ template, schedule }) {
@@ -141,10 +141,19 @@ export default function HackathonWorkspace({ template, schedule }) {
                 <span className="hx-event-status">{t(`aix.state.${state}`)}</span>
             </header>
             <div id="hx-event-content" className="hx-page" key={`${event.key}:${view}`}>
-                <HackathonSeasonOne template={template} view={view} registrationOpen={open} />
+                <HackathonEventContent
+                    template={template}
+                    view={view}
+                    registrationOpen={open}
+                    now={now}
+                    live={state === "live"}
+                    onRegister={() =>
+                        registrationError ? setRetry((value) => value + 1) : setModal(true)
+                    }
+                />
             </div>
             {modal && (
-                <HackathonAiXRegistration
+                <HackathonRegistrationDialog
                     template={template}
                     user={user}
                     isDay={false}

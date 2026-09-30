@@ -5323,7 +5323,10 @@
         "previousEdition": "首届现场",
         "previousEditionTitle": "AI 全栈极速黑客松 · 2026.05",
         "buildingAlt": "首届 AI 全栈极速黑客松，参赛者正在开发项目",
-        "discussionAlt": "首届赛事现场，参赛者围绕项目交流"
+        "discussionAlt": "首届赛事现场，参赛者围绕项目交流",
+        "sharedTitle": "AI+X破界黑客松",
+        "prizePending": "待公布",
+        "crossDiscipline": "跨学科组队与真实应用"
     },
     "eventWorkspace": {
         "skip": "跳转到赛事内容",

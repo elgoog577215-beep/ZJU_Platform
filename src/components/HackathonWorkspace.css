@@ -1,4 +1,4 @@
-/* First edition: one aligned event shell, angular cyan surfaces, no X artwork. */
+/* Shared event theme: aligned navigation and angular cyan surfaces. */
 .hx-workspace {
     --hx-bg: #060c12;
     --hx-surface: #0c1721;
@@ -995,4 +995,104 @@
     .hx-workspace [data-registration-page] {
         scroll-snap-type: none;
     }
+}
+
+/* Program content follows the same cyan surfaces and available viewport as the intro. */
+.hx-workspace {
+    --hx-body: 1rem;
+    --hx-label: 0.875rem;
+    --hx-small: 0.8125rem;
+    --hx-h3: 1.5rem;
+    --hx-h2: 2rem;
+    color: var(--hx-text);
+    background: var(--hx-bg);
+}
+.hx-workspace .hx-content {
+    line-height: 1.65;
+}
+.hx-program-summary {
+    display: grid;
+    gap: clamp(24px, 3vh, 40px);
+}
+.hx-program-summary header > p:last-child,
+.hx-program-summary article p,
+.hx-program-stages p,
+.hx-program-tracks p,
+.hx-program-forums > div p {
+    color: var(--hx-muted);
+    line-height: 1.7;
+    margin-top: 10px;
+}
+.hx-program-summary h3 {
+    font-size: clamp(20px, 2vw, 28px);
+    font-weight: 700;
+}
+.hx-program-stages {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 32px);
+}
+.hx-program-stages li {
+    border-top: 2px solid var(--hx-accent);
+    padding-top: 16px;
+}
+.hx-program-stages li > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--hx-accent);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+.hx-program-tracks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+.hx-program-tracks button {
+    text-align: left;
+    border: 1px solid var(--hx-line);
+    background: var(--hx-surface);
+    padding: clamp(20px, 2vw, 28px);
+}
+.hx-program-tracks button:hover {
+    border-color: var(--hx-accent);
+}
+.hx-program-tracks h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.hx-program-tracks button > span {
+    display: block;
+    color: var(--hx-accent);
+    margin-top: 14px;
+    font-size: 14px;
+}
+.hx-program-forums {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    border-top: 1px solid var(--hx-line);
+    padding-top: 24px;
+}
+.hx-program-forums time {
+    color: var(--hx-accent);
+    font-size: 14px;
+}
+@media (max-width: 900px) {
+    .hx-program-stages,
+    .hx-program-forums {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 600px) {
+    .hx-program-tracks {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hx-program-summary h2 {
+    font-weight: 900;
 }

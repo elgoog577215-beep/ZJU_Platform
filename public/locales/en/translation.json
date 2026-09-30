@@ -5214,7 +5214,10 @@
         "previousEdition": "From our first edition",
         "previousEditionTitle": "AI Full-Stack Hackathon · May 2026",
         "buildingAlt": "Participants building projects at the first AI Full-Stack Hackathon",
-        "discussionAlt": "Participants discussing a project at the first edition"
+        "discussionAlt": "Participants discussing a project at the first edition",
+        "sharedTitle": "AI+X Hackathon",
+        "prizePending": "TBA",
+        "crossDiscipline": "Cross-disciplinary teams"
     },
     "eventWorkspace": {
         "skip": "Skip to event content",

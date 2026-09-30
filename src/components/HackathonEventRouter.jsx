@@ -3,10 +3,9 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
-import "./HackathonAiX.css";
+import "./HackathonShared.css";
 import { AIX_EVENT_KEY } from "../utils/hackathonAiX";
 import { getEventKey, resolveEventLocation } from "../utils/hackathonRoute";
-const AiXEvent = import.meta.env.DEV ? lazy(() => import("./HackathonAiX")) : null;
 const EventWorkspace = lazy(() => import("./HackathonWorkspace"));
 export default function HackathonEventRouter() {
     const { settings } = useSettings();
@@ -31,7 +30,7 @@ export default function HackathonEventRouter() {
         );
     if (error)
         return (
-            <div className="hx-event p-12" role="alert">
+            <div className="hx-status-page p-12" role="alert">
                 <p>{t("aix.loadFailed")}</p>
                 <button className="hx-outline mt-6" onClick={reload}>
                     {t("aix.retry")}
@@ -40,7 +39,7 @@ export default function HackathonEventRouter() {
         );
     if (!resolved)
         return (
-            <div className="hx-event p-12" role="alert">
+            <div className="hx-status-page p-12" role="alert">
                 <h1>{t("not_found.title")}</h1>
                 <p>{t("not_found.description")}</p>
                 <Link className="hx-outline mt-6" to="/hackathon">
@@ -60,17 +59,7 @@ export default function HackathonEventRouter() {
                 </div>
             }
         >
-            {template.event.key === AIX_EVENT_KEY ? (
-                AiXEvent ? (
-                    <AiXEvent key={template.event.key} template={template} schedule={schedule} />
-                ) : (
-                    <div className="px-6 py-32">
-                        <h1>{t("eventWorkspace.preparing")}</h1>
-                    </div>
-                )
-            ) : (
-                <EventWorkspace key={template.event.key} template={template} schedule={schedule} />
-            )}
+            <EventWorkspace key={template.event.key} template={template} schedule={schedule} />
         </Suspense>
     );
 }

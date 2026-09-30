@@ -6,7 +6,7 @@ import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { buildHackathonInitialAnswers, getActiveHackathonFields } from "../data/hackathonTemplate";
 import api from "../services/api";
 
-export default function HackathonAiXRegistration({
+export default function HackathonRegistrationDialog({
     template,
     registration,
     onRegistered,

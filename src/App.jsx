@@ -33,7 +33,6 @@ import { getOrCreateSiteVisitorKey } from "./utils/visitorKey";
 import { showError, showSuccess } from "./utils/notify";
 import { WECHAT_LOGIN_REMEMBER_QUERY } from "./utils/wechatMiniProgramBridge";
 import { getStoredAuthToken } from "./shared/authTokenStorage";
-import { getEventKey } from "./utils/hackathonRoute";
 
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
@@ -112,7 +111,7 @@ const loadEvents = () => import("./components/Events");
 const loadAbout = () => import("./components/About");
 const loadEcosystemPartnerDirectory = () => import("./components/EcosystemPartnerDirectory");
 const loadAppDownload = () => import("./components/AppDownload");
-const loadHackathonSeasonOne = () => import("./components/HackathonEventRouter");
+const loadHackathonEvent = () => import("./components/HackathonEventRouter");
 const loadAdminDashboard = () => import("./components/Admin/AdminDashboard");
 const loadAdminAccessGate = () => import("./components/Admin/AdminAccessGate");
 const loadNotFound = () => import("./components/NotFound");
@@ -131,7 +130,7 @@ const Events = lazyRoute(loadEvents);
 const About = lazyRoute(loadAbout);
 const EcosystemPartnerDirectory = lazyRoute(loadEcosystemPartnerDirectory);
 const AppDownload = lazyRoute(loadAppDownload);
-const HackathonSeasonOne = lazyRoute(loadHackathonSeasonOne);
+const HackathonEvent = lazyRoute(loadHackathonEvent);
 const AdminDashboard = lazyRoute(loadAdminDashboard);
 const AdminAccessGate = lazyRoute(loadAdminAccessGate);
 const NotFound = lazyRoute(loadNotFound);
@@ -147,7 +146,7 @@ const preloadRouteLoaders = [
     loadEvents,
     loadArticles,
     loadProfileDirectory,
-    loadHackathonSeasonOne,
+    loadHackathonEvent,
     loadEcosystemPartnerDirectory,
 ];
 
@@ -320,10 +319,6 @@ const AppContent = () => {
     const location = useLocation();
     const { t } = useTranslation();
     const isAdminRoute = location.pathname.startsWith("/admin");
-    const isAiXEventRoute =
-        import.meta.env.DEV &&
-        location.pathname.startsWith("/hackathon") &&
-        getEventKey(location) === "zhekesong-ai-x-2026";
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
@@ -462,11 +457,7 @@ const AppContent = () => {
                     {t("common.skip_to_main")}
                 </a>
                 <ErrorBoundary variant="inline" silent>
-                    <Navbar
-                        chromeHidden={isAiXEventRoute}
-                        miniProgramMode={isMiniProgramMode}
-                        showAppDownload={showAppDownload}
-                    />
+                    <Navbar miniProgramMode={isMiniProgramMode} showAppDownload={showAppDownload} />
                 </ErrorBoundary>
                 {!isAdminRoute &&
                     cursorEnabled &&
@@ -496,7 +487,7 @@ const AppContent = () => {
                 <main
                     id="main-content"
                     className={`flex-grow ${
-                        isImmersiveRoute || isEventsRoute || isHomeRoute || isAiXEventRoute
+                        isImmersiveRoute || isEventsRoute || isHomeRoute
                             ? "pb-0"
                             : "pb-[var(--mobile-content-bottom-padding)] md:pb-0"
                     }`}
@@ -595,7 +586,7 @@ const AppContent = () => {
                                 path="/hackathon/*"
                                 element={
                                     <PageTransition>
-                                        <HackathonSeasonOne />
+                                        <HackathonEvent />
                                     </PageTransition>
                                 }
                             />
@@ -655,7 +646,7 @@ const AppContent = () => {
 
                 {!isAdminRoute && !isImmersiveRoute && <Footer />}
 
-                {!isAdminRoute && !isAiXEventRoute && <MobileNavbar />}
+                {!isAdminRoute && <MobileNavbar />}
                 {!isImmersiveRoute && hasDesktopPointer && shouldMountDeferredUi && (
                     <ErrorBoundary variant="inline" silent>
                         <Suspense fallback={null}>

@@ -145,7 +145,7 @@ const registrationSectionIds = [
     "registration-form",
 ];
 
-const HackathonRegistration = ({ template, onSectionChange }) => {
+const HackathonRegistration = ({ template, onSectionChange, onRegister, programContent }) => {
     const { i18n, t } = useTranslation();
     const { uiMode } = useSettings();
     const reduceMotion = useReducedMotion();
@@ -249,47 +249,68 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
 
     const event = useMemo(() => {
         const sourceEvent = resolvedTemplate.event;
-        const localizedEvent = isEnglish
-            ? {
-                  ...sourceEvent,
-                  brand: hasCjkText(sourceEvent.brand) ? t("hackathon.brand") : sourceEvent.brand,
-                  title: hasCjkText(sourceEvent.title)
-                      ? t("hackathon.hero.full_title")
-                      : sourceEvent.title,
-                  subtitle: hasCjkText(sourceEvent.subtitle)
-                      ? t("hackathon.hero.subtitle")
-                      : sourceEvent.subtitle,
-                  description: hasCjkText(sourceEvent.description)
-                      ? t("hackathon.hero.description")
-                      : sourceEvent.description,
-                  location: hasCjkText(sourceEvent.location)
-                      ? t("hackathon.event.location")
-                      : sourceEvent.location,
-                  format: hasCjkText(sourceEvent.format)
-                      ? t("hackathon.event.format")
-                      : sourceEvent.format,
-                  duration: hasCjkText(sourceEvent.duration)
-                      ? t("hackathon.event.duration")
-                      : sourceEvent.duration,
-                  prizeUnit: t("hackathon.event.currency"),
-                  highlights: sourceEvent.highlights.map((highlight) => ({
-                      ...highlight,
-                      unit:
-                          {
-                              hours: t("hackathon.hero.hours_unit"),
-                              solo: t("hackathon.hero.solo_unit"),
-                              pitch: t("hackathon.hero.pitch_unit"),
-                          }[highlight.id] || (hasCjkText(highlight.unit) ? "" : highlight.unit),
-                  })),
-              }
-            : sourceEvent;
+        const localizedEvent =
+            isEnglish && sourceEvent.program
+                ? {
+                      ...sourceEvent,
+                      brand: t("aix.forumKicker"),
+                      title: t("aix.sharedTitle"),
+                      subtitle: t("aix.motto"),
+                      description: t("aix.description"),
+                      location: t("aix.location"),
+                      format: t("aix.team"),
+                      duration: t("aix.challengeKicker"),
+                      prizeValue: hasCjkText(sourceEvent.prizeValue)
+                          ? t("aix.prizePending")
+                          : sourceEvent.prizeValue,
+                  }
+                : isEnglish
+                  ? {
+                        ...sourceEvent,
+                        brand: hasCjkText(sourceEvent.brand)
+                            ? t("hackathon.brand")
+                            : sourceEvent.brand,
+                        title: hasCjkText(sourceEvent.title)
+                            ? t("hackathon.hero.full_title")
+                            : sourceEvent.title,
+                        subtitle: hasCjkText(sourceEvent.subtitle)
+                            ? t("hackathon.hero.subtitle")
+                            : sourceEvent.subtitle,
+                        description: hasCjkText(sourceEvent.description)
+                            ? t("hackathon.hero.description")
+                            : sourceEvent.description,
+                        location: hasCjkText(sourceEvent.location)
+                            ? t("hackathon.event.location")
+                            : sourceEvent.location,
+                        format: hasCjkText(sourceEvent.format)
+                            ? t("hackathon.event.format")
+                            : sourceEvent.format,
+                        duration: hasCjkText(sourceEvent.duration)
+                            ? t("hackathon.event.duration")
+                            : sourceEvent.duration,
+                        prizeUnit: t("hackathon.event.currency"),
+                        highlights: sourceEvent.highlights.map((highlight) => ({
+                            ...highlight,
+                            unit:
+                                {
+                                    hours: t("hackathon.hero.hours_unit"),
+                                    solo: t("hackathon.hero.solo_unit"),
+                                    pitch: t("hackathon.hero.pitch_unit"),
+                                }[highlight.id] ||
+                                (hasCjkText(highlight.unit) ? "" : highlight.unit),
+                        })),
+                    }
+                  : sourceEvent;
         const date = isEnglish
             ? formatEnglishSchedule(sourceEvent)
             : formatHackathonSchedule(sourceEvent);
         return {
             ...localizedEvent,
             date,
-            prize: `${localizedEvent.prizeValue} ${localizedEvent.prizeUnit}`.trim(),
+            prizeUnit: /[0-9]/.test(sourceEvent.prizeValue) ? localizedEvent.prizeUnit : "",
+            prize: /[0-9]/.test(sourceEvent.prizeValue)
+                ? `${localizedEvent.prizeValue} ${localizedEvent.prizeUnit}`.trim()
+                : localizedEvent.prizeValue,
         };
     }, [isEnglish, resolvedTemplate.event, t]);
 
@@ -365,6 +386,12 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
     const ruleIcons = [Code2, Rocket, ShieldCheck, Cpu, Sparkles];
     const localizedRules = isEnglish
         ? resolvedTemplate.rules.map((rule) => {
+              if (rule.id === "cross_discipline")
+                  return {
+                      ...rule,
+                      title: t("aix.crossDiscipline"),
+                      description: t("aix.description"),
+                  };
               const translationKeys = {
                   ai_native: ["ai_native_title", "ai_native_text"],
                   ship_fast: ["five_hours_title", "five_hours_text"],
@@ -614,7 +641,8 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
     };
 
     const scrollToForm = () => {
-        smoothScrollTo("registration-form");
+        if (onRegister) onRegister();
+        else smoothScrollTo("registration-form");
     };
 
     return (
@@ -826,7 +854,12 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                 })}
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-center min-[1720px]:gap-3">
+                            <div
+                                className="grid gap-2 text-center min-[1720px]:gap-3"
+                                style={{
+                                    gridTemplateColumns: `repeat(${Math.min(challenges.length, 3) || 1}, minmax(0, 1fr))`,
+                                }}
+                            >
                                 {challenges.slice(0, 3).map((item) => (
                                     <div
                                         key={item.id}
@@ -876,6 +909,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                       },
                                   }
                                 : {})}
+                            style={heroStats.length ? undefined : { display: "none" }}
                             role="group"
                             aria-label={event.subtitle}
                             className="mt-6 grid max-w-[860px] grid-cols-3 gap-2 sm:mt-7 sm:gap-3 min-[1720px]:gap-4"
@@ -972,93 +1006,98 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                 className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
             >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
-                <div className="mx-auto min-w-0 w-full max-w-[1900px]">
-                    <div className="relative overflow-hidden">
-                        <div className="pointer-events-none absolute right-0 top-[-10%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[20vw]">
-                            SHIP
-                        </div>
-
-                        <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-center xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
-                            <div className="order-1 flex flex-col justify-center">
-                                <p
-                                    className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}
-                                >
-                                    Competition Board
-                                </p>
-                                <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl xl:text-[72px] min-[1536px]:text-[82px] 2xl:text-[96px]">
-                                    {boardLines[0] || event.duration}
-                                    <span className={`block ${palette.accent}`}>
-                                        {boardLines[1] || event.format}
-                                    </span>
-                                    {boardLines[2] || challenges[0]?.title}
-                                </h2>
-                                <p
-                                    className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}
-                                >
-                                    {event.description}
-                                </p>
-
-                                <button
-                                    type="button"
-                                    onClick={() => smoothScrollTo("partner-network")}
-                                    className={`mt-10 inline-flex min-h-12 w-fit items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
-                                >
-                                    {t("hackathon.cooperation.view_network", "查看赛事合作网络")}
-                                    <ArrowRight className="h-4 w-4" />
-                                </button>
+                {programContent || (
+                    <div className="mx-auto min-w-0 w-full max-w-[1900px]">
+                        <div className="relative overflow-hidden">
+                            <div className="pointer-events-none absolute right-0 top-[-10%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[20vw]">
+                                SHIP
                             </div>
 
-                            <div className="order-2 flex">
-                                <div className="grid flex-1 content-start gap-4 sm:gap-5 xl:gap-5 min-[1536px]:gap-7">
-                                    {challenges.map((challenge, index) => {
-                                        const Icon = challenge.icon;
-                                        return (
-                                            <div
-                                                key={challenge.title}
-                                                className={`group relative flex min-h-[136px] overflow-hidden border p-4 transition duration-300 sm:min-h-[160px] sm:p-6 xl:min-h-[166px] xl:p-7 min-[1536px]:min-h-[194px] min-[1536px]:p-9 ${
-                                                    isDayMode
-                                                        ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
-                                                        : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
-                                                }`}
-                                            >
+                            <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-center xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
+                                <div className="order-1 flex flex-col justify-center">
+                                    <p
+                                        className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}
+                                    >
+                                        Competition Board
+                                    </p>
+                                    <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl xl:text-[72px] min-[1536px]:text-[82px] 2xl:text-[96px]">
+                                        {boardLines[0] || event.duration}
+                                        <span className={`block ${palette.accent}`}>
+                                            {boardLines[1] || event.format}
+                                        </span>
+                                        {boardLines[2] || challenges[0]?.title}
+                                    </h2>
+                                    <p
+                                        className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}
+                                    >
+                                        {event.description}
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => smoothScrollTo("partner-network")}
+                                        className={`mt-10 inline-flex min-h-12 w-fit items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
+                                    >
+                                        {t(
+                                            "hackathon.cooperation.view_network",
+                                            "查看赛事合作网络"
+                                        )}
+                                        <ArrowRight className="h-4 w-4" />
+                                    </button>
+                                </div>
+
+                                <div className="order-2 flex">
+                                    <div className="grid flex-1 content-start gap-4 sm:gap-5 xl:gap-5 min-[1536px]:gap-7">
+                                        {challenges.map((challenge, index) => {
+                                            const Icon = challenge.icon;
+                                            return (
                                                 <div
-                                                    className={`absolute inset-y-0 left-0 w-1 ${isDayMode ? "bg-cyan-500" : "bg-cyan-300"} opacity-80`}
-                                                />
-                                                <div
-                                                    className={`pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100`}
-                                                />
-                                                <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
-                                                    <div className="flex items-center gap-3 sm:block">
-                                                        <div
-                                                            className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
-                                                        >
-                                                            <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
+                                                    key={challenge.title}
+                                                    className={`group relative flex min-h-[136px] overflow-hidden border p-4 transition duration-300 sm:min-h-[160px] sm:p-6 xl:min-h-[166px] xl:p-7 min-[1536px]:min-h-[194px] min-[1536px]:p-9 ${
+                                                        isDayMode
+                                                            ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
+                                                            : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
+                                                    }`}
+                                                >
+                                                    <div
+                                                        className={`absolute inset-y-0 left-0 w-1 ${isDayMode ? "bg-cyan-500" : "bg-cyan-300"} opacity-80`}
+                                                    />
+                                                    <div
+                                                        className={`pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100`}
+                                                    />
+                                                    <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
+                                                        <div className="flex items-center gap-3 sm:block">
+                                                            <div
+                                                                className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
+                                                            >
+                                                                <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
+                                                            </div>
+                                                            <p
+                                                                className={`font-mono text-xs font-black uppercase tracking-[0.24em] ${palette.accent} sm:mt-4`}
+                                                            >
+                                                                Rule 0{index + 1}
+                                                            </p>
                                                         </div>
-                                                        <p
-                                                            className={`font-mono text-xs font-black uppercase tracking-[0.24em] ${palette.accent} sm:mt-4`}
-                                                        >
-                                                            Rule 0{index + 1}
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-2xl font-black tracking-normal sm:text-4xl xl:text-[2.65rem] min-[1536px]:text-5xl">
-                                                            {challenge.title}
-                                                        </h3>
-                                                        <p
-                                                            className={`mt-2 max-w-2xl text-xs leading-6 sm:text-sm sm:leading-7 xl:text-base xl:leading-7 min-[1536px]:text-lg min-[1536px]:leading-8 ${palette.textSoft}`}
-                                                        >
-                                                            {challenge.text}
-                                                        </p>
+                                                        <div>
+                                                            <h3 className="text-2xl font-black tracking-normal sm:text-4xl xl:text-[2.65rem] min-[1536px]:text-5xl">
+                                                                {challenge.title}
+                                                            </h3>
+                                                            <p
+                                                                className={`mt-2 max-w-2xl text-xs leading-6 sm:text-sm sm:leading-7 xl:text-base xl:leading-7 min-[1536px]:text-lg min-[1536px]:leading-8 ${palette.textSoft}`}
+                                                            >
+                                                                {challenge.text}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </MotionSection>
 
             <MotionSection
@@ -1173,70 +1212,272 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                 </div>
             </MotionSection>
 
-            <section
-                id="registration-form"
-                className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
-            >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
-                <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
-                    APPLY
-                </div>
-                <div className="mx-auto grid min-w-0 w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] 2xl:gap-20">
-                    <div className="relative z-10 min-w-0">
-                        <div className="max-w-[760px]">
-                            <p
-                                className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}
-                            >
-                                Register
-                            </p>
-                            <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.25rem]">
-                                {formConfig.title}
-                            </h2>
-                            <p
-                                className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
-                            >
-                                {formConfig.description}
-                            </p>
+            {onRegister ? (
+                <section id="registration-form" className="relative flex items-center px-6 py-20">
+                    <div className="relative mx-auto w-full max-w-[1280px]">
+                        <p className="hx-overline">Register</p>
+                        <h2>{t("aix.register.title")}</h2>
+                        <p className="mt-6 max-w-2xl text-lg leading-8">
+                            {t("aix.register.description")}
+                        </p>
+                        <p className="mt-4 text-cyan-300">{t("aix.planned")}</p>
+                        <button
+                            className="hx-primary mt-8"
+                            onClick={onRegister}
+                            disabled={!event.registrationOpen}
+                        >
+                            {t(
+                                event.registrationOpen
+                                    ? "aix.register.title"
+                                    : "aix.register.closed"
+                            )}
+                        </button>
+                    </div>
+                </section>
+            ) : (
+                <section
+                    id="registration-form"
+                    className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
+                >
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
+                    <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
+                        APPLY
+                    </div>
+                    <div className="mx-auto grid min-w-0 w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] 2xl:gap-20">
+                        <div className="relative z-10 min-w-0">
+                            <div className="max-w-[760px]">
+                                <p
+                                    className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}
+                                >
+                                    Register
+                                </p>
+                                <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.25rem]">
+                                    {formConfig.title}
+                                </h2>
+                                <p
+                                    className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
+                                >
+                                    {formConfig.description}
+                                </p>
 
-                            <div
-                                className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
-                            >
-                                {[
-                                    [t("hackathon.event.format_label", "形式"), event.format],
-                                    [t("hackathon.event.duration_label", "时长"), event.duration],
-                                    [t("common.location", "地点"), event.location],
-                                ].map(([label, value]) => (
-                                    <div
-                                        key={label}
-                                        className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
-                                            isDayMode ? "bg-white/82" : "bg-white/[0.055]"
-                                        }`}
-                                    >
-                                        <span
-                                            className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
+                                <div
+                                    className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
+                                >
+                                    {[
+                                        [t("hackathon.event.format_label", "形式"), event.format],
+                                        [
+                                            t("hackathon.event.duration_label", "时长"),
+                                            event.duration,
+                                        ],
+                                        [t("common.location", "地点"), event.location],
+                                    ].map(([label, value]) => (
+                                        <div
+                                            key={label}
+                                            className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
+                                                isDayMode ? "bg-white/82" : "bg-white/[0.055]"
+                                            }`}
                                         >
-                                            {label}
-                                        </span>
-                                        <span className="text-lg font-black tracking-tight">
-                                            {value}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                                            <span
+                                                className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
+                                            >
+                                                {label}
+                                            </span>
+                                            <span className="text-lg font-black tracking-tight">
+                                                {value}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
 
-                            <div className={`mt-5 border p-5 ${palette.panel}`}>
-                                <div className="flex items-start gap-3">
-                                    <Bot className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`} />
-                                    <p className={`text-base leading-8 ${palette.textSoft}`}>
-                                        {t(
-                                            "hackathon.form.tool_hint",
-                                            "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
-                                        )}
-                                    </p>
+                                <div className={`mt-5 border p-5 ${palette.panel}`}>
+                                    <div className="flex items-start gap-3">
+                                        <Bot
+                                            className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`}
+                                        />
+                                        <p className={`text-base leading-8 ${palette.textSoft}`}>
+                                            {t(
+                                                "hackathon.form.tool_hint",
+                                                "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
+                            <div className="mt-6 hidden max-w-[680px] lg:block">
+                                <HackathonAiCoachPanel
+                                    isDayMode={isDayMode}
+                                    palette={palette}
+                                    t={t}
+                                    query={coachQuery}
+                                    setQuery={setCoachQuery}
+                                    result={coachResult}
+                                    isLoading={isCoachLoading}
+                                    onAsk={askHackathonCoach}
+                                />
+                            </div>
                         </div>
-                        <div className="mt-6 hidden max-w-[680px] lg:block">
+
+                        <MotionDiv
+                            {...(shouldAnimate
+                                ? {
+                                      initial: { opacity: 0, y: 24 },
+                                      whileInView: { opacity: 1, y: 0 },
+                                      viewport: { once: true, margin: "-80px" },
+                                      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+                                  }
+                                : {})}
+                            className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
+                        >
+                            <div
+                                className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/14"}`}
+                            >
+                                <div>
+                                    <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
+                                        {formConfig.title}
+                                    </h3>
+                                    <p className={`mt-2 text-base ${palette.textMuted}`}>
+                                        {formConfig.requiredHint}
+                                    </p>
+                                </div>
+                                <div
+                                    className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
+                                >
+                                    <Trophy className={`h-7 w-7 ${palette.accent}`} />
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
+                                    {activeFormFields.map((field) => (
+                                        <div
+                                            key={field.id}
+                                            className={
+                                                field.width === "half"
+                                                    ? "min-w-0"
+                                                    : "min-w-0 md:col-span-2"
+                                            }
+                                        >
+                                            <DynamicRegistrationField
+                                                field={field}
+                                                value={formData[field.id]}
+                                                error={formErrors[field.id]}
+                                                palette={palette}
+                                                isDayMode={isDayMode}
+                                                onChange={(value) => updateAnswer(field.id, value)}
+                                                onToggle={(option) =>
+                                                    handleMultiSelectToggle(field.id, option)
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div
+                                    className={
+                                        "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
+                                        palette.line
+                                    }
+                                >
+                                    <div className={"border px-5 py-4 " + palette.chip}>
+                                        <p className="text-base font-black">
+                                            {t("hackathon.form.before_submit", "提交前确认")}
+                                        </p>
+                                        <p
+                                            className={
+                                                "mt-2 text-sm leading-6 " + palette.textMuted
+                                            }
+                                        >
+                                            {formConfig.privacyNotice}
+                                        </p>
+                                        {!event.registrationOpen ? (
+                                            <p className="mt-4 font-semibold text-amber-400">
+                                                {t(
+                                                    "hackathon.form.registration_preview",
+                                                    "当前赛事报名尚未开放，表单仅供预览。"
+                                                )}
+                                            </p>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting || !event.registrationOpen}
+                                            className={
+                                                "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
+                                                palette.primary
+                                            }
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                    {t("common.submitting", "提交中...")}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {event.registrationOpen
+                                                        ? formConfig.submitLabel
+                                                        : t(
+                                                              "hackathon.form.registration_closed",
+                                                              "报名未开放"
+                                                          )}
+                                                    <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <div>
+                                            <label
+                                                className={
+                                                    "mb-3 block text-base font-black " +
+                                                    palette.textSoft
+                                                }
+                                            >
+                                                {t("hackathon.form.official_group", "官方微信群")}
+                                                <span
+                                                    className={
+                                                        "ml-2 font-normal " + palette.textMuted
+                                                    }
+                                                >
+                                                    {t("hackathon.form.optional", "可选")}
+                                                </span>
+                                            </label>
+                                            <div
+                                                className={
+                                                    "flex items-center gap-4 border p-3 " +
+                                                    (isDayMode
+                                                        ? "border-slate-200 bg-white/80"
+                                                        : "border-white/10 bg-white/[0.04]")
+                                                }
+                                            >
+                                                <img
+                                                    src={officialWechatGroupImage}
+                                                    alt={t(
+                                                        "hackathon.form.official_group_qr",
+                                                        "官方微信群二维码"
+                                                    )}
+                                                    className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
+                                                    loading="lazy"
+                                                />
+                                                <p
+                                                    className={
+                                                        "hidden text-sm font-semibold leading-6 xl:block " +
+                                                        palette.textMuted
+                                                    }
+                                                >
+                                                    {t(
+                                                        "hackathon.form.official_group_desc",
+                                                        "扫码加入群聊，后续通知和现场信息会在群内同步。"
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </MotionDiv>
+
+                        <div className="relative z-10 lg:hidden">
                             <HackathonAiCoachPanel
                                 isDayMode={isDayMode}
                                 palette={palette}
@@ -1249,175 +1490,8 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                             />
                         </div>
                     </div>
-
-                    <MotionDiv
-                        {...(shouldAnimate
-                            ? {
-                                  initial: { opacity: 0, y: 24 },
-                                  whileInView: { opacity: 1, y: 0 },
-                                  viewport: { once: true, margin: "-80px" },
-                                  transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-                              }
-                            : {})}
-                        className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
-                    >
-                        <div
-                            className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/14"}`}
-                        >
-                            <div>
-                                <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
-                                    {formConfig.title}
-                                </h3>
-                                <p className={`mt-2 text-base ${palette.textMuted}`}>
-                                    {formConfig.requiredHint}
-                                </p>
-                            </div>
-                            <div
-                                className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
-                            >
-                                <Trophy className={`h-7 w-7 ${palette.accent}`} />
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
-                                {activeFormFields.map((field) => (
-                                    <div
-                                        key={field.id}
-                                        className={
-                                            field.width === "half"
-                                                ? "min-w-0"
-                                                : "min-w-0 md:col-span-2"
-                                        }
-                                    >
-                                        <DynamicRegistrationField
-                                            field={field}
-                                            value={formData[field.id]}
-                                            error={formErrors[field.id]}
-                                            palette={palette}
-                                            isDayMode={isDayMode}
-                                            onChange={(value) => updateAnswer(field.id, value)}
-                                            onToggle={(option) =>
-                                                handleMultiSelectToggle(field.id, option)
-                                            }
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div
-                                className={
-                                    "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
-                                    palette.line
-                                }
-                            >
-                                <div className={"border px-5 py-4 " + palette.chip}>
-                                    <p className="text-base font-black">
-                                        {t("hackathon.form.before_submit", "提交前确认")}
-                                    </p>
-                                    <p className={"mt-2 text-sm leading-6 " + palette.textMuted}>
-                                        {formConfig.privacyNotice}
-                                    </p>
-                                    {!event.registrationOpen ? (
-                                        <p className="mt-4 font-semibold text-amber-400">
-                                            {t(
-                                                "hackathon.form.registration_preview",
-                                                "当前赛事报名尚未开放，表单仅供预览。"
-                                            )}
-                                        </p>
-                                    ) : null}
-                                </div>
-
-                                <div className="flex flex-col gap-4">
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting || !event.registrationOpen}
-                                        className={
-                                            "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
-                                            palette.primary
-                                        }
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                                {t("common.submitting", "提交中...")}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {event.registrationOpen
-                                                    ? formConfig.submitLabel
-                                                    : t(
-                                                          "hackathon.form.registration_closed",
-                                                          "报名未开放"
-                                                      )}
-                                                <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                                            </>
-                                        )}
-                                    </button>
-
-                                    <div>
-                                        <label
-                                            className={
-                                                "mb-3 block text-base font-black " +
-                                                palette.textSoft
-                                            }
-                                        >
-                                            {t("hackathon.form.official_group", "官方微信群")}
-                                            <span
-                                                className={"ml-2 font-normal " + palette.textMuted}
-                                            >
-                                                {t("hackathon.form.optional", "可选")}
-                                            </span>
-                                        </label>
-                                        <div
-                                            className={
-                                                "flex items-center gap-4 border p-3 " +
-                                                (isDayMode
-                                                    ? "border-slate-200 bg-white/80"
-                                                    : "border-white/10 bg-white/[0.04]")
-                                            }
-                                        >
-                                            <img
-                                                src={officialWechatGroupImage}
-                                                alt={t(
-                                                    "hackathon.form.official_group_qr",
-                                                    "官方微信群二维码"
-                                                )}
-                                                className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
-                                                loading="lazy"
-                                            />
-                                            <p
-                                                className={
-                                                    "hidden text-sm font-semibold leading-6 xl:block " +
-                                                    palette.textMuted
-                                                }
-                                            >
-                                                {t(
-                                                    "hackathon.form.official_group_desc",
-                                                    "扫码加入群聊，后续通知和现场信息会在群内同步。"
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </MotionDiv>
-
-                    <div className="relative z-10 lg:hidden">
-                        <HackathonAiCoachPanel
-                            isDayMode={isDayMode}
-                            palette={palette}
-                            t={t}
-                            query={coachQuery}
-                            setQuery={setCoachQuery}
-                            result={coachResult}
-                            isLoading={isCoachLoading}
-                            onAsk={askHackathonCoach}
-                        />
-                    </div>
-                </div>
-            </section>
+                </section>
+            )}
         </div>
     );
 };
