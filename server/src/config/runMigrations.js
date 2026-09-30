@@ -225,7 +225,6 @@ async function runMigrations(db) {
     }
 
     // Migration: unify notification content to single `content` column.
-    // See openspec/changes/unify-notification-content/ for full context.
     try {
         await ensureColumns(
             db,
@@ -660,7 +659,6 @@ async function runMigrations(db) {
     }
 
     // Migration: Nickname partial unique index.
-    // See openspec/changes/community-identity-and-follow-notifications/ for context.
     try {
         const nicknameCollisions = await db.all(
             `SELECT nickname, GROUP_CONCAT(id) AS ids, COUNT(*) AS cnt

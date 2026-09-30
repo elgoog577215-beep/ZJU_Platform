@@ -8,15 +8,14 @@
 
 ## 文档入口
 
-| 想了解什么                     | 文档                                       |
-| ------------------------------ | ------------------------------------------ |
-| 产品最终要设计成什么样         | [产品蓝图](./docs/产品蓝图.md)             |
-| 当前做到哪里、下一步是什么     | [产品状态](./docs/产品状态.md)             |
-| 仓库、领域真源和运行链怎样组织 | [技术架构](./docs/技术架构.md)             |
-| AI 应遵守哪些项目规则          | [项目规则](./AGENTS.md)                    |
-| 当前高影响功能怎样设计和实施   | [`openspec/changes/`](./openspec/changes/) |
-| 专项发布、采集与移动端操作     | [`docs/操作手册/`](./docs/操作手册/)       |
-| 历史设计和决策依据             | [`docs/归档/`](./docs/归档/)               |
+| 想了解什么                     | 文档                                 |
+| ------------------------------ | ------------------------------------ |
+| 产品最终要设计成什么样         | [产品蓝图](./docs/产品蓝图.md)       |
+| 当前做到哪里、下一步是什么     | [产品状态](./docs/产品状态.md)       |
+| 仓库、领域真源和运行链怎样组织 | [技术架构](./docs/技术架构.md)       |
+| AI 应遵守哪些项目规则          | [项目规则](./AGENTS.md)              |
+| 专项发布、采集与移动端操作     | [`docs/操作手册/`](./docs/操作手册/) |
+| 历史设计和决策依据             | [`docs/归档/`](./docs/归档/)         |
 
 AI Agent 的正式执行规则位于 [AGENTS.md](./AGENTS.md)。它主要面向 AI，不替代本文的人类上手说明。
 
@@ -25,7 +24,7 @@ AI Agent 的正式执行规则位于 [AGENTS.md](./AGENTS.md)。它主要面向 
 - 前端：React 18、Vite、React Router、Tailwind CSS、i18next、Framer Motion、Three.js。
 - 后端：Node.js、Express、SQLite、JWT、Multer、Sharp、Playwright。
 - 客户端：Web/PWA、微信小程序 WebView、Android TWA/WebView、iOS Capacitor。
-- 规格与测试：OpenSpec、Node Test Runner、Playwright、ESLint。
+- 测试与检查：Node Test Runner、Playwright、ESLint。
 - 生产：GitHub Actions、PM2、Caddy。
 
 ## 环境要求
@@ -96,10 +95,9 @@ npm run check:ai-assistant
 npm run check:ai-agents
 ```
 
-规格与格式：
+格式与差异：
 
 ```bash
-npm run openspec:validate
 npm run format:check
 git diff --check
 ```
@@ -124,7 +122,6 @@ android-twa/          Android TWA/WebView 包装工程
 ios/                  iOS Capacitor 工程
 e2e/                  Playwright 浏览器回归
 docs/                 当前中文文档、操作手册和历史归档
-openspec/             正式规格、活动变更与归档
 ```
 
 这里仅提供一级目录导航；详细模块、数据真源和运行链查看[技术架构](./docs/技术架构.md)。
@@ -132,8 +129,8 @@ openspec/             正式规格、活动变更与归档
 ## 开发协作
 
 - AI 协作规则查看 [AGENTS.md](./AGENTS.md)。
-- 高影响功能、核心流程、数据库迁移和正式接口变化进入 `openspec/changes/<change>/`。
-- 产品、状态和架构变化回写对应项目文档；稳定项目规则回写 [AGENTS.md](./AGENTS.md)，具体边界见[文档入口](#文档入口)。
+- 功能设计、接口和数据关系维护在产品蓝图与技术架构，跨轮次进度和待验收事项维护在产品状态，入口见[文档入口](#文档入口)。
+- 开发引起的产品、状态和架构变化回写对应项目文档；[AGENTS.md](./AGENTS.md) 的修改须有用户明确授权。
 - 本仓库公开，不提交内部商业文书、用户数据、数据库、上传内容、密钥、AI memory 和本地生成产物。
 
 ## 构建与部署

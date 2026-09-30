@@ -1156,7 +1156,6 @@ const getPublicProfile = async (req, res, next) => {
 const toggleFollowUser = async (req, res, next) => {
     try {
         // Self-follow guard — MUST be at top to cover both POST and DELETE routes.
-        // See openspec/changes/community-identity-and-follow-notifications Task 6.
         if (Number(req.params.id) === Number(req.user?.id)) {
             return res.status(400).json({ error: "不能关注自己" });
         }
