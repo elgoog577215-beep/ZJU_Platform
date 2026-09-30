@@ -1,3 +1,4 @@
+const { startLotteryScheduler, stopLotteryScheduler } = require("./src/services/lotteryScheduler");
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -381,6 +382,7 @@ const startServer = async () => {
         const db = await getDb();
         await runMigrations(db);
         if (backgroundTasksEnabled) {
+            startLotteryScheduler();
             startWechatMpTokenHealthScheduler({ getDb });
             startWechatMpIngestScheduler({ getDb });
             startUserEventAiProfileScheduler({ getDb });
@@ -461,6 +463,7 @@ process.on("unhandledRejection", (reason, promise) => {
 // Graceful shutdown
 process.on("SIGTERM", async () => {
     console.log("👋 SIGTERM received, shutting down gracefully");
+    stopLotteryScheduler();
     stopWechatMpTokenHealthScheduler();
     stopWechatMpIngestScheduler();
     stopUserEventAiProfileScheduler();
@@ -470,6 +473,7 @@ process.on("SIGTERM", async () => {
 
 process.on("SIGINT", async () => {
     console.log("👋 SIGINT received, shutting down gracefully");
+    stopLotteryScheduler();
     stopWechatMpTokenHealthScheduler();
     stopWechatMpIngestScheduler();
     stopUserEventAiProfileScheduler();

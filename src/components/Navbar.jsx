@@ -21,6 +21,7 @@ import {
     Smartphone,
     Trees,
     UserCircle,
+    Gift,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -117,6 +118,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
     const navLinks = [
         { key: "home", path: "/" },
         { key: "events", path: "/events" },
+        { key: "lotteries", path: "/lotteries" },
         { key: "articles", path: "/articles" },
         ...(isDesktopViewport
             ? [
@@ -136,6 +138,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
                 location.pathname.startsWith("/videos")
             );
         }
+        if (path === "/lotteries") return location.pathname.startsWith("/lotteries");
         if (path === "/about") return location.pathname.startsWith("/about");
         return location.pathname === path;
     };
@@ -236,6 +239,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
         : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
     const showMobileUploadAction = showUploadButton;
     const secondaryMobileLinks = [
+        { key: "lotteries", path: "/lotteries", icon: Gift, label: t("lottery.title") },
         // Keep About available on desktop/tablet while hiding it on phones.
         ...(isDesktopViewport ? [{ key: "about", path: "/about", icon: Info }] : []),
         ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),

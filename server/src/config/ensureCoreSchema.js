@@ -340,6 +340,7 @@ async function ensureCoreSchema(db) {
     );
   `);
 
+    await require("./migrations/lotteries").migrateLotteries(db);
     console.log("✅ Core schema ready");
 }
 

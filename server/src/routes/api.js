@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+router.use("/lotteries", require("./lotteries"));
 const { resourcePermission } = require("../utils/userPermissions");
 
 // Middleware

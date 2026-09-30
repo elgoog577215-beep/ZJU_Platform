@@ -132,6 +132,7 @@ const EcosystemPartnerDirectory = lazyRoute(loadEcosystemPartnerDirectory);
 const AppDownload = lazyRoute(loadAppDownload);
 const HackathonEvent = lazyRoute(loadHackathonEvent);
 const AdminDashboard = lazyRoute(loadAdminDashboard);
+const LotteryPage = lazyRoute(() => import("./features/lottery/LotteryPage"));
 const AdminAccessGate = lazyRoute(loadAdminAccessGate);
 const NotFound = lazyRoute(loadNotFound);
 const ProfilePage = lazyRoute(loadProfilePage);
@@ -495,6 +496,22 @@ const AppContent = () => {
                 >
                     <Suspense fallback={<LoadingScreen />}>
                         <Routes location={location}>
+                            <Route
+                                path="/lotteries"
+                                element={
+                                    <PageTransition>
+                                        <LotteryPage />
+                                    </PageTransition>
+                                }
+                            />
+                            <Route
+                                path="/lotteries/:id"
+                                element={
+                                    <PageTransition>
+                                        <LotteryPage />
+                                    </PageTransition>
+                                }
+                            />
                             <Route
                                 path="/"
                                 element={

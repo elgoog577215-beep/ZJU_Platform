@@ -27,6 +27,7 @@ import {
     GitBranch,
     QrCode,
     FolderKanban,
+    Ticket,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -49,6 +50,7 @@ import MediaCategoryManager from "./MediaCategoryManager";
 import WeReadCollectorManager from "./WeReadCollectorManager";
 import WeChatMpImportManager from "./WeChatMpImportManager";
 import ProjectManager from "./ProjectManager";
+import LotteryManager from "../../features/lottery/LotteryManager";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import AdminPermissionManager from "./AdminPermissionManager";
@@ -69,6 +71,7 @@ const MODULE_STATUS = {
 const normalizeTabId = (tabId) => LEGACY_TAB_ALIASES[tabId] || tabId;
 const KNOWN_TAB_IDS = new Set([
     "overview",
+    "lotteries",
     "admin-access",
     "pending",
     "intelligence",
@@ -329,6 +332,14 @@ const AdminDashboard = () => {
                         description: t("admin.descriptions.users", "账号、发布权限与组织成员"),
                         status: MODULE_STATUS.ready,
                         keywords: ["用户", "组织", "权限", "成员"],
+                    },
+                    {
+                        id: "lotteries",
+                        label: t("lottery.manage"),
+                        icon: Ticket,
+                        description: t("lottery.manage_hint"),
+                        status: MODULE_STATUS.ready,
+                        keywords: ["抽奖", "lottery"],
                     },
                     {
                         id: "partners",
@@ -621,6 +632,8 @@ const AdminDashboard = () => {
                 return <PendingReviewManager />;
             case "messages":
                 return <MessageManager />;
+            case "lotteries":
+                return <LotteryManager />;
             case "partners":
                 return <EcosystemPartnerManager />;
             case "tags":
