@@ -232,7 +232,8 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
         : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
     const showMobileUploadAction = showUploadButton;
     const secondaryMobileLinks = [
-        { key: "about", path: "/about", icon: Info },
+        // Keep About available on desktop/tablet while hiding it on phones.
+        ...(isDesktopViewport ? [{ key: "about", path: "/about", icon: Info }] : []),
         ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
         ...(!miniProgramMode && canAccessAdmin
             ? [{ key: "admin", path: "/admin", icon: Shield }]
