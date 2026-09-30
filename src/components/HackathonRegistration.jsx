@@ -401,8 +401,6 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
             displayName: getLocalizedPartnerDisplayName(partner, language),
         })),
     }));
-    const communityPartnerGroups = ecosystemGroups.filter((group) => group.id !== "enterprise");
-    const enterprisePartnerGroup = ecosystemGroups.find((group) => group.id === "enterprise");
     const ecosystemPartnerCount = ecosystemGroups.reduce(
         (total, group) => total + group.partners.length,
         0
@@ -1081,202 +1079,116 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                     CO-BUILD
                 </div>
 
-                <div className="relative mx-auto grid min-w-0 w-full max-w-[1880px] gap-10 xl:grid-cols-[minmax(320px,0.68fr)_minmax(0,1.32fr)] xl:items-stretch xl:gap-14 min-[1536px]:gap-20">
-                    <div className="flex min-w-0 flex-col justify-between">
+                <div className="partner-network-layout relative mx-auto min-w-0 w-full max-w-[1880px]">
+                    <header className="partner-network-heading">
                         <div>
                             <p className={`text-sm font-black ${palette.accent}`}>
                                 {t("hackathon.cooperation.eyebrow", "03 / 赛事合作")}
                             </p>
-                            <h2 className="mt-5 max-w-[740px] text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl xl:text-7xl min-[1536px]:text-[5.5rem]">
+                            <h2 className="font-black tracking-normal">
                                 {t("hackathon.cooperation.title_line_1", "共同把真实问题")}
                                 <span className={`block ${palette.accent}`}>
                                     {t("hackathon.cooperation.title_line_2", "带到现场")}
                                 </span>
                             </h2>
-                            <p
-                                className={`mt-6 max-w-[68ch] text-base leading-8 sm:text-lg xl:max-w-xl ${palette.textSoft}`}
-                            >
+                        </div>
+                        <div className="partner-network-intro">
+                            <p className={palette.textSoft}>
                                 {t(
                                     "hackathon.cooperation.description",
                                     "这里展示拓浙AI生态现有的赛事支持网络。学校提供场景与机制，社团承接组织与传播，企业提供技术与产业资源。"
                                 )}
                             </p>
-                        </div>
-
-                        <div className="mt-8 xl:mt-12">
-                            <div className={`grid grid-cols-2 border-y ${palette.line}`}>
-                                <div className={`border-r px-4 py-5 sm:px-6 ${palette.line}`}>
-                                    <strong className={`text-4xl font-black ${palette.accent}`}>
-                                        {ecosystemGroups.length}
-                                    </strong>
-                                    <span
-                                        className={`mt-2 block text-sm font-bold ${palette.textMuted}`}
-                                    >
-                                        {t("hackathon.cooperation.group_count", "支持类别")}
-                                    </span>
-                                </div>
-                                <div className="px-4 py-5 sm:px-6">
-                                    <strong className={`text-4xl font-black ${palette.accent}`}>
-                                        {ecosystemPartnerCount}
-                                    </strong>
-                                    <span
-                                        className={`mt-2 block text-sm font-bold ${palette.textMuted}`}
-                                    >
-                                        {t("hackathon.cooperation.partner_count", "合作伙伴")}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                            <div className={`partner-network-summary text-sm ${palette.textMuted}`}>
+                                <span>
+                                    {ecosystemGroups.length}{" "}
+                                    {t("hackathon.cooperation.group_count", "支持类别")}
+                                </span>
+                                <span>
+                                    {ecosystemPartnerCount}{" "}
+                                    {t("hackathon.cooperation.partner_count", "合作伙伴")}
+                                </span>
                                 <button
                                     type="button"
                                     onClick={scrollToForm}
-                                    className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 ${palette.primary}`}
+                                    className={`inline-flex min-h-11 items-center gap-2 font-bold ${palette.accent} focus:outline-none focus:ring-4 focus:ring-cyan-300/30`}
                                 >
                                     {t("hackathon.cooperation.continue_registration", "继续报名")}
                                     <Send className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </header>
 
-                    <div className={`min-w-0 border-y ${palette.line}`}>
-                        {ecosystemGroups.length > 0 ? (
-                            <>
-                                <div
-                                    className={`grid divide-y md:grid-cols-2 md:divide-x md:divide-y-0 ${
-                                        isDayMode ? "divide-slate-200" : "divide-white/10"
-                                    }`}
+                    {ecosystemGroups.length > 0 ? (
+                        <div className={`partner-network-groups border-y ${palette.line}`}>
+                            {ecosystemGroups.map((group) => (
+                                <section
+                                    className={`partner-network-group ${palette.line}`}
+                                    key={group.id}
                                 >
-                                    {communityPartnerGroups.map((group, groupIndex) => (
-                                        <section
-                                            key={group.id}
-                                            className="min-w-0 px-0 py-6 md:px-7 lg:px-8 xl:min-h-[280px] xl:py-8"
-                                        >
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div>
-                                                    <p
-                                                        className={`text-xs font-black ${palette.accent}`}
-                                                    >
-                                                        {String(groupIndex + 1).padStart(2, "0")}
-                                                    </p>
-                                                    <h3 className="mt-3 text-2xl font-black sm:text-3xl">
-                                                        {group.label}
-                                                    </h3>
-                                                </div>
-                                                <span
-                                                    className={`text-sm font-black ${palette.textMuted}`}
-                                                >
-                                                    {group.partners.length}{" "}
-                                                    {t(
-                                                        "hackathon.cooperation.partner_unit",
-                                                        "伙伴"
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <p
-                                                className={`mt-4 max-w-[56ch] text-sm leading-7 ${palette.textSoft}`}
-                                            >
-                                                {group.role}
-                                            </p>
-                                            <div className="mt-6 flex flex-wrap gap-2">
-                                                {group.partners.map((partner) => (
-                                                    <span
-                                                        key={partner.id || partner.displayName}
-                                                        className={`inline-flex min-h-10 items-center border px-3 py-2 text-sm font-black ${palette.chip}`}
-                                                    >
-                                                        {partner.displayName}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </section>
-                                    ))}
-                                </div>
-
-                                {enterprisePartnerGroup ? (
-                                    <section
-                                        className={`border-t py-6 md:px-7 lg:px-8 xl:py-8 ${palette.line}`}
-                                    >
-                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                                            <div>
-                                                <p
-                                                    className={`text-xs font-black ${palette.accent}`}
-                                                >
-                                                    03
-                                                </p>
-                                                <h3 className="mt-3 text-2xl font-black sm:text-3xl">
-                                                    {enterprisePartnerGroup.label}
-                                                </h3>
-                                                <p
-                                                    className={`mt-3 max-w-[70ch] text-sm leading-7 ${palette.textSoft}`}
-                                                >
-                                                    {enterprisePartnerGroup.role}
-                                                </p>
-                                            </div>
-                                            <span
-                                                className={`text-sm font-black ${palette.textMuted}`}
-                                            >
-                                                {enterprisePartnerGroup.partners.length}{" "}
+                                    <div className="partner-network-label">
+                                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                            <h3 className="font-black">{group.label}</h3>
+                                            <span className={`text-xs ${palette.accent}`}>
+                                                {group.partners.length}{" "}
                                                 {t("hackathon.cooperation.partner_unit", "伙伴")}
                                             </span>
                                         </div>
-
-                                        <div
-                                            className="mt-6 grid grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-4"
-                                            aria-label={t(
-                                                "hackathon.cooperation.enterprise_logos",
-                                                "技术与产业合作伙伴"
-                                            )}
-                                        >
-                                            {enterprisePartnerGroup.partners.map((partner) => {
-                                                const logoSrc = getPartnerLogoSrc(
-                                                    partner,
-                                                    isDayMode
-                                                );
-                                                return (
-                                                    <div
-                                                        key={partner.id || partner.displayName}
-                                                        className={`flex min-h-16 min-w-0 items-center justify-center border px-3 py-3 sm:min-h-20 ${
-                                                            isDayMode
-                                                                ? "border-slate-200 bg-white/72"
-                                                                : "border-white/10 bg-white/[0.045]"
-                                                        }`}
-                                                    >
-                                                        {logoSrc ? (
-                                                            <img
-                                                                src={logoSrc}
-                                                                alt={`${partner.displayName} logo`}
-                                                                className={`max-h-9 max-w-full object-contain ${
-                                                                    isDayMode
-                                                                        ? ""
-                                                                        : partner.darkClassName ||
-                                                                          ""
-                                                                }`}
-                                                                loading="lazy"
-                                                            />
-                                                        ) : (
-                                                            <span className="truncate text-center text-sm font-black">
-                                                                {partner.displayName}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </section>
-                                ) : null}
-                            </>
-                        ) : (
-                            <div className="flex min-h-[360px] items-center justify-center px-6 py-16 text-center">
-                                <p className={`max-w-md text-base leading-8 ${palette.textSoft}`}>
-                                    {t(
-                                        "hackathon.cooperation.empty",
-                                        "合作网络正在整理，确认后的支持信息会在这里公开。"
-                                    )}
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                                        <p className={`mt-2 text-sm ${palette.textSoft}`}>
+                                            {group.role}
+                                        </p>
+                                    </div>
+                                    <ul
+                                        className={
+                                            group.id === "enterprise"
+                                                ? "partner-network-logos"
+                                                : "partner-network-names"
+                                        }
+                                        aria-label={group.label}
+                                    >
+                                        {group.partners.map((partner) => {
+                                            const logoSrc =
+                                                group.id === "enterprise" &&
+                                                getPartnerLogoSrc(partner, isDayMode);
+                                            return (
+                                                <li
+                                                    key={partner.id || partner.displayName}
+                                                    className={
+                                                        group.id === "enterprise"
+                                                            ? `partner-network-logo ${palette.chip}`
+                                                            : "partner-network-name"
+                                                    }
+                                                >
+                                                    {logoSrc ? (
+                                                        <img
+                                                            src={logoSrc}
+                                                            alt={partner.displayName}
+                                                            className={
+                                                                isDayMode
+                                                                    ? ""
+                                                                    : partner.darkClassName || ""
+                                                            }
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <span>{partner.displayName}</span>
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </section>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className={`py-12 text-center ${palette.textSoft}`}>
+                            {t(
+                                "hackathon.cooperation.empty",
+                                "合作网络正在整理，确认后的支持信息会在这里公开。"
+                            )}
+                        </p>
+                    )}
                 </div>
             </MotionSection>
 

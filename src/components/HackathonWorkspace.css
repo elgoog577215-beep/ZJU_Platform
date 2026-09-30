@@ -831,6 +831,103 @@
 .hx-workspace .hx-content :is(h1, h2, h3, p) {
     overflow-wrap: anywhere;
 }
+/* Give the partner directory the full content width instead of a tall side column. */
+.hx-workspace #partner-network {
+    padding-top: calc(var(--event-nav-height) + clamp(16px, 2dvh, 32px));
+    padding-bottom: clamp(16px, 2dvh, 32px);
+}
+.hx-workspace .partner-network-layout {
+    display: grid;
+    gap: clamp(16px, 2dvh, 32px);
+}
+.hx-workspace .partner-network-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    align-items: end;
+    gap: clamp(24px, 4vw, 56px);
+}
+.hx-workspace #partner-network h2 {
+    margin-top: 12px;
+    font-size: clamp(30px, min(3.2vw, 5dvh), 46px);
+}
+.hx-workspace .partner-network-intro > p {
+    max-width: 65ch;
+    font-size: 16px;
+    line-height: 1.7;
+}
+.hx-workspace .partner-network-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 20px;
+    margin-top: 8px;
+}
+.hx-workspace .partner-network-group {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.85fr) minmax(0, 3.15fr);
+    align-items: center;
+    gap: clamp(20px, 3vw, 40px);
+    padding-block: clamp(12px, calc(5dvh - 24px), 28px);
+}
+.hx-workspace .partner-network-group + .partner-network-group {
+    border-top-width: 1px;
+}
+.hx-workspace .partner-network-label h3 {
+    font-size: clamp(18px, 1.5vw, 22px);
+    line-height: 1.4;
+}
+.hx-workspace .partner-network-label p {
+    line-height: 1.6;
+}
+.hx-workspace :is(.partner-network-names, .partner-network-logos) {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+.hx-workspace .partner-network-names {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+    gap: clamp(6px, calc(2dvh - 8px), 10px) 20px;
+}
+.hx-workspace .partner-network-name {
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+.hx-workspace .partner-network-logos {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+    gap: 8px;
+}
+.hx-workspace .partner-network-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: clamp(52px, 6.8dvh, 72px);
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.hx-workspace .partner-network-logo img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 30px;
+    object-fit: contain;
+}
+@media (max-width: 979px) {
+    .hx-workspace .partner-network-heading {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+    .hx-workspace .partner-network-group {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+}
 @media (min-width: 1280px) {
     .hx-workspace #hackathon-hero h1 {
         font-size: clamp(42px, min(6vw, 7.5dvh), 88px);
@@ -848,6 +945,9 @@
     }
     .hx-workspace #hackathon-hero {
         padding-top: var(--hero-space);
+    }
+    .hx-workspace #partner-network {
+        padding-top: calc(var(--event-nav-height) + 80px);
     }
 }
 @media (max-width: 767px) {
