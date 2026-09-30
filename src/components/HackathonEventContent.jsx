@@ -19,7 +19,8 @@ export default function HackathonEventContent({
     registrationOpen,
     now,
     live,
-    onRegister,
+    registrationRef,
+    registrationState,
 }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -89,7 +90,8 @@ export default function HackathonEventContent({
     return (
         <HackathonRegistration
             template={{ ...template, event: { ...template.event, registrationOpen } }}
-            onRegister={hasProgram ? onRegister : undefined}
+            registrationRef={registrationRef}
+            registrationState={hasProgram ? registrationState : undefined}
             programContent={
                 hasProgram ? (
                     <Program template={template} now={now} switchView={switchView} />

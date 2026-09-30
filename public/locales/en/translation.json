@@ -5139,7 +5139,7 @@
         "resultsDescription": "Award winners, projects, speeches and forum highlights in one place.",
         "awards": "Winners & projects",
         "awardsPending": "Results to be announced",
-        "awardsDescription": "Results will be published after the final. Browse all public projects using the link above.",
+        "awardsDescription": "Winners and project results will be published after the final.",
         "viewProject": "View project",
         "reports": "Speeches & forum sharing",
         "reportsPending": "Published after the event",
@@ -5163,7 +5163,9 @@
             "choose": "Please select",
             "privacy": "Your information is used only for event verification, notices and organization.",
             "submit": "Submit registration",
-            "submitting": "Submitting…"
+            "submitting": "Submitting…",
+            "formTitle": "Event registration",
+            "statusFailed": "Unable to load registration status. Retry to continue; your entries have been kept."
         },
         "fields": {
             "name": "Name",

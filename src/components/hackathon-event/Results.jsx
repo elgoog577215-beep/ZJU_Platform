@@ -38,7 +38,7 @@ export default function Results({ template, switchView }) {
                     </button>
                 </div>
             ) : (
-                <>
+                <div className="hx-result-grid">
                     <section className="hx-result-section">
                         <div className="hx-section-head">
                             <h2>{t("aix.awards")}</h2>
@@ -124,7 +124,7 @@ export default function Results({ template, switchView }) {
                             />
                         )}
                     </section>
-                </>
+                </div>
             )}
         </div>
     );

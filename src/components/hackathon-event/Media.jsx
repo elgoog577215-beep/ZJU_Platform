@@ -69,7 +69,7 @@ export default function Media({ template, live }) {
     }, [template.results.competitionSlug, mode, category, offset, revision, live]);
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
     return (
-        <div className="hx-content">
+        <div className="hx-content hx-media-page">
             <div className="hx-page-heading hx-results-heading">
                 <div>
                     <p className="hx-overline">
@@ -78,7 +78,7 @@ export default function Media({ template, live }) {
                     <h1>{t("aix.tabs.media")}</h1>
                     <p>{t("aix.media.description")}</p>
                 </div>
-                <button className="hx-outline" onClick={() => setUpload(true)}>
+                <button className="hx-primary" onClick={() => setUpload(true)}>
                     <Upload size={17} />
                     {t("aix.media.upload")}
                 </button>

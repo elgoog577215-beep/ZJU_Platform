@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { registrationOpen, eventTimestamp } from "../utils/hackathonAiX";
-import HackathonRegistrationDialog from "./HackathonRegistrationDialog";
 import SEO from "./SEO";
 import HackathonEventPicker from "./HackathonEventPicker";
 import HackathonEventContent from "./HackathonEventContent";
@@ -20,8 +19,7 @@ export default function HackathonWorkspace({ template, schedule }) {
     const navigate = useNavigate();
     const view = getEventView(location);
     const [now, setNow] = useState(Date.now);
-    const [modal, setModal] = useState(false);
-    const resumeRegistration = useRef(false);
+    const registrationRef = useRef(null);
     const [registration, setRegistration] = useState(null);
     const [registrationLoading, setRegistrationLoading] = useState(false);
     const [registrationError, setRegistrationError] = useState(false);
@@ -68,17 +66,10 @@ export default function HackathonWorkspace({ template, schedule }) {
             active = false;
         };
     }, [user?.id, event.key, retry]);
-    useEffect(() => {
-        if (user && !authLoading && !registrationLoading && resumeRegistration.current) {
-            // Let the authentication dialog finish restoring its history entry first.
-            const timer = window.setTimeout(() => {
-                resumeRegistration.current = false;
-                setModal(true);
-            }, 200);
-            return () => window.clearTimeout(timer);
-        }
-    }, [user, authLoading, registrationLoading]);
-    const closeModal = useCallback(() => setModal(false), []);
+    const showRegistration = () => {
+        if (view === "intro" && registrationRef.current) registrationRef.current.scrollToForm();
+        else navigate(getEventUrl(event.key, "intro", { hash: "#registration-form" }));
+    };
     const state =
         now >= eventTimestamp(event.endAt)
             ? "ended"
@@ -129,9 +120,7 @@ export default function HackathonWorkspace({ template, schedule }) {
                             registrationLoading ||
                             (!registration && !open && !registrationError)
                         }
-                        onClick={() =>
-                            registrationError ? setRetry((value) => value + 1) : setModal(true)
-                        }
+                        onClick={showRegistration}
                     >
                         {registration ? <Check size={17} /> : null}
                         {t(label)}
@@ -140,39 +129,39 @@ export default function HackathonWorkspace({ template, schedule }) {
                 </div>
                 <span className="hx-event-status">{t(`aix.state.${state}`)}</span>
             </header>
-            <div id="hx-event-content" className="hx-page" key={`${event.key}:${view}`}>
+            <div
+                id="hx-event-content"
+                className={`hx-page ${view !== "intro" ? "hx-interior" : ""}`}
+                data-view={view}
+                key={`${event.key}:${view}`}
+            >
+                {view !== "intro" && (
+                    <div className="hx-page-scenery" aria-hidden="true">
+                        <div className="hx-event-backdrop" />
+                        <div className="hx-event-grid" />
+                    </div>
+                )}
                 <HackathonEventContent
                     template={template}
                     view={view}
                     registrationOpen={open}
                     now={now}
                     live={state === "live"}
-                    onRegister={() =>
-                        registrationError ? setRetry((value) => value + 1) : setModal(true)
-                    }
+                    registrationRef={registrationRef}
+                    registrationState={{
+                        user,
+                        loading: authLoading || registrationLoading,
+                        error: registrationError,
+                        registration,
+                        onRetry: () => setRetry((value) => value + 1),
+                        onLogin: () => window.dispatchEvent(new Event("open-auth-modal")),
+                        onRegistered: (value) => {
+                            setRegistration(value);
+                            setRegistrationError(false);
+                        },
+                    }}
                 />
             </div>
-            {modal && (
-                <HackathonRegistrationDialog
-                    template={template}
-                    user={user}
-                    isDay={false}
-                    registration={registration}
-                    onClose={closeModal}
-                    onLogin={() => {
-                        resumeRegistration.current = true;
-                        closeModal();
-                        window.setTimeout(
-                            () => window.dispatchEvent(new Event("open-auth-modal")),
-                            100
-                        );
-                    }}
-                    onRegistered={(value) => {
-                        setRegistration(value);
-                        setRegistrationError(false);
-                    }}
-                />
-            )}
         </section>
     );
 }

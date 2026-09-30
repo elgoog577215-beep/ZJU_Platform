@@ -5248,7 +5248,7 @@
         "resultsDescription": "获奖名单、项目成果、讲话总结与论坛分享，在这里集中查看。",
         "awards": "获奖名单与项目",
         "awardsPending": "获奖结果待公布",
-        "awardsDescription": "决赛结束后公布。全部公开项目可通过右上方入口查看。",
+        "awardsDescription": "决赛结束后公布获奖名单与项目成果。",
         "viewProject": "查看项目",
         "reports": "讲话总结与论坛分享",
         "reportsPending": "赛后整理发布",
@@ -5272,7 +5272,9 @@
             "choose": "请选择",
             "privacy": "报名信息仅用于赛事核验、通知与现场组织。",
             "submit": "提交报名",
-            "submitting": "正在提交…"
+            "submitting": "正在提交…",
+            "formTitle": "赛事报名",
+            "statusFailed": "暂时无法读取报名状态，请重试。已填写的信息会保留。"
         },
         "fields": {
             "name": "姓名",
