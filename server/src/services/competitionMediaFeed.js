@@ -2,7 +2,7 @@
 async function getCompetitionMediaFeed(
     db,
     competitionId,
-    { type = "photos", offset = 0, limit = 36, category = "" } = {}
+    { type = "photos", offset = 0, limit = 36, category = "", sort = "latest" } = {}
 ) {
     const video = type === "videos";
     const table = video ? "videos" : "photos";
@@ -12,21 +12,26 @@ async function getCompetitionMediaFeed(
     const cover = video ? "m.thumbnail" : "m.url";
     const union = `SELECT '${table}' AS source_table, m.id AS source_id, m.title,
         ${url} AS url, ${cover} AS cover_url, COALESCE(mc.name, '') AS category_name,
-        m.created_at
+        m.created_at, COALESCE(l.sort_order, 0) AS sort_order
         FROM competition_media_links l JOIN ${table} m ON m.id=l.resource_id
         LEFT JOIN media_categories mc ON mc.id=m.category_id
         WHERE l.competition_id=? AND l.resource_type=? AND m.status='approved' AND m.deleted_at IS NULL
         UNION ALL
-        SELECT 'competition_media', id, title, url, cover_url, '', created_at
+        SELECT 'competition_media', id, title, url, cover_url, '', created_at, COALESCE(sort_order, 0)
         FROM competition_media WHERE competition_id=? AND type=? AND status='approved' AND deleted_at IS NULL`;
     const bindings = [competitionId, resourceType, competitionId, mediaType];
     const filter = category ? " WHERE category_name=?" : "";
     const params = category ? [...bindings, category] : bindings;
+    const ordering =
+        sort === "curated"
+            ? "CASE WHEN sort_order > 0 THEN 0 ELSE 1 END, sort_order ASC, datetime(created_at) DESC, source_table ASC, source_id DESC"
+            : "datetime(created_at) DESC, source_table ASC, source_id DESC";
     const [rows, count, categories] = await Promise.all([
-        db.all(
-            `SELECT * FROM (${union})${filter} ORDER BY datetime(created_at) DESC, source_table ASC, source_id DESC LIMIT ? OFFSET ?`,
-            [...params, limit, offset]
-        ),
+        db.all(`SELECT * FROM (${union})${filter} ORDER BY ${ordering} LIMIT ? OFFSET ?`, [
+            ...params,
+            limit,
+            offset,
+        ]),
         db.get(`SELECT COUNT(*) AS total FROM (${union})${filter}`, params),
         db.all(
             `SELECT DISTINCT category_name FROM (${union}) WHERE category_name <> '' ORDER BY category_name`,

@@ -5360,5 +5360,52 @@
             "claimed": "Claim submitted",
             "fulfilled": "Prize delivered"
         }
+    },
+    "firstEdition": {
+        "resultsTitle": "First-edition projects & reflections",
+        "resultsIntro": "Five hours of solo development. Explore different answers to one challenge, with project repositories and reflections from the participants.",
+        "viewScene": "Explore the event",
+        "worksTitle": "Projects · {{count}}",
+        "awardNote": "Grouped by award; order within a group does not indicate rank.",
+        "search": "Search projects or authors",
+        "awardFilter": "Filter by award",
+        "allAwards": "All awards",
+        "matchCount": "{{count}} projects",
+        "workList": "Project list",
+        "entry": "Entry",
+        "repository": "Repository",
+        "deployment": "Submitted deployment",
+        "deploymentNote": "This address was submitted during the event. Its availability depends on the author’s continued maintenance.",
+        "readStory": "Read the development story",
+        "authorStory": "Participant-submitted reflections, preserving the author’s own account.",
+        "noMatch": "No matching projects. Try another search or award.",
+        "sceneTitle": "At the event",
+        "allPhotos": "View all {{count}} photos",
+        "mediaIntro": "Solo development, conversations, guest speeches and award ceremonies from the May 10 event.",
+        "challengeTitle": "Disciplinary Knowledge Integration Agent",
+        "challengeIntro": "Textbooks in the same field overlap, complement each other and leave gaps. The first-edition challenge was to build an AI agent that integrates multiple textbooks into a coherent, traceable body of knowledge.",
+        "challengeGoal": "Core tasks",
+        "requirements": {
+            "load": "Load multiple textbooks and books in formats including PDF, Markdown, Word and Excel.",
+            "graph": "Build an interactive knowledge graph for each textbook, representing prerequisites, parallel concepts, containment and applications.",
+            "merge": "Identify overlap, complementary concepts and gaps across textbooks, preserving quality during deduplication and integration.",
+            "compress": "Condense the materials to no more than 30% of the original volume, with clear concept granularity, duplication criteria and teaching continuity.",
+            "feedback": "Explain integration decisions and refine the result through multiple rounds of dialogue with a subject teacher."
+        },
+        "deliverablesTitle": "Deliverables",
+        "deliverables": "An interactive web application, integration report and development documentation. Five hours, one developer, no pitch. This event has ended; its projects and reflections remain available.",
+        "challengeSource": "Source: May 10, 2026 ceremony deck, slides 12–16.",
+        "partnersIntro": "Guidance, support, coordination and technical resources for the first-edition event on May 10.",
+        "partnerRoles": {
+            "guidance": "Guidance",
+            "support": "Support",
+            "coordination": "Initiation & coordination",
+            "technology": "Technical resources"
+        },
+        "curated": "Curated event archive",
+        "recap": "Recap",
+        "viewRecap": "View the event recap",
+        "closingTitle": "The event has ended. The projects live on.",
+        "closingIntro": "The first AI Full-Stack Hackathon took place on May 10. Explore the submitted projects, development reflections and event photos, and discover different approaches to the challenge."
     }
 }

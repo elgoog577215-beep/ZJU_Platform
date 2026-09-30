@@ -5469,5 +5469,52 @@
             "claimed": "提交领奖",
             "fulfilled": "奖品发放"
         }
+    },
+    "firstEdition": {
+        "resultsTitle": "首届作品与赛后分享",
+        "resultsIntro": "五小时独立开发，同一道赛题下的不同解法。浏览作品、项目仓库与参赛者的开发复盘。",
+        "viewScene": "回到比赛现场",
+        "worksTitle": "参赛作品 · {{count}}",
+        "awardNote": "按奖项分组展示，组内顺序不代表名次。",
+        "search": "搜索作品或作者",
+        "awardFilter": "按奖项筛选",
+        "allAwards": "全部奖项",
+        "matchCount": "{{count}} 件作品",
+        "workList": "作品列表",
+        "entry": "参赛作品",
+        "repository": "项目仓库",
+        "deployment": "参赛时提交的部署",
+        "deploymentNote": "部署地址来自参赛提交，当前可用性以作者维护情况为准。",
+        "readStory": "展开开发经验与赛后分享",
+        "authorStory": "以下为参赛者提交的分享，保留作者原文及其自述。",
+        "noMatch": "没有匹配的作品，试试其他关键词或奖项。",
+        "sceneTitle": "比赛现场",
+        "allPhotos": "浏览全部 {{count}} 张照片",
+        "mediaIntro": "从独立开发到现场交流、嘉宾致辞与颁奖合影，留住 5 月 10 日的比赛现场。",
+        "challengeTitle": "学科知识整合智能体",
+        "challengeIntro": "同一学科的多本教材，既有重复内容，也有互补与缺失。首届赛题要求开发一个 AI 智能体，将多本教材整合为连贯、可追溯的知识体系。",
+        "challengeGoal": "核心任务",
+        "requirements": {
+            "load": "加载多本教材与书籍，支持 PDF、Markdown、Word、Excel 等格式。",
+            "graph": "为每本教材构建可视化、可交互的知识图谱，表达前置依赖、并列、包含与应用关系。",
+            "merge": "跨教材识别知识点的重叠、互补与缺失，在去重与合并中保证知识质量。",
+            "compress": "将多本教材整合为不超过原始体量 30% 的精华版本，同时考虑知识粒度、重复判定和教学连贯性。",
+            "feedback": "为整合决策给出理由，通过与学科教师的多轮对话，迭代优化整合方案。"
+        },
+        "deliverablesTitle": "交付要求",
+        "deliverables": "提交可交互的 Web 应用、整合报告与开发文档。比赛采用五小时、一个人、零路演的形式；本届比赛已结束，作品与经验继续保留。",
+        "challengeSource": "依据：2026 年 5 月 10 日现场《AI 极速黑客松 PPT》第 12—16 页。",
+        "partnersIntro": "以下为 5 月 10 日首届比赛的指导、支持、发起统筹与技术资源单位。",
+        "partnerRoles": {
+            "guidance": "指导单位",
+            "support": "关心支持",
+            "coordination": "发起统筹",
+            "technology": "技术资源"
+        },
+        "curated": "按现场内容编排",
+        "recap": "回顾",
+        "viewRecap": "查看赛后回顾",
+        "closingTitle": "比赛已结束，作品继续开放",
+        "closingIntro": "首届 AI 全栈极速黑客松已于 5 月 10 日结束。这里保留参赛作品、开发经验和现场影像，继续交流不同的解题思路。"
     }
 }

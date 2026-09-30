@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Image as ImageIcon, Play, Upload } from "lucide-react";
 import api from "../../services/api";
@@ -7,7 +8,8 @@ import MediaViewer from "./MediaViewer";
 import CompetitionOutcomeUploadModal from "../CompetitionOutcomeUploadModal";
 export default function Media({ template, live }) {
     const { t } = useTranslation();
-    const [mode, setMode] = useState("photos");
+    const [params, setParams] = useSearchParams();
+    const [mode, setMode] = useState(() => (params.has("video") ? "videos" : "photos"));
     const [category, setCategory] = useState("");
     const [items, setItems] = useState([]);
     const [total, setTotal] = useState(0);
@@ -16,7 +18,25 @@ export default function Media({ template, live }) {
     const [hasMore, setHasMore] = useState(false);
     const [status, setStatus] = useState("loading");
     const [revision, setRevision] = useState(0);
-    const [selected, setSelected] = useState(null);
+    const photoId = params.get("photo");
+    const selected =
+        mode === "photos"
+            ? items.find(
+                  (item) =>
+                      String(item.source_id || item.id) === photoId || String(item.id) === photoId
+              )
+            : items.find((item) => String(item.id) === params.get("video"));
+    const setSelected = (item) => {
+        const next = new URLSearchParams(params);
+        next.delete("photo");
+        next.delete("video");
+        if (item)
+            next.set(
+                mode === "photos" ? "photo" : "video",
+                String(mode === "photos" ? item.source_id || item.id : item.id)
+            );
+        setParams(next, { replace: true });
+    };
     const [upload, setUpload] = useState(false);
     const reload = () => {
         setOffset(0);
@@ -31,7 +51,13 @@ export default function Media({ template, live }) {
                 const { data } = await api.get(
                     `/competitions/${encodeURIComponent(template.results.competitionSlug)}/media`,
                     {
-                        params: { type: mode, category, offset, limit: 36 },
+                        params: {
+                            type: mode,
+                            category,
+                            offset,
+                            limit: 36,
+                            sort: template.event.key === "zhekesong-current" ? "curated" : "latest",
+                        },
                         signal: controller.signal,
                     }
                 );
@@ -66,17 +92,33 @@ export default function Media({ template, live }) {
             controller.abort();
             if (timer) window.clearInterval(timer);
         };
-    }, [template.results.competitionSlug, mode, category, offset, revision, live]);
+    }, [
+        template.results.competitionSlug,
+        mode,
+        category,
+        offset,
+        revision,
+        live,
+        template.event.key,
+    ]);
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
     return (
-        <div className="hx-content hx-media-page">
+        <div
+            className={`hx-content hx-media-page ${template.event.key === "zhekesong-current" ? "hx-first-media" : ""}`}
+        >
             <div className="hx-page-heading hx-results-heading">
                 <div>
                     <p className="hx-overline">
                         {t(live && offset === 0 ? "aix.media.live" : "aix.media.kicker")}
                     </p>
                     <h1>{t("aix.tabs.media")}</h1>
-                    <p>{t("aix.media.description")}</p>
+                    <p>
+                        {t(
+                            template.event.key === "zhekesong-current"
+                                ? "firstEdition.mediaIntro"
+                                : "aix.media.description"
+                        )}
+                    </p>
                 </div>
                 <button className="hx-primary" onClick={() => setUpload(true)}>
                     <Upload size={17} />
@@ -91,6 +133,7 @@ export default function Media({ template, live }) {
                             aria-pressed={mode === value}
                             onClick={() => {
                                 if (mode === value) return;
+                                setSelected(null);
                                 setItems([]);
                                 setMode(value);
                                 setCategory("");
@@ -107,6 +150,7 @@ export default function Media({ template, live }) {
                         aria-label={t("aix.media.category")}
                         value={category}
                         onChange={(event) => {
+                            setSelected(null);
                             setItems([]);
                             setCategory(event.target.value);
                             setOffset(0);
@@ -118,7 +162,13 @@ export default function Media({ template, live }) {
                         ))}
                     </select>
                 )}
-                <span>{t("aix.media.latest")}</span>
+                <span>
+                    {t(
+                        template.event.key === "zhekesong-current"
+                            ? "firstEdition.curated"
+                            : "aix.media.latest"
+                    )}
+                </span>
             </div>
             {items.length > 0 && (
                 <div className="hx-gallery">

@@ -1881,6 +1881,7 @@ const getEventMedia = async (req, res, next) => {
                 offset: clampInteger(req.query.offset, 0, 0, 1000000),
                 limit: clampInteger(req.query.limit, 36, 1, 120),
                 category: trimText(req.query.category, 120),
+                sort: req.query.sort === "curated" ? "curated" : "latest",
             }
         );
         res.setHeader("Cache-Control", "no-store");
