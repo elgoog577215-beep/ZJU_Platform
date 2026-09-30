@@ -385,6 +385,33 @@
 .lottery-admin .lottery-proof {
     cursor: zoom-in;
 }
+.lottery-share-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 24px;
+    align-items: start;
+}
+.lottery-download {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--lottery-border);
+    border-radius: 8px;
+    min-height: 44px;
+    padding: 9px 15px;
+    font-size: 14px;
+    color: var(--lottery-ink);
+    text-decoration: none;
+}
+.lottery-qr-preview {
+    text-align: center;
+}
+.lottery-qr-preview img {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 12px;
+}
 @media (max-width: 800px) {
     .lottery-layout,
     .lottery-admin-grid {
@@ -409,6 +436,9 @@
         padding: 20px;
     }
     .lottery-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .lottery-share-grid {
         grid-template-columns: 1fr;
     }
     .lottery-admin-list {

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
 import { dateLabel, ProofImage } from "./LotteryPage";
+import LotteryShare from "./LotteryShare";
 import "./lottery.css";
 const blank = () => ({
     title: "",
@@ -432,6 +433,7 @@ export default function LotteryManager() {
                             </>
                         )}
                     </section>
+                    <LotteryShare key={selected?.id || "new"} campaign={selected} />
                     {selected && (
                         <section className="lottery-panel">
                             <h2>
