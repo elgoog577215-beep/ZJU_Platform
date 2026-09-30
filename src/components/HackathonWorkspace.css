@@ -271,6 +271,8 @@
 }
 .hx-workspace {
     --site-nav-height: 76px;
+    --event-bottom-inset: 0px;
+    --event-viewport-height: calc(100dvh - var(--site-nav-height) - var(--event-bottom-inset));
     padding-top: var(--site-nav-height);
 }
 @media (max-width: 767px) {
@@ -581,13 +583,18 @@
 }
 .hx-workspace .hx-page,
 .hx-workspace [data-registration-page] {
-    min-height: calc(100dvh - var(--site-nav-height));
+    min-height: var(--event-viewport-height);
 }
 .hx-workspace [data-registration-page] {
-    height: calc(100dvh - var(--site-nav-height));
+    height: var(--event-viewport-height);
 }
 .hx-workspace #hackathon-hero {
-    padding-top: max(124px, calc(var(--event-nav-height) + 24px));
+    --hero-space: clamp(16px, 2dvh, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--hero-space);
+    padding-top: calc(var(--event-nav-height) + var(--hero-space));
+    padding-bottom: max(var(--hero-space), env(safe-area-inset-bottom));
 }
 .hx-workspace #hx-event-content > .hx-content,
 .hx-workspace .hackathon-outcome.showcase-compact-flow,
@@ -619,6 +626,7 @@
     .hx-workspace {
         --event-nav-height: 120px;
         --event-gutter: 16px;
+        --event-bottom-inset: var(--mobile-content-bottom-padding, 0px);
     }
     .hx-workspace .hx-eventbar {
         padding: 12px 0;
@@ -650,7 +658,6 @@
         text-align: center;
     }
     .hx-workspace [data-registration-page] {
-        height: calc(100dvh - var(--site-nav-height) - var(--mobile-content-bottom-padding));
         min-height: 0;
     }
     .hx-workspace [data-registration-page] > section {
@@ -780,7 +787,7 @@
     scroll-snap-type: y proximity;
 }
 .hx-workspace [data-registration-page] > section {
-    min-height: calc(100svh - var(--site-nav-height));
+    min-height: var(--event-viewport-height);
     scroll-snap-stop: normal;
     padding-inline: var(--event-gutter);
 }
@@ -788,10 +795,20 @@
     max-width: var(--event-width);
 }
 .hx-workspace #hackathon-hero > .relative.mx-auto {
+    flex: 1 0 auto;
     min-height: 0;
+    align-content: center;
     gap: clamp(28px, 4vw, 56px);
-    padding-top: 12px;
-    padding-bottom: 64px;
+    padding-block: 0;
+}
+.hx-workspace #hackathon-hero > .hackathon-hero-continue {
+    position: relative;
+    inset: auto;
+    display: inline-flex;
+    align-self: center;
+    flex-shrink: 0;
+    min-height: 44px;
+    transform: none;
 }
 .hx-workspace #hackathon-hero h1 {
     font-size: clamp(42px, 6vw, 88px);
@@ -814,6 +831,25 @@
 .hx-workspace .hx-content :is(h1, h2, h3, p) {
     overflow-wrap: anywhere;
 }
+@media (min-width: 1280px) {
+    .hx-workspace #hackathon-hero h1 {
+        font-size: clamp(42px, min(6vw, 7.5dvh), 88px);
+    }
+}
+@media (max-width: 1279px) {
+    .hx-workspace [data-registration-page] {
+        scroll-snap-type: none;
+    }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hx-workspace .hackathon-section-nav {
+        top: var(--event-nav-height);
+        margin-top: calc(var(--event-nav-height) + 16px);
+    }
+    .hx-workspace #hackathon-hero {
+        padding-top: var(--hero-space);
+    }
+}
 @media (max-width: 767px) {
     .hx-workspace [data-registration-page] {
         scroll-snap-type: none;
@@ -823,7 +859,6 @@
         padding-bottom: 48px;
     }
     .hx-workspace #hackathon-hero > .relative.mx-auto {
-        padding-bottom: 12px;
         gap: 32px;
     }
     .hx-workspace #hackathon-hero h1 {
@@ -841,15 +876,7 @@
     }
 }
 @media (max-height: 560px) and (orientation: landscape) {
-    .hx-workspace .hx-eventbar {
-        position: relative;
-        top: 0;
-    }
     .hx-workspace [data-registration-page] {
-        height: auto;
-        overflow-y: visible;
-    }
-    .hx-workspace [data-registration-page] > section {
-        min-height: 0;
+        scroll-snap-type: none;
     }
 }

@@ -578,12 +578,26 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
     const smoothScrollTo = (id) => {
         const target = document.getElementById(id);
         if (!target) return;
+        const scrollTarget =
+            id === "hackathon-hero" ? target : target.querySelector("h2") || target;
 
-        const offset = window.innerWidth < 768 ? 76 : 96;
         const scroller = pageRef.current;
+        const viewportTop = scroller?.getBoundingClientRect().top ?? 0;
+        const workspace = scroller?.closest(".hx-workspace");
+        const navigation = [
+            workspace?.querySelector(".hx-eventbar"),
+            scroller?.querySelector(".hackathon-section-nav"),
+        ].filter((element) => element?.getClientRects().length);
+        const offset = navigation.length
+            ? Math.max(...navigation.map((element) => element.getBoundingClientRect().bottom)) -
+              viewportTop +
+              16
+            : window.innerWidth < 768
+              ? 76
+              : 96;
 
         if (!scroller) {
-            const end = target.getBoundingClientRect().top + window.scrollY - offset;
+            const end = scrollTarget.getBoundingClientRect().top + window.scrollY - offset;
             window.scrollTo({
                 top: end,
                 behavior: shouldAnimate ? "smooth" : "auto",
@@ -592,7 +606,13 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
         }
 
         scroller.scrollTo({
-            top: Math.max(target.offsetTop - offset, 0),
+            top: Math.max(
+                scroller.scrollTop +
+                    scrollTarget.getBoundingClientRect().top -
+                    viewportTop -
+                    offset,
+                0
+            ),
             behavior: shouldAnimate ? "smooth" : "auto",
         });
     };
@@ -672,7 +692,7 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
 
             {/* Tablet in-page anchor bar. Phones use the global bottom tab bar. */}
             <div
-                className={`sticky top-[calc(env(safe-area-inset-top)+128px)] z-30 mx-auto mt-4 hidden w-[calc(100%_-_2rem)] max-w-[520px] items-center justify-center gap-2 border px-2 py-2 backdrop-blur-xl md:flex lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}
+                className={`hackathon-section-nav sticky top-[calc(env(safe-area-inset-top)+128px)] z-30 mx-auto mt-4 hidden w-[calc(100%_-_2rem)] max-w-[520px] items-center justify-center gap-2 border px-2 py-2 backdrop-blur-xl md:flex lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}
             >
                 {sectionAnchors.map((item) => {
                     const Icon = item.icon;
@@ -937,18 +957,17 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                             </button>
                         </div>
                     </MotionDiv>
-
-                    <button
-                        type="button"
-                        onClick={() => smoothScrollTo("event-brief")}
-                        className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:inline-flex ${palette.chip}`}
-                    >
-                        {t("hackathon.cta.keep_reading", "继续了解")}
-                        <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
-                            <ChevronDown className="h-4 w-4" />
-                        </span>
-                    </button>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => smoothScrollTo("event-brief")}
+                    className={`hackathon-hero-continue group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:inline-flex ${palette.chip}`}
+                >
+                    {t("hackathon.cta.keep_reading", "继续了解")}
+                    <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
+                        <ChevronDown className="h-4 w-4" />
+                    </span>
+                </button>
             </section>
 
             <MotionSection
