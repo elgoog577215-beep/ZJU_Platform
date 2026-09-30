@@ -116,6 +116,9 @@ export const ORGANIZATION_PARTNER_LOGOS = {
         logo_url: `${officialOrganizationLogoBase}/zjuai.webp`,
         dark_logo_url: `${officialOrganizationLogoBase}/zjuai.webp`,
     },
+    观猹社区: `${officialOrganizationLogoBase}/guancha.svg`,
+    // Brand image published by https://www.deepseek.club/ (navbar /logo.png).
+    "深求社区（deepseek.club）": `${officialOrganizationLogoBase}/deepseek-club.png`,
     浙江大学本科生院: `${officialOrganizationLogoBase}/undergraduate-school.png`,
     浙江大学艺术与考古博物馆: `${officialOrganizationLogoBase}/museum-art-archaeology.png`,
     "浙江大学 CC98 论坛": `${officialOrganizationLogoBase}/cc98.png`,

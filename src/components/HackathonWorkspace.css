@@ -876,9 +876,6 @@
     font-size: clamp(18px, 1.5vw, 22px);
     line-height: 1.4;
 }
-.hx-workspace .partner-network-label p {
-    line-height: 1.6;
-}
 .hx-workspace :is(.partner-network-names, .partner-network-logos) {
     display: grid;
     list-style: none;
@@ -918,6 +915,10 @@
     max-height: 30px;
     object-fit: contain;
 }
+.hx-workspace
+    .partner-network-logo:has(img:is([src$="/guancha.svg"], [src$="/deepseek-club.png"])) {
+    background: #fff;
+}
 @media (max-width: 979px) {
     .hx-workspace .partner-network-heading {
         grid-template-columns: minmax(0, 1fr);
@@ -931,6 +932,21 @@
 @media (min-width: 1280px) {
     .hx-workspace #hackathon-hero h1 {
         font-size: clamp(42px, min(6vw, 7.5dvh), 88px);
+    }
+}
+@media (min-width: 1280px) and (max-height: 800px) {
+    .hx-workspace #partner-network h2 span {
+        display: inline;
+        margin-inline-start: 0.25em;
+    }
+    .hx-workspace .partner-network-intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 20px;
+    }
+    .hx-workspace .partner-network-summary {
+        margin-top: 0;
     }
 }
 @media (max-width: 1279px) {

@@ -392,19 +392,17 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
             icon: ruleIcons[index % ruleIcons.length],
         }));
 
-    const ecosystemGroups = ecosystemPartnerGroups.map((group) => ({
-        id: group.id,
-        label: t(`hackathon.cooperation.groups.${group.id}.label`, group.label),
-        role: t(`hackathon.cooperation.groups.${group.id}.role`, ""),
-        partners: group.partners.map((partner) => ({
-            ...partner,
-            displayName: getLocalizedPartnerDisplayName(partner, language),
-        })),
-    }));
-    const ecosystemPartnerCount = ecosystemGroups.reduce(
-        (total, group) => total + group.partners.length,
-        0
-    );
+    const partnerCategoryOrder = ["school", "enterprise", "organization"];
+    const ecosystemGroups = [...ecosystemPartnerGroups]
+        .sort((a, b) => partnerCategoryOrder.indexOf(a.id) - partnerCategoryOrder.indexOf(b.id))
+        .map((group) => ({
+            id: group.id,
+            label: t(`hackathon.cooperation.groups.${group.id}.label`, group.label),
+            partners: group.partners.map((partner) => ({
+                ...partner,
+                displayName: getLocalizedPartnerDisplayName(partner, language),
+            })),
+        }));
 
     const heroStats = event.highlights.slice(0, 3);
     const titleLines = splitHackathonTitle(event.title);
@@ -1100,14 +1098,6 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                 )}
                             </p>
                             <div className={`partner-network-summary text-sm ${palette.textMuted}`}>
-                                <span>
-                                    {ecosystemGroups.length}{" "}
-                                    {t("hackathon.cooperation.group_count", "支持类别")}
-                                </span>
-                                <span>
-                                    {ecosystemPartnerCount}{" "}
-                                    {t("hackathon.cooperation.partner_count", "合作伙伴")}
-                                </span>
                                 <button
                                     type="button"
                                     onClick={scrollToForm}
@@ -1128,20 +1118,11 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                     key={group.id}
                                 >
                                     <div className="partner-network-label">
-                                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                            <h3 className="font-black">{group.label}</h3>
-                                            <span className={`text-xs ${palette.accent}`}>
-                                                {group.partners.length}{" "}
-                                                {t("hackathon.cooperation.partner_unit", "伙伴")}
-                                            </span>
-                                        </div>
-                                        <p className={`mt-2 text-sm ${palette.textSoft}`}>
-                                            {group.role}
-                                        </p>
+                                        <h3 className="font-black">{group.label}</h3>
                                     </div>
                                     <ul
                                         className={
-                                            group.id === "enterprise"
+                                            group.id !== "school"
                                                 ? "partner-network-logos"
                                                 : "partner-network-names"
                                         }
@@ -1149,13 +1130,13 @@ const HackathonRegistration = ({ template, onSectionChange }) => {
                                     >
                                         {group.partners.map((partner) => {
                                             const logoSrc =
-                                                group.id === "enterprise" &&
+                                                group.id !== "school" &&
                                                 getPartnerLogoSrc(partner, isDayMode);
                                             return (
                                                 <li
                                                     key={partner.id || partner.displayName}
                                                     className={
-                                                        group.id === "enterprise"
+                                                        group.id !== "school"
                                                             ? `partner-network-logo ${palette.chip}`
                                                             : "partner-network-name"
                                                     }

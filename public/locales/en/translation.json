@@ -1688,15 +1688,15 @@
             "empty": "The partner network is being organized. Confirmed support information will appear here.",
             "groups": {
                 "school": {
-                    "label": "Campus Support",
+                    "label": "College Partners",
                     "role": "Provides venues, mentor review, campus communication, and long-term institutional support."
                 },
                 "organization": {
-                    "label": "Community Collaboration",
+                    "label": "Organization Partners",
                     "role": "Leads participant recruitment, volunteer operations, on-site coordination, and post-event community connection."
                 },
                 "enterprise": {
-                    "label": "Technology & Industry Support",
+                    "label": "Industry Partners",
                     "role": "Provides models, cloud resources, AI tools, technical support, and industry perspective."
                 }
             }
