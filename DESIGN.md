@@ -1,201 +1,21 @@
----
-name: "拓浙AI生态"
-description: "连接人才、技术与产业的公共数字底座"
-colors:
-    night-bg: "#020617"
-    night-surface: "rgba(15, 23, 42, 0.82)"
-    night-text: "#ffffff"
-    night-muted: "#94a3b8"
-    day-bg: "#ffffff"
-    day-text: "#0f172a"
-    day-muted: "#64748b"
-    ecosystem-indigo: "#6366f1"
-    community-ice: "#8bdcff"
-    community-ice-bright: "#c9f3ff"
-    community-ice-muted: "#b7c5d8"
-    hackathon-lime: "#b9ff18"
-typography:
-    display:
-        fontFamily: "HarmonyOS Sans SC, MiSans, PingFang SC, system-ui, sans-serif"
-        fontSize: "clamp(2.5rem, 7vw, 6rem)"
-        fontWeight: 950
-        lineHeight: 0.95
-        letterSpacing: "-0.04em"
-    body:
-        fontFamily: "Inter, HarmonyOS Sans SC, MiSans, PingFang SC, system-ui, sans-serif"
-        fontSize: "1rem"
-        fontWeight: 400
-        lineHeight: 1.5
-    label:
-        fontFamily: "Inter, HarmonyOS Sans SC, MiSans, PingFang SC, system-ui, sans-serif"
-        fontSize: "0.75rem"
-        fontWeight: 800
-        lineHeight: 1.2
-rounded:
-    chip: "8px"
-    control: "10px"
-    card: "14px"
-spacing:
-    xs: "4px"
-    sm: "8px"
-    md: "16px"
-    lg: "24px"
-    xl: "48px"
-components:
-    button-primary:
-        backgroundColor: "{colors.ecosystem-indigo}"
-        textColor: "{colors.night-text}"
-        rounded: "{rounded.control}"
-        padding: "12px 18px"
-    hackathon-button-primary:
-        backgroundColor: "{colors.hackathon-lime}"
-        textColor: "#061006"
-        rounded: "{rounded.control}"
-        padding: "12px 18px"
-    input:
-        backgroundColor: "{colors.night-surface}"
-        textColor: "{colors.night-text}"
-        rounded: "{rounded.control}"
-        padding: "10px 12px"
----
+# 视觉设计入口
 
-# Design System: 拓浙AI生态
+本文件供设计工具定位当前视觉依据。页面职责、开放范围和交互规则维护在[产品蓝图](docs/产品蓝图.md#交互设计)，不在这里复制；具体颜色、字号和断点从下列共享样式读取，避免手写 token 表与代码长期漂移。
 
-## Overview
+## 共同依据
 
-**Creative North Star: "公共实验场"**
+保留现有 Logo、全站导航、账号与日夜主题。用户确认的首要要求是整齐：网格、对齐、字阶和间距清楚，背景与图像不干扰主要操作。沿用已确认页面的构图，局部修改不自动扩大为全站重设计。
 
-界面把拓浙 AI 生态呈现为一个正在运行的公共实验场：真实机会、参与者、项目和结果处于同一套可导航系统中。品牌表达允许活动现场拥有鲜明的主题材料，但所有操作表面保持清楚、克制和可信，避免展示效果盖过用户任务。
+主题从 [SettingsContext](src/context/SettingsContext.jsx) 与 [index.css](src/index.css) 进入；正文、控件、焦点、加载/空/失败状态均需可读。中英文、键盘及减少动态效果采用全站规则。视觉判断以真实页面为准，静态样式或构建通过不能替代查看。
 
-全局以深夜蓝与白昼白两套语义主题承载内容；模块可以拥有一个明确的领域强调色。黑客松按届次区分视觉：第一届沿用原报名页的直角青蓝科技风，第二届后续采用 X 主视觉。本轮只整理第一届；赛事保留网站主框架，内部栏目作为二级 tab，不新建独立品牌页头。
+## 各表面的参考
 
-**Key Characteristics:**
+| 表面           | 当前应保留的方向                                                                         | 具体实现入口                                                                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 首页网址导航   | 白天浅底与绿色强调；夜间复用全站夜景背景与深色链接表面；保持紧凑字号、分类网格与账号编辑 | [navigation.css](src/features/navigation/navigation.css)                                                                                              |
+| 活动与生态介绍 | 保留现有共享主题；About 保留首屏双栏、统计栏及四屏内容结构                               | [Events](src/components/Events.jsx)、[About](src/components/About.jsx)                                                                                |
+| 学习社区       | 四入口、冰蓝线性图形与共享日夜主题；选择后收为顶部栏目，操作属于当前专题                 | [AICommunity](src/components/AICommunity.jsx)、[CommunityLibraryHub](src/components/CommunityLibraryHub.jsx)                                          |
+| 支持方名录     | 四类入口进入真实支持方详情，保持已有连续动效、查询与返回                                 | [EcosystemPartnerDirectory](src/components/EcosystemPartnerDirectory.jsx)                                                                             |
+| 浙客松         | 两届共用第一届的直角青蓝主题与全站框架，四个二级 tab、无左栏、页内报名                   | [赛事设计](docs/功能设计/浙客松.md#交互设计)、[共享样式](src/components/HackathonShared.css)、[Workspace 样式](src/components/HackathonWorkspace.css) |
 
-- 真实内容和当前状态优先于装饰。
-- 一个表面只使用一个主要强调色。
-- 操作层稳定，活动主题通过背景、图像和少量标记表达。
-- 桌面与移动端共享信息顺序，响应式改变结构而不是缩小字体。
-
-## Colors
-
-全局主题使用冷静的深夜蓝/白昼白中性色，领域强调色只用于主要行动、当前选择和语义状态。
-
-### Primary
-
-- **生态靛蓝** (`#6366f1`)：全局主行动、焦点与品牌连接。
-- **社区冰川蓝** (`#8bdcff`)：仅用于 AI 社区夜间模式四个大型入口的线稿与箭头；小标题使用更亮的 `#c9f3ff`，说明文字使用 `#b7c5d8`。收缩后的栏目、操作按钮和白天模式继续使用全局主题强调色。
-- **黑客松青柠** (`#b9ff18`)：只用于黑客松表面的主要行动、当前范围和关键赛事状态。
-
-### Neutral
-
-- **深夜底色** (`#020617`)：夜间全局背景。
-- **深夜表面** (`rgba(15, 23, 42, 0.82)`)：夜间导航、工具栏与操作容器。
-- **白昼底色** (`#ffffff`)：日间背景和主要表面。
-- **主文字** (`#ffffff` / `#0f172a`)：随主题切换。
-- **次要文字** (`#94a3b8` / `#64748b`)：辅助事实和说明。
-
-**The One Accent Rule.** 同一任务表面只有一个领域强调色；它表达行动和状态，不作为无意义装饰散落。
-
-## Typography
-
-**Display Font:** HarmonyOS Sans SC / MiSans（系统无衬线回退）
-
-**Body Font:** Inter / HarmonyOS Sans SC / MiSans（系统无衬线回退）
-
-**Character:** 标题紧凑、有现场识别度；正文与控件保持高可读性，不用展示字体承担操作标签。
-
-### Hierarchy
-
-- **Display**（950，`clamp(2.5rem, 7vw, 6rem)`，0.95）：品牌或活动主标题，字距不低于 `-0.04em`。
-- **Headline**（850–950，1.5–2rem，1.1）：页面模块与上下文标题。
-- **Title**（800–900，1–1.25rem，1.25）：卡片和列表对象名称。
-- **Body**（400–700，0.875–1rem，1.5–1.7）：说明和正文，长段落控制在 65–75ch。
-- **Label**（800–900，0.68–0.78rem）：控件、状态与小型数据标签。
-
-## Layout
-
-公开页面使用居中内容容器和 24px 桌面边距，移动端改为 14–16px。任务型页面按“身份/范围 → 上下文 → 控件 → 内容”的固定顺序组织；移动端允许工具栏和导航横向滚动，但不得造成文档级溢出。主要断点遵循 820px 和 980px 的现有实现。
-
-## Elevation & Depth
-
-夜间主题通过半透明表面、结构性阴影和背景层建立深度；日间主题以边界和留白为主，默认无阴影。阴影必须同时具有偏移和柔和扩散，仅用于浮层、悬停或明确抬升的表面。
-
-### Shadow Vocabulary
-
-- **Ambient Small** (`0 14px 32px rgba(2, 6, 23, 0.18)`)：轻量浮层和可交互表面。
-- **Overlay** (`0 38px 90px rgba(2, 6, 23, 0.46)`)：对话框和分享预览。
-
-**The Flat-By-Default Rule.** 常规内容在静止状态依靠层次和边界，不为每个容器同时叠加边框与阴影。
-
-## Shapes
-
-控件以 8–10px 圆角保持紧凑，卡片使用 14px。小型计数和状态可以使用胶囊形；大型按钮、面板和卡片不得使用全胶囊轮廓。图片通过容器裁切，不额外添加装饰边框。
-
-## Components
-
-### Buttons
-
-- **Shape:** 10px 圆角，最小高度 42–48px。
-- **Primary:** 领域强调色背景、高对比文字，单个操作组只保留一个主要按钮。
-- **Hover / Focus:** 180–240ms 状态过渡；键盘焦点使用清晰的强调色轮廓。
-- **Secondary / Ghost:** 透明或中性表面配 1px 语义边界，不与主要行动争夺权重。
-
-### Chips
-
-- **Style:** 8px 圆角，中性表面与清楚边界。
-- **State:** 当前选择同时改变背景、文字和 `aria-current`/`aria-pressed`，不只依靠颜色。
-
-### Cards / Containers
-
-- **Corner Style:** 14px。
-- **Background:** 主题表面或领域背景的稳定层。
-- **Shadow Strategy:** 默认平面；悬停或覆盖层才抬升。
-- **Internal Padding:** 12–24px，按内容密度选择。
-
-### Inputs / Fields
-
-- **Style:** 10px 圆角、1px 语义边界、16px 移动端字号。
-- **Focus:** 边界转为当前领域强调色并保留浏览器可见焦点。
-- **Error / Disabled:** 同时用文字说明和视觉状态表达原因。
-
-### Navigation
-
-导航使用稳定位置、明确当前项和标准按钮/链接语义；移动端保留可返回入口，不因选中内容而移除导航本身。
-
-## Do's and Don'ts
-
-### Do:
-
-- **Do** 让当前对象、当前状态和下一步行动在五秒内可见。
-- **Do** 让切换范围只更新从属内容，保留导航与撤销路径。
-- **Do** 使用现有主题 token、全局导航和真实品牌资产。
-- **Do** 为 hover、focus、disabled、loading、error 和 empty 提供完整状态。
-
-### Don't:
-
-- **Don't** 为同一任务维护两套互斥页面骨架。
-- **Don't** 用随机卡片尺寸、重复面板和装饰徽章替代信息层级。
-- **Don't** 在公开界面编造合作、所有权、部署或效果证据。
-- **Don't** 用只在桌面成立的间距和工具栏结构挤压移动端。
-
-## 首页导航表面
-
-首页是公共导航下的一个栏目，复用原站 Navbar、MobileNavbar、登录、主题与语言切换和 Footer。主要栏目顺序为首页、活动聚合、AI社区、浙客松，其他已有入口及权限规则保持原有归属；手机底栏保留“我的”，共五个入口。
-
-- 白天内容区保持浅底色与绿色强调：底色 `#f3f6f3`、白色卡片 `#ffffff`、内侧细轮廓 `#d0dbd2`、悬停 `#e6eee8`；正文 `#1c3025`、辅助文字 `#4d6053`，搜索边界 `#7d8e82`。“查看全部”与焦点使用绿色 `#285e41`，操作悬停加深至 `#18472f` 并加下划线。保留原有字号、密度与布局，通过表面和颜色区分内容层级。
-- 夜间采用原站深夜蓝与中性灰：复用活动聚合的 `ecosystem-landscape-shell` 夜景背景，首页内容层加 `rgb(2 6 23 / 14%)` 薄遮罩；卡片表面 `rgb(18 30 50 / 97%)`、悬停 `#24334b`、正文 `#f1f5f9`、辅助文字 `#c3cede`。卡片使用 `rgb(179 192 211 / 16%)` 内侧细轮廓，搜索边界为 `#617089`；焦点与“查看全部”使用靛蓝 `#a5b4fc`，操作悬停提亮至 `#d5dcff` 并加下划线。背景图与基础遮罩仍由公共样式提供，白天不启用该背景，保留已有浅底与绿色配色。
-- 保留简短标题与搜索、分类网址网格的顺序，不重复设置品牌栏、账号控件、宣传区和页脚。第一排优先 AI 助手、模型数据和校园服务。
-- 桌面三个分类并列，组间留白、组内紧凑；平板两列，手机单列。链接名称可换行，辅助说明单行省略且通过链接可访问名称保留完整用途。
-- 保留已确认的字号与密度：链接 12–13px、辅助说明 11px，常规字重 400–550。固定导航留出安全距离，手机页脚避让底栏。
-- 无自动跳转、开场动画或外部图标请求；悬停只改变表面，键盘焦点明确。遵守减少动态效果偏好。
-
-首页平铺 15 个分类，每类默认最多显示 9 个网站；超过时右上角“查看全部”在原位置向下展开为完整列表，再点“收起”恢复。搜索显示全部匹配结果，不受 9 个限制。取消常用直达、自定义编辑器和分类切换栏，不新增页面或多层 tab；桌面组内三列，窄屏自适应。
-
-## 第一届浙客松二级栏目
-
-- 用户确认以整齐、对齐和清晰层级优先。第一届原报名页为视觉依据；后补的 X 背景不属于首届视觉基线。
-- 保留 Navbar 和 MobileNavbar。二级 tab 为介绍、赛题、图片/视频、成果；顶部赛事选择、全部项目与历史报名状态位置稳定，无左侧栏。
-- 辅助内容页统一 1280px 最大宽度、20–56px 响应边距；主要控件与照片为直角。原报名首屏构图保留。
-- 第一届作用域颜色：背景 `#060c12`、内容面 `#0c1721`、正文 `#edf5fa`、次要文字 `#9bafbf`、分隔线 `#273b49`、青蓝 `#67e8f9`、悬停 `#a5f3fc`、按钮深色文字 `#06141b`。不覆盖其他模块。
-- 辅助内容页字号：页面标题 30–42px、章节标题 24px、规则标题 22px、项目标题 18px、正文 16px、导航/操作 14px、注释 13px。窄屏操作标签最低 12px，标题和正文不随装饰图放大。
-- 历史赛事保留介绍和真实作品、影像，报名状态关闭；第一届媒体与项目不得随 X 视觉迁到第二届。
+手机是否开放某页面先查蓝图，不以旧移动稿恢复已关闭入口。新的完整视觉方向需用户明确确认后更新对应设计，旧独立 X 主题、项目广场与历史表面评审不再作为约束。

@@ -1,39 +1,33 @@
-# 拓浙AI生态数字平台
+# 拓浙 AI 生态数字平台
 
-拓浙AI生态从浙江大学及相关创新网络出发，连接学生、组织、学院、企业、真实 AI 需求与产业机会。当前仓库承载它的数字底座与公共入口；历史工程名为“拓途浙享”，域名、包 ID 和兼容接口继续沿用 `tuotuzju`。
+本仓库承载拓浙 AI 生态的数字底座与公共入口，连接校园活动、学习社区、浙客松、身份、成果与合作。历史工程名“拓途浙享”及 `tuotuzju` 域名、包 ID 继续沿用。
 
-网站不再以活动聚合站或数字艺术展示站自居。它让机会被发现、人与组织建立可信连接、项目和赛事成果持续沉淀，并把社区学习、项目实践、人才识别与产学协作串成可运营闭环。
-
-生产站点：<https://tuotuzju.com>
+生产站点：[拓浙 AI 生态](https://tuotuzju.com)。
 
 ## 文档入口
 
-| 想了解什么                     | 文档                                 |
-| ------------------------------ | ------------------------------------ |
-| 产品最终要设计成什么样         | [产品蓝图](./docs/产品蓝图.md)       |
-| 当前做到哪里、下一步是什么     | [产品状态](./docs/产品状态.md)       |
-| 仓库、领域真源和运行链怎样组织 | [技术架构](./docs/技术架构.md)       |
-| AI 应遵守哪些项目规则          | [项目规则](./AGENTS.md)              |
-| 专项发布、采集与移动端操作     | [`docs/操作手册/`](./docs/操作手册/) |
-| 历史设计和决策依据             | [`docs/归档/`](./docs/归档/)         |
+```text
+README.md                  介绍、安装、运行、检查
+AGENTS.md                  项目协作入口与特殊约束
+docs/
+├── 产品蓝图.md             内容、逻辑、交互、技术的完整设计
+├── 产品状态.md             实现与蓝图的差距、验证范围
+├── 功能设计/
+│   ├── 浙客松.md           赛事业务的四层展开
+│   └── 内容采集.md         采集业务的四层展开
+└── 操作手册/               投稿、采集、部署和各端打包/验收
+```
 
-AI Agent 的正式执行规则位于 [AGENTS.md](./AGENTS.md)。它主要面向 AI，不替代本文的人类上手说明。
+从[产品蓝图](docs/产品蓝图.md)了解要建成什么，对照[产品状态](docs/产品状态.md)判断现实差距，再到代码和测试核验。详细业务设计是蓝图的一部分，不按每次修改另建规格和任务包。
 
-## 技术栈
+[AGENTS.md](AGENTS.md) 面向开发协作；[PRODUCT.md](PRODUCT.md) 与 [DESIGN.md](DESIGN.md) 为设计工具提供简短产品和视觉入口，详细设计引用蓝图，具体 token 读取代码。旧文档不在工作目录维持第二套入口，追溯使用 Git 历史。
 
-- 前端：React 18、Vite、React Router、Tailwind CSS、i18next、Framer Motion、Three.js。
-- 后端：Node.js、Express、SQLite、JWT、Multer、Sharp、Playwright。
-- 客户端：Web/PWA、微信小程序 WebView、Android TWA/WebView、iOS Capacitor。
-- 测试与检查：Node Test Runner、Playwright、ESLint。
-- 生产：GitHub Actions、PM2、Caddy。
+## 环境与技术栈
 
-## 环境要求
-
-- Node.js 24 推荐，最低 Node.js 22.13.0（PDF 解析和构建工具的运行要求）。
-- npm。
-- 本地开发不需要提交数据库或上传目录。
-- iOS 构建需要 macOS、Xcode 和可用的 Apple Developer 环境。
-- 微信小程序与公众号采集需要各自平台凭据和开发者工具。
+- Node.js 推荐 24，最低 22.13.0；使用 npm，根目录安装会通过 `postinstall` 安装后端依赖。
+- 前端：React、Vite、React Router、Tailwind CSS、i18next、Framer Motion、Three.js。
+- 后端：Express、SQLite、JWT、Multer、Sharp、Playwright；生产 PM2 与 Caddy。
+- Web/PWA 为主实现，微信小程序 WebView、Android、iOS 等工程复用产品能力。原生构建需要各自工具链及平台账号。
 
 ## 本地开发
 
@@ -45,98 +39,44 @@ cp -n server/.env.example server/.env
 npm run dev
 ```
 
-`npm install` 会通过 `postinstall` 安装后端依赖。首次启动前编辑 `server/.env`，至少设置安全的 `SECRET_KEY`；生产环境不得使用示例值。
+先编辑 `server/.env`，至少设置安全的 `SECRET_KEY`。完整变量及说明以 [server/.env.example](server/.env.example) 为准，不提交真实配置。
 
-启动后访问：
+- 前端固定 [localhost:5180](http://localhost:5180)，端口占用时明确失败，不自动换号。
+- 后端健康端点为 [localhost:5181/api/health](http://localhost:5181/api/health)。
+- `npm run dev` 把 `/api`、`/uploads` 代理到本地 `127.0.0.1:5181`，以开发模式关闭采集、开奖等后台任务。
+- 分开启动可使用 `npm run dev:server`、`npm run dev:client`。手动启动前端时检查 `VITE_API_PROXY_TARGET`，避免意外连接生产。
+- `SERVER_HOST` 控制后端监听，`BACKGROUND_TASKS_DISABLED=1` 明确关闭后台任务；真实 AI、采集、推送等外部能力按专项任务配置，不用页面联调消耗线上服务。
 
-- 前端：<http://localhost:5180>
-- 后端健康检查：<http://localhost:5181/api/health>
-- `npm run dev` 固定把 `/api` 和 `/uploads` 代理到本地 `127.0.0.1:5181`，并以开发模式启动后端，关闭自动采集、Token 检查和画像后台任务。页面联调不使用线上接口额度。
-- 后端支持 `SERVER_HOST` 指定监听地址，`BACKGROUND_TASKS_DISABLED=1` 关闭后台任务；未设置时保持原启动行为。
-- 若手动启动前端，请检查 `VITE_API_PROXY_TARGET`，避免继承指向线上站点的旧环境变量。
+数据库、上传、密钥、账号、备份和私有材料留在本地或私有运行环境，不进入公开仓库。主站文本模型政策见蓝图[搜索与 AI](docs/产品蓝图.md#搜索与-ai)。
 
-也可以分别启动：
+## 检查命令
 
-```bash
-npm run dev:server
-npm run dev:client
-```
+按改动范围选择，不为每个任务运行所有命令；实际脚本以 [package.json](package.json) 为准。
 
-## 环境变量
+| 范围               | 命令                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| 前端静态检查与构建 | `npm run lint`、`npm run build`                                                    |
+| 浏览器             | `npm run test:e2e:smoke`；需要完整回归时 `npm run test:e2e`                        |
+| 平台基础与 AI 结构 | `npm run test:foundation`、`npm run check:ai-assistant`、`npm run check:ai-agents` |
+| AI 质量与真实调用  | `npm run eval:ai-golden`、`npm run eval:ai-live`、`npm run stress:ai`              |
+| 微信采集           | `npm run check:wechat-ai` 及相关服务测试                                           |
+| 搜索索引维护       | `npm run search:index:refresh`（会更新索引，不是只读检查）                         |
+| 格式与差异         | `npm run format:check`、`git diff --check`                                         |
 
-完整模板位于 [server/.env.example](./server/.env.example)。主要分组包括：
+文档任务检查内容、链接、格式和差异；UI 需查看真实页面；Mock、构建不能替代真实 provider、平台账号、真机或生产流程证据。
 
-- `SECRET_KEY`、`ADMIN_PASSWORD`：认证与后台安全。
-- `DATABASE_FILE`、`UPLOAD_DIR`：SQLite 与上传存储。
-- `CORS_ALLOWED_ORIGINS`：生产跨域白名单。
-- `ZJU_QWEN_API_KEY`、`ZJU_QWEN_BASE_URL`：主站 AI 能力使用的浙大自建 Qwen；旧 `LLM_*` 仅作生产配置迁移兼容，文本模型固定为 `qwen3.8-27b`，不允许公网提供方回退。
-- `WEWE_RSS_BASE_URL`：微信读书 RSS 公众号来源的受信任 HTTPS 基地址，默认使用 `https://rss.tuotuzju.com`。
-- `WEWE_RSS_AUTH_CODE`：主平台后端代理 WeWe RSS 管理 API 使用的服务端授权码；取自 WeWe RSS 的 `AUTH_CODE`，不返回前端。
-- `WECHAT_MINIAPP_APPID`、`WECHAT_MINIAPP_SECRET`：微信小程序登录。
-- `VITE_AI_COMMUNITY_FRESHMAN_IMA_URL`：前端构建时可选的新生资料库 ima 分享地址覆盖项；默认连接已配置的「浙大校园信息站」，无需额外设置。
+## 操作手册
 
-不要提交 `server/.env`、数据库、上传文件、真实平台凭据或日志。
+- [AI 社区 CLI 投稿](docs/操作手册/AI社区CLI投稿.md)
+- [结构化活动导入](docs/操作手册/结构化活动导入.md)
+- [微信公众号文章采集](docs/操作手册/微信公众号文章采集.md)
+- [本机中转部署](docs/操作手册/本机中转部署.md)
+- [Android 打包](docs/操作手册/Android应用打包.md)、[iOS 开发与验收](docs/操作手册/iOS应用开发与验收.md)、[HarmonyOS 打包与上架](docs/操作手册/HarmonyOS应用打包与上架.md)
 
-## 测试与检查
+## 代码与发布
 
-常规前端检查：
+`src/` 为前端，`server/` 为 API、领域服务、迁移与后台任务，`shared/` 存放前后端共同定义，`public/` 存放公开静态资源与词典，`e2e/` 为浏览器测试。具体职责见蓝图[技术设计](docs/产品蓝图.md#技术设计)。
 
-```bash
-npm run lint
-npm run build
-npm run test:e2e:smoke
-```
+`master` 推送触发 [deploy.yml](.github/workflows/deploy.yml) 的检查、构建与发布包生成。默认直传；`ZJU_DEPLOY_TRANSPORT=local` 时需按手册完成本机中转。生产由 Caddy 提供入口；应用回滚与数据库恢复分开处理。
 
-后端与平台底座：
-
-```bash
-npm run test:foundation
-npm run check:ai-assistant
-npm run check:ai-agents
-```
-
-格式与差异：
-
-```bash
-npm run format:check
-git diff --check
-```
-
-按改动范围选择更多检查：
-
-- 活动推荐与 AI：`npm run eval:ai-golden`、`npm run eval:ai-live`、`npm run stress:ai`。
-- 搜索索引：`npm run search:index:refresh`。
-- 微信采集：`npm run check:wechat-ai` 及对应服务测试。
-- 完整浏览器回归：`npm run test:e2e`。
-
-真实 provider、微信账号、移动真机和生产部署不能由 Mock、构建或局部测试替代。
-
-## 仓库结构
-
-```text
-src/                  React 前端、页面、组件、Context 与客户端服务
-server/               Express API、领域服务、SQLite 迁移、任务与脚本
-public/               静态资源和中英文 locale
-wechat-miniprogram/   微信小程序 WebView 壳与原生桥接
-android-twa/          Android TWA/WebView 包装工程
-ios/                  iOS Capacitor 工程
-e2e/                  Playwright 浏览器回归
-docs/                 当前中文文档、操作手册和历史归档
-```
-
-这里仅提供一级目录导航；详细模块、数据真源和运行链查看[技术架构](./docs/技术架构.md)。
-
-## 开发协作
-
-- AI 协作规则查看 [AGENTS.md](./AGENTS.md)。
-- 功能设计、接口和数据关系维护在产品蓝图与技术架构，跨轮次进度和待验收事项维护在产品状态，入口见[文档入口](#文档入口)。
-- 开发引起的产品、状态和架构变化回写对应项目文档；[AGENTS.md](./AGENTS.md) 的修改须有用户明确授权。
-- 本仓库公开，不提交内部商业文书、用户数据、数据库、上传内容、密钥、AI memory 和本地生成产物。
-
-## 构建与部署
-
-```bash
-npm run build
-```
-
-生产部署由 [deploy.yml](./.github/workflows/deploy.yml) 在 `master` 推送后触发。部署链、运行边界和故障判断见[技术架构](./docs/技术架构.md)；本地构建与检查命令见上文。
+远端提交、CI 结果和生产部署分别确认。AI 开发协作及自动推送要求见 [AGENTS.md](AGENTS.md)。
