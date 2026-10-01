@@ -9,7 +9,7 @@ import { useReducedMotion } from "../../../utils/animations";
 
 // Preserve the original Lightbox and Videos overlay presentation. Only the
 // event-owned item replaces their global media, favorites, and related APIs.
-export default function Viewer({ item, video, onClose, onNext, onPrev }) {
+export default function Viewer({ item, video, onClose, onNext, onPrev, position, total }) {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const isDayMode = uiMode === "day";
@@ -17,6 +17,11 @@ export default function Viewer({ item, video, onClose, onNext, onPrev }) {
     const dialog = useRef(null);
     const titleId = useId();
     const [showInfo, setShowInfo] = useState(false);
+    const hasPosition =
+        Number.isInteger(position) && Number.isInteger(total) && position > 0 && position <= total;
+    const photoScene = hasPosition
+        ? item.category_name || t("aix.media.otherScene")
+        : item.category;
 
     useBackClose(true, onClose);
     useBodyScrollLock(true);
@@ -205,9 +210,17 @@ export default function Viewer({ item, video, onClose, onNext, onPrev }) {
                                     {item.title || t("aix.media.photos")}
                                 </h3>
                                 <p
+                                    aria-live="polite"
+                                    aria-atomic="true"
                                     className={`text-sm uppercase tracking-widest ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                                 >
-                                    {item.category}
+                                    {photoScene}
+                                    {hasPosition && (
+                                        <span className="tabular-nums">
+                                            {" "}
+                                            · {position} / {total}
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../../services/api";
@@ -10,6 +10,7 @@ import "./legacy-media/EmbeddedMedia.css";
 import CompetitionOutcomeUploadModal from "../CompetitionOutcomeUploadModal";
 export default function Media({ template, live }) {
     const { t } = useTranslation();
+    const galleryTop = useRef(null);
     const { uiMode } = useSettings();
     const [params, setParams] = useSearchParams();
     const [category, setCategory] = useState("");
@@ -130,11 +131,12 @@ export default function Media({ template, live }) {
                     setItems([]);
                     setCategory(value);
                     setOffset(0);
+                    galleryTop.current?.scrollIntoView({ block: "start", behavior: "instant" });
                 }}
             />
         ) : null;
     return (
-        <div className="legacy-media-surface">
+        <div className="legacy-media-surface" ref={galleryTop}>
             <Gallery
                 {...presentation}
                 items={orderedItems}
@@ -149,6 +151,8 @@ export default function Media({ template, live }) {
             {selected && (
                 <MediaViewer
                     item={selected}
+                    position={index + 1}
+                    total={orderedItems.length}
                     onClose={() => setSelected(null)}
                     onPrev={index > 0 ? () => setSelected(orderedItems[index - 1]) : undefined}
                     onNext={

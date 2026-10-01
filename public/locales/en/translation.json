@@ -5234,6 +5234,8 @@
             "next": "Next",
             "original": "View original",
             "more": "Load more",
+            "photoCount": "{{count}} photos",
+            "loadedCount": "{{count}} loaded",
             "batchUpload": "Upload photos",
             "scenes": "Event scenes",
             "otherScene": "Other moments",

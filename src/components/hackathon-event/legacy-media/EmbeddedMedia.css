@@ -88,3 +88,37 @@
 :root[data-theme="day"] .legacy-media-scene-heading span {
     background: #e2e8f0;
 }
+
+.legacy-media-surface {
+    scroll-margin-top: var(--site-nav-height);
+}
+.legacy-media-toolbar {
+    position: sticky;
+    top: calc(var(--site-nav-height) + var(--event-nav-height));
+    z-index: 30;
+    padding-block: 8px;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(14px);
+}
+:root[data-theme="day"] .legacy-media-toolbar {
+    background: rgba(255, 255, 255, 0.95);
+}
+.legacy-media-masonry {
+    display: grid;
+    align-items: start;
+    gap: 24px;
+}
+.legacy-media-scene-heading small {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #9ca3af;
+}
+:root[data-theme="day"] .legacy-media-scene-heading small {
+    color: #64748b;
+}
+@media (max-width: 767px) {
+    .legacy-media-masonry {
+        gap: 16px;
+    }
+}

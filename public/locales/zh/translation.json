@@ -5343,6 +5343,8 @@
             "next": "下一张",
             "original": "查看原图",
             "more": "加载更多",
+            "photoCount": "{{count}} 张",
+            "loadedCount": "已加载 {{count}} 张",
             "batchUpload": "批量上传照片",
             "scenes": "现场场景",
             "otherScene": "其他现场",

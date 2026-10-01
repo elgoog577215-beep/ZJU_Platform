@@ -1,6 +1,6 @@
 // Original full Gallery page from c33d7d0af^ (before the May 2026 UI change).
 // Only its data, upload and viewer adapters are supplied by the event workspace.
-import { memo, forwardRef } from "react";
+import { memo, forwardRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Image as ImageIcon, Upload, AlertCircle, Maximize2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -97,6 +97,16 @@ const Gallery = ({
     const isDayMode = uiMode === "day";
     const allowAmbientEffects = !prefersReducedMotion;
     const displayPhotos = items;
+    const [maxColumns, setMaxColumns] = useState(3);
+    useEffect(() => {
+        const queries = [640, 768, 1024].map((width) =>
+            window.matchMedia(`(min-width: ${width}px)`)
+        );
+        const update = () => setMaxColumns(1 + queries.filter((query) => query.matches).length);
+        update();
+        queries.forEach((query) => query.addEventListener("change", update));
+        return () => queries.forEach((query) => query.removeEventListener("change", update));
+    }, []);
     const sceneGroups = Array.from(
         items.reduce((groups, photo, index) => {
             const name = photo.category_name || t("aix.media.otherScene");
@@ -111,7 +121,7 @@ const Gallery = ({
     const refresh = onRetry;
     const setSelectedPhotoIndex = (index) => onOpen(items[index]);
     return (
-        <section className="pt-6 pb-16 md:pt-8 md:pb-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+        <section className="pt-6 pb-16 md:pt-8 md:pb-20 px-4 md:px-8 relative flex-grow">
             {/* Enhanced Ambient Background */}
             <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                 {allowAmbientEffects ? (
@@ -151,7 +161,7 @@ const Gallery = ({
             </div>
 
             <h1 className="sr-only">{title}</h1>
-            <div className="relative z-40 max-w-7xl mx-auto mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div className="legacy-media-toolbar max-w-7xl mx-auto mb-8 flex flex-wrap items-center justify-between gap-4">
                 <div className="min-w-0 max-w-full">{controls}</div>
                 <button
                     type="button"
@@ -213,36 +223,57 @@ const Gallery = ({
                 </div>
             ) : (
                 <div className="max-w-7xl mx-auto space-y-12 md:space-y-16">
-                    {sceneGroups.map(({ name, photos }, groupIndex) => (
-                        <section key={name} aria-labelledby={`photo-scene-${groupIndex}`}>
-                            <div className="legacy-media-scene-heading">
-                                <h2 id={`photo-scene-${groupIndex}`}>{name}</h2>
-                                <span aria-hidden="true" />
-                            </div>
-                            <motion.div
-                                layout={
-                                    !prefersReducedMotion &&
-                                    typeof window !== "undefined" &&
-                                    window.innerWidth >= 768
-                                }
-                                className={`columns-1 sm:columns-2 md:columns-3 ${photos.length > 6 || photos.length === 4 ? "lg:columns-4" : "lg:columns-3"} gap-4 md:gap-6`}
-                            >
-                                <AnimatePresence mode="popLayout">
-                                    {photos.map(({ photo, index }) => (
-                                        <PhotoCard
-                                            key={photo.id}
-                                            photo={photo}
-                                            index={index}
-                                            onClick={setSelectedPhotoIndex}
-                                            canAnimate={!prefersReducedMotion && index < 8}
-                                            isDayMode={isDayMode}
-                                            t={t}
-                                        />
+                    {sceneGroups.map(({ name, photos }, groupIndex) => {
+                        const count = Math.min(
+                            photos.length === 4 && maxColumns === 3 ? 2 : maxColumns,
+                            photos.length,
+                            photos.length === 5 || photos.length === 6 ? 3 : 4
+                        );
+                        const columns = Array.from({ length: count }, () => []);
+                        photos.forEach((entry, index) => columns[index % count].push(entry));
+                        return (
+                            <section key={name} aria-labelledby={`photo-scene-${groupIndex}`}>
+                                <div className="legacy-media-scene-heading">
+                                    <h2 id={`photo-scene-${groupIndex}`}>{name}</h2>
+                                    <span aria-hidden="true" />
+                                    <small>
+                                        {t(
+                                            hasMore
+                                                ? "aix.media.loadedCount"
+                                                : "aix.media.photoCount",
+                                            { count: photos.length }
+                                        )}
+                                    </small>
+                                </div>
+                                <div
+                                    className="legacy-media-masonry"
+                                    style={{
+                                        gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
+                                    }}
+                                >
+                                    {columns.map((column, columnIndex) => (
+                                        <div key={columnIndex} className="min-w-0">
+                                            <AnimatePresence mode="popLayout">
+                                                {column.map(({ photo, index }) => (
+                                                    <PhotoCard
+                                                        key={photo.id}
+                                                        photo={photo}
+                                                        index={index}
+                                                        onClick={setSelectedPhotoIndex}
+                                                        canAnimate={
+                                                            !prefersReducedMotion && index < 8
+                                                        }
+                                                        isDayMode={isDayMode}
+                                                        t={t}
+                                                    />
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
                                     ))}
-                                </AnimatePresence>
-                            </motion.div>
-                        </section>
-                    ))}
+                                </div>
+                            </section>
+                        );
+                    })}
                 </div>
             )}
 
