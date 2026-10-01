@@ -94,7 +94,16 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
             {!selected && (
                 <EventStage
                     kicker={`${template.event.startAt?.slice(0, 10).replaceAll("-", ".")} · ${template.event.title}`}
-                    title={t(`${copyNamespace}.resultsTitle`).replace("与", "\n与")}
+                    title={t(`${copyNamespace}.resultsTitle`)
+                        .split(/(?=与)/)
+                        .map((line, index) => (
+                            <span
+                                className={index ? "hx-results-title-accent" : undefined}
+                                key={line}
+                            >
+                                {line}
+                            </span>
+                        ))}
                     description={t(`${copyNamespace}.resultsIntro`)}
                     action={
                         <a className="hx-primary" href="#first-works-heading">

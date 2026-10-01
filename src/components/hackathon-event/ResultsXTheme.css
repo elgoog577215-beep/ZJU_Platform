@@ -1,0 +1,122 @@
+/* Results restore the established X exhibition theme: original artwork,
+   dark green canvas and lime accents. Event content and other views stay shared. */
+:root .hx-workspace[data-view="results"],
+:root .hx-workspace[data-view="results"] :is(.hx-interior, .hx-results-presentation) {
+    --hx-bg: #050a07;
+    --hx-surface: #101a12;
+    --hx-text: #f6f8ed;
+    --hx-muted: #bcc8ba;
+    --hx-line: #3b4a32;
+    --hx-accent: #c4f849;
+    --hx-accent-text: #c4f849;
+    --event-panel: rgba(7, 15, 9, 0.9);
+    color: var(--hx-text);
+    color-scheme: dark;
+}
+.hx-workspace[data-view="results"] .hx-interior {
+    position: relative;
+    isolation: isolate;
+    background: var(--hx-bg);
+}
+.hx-workspace[data-view="results"] :is(.hx-event-backdrop, .hx-event-grid) {
+    display: none;
+}
+.hx-workspace[data-view="results"] .hx-interior::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: max(820px, 100dvh);
+    pointer-events: none;
+    background:
+        linear-gradient(0deg, #050a07, transparent 35%),
+        url("/images/hackathon/x-field-desktop.webp") 58% top / cover no-repeat;
+}
+.hx-workspace[data-view="results"] .hx-event-stage {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    gap: clamp(32px, 5vw, 80px);
+}
+.hx-workspace[data-view="results"] .hx-interior .hx-event-stage h1 {
+    font-size: clamp(48px, 5.6vw, 80px);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+}
+.hx-workspace[data-view="results"] .hx-event-stage h1 > span {
+    display: block;
+}
+.hx-results-title-accent {
+    color: var(--hx-accent);
+}
+.hx-workspace[data-view="results"] .hx-event-stage .hx-overline {
+    padding: 0;
+    border: 0;
+    background: none;
+    letter-spacing: 0.025em;
+    font-size: 13px;
+}
+.hx-workspace[data-view="results"] .hx-event-stage-description {
+    max-width: 40ch;
+}
+.hx-workspace[data-view="results"] .hx-event-stage-panel {
+    background: var(--event-panel);
+    border-color: rgba(196, 248, 73, 0.3);
+    padding: 24px;
+}
+.hx-workspace[data-view="results"] .hx-event-stage-panel::before {
+    display: none;
+}
+:root .hx-workspace.hx-edition-one[data-view="results"] .hx-interior .hx-primary {
+    color: #101808;
+    background: var(--hx-accent);
+    border-color: var(--hx-accent);
+}
+:root .hx-workspace.hx-edition-one[data-view="results"] .hx-primary:hover:not(:disabled) {
+    background: #dcff8b;
+    border-color: #dcff8b;
+}
+:root .hx-workspace[data-view="results"] .hx-primary:disabled {
+    background: var(--hx-surface);
+    border-color: var(--hx-line);
+    color: var(--hx-muted);
+}
+:root .hx-workspace[data-view="results"] .hx-first-award {
+    color: var(--hx-accent);
+}
+.hx-workspace[data-view="results"] .hx-exhibit-detail {
+    background: rgba(5, 10, 7, 0.96);
+    padding: clamp(24px, 4vw, 56px);
+}
+.hx-workspace[data-view="results"] .hx-feature-select button[aria-pressed="true"] {
+    color: #101808;
+    background: var(--hx-accent);
+}
+.hx-workspace[data-view="results"] :is(button, a, input, select):focus-visible {
+    outline-color: var(--hx-accent);
+}
+@media (max-width: 1000px) {
+    .hx-workspace[data-view="results"] .hx-interior .hx-event-stage h1 {
+        font-size: 44px;
+    }
+    .hx-workspace[data-view="results"] .hx-event-stage {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 24px;
+    }
+    .hx-workspace[data-view="results"] .hx-interior::before {
+        background-position:
+            center,
+            62% top;
+    }
+}
+.hx-workspace[data-view="results"] .hx-nav a {
+    background: var(--hx-surface);
+    color: var(--hx-muted);
+}
+.hx-workspace[data-view="results"] .hx-nav a:hover {
+    color: var(--hx-text);
+    border-color: var(--hx-accent);
+}
+.hx-workspace[data-view="results"] .hx-nav a[aria-current="page"] {
+    background: var(--hx-accent);
+    border-color: var(--hx-accent);
+    color: #101808;
+}

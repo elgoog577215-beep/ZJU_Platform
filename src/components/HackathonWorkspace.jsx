@@ -11,6 +11,7 @@ import HackathonEventContent from "./HackathonEventContent";
 import { EVENT_VIEWS, getEventView, getEventUrl } from "../utils/hackathonRoute";
 import "./HackathonShared.css";
 import "./HackathonWorkspace.css";
+import "./hackathon-event/ResultsXTheme.css";
 // Event identity, navigation and signup belong to one shell. Edition bodies own their content.
 export default function HackathonWorkspace({ template, schedule }) {
     const { t } = useTranslation();
@@ -87,7 +88,12 @@ export default function HackathonWorkspace({ template, schedule }) {
               ? "aix.register.title"
               : "aix.register.closed";
     return (
-        <section ref={workspaceRef} className="hx-workspace hx-edition-one" data-event={event.key}>
+        <section
+            ref={workspaceRef}
+            className="hx-workspace hx-edition-one"
+            data-event={event.key}
+            data-view={view}
+        >
             <SEO title={`${event.title} | 浙客松`} description={event.description} />
             <a className="hx-skip" href="#hx-event-content">
                 {t("eventWorkspace.skip")}
