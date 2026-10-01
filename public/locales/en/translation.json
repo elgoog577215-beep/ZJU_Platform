@@ -5041,7 +5041,7 @@
         "eventFullTitle": "AI Interdisciplinary Innovation Forum & AI+X Hackathon",
         "motto": "Break boundaries · Build together · Create",
         "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
-        "date": "Oct 18–24, 2026",
+        "date": "2026.10.09 — 10.24",
         "location": "Zijingang Campus, Zhejiang University",
         "team": "ZJU students · Teams of 1–5",
         "tracksKicker": "Two tracks",
@@ -5049,66 +5049,66 @@
         "viewChallenges": "View challenges",
         "tracks": {
             "campus": {
-                "title": "Campus track",
-                "description": "Combine AI with disciplinary knowledge to address academic and campus needs.",
-                "topics": "History · Law · Ocean · Healthcare · Education"
+                "title": "Disciplinary Starter Track",
+                "description": "Supported by Qwen. Identify a problem in your discipline and build an Agent or Skill to address it.",
+                "topics": "Law · Ocean Science · Medicine · Education · Communication"
             },
             "industry": {
-                "title": "Industry track",
-                "description": "Build useful AI products and tools around practical business needs.",
-                "topics": "Office productivity · Content · Marketing"
+                "title": "Industry Advanced Track",
+                "description": "Build AI applications for real marketing and workplace briefs from Huawei China.",
+                "topics": "Marketing · Workplace · Real business tasks"
             }
         },
         "forumsKicker": "Two forums",
         "forumsTitle": "From building to launching",
-        "forumsDescription": "Forums are open to the public. Speakers and rooms will be announced once confirmed.",
+        "forumsDescription": "Forums are open to the public. Guests are being invited; arrangements remain subject to official announcements.",
         "forums": {
             "technology": {
                 "date": "10.18",
                 "title": "Technology forum",
-                "description": "Morning talks and an evening AI Coding roundtable on methods and practical development."
+                "description": "October 18, 16:00–17:30, North Teaching Building. Technical talks and AI Coding discussion."
             },
             "entrepreneurship": {
                 "date": "10.24",
                 "title": "Entrepreneurship forum",
-                "description": "Discussions on AI ventures and industry applications, followed by final pitches and awards."
+                "description": "October 24, 9:30–11:30, School of Management. AI entrepreneurship trends, discussion and Q&A."
             }
         },
         "agendaTitle": "Event schedule",
         "planned": "Provisional · Subject to official notices",
         "agenda": {
             "launch": {
-                "date": "10.11",
+                "date": "10.09",
                 "title": "Event announcement",
                 "description": "Event information and participation guidance published."
             },
             "initial": {
                 "date": "10.18",
                 "title": "First round · Tech forum",
-                "description": "Challenges at 11:00. Build in the afternoon; submit a demo and project description by 17:00. Evening AI Coding roundtable and semifinal announcement."
+                "description": "Tasks announced at 9:00. Build from 9:30–11:30 and 13:30–15:30; technical forum at 16:00–17:30 and semifinal shortlist in the evening."
             },
             "semifinal": {
                 "date": "10.19–22",
                 "title": "Online semifinal",
-                "description": "Develop, test and refine. Submissions close at midnight on October 22."
+                "description": "Industry teams develop online. Submissions close at 24:00 on October 22."
             },
             "shortlist": {
                 "date": "10.23",
                 "title": "Finalists announced",
-                "description": "Finalist list and instructions published."
+                "description": "Industry finalist announcement and final arrangements."
             },
             "final": {
                 "date": "10.24",
                 "title": "Final · Venture forum",
-                "description": "Morning forum. Project pitches 13:30–15:30; awards 16:00–16:30."
+                "description": "Opening at 9:00; entrepreneurship forum at 9:30–11:30; parallel track pitches at 13:30–15:30, awards at 16:00–16:30, closing at 16:30."
             }
         },
-        "challengeKicker": "First round → Semifinal → Final",
-        "challengeDescription": "Browse requirements by stage. Official challenges for both tracks will be published here.",
+        "challengeKicker": "Disciplinary Starter · Industry Advanced",
+        "challengeDescription": "Start with a problem in your discipline or tackle a real business brief. Each track has its own schedule; published briefs and submission links appear here.",
         "stagesLabel": "Competition stages",
         "deadline": "Submission deadline",
         "challengePending": "Challenges to be announced",
-        "releaseTime": "First-round challenges are scheduled for October 18 at 11:00.",
+        "releaseTime": "The Disciplinary Starter Track launches October 10; industry tasks are announced at the October 18 opening.",
         "nextStageNotice": "Requirements and submission links will open after the official announcement.",
         "submissionPending": "Submission link coming soon",
         "submissionClosed": "Submissions closed for this stage",
@@ -5120,19 +5120,19 @@
             "initial": {
                 "title": "First round",
                 "date": "10.18",
-                "description": "Receive the on-site challenge and build a working first version.",
+                "description": "Four hours of industry development: 9:30–11:30 and 13:30–15:30. Teams completing more than 60% of the tasks advance.",
                 "materials": "Submit a working demo and a project description covering the problem, core features and progress."
             },
             "semifinal": {
                 "title": "Semifinal",
                 "date": "10.19–10.22",
-                "description": "Selected teams continue development, testing and refinement online.",
-                "materials": "Prepare a project description, user guide and demo materials. Submit source code as required by your track. Platform links will be included in official notices."
+                "description": "Shortlisted industry teams continue development, testing and refinement online.",
+                "materials": "Industry teams submit a project description, user guide, demo materials and source code as required by the brief. Deadline: October 22 at 24:00."
             },
             "final": {
                 "title": "Final",
                 "date": "10.24",
-                "description": "Finalists pitch on site, demonstrating implementation, value and results.",
+                "description": "The two tracks pitch in parallel and are judged separately, followed by a joint awards ceremony.",
                 "materials": "Prepare pitch slides, a project poster and a working demo. Pitch order and detailed rules will be announced."
             }
         },
@@ -5184,8 +5184,8 @@
             "senior": "Year 4",
             "master": "Master’s",
             "phd": "PhD",
-            "campus": "Campus",
-            "industry": "Industry"
+            "campus": "Disciplinary Starter Track",
+            "industry": "Industry Advanced Track"
         },
         "brand": "ZHEKESONG",
         "backToSite": "Back to TUOZHE AI",
@@ -5220,7 +5220,11 @@
         "discussionAlt": "Participants discussing a project at the first edition",
         "sharedTitle": "AI+X Hackathon",
         "prizePending": "TBA",
-        "crossDiscipline": "Cross-disciplinary teams"
+        "crossDiscipline": "Cross-disciplinary teams",
+        "resultsTitle": "Results",
+        "resultsIntro": "Award winners, projects, speeches and forum highlights in one place.",
+        "industryStages": "Industry Advanced Track · Stages",
+        "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 24."
     },
     "eventWorkspace": {
         "skip": "Skip to event content",
@@ -5418,7 +5422,8 @@
         },
         "curated": "Curated event archive",
         "viewRegistration": "View registration details",
-        "registrationHistory": "This event has ended. The registration form is retained for reference and no longer accepts submissions."
+        "registrationHistory": "This event has ended. The registration form is retained for reference and no longer accepts submissions.",
+        "backToWorks": "Back to all projects"
     },
     "getuiBeauty": {
         "kicker": "Zhekesong Season One · Getui Friendship Challenge",

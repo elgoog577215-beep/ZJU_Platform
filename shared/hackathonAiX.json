@@ -15,12 +15,12 @@
         "title": "AI+X破界黑客松",
         "subtitle": "破界 · 共创 · 涌现",
         "description": "面向不同专业的真实问题，组建跨学科团队，用 AI 完成可运行、可验证的应用。",
-        "startAt": "2026-10-18T09:00",
+        "startAt": "2026-10-09T00:00",
         "endAt": "2026-10-24T17:00",
         "timezone": "Asia/Shanghai",
         "location": "浙江大学紫金港校区",
         "format": "1–5 人组队",
-        "duration": "初赛 · 复赛 · 决赛",
+        "duration": "学科入门 · 产业进阶 · 双赛道路演",
         "prizeValue": "待公布",
         "prizeUnit": "",
         "registrationOpen": true,
@@ -30,8 +30,8 @@
             "stages": [
                 {
                     "id": "initial",
-                    "opensAt": "2026-10-18T11:00:00+08:00",
-                    "closesAt": "2026-10-18T17:00:00+08:00"
+                    "opensAt": "2026-10-18T09:30:00+08:00",
+                    "closesAt": "2026-10-18T15:30:00+08:00"
                 },
                 {
                     "id": "semifinal",
@@ -144,11 +144,11 @@
                 "options": [
                     {
                         "value": "campus",
-                        "label": "校园赛道"
+                        "label": "学科入门赛道"
                     },
                     {
                         "value": "industry",
-                        "label": "产业赛道"
+                        "label": "产业进阶赛道"
                     }
                 ]
             },

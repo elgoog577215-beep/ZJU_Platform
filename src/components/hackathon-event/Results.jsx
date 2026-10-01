@@ -3,6 +3,8 @@ import { ArrowRight, Trophy, MessageSquare, Image as ImageIcon } from "lucide-re
 import { safeWebUrl } from "../../utils/hackathonAiX";
 import { useEventOutcome } from "./useEventOutcome";
 import Empty from "./Empty";
+import FirstEditionResults from "./FirstEditionResults";
+import "./ResultsPresentation.css";
 export default function Results({ template, switchView }) {
     const { t } = useTranslation();
     const {
@@ -13,14 +15,54 @@ export default function Results({ template, switchView }) {
     const program = template.event.program || {};
     if (template.navigation?.resultsVisible === false)
         return (
-            <div className="hx-content">
+            <div className="hx-content hx-results-presentation">
                 <h1>{t("eventWorkspace.resultsPending")}</h1>
             </div>
         );
     const prizeWorks = (outcome?.works || []).filter((work) => work.award || work.honor_title);
+    const reportSection = (
+        <section className="hx-result-section">
+            <h2>{t("aix.reports")}</h2>
+            {(program.reports || []).filter((report) => report.published).length ? (
+                <div className="hx-reports">
+                    {program.reports
+                        .filter((report) => report.published)
+                        .map((report) => (
+                            <article key={report.id}>
+                                <p className="hx-overline">{report.speaker || report.forum}</p>
+                                <h3>{report.title}</h3>
+                                <p>{report.summary}</p>
+                                {safeWebUrl(report.url) && (
+                                    <a
+                                        href={safeWebUrl(report.url)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {t("aix.readMore")} ↗
+                                    </a>
+                                )}
+                            </article>
+                        ))}
+                </div>
+            ) : (
+                <Empty
+                    icon={MessageSquare}
+                    title={t("aix.reportsPending")}
+                    description={t("aix.reportsDescription")}
+                />
+            )}
+        </section>
+    );
+    if (outcome?.works?.length)
+        return (
+            <>
+                <FirstEditionResults template={template} copyNamespace="aix" />
+                <div className="hx-content hx-results-presentation">{reportSection}</div>
+            </>
+        );
     const setRetry = reload;
     return (
-        <div className="hx-content">
+        <div className="hx-content hx-results-presentation">
             <div className="hx-page-heading hx-results-heading">
                 <div>
                     <p className="hx-overline">{t("aix.resultsKicker")}</p>
@@ -33,7 +75,7 @@ export default function Results({ template, switchView }) {
             ) : outcomeStatus === "error" ? (
                 <div className="hx-empty" role="alert">
                     <p>{t("aix.loadFailed")}</p>
-                    <button className="hx-outline" onClick={() => setRetry((value) => value + 1)}>
+                    <button className="hx-outline" onClick={setRetry}>
                         {t("aix.retry")}
                     </button>
                 </div>
@@ -63,39 +105,7 @@ export default function Results({ template, switchView }) {
                             />
                         )}
                     </section>
-                    <section className="hx-result-section">
-                        <h2>{t("aix.reports")}</h2>
-                        {(program.reports || []).filter((report) => report.published).length ? (
-                            <div className="hx-reports">
-                                {program.reports
-                                    .filter((report) => report.published)
-                                    .map((report) => (
-                                        <article key={report.id}>
-                                            <p className="hx-overline">
-                                                {report.speaker || report.forum}
-                                            </p>
-                                            <h3>{report.title}</h3>
-                                            <p>{report.summary}</p>
-                                            {safeWebUrl(report.url) && (
-                                                <a
-                                                    href={safeWebUrl(report.url)}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                >
-                                                    {t("aix.readMore")} ↗
-                                                </a>
-                                            )}
-                                        </article>
-                                    ))}
-                            </div>
-                        ) : (
-                            <Empty
-                                icon={MessageSquare}
-                                title={t("aix.reportsPending")}
-                                description={t("aix.reportsDescription")}
-                            />
-                        )}
-                    </section>
+                    {reportSection}
                     <section className="hx-result-section">
                         <div className="hx-section-head">
                             <h2>{t("aix.highlights")}</h2>

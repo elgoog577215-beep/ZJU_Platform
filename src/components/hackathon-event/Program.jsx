@@ -14,10 +14,12 @@ export default function Program({ template, now, switchView }) {
     return (
         <div className="hx-program-summary relative mx-auto w-full">
             <header>
-                <p className="hx-overline">Competition Board</p>
+                <p className="hx-overline">{t("aix.challengeKicker")}</p>
                 <h2>{t("aix.agendaTitle")}</h2>
                 <p>{t("aix.planned")}</p>
             </header>
+            <p className="hx-program-campus-schedule">{t("aix.campusSchedule")}</p>
+            <h3>{t("aix.industryStages")}</h3>
             <ol className="hx-program-stages">
                 {(event.program.stages || []).map((stage, index) => (
                     <li key={stage.id}>
@@ -49,9 +51,9 @@ export default function Program({ template, now, switchView }) {
                     <h3>{t("aix.forumsKicker")}</h3>
                     <p>{t("aix.forumsDescription")}</p>
                 </div>
-                {["technology", "entrepreneurship"].map((forum, index) => (
+                {["technology", "entrepreneurship"].map((forum) => (
                     <article key={forum}>
-                        <time>{date(index ? event.endAt : event.startAt)}</time>
+                        <time>{t(`aix.forums.${forum}.date`)}</time>
                         <h3>{t(`aix.forums.${forum}.title`)}</h3>
                         <p>{t(`aix.forums.${forum}.description`)}</p>
                     </article>

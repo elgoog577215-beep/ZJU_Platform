@@ -6,6 +6,7 @@ import { getEventUrl } from "../../utils/hackathonRoute";
 import Media from "./Media";
 import FirstEditionResults from "./FirstEditionResults";
 import "./BeautyEventContent.css";
+import "./ChallengePresentation.css";
 
 const materials = [
     ["brief", "/uploads/documents/getui-beauty-challenge-ef8533c40c.pdf", "PDF"],
@@ -206,51 +207,55 @@ function Challenge() {
     const advanced = t("getuiBeauty.advanced", { returnObjects: true });
     const scoring = t("getuiBeauty.scoring", { returnObjects: true });
     return (
-        <div className="hx-content hx-beauty">
+        <div className="hx-content hx-beauty hx-challenge-page hx-beauty-challenge-page">
             <header className="hx-page-heading">
                 <p className="hx-overline">{t("getuiBeauty.challengeLabel")}</p>
                 <h1>{t("getuiBeauty.challengeTitle")}</h1>
                 <p>{t("getuiBeauty.taskSummary")}</p>
             </header>
-            <section className="hx-beauty-section">
-                <h2>{t("getuiBeauty.requirementsTitle")}</h2>
-                <ol className="hx-beauty-requirements">
-                    {requirements.map((item) => (
-                        <li key={item.title}>
-                            <h3>{item.title}</h3>
-                            <p>{item.description}</p>
-                        </li>
-                    ))}
-                </ol>
-            </section>
-            <section className="hx-beauty-section hx-beauty-two-columns">
-                <div>
-                    <h2>{t("getuiBeauty.advancedTitle")}</h2>
-                    <ul className="hx-beauty-list">
-                        {advanced.map((item) => (
-                            <li key={item}>{item}</li>
-                        ))}
-                    </ul>
+            <div className="hx-challenge-layout">
+                <div className="hx-challenge-main">
+                    <section className="hx-challenge-section">
+                        <h2>{t("getuiBeauty.requirementsTitle")}</h2>
+                        <ol className="hx-challenge-steps">
+                            {requirements.map((item) => (
+                                <li key={item.title}>
+                                    <h3>{item.title}</h3>
+                                    <p>{item.description}</p>
+                                </li>
+                            ))}
+                        </ol>
+                    </section>
+                    <section className="hx-challenge-section">
+                        <h2>{t("getuiBeauty.advancedTitle")}</h2>
+                        <ul className="hx-beauty-list">
+                            {advanced.map((item) => (
+                                <li key={item}>{item}</li>
+                            ))}
+                        </ul>
+                    </section>
+                    <section className="hx-challenge-section">
+                        <h2>{t("getuiBeauty.deliveryTitle")}</h2>
+                        <p>{t("getuiBeauty.delivery")}</p>
+                        <p className="hx-beauty-note">{t("getuiBeauty.boundary")}</p>
+                    </section>
                 </div>
-                <div>
-                    <h2>{t("getuiBeauty.scoringTitle")}</h2>
-                    <dl className="hx-beauty-scoring">
-                        {scoring.map((item) => (
-                            <div key={item.label}>
-                                <dt>{item.label}</dt>
-                                <dd>{item.weight}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                    <p>{t("getuiBeauty.presentation")}</p>
-                </div>
-            </section>
-            <section className="hx-beauty-section">
-                <h2>{t("getuiBeauty.deliveryTitle")}</h2>
-                <p>{t("getuiBeauty.delivery")}</p>
-                <p className="hx-beauty-note">{t("getuiBeauty.boundary")}</p>
-            </section>
-            <Materials />
+                <aside className="hx-challenge-aside">
+                    <section>
+                        <h2>{t("getuiBeauty.scoringTitle")}</h2>
+                        <dl className="hx-beauty-scoring">
+                            {scoring.map((item) => (
+                                <div key={item.label}>
+                                    <dt>{item.label}</dt>
+                                    <dd>{item.weight}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                        <p>{t("getuiBeauty.presentation")}</p>
+                    </section>
+                    <Materials />
+                </aside>
+            </div>
         </div>
     );
 }
@@ -260,14 +265,14 @@ function Results({ template }) {
     const { outcome, status, reload } = useEventOutcome(template.results.competitionSlug);
     if (template.navigation?.resultsVisible === false)
         return (
-            <div className="hx-content hx-beauty">
+            <div className="hx-content hx-beauty hx-beauty-results hx-results-presentation">
                 <h1>{t("eventWorkspace.resultsPending")}</h1>
             </div>
         );
     if (outcome?.works?.length)
         return <FirstEditionResults template={template} copyNamespace="getuiBeauty" />;
     return (
-        <div className="hx-content hx-beauty">
+        <div className="hx-content hx-beauty hx-beauty-results hx-results-presentation">
             <header className="hx-page-heading">
                 <p className="hx-overline">2026.06.07 · {t("getuiBeauty.kicker")}</p>
                 <h1>{t("getuiBeauty.resultsTitle")}</h1>
@@ -284,10 +289,7 @@ function Results({ template }) {
                 </div>
             ) : (
                 <>
-                    <section className="hx-beauty-section">
-                        <h2>{t("getuiBeauty.worksTitle")}</h2>
-                        <p>{t("getuiBeauty.worksPending")}</p>
-                    </section>
+                    <p className="hx-beauty-results-status">{t("getuiBeauty.worksPending")}</p>
                     <Scenes template={template} photos={outcome?.media?.featured_photos || []} />
                 </>
             )}
