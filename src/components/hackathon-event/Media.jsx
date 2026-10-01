@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Image as ImageIcon, Play, Upload } from "lucide-react";
 import api from "../../services/api";
-import Empty from "./Empty";
-import MediaViewer from "./MediaViewer";
-import EventMediaGallery from "./EventMediaGallery";
+import MediaViewer from "./legacy-media/Viewer";
+import Gallery from "./legacy-media/Gallery";
+import Videos from "./legacy-media/Videos";
+import SortSelector from "./legacy-media/SortSelector";
+import "./legacy-media/EmbeddedMedia.css";
 import CompetitionOutcomeUploadModal from "../CompetitionOutcomeUploadModal";
 export default function Media({ template, live }) {
     const { t } = useTranslation();
@@ -107,112 +108,58 @@ export default function Media({ template, live }) {
         template.event.key,
     ]);
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
-    return (
-        <div className="hx-content hx-media-page event-original-media">
-            <div className="event-gallery-heading">
-                <div>
-                    <p className="hx-overline">
-                        {t(live && offset === 0 ? "aix.media.live" : "aix.media.kicker")}
-                    </p>
-                    <h1>{t("aix.tabs.media")}</h1>
-                    <p>
-                        {t(
-                            template.event.key === "zhekesong-current"
-                                ? "firstEdition.mediaIntro"
-                                : template.event.key === "getui-beauty-2026"
-                                  ? "getuiBeauty.mediaIntro"
-                                  : "aix.media.description"
-                        )}
-                    </p>
-                </div>
-                <button className="event-gallery-upload" onClick={() => setUpload(true)}>
-                    <Upload size={17} />
-                    {t("aix.media.upload")}
-                </button>
-            </div>
-            <div className="event-gallery-toolbar">
-                <div className="event-gallery-modes">
-                    {["photos", "videos"].map((value) => (
-                        <button
-                            key={value}
-                            aria-pressed={mode === value}
-                            onClick={() => {
-                                if (mode === value) return;
-                                setSelected(null);
-                                setItems([]);
-                                setMode(value);
-                                setCategory("");
-                                setOffset(0);
-                            }}
-                        >
-                            {value === "photos" ? <ImageIcon size={17} /> : <Play size={17} />}
-                            {t(`aix.media.${value}`)}
-                            {mode === value && <span>{total}</span>}
-                        </button>
-                    ))}
-                </div>
-                {categories.length > 0 && (
-                    <select
-                        aria-label={t("aix.media.category")}
-                        value={category}
-                        onChange={(event) => {
-                            setSelected(null);
-                            setItems([]);
-                            setCategory(event.target.value);
-                            setOffset(0);
-                        }}
-                    >
-                        <option value="">{t("aix.media.all")}</option>
-                        {categories.map((item) => (
-                            <option key={item}>{item}</option>
-                        ))}
-                    </select>
-                )}
-                <span className="event-gallery-order">
-                    {t(
-                        ["zhekesong-current", "getui-beauty-2026"].includes(template.event.key)
-                            ? "firstEdition.curated"
-                            : "aix.media.latest"
-                    )}
-                </span>
-            </div>
-            {items.length > 0 && (
-                <EventMediaGallery items={items} video={mode === "videos"} onOpen={setSelected} />
-            )}
-            {status === "loading" ? (
-                <p className="hx-loading" role="status">
-                    {t("aix.loading")}
-                </p>
-            ) : status === "error" ? (
-                <div className="hx-empty" role="alert">
-                    <p>{t("aix.loadFailed")}</p>
-                    <button
-                        className="hx-outline"
-                        onClick={() => setRevision((value) => value + 1)}
-                    >
-                        {t("aix.retry")}
-                    </button>
-                </div>
-            ) : items.length === 0 ? (
-                <Empty
-                    icon={ImageIcon}
-                    title={t("aix.media.empty")}
-                    description={t("aix.media.emptyDescription")}
+    const Page = mode === "photos" ? Gallery : Videos;
+    const controls = (
+        <div className="flex flex-wrap justify-center gap-4">
+            <SortSelector
+                className="w-48"
+                sort={mode}
+                onSortChange={(value) => {
+                    if (mode === value) return;
+                    setSelected(null);
+                    setItems([]);
+                    setMode(value);
+                    setCategory("");
+                    setOffset(0);
+                }}
+                options={["photos", "videos"].map((value) => ({
+                    value,
+                    label: `${t(`aix.media.${value}`)}${mode === value ? ` · ${total}` : ""}`,
+                }))}
+            />
+            {categories.length > 0 && (
+                <SortSelector
+                    className="w-48"
+                    sort={category}
+                    onSortChange={(value) => {
+                        setSelected(null);
+                        setItems([]);
+                        setCategory(value);
+                        setOffset(0);
+                    }}
+                    options={[
+                        { value: "", label: t("aix.media.all") },
+                        ...categories.map((value) => ({ value, label: value })),
+                    ]}
                 />
-            ) : (
-                hasMore && (
-                    <button
-                        className="hx-outline hx-load-more"
-                        onClick={() => setOffset((value) => value + 36)}
-                    >
-                        {t("aix.media.more")}
-                    </button>
-                )
             )}
+        </div>
+    );
+    return (
+        <div className="legacy-media-surface">
+            <Page
+                items={items}
+                status={status}
+                hasMore={hasMore}
+                onMore={() => setOffset((value) => value + 36)}
+                onOpen={setSelected}
+                onUpload={() => setUpload(true)}
+                onRetry={() => setRevision((value) => value + 1)}
+                controls={controls}
+            />
             {selected && (
                 <MediaViewer
                     item={selected}
-                    rounded
                     video={mode === "videos"}
                     onClose={() => setSelected(null)}
                     onPrev={index > 0 ? () => setSelected(items[index - 1]) : undefined}

@@ -1,0 +1,69 @@
+/* Embed the complete pre-c33d7d0af media pages, without the event interior skin.
+   Restore the original Tailwind tokens locally; do not restyle the page layout. */
+.hx-workspace .hx-page[data-view="media"] {
+    background: #0a0a0a;
+    color: #fff;
+}
+:root[data-theme="day"] .hx-workspace .hx-page[data-view="media"] {
+    background: #fff;
+    color: #0f172a;
+}
+.legacy-media-surface,
+.legacy-media-viewer {
+    font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.5;
+}
+.legacy-media-surface {
+    /* The original page begins below the current, variable-height event bar. */
+    padding-top: var(--event-nav-height);
+    position: relative;
+    isolation: isolate;
+}
+:is(.legacy-media-surface, .legacy-media-viewer) .rounded-md {
+    border-radius: 6px;
+}
+:is(.legacy-media-surface, .legacy-media-viewer) .rounded-lg {
+    border-radius: 8px;
+}
+:is(.legacy-media-surface, .legacy-media-viewer) .rounded-xl {
+    border-radius: 12px;
+}
+:is(.legacy-media-surface, .legacy-media-viewer) .rounded-2xl {
+    border-radius: 16px;
+}
+:is(.legacy-media-surface, .legacy-media-viewer) .rounded-3xl {
+    border-radius: 24px;
+}
+.legacy-media-surface .break-inside-avoid > .h-auto:not(:has(> img)) {
+    min-height: 180px;
+}
+.legacy-media-surface .break-inside-avoid img {
+    height: auto;
+}
+.legacy-media-surface .break-inside-avoid:focus-within {
+    outline: 2px solid #818cf8;
+    outline-offset: 4px;
+}
+.legacy-media-viewer .legacy-media-photo-stage {
+    max-width: min(1280px, calc(100vw - 160px));
+}
+.legacy-media-viewer .legacy-media-photo-stage img {
+    max-height: calc(100dvh - 200px);
+}
+@media (hover: none) {
+    .legacy-media-surface .group > .opacity-0,
+    .legacy-media-surface .group > .md\:opacity-0 {
+        opacity: 1;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .legacy-media-surface *,
+    .legacy-media-viewer * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+.legacy-media-viewer::backdrop {
+    background: transparent;
+}

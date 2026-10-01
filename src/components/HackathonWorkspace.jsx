@@ -137,11 +137,11 @@ export default function HackathonWorkspace({ template, schedule }) {
             </header>
             <div
                 id="hx-event-content"
-                className={`hx-page ${view !== "intro" ? "hx-interior" : ""}`}
+                className={`hx-page ${!["intro", "media"].includes(view) ? "hx-interior" : ""}`}
                 data-view={view}
                 key={`${event.key}:${view}`}
             >
-                {view !== "intro" && (
+                {!["intro", "media"].includes(view) && (
                     <div className="hx-page-scenery" aria-hidden="true">
                         <div className="hx-event-backdrop" />
                         <div className="hx-event-grid" />
