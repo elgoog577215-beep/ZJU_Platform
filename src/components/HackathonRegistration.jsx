@@ -1477,17 +1477,21 @@ const HackathonRegistration = ({
                                 <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
                                     {formConfig.title}
                                 </h3>
-                                <p className={`mt-2 text-base ${palette.textMuted}`}>
-                                    {registration
-                                        ? t("aix.register.success")
-                                        : formConfig.requiredHint}
-                                </p>
+                                {!isAiX && (
+                                    <p className={`mt-2 text-base ${palette.textMuted}`}>
+                                        {registration
+                                            ? t("aix.register.success")
+                                            : formConfig.requiredHint}
+                                    </p>
+                                )}
                             </div>
-                            <div
-                                className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
-                            >
-                                <Trophy className={`h-7 w-7 ${palette.accent}`} />
-                            </div>
+                            {!isAiX && (
+                                <div
+                                    className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
+                                >
+                                    <Trophy className={`h-7 w-7 ${palette.accent}`} />
+                                </div>
+                            )}
                         </div>
 
                         <form
@@ -1500,66 +1504,50 @@ const HackathonRegistration = ({
                                 aria-label={isAiX ? formConfig.title : undefined}
                                 tabIndex={isAiX ? 0 : undefined}
                             >
-                                {requiresLogin && (
-                                    <p
-                                        role={registrationError ? "alert" : "status"}
-                                        className={palette.textSoft}
-                                    >
-                                        {t(
-                                            registration
-                                                ? "aix.register.success"
-                                                : registrationLoading
-                                                  ? "aix.loading"
-                                                  : registrationError
-                                                    ? "aix.register.statusFailed"
-                                                    : !user
-                                                      ? "aix.register.loginHint"
-                                                      : "aix.register.privacy"
-                                        )}
-                                    </p>
-                                )}
+                                {requiresLogin &&
+                                    (!isAiX ||
+                                        registration ||
+                                        registrationLoading ||
+                                        registrationError) && (
+                                        <p
+                                            role={registrationError ? "alert" : "status"}
+                                            className={palette.textSoft}
+                                        >
+                                            {t(
+                                                registration
+                                                    ? "aix.register.success"
+                                                    : registrationLoading
+                                                      ? "aix.loading"
+                                                      : registrationError
+                                                        ? "aix.register.statusFailed"
+                                                        : !user
+                                                          ? "aix.register.loginHint"
+                                                          : "aix.register.privacy"
+                                            )}
+                                        </p>
+                                    )}
                                 <fieldset
                                     disabled={
                                         isSubmitting || Boolean(registration) || registrationLoading
                                     }
                                     className="min-w-0 space-y-8"
                                 >
-                                    {registrationGroups.map((group, groupIndex) => (
+                                    {registrationGroups.map((group) => (
                                         <div
                                             key={group.key}
-                                            className="grid gap-5 md:grid-cols-2 xl:gap-6"
+                                            className="hackathon-form-group grid gap-5 md:grid-cols-2 xl:gap-6"
                                         >
-                                            {isAiX && (
-                                                <div
-                                                    className={`md:col-span-2 border-b pb-4 ${palette.line}`}
-                                                >
-                                                    <h4
-                                                        className={`text-lg font-bold ${palette.textSoft}`}
-                                                    >
-                                                        <span
-                                                            className={`mr-3 text-sm tabular-nums ${palette.accent}`}
-                                                        >
-                                                            {String(groupIndex + 1).padStart(
-                                                                2,
-                                                                "0"
-                                                            )}
-                                                        </span>
-                                                        {t(
-                                                            `aix.register.groups.${group.key}.title`
-                                                        )}
-                                                    </h4>
-                                                    <p
-                                                        className={`mt-2 text-sm leading-6 ${palette.textMuted}`}
-                                                    >
-                                                        {t(`aix.register.groups.${group.key}.hint`)}
-                                                    </p>
-                                                </div>
-                                            )}
                                             {group.fields.map((field) => (
                                                 <div
                                                     key={field.id}
                                                     className={
-                                                        field.width === "half"
+                                                        field.width === "half" ||
+                                                        (isAiX &&
+                                                            [
+                                                                "track",
+                                                                "experience",
+                                                                "researchExperience",
+                                                            ].includes(field.id))
                                                             ? "min-w-0"
                                                             : "min-w-0 md:col-span-2"
                                                     }
@@ -1756,7 +1744,7 @@ const DynamicRegistrationField = ({
                 error={error}
                 palette={palette}
             >
-                {field.placeholder ? (
+                {field.placeholder && !compact ? (
                     <p className={`mb-3 text-sm ${palette.textMuted}`}>{field.placeholder}</p>
                 ) : null}
                 <div
@@ -1859,7 +1847,7 @@ const DynamicRegistrationField = ({
                     value={value || ""}
                     onChange={(event) => onChange(event.target.value)}
                     placeholder={field.placeholder}
-                    rows={compact ? (field.id === "projectLinks" ? 2 : 4) : 5}
+                    rows={compact ? 2 : 5}
                     maxLength={4000}
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? `hackathon-error-${field.id}` : undefined}

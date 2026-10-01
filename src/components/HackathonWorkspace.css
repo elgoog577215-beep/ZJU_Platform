@@ -1015,15 +1015,51 @@
     height: 100%;
     min-height: 0;
     overflow: hidden;
-    padding: clamp(16px, 2vw, 28px);
+    padding: 20px;
 }
 .hx-workspace [data-contained-form] .hackathon-form-heading {
     flex-shrink: 0;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
 }
 .hx-workspace [data-contained-form] .hackathon-form-heading h3 {
-    font-size: 24px;
+    font-size: 20px;
+}
+.hx-workspace [data-contained-form] .hackathon-form-group {
+    gap: 12px 16px;
+}
+.hx-workspace [data-contained-form] fieldset > * + * {
+    margin-top: 16px;
+    border-top: 1px solid var(--hx-line);
+    padding-top: 16px;
+}
+.hx-workspace [data-contained-form] label {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.hx-workspace [data-contained-form] :is(input, select, textarea) {
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+}
+.hx-workspace [data-contained-form] textarea {
+    min-height: 72px;
+}
+.hx-workspace [data-contained-form] [role="group"] {
+    gap: 6px;
+}
+.hx-workspace [data-contained-form] [role="group"] button {
+    min-height: 34px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.hx-workspace [data-contained-form] .hackathon-form-footer button {
+    min-height: 42px;
+    padding-inline: 18px;
+    font-size: 14px;
 }
 .hx-workspace .hackathon-contained-form {
     display: flex;
@@ -1096,10 +1132,6 @@
     }
     .hx-workspace [data-contained-form] .hackathon-form-heading {
         margin-bottom: 10px;
-    }
-    .hx-workspace [data-contained-form] .hackathon-form-heading p,
-    .hx-workspace [data-contained-form] .hackathon-form-heading > div:last-child {
-        display: none;
     }
     .hx-workspace [data-contained-form] .hackathon-form-footer button {
         min-height: 44px;
