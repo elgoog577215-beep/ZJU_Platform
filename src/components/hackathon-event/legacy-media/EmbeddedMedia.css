@@ -67,3 +67,24 @@
 .legacy-media-viewer::backdrop {
     background: transparent;
 }
+
+/* Keep each scene distinct within the restored rounded gallery. */
+.legacy-media-scene-heading {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.legacy-media-scene-heading h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.legacy-media-scene-heading span {
+    height: 1px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+:root[data-theme="day"] .legacy-media-scene-heading span {
+    background: #e2e8f0;
+}

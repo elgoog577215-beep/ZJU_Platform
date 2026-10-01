@@ -4314,6 +4314,9 @@
         "target_placeholder": "例如：全体师生"
     },
     "outcome_upload": {
+        "photo_title": "上传「{{event}}」现场照片",
+        "photo_subtitle": "照片审核通过后会出现在本场比赛的现场照片页。",
+        "submit_photos": "提交照片",
         "title": "提交“{{event}}”成果",
         "subtitle": "照片、视频和作品只会进入本场比赛绑定的独立成果档案。",
         "current_competition": "当前比赛",
@@ -5137,7 +5140,7 @@
         "tabs": {
             "intro": "介绍",
             "challenges": "赛题",
-            "media": "图片 / 视频",
+            "media": "现场照片",
             "results": "成果"
         },
         "state": {
@@ -5256,7 +5259,7 @@
         "reportsDescription": "收录领导嘉宾讲话、技术论坛与创业论坛分享，以及赛事总结。",
         "readMore": "阅读全文",
         "highlights": "现场精选",
-        "allMedia": "查看全部图片 / 视频",
+        "allMedia": "查看全部现场照片",
         "highlightsPending": "精选影像待发布",
         "highlightsDescription": "赛事现场、嘉宾交流、选手路演与颁奖照片，将从本届影像中选取呈现。",
         "register": {
@@ -5311,15 +5314,17 @@
             "all": "全部场景",
             "latest": "最新发布在前",
             "empty": "影像即将呈现",
-            "emptyDescription": "比赛开始后，本届现场照片与视频将在这里陆续发布。",
+            "emptyDescription": "比赛开始后，本届现场照片将在这里陆续发布。",
             "previous": "上一张",
             "next": "下一张",
             "original": "查看原图",
             "more": "加载更多",
+            "scenes": "现场场景",
+            "otherScene": "其他现场",
             "photoTitle": "现场照片",
             "videoTitle": "视频回顾",
             "eventDescription": "记录「{{event}}」的现场交流与创作瞬间。",
-            "emptyUpcoming": "现场影像尚未发布",
+            "emptyUpcoming": "现场照片尚未发布",
             "emptyPhotos": "暂无已发布照片",
             "emptyVideos": "暂无已发布视频",
             "emptyArchiveDescription": "本届已公开的{{type}}会展示在这里。"
@@ -5350,12 +5355,12 @@
         "tabs": {
             "intro": "介绍",
             "challenges": "赛题",
-            "media": "图片 / 视频",
+            "media": "现场照片",
             "results": "成果"
         },
         "resultsTitle": "赛事成果",
-        "mediaArchive": "历史赛事 · 图片 / 视频",
-        "mediaDescription": "本届赛事的现场照片、精彩瞬间与视频记录。",
+        "mediaArchive": "历史赛事 · 现场照片",
+        "mediaDescription": "本届赛事的现场照片与精彩瞬间。",
         "noWorks": "精选作品待公布",
         "viewResults": "查看赛事成果",
         "switchEvent": "切换赛事",

@@ -1,45 +1,41 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Image as ImageIcon, Play, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import api from "../../services/api";
 import MediaViewer from "./legacy-media/Viewer";
 import Gallery from "./legacy-media/Gallery";
-import Videos from "./legacy-media/Videos";
-import SortSelector from "./legacy-media/SortSelector";
+import CategoryRail from "./legacy-media/CategoryRail";
+import { useSettings } from "../../context/SettingsContext";
 import "./legacy-media/EmbeddedMedia.css";
 import CompetitionOutcomeUploadModal from "../CompetitionOutcomeUploadModal";
 export default function Media({ template, live }) {
     const { t } = useTranslation();
+    const { uiMode } = useSettings();
     const [params, setParams] = useSearchParams();
-    const [mode, setMode] = useState(() => (params.has("video") ? "videos" : "photos"));
     const [category, setCategory] = useState("");
     const [items, setItems] = useState([]);
-    const [total, setTotal] = useState(0);
     const [categories, setCategories] = useState([]);
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [status, setStatus] = useState("loading");
     const [revision, setRevision] = useState(0);
     const photoId = params.get("photo");
-    const selected =
-        mode === "photos"
-            ? items.find(
-                  (item) =>
-                      String(item.source_id || item.id) === photoId || String(item.id) === photoId
-              )
-            : items.find((item) => String(item.id) === params.get("video"));
+    const selected = items.find(
+        (item) => String(item.source_id || item.id) === photoId || String(item.id) === photoId
+    );
     const setSelected = (item) => {
         const next = new URLSearchParams(params);
         next.delete("photo");
         next.delete("video");
-        if (item)
-            next.set(
-                mode === "photos" ? "photo" : "video",
-                String(mode === "photos" ? item.source_id || item.id : item.id)
-            );
+        if (item) next.set("photo", String(item.source_id || item.id));
         setParams(next, { replace: true });
     };
+    useEffect(() => {
+        if (!params.has("video")) return;
+        const next = new URLSearchParams(params);
+        next.delete("video");
+        setParams(next, { replace: true });
+    }, [params, setParams]);
     const [upload, setUpload] = useState(false);
     const reload = () => {
         setOffset(0);
@@ -55,7 +51,7 @@ export default function Media({ template, live }) {
                     `/competitions/${encodeURIComponent(template.results.competitionSlug)}/media`,
                     {
                         params: {
-                            type: mode,
+                            type: "photos",
                             category,
                             offset,
                             limit: 36,
@@ -78,7 +74,6 @@ export default function Media({ template, live }) {
                               ]
                             : data.items
                     );
-                    setTotal(data.total);
                     setCategories(data.categories);
                     setHasMore(data.hasMore);
                     setStatus("ready");
@@ -99,82 +94,56 @@ export default function Media({ template, live }) {
             controller.abort();
             if (timer) window.clearInterval(timer);
         };
-    }, [
-        template.results.competitionSlug,
-        mode,
-        category,
-        offset,
-        revision,
-        live,
-        template.event.key,
-    ]);
-    const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
+    }, [template.results.competitionSlug, category, offset, revision, live, template.event.key]);
+    const sceneOrder =
+        template.event.key === "zhekesong-current"
+            ? ["致辞与分享", "开发现场", "交流现场", "颁奖与合影"]
+            : [];
+    const scenes = [
+        ...new Set([...sceneOrder.filter((name) => categories.includes(name)), ...categories]),
+    ];
+    const orderedItems = [...scenes, ""].flatMap((scene) =>
+        items.filter((item) => (item.category_name || "") === scene)
+    );
+    const index = selected ? orderedItems.findIndex((item) => item.id === selected.id) : -1;
     const upcoming = Date.now() < new Date(template.event.startAt).getTime();
     const presentation = {
-        title: t(mode === "photos" ? "aix.media.photoTitle" : "aix.media.videoTitle"),
+        title: t("aix.media.photoTitle"),
         description:
             template.event.key === "zhekesong-current"
                 ? t("firstEdition.mediaIntro")
                 : template.event.key === "getui-beauty-2026"
                   ? t("getuiBeauty.mediaIntro")
                   : t("aix.media.eventDescription", { event: template.event.title }),
-        emptyTitle: t(
-            upcoming
-                ? "aix.media.emptyUpcoming"
-                : mode === "photos"
-                  ? "aix.media.emptyPhotos"
-                  : "aix.media.emptyVideos"
-        ),
+        emptyTitle: t(upcoming ? "aix.media.emptyUpcoming" : "aix.media.emptyPhotos"),
         emptyDescription: upcoming
             ? t("aix.media.emptyDescription")
             : t("aix.media.emptyArchiveDescription", {
-                  type: t(`aix.media.${mode}`).toLowerCase(),
+                  type: t("aix.media.photos").toLowerCase(),
               }),
     };
-    const Page = mode === "photos" ? Gallery : Videos;
-    const controls = (
-        <div className="flex flex-wrap justify-center gap-4">
-            <SortSelector
-                className="w-48"
-                icon={mode === "photos" ? ImageIcon : Play}
-                sort={mode}
-                onSortChange={(value) => {
-                    if (mode === value) return;
+    const controls =
+        scenes.length > 1 ? (
+            <CategoryRail
+                categories={scenes.map((name) => ({ id: name, name }))}
+                activeCategoryId={category}
+                allLabel={t("aix.media.all")}
+                label={t("aix.media.scenes")}
+                isDayMode={uiMode === "day"}
+                onChange={(value) => {
+                    if (category === value) return;
                     setSelected(null);
                     setItems([]);
-                    setMode(value);
-                    setCategory("");
+                    setCategory(value);
                     setOffset(0);
                 }}
-                options={["photos", "videos"].map((value) => ({
-                    value,
-                    label: `${t(`aix.media.${value}`)}${mode === value && total > 0 ? ` · ${total}` : ""}`,
-                }))}
             />
-            {categories.length > 0 && (
-                <SortSelector
-                    className="w-48"
-                    icon={Filter}
-                    sort={category}
-                    onSortChange={(value) => {
-                        setSelected(null);
-                        setItems([]);
-                        setCategory(value);
-                        setOffset(0);
-                    }}
-                    options={[
-                        { value: "", label: t("aix.media.all") },
-                        ...categories.map((value) => ({ value, label: value })),
-                    ]}
-                />
-            )}
-        </div>
-    );
+        ) : null;
     return (
         <div className="legacy-media-surface">
-            <Page
+            <Gallery
                 {...presentation}
-                items={items}
+                items={orderedItems}
                 status={status}
                 hasMore={hasMore}
                 onMore={() => setOffset((value) => value + 36)}
@@ -186,11 +155,12 @@ export default function Media({ template, live }) {
             {selected && (
                 <MediaViewer
                     item={selected}
-                    video={mode === "videos"}
                     onClose={() => setSelected(null)}
-                    onPrev={index > 0 ? () => setSelected(items[index - 1]) : undefined}
+                    onPrev={index > 0 ? () => setSelected(orderedItems[index - 1]) : undefined}
                     onNext={
-                        index < items.length - 1 ? () => setSelected(items[index + 1]) : undefined
+                        index < orderedItems.length - 1
+                            ? () => setSelected(orderedItems[index + 1])
+                            : undefined
                     }
                 />
             )}
@@ -201,7 +171,8 @@ export default function Media({ template, live }) {
                     setUpload(false);
                     reload();
                 }}
-                initialType={mode === "photos" ? "stage_photo" : "promo_video"}
+                initialType="stage_photo"
+                lockType
                 competitionSlug={template.results.competitionSlug}
                 competitionTitle={template.event.title}
             />

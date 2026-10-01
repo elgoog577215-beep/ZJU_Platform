@@ -98,6 +98,15 @@ const Gallery = ({
     const isDayMode = uiMode === "day";
     const allowAmbientEffects = !prefersReducedMotion;
     const displayPhotos = items;
+    const sceneGroups = Array.from(
+        items.reduce((groups, photo, index) => {
+            const name = photo.category_name || t("aix.media.otherScene");
+            if (!groups.has(name)) groups.set(name, []);
+            groups.get(name).push({ photo, index });
+            return groups;
+        }, new Map()),
+        ([name, photos]) => ({ name, photos })
+    );
     const loading = status === "loading";
     const error = status === "error";
     const refresh = onRetry;
@@ -246,28 +255,38 @@ const Gallery = ({
                     </p>
                 </div>
             ) : (
-                <motion.div
-                    layout={
-                        !prefersReducedMotion &&
-                        typeof window !== "undefined" &&
-                        window.innerWidth >= 768
-                    }
-                    className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-8 md:pb-0"
-                >
-                    <AnimatePresence mode="popLayout">
-                        {displayPhotos.map((photo, index) => (
-                            <PhotoCard
-                                key={photo.id}
-                                photo={photo}
-                                index={index}
-                                onClick={setSelectedPhotoIndex}
-                                canAnimate={!prefersReducedMotion && index < 8}
-                                isDayMode={isDayMode}
-                                t={t}
-                            />
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
+                <div className="max-w-7xl mx-auto space-y-12 md:space-y-16">
+                    {sceneGroups.map(({ name, photos }, groupIndex) => (
+                        <section key={name} aria-labelledby={`photo-scene-${groupIndex}`}>
+                            <div className="legacy-media-scene-heading">
+                                <h2 id={`photo-scene-${groupIndex}`}>{name}</h2>
+                                <span aria-hidden="true" />
+                            </div>
+                            <motion.div
+                                layout={
+                                    !prefersReducedMotion &&
+                                    typeof window !== "undefined" &&
+                                    window.innerWidth >= 768
+                                }
+                                className={`columns-1 sm:columns-2 md:columns-3 ${photos.length > 6 || photos.length === 4 ? "lg:columns-4" : "lg:columns-3"} gap-4 md:gap-6`}
+                            >
+                                <AnimatePresence mode="popLayout">
+                                    {photos.map(({ photo, index }) => (
+                                        <PhotoCard
+                                            key={photo.id}
+                                            photo={photo}
+                                            index={index}
+                                            onClick={setSelectedPhotoIndex}
+                                            canAnimate={!prefersReducedMotion && index < 8}
+                                            isDayMode={isDayMode}
+                                            t={t}
+                                        />
+                                    ))}
+                                </AnimatePresence>
+                            </motion.div>
+                        </section>
+                    ))}
+                </div>
             )}
 
             {!loading && !error && displayPhotos.length > 0 && hasMore && (

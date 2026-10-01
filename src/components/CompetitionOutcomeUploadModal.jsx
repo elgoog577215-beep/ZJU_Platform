@@ -88,6 +88,7 @@ const CompetitionOutcomeUploadModal = ({
     onClose,
     onSubmitted,
     initialType = "stage_photo",
+    lockType = false,
     initialProjectId = "",
     competitionSlug,
     competitionTitle,
@@ -143,6 +144,7 @@ const CompetitionOutcomeUploadModal = ({
     );
     const SelectedIcon = selectedType.icon;
     const isPromoVideo = form.type === "promo_video";
+    const photosOnly = lockType && initialType === "stage_photo";
 
     useEffect(() => {
         if (open) {
@@ -400,10 +402,10 @@ const CompetitionOutcomeUploadModal = ({
                         <p
                             className={`outcome-upload-eyebrow text-xs font-black uppercase tracking-[0.18em] ${mutedClass}`}
                         >
-                            Competition Outcome Upload
+                            {photosOnly ? "Event Photos" : "Competition Outcome Upload"}
                         </p>
                         <h2 className="outcome-upload-title mt-1 text-xl font-black">
-                            {t("outcome_upload.title", "提交“{{event}}”成果", {
+                            {t(photosOnly ? "outcome_upload.photo_title" : "outcome_upload.title", {
                                 event:
                                     competitionTitle ||
                                     t("outcome_upload.current_competition", "当前比赛"),
@@ -413,8 +415,9 @@ const CompetitionOutcomeUploadModal = ({
                             className={`outcome-upload-subtitle mt-1 text-xs leading-5 ${mutedClass}`}
                         >
                             {t(
-                                "outcome_upload.subtitle",
-                                "照片、视频和作品只会进入本场比赛绑定的独立成果档案。"
+                                photosOnly
+                                    ? "outcome_upload.photo_subtitle"
+                                    : "outcome_upload.subtitle"
                             )}
                         </p>
                     </div>
@@ -432,38 +435,42 @@ const CompetitionOutcomeUploadModal = ({
                     onSubmit={handleSubmit}
                     className="outcome-upload-form max-h-[calc(92vh-73px)] overflow-y-auto px-5 py-5"
                 >
-                    <div className="outcome-upload-type-grid grid gap-2 sm:grid-cols-3">
-                        {typeOptions.map((option) => {
-                            const Icon = option.icon;
-                            const active = form.type === option.value;
-                            return (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() =>
-                                        setForm(createInitialForm(option.value, initialProjectId))
-                                    }
-                                    className={`outcome-upload-type-option flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
-                                        active
-                                            ? "border-cyan-300 bg-cyan-300 text-black"
-                                            : isDayMode
-                                              ? "border-slate-200 bg-white text-slate-700 hover:border-cyan-400"
-                                              : "border-white/10 bg-white/[0.04] text-white/74 hover:border-cyan-300/40"
-                                    }`}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    <span className="grid text-left leading-tight">
-                                        <span>{option.label}</span>
-                                        <span
-                                            className={`outcome-upload-type-destination text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}
-                                        >
-                                            {option.destination}
+                    {!lockType && (
+                        <div className="outcome-upload-type-grid grid gap-2 sm:grid-cols-3">
+                            {typeOptions.map((option) => {
+                                const Icon = option.icon;
+                                const active = form.type === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() =>
+                                            setForm(
+                                                createInitialForm(option.value, initialProjectId)
+                                            )
+                                        }
+                                        className={`outcome-upload-type-option flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
+                                            active
+                                                ? "border-cyan-300 bg-cyan-300 text-black"
+                                                : isDayMode
+                                                  ? "border-slate-200 bg-white text-slate-700 hover:border-cyan-400"
+                                                  : "border-white/10 bg-white/[0.04] text-white/74 hover:border-cyan-300/40"
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span className="grid text-left leading-tight">
+                                            <span>{option.label}</span>
+                                            <span
+                                                className={`outcome-upload-type-destination text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}
+                                            >
+                                                {option.destination}
+                                            </span>
                                         </span>
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className="outcome-upload-card mt-5 rounded-2xl border border-white/10 p-4">
                         <div className="outcome-upload-card-head mb-4 flex items-center gap-2">
@@ -847,7 +854,11 @@ const CompetitionOutcomeUploadModal = ({
                             )}
                             {submitting
                                 ? submitLabel || t("outcome_upload.submitting", "提交中")
-                                : t("outcome_upload.submit", "提交成果")}
+                                : t(
+                                      photosOnly
+                                          ? "outcome_upload.submit_photos"
+                                          : "outcome_upload.submit"
+                                  )}
                             {!submitting ? <Check className="h-4 w-4" /> : null}
                         </button>
                     </div>

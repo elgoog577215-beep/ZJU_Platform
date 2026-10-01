@@ -4214,6 +4214,9 @@
         "target_placeholder": "e.g. All Students"
     },
     "outcome_upload": {
+        "photo_title": "Upload photos from {{event}}",
+        "photo_subtitle": "Approved photos will appear in this event’s photo gallery.",
+        "submit_photos": "Submit photos",
         "title": "Submit outcomes to {{event}}",
         "subtitle": "Photos, videos, and works are stored only in this event's independent archive.",
         "current_competition": "Current Competition",
@@ -5028,7 +5031,7 @@
         "tabs": {
             "intro": "Overview",
             "challenges": "Challenges",
-            "media": "Photos / Videos",
+            "media": "Event photos",
             "results": "Results"
         },
         "state": {
@@ -5147,7 +5150,7 @@
         "reportsDescription": "Guest speeches, technology and entrepreneurship forum contributions, and the event recap.",
         "readMore": "Read more",
         "highlights": "Event highlights",
-        "allMedia": "View all photos / videos",
+        "allMedia": "View all event photos",
         "highlightsPending": "Highlights coming soon",
         "highlightsDescription": "Selected photographs of the event, guest discussions, pitches and awards from this edition’s media archive.",
         "register": {
@@ -5202,15 +5205,17 @@
             "all": "All scenes",
             "latest": "Newest first",
             "empty": "The story is about to begin",
-            "emptyDescription": "Photos and videos from this edition will appear here as the event unfolds.",
+            "emptyDescription": "Photos from this event will appear here once the competition starts.",
             "previous": "Previous",
             "next": "Next",
             "original": "View original",
             "more": "Load more",
+            "scenes": "Event scenes",
+            "otherScene": "Other moments",
             "photoTitle": "Event photos",
             "videoTitle": "Event videos",
             "eventDescription": "Conversations and creative moments from {{event}}.",
-            "emptyUpcoming": "Event media is not available yet",
+            "emptyUpcoming": "Event photos are not available yet",
             "emptyPhotos": "No published photos yet",
             "emptyVideos": "No published videos yet",
             "emptyArchiveDescription": "Published {{type}} from this event will appear here."
@@ -5241,12 +5246,12 @@
         "tabs": {
             "intro": "Overview",
             "challenges": "Challenges",
-            "media": "Photos / videos",
+            "media": "Event photos",
             "results": "Results"
         },
         "resultsTitle": "Event results",
-        "mediaArchive": "Past event · Photos / videos",
-        "mediaDescription": "Photos, highlights and video records from this event.",
+        "mediaArchive": "Past event · Event photos",
+        "mediaDescription": "Photos and highlights from this event.",
         "noWorks": "Selected works will be announced here",
         "viewResults": "View results",
         "switchEvent": "Switch event",
