@@ -133,6 +133,7 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
             submitResponse.body.id,
         ]);
         assert.equal(submitted.title, "第二场新投稿");
+        assert.equal(submitted.category_id, null);
         const submittedLink = await db.get(
             `SELECT * FROM competition_media_links
              WHERE resource_type = 'photo' AND resource_id = ?`,
@@ -217,6 +218,100 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
             legacyResponse.body.media.promo_videos.map((item) => item.title),
             ["历史赛事视频"]
         );
+
+        const firstScene = await db.run(
+            "INSERT INTO media_categories (name) VALUES ('第一场交流')"
+        );
+        const secondScene = await db.run(
+            "INSERT INTO media_categories (name) VALUES ('第二场颁奖')"
+        );
+        await db.run("INSERT INTO media_categories (name) VALUES ('尚未绑定的场景')");
+        const firstScenePhoto = await db.run(
+            `INSERT INTO photos (title, url, status, category_id, uploader_id)
+             VALUES ('第一场场景样本', '/uploads/scene-one.jpg', 'approved', ?, ?)`,
+            [firstScene.lastID, userResult.lastID]
+        );
+        await db.run(
+            `INSERT INTO competition_media_links
+             (competition_id, resource_type, resource_id, role)
+             VALUES (?, 'photo', ?, 'archive')`,
+            [firstResult.lastID, firstScenePhoto.lastID]
+        );
+        await db.run("UPDATE photos SET category_id = ? WHERE id = ?", [
+            secondScene.lastID,
+            submitted.id,
+        ]);
+
+        const submitScenePhoto = (categoryName, user = { id: userResult.lastID, role: "admin" }) =>
+            runController(competitionController.submitCurrentMedia, {
+                params: { competitionSlug: "event-two-outcome" },
+                query: {},
+                body: {
+                    type: "stage_photo",
+                    title: "按场景投稿",
+                    url: "/uploads/scene-new.jpg",
+                    category_name: categoryName,
+                    status: "approved",
+                },
+                user,
+            });
+        const categorizedResponse = await submitScenePhoto("  第二场颁奖  ");
+        assert.equal(categorizedResponse.statusCode, 201);
+        const categorized = await db.get("SELECT * FROM photos WHERE id = ?", [
+            categorizedResponse.body.id,
+        ]);
+        assert.equal(categorized.category_id, secondScene.lastID);
+        assert.equal(categorized.status, "approved");
+        const categorizedLink = await db.get(
+            "SELECT competition_id FROM competition_media_links WHERE resource_type = 'photo' AND resource_id = ?",
+            [categorized.id]
+        );
+        assert.equal(categorizedLink.competition_id, secondResult.lastID);
+
+        const blankSceneResponse = await submitScenePhoto("   ");
+        assert.equal(blankSceneResponse.statusCode, 201);
+        assert.equal(
+            (
+                await db.get("SELECT category_id FROM photos WHERE id = ?", [
+                    blankSceneResponse.body.id,
+                ])
+            ).category_id,
+            null
+        );
+
+        const ordinaryUser = await db.run(
+            "INSERT INTO users (username, password, role) VALUES ('scene-member', 'test', 'user')"
+        );
+        const pendingResponse = await submitScenePhoto("第二场颁奖", {
+            id: ordinaryUser.lastID,
+            role: "user",
+            review_permission: "normal",
+        });
+        assert.equal(pendingResponse.statusCode, 201);
+        assert.equal(pendingResponse.body.status, "pending");
+        const pendingPhoto = await db.get("SELECT * FROM photos WHERE id = ?", [
+            pendingResponse.body.id,
+        ]);
+        assert.equal(pendingPhoto.category_id, secondScene.lastID);
+        assert.equal(pendingPhoto.status, "pending");
+        assert.equal(pendingPhoto.uploader_id, ordinaryUser.lastID);
+
+        const counts = () =>
+            db.get(
+                `SELECT (SELECT COUNT(*) FROM photos) AS photos,
+                    (SELECT COUNT(*) FROM competition_media_links) AS links,
+                    (SELECT COUNT(*) FROM media_categories) AS categories`
+            );
+        const beforeRejected = await counts();
+        for (const invalidScene of ["第一场交流", "不存在的场景", "尚未绑定的场景"]) {
+            const invalidResponse = await submitScenePhoto(invalidScene);
+            assert.equal(invalidResponse.statusCode, 400, invalidScene);
+            assert.deepEqual(
+                await counts(),
+                beforeRejected,
+                `${invalidScene} must not create records`
+            );
+        }
 
         const missingResponse = await runController(competitionController.getCurrentOutcome, {
             params: { competitionSlug: "missing-outcome" },

@@ -88,7 +88,6 @@ const Gallery = ({
     onRetry,
     controls,
     title,
-    description,
     emptyTitle,
     emptyDescription,
 }) => {
@@ -112,7 +111,7 @@ const Gallery = ({
     const refresh = onRetry;
     const setSelectedPhotoIndex = (index) => onOpen(items[index]);
     return (
-        <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+        <section className="pt-6 pb-16 md:pt-8 md:pb-20 px-4 md:px-8 relative overflow-hidden flex-grow">
             {/* Enhanced Ambient Background */}
             <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                 {allowAmbientEffects ? (
@@ -151,64 +150,22 @@ const Gallery = ({
                 )}
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="mb-6 md:mb-12 relative z-40 text-center"
-            >
-                <div className="md:hidden mb-4 text-left">
-                    <h1
-                        className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
-                    >
-                        {title}
-                    </h1>
-                    <p className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                        {description}
-                    </p>
-                </div>
-
-                <motion.button
-                    whileHover={{ scale: 1.05, rotate: 90 }}
-                    whileTap={{ scale: 0.95 }}
+            <h1 className="sr-only">{title}</h1>
+            <div className="relative z-40 max-w-7xl mx-auto mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0 max-w-full">{controls}</div>
+                <button
+                    type="button"
                     onClick={onUpload}
-                    className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+                    className={`inline-flex shrink-0 items-center justify-center gap-2 px-5 py-2.5 rounded-full border text-sm font-semibold transition-colors ${
                         isDayMode
                             ? "day-quiet-button text-slate-700 hover:text-indigo-600"
-                            : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
+                            : "bg-white/10 hover:bg-white/15 text-white border-white/10"
                     }`}
-                    title={t("common.upload_photo")}
-                    aria-label={t("common.upload_photo")}
                 >
-                    <Upload size={18} className="md:w-5 md:h-5" />
-                </motion.button>
-
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
-                >
-                    {title}
-                </motion.h1>
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
-                >
-                    {description}
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                    className="hidden md:flex flex-col items-center gap-6 relative z-50"
-                >
-                    {controls}
-                </motion.div>
-            </motion.div>
+                    <Upload size={18} />
+                    {t("aix.media.batchUpload")}
+                </button>
+            </div>
 
             {loading && displayPhotos.length === 0 ? (
                 <GallerySkeleton count={12} />

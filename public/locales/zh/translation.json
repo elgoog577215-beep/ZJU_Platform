@@ -4314,6 +4314,30 @@
         "target_placeholder": "例如：全体师生"
     },
     "outcome_upload": {
+        "batch": {
+            "add": "选择照片或继续添加",
+            "file_hint": "JPG、PNG、GIF、WebP、BMP，每张不超过 50 MB，每批最多 24 张。",
+            "invalid": "{{count}} 个文件格式不支持或超过 50 MB，未加入",
+            "duplicate": "{{count}} 张重复照片未加入",
+            "overflow": "超出 24 张上限，{{count}} 张未加入",
+            "scene": "拍摄场景",
+            "scene_unspecified": "暂不分类",
+            "title": "统一标题（可选）",
+            "title_hint": "留空时使用各照片文件名",
+            "description": "照片说明（可选）",
+            "selected": "已选 {{count}} / {{limit}} 张",
+            "pending": "待提交",
+            "uploading": "上传中",
+            "saved": "已提交",
+            "failed": "提交失败，可重试",
+            "uncertain": "提交结果待确认",
+            "uncertain_hint": "保存结果尚未确认，暂不重试这张照片，以免重复提交。",
+            "remove": "移除 {{name}}",
+            "progress": "已提交 {{current}} / {{total}} 张",
+            "partial": "已提交 {{count}} / {{total}} 张，请查看每张照片的状态。",
+            "retry": "重试失败照片"
+        },
+
         "photo_title": "上传「{{event}}」现场照片",
         "photo_subtitle": "照片审核通过后会出现在本场比赛的现场照片页。",
         "submit_photos": "提交照片",
@@ -5319,6 +5343,7 @@
             "next": "下一张",
             "original": "查看原图",
             "more": "加载更多",
+            "batchUpload": "批量上传照片",
             "scenes": "现场场景",
             "otherScene": "其他现场",
             "photoTitle": "现场照片",

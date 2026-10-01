@@ -679,6 +679,24 @@ const submitCurrentMedia = async (req, res, next) => {
                   ? "highlight"
                   : "archive";
         const tags = ["hackathon", competition.slug].join(",");
+        const categoryName = trimText(req.body.category_name, 120);
+        let categoryId = null;
+        if (resourceType === "photo" && categoryName) {
+            const category = await db.get(
+                `SELECT mc.id
+                 FROM media_categories mc
+                 JOIN photos p ON p.category_id = mc.id
+                 JOIN competition_media_links l ON l.resource_id = p.id
+                 WHERE mc.name = ? AND mc.deleted_at IS NULL
+                   AND l.competition_id = ? AND l.resource_type = 'photo'
+                   AND p.deleted_at IS NULL
+                 ORDER BY mc.id ASC
+                 LIMIT 1`,
+                [categoryName, competition.id]
+            );
+            if (!category) return sendBadRequest(res, "请选择本届赛事已有的照片场景");
+            categoryId = category.id;
+        }
 
         try {
             await db.exec("BEGIN TRANSACTION");
@@ -687,9 +705,9 @@ const submitCurrentMedia = async (req, res, next) => {
                     ? await db.run(
                           `INSERT INTO photos (
                              url, title, tags, gameType, gameDescription, featured,
-                             status, uploader_id, created_at
-                           ) VALUES (?, ?, ?, 'hackathon', ?, 0, ?, ?, datetime('now'))`,
-                          [url, title, tags, description, status, req.user.id]
+                             status, uploader_id, category_id, created_at
+                           ) VALUES (?, ?, ?, 'hackathon', ?, 0, ?, ?, ?, datetime('now'))`,
+                          [url, title, tags, description, status, req.user.id, categoryId]
                       )
                     : await db.run(
                           `INSERT INTO videos (

@@ -4214,6 +4214,30 @@
         "target_placeholder": "e.g. All Students"
     },
     "outcome_upload": {
+        "batch": {
+            "add": "Choose photos or add more",
+            "file_hint": "JPG, PNG, GIF, WebP or BMP. Up to 50 MB each and 24 photos per batch.",
+            "invalid": "{{count}} unsupported or oversized files were not added",
+            "duplicate": "{{count}} duplicate photos were not added",
+            "overflow": "The 24-photo limit was reached; {{count}} photos were not added",
+            "scene": "Scene",
+            "scene_unspecified": "Uncategorized",
+            "title": "Batch title (optional)",
+            "title_hint": "Leave blank to use each filename",
+            "description": "Description (optional)",
+            "selected": "{{count}} / {{limit}} photos selected",
+            "pending": "Ready",
+            "uploading": "Uploading",
+            "saved": "Submitted",
+            "failed": "Failed — ready to retry",
+            "uncertain": "Submission needs checking",
+            "uncertain_hint": "The save result is unknown. This photo will not be retried to avoid duplicate submissions.",
+            "remove": "Remove {{name}}",
+            "progress": "{{current}} / {{total}} photos submitted",
+            "partial": "{{count}} / {{total}} photos submitted. Check the individual statuses.",
+            "retry": "Retry failed photos"
+        },
+
         "photo_title": "Upload photos from {{event}}",
         "photo_subtitle": "Approved photos will appear in this event’s photo gallery.",
         "submit_photos": "Submit photos",
@@ -5210,6 +5234,7 @@
             "next": "Next",
             "original": "View original",
             "more": "Load more",
+            "batchUpload": "Upload photos",
             "scenes": "Event scenes",
             "otherScene": "Other moments",
             "photoTitle": "Event photos",

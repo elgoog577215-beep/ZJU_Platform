@@ -109,12 +109,6 @@ export default function Media({ template, live }) {
     const upcoming = Date.now() < new Date(template.event.startAt).getTime();
     const presentation = {
         title: t("aix.media.photoTitle"),
-        description:
-            template.event.key === "zhekesong-current"
-                ? t("firstEdition.mediaIntro")
-                : template.event.key === "getui-beauty-2026"
-                  ? t("getuiBeauty.mediaIntro")
-                  : t("aix.media.eventDescription", { event: template.event.title }),
         emptyTitle: t(upcoming ? "aix.media.emptyUpcoming" : "aix.media.emptyPhotos"),
         emptyDescription: upcoming
             ? t("aix.media.emptyDescription")
@@ -167,11 +161,10 @@ export default function Media({ template, live }) {
             <CompetitionOutcomeUploadModal
                 open={upload}
                 onClose={() => setUpload(false)}
-                onSubmitted={() => {
-                    setUpload(false);
-                    reload();
-                }}
+                onSubmitted={reload}
                 initialType="stage_photo"
+                photoCategories={scenes}
+                initialPhotoCategory={category}
                 lockType
                 competitionSlug={template.results.competitionSlug}
                 competitionTitle={template.event.title}

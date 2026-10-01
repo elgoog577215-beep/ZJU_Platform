@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -17,6 +17,14 @@ import api, { getProjects, uploadFile } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
+
+import {
+    appendPhotoFiles,
+    batchPhotoTitle,
+    isRetryablePhoto,
+    PHOTO_ACCEPT,
+    PHOTO_BATCH_LIMIT,
+} from "../utils/eventPhotoBatch";
 
 const validUploadTypes = new Set(["stage_photo", "promo_video", "work"]);
 
@@ -92,6 +100,8 @@ const CompetitionOutcomeUploadModal = ({
     initialProjectId = "",
     competitionSlug,
     competitionTitle,
+    photoCategories = [],
+    initialPhotoCategory = "",
 }) => {
     const { t } = useTranslation();
     const { user, isAdmin } = useAuth();
@@ -103,7 +113,21 @@ const CompetitionOutcomeUploadModal = ({
     const [projectOptions, setProjectOptions] = useState([]);
     const [projectsLoading, setProjectsLoading] = useState(false);
 
-    useBackClose(open, onClose);
+    const [photos, setPhotos] = useState([]);
+    const [selectionNotice, setSelectionNotice] = useState("");
+    const [photoCategory, setPhotoCategory] = useState(initialPhotoCategory);
+    const previewUrls = useRef(new Set());
+    const submittingRef = useRef(false);
+    useEffect(
+        () => () => {
+            previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+        },
+        []
+    );
+
+    useBackClose(open, () => {
+        if (!submittingRef.current) onClose?.();
+    });
     useBodyScrollLock(open);
 
     const typeOptions = useMemo(
@@ -150,8 +174,13 @@ const CompetitionOutcomeUploadModal = ({
         if (open) {
             setForm(createInitialForm(initialType, initialProjectId));
             setSubmitLabel("");
+            setPhotos([]);
+            setSelectionNotice("");
+            setPhotoCategory(initialPhotoCategory);
+            previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+            previewUrls.current.clear();
         }
-    }, [initialProjectId, initialType, open]);
+    }, [initialProjectId, initialType, initialPhotoCategory, open]);
 
     useEffect(() => {
         if (!open || form.type !== "work" || !user) return;
@@ -196,9 +225,94 @@ const CompetitionOutcomeUploadModal = ({
     };
 
     const resetAndClose = () => {
+        if (submittingRef.current) return;
         setForm(createInitialForm(initialType, initialProjectId));
         setSubmitLabel("");
+        previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+        previewUrls.current.clear();
         onClose?.();
+    };
+
+    const addPhotos = (event) => {
+        const { added, rejected } = appendPhotoFiles(photos, Array.from(event.target.files || []));
+        const additions = added.map((entry) => {
+            const preview = URL.createObjectURL(entry.file);
+            previewUrls.current.add(preview);
+            return { ...entry, preview };
+        });
+        setPhotos((previous) => [...previous, ...additions]);
+        setSelectionNotice(
+            Object.entries(rejected)
+                .filter(([, count]) => count)
+                .map(([kind, count]) => t(`outcome_upload.batch.${kind}`, { count }))
+                .join(" · ")
+        );
+        event.target.value = "";
+    };
+
+    const removePhoto = (entry) => {
+        URL.revokeObjectURL(entry.preview);
+        previewUrls.current.delete(entry.preview);
+        setPhotos((previous) => previous.filter((photo) => photo.id !== entry.id));
+    };
+
+    const submitPhotoBatch = async () => {
+        const pending = photos.filter(isRetryablePhoto);
+        let completed = photos.filter((entry) => entry.status === "saved").length;
+        let failures = 0;
+        const updatePhoto = (id, patch) =>
+            setPhotos((previous) =>
+                previous.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry))
+            );
+        for (const entry of pending) {
+            let saving = false;
+            updatePhoto(entry.id, { status: "uploading", error: "" });
+            setSubmitLabel(
+                t("outcome_upload.batch.progress", { current: completed, total: photos.length })
+            );
+            try {
+                const url = entry.url || (await uploadAsset(entry.file, "file", t));
+                updatePhoto(entry.id, { url });
+                saving = true;
+                await api.post(`/competitions/${encodeURIComponent(competitionSlug)}/media`, {
+                    type: "stage_photo",
+                    title: batchPhotoTitle(
+                        entry.file,
+                        form.title,
+                        photos.indexOf(entry),
+                        photos.length
+                    ),
+                    url,
+                    description: form.description,
+                    category_name: photoCategory || null,
+                });
+                completed += 1;
+                updatePhoto(entry.id, { status: "saved" });
+            } catch (error) {
+                failures += 1;
+                // A lost save response may already have committed; never blindly retry that write.
+                const uncertain = saving && (!error.response || error.response.status >= 500);
+                updatePhoto(entry.id, {
+                    status: uncertain ? "uncertain" : "failed",
+                    error: uncertain
+                        ? t("outcome_upload.batch.uncertain_hint")
+                        : extractApiError(error, t),
+                });
+            }
+        }
+        onSubmitted?.();
+        if (failures || photos.some((entry) => entry.status === "uncertain")) {
+            toast.error(
+                t("outcome_upload.batch.partial", { count: completed, total: photos.length })
+            );
+        } else {
+            toast.success(
+                t("outcome_upload.success.media_batch_submitted", {
+                    count: completed,
+                    event: competitionTitle || t("outcome_upload.current_competition"),
+                })
+            );
+        }
     };
 
     const selectProject = (projectId) => {
@@ -264,6 +378,10 @@ const CompetitionOutcomeUploadModal = ({
             return null;
         }
 
+        if (photosOnly)
+            return photos.some(isRetryablePhoto)
+                ? null
+                : t("outcome_upload.validation.photo_required", "请上传赛场照片文件");
         if (!form.title.trim())
             return t("outcome_upload.validation.title_required", "标题不能为空");
         if (!form.file || (Array.isArray(form.file) && form.file.length === 0))
@@ -275,6 +393,7 @@ const CompetitionOutcomeUploadModal = ({
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        if (submittingRef.current) return;
         if (!user) {
             toast.error(t("outcome_upload.login_required", "请先登录后再上传比赛成果"));
             return;
@@ -287,7 +406,12 @@ const CompetitionOutcomeUploadModal = ({
         }
 
         setSubmitting(true);
+        submittingRef.current = true;
         try {
+            if (photosOnly) {
+                await submitPhotoBatch();
+                return;
+            }
             if (form.type === "work") {
                 let coverUrl = null;
                 if (form.coverFile) {
@@ -378,6 +502,7 @@ const CompetitionOutcomeUploadModal = ({
                         })
             );
             onSubmitted?.();
+            submittingRef.current = false;
             resetAndClose();
         } catch (error) {
             const detail = extractApiError(error, t);
@@ -387,6 +512,7 @@ const CompetitionOutcomeUploadModal = ({
                 })
             );
         } finally {
+            submittingRef.current = false;
             setSubmitting(false);
             setSubmitLabel("");
         }
@@ -424,6 +550,7 @@ const CompetitionOutcomeUploadModal = ({
                     <button
                         type="button"
                         onClick={resetAndClose}
+                        disabled={submitting}
                         className="outcome-upload-close inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-white/10"
                         aria-label={t("outcome_upload.close", "关闭")}
                     >
@@ -435,385 +562,222 @@ const CompetitionOutcomeUploadModal = ({
                     onSubmit={handleSubmit}
                     className="outcome-upload-form max-h-[calc(92vh-73px)] overflow-y-auto px-5 py-5"
                 >
-                    {!lockType && (
-                        <div className="outcome-upload-type-grid grid gap-2 sm:grid-cols-3">
-                            {typeOptions.map((option) => {
-                                const Icon = option.icon;
-                                const active = form.type === option.value;
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() =>
-                                            setForm(
-                                                createInitialForm(option.value, initialProjectId)
-                                            )
-                                        }
-                                        className={`outcome-upload-type-option flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
-                                            active
-                                                ? "border-cyan-300 bg-cyan-300 text-black"
-                                                : isDayMode
-                                                  ? "border-slate-200 bg-white text-slate-700 hover:border-cyan-400"
-                                                  : "border-white/10 bg-white/[0.04] text-white/74 hover:border-cyan-300/40"
+                    <fieldset disabled={photosOnly && submitting} className="min-w-0">
+                        {!lockType && (
+                            <div className="outcome-upload-type-grid grid gap-2 sm:grid-cols-3">
+                                {typeOptions.map((option) => {
+                                    const Icon = option.icon;
+                                    const active = form.type === option.value;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() =>
+                                                setForm(
+                                                    createInitialForm(
+                                                        option.value,
+                                                        initialProjectId
+                                                    )
+                                                )
+                                            }
+                                            className={`outcome-upload-type-option flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
+                                                active
+                                                    ? "border-cyan-300 bg-cyan-300 text-black"
+                                                    : isDayMode
+                                                      ? "border-slate-200 bg-white text-slate-700 hover:border-cyan-400"
+                                                      : "border-white/10 bg-white/[0.04] text-white/74 hover:border-cyan-300/40"
+                                            }`}
+                                        >
+                                            <Icon className="h-4 w-4" />
+                                            <span className="grid text-left leading-tight">
+                                                <span>{option.label}</span>
+                                                <span
+                                                    className={`outcome-upload-type-destination text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}
+                                                >
+                                                    {option.destination}
+                                                </span>
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <div className="outcome-upload-card mt-5 rounded-2xl border border-white/10 p-4">
+                            <div className="outcome-upload-card-head mb-4 flex items-center gap-2">
+                                <SelectedIcon className="h-5 w-5 text-cyan-300" />
+                                <span className="text-sm font-black">{selectedType.label}</span>
+                                <span className={`text-xs ${mutedClass}`}>
+                                    {selectedType.destination}
+                                </span>
+                                {!isAdmin ? (
+                                    <span className={`text-xs ${mutedClass}`}>
+                                        {t("outcome_upload.pending_review", "提交后进入待审核")}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            {form.type === "work" ? (
+                                <div className="outcome-upload-field-stack grid gap-4">
+                                    <div
+                                        className={`outcome-upload-project-linkage grid gap-3 border-b pb-4 ${
+                                            isDayMode ? "border-slate-200" : "border-white/10"
                                         }`}
                                     >
-                                        <Icon className="h-4 w-4" />
-                                        <span className="grid text-left leading-tight">
-                                            <span>{option.label}</span>
-                                            <span
-                                                className={`outcome-upload-type-destination text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}
-                                            >
-                                                {option.destination}
-                                            </span>
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    <div className="outcome-upload-card mt-5 rounded-2xl border border-white/10 p-4">
-                        <div className="outcome-upload-card-head mb-4 flex items-center gap-2">
-                            <SelectedIcon className="h-5 w-5 text-cyan-300" />
-                            <span className="text-sm font-black">{selectedType.label}</span>
-                            <span className={`text-xs ${mutedClass}`}>
-                                {selectedType.destination}
-                            </span>
-                            {!isAdmin ? (
-                                <span className={`text-xs ${mutedClass}`}>
-                                    {t("outcome_upload.pending_review", "提交后进入待审核")}
-                                </span>
-                            ) : null}
-                        </div>
-
-                        {form.type === "work" ? (
-                            <div className="outcome-upload-field-stack grid gap-4">
-                                <div
-                                    className={`outcome-upload-project-linkage grid gap-3 border-b pb-4 ${
-                                        isDayMode ? "border-slate-200" : "border-white/10"
-                                    }`}
-                                >
-                                    <div className="outcome-upload-project-head flex items-end justify-between gap-3">
-                                        <div>
-                                            <label
-                                                className="text-sm font-black"
-                                                htmlFor="outcome-project-select"
-                                            >
+                                        <div className="outcome-upload-project-head flex items-end justify-between gap-3">
+                                            <div>
+                                                <label
+                                                    className="text-sm font-black"
+                                                    htmlFor="outcome-project-select"
+                                                >
+                                                    {t(
+                                                        "outcome_upload.project_select_label",
+                                                        "关联已有项目（可选）"
+                                                    )}
+                                                </label>
+                                                <p
+                                                    className={`mt-1 text-xs leading-5 ${mutedClass}`}
+                                                >
+                                                    {t(
+                                                        "outcome_upload.project_select_hint",
+                                                        "本次提交保存独立赛事快照，审核通过并由管理员精选后公开展示。"
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <select
+                                            id="outcome-project-select"
+                                            value={form.projectId}
+                                            onChange={(event) => selectProject(event.target.value)}
+                                            className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            required={false}
+                                            disabled={projectsLoading}
+                                        >
+                                            <option value="">
+                                                {projectsLoading
+                                                    ? t(
+                                                          "outcome_upload.projects_loading",
+                                                          "正在加载你的项目…"
+                                                      )
+                                                    : t(
+                                                          "outcome_upload.project_select_placeholder",
+                                                          "直接提交赛事作品"
+                                                      )}
+                                            </option>
+                                            {projectOptions.map((project) => (
+                                                <option key={project.id} value={project.id}>
+                                                    {project.title}
+                                                    {project.status === "draft"
+                                                        ? ` · ${t("outcome_upload.project_draft", "草稿")}`
+                                                        : ""}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {!projectsLoading && projectOptions.length === 0 ? (
+                                            <p className={`text-xs ${mutedClass}`}>
                                                 {t(
-                                                    "outcome_upload.project_select_label",
-                                                    "关联已有项目（可选）"
-                                                )}
-                                            </label>
-                                            <p className={`mt-1 text-xs leading-5 ${mutedClass}`}>
-                                                {t(
-                                                    "outcome_upload.project_select_hint",
-                                                    "本次提交保存独立赛事快照，审核通过并由管理员精选后公开展示。"
+                                                    "outcome_upload.projects_empty",
+                                                    "直接填写下方作品信息即可提交。"
                                                 )}
                                             </p>
-                                        </div>
+                                        ) : null}
                                     </div>
-                                    <select
-                                        id="outcome-project-select"
-                                        value={form.projectId}
-                                        onChange={(event) => selectProject(event.target.value)}
-                                        className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        required={false}
-                                        disabled={projectsLoading}
-                                    >
-                                        <option value="">
-                                            {projectsLoading
-                                                ? t(
-                                                      "outcome_upload.projects_loading",
-                                                      "正在加载你的项目…"
-                                                  )
-                                                : t(
-                                                      "outcome_upload.project_select_placeholder",
-                                                      "直接提交赛事作品"
-                                                  )}
-                                        </option>
-                                        {projectOptions.map((project) => (
-                                            <option key={project.id} value={project.id}>
-                                                {project.title}
-                                                {project.status === "draft"
-                                                    ? ` · ${t("outcome_upload.project_draft", "草稿")}`
-                                                    : ""}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {!projectsLoading && projectOptions.length === 0 ? (
-                                        <p className={`text-xs ${mutedClass}`}>
-                                            {t(
-                                                "outcome_upload.projects_empty",
-                                                "直接填写下方作品信息即可提交。"
-                                            )}
-                                        </p>
-                                    ) : null}
-                                </div>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.work_title", "作品名称")}
-                                    <input
-                                        required
-                                        value={form.workTitle}
-                                        onChange={(event) =>
-                                            updateField("workTitle", event.target.value)
-                                        }
-                                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-2">
                                     <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.author", "作者")}
+                                        {t("outcome_upload.fields.work_title", "作品名称")}
                                         <input
                                             required
-                                            value={form.author}
+                                            value={form.workTitle}
                                             onChange={(event) =>
-                                                updateField("author", event.target.value)
+                                                updateField("workTitle", event.target.value)
                                             }
+                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                        />
+                                    </label>
+                                    <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-2">
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.author", "作者")}
+                                            <input
+                                                required
+                                                value={form.author}
+                                                onChange={(event) =>
+                                                    updateField("author", event.target.value)
+                                                }
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                            <span className="outcome-upload-field-hint text-xs font-medium opacity-70">
+                                                {t(
+                                                    "outcome_upload.fields.author_hint",
+                                                    "填写获奖者、团队或社团名称后，相关用户可在个人主页中确认认领。"
+                                                )}
+                                            </span>
+                                        </label>
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.git_url", "Git 链接")}
+                                            <input
+                                                required
+                                                type="url"
+                                                value={form.gitUrl}
+                                                onChange={(event) =>
+                                                    updateField("gitUrl", event.target.value)
+                                                }
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
+                                    </div>
+                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                        {t(
+                                            "outcome_upload.fields.deployment_url",
+                                            "魔搭社区部署链接（可选）"
+                                        )}
+                                        <input
+                                            type="url"
+                                            value={form.deploymentUrl}
+                                            onChange={(event) =>
+                                                updateField("deploymentUrl", event.target.value)
+                                            }
+                                            placeholder="https://modelscope.cn/studios/..."
                                             className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                                         />
                                         <span className="outcome-upload-field-hint text-xs font-medium opacity-70">
                                             {t(
-                                                "outcome_upload.fields.author_hint",
-                                                "填写获奖者、团队或社团名称后，相关用户可在个人主页中确认认领。"
+                                                "outcome_upload.fields.deployment_hint",
+                                                "用于在线体验，与 GitHub 源码仓库分开保存。"
                                             )}
                                         </span>
                                     </label>
                                     <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.git_url", "Git 链接")}
-                                        <input
+                                        {t("outcome_upload.fields.summary", "简介")}
+                                        <textarea
                                             required
-                                            type="url"
-                                            value={form.gitUrl}
+                                            rows={4}
+                                            value={form.summary}
                                             onChange={(event) =>
-                                                updateField("gitUrl", event.target.value)
+                                                updateField("summary", event.target.value)
                                             }
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
                                         />
                                     </label>
-                                </div>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t(
-                                        "outcome_upload.fields.deployment_url",
-                                        "魔搭社区部署链接（可选）"
-                                    )}
-                                    <input
-                                        type="url"
-                                        value={form.deploymentUrl}
-                                        onChange={(event) =>
-                                            updateField("deploymentUrl", event.target.value)
-                                        }
-                                        placeholder="https://modelscope.cn/studios/..."
-                                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                    />
-                                    <span className="outcome-upload-field-hint text-xs font-medium opacity-70">
-                                        {t(
-                                            "outcome_upload.fields.deployment_hint",
-                                            "用于在线体验，与 GitHub 源码仓库分开保存。"
-                                        )}
-                                    </span>
-                                </label>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.summary", "简介")}
-                                    <textarea
-                                        required
-                                        rows={4}
-                                        value={form.summary}
-                                        onChange={(event) =>
-                                            updateField("summary", event.target.value)
-                                        }
-                                        className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.award", "奖项")}
-                                        <input
-                                            value={form.award}
-                                            onChange={(event) =>
-                                                updateField("award", event.target.value)
-                                            }
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.rank", "排序")}
-                                        <input
-                                            value={form.rank}
-                                            onChange={(event) =>
-                                                updateField("rank", event.target.value)
-                                            }
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.cover", "封面（可选）")}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(event) =>
-                                                updateField(
-                                                    "coverFile",
-                                                    event.target.files?.[0] || null
-                                                )
-                                            }
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.honor_title", "荣誉称号")}
-                                        <input
-                                            value={form.honorTitle}
-                                            onChange={(event) =>
-                                                updateField("honorTitle", event.target.value)
-                                            }
-                                            placeholder={t(
-                                                "outcome_upload.fields.honor_placeholder",
-                                                "如 Top 20 获奖成员"
-                                            )}
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.grade", "年级")}
-                                        <input
-                                            value={form.grade}
-                                            onChange={(event) =>
-                                                updateField("grade", event.target.value)
-                                            }
-                                            placeholder={t(
-                                                "outcome_upload.fields.grade_placeholder",
-                                                "如 大一 / 研二"
-                                            )}
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {t("outcome_upload.fields.major", "专业")}
-                                        <input
-                                            required
-                                            value={form.major}
-                                            onChange={(event) =>
-                                                updateField("major", event.target.value)
-                                            }
-                                            placeholder={t(
-                                                "outcome_upload.fields.major_placeholder",
-                                                "如 计算机科学与技术"
-                                            )}
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                        />
-                                    </label>
-                                </div>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.highlight", "精选感悟")}
-                                    <input
-                                        value={form.highlight}
-                                        onChange={(event) =>
-                                            updateField("highlight", event.target.value)
-                                        }
-                                        placeholder={t(
-                                            "outcome_upload.fields.highlight_placeholder",
-                                            "一句最想展示在卡片上的经验或感受"
-                                        )}
-                                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.experience", "经验分享")}
-                                    <textarea
-                                        rows={5}
-                                        value={form.experience}
-                                        onChange={(event) =>
-                                            updateField("experience", event.target.value)
-                                        }
-                                        placeholder={t(
-                                            "outcome_upload.fields.experience_placeholder",
-                                            "可以写作品创新点、技术点、卡壳点、五小时极限开发的时间分配与迭代心得"
-                                        )}
-                                        className={`outcome-upload-textarea outcome-upload-long-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <label className="flex items-start gap-3 text-sm font-semibold">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.publicConsent}
-                                        onChange={(event) =>
-                                            updateField("publicConsent", event.target.checked)
-                                        }
-                                        className="mt-1"
-                                    />
-                                    <span>
-                                        {t(
-                                            "outcome_upload.fields.public_consent",
-                                            "同意公开展示作品信息、项目链接、荣誉称号与经验分享"
-                                        )}
-                                    </span>
-                                </label>
-                            </div>
-                        ) : (
-                            <div className="outcome-upload-field-stack grid gap-4">
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.title", "标题")}
-                                    <input
-                                        required
-                                        value={form.title}
-                                        onChange={(event) =>
-                                            updateField("title", event.target.value)
-                                        }
-                                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                    {t("outcome_upload.fields.description", "简介")}
-                                    <textarea
-                                        rows={3}
-                                        value={form.description}
-                                        onChange={(event) =>
-                                            updateField("description", event.target.value)
-                                        }
-                                        className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
-                                    />
-                                </label>
-                                <div
-                                    className={`outcome-upload-field-grid grid gap-4 ${isPromoVideo ? "sm:grid-cols-2" : ""}`}
-                                >
-                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
-                                        {isPromoVideo
-                                            ? t("outcome_upload.fields.video_file", "宣传片文件")
-                                            : t(
-                                                  "outcome_upload.fields.photo_files",
-                                                  "现场照片（可多选）"
-                                              )}
-                                        <input
-                                            required
-                                            type="file"
-                                            multiple={!isPromoVideo}
-                                            accept={
-                                                form.type === "promo_video" ? "video/*" : "image/*"
-                                            }
-                                            onChange={(event) =>
-                                                updateField(
-                                                    "file",
-                                                    isPromoVideo
-                                                        ? event.target.files?.[0] || null
-                                                        : Array.from(
-                                                              event.target.files || []
-                                                          ).slice(0, 24)
-                                                )
-                                            }
-                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
-                                        />
-                                        {!isPromoVideo ? (
-                                            <span className={`text-xs font-normal ${mutedClass}`}>
-                                                {t(
-                                                    "outcome_upload.fields.photo_files_hint",
-                                                    "单次最多 24 张；审核通过后按上传时间进入照片直播。"
-                                                )}
-                                            </span>
-                                        ) : null}
-                                    </label>
-                                    {isPromoVideo ? (
+                                    <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.award", "奖项")}
+                                            <input
+                                                value={form.award}
+                                                onChange={(event) =>
+                                                    updateField("award", event.target.value)
+                                                }
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.rank", "排序")}
+                                            <input
+                                                value={form.rank}
+                                                onChange={(event) =>
+                                                    updateField("rank", event.target.value)
+                                                }
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
                                         <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                                             {t("outcome_upload.fields.cover", "封面（可选）")}
                                             <input
@@ -828,23 +792,379 @@ const CompetitionOutcomeUploadModal = ({
                                                 className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
                                             />
                                         </label>
-                                    ) : null}
+                                    </div>
+                                    <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.honor_title", "荣誉称号")}
+                                            <input
+                                                value={form.honorTitle}
+                                                onChange={(event) =>
+                                                    updateField("honorTitle", event.target.value)
+                                                }
+                                                placeholder={t(
+                                                    "outcome_upload.fields.honor_placeholder",
+                                                    "如 Top 20 获奖成员"
+                                                )}
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.grade", "年级")}
+                                            <input
+                                                value={form.grade}
+                                                onChange={(event) =>
+                                                    updateField("grade", event.target.value)
+                                                }
+                                                placeholder={t(
+                                                    "outcome_upload.fields.grade_placeholder",
+                                                    "如 大一 / 研二"
+                                                )}
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.fields.major", "专业")}
+                                            <input
+                                                required
+                                                value={form.major}
+                                                onChange={(event) =>
+                                                    updateField("major", event.target.value)
+                                                }
+                                                placeholder={t(
+                                                    "outcome_upload.fields.major_placeholder",
+                                                    "如 计算机科学与技术"
+                                                )}
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                            />
+                                        </label>
+                                    </div>
+                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.fields.highlight", "精选感悟")}
+                                        <input
+                                            value={form.highlight}
+                                            onChange={(event) =>
+                                                updateField("highlight", event.target.value)
+                                            }
+                                            placeholder={t(
+                                                "outcome_upload.fields.highlight_placeholder",
+                                                "一句最想展示在卡片上的经验或感受"
+                                            )}
+                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                        />
+                                    </label>
+                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.fields.experience", "经验分享")}
+                                        <textarea
+                                            rows={5}
+                                            value={form.experience}
+                                            onChange={(event) =>
+                                                updateField("experience", event.target.value)
+                                            }
+                                            placeholder={t(
+                                                "outcome_upload.fields.experience_placeholder",
+                                                "可以写作品创新点、技术点、卡壳点、五小时极限开发的时间分配与迭代心得"
+                                            )}
+                                            className={`outcome-upload-textarea outcome-upload-long-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                                        />
+                                    </label>
+                                    <label className="flex items-start gap-3 text-sm font-semibold">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.publicConsent}
+                                            onChange={(event) =>
+                                                updateField("publicConsent", event.target.checked)
+                                            }
+                                            className="mt-1"
+                                        />
+                                        <span>
+                                            {t(
+                                                "outcome_upload.fields.public_consent",
+                                                "同意公开展示作品信息、项目链接、荣誉称号与经验分享"
+                                            )}
+                                        </span>
+                                    </label>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-
+                            ) : photosOnly ? (
+                                <div className="grid gap-4">
+                                    <label
+                                        className={`grid cursor-pointer gap-2 rounded-xl border border-dashed p-5 text-center ${inputClass}`}
+                                    >
+                                        <Upload className="mx-auto h-6 w-6 text-cyan-500" />
+                                        <span className="text-sm font-bold">
+                                            {t("outcome_upload.batch.add")}
+                                        </span>
+                                        <span className={`text-xs ${mutedClass}`}>
+                                            {t("outcome_upload.batch.file_hint")}
+                                        </span>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept={PHOTO_ACCEPT}
+                                            onChange={addPhotos}
+                                            className="mx-auto max-w-full text-xs"
+                                        />
+                                    </label>
+                                    {selectionNotice && (
+                                        <p role="status" className="text-sm text-amber-500">
+                                            {selectionNotice}
+                                        </p>
+                                    )}
+                                    {photoCategories.length > 0 && (
+                                        <label className="grid gap-2 text-sm font-semibold">
+                                            {t("outcome_upload.batch.scene")}
+                                            <select
+                                                value={photoCategory}
+                                                onChange={(event) =>
+                                                    setPhotoCategory(event.target.value)
+                                                }
+                                                className={`min-h-11 rounded-xl border px-3 ${inputClass}`}
+                                            >
+                                                <option value="">
+                                                    {t("outcome_upload.batch.scene_unspecified")}
+                                                </option>
+                                                {photoCategories.map((scene) => (
+                                                    <option
+                                                        key={
+                                                            typeof scene === "string"
+                                                                ? scene
+                                                                : scene.name
+                                                        }
+                                                        value={
+                                                            typeof scene === "string"
+                                                                ? scene
+                                                                : scene.name
+                                                        }
+                                                    >
+                                                        {typeof scene === "string"
+                                                            ? scene
+                                                            : scene.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    )}
+                                    <label className="grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.batch.title")}
+                                        <input
+                                            value={form.title}
+                                            onChange={(event) =>
+                                                updateField("title", event.target.value)
+                                            }
+                                            placeholder={t("outcome_upload.batch.title_hint")}
+                                            className={`min-h-11 rounded-xl border px-3 ${inputClass}`}
+                                        />
+                                    </label>
+                                    <label className="grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.batch.description")}
+                                        <textarea
+                                            rows={2}
+                                            value={form.description}
+                                            onChange={(event) =>
+                                                updateField("description", event.target.value)
+                                            }
+                                            className={`rounded-xl border px-3 py-2 ${inputClass}`}
+                                        />
+                                    </label>
+                                    {photos.length > 0 && (
+                                        <div className="grid gap-3">
+                                            <p className="text-sm font-semibold" aria-live="polite">
+                                                {t("outcome_upload.batch.selected", {
+                                                    count: photos.length,
+                                                    limit: PHOTO_BATCH_LIMIT,
+                                                })}
+                                            </p>
+                                            <ul className="grid gap-2">
+                                                {photos.map((entry) => (
+                                                    <li
+                                                        key={entry.id}
+                                                        className={`flex items-center gap-3 rounded-xl border p-2 ${isDayMode ? "border-slate-200" : "border-white/10"}`}
+                                                    >
+                                                        <img
+                                                            src={entry.preview}
+                                                            alt=""
+                                                            className="h-14 w-14 flex-none rounded-lg object-cover"
+                                                        />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p
+                                                                className="truncate text-sm"
+                                                                title={entry.file.name}
+                                                            >
+                                                                {entry.file.name}
+                                                            </p>
+                                                            <p
+                                                                className={`text-xs ${entry.status === "failed" || entry.status === "uncertain" ? "text-amber-500" : mutedClass}`}
+                                                            >
+                                                                {t(
+                                                                    `outcome_upload.batch.${entry.status}`
+                                                                )}
+                                                            </p>
+                                                            {entry.error && (
+                                                                <p className="mt-1 break-words text-xs text-amber-500">
+                                                                    {entry.error}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        {entry.status === "uploading" ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : entry.status === "saved" ? (
+                                                            <Check className="h-4 w-4 text-cyan-500" />
+                                                        ) : (
+                                                            entry.status !== "uncertain" && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        removePhoto(entry)
+                                                                    }
+                                                                    aria-label={t(
+                                                                        "outcome_upload.batch.remove",
+                                                                        { name: entry.file.name }
+                                                                    )}
+                                                                    className="rounded-lg p-2 hover:bg-white/10"
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </button>
+                                                            )
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {(submitting ||
+                                                photos.some(
+                                                    (entry) => entry.status !== "pending"
+                                                )) && (
+                                                <div role="status" className="grid gap-2 text-sm">
+                                                    <progress
+                                                        className="h-2 w-full accent-cyan-400"
+                                                        value={
+                                                            photos.filter(
+                                                                (entry) => entry.status === "saved"
+                                                            ).length
+                                                        }
+                                                        max={photos.length}
+                                                    />
+                                                    <span>
+                                                        {t("outcome_upload.batch.progress", {
+                                                            current: photos.filter(
+                                                                (entry) => entry.status === "saved"
+                                                            ).length,
+                                                            total: photos.length,
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="outcome-upload-field-stack grid gap-4">
+                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.fields.title", "标题")}
+                                        <input
+                                            required
+                                            value={form.title}
+                                            onChange={(event) =>
+                                                updateField("title", event.target.value)
+                                            }
+                                            className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                                        />
+                                    </label>
+                                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                        {t("outcome_upload.fields.description", "简介")}
+                                        <textarea
+                                            rows={3}
+                                            value={form.description}
+                                            onChange={(event) =>
+                                                updateField("description", event.target.value)
+                                            }
+                                            className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                                        />
+                                    </label>
+                                    <div
+                                        className={`outcome-upload-field-grid grid gap-4 ${isPromoVideo ? "sm:grid-cols-2" : ""}`}
+                                    >
+                                        <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                            {isPromoVideo
+                                                ? t(
+                                                      "outcome_upload.fields.video_file",
+                                                      "宣传片文件"
+                                                  )
+                                                : t(
+                                                      "outcome_upload.fields.photo_files",
+                                                      "现场照片（可多选）"
+                                                  )}
+                                            <input
+                                                required
+                                                type="file"
+                                                multiple={!isPromoVideo}
+                                                accept={
+                                                    form.type === "promo_video"
+                                                        ? "video/*"
+                                                        : "image/*"
+                                                }
+                                                onChange={(event) =>
+                                                    updateField(
+                                                        "file",
+                                                        isPromoVideo
+                                                            ? event.target.files?.[0] || null
+                                                            : Array.from(
+                                                                  event.target.files || []
+                                                              ).slice(0, 24)
+                                                    )
+                                                }
+                                                className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
+                                            />
+                                            {!isPromoVideo ? (
+                                                <span
+                                                    className={`text-xs font-normal ${mutedClass}`}
+                                                >
+                                                    {t(
+                                                        "outcome_upload.fields.photo_files_hint",
+                                                        "单次最多 24 张；审核通过后按上传时间进入照片直播。"
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                        </label>
+                                        {isPromoVideo ? (
+                                            <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
+                                                {t("outcome_upload.fields.cover", "封面（可选）")}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(event) =>
+                                                        updateField(
+                                                            "coverFile",
+                                                            event.target.files?.[0] || null
+                                                        )
+                                                    }
+                                                    className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
+                                                />
+                                            </label>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </fieldset>
                     <div className="outcome-upload-actions mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                         <button
                             type="button"
                             onClick={resetAndClose}
+                            disabled={submitting}
                             className="outcome-upload-action-button inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-bold transition hover:bg-white/8"
                         >
-                            {t("outcome_upload.cancel", "取消")}
+                            {t(
+                                photosOnly &&
+                                    photos.some(
+                                        (entry) =>
+                                            entry.status === "saved" || entry.status === "uncertain"
+                                    )
+                                    ? "outcome_upload.close"
+                                    : "outcome_upload.cancel"
+                            )}
                         </button>
                         <button
                             type="submit"
-                            disabled={submitting}
+                            disabled={submitting || (photosOnly && !photos.some(isRetryablePhoto))}
                             className="outcome-upload-action-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 text-sm font-black text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {submitting ? (
@@ -856,7 +1176,9 @@ const CompetitionOutcomeUploadModal = ({
                                 ? submitLabel || t("outcome_upload.submitting", "提交中")
                                 : t(
                                       photosOnly
-                                          ? "outcome_upload.submit_photos"
+                                          ? photos.some((entry) => entry.status === "failed")
+                                              ? "outcome_upload.batch.retry"
+                                              : "outcome_upload.submit_photos"
                                           : "outcome_upload.submit"
                                   )}
                             {!submitting ? <Check className="h-4 w-4" /> : null}
