@@ -427,14 +427,6 @@ const AppContent = () => {
         window.sessionStorage.setItem(sessionVisitKey, "1");
     }, [isAdminRoute, location.pathname]);
 
-    if (
-        isMobileViewport &&
-        /^\/(about|hackathon)(\/|$)/.test(location.pathname) &&
-        !/^\/hackathon\/[^/]+\/lottery\/?$/.test(location.pathname)
-    ) {
-        return <Navigate to="/" replace />;
-    }
-
     if (isMiniProgramMode && isMiniProgramBlockedPath(location.pathname)) {
         return <Navigate to={toMiniProgramPath("/events")} replace />;
     }

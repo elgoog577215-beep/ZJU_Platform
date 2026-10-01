@@ -1537,40 +1537,52 @@ const HackathonRegistration = ({
                                             key={group.key}
                                             className="hackathon-form-group grid gap-5 md:grid-cols-2 xl:gap-6"
                                         >
-                                            {group.fields.map((field) => (
-                                                <div
-                                                    key={field.id}
-                                                    className={
-                                                        field.width === "half" ||
-                                                        (isAiX &&
-                                                            [
-                                                                "track",
-                                                                "experience",
-                                                                "researchExperience",
-                                                            ].includes(field.id))
-                                                            ? "min-w-0"
-                                                            : "min-w-0 md:col-span-2"
-                                                    }
-                                                >
-                                                    <DynamicRegistrationField
-                                                        field={field}
-                                                        value={formData[field.id]}
-                                                        error={formErrors[field.id]}
-                                                        palette={palette}
-                                                        isDayMode={isDayMode}
-                                                        compact={isAiX}
-                                                        onChange={(value) =>
-                                                            updateAnswer(field.id, value)
+                                            {group.fields
+                                                .filter(
+                                                    (field) =>
+                                                        !isAiX ||
+                                                        field.id !== "aiToolsOther" ||
+                                                        field.required ||
+                                                        formData.aiTools?.includes("other") ||
+                                                        formData.aiToolsOther
+                                                )
+                                                .map((field) => (
+                                                    <div
+                                                        key={field.id}
+                                                        data-field={field.id}
+                                                        className={
+                                                            field.width === "half" ||
+                                                            (isAiX &&
+                                                                [
+                                                                    "track",
+                                                                    "experience",
+                                                                    "researchExperience",
+                                                                ].includes(field.id))
+                                                                ? "min-w-0"
+                                                                : isAiX
+                                                                  ? "min-w-0 col-span-2"
+                                                                  : "min-w-0 md:col-span-2"
                                                         }
-                                                        onToggle={(option) =>
-                                                            handleMultiSelectToggle(
-                                                                field.id,
-                                                                option
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            ))}
+                                                    >
+                                                        <DynamicRegistrationField
+                                                            field={field}
+                                                            value={formData[field.id]}
+                                                            error={formErrors[field.id]}
+                                                            palette={palette}
+                                                            isDayMode={isDayMode}
+                                                            compact={isAiX}
+                                                            onChange={(value) =>
+                                                                updateAnswer(field.id, value)
+                                                            }
+                                                            onToggle={(option) =>
+                                                                handleMultiSelectToggle(
+                                                                    field.id,
+                                                                    option
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
                                         </div>
                                     ))}
                                 </fieldset>

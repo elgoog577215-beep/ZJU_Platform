@@ -1026,6 +1026,7 @@
     font-size: 20px;
 }
 .hx-workspace [data-contained-form] .hackathon-form-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px 16px;
 }
 .hx-workspace [data-contained-form] fieldset > * + * {
@@ -1144,6 +1145,54 @@
     }
     .hx-workspace #registration-form[data-contained-form] > .mx-auto {
         grid-template-rows: minmax(0, 1fr);
+    }
+}
+@media (max-width: 767px) {
+    .hx-workspace #registration-form[data-contained-form] {
+        padding-top: calc(var(--event-nav-height) + 8px);
+        padding-bottom: 12px;
+    }
+    .hx-workspace #registration-form[data-contained-form] > .mx-auto {
+        grid-template-rows: minmax(0, 1fr);
+    }
+    .hx-workspace [data-contained-form] > .mx-auto > div:first-child {
+        display: none;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-panel {
+        padding: 14px;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-group {
+        gap: 12px;
+    }
+    .hx-workspace
+        [data-contained-form]
+        :is(
+            [data-field="contact"],
+            [data-field="track"],
+            [data-field="experience"],
+            [data-field="researchExperience"]
+        ) {
+        grid-column: 1 / -1;
+    }
+    .hx-workspace [data-contained-form] :is(input, select, textarea) {
+        font-size: 16px;
+        min-height: 44px;
+    }
+    .hx-workspace [data-contained-form] [role="group"] button {
+        min-height: 40px;
+        font-size: 14px;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-footer {
+        gap: 10px;
+        padding-top: 10px;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-footer button {
+        min-height: 44px;
+        padding-inline: 14px;
+        white-space: nowrap;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-footer p {
+        font-size: 11px;
     }
 }
 

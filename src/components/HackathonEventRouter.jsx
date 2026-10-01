@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { useHackathonSchedule } from "../hooks/useHackathonSchedule";
 import "./HackathonShared.css";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-const LotteryPage = lazy(() => import("../features/lottery/LotteryPage"));
 import { AIX_EVENT_KEY } from "../utils/hackathonAiX";
 import { getEventKey, resolveEventLocation } from "../utils/hackathonRoute";
 const EventWorkspace = lazy(() => import("./HackathonWorkspace"));
@@ -14,7 +12,6 @@ export default function HackathonEventRouter() {
     const { schedule, loading, error, reload } = useHackathonSchedule(settings);
     const location = useLocation();
     const { t } = useTranslation();
-    const mobile = useMediaQuery("(max-width: 767px)");
     const currentKey = getEventKey(location);
     const resolved = resolveEventLocation(location, schedule);
     useEffect(() => {
@@ -62,15 +59,7 @@ export default function HackathonEventRouter() {
                 </div>
             }
         >
-            {mobile && resolved.view === "lottery" ? (
-                <LotteryPage
-                    key={template.event.key}
-                    eventKey={template.event.key}
-                    eventTitle={template.event.title}
-                />
-            ) : (
-                <EventWorkspace key={template.event.key} template={template} schedule={schedule} />
-            )}
+            <EventWorkspace key={template.event.key} template={template} schedule={schedule} />
         </Suspense>
     );
 }

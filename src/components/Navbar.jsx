@@ -21,6 +21,7 @@ import {
     Smartphone,
     Trees,
     UserCircle,
+    Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -118,12 +119,8 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
         { key: "home", path: "/" },
         { key: "events", path: "/events" },
         { key: "articles", path: "/articles" },
-        ...(isDesktopViewport
-            ? [
-                  { key: "hackathon", path: "/hackathon" },
-                  { key: "about", path: "/about" },
-              ]
-            : []),
+        { key: "hackathon", path: "/hackathon" },
+        { key: "about", path: "/about" },
         ...(!miniProgramMode && canAccessAdmin ? [{ key: "admin", path: "/admin" }] : []),
     ];
     const isNavItemActive = (path) => {
@@ -237,8 +234,8 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
         : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
     const showMobileUploadAction = showUploadButton;
     const secondaryMobileLinks = [
-        // Keep About available on desktop/tablet while hiding it on phones.
-        ...(isDesktopViewport ? [{ key: "about", path: "/about", icon: Info }] : []),
+        { key: "hackathon", path: "/hackathon", icon: Trophy },
+        { key: "about", path: "/about", icon: Info },
         ...(showAppDownload ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
         ...(!miniProgramMode && canAccessAdmin
             ? [{ key: "admin", path: "/admin", icon: Shield }]
@@ -680,8 +677,11 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
                                             <Link
                                                 key={key}
                                                 to={path}
+                                                aria-current={
+                                                    isNavItemActive(path) ? "page" : undefined
+                                                }
                                                 onClick={() => setIsMobileMoreOpen(false)}
-                                                className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-slate-300 bg-white text-slate-950" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                                                className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${isNavItemActive(path) ? (isDayMode ? "border-slate-300 bg-white text-slate-950" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                                             >
                                                 <Icon size={18} aria-hidden="true" />
                                                 <span className="text-sm font-semibold">
