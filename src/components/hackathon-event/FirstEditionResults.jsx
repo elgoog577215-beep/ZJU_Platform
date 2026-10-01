@@ -7,6 +7,7 @@ import { getEventUrl } from "../../utils/hackathonRoute";
 import { safeWebUrl } from "../../utils/hackathonAiX";
 import "./FirstEditionArchive.css";
 import "./ResultsPresentation.css";
+import EventStage from "./EventStage";
 
 const workTitle = (work) =>
     work.title.replace(/^(?:冠军作品|亚军作品|季军作品|前10名优胜奖|前20名鼓励奖)[：:]\s*/u, "");
@@ -17,6 +18,7 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
     const [params, setParams] = useSearchParams();
     const [query, setQuery] = useState("");
     const [award, setAward] = useState("");
+    const [featuredIndex, setFeaturedIndex] = useState(0);
     const works = useMemo(() => outcome?.works || [], [outcome]);
     const filtered = works.filter(
         (work) =>
@@ -30,8 +32,8 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
     const lastSelected = useRef(null);
     const tiles = useRef(new Map());
     const podium = works.filter((work) => Number(work.rank) >= 1 && Number(work.rank) <= 3);
-    const filtering = Boolean(query.trim() || award);
-    const entries = filtering ? filtered : filtered.filter((work) => !podium.includes(work));
+    const featured = podium[featuredIndex] || works[0];
+    const entries = filtered;
     useEffect(() => {
         if (selected) {
             lastSelected.current = selected.id;
@@ -90,31 +92,82 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
     return (
         <div className="hx-content hx-first-results hx-results-presentation">
             {!selected && (
-                <header className="hx-page-heading hx-first-heading">
-                    <div>
-                        <p className="hx-overline">
-                            {template.event.startAt?.slice(0, 10).replaceAll("-", ".")} ·{" "}
-                            {template.event.title}
-                        </p>
-                        <h1>{t(`${copyNamespace}.resultsTitle`)}</h1>
-                        <p>{t(`${copyNamespace}.resultsIntro`)}</p>
-                    </div>
-                    <Link className="hx-outline" to={mediaHref}>
-                        {t("firstEdition.viewScene")}
-                        <ArrowUpRight size={16} />
-                    </Link>
-                </header>
+                <EventStage
+                    kicker={`${template.event.startAt?.slice(0, 10).replaceAll("-", ".")} · ${template.event.title}`}
+                    title={t(`${copyNamespace}.resultsTitle`).replace("与", "\n与")}
+                    description={t(`${copyNamespace}.resultsIntro`)}
+                    action={
+                        <a className="hx-primary" href="#first-works-heading">
+                            {t("firstEdition.worksTitle", { count: works.length })}
+                            <ArrowUpRight size={18} />
+                        </a>
+                    }
+                >
+                    {featured ? (
+                        <div className="hx-feature-board">
+                            <div className="hx-stage-board-label">{t("resultStage.featured")}</div>
+                            {featured.cover_url && (
+                                <button
+                                    type="button"
+                                    className="hx-feature-cover"
+                                    onClick={() => selectWork(featured)}
+                                    aria-label={`${t("aix.viewProject")} · ${workTitle(featured)}`}
+                                >
+                                    <img src={featured.cover_url} alt="" />
+                                </button>
+                            )}
+                            <div className="hx-feature-caption">
+                                <span className="hx-first-award">{featured.award}</span>
+                                <h2>{workTitle(featured)}</h2>
+                                <p>{featured.author}</p>
+                            </div>
+                            <div className="hx-feature-footer">
+                                <div className="hx-feature-select" aria-label={t("aix.awards")}>
+                                    {podium.map((work, index) => (
+                                        <button
+                                            key={work.id}
+                                            type="button"
+                                            aria-pressed={index === featuredIndex}
+                                            onClick={() => setFeaturedIndex(index)}
+                                        >
+                                            {work.award}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    className="hx-text-button"
+                                    onClick={() => selectWork(featured)}
+                                >
+                                    {t("aix.viewProject")}
+                                    <ArrowUpRight size={17} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="hx-stage-await">
+                            <div className="hx-stage-board-label">{t("aix.resultsKicker")}</div>
+                            {status === "error" ? (
+                                <div role="alert">
+                                    <h2>{t("aix.loadFailed")}</h2>
+                                    <button className="hx-outline" onClick={reload}>
+                                        {t("aix.retry")}
+                                    </button>
+                                </div>
+                            ) : (
+                                <h2 role={status === "loading" ? "status" : undefined}>
+                                    {t(
+                                        status === "loading"
+                                            ? "aix.loading"
+                                            : "eventWorkspace.noWorks"
+                                    )}
+                                </h2>
+                            )}
+                        </div>
+                    )}
+                </EventStage>
             )}
-            {status === "loading" ? (
-                <p role="status">{t("aix.loading")}</p>
-            ) : status === "error" ? (
-                <div role="alert" className="hx-empty">
-                    <p>{t("aix.loadFailed")}</p>
-                    <button className="hx-outline" onClick={reload}>
-                        {t("aix.retry")}
-                    </button>
-                </div>
-            ) : (
+            {status === "ready" && (
                 <>
                     {selected ? (
                         <section
@@ -217,11 +270,6 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
                         </section>
                     ) : (
                         <>
-                            {podium.length > 0 && !filtering && (
-                                <section className="hx-exhibit-podium" aria-label={t("aix.awards")}>
-                                    {podium.map((work) => workTile(work, true))}
-                                </section>
-                            )}
                             <section
                                 aria-labelledby="first-works-heading"
                                 className="hx-exhibit-collection"

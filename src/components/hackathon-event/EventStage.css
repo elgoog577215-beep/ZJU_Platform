@@ -1,0 +1,138 @@
+/* Same composition, palette and type scale as #hackathon-hero. */
+.hx-workspace .hx-interior .hx-content:has(> .hx-event-stage) {
+    padding-top: 0;
+}
+.hx-workspace .hx-event-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 80px);
+    min-height: calc(100dvh - 156px);
+    padding: 40px 0 56px;
+}
+.hx-workspace .hx-event-stage .hx-overline {
+    display: inline-block;
+    color: var(--hx-accent-text);
+    border: 1px solid var(--hx-line);
+    background: var(--hx-surface);
+    padding: 8px 14px;
+    margin: 0 0 28px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+.hx-workspace .hx-interior .hx-content .hx-event-stage h1 {
+    font-size: clamp(42px, 5.7vw, 82px);
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+    text-wrap: balance;
+    white-space: pre-line;
+    margin: 0;
+    max-width: 9em;
+}
+.hx-workspace .hx-event-stage-description {
+    max-width: 42ch;
+    color: var(--hx-muted);
+    font-size: 16px;
+    line-height: 1.85;
+    margin-top: 28px;
+}
+.hx-event-stage-action {
+    margin-top: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.hx-event-stage-action :is(button, a) {
+    min-height: 48px;
+    padding-inline: 24px;
+}
+.hx-event-stage-panel {
+    position: relative;
+    min-width: 0;
+    border: 1px solid var(--hx-line);
+    background: var(--event-panel);
+    padding: clamp(24px, 2.5vw, 40px);
+}
+.hx-event-stage-panel::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--hx-accent), transparent);
+    pointer-events: none;
+}
+.hx-workspace .hx-event-stage-panel h2 {
+    font-size: clamp(23px, 2.2vw, 32px);
+    line-height: 1.35;
+    margin: 0;
+}
+.hx-workspace .hx-event-stage-panel p {
+    line-height: 1.8;
+}
+.hx-stage-board-label {
+    color: var(--hx-accent-text);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.hx-stage-board-label::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: var(--hx-accent);
+    flex: none;
+}
+.hx-event-stage-panel button:focus-visible {
+    outline: 2px solid var(--hx-accent);
+    outline-offset: 4px;
+}
+.hx-event-stage + *,
+#first-works-heading,
+#event-reports {
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
+@media (min-width: 1280px) and (max-height: 800px) {
+    .hx-workspace .hx-interior .hx-content .hx-event-stage h1 {
+        font-size: clamp(42px, 7.5dvh, 64px);
+    }
+    .hx-workspace .hx-event-stage {
+        gap: 48px;
+        padding-block: 28px 40px;
+    }
+}
+@media (max-width: 1000px) {
+    .hx-workspace .hx-event-stage {
+        gap: 24px;
+        min-height: calc(100dvh - 208px);
+        padding-block: 32px;
+    }
+    .hx-workspace .hx-event-stage .hx-overline {
+        margin-bottom: 20px;
+    }
+    .hx-workspace .hx-interior .hx-content .hx-event-stage h1 {
+        font-size: 40px;
+    }
+    .hx-workspace .hx-event-stage-description {
+        font-size: 14px;
+        margin-top: 20px;
+    }
+    .hx-event-stage-panel {
+        padding: 24px;
+    }
+}
+@media (max-width: 767px) {
+    .hx-workspace .hx-event-stage {
+        grid-template-columns: 1fr;
+    }
+}
+
+:root[data-theme="day"] .hx-workspace :is(.hx-challenge-page, .hx-results-presentation) {
+    --hx-accent-text: #236675;
+}

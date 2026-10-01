@@ -5547,5 +5547,27 @@
         "worksPending": "Project entries and award results have not been published. Event photos are available.",
         "mediaIntro": "Opening, development, awards and group photos from the Getui Beauty Hackathon on June 7.",
         "tutorialDeployment": "Deployment guide"
+    },
+    "challengeStage": {
+        "fullRequirements": "Full brief & requirements",
+        "firstTasks": {
+            "load": "Load",
+            "graph": "Map",
+            "merge": "Integrate",
+            "compress": "Condense",
+            "feedback": "Refine"
+        },
+        "beautyTasks": ["Analyze", "Recommend", "Build"],
+        "trackDetails": "Explore the tracks",
+        "industrySchedule": "Initial · Oct 18 / Semifinal · Oct 19–22 / Final · Oct 24"
+    },
+    "resultStage": {
+        "featured": "Awarded projects",
+        "explore": "Explore projects",
+        "awaitTitle": "Ideas in the making",
+        "awaitDescription": "Projects, reflections and event moments will appear here after the competition.",
+        "scene": "Event moments",
+        "viewDetails": "View details",
+        "archiveTitle": "Projects & reflections"
     }
 }

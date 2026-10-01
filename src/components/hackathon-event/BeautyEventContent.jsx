@@ -1,3 +1,5 @@
+import { useState } from "react";
+import EventStage from "./EventStage";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, ArrowUpRight } from "lucide-react";
@@ -203,17 +205,59 @@ function Overview({ template }) {
 
 function Challenge() {
     const { t } = useTranslation();
+    const [selectedTask, setSelectedTask] = useState(0);
     const requirements = t("getuiBeauty.requirements", { returnObjects: true });
     const advanced = t("getuiBeauty.advanced", { returnObjects: true });
     const scoring = t("getuiBeauty.scoring", { returnObjects: true });
     return (
         <div className="hx-content hx-beauty hx-challenge-page hx-beauty-challenge-page">
-            <header className="hx-page-heading">
-                <p className="hx-overline">{t("getuiBeauty.challengeLabel")}</p>
-                <h1>{t("getuiBeauty.challengeTitle")}</h1>
-                <p>{t("getuiBeauty.taskSummary")}</p>
-            </header>
-            <div className="hx-challenge-layout">
+            <EventStage
+                kicker={t("getuiBeauty.challengeLabel")}
+                title={t("getuiBeauty.challengeTitle").replace("与", "与\n")}
+                description={t("getuiBeauty.taskSummary")}
+                action={
+                    <a className="hx-primary" href="#beauty-requirements">
+                        {t("challengeStage.fullRequirements")} ↓
+                    </a>
+                }
+            >
+                <section
+                    className="hx-challenge-console"
+                    aria-label={t("getuiBeauty.requirementsTitle")}
+                >
+                    <div className="hx-challenge-console-top">
+                        <span>{t("getuiBeauty.requirementsTitle")}</span>
+                        <span>0{selectedTask + 1} / 03</span>
+                    </div>
+                    <div className="hx-challenge-console-body" aria-live="polite">
+                        <span className="hx-challenge-step-number" aria-hidden="true">
+                            0{selectedTask + 1}
+                        </span>
+                        <h2>{requirements[selectedTask].title}</h2>
+                        <p>{requirements[selectedTask].description}</p>
+                    </div>
+                    <div
+                        className="hx-challenge-selectors hx-challenge-selectors-three"
+                        aria-label={t("getuiBeauty.requirementsTitle")}
+                    >
+                        {requirements.map((item, index) => (
+                            <button
+                                key={item.title}
+                                type="button"
+                                aria-pressed={selectedTask === index}
+                                onClick={() => setSelectedTask(index)}
+                            >
+                                <span>0{index + 1}</span>
+                                <strong>{t(`challengeStage.beautyTasks.${index}`)}</strong>
+                            </button>
+                        ))}
+                    </div>
+                </section>
+            </EventStage>
+            <div
+                className="hx-challenge-layout hx-challenge-detail-section"
+                id="beauty-requirements"
+            >
                 <div className="hx-challenge-main">
                     <section className="hx-challenge-section">
                         <h2>{t("getuiBeauty.requirementsTitle")}</h2>
@@ -271,13 +315,41 @@ function Results({ template }) {
         );
     if (outcome?.works?.length)
         return <FirstEditionResults template={template} copyNamespace="getuiBeauty" />;
+    const photo = outcome?.media?.featured_photos?.[0];
+    const mediaHref = getEventUrl(template.event.key, "media");
     return (
         <div className="hx-content hx-beauty hx-beauty-results hx-results-presentation">
-            <header className="hx-page-heading">
-                <p className="hx-overline">2026.06.07 · {t("getuiBeauty.kicker")}</p>
-                <h1>{t("getuiBeauty.resultsTitle")}</h1>
-                <p>{t("getuiBeauty.resultsIntro")}</p>
-            </header>
+            <EventStage
+                kicker={`2026.06.07 · ${t("getuiBeauty.kicker")}`}
+                title={t("getuiBeauty.resultsTitle")}
+                description={t("getuiBeauty.worksPending")}
+                action={
+                    <Link className="hx-primary" to={mediaHref}>
+                        {t("firstEdition.viewScene")}
+                        <ArrowUpRight size={18} />
+                    </Link>
+                }
+            >
+                <div className="hx-feature-board">
+                    <div className="hx-stage-board-label">{t("resultStage.scene")}</div>
+                    {photo && (
+                        <Link
+                            className="hx-feature-cover"
+                            to={`${mediaHref}?photo=${photo.source_id || photo.id}`}
+                        >
+                            <img src={photo.url || photo.cover_url} alt={photo.title} />
+                        </Link>
+                    )}
+                    <div className="hx-feature-caption">
+                        <h2>{photo?.title || t("getuiBeauty.resultsTitle")}</h2>
+                        <p>{t("getuiBeauty.resultsIntro")}</p>
+                    </div>
+                    <Link className="hx-text-button" to={mediaHref}>
+                        {t("aix.allMedia")}
+                        <ArrowUpRight size={17} />
+                    </Link>
+                </div>
+            </EventStage>
             {status === "loading" ? (
                 <p role="status">{t("aix.loading")}</p>
             ) : status === "error" ? (
@@ -289,7 +361,6 @@ function Results({ template }) {
                 </div>
             ) : (
                 <>
-                    <p className="hx-beauty-results-status">{t("getuiBeauty.worksPending")}</p>
                     <Scenes template={template} photos={outcome?.media?.featured_photos || []} />
                 </>
             )}

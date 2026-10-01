@@ -299,3 +299,197 @@
         font-size: 18px;
     }
 }
+
+/* The introduction's two-part composition continues into each challenge. */
+.hx-workspace .hx-interior > .hx-challenge-page {
+    padding-top: 0;
+}
+
+.hx-workspace .hx-challenge-page .hx-event-stage > .hx-event-stage-panel {
+    padding: 0;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console {
+    padding: 0;
+    overflow: hidden;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--hx-line);
+    color: var(--hx-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-top > :last-child {
+    color: var(--hx-accent-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 280px;
+    padding: 32px;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-step-number {
+    color: var(--hx-accent-text);
+    font-size: 64px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.07em;
+    margin-bottom: 24px;
+    font-variant-numeric: tabular-nums;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-body h2 {
+    font-size: clamp(24px, 2.2vw, 34px);
+    margin-bottom: 16px;
+    letter-spacing: -0.025em;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-body p {
+    color: var(--hx-muted);
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.85;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border-top: 1px solid var(--hx-line);
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 6px;
+    border: 0;
+    border-top: 2px solid transparent;
+    border-right: 1px solid var(--hx-line);
+    background: transparent;
+    color: var(--hx-muted);
+    cursor: pointer;
+    transition:
+        color 160ms ease,
+        background 160ms ease;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button:last-child {
+    border-right: 0;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button > span {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button > strong {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button[aria-pressed="true"],
+.hx-workspace .hx-challenge-page .hx-challenge-selectors button:hover {
+    color: var(--hx-accent-text);
+    background: color-mix(in srgb, var(--hx-accent) 8%, transparent);
+    border-top-color: var(--hx-accent);
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-track-switch {
+    display: flex;
+    gap: 6px;
+    padding: 20px 28px 0;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-track-switch button {
+    flex: 1;
+    border: 1px solid var(--hx-line);
+    color: var(--hx-muted);
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-track-switch button[aria-pressed="true"] {
+    border-color: var(--hx-accent);
+    color: var(--hx-accent-text);
+    background: color-mix(in srgb, var(--hx-accent) 8%, transparent);
+}
+
+.hx-workspace .hx-challenge-page .hx-track-console .hx-challenge-console-body {
+    min-height: 320px;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-body .hx-challenge-topics {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--hx-accent-text);
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-console-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--hx-line);
+    color: var(--hx-muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.hx-workspace .hx-challenge-page .hx-challenge-detail-section {
+    border-top: 1px solid var(--hx-line);
+    padding-top: 56px;
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
+
+@media (max-width: 1100px) {
+    .hx-workspace .hx-challenge-page .hx-challenge-console-body {
+        padding: 24px;
+    }
+
+    .hx-workspace .hx-challenge-page .hx-challenge-console-top,
+    .hx-workspace .hx-challenge-page .hx-challenge-console-footer {
+        padding-inline: 24px;
+    }
+
+    .hx-workspace .hx-challenge-page .hx-challenge-track-switch {
+        padding-inline: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hx-workspace .hx-challenge-page .hx-challenge-selectors button {
+        transition: none;
+    }
+}
+
+@media (min-width: 1001px) and (max-height: 800px) {
+    .hx-workspace .hx-challenge-page .hx-track-console .hx-challenge-console-body {
+        min-height: 240px;
+        padding-block: 20px;
+    }
+    .hx-workspace .hx-challenge-page .hx-track-console .hx-challenge-step-number {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    .hx-workspace .hx-challenge-page .hx-track-console .hx-challenge-console-footer {
+        padding-block: 16px;
+    }
+}

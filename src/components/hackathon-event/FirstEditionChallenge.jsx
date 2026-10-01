@@ -1,3 +1,5 @@
+import { useState } from "react";
+import EventStage from "./EventStage";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getEventUrl } from "../../utils/hackathonRoute";
@@ -6,14 +8,57 @@ import "./ChallengePresentation.css";
 
 export default function FirstEditionChallenge({ template }) {
     const { t } = useTranslation();
+    const [selectedTask, setSelectedTask] = useState(0);
+    const tasks = ["load", "graph", "merge", "compress", "feedback"];
     return (
         <div className="hx-content hx-first-challenge hx-challenge-page">
-            <header className="hx-page-heading">
-                <p className="hx-overline">2026.05.10 · {template.event.title}</p>
-                <h1>{t("firstEdition.challengeTitle")}</h1>
-                <p>{t("firstEdition.challengeIntro")}</p>
-            </header>
-            <div className="hx-challenge-layout">
+            <EventStage
+                kicker={`2026.05.10 · ${template.event.title}`}
+                title={t("firstEdition.challengeTitle")}
+                description={t("firstEdition.challengeIntro")}
+                action={
+                    <a className="hx-primary" href="#challenge-requirements">
+                        {t("challengeStage.fullRequirements")} ↓
+                    </a>
+                }
+            >
+                <section
+                    className="hx-challenge-console"
+                    aria-label={t("firstEdition.challengeGoal")}
+                >
+                    <div className="hx-challenge-console-top">
+                        <span>{t("firstEdition.challengeGoal")}</span>
+                        <span>0{selectedTask + 1} / 05</span>
+                    </div>
+                    <div className="hx-challenge-console-body" aria-live="polite">
+                        <span className="hx-challenge-step-number" aria-hidden="true">
+                            0{selectedTask + 1}
+                        </span>
+                        <h2>{t(`challengeStage.firstTasks.${tasks[selectedTask]}`)}</h2>
+                        <p>{t(`firstEdition.requirements.${tasks[selectedTask]}`)}</p>
+                    </div>
+                    <div
+                        className="hx-challenge-selectors"
+                        aria-label={t("firstEdition.challengeGoal")}
+                    >
+                        {tasks.map((key, index) => (
+                            <button
+                                key={key}
+                                type="button"
+                                aria-pressed={selectedTask === index}
+                                onClick={() => setSelectedTask(index)}
+                            >
+                                <span>0{index + 1}</span>
+                                <strong>{t(`challengeStage.firstTasks.${key}`)}</strong>
+                            </button>
+                        ))}
+                    </div>
+                </section>
+            </EventStage>
+            <div
+                className="hx-challenge-layout hx-challenge-detail-section"
+                id="challenge-requirements"
+            >
                 <section className="hx-challenge-main">
                     <h2>{t("firstEdition.challengeGoal")}</h2>
                     <ol className="hx-challenge-steps">

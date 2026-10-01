@@ -5656,5 +5656,27 @@
         "worksPending": "本场参赛作品与获奖名单尚未公开发布。现场影像已可查看。",
         "mediaIntro": "开幕、开发、颁奖与合影，记录 6 月 7 日每日互动美妆联谊赛。",
         "tutorialDeployment": "部署教程"
+    },
+    "challengeStage": {
+        "fullRequirements": "完整赛题与要求",
+        "firstTasks": {
+            "load": "教材加载",
+            "graph": "知识图谱",
+            "merge": "知识整合",
+            "compress": "内容压缩",
+            "feedback": "对话优化"
+        },
+        "beautyTasks": ["识别肌肤", "匹配产品", "完成应用"],
+        "trackDetails": "查看赛道安排",
+        "industrySchedule": "初赛 10.18 · 复赛 10.19—10.22 · 决赛 10.24"
+    },
+    "resultStage": {
+        "featured": "获奖作品",
+        "explore": "浏览作品",
+        "awaitTitle": "创造正在发生",
+        "awaitDescription": "比赛结束后，在这里呈现作品、分享与现场记录。",
+        "scene": "现场回顾",
+        "viewDetails": "查看详情",
+        "archiveTitle": "成果与分享"
     }
 }

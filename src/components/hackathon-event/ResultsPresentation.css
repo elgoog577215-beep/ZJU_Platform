@@ -312,3 +312,185 @@
         gap: 16px;
     }
 }
+/* Result stage: a single project takes the event board, just as the intro leads with its brief. */
+.hx-feature-board {
+    display: grid;
+    gap: 20px;
+}
+.hx-feature-cover {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    width: 100%;
+    overflow: hidden;
+}
+.hx-feature-cover img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+}
+.hx-feature-caption {
+    display: grid;
+    gap: 8px;
+}
+.hx-feature-caption > p {
+    margin: 0;
+    color: var(--hx-muted);
+    font-size: 14px;
+}
+.hx-feature-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid var(--hx-line);
+    padding-top: 16px;
+}
+.hx-feature-select {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.hx-feature-select button {
+    padding: 8px 12px;
+    color: var(--hx-muted);
+    border: 1px solid transparent;
+    font-size: 13px;
+    background: transparent;
+}
+.hx-feature-select button[aria-pressed="true"] {
+    border-color: var(--hx-accent);
+    color: var(--hx-accent-text);
+    background: var(--hx-surface);
+}
+.hx-feature-footer > button {
+    white-space: nowrap;
+    font-size: 13px;
+}
+.hx-stage-await {
+    display: grid;
+    gap: 32px;
+}
+.hx-stage-await > p {
+    color: var(--hx-muted);
+}
+.hx-stage-await-nav {
+    display: grid;
+}
+.hx-stage-await-nav > button {
+    background: transparent;
+    color: var(--hx-text);
+    border: 0;
+    border-top: 1px solid var(--hx-line);
+    padding: 20px 0;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.hx-stage-await-nav > button span {
+    color: var(--hx-muted);
+    font-size: 12px;
+}
+.hx-workspace .hx-results-presentation .hx-exhibit-collection {
+    margin-top: 24px;
+    padding-top: 32px;
+    border-top: 1px solid var(--hx-line);
+}
+.hx-workspace .hx-results-presentation .hx-exhibit-collection h2 {
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 900;
+}
+.hx-workspace .hx-results-presentation .hx-exhibit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 48px;
+}
+.hx-exhibit-grid .hx-exhibit-work {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--hx-line);
+    align-items: center;
+}
+.hx-exhibit-grid .hx-exhibit-image {
+    aspect-ratio: 4/3;
+}
+.hx-exhibit-grid .hx-exhibit-caption {
+    border: 0;
+    padding: 0;
+    gap: 6px;
+}
+.hx-exhibit-grid .hx-exhibit-caption strong {
+    font-size: 18px;
+}
+.hx-exhibit-grid .hx-exhibit-image > span {
+    font-size: 14px;
+    padding: 12px;
+}
+@media (max-width: 1000px) {
+    .hx-feature-footer {
+        display: block;
+    }
+    .hx-feature-footer > button {
+        margin-top: 12px;
+    }
+    .hx-workspace .hx-results-presentation .hx-exhibit-grid {
+        gap: 0 24px;
+    }
+    .hx-exhibit-grid .hx-exhibit-work {
+        grid-template-columns: 88px minmax(0, 1fr);
+        gap: 16px;
+    }
+}
+.hx-stage-topic-description {
+    margin-top: 20px;
+    color: var(--hx-muted);
+    min-height: 5.4em;
+}
+.hx-stage-topic-tabs {
+    display: grid;
+    border-top: 1px solid var(--hx-line);
+}
+.hx-stage-topic-tabs button {
+    color: var(--hx-muted);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--hx-line);
+    padding: 16px 0;
+    text-align: left;
+}
+.hx-stage-topic-tabs button[aria-pressed="true"] {
+    color: var(--hx-accent-text);
+    font-weight: 700;
+}
+.hx-stage-topic-tabs button[aria-pressed="true"]::after {
+    content: "↗";
+    float: right;
+}
+.hx-stage-reports {
+    padding-block: 40px;
+}
+.hx-workspace .hx-stage-reports > h2 {
+    font-size: clamp(28px, 3vw, 44px);
+    margin-bottom: 24px;
+}
+.hx-feature-board {
+    gap: 16px;
+}
+.hx-feature-cover img {
+    height: clamp(160px, 26dvh, 260px);
+    aspect-ratio: auto;
+    object-position: center 58%;
+}
+.hx-feature-caption {
+    gap: 4px;
+}
+.hx-results-presentation .hx-event-stage-panel {
+    padding: 24px;
+}
+.hx-workspace .hx-interior .hx-content .hx-event-stage h1 {
+    white-space: pre-line;
+}

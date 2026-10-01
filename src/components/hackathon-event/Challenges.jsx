@@ -3,9 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Check, Clock3, Layers, ArrowUpRight } from "lucide-react";
 import { currentStage, safeWebUrl, stageState, eventTimestamp } from "../../utils/hackathonAiX";
+import EventStage from "./EventStage";
 import "./ChallengePresentation.css";
 export default function Challenges({ template, now, projectsUrl }) {
     const { t, i18n } = useTranslation();
+    const [selectedTrack, setSelectedTrack] = useState("campus");
     const [selectedStage, setSelectedStage] = useState(null);
     const program = template.event.program || {};
     const stages = program.stages || [];
@@ -61,12 +63,59 @@ export default function Challenges({ template, now, projectsUrl }) {
     };
     return (
         <div className="hx-content hx-challenge-page hx-aix-challenge-page">
-            <div className="hx-page-heading">
-                <p className="hx-overline">{t("aix.challengeKicker")}</p>
-                <h1>{t("aix.tabs.challenges")}</h1>
-                <p>{t("aix.challengeDescription")}</p>
-            </div>
-            <section className="hx-challenge-layout hx-campus-challenge">
+            <EventStage
+                kicker={t("aix.challengeKicker")}
+                title={t("aix.tracksTitle")}
+                description={t("aix.challengeDescription")}
+                action={
+                    <a className="hx-primary" href="#aix-track-details">
+                        {t("challengeStage.trackDetails")} ↓
+                    </a>
+                }
+            >
+                <section
+                    className="hx-challenge-console hx-track-console"
+                    aria-label={t("aix.tracksKicker")}
+                >
+                    <div className="hx-challenge-console-top">
+                        <span>{t("aix.tracksKicker")}</span>
+                        <span>AI + X</span>
+                    </div>
+                    <div className="hx-challenge-track-switch">
+                        {["campus", "industry"].map((track) => (
+                            <button
+                                type="button"
+                                key={track}
+                                aria-pressed={selectedTrack === track}
+                                onClick={() => setSelectedTrack(track)}
+                            >
+                                {t(`aix.tracks.${track}.title`)}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="hx-challenge-console-body" aria-live="polite">
+                        <span className="hx-challenge-step-number" aria-hidden="true">
+                            {selectedTrack === "campus" ? "01" : "02"}
+                        </span>
+                        <h2>{t(`aix.tracks.${selectedTrack}.title`)}</h2>
+                        <p>{t(`aix.tracks.${selectedTrack}.description`)}</p>
+                        <p className="hx-challenge-topics">
+                            {t(`aix.tracks.${selectedTrack}.topics`)}
+                        </p>
+                    </div>
+                    <div className="hx-challenge-console-footer">
+                        {t(
+                            selectedTrack === "campus"
+                                ? "aix.campusSchedule"
+                                : "challengeStage.industrySchedule"
+                        )}
+                    </div>
+                </section>
+            </EventStage>
+            <section
+                className="hx-challenge-layout hx-campus-challenge hx-challenge-detail-section"
+                id="aix-track-details"
+            >
                 <div className="hx-challenge-main">
                     <h2>{t("aix.tracks.campus.title")}</h2>
                     <p>{t("aix.tracks.campus.topics")}</p>
