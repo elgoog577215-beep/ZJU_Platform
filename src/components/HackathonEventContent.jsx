@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getEventUrl } from "../utils/hackathonRoute";
 import HackathonRegistration from "./HackathonRegistration";
-import FirstEditionResults from "./hackathon-event/FirstEditionResults";
+import HackathonOutcomeShowcase from "./HackathonOutcomeShowcase";
 import FirstEditionChallenge from "./hackathon-event/FirstEditionChallenge";
 import BeautyEventContent from "./hackathon-event/BeautyEventContent";
 
@@ -45,7 +45,7 @@ export default function HackathonEventContent({
                 <h1>{t("eventWorkspace.resultsPending")}</h1>
             </div>
         ) : (
-            <FirstEditionResults template={template} />
+            <HackathonOutcomeShowcase template={template} />
         );
     if (view === "challenges") return <FirstEditionChallenge template={template} />;
     return (

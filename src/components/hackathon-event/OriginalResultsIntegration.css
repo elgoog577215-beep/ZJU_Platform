@@ -1,0 +1,94 @@
+/* Only framework/data compatibility; the original composition is kept in the restored component. */
+.hx-workspace .first-edition-original {
+    padding-top: calc(var(--event-nav-height) + 32px);
+}
+.hx-interior:has(.first-edition-original)::before {
+    display: none;
+}
+.first-edition-original
+    :is(.original-outcome-archive, .original-outcome-works, .original-outcome-credits) {
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
+.first-edition-original .original-outcome-ranking {
+    top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
+.first-edition-original .original-outcome-search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.first-edition-original .original-outcome-search :is(input, select) {
+    min-width: 0;
+    background: #07100b;
+    border: 1px solid #425035;
+    color: #f7f8f2;
+    padding: 10px;
+    font-size: 12px;
+}
+.first-edition-original .original-outcome-search input {
+    flex: 1;
+}
+.first-edition-original .original-outcome-award-note {
+    font-size: 12px;
+    color: var(--x-muted);
+    padding-bottom: 20px;
+}
+.first-edition-original .original-outcome-story {
+    margin-block: 16px;
+}
+.first-edition-original .original-outcome-story summary {
+    cursor: pointer;
+    color: var(--x-lime);
+    font-size: 13px;
+}
+.first-edition-original .original-outcome-story blockquote {
+    white-space: pre-wrap;
+    max-height: 420px;
+    overflow-y: auto;
+}
+.first-edition-original .original-outcome-cover-title {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    height: 100%;
+    color: var(--x-muted);
+}
+.first-edition-original .original-outcome-film-play {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(2, 8, 6, 0.8);
+    color: var(--x-lime);
+    border: 1px solid currentColor;
+}
+@media (max-width: 1120px) {
+    .first-edition-original .original-outcome-ranking {
+        top: auto;
+    }
+}
+@media (min-width: 1121px) and (max-height: 850px) {
+    .first-edition-original .original-outcome-overview-grid {
+        min-height: calc(100svh - var(--site-nav-height) - var(--event-nav-height) - 48px);
+    }
+    .first-edition-original .original-outcome-overview {
+        padding-bottom: 80px;
+    }
+}
+.first-edition-original
+    .original-outcome-work-detail.without-cover
+    .original-outcome-work-detail-image {
+    display: none;
+}
+.first-edition-original
+    .original-outcome-work-detail.without-cover
+    .original-outcome-work-detail-body {
+    grid-template-columns: 1fr;
+}
+.first-edition-original .original-outcome-work-detail {
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
