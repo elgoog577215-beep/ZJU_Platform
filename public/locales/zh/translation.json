@@ -5678,5 +5678,17 @@
         "scene": "现场回顾",
         "viewDetails": "查看详情",
         "archiveTitle": "成果与分享"
+    },
+    "eventRecap": {
+        "works": "参赛作品",
+        "photos": "现场照片",
+        "videos": "赛事影像",
+        "allWorks": "作品与荣誉",
+        "watchFilm": "播放赛事影像",
+        "upcoming": "赛事尚未开始，作品与现场记录将在赛后呈现。",
+        "pending": "本场成果正在整理，已发布内容将在这里呈现。",
+        "beautyTitleLines": ["每日互动", "美妆联谊赛"],
+        "aixTitleLines": ["AI+X", "破界黑客松"],
+        "allEntries": "全部作品（{{count}}）"
     }
 }

@@ -5569,5 +5569,17 @@
         "scene": "Event moments",
         "viewDetails": "View details",
         "archiveTitle": "Projects & reflections"
+    },
+    "eventRecap": {
+        "works": "Entries",
+        "photos": "Event photos",
+        "videos": "Event films",
+        "allWorks": "Works & honors",
+        "watchFilm": "Play event film",
+        "upcoming": "The event has not started. Works and event coverage will appear here after the competition.",
+        "pending": "Event outcomes are being compiled. Published content will appear here.",
+        "beautyTitleLines": ["Getui", "Beauty Hackathon"],
+        "aixTitleLines": ["AI+X", "Hackathon"],
+        "allEntries": "All works ({{count}})"
     }
 }

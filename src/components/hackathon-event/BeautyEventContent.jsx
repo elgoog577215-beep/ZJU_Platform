@@ -305,67 +305,7 @@ function Challenge() {
 }
 
 function Results({ template }) {
-    const { t } = useTranslation();
-    const { outcome, status, reload } = useEventOutcome(template.results.competitionSlug);
-    if (template.navigation?.resultsVisible === false)
-        return (
-            <div className="hx-content hx-beauty hx-beauty-results hx-results-presentation">
-                <h1>{t("eventWorkspace.resultsPending")}</h1>
-            </div>
-        );
-    if (outcome?.works?.length)
-        return <FirstEditionResults template={template} copyNamespace="getuiBeauty" />;
-    const photo = outcome?.media?.featured_photos?.[0];
-    const mediaHref = getEventUrl(template.event.key, "media");
-    return (
-        <div className="hx-content hx-beauty hx-beauty-results hx-results-presentation">
-            <EventStage
-                kicker={`2026.06.07 · ${t("getuiBeauty.kicker")}`}
-                title={t("getuiBeauty.resultsTitle")}
-                description={t("getuiBeauty.worksPending")}
-                action={
-                    <Link className="hx-primary" to={mediaHref}>
-                        {t("firstEdition.viewScene")}
-                        <ArrowUpRight size={18} />
-                    </Link>
-                }
-            >
-                <div className="hx-feature-board">
-                    <div className="hx-stage-board-label">{t("resultStage.scene")}</div>
-                    {photo && (
-                        <Link
-                            className="hx-feature-cover"
-                            to={`${mediaHref}?photo=${photo.source_id || photo.id}`}
-                        >
-                            <img src={photo.url || photo.cover_url} alt={photo.title} />
-                        </Link>
-                    )}
-                    <div className="hx-feature-caption">
-                        <h2>{photo?.title || t("getuiBeauty.resultsTitle")}</h2>
-                        <p>{t("getuiBeauty.resultsIntro")}</p>
-                    </div>
-                    <Link className="hx-text-button" to={mediaHref}>
-                        {t("aix.allMedia")}
-                        <ArrowUpRight size={17} />
-                    </Link>
-                </div>
-            </EventStage>
-            {status === "loading" ? (
-                <p role="status">{t("aix.loading")}</p>
-            ) : status === "error" ? (
-                <div role="alert">
-                    <p>{t("aix.loadFailed")}</p>
-                    <button className="hx-outline" onClick={reload}>
-                        {t("aix.retry")}
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <Scenes template={template} photos={outcome?.media?.featured_photos || []} />
-                </>
-            )}
-        </div>
-    );
+    return <FirstEditionResults template={template} copyNamespace="getuiBeauty" />;
 }
 
 export default function BeautyEventContent({ template, view, live }) {

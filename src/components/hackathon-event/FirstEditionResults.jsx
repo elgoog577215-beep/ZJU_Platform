@@ -1,13 +1,15 @@
 import { useMemo, useState, useRef, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight, ArrowLeft, Github, Search } from "lucide-react";
 import { useEventOutcome } from "./useEventOutcome";
-import { getEventUrl } from "../../utils/hackathonRoute";
 import { safeWebUrl } from "../../utils/hackathonAiX";
 import "./FirstEditionArchive.css";
 import "./ResultsPresentation.css";
-import EventStage from "./EventStage";
+import EventRecap from "./EventRecap";
+import RecapPartners from "./RecapPartners";
+import "./EventRecap.css";
+import "./RecapWorks.css";
 
 const workTitle = (work) =>
     work.title.replace(/^(?:冠军作品|亚军作品|季军作品|前10名优胜奖|前20名鼓励奖)[：:]\s*/u, "");
@@ -18,7 +20,6 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
     const [params, setParams] = useSearchParams();
     const [query, setQuery] = useState("");
     const [award, setAward] = useState("");
-    const [featuredIndex, setFeaturedIndex] = useState(0);
     const works = useMemo(() => outcome?.works || [], [outcome]);
     const filtered = works.filter(
         (work) =>
@@ -32,11 +33,10 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
     const lastSelected = useRef(null);
     const tiles = useRef(new Map());
     const podium = works.filter((work) => Number(work.rank) >= 1 && Number(work.rank) <= 3);
-    const featured = podium[featuredIndex] || works[0];
     const entries = filtered;
     useEffect(() => {
         if (selected) {
-            lastSelected.current = selected.id;
+            lastSelected.current ||= `work-${selected.id}`;
             detailRef.current?.focus({ preventScroll: true });
             detailRef.current?.scrollIntoView({ block: "start" });
         } else if (lastSelected.current) {
@@ -54,12 +54,18 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
             className={`hx-exhibit-work ${featured ? "is-featured" : ""}`}
             key={work.id}
             ref={(node) => {
-                if (node) tiles.current.set(work.id, node);
-                else tiles.current.delete(work.id);
+                const tileKey = `${featured ? "podium" : "work"}-${work.id}`;
+                if (node) tiles.current.set(tileKey, node);
+                else tiles.current.delete(tileKey);
             }}
-            onClick={() => selectWork(work)}
+            onClick={() => selectWork(work, featured)}
         >
             <div className="hx-exhibit-image">
+                {featured && (
+                    <span className="hx-recap-rank" aria-hidden="true">
+                        0{work.rank}
+                    </span>
+                )}
                 {work.cover_url ? (
                     <img src={work.cover_url} alt="" loading={featured ? "eager" : "lazy"} />
                 ) : (
@@ -76,9 +82,8 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
             </div>
         </button>
     );
-    const photos = (outcome?.media?.featured_photos || []).slice(0, 4);
-    const mediaHref = getEventUrl(template.event.key, "media");
-    const selectWork = (work) => {
+    const selectWork = (work, featured) => {
+        lastSelected.current = `${featured ? "podium" : "work"}-${work.id}`;
         const next = new URLSearchParams(params);
         next.set("work", String(work.id));
         setParams(next, { replace: true });
@@ -90,91 +95,9 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
             </div>
         );
     return (
-        <div className="hx-content hx-first-results hx-results-presentation">
+        <div className="hx-content hx-first-results hx-results-presentation hx-event-recap-page">
             {!selected && (
-                <EventStage
-                    kicker={`${template.event.startAt?.slice(0, 10).replaceAll("-", ".")} · ${template.event.title}`}
-                    title={t(`${copyNamespace}.resultsTitle`)
-                        .split(/(?=与)/)
-                        .map((line, index) => (
-                            <span
-                                className={index ? "hx-results-title-accent" : undefined}
-                                key={line}
-                            >
-                                {line}
-                            </span>
-                        ))}
-                    description={t(`${copyNamespace}.resultsIntro`)}
-                    action={
-                        <a className="hx-primary" href="#first-works-heading">
-                            {t("firstEdition.worksTitle", { count: works.length })}
-                            <ArrowUpRight size={18} />
-                        </a>
-                    }
-                >
-                    {featured ? (
-                        <div className="hx-feature-board">
-                            <div className="hx-stage-board-label">{t("resultStage.featured")}</div>
-                            {featured.cover_url && (
-                                <button
-                                    type="button"
-                                    className="hx-feature-cover"
-                                    onClick={() => selectWork(featured)}
-                                    aria-label={`${t("aix.viewProject")} · ${workTitle(featured)}`}
-                                >
-                                    <img src={featured.cover_url} alt="" />
-                                </button>
-                            )}
-                            <div className="hx-feature-caption">
-                                <span className="hx-first-award">{featured.award}</span>
-                                <h2>{workTitle(featured)}</h2>
-                                <p>{featured.author}</p>
-                            </div>
-                            <div className="hx-feature-footer">
-                                <div className="hx-feature-select" aria-label={t("aix.awards")}>
-                                    {podium.map((work, index) => (
-                                        <button
-                                            key={work.id}
-                                            type="button"
-                                            aria-pressed={index === featuredIndex}
-                                            onClick={() => setFeaturedIndex(index)}
-                                        >
-                                            {work.award}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    type="button"
-                                    className="hx-text-button"
-                                    onClick={() => selectWork(featured)}
-                                >
-                                    {t("aix.viewProject")}
-                                    <ArrowUpRight size={17} />
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="hx-stage-await">
-                            <div className="hx-stage-board-label">{t("aix.resultsKicker")}</div>
-                            {status === "error" ? (
-                                <div role="alert">
-                                    <h2>{t("aix.loadFailed")}</h2>
-                                    <button className="hx-outline" onClick={reload}>
-                                        {t("aix.retry")}
-                                    </button>
-                                </div>
-                            ) : (
-                                <h2 role={status === "loading" ? "status" : undefined}>
-                                    {t(
-                                        status === "loading"
-                                            ? "aix.loading"
-                                            : "eventWorkspace.noWorks"
-                                    )}
-                                </h2>
-                            )}
-                        </div>
-                    )}
-                </EventStage>
+                <EventRecap template={template} outcome={outcome} status={status} reload={reload} />
             )}
             {status === "ready" && (
                 <>
@@ -284,38 +207,66 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
                                 className="hx-exhibit-collection"
                             >
                                 <div className="hx-first-section-head">
-                                    <h2 id="first-works-heading">
-                                        {t("firstEdition.worksTitle", { count: works.length })}
-                                    </h2>
-                                    <p>{t("firstEdition.awardNote")}</p>
+                                    <div className="hx-recap-section-heading">
+                                        <span aria-hidden="true">03</span>
+                                        <div>
+                                            <p>WORKS &amp; HONORS</p>
+                                            <h2 id="first-works-heading">
+                                                {t("hackathon.outcome_archive.works_title")}
+                                            </h2>
+                                        </div>
+                                    </div>
+                                    {works.length > 0 && <p>{t("firstEdition.awardNote")}</p>}
                                 </div>
-                                <div className="hx-first-toolbar">
-                                    <label className="hx-first-search">
-                                        <Search size={18} />
-                                        <input
-                                            type="search"
-                                            value={query}
-                                            onChange={(e) => setQuery(e.target.value)}
-                                            aria-label={t("firstEdition.search")}
-                                            placeholder={t("firstEdition.search")}
-                                        />
-                                    </label>
-                                    <select
-                                        aria-label={t("firstEdition.awardFilter")}
-                                        value={award}
-                                        onChange={(e) => setAward(e.target.value)}
+                                {podium.length > 0 && (
+                                    <div
+                                        className="hx-recap-podium"
+                                        aria-label={t("hackathon.outcome_archive.top_three")}
                                     >
-                                        <option value="">{t("firstEdition.allAwards")}</option>
-                                        {[
-                                            ...new Set(works.map((w) => w.award).filter(Boolean)),
-                                        ].map((value) => (
-                                            <option key={value}>{value}</option>
-                                        ))}
-                                    </select>
-                                    <span role="status">
-                                        {t("firstEdition.matchCount", { count: filtered.length })}
-                                    </span>
-                                </div>
+                                        {podium
+                                            .slice()
+                                            .sort((a, b) => Number(a.rank) - Number(b.rank))
+                                            .map((work) => workTile(work, true))}
+                                    </div>
+                                )}
+                                {works.length > 0 && (
+                                    <div className="hx-recap-index-title">
+                                        {t("eventRecap.allEntries", { count: works.length })}
+                                    </div>
+                                )}
+                                {works.length > 0 && (
+                                    <div className="hx-first-toolbar">
+                                        <label className="hx-first-search">
+                                            <Search size={18} />
+                                            <input
+                                                type="search"
+                                                value={query}
+                                                onChange={(e) => setQuery(e.target.value)}
+                                                aria-label={t("firstEdition.search")}
+                                                placeholder={t("firstEdition.search")}
+                                            />
+                                        </label>
+                                        <select
+                                            aria-label={t("firstEdition.awardFilter")}
+                                            value={award}
+                                            onChange={(e) => setAward(e.target.value)}
+                                        >
+                                            <option value="">{t("firstEdition.allAwards")}</option>
+                                            {[
+                                                ...new Set(
+                                                    works.map((w) => w.award).filter(Boolean)
+                                                ),
+                                            ].map((value) => (
+                                                <option key={value}>{value}</option>
+                                            ))}
+                                        </select>
+                                        <span role="status">
+                                            {t("firstEdition.matchCount", {
+                                                count: filtered.length,
+                                            })}
+                                        </span>
+                                    </div>
+                                )}
                                 {filtered.length ? (
                                     <div className="hx-exhibit-grid">
                                         {entries.map((work) => workTile(work))}
@@ -325,43 +276,18 @@ export default function FirstEditionResults({ template, copyNamespace = "firstEd
                                         {t(
                                             works.length
                                                 ? "firstEdition.noMatch"
-                                                : "eventWorkspace.noWorks"
+                                                : copyNamespace === "getuiBeauty"
+                                                  ? "getuiBeauty.worksPending"
+                                                  : copyNamespace === "aix"
+                                                    ? "aix.awardsPending"
+                                                    : "eventWorkspace.noWorks"
                                         )}
                                     </p>
                                 )}
                             </section>
                         </>
                     )}
-                    {photos.length > 0 && (
-                        <section className="hx-first-scene" aria-labelledby="first-scene-heading">
-                            <div className="hx-first-section-head">
-                                <h2 id="first-scene-heading">{t("firstEdition.sceneTitle")}</h2>
-                                <Link to={mediaHref}>
-                                    {t("firstEdition.allPhotos", {
-                                        count: outcome.stats.stage_photos,
-                                    })}{" "}
-                                    →
-                                </Link>
-                            </div>
-                            <div className="hx-first-photo-strip">
-                                {photos.map((photo) => (
-                                    <Link
-                                        key={photo.id}
-                                        to={`${mediaHref}?photo=${photo.source_id || photo.id}`}
-                                    >
-                                        <figure>
-                                            <img
-                                                src={photo.url || photo.cover_url}
-                                                alt={photo.title}
-                                                loading="lazy"
-                                            />
-                                            <figcaption>{photo.title}</figcaption>
-                                        </figure>
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    {!selected && <RecapPartners template={template} />}
                 </>
             )}
         </div>
