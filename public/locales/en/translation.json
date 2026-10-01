@@ -87,7 +87,7 @@
         "join_lumos": "Join Tuotu Zhixiang",
         "signin_required": "Please sign in first",
         "signin_desc": "Sign in to manage your content",
-        "signup_desc": "Create an account to start uploading",
+        "signup_desc": "Create an account with your basic details",
         "username": "Username",
         "password": "Password",
         "enter_username": "Enter username",
@@ -5721,5 +5721,25 @@
         "beautyTitleLines": ["Getui", "Beauty Hackathon"],
         "aixTitleLines": ["AI+X", "Hackathon"],
         "allEntries": "All works ({{count}})"
+    },
+    "accountProfile": {
+        "fields": {
+            "name": "Name",
+            "studentId": "Student ID",
+            "major": "Major",
+            "grade": "Year"
+        },
+        "chooseGrade": "Choose year",
+        "invalid": "Complete your name, student ID, major and year.",
+        "complete": "Complete your profile",
+        "completeHint": "Complete your account details to continue event registration.",
+        "saveContinue": "Save and continue",
+        "saveFailed": "Could not save. Please try again.",
+        "loginFirst": "Sign in to register for the event",
+        "loginHint": "New users: create an account with your name, student ID, major and year.",
+        "loginOrRegister": "Sign in / Sign up",
+        "edit": "Edit details",
+        "basicInfo": "Account details",
+        "profileChanged": "Complete your account details first."
     }
 }

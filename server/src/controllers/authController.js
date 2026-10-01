@@ -2,6 +2,12 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { getDb } = require("../config/db");
 const {
+    validateRegistrationProfile,
+    getRegistrationProfile,
+    saveRegistrationProfile,
+    createRegisteredUser,
+} = require("../services/registrationProfileService");
+const {
     WECHAT_BIND_TICKET_RE,
     WECHAT_BIND_TICKET_TTL_MS,
     WECHAT_LOGIN_CODE_RE,
@@ -175,6 +181,15 @@ const register = async (req, res, next) => {
             return res.status(400).json({ error: "Username and password are required" });
         }
 
+        const validation = validateRegistrationProfile(req.body.registrationProfile);
+        if (validation.errors.length) {
+            return res.status(400).json({
+                error: "请完善姓名、学号、专业和年级",
+                errorCode: "REGISTRATION_PROFILE_INVALID",
+                details: validation.errors,
+            });
+        }
+
         // Check if user already exists
         const existingUser = await db.get("SELECT id FROM users WHERE username = ?", [username]);
         if (existingUser) {
@@ -189,46 +204,19 @@ const register = async (req, res, next) => {
 
         const hashedPassword = await bcrypt.hash(password, 12); // Increased salt rounds
 
-        // Check if first user, make admin
-        const userCount = await db.get("SELECT COUNT(*) as count FROM users");
-        const role = userCount.count === 0 ? "admin" : "user";
-
-        const reviewPermission = role === "admin" ? "admin" : "normal";
-        const adminScope = role === "admin" ? "platform" : "none";
-        const result = await db.run(
-            "INSERT INTO users (username, password, role, account_type, review_permission, admin_scope, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [
-                username,
-                hashedPassword,
-                role,
-                "personal",
-                reviewPermission,
-                adminScope,
-                new Date().toISOString(),
-            ]
-        );
-
-        const token = signAuthToken({
-            id: result.lastID,
-            username,
-            role,
-            account_type: "personal",
-            review_permission: reviewPermission,
-            admin_scope: adminScope,
-        });
-
+        const user = await createRegisteredUser(db, username, hashedPassword, validation.profile);
+        res.setHeader("Cache-Control", "no-store");
         res.json({
-            token,
-            user: {
-                id: result.lastID,
-                username,
-                role,
-                account_type: "personal",
-                review_permission: reviewPermission,
-                admin_scope: adminScope,
-            },
+            token: signAuthToken(user),
+            user: { ...toAuthUser(user), registrationProfile: validation.profile },
         });
     } catch (error) {
+        if (
+            error.code?.startsWith("SQLITE_CONSTRAINT") &&
+            error.message?.includes("users.username")
+        ) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
         next(error);
     }
 };
@@ -264,7 +252,14 @@ const login = async (req, res, next) => {
             [user.id, "auth", 0, "login", "User logged in"]
         );
 
-        res.json({ token, user: toAuthUser(user) });
+        res.setHeader("Cache-Control", "no-store");
+        res.json({
+            token,
+            user: {
+                ...toAuthUser(user),
+                registrationProfile: await getRegistrationProfile(db, user.id),
+            },
+        });
     } catch (error) {
         next(error);
     }
@@ -285,7 +280,10 @@ const wechatMiniappLogin = async (req, res, next) => {
         const db = await getDb();
         const session = await exchangeWechatLoginCode(code);
         const user = await findBoundWechatMiniappUser(db, session);
-        const authUser = toAuthUser(user);
+        const authUser = {
+            ...toAuthUser(user),
+            registrationProfile: await getRegistrationProfile(db, user.id),
+        };
         const token = signAuthToken(authUser);
 
         req.loginTracker?.clear();
@@ -305,6 +303,7 @@ const wechatMiniappLogin = async (req, res, next) => {
                 console.warn("Audit log warning (wechat_miniapp_login):", error.message);
             });
 
+        res.setHeader("Cache-Control", "no-store");
         res.json({ token, user: authUser });
     } catch (error) {
         if (error.wechatErrcode) {
@@ -344,7 +343,27 @@ const me = async (req, res, next) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.json(user);
+        res.setHeader("Cache-Control", "no-store");
+        res.json({ ...user, registrationProfile: await getRegistrationProfile(db, user.id) });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateRegistrationProfile = async (req, res, next) => {
+    try {
+        const validation = validateRegistrationProfile(req.body?.registrationProfile);
+        if (validation.errors.length) {
+            return res.status(400).json({
+                error: "请完善姓名、学号、专业和年级",
+                errorCode: "REGISTRATION_PROFILE_INVALID",
+                details: validation.errors,
+            });
+        }
+        const db = await getDb();
+        await saveRegistrationProfile(db, req.user.id, validation.profile);
+        res.setHeader("Cache-Control", "no-store");
+        res.json({ registrationProfile: validation.profile });
     } catch (error) {
         next(error);
     }
@@ -390,5 +409,6 @@ module.exports = {
     wechatMiniappBind,
     me,
     changePassword,
+    updateRegistrationProfile,
     SECRET_KEY,
 };

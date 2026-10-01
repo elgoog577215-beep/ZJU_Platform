@@ -26,6 +26,10 @@ export default function HackathonWorkspace({ template, schedule }) {
     const [registrationError, setRegistrationError] = useState(false);
     const [retry, setRetry] = useState(0);
     const event = template.event;
+    const registrationOwner = useRef({ userId: user?.id, eventKey: event.key });
+    useLayoutEffect(() => {
+        registrationOwner.current = { userId: user?.id, eventKey: event.key };
+    }, [user?.id, event.key]);
     const workspaceRef = useRef(null);
     useLayoutEffect(() => {
         const navbar = document.querySelector("[data-site-navbar]");
@@ -170,6 +174,11 @@ export default function HackathonWorkspace({ template, schedule }) {
                         onRetry: () => setRetry((value) => value + 1),
                         onLogin: () => window.dispatchEvent(new Event("open-auth-modal")),
                         onRegistered: (value) => {
+                            if (
+                                registrationOwner.current.userId !== user?.id ||
+                                registrationOwner.current.eventKey !== event.key
+                            )
+                                return;
                             setRegistration(value);
                             setRegistrationError(false);
                         },

@@ -55,7 +55,7 @@ export default function HackathonEventContent({
         <HackathonRegistration
             template={{ ...template, event: { ...template.event, registrationOpen } }}
             registrationRef={registrationRef}
-            registrationState={hasProgram ? registrationState : undefined}
+            registrationState={registrationState}
             programContent={
                 hasProgram ? (
                     <Program template={template} now={now} switchView={switchView} />

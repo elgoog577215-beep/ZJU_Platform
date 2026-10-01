@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
 
     const getAuthErrorMessage = (err, fallbackKey) => {
         const data = err?.response?.data;
+        if (data?.errorCode === "REGISTRATION_PROFILE_INVALID") return t("accountProfile.invalid");
         const validationMessage = data?.errors?.[0]?.msg || data?.details?.[0]?.message;
         const rawMessage = data?.error || validationMessage;
         const authErrorMap = {
@@ -148,7 +149,15 @@ export const AuthProvider = ({ children }) => {
     const register = async (username, password, options = {}) => {
         const requestId = ++sessionRequest.current;
         try {
-            const res = await api.post("/auth/register", { username, password });
+            const res = await api.post(
+                "/auth/register",
+                {
+                    username,
+                    password,
+                    registrationProfile: options.registrationProfile,
+                },
+                { noRetry: true }
+            );
             if (requestId !== sessionRequest.current) return false;
             const { token, user } = res.data;
             storeAuthToken(token, {
@@ -221,6 +230,24 @@ export const AuthProvider = ({ children }) => {
         showSuccess(t("auth.logout_success"));
     };
 
+    const saveRegistrationProfile = async (registrationProfile) => {
+        const requestId = sessionRequest.current;
+        const token = getStoredAuthToken();
+        if (!user || !token) return false;
+        const { data } = await api.put(
+            "/auth/registration-profile",
+            { registrationProfile },
+            { noRetry: true }
+        );
+        if (requestId !== sessionRequest.current || getStoredAuthToken() !== token) return false;
+        setUser((current) =>
+            current?.id === user.id
+                ? { ...current, registrationProfile: data.registrationProfile }
+                : current
+        );
+        return true;
+    };
+
     const refreshUser = async () => {
         await retrySession();
     };
@@ -235,6 +262,7 @@ export const AuthProvider = ({ children }) => {
                 logout,
                 loading,
                 refreshUser,
+                saveRegistrationProfile,
                 sessionError,
                 retrySession,
                 isAdmin: user?.role === "admin",

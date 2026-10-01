@@ -139,6 +139,27 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
             researchExperience: "参与课题文献整理及数据分析。",
             projectLinks: "https://example.test/demo\nhttps://example.test/paper",
         };
+        const {
+            migrateRegistrationProfiles,
+        } = require("../src/config/migrations/registrationProfiles");
+        const { saveRegistrationProfile } = require("../src/services/registrationProfileService");
+        await migrateRegistrationProfiles(db);
+        const accountProfile = {
+            name: answers.name,
+            studentId: answers.studentId,
+            major: answers.major,
+            grade: answers.grade,
+        };
+        let incomplete = response();
+        await controller.registerHackathon(
+            { user: { id: 1 }, body: { eventKey, answers } },
+            incomplete,
+            next
+        );
+        assert.equal(incomplete.statusCode, 403);
+        assert.equal(incomplete.body.code, "HACKATHON_PROFILE_REQUIRED");
+        await saveRegistrationProfile(db, 1, accountProfile);
+        await saveRegistrationProfile(db, 2, accountProfile);
         let res = response();
         const beforeHistoricalAttempt = await db.get(
             "SELECT COUNT(*) AS count FROM hackathon_registrations"
@@ -181,7 +202,19 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
         );
         res = response();
         await controller.registerHackathon(
-            { user: { id: 1 }, body: { eventKey, answers } },
+            {
+                user: { id: 1 },
+                body: {
+                    eventKey,
+                    answers: {
+                        ...answers,
+                        name: "forged",
+                        studentId: "FORGED",
+                        major: "forged",
+                        grade: "phd",
+                    },
+                },
+            },
             res,
             next
         );
@@ -189,6 +222,7 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
         const stored = await db.get("SELECT * FROM hackathon_registrations WHERE id = ?", [
             res.body.id,
         ]);
+        assert.deepEqual(res.body.answers, answers);
         assert.deepEqual(JSON.parse(stored.form_data_json), answers);
         assert.deepEqual(JSON.parse(stored.ai_tools), answers.aiTools);
         assert.equal(stored.experience, answers.experience);
@@ -223,6 +257,28 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
             next
         );
         assert.equal(res.statusCode, 409);
+        await saveRegistrationProfile(db, 1, { ...accountProfile, name: "Changed later" });
+        assert.deepEqual(
+            JSON.parse(
+                (await db.get("SELECT form_data_json FROM hackathon_registrations WHERE user_id=1"))
+                    .form_data_json
+            ),
+            answers
+        );
+        // The prerequisite also applies to another open edition, not only AI+X.
+        schedule.events[0].event.endAt = "2099-01-02T17:00";
+        schedule.events[0].event.registrationOpen = true;
+        schedule.events[0].navigation.registrationVisible = true;
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
+        res = response();
+        await controller.registerHackathon(
+            { body: { eventKey: old.event.key, answers } },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 401);
         schedule.events[1].event.program.registrationClosesAt = "2000-01-01T00:00:00Z";
         await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
             JSON.stringify(schedule),

@@ -36,6 +36,8 @@ test("hackathon controller stores and returns configurable form answers", async 
         const db = await getDb();
         await db.exec(`
             CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE users(id INTEGER PRIMARY KEY);
+            INSERT INTO users VALUES(1);
             CREATE TABLE competitions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 slug TEXT NOT NULL UNIQUE,
@@ -53,6 +55,7 @@ test("hackathon controller stores and returns configurable form answers", async 
             CREATE TABLE hackathon_registrations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_key TEXT NOT NULL DEFAULT 'zhekesong-current',
+                user_id INTEGER REFERENCES users(id),
                 name TEXT NOT NULL,
                 student_id TEXT NOT NULL,
                 major TEXT NOT NULL,
@@ -65,6 +68,16 @@ test("hackathon controller stores and returns configurable form answers", async 
                 UNIQUE(event_key, student_id)
             );
         `);
+
+        await require("../src/config/migrations/registrationProfiles").migrateRegistrationProfiles(
+            db
+        );
+        await require("../src/services/registrationProfileService").saveRegistrationProfile(db, 1, {
+            name: "测试同学",
+            studentId: "3230100000",
+            major: "计算机科学",
+            grade: "junior",
+        });
 
         const template = JSON.parse(JSON.stringify(DEFAULT_HACKATHON_TEMPLATE));
         // This case tests successful configurable registration, so keep its fixture upcoming.
@@ -88,6 +101,7 @@ test("hackathon controller stores and returns configurable form answers", async 
         const registerResponse = createResponse();
         await hackathonController.registerHackathon(
             {
+                user: { id: 1 },
                 body: {
                     eventKey: saved.event.key,
                     templateRevision: saved.revision,
@@ -134,6 +148,7 @@ test("hackathon controller stores and returns configurable form answers", async 
         const secondRegisterResponse = createResponse();
         await hackathonController.registerHackathon(
             {
+                user: { id: 1 },
                 body: {
                     eventKey: secondTemplate.event.key,
                     answers: {

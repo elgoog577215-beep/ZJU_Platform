@@ -1,0 +1,52 @@
+{
+    "fields": [
+        {
+            "id": "name",
+            "maxLength": 80
+        },
+        {
+            "id": "studentId",
+            "maxLength": 40
+        },
+        {
+            "id": "major",
+            "maxLength": 120
+        },
+        {
+            "id": "grade",
+            "maxLength": 20
+        }
+    ],
+    "grades": [
+        {
+            "value": "freshman",
+            "label": "大一",
+            "labelEn": "Freshman"
+        },
+        {
+            "value": "sophomore",
+            "label": "大二",
+            "labelEn": "Sophomore"
+        },
+        {
+            "value": "junior",
+            "label": "大三",
+            "labelEn": "Junior"
+        },
+        {
+            "value": "senior",
+            "label": "大四",
+            "labelEn": "Senior"
+        },
+        {
+            "value": "master",
+            "label": "硕士",
+            "labelEn": "Master’s"
+        },
+        {
+            "value": "phd",
+            "label": "博士",
+            "labelEn": "Doctoral"
+        }
+    ]
+}

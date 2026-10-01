@@ -86,7 +86,7 @@
         "signin_required": "请先登录",
         "join_lumos": "加入拓途浙享",
         "signin_desc": "登录以管理您的内容",
-        "signup_desc": "创建账户以开始上传",
+        "signup_desc": "填写基本信息，创建账号",
         "username": "用户名",
         "password": "密码",
         "enter_username": "输入用户名",
@@ -5830,5 +5830,25 @@
         "beautyTitleLines": ["每日互动", "美妆联谊赛"],
         "aixTitleLines": ["AI+X", "破界黑客松"],
         "allEntries": "全部作品（{{count}}）"
+    },
+    "accountProfile": {
+        "fields": {
+            "name": "姓名",
+            "studentId": "学号",
+            "major": "专业",
+            "grade": "年级"
+        },
+        "chooseGrade": "请选择",
+        "invalid": "请完整填写姓名、学号、专业和年级。",
+        "complete": "完善注册资料",
+        "completeHint": "补齐注册资料后，继续填写赛事报名表。",
+        "saveContinue": "保存并继续",
+        "saveFailed": "保存失败，请重试。",
+        "loginFirst": "登录后填写报名表",
+        "loginHint": "新用户请先注册，并填写姓名、学号、专业和年级。",
+        "loginOrRegister": "登录 / 注册",
+        "edit": "修改资料",
+        "basicInfo": "注册资料",
+        "profileChanged": "请先完善注册资料。"
     }
 }

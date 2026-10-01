@@ -12,6 +12,9 @@ import {
     navigateToMiniProgramPage,
 } from "../utils/wechatMiniProgramBridge";
 
+import RegistrationProfileFields from "./RegistrationProfileFields";
+import { emptyRegistrationProfile, hasRegistrationProfile } from "../utils/registrationProfile";
+
 const AuthModal = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
     useBackClose(isOpen, onClose);
@@ -24,6 +27,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [registrationProfile, setRegistrationProfile] = useState(emptyRegistrationProfile);
     const [remember, setRemember] = useState(true);
     const [loading, setLoading] = useState(false);
     const [wechatLoading, setWechatLoading] = useState(false);
@@ -47,16 +51,21 @@ const AuthModal = ({ isOpen, onClose }) => {
             return;
         }
 
+        if (!isLogin && !hasRegistrationProfile(registrationProfile)) {
+            setError(t("accountProfile.invalid"));
+            return;
+        }
         setLoading(true);
         const success = isLogin
             ? await login(username, password, { remember })
-            : await register(username, password, { remember });
+            : await register(username, password, { remember, registrationProfile });
 
         setLoading(false);
         if (success) {
             onClose();
             setUsername("");
             setPassword("");
+            setRegistrationProfile(emptyRegistrationProfile());
         }
     };
 
@@ -99,7 +108,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                     aria-modal="true"
                     aria-labelledby={dialogTitleId}
                     aria-describedby={error ? errorId : undefined}
-                    className={`relative w-full max-w-md backdrop-blur-3xl border rounded-lg shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_24px_64px_rgba(168,85,247,0.12)]" : "bg-[#0a0a0a]/80 border-white/10"}`}
+                    className={`relative w-full max-w-md backdrop-blur-3xl border rounded-lg shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-5 sm:p-7 z-10 ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_24px_64px_rgba(168,85,247,0.12)]" : "bg-[#0a0a0a]/80 border-white/10"}`}
                 >
                     {/* Glass Effect Background */}
                     <div
@@ -114,7 +123,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                         <X size={20} aria-hidden="true" />
                     </button>
 
-                    <div className="text-center mb-8 relative z-10">
+                    <div className="text-center mb-5 relative z-10">
                         <h2
                             id={dialogTitleId}
                             className={`text-3xl font-bold mb-2 tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
@@ -150,7 +159,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                         )}
                     </AnimatePresence>
 
-                    <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+                    <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
                         <div>
                             <label
                                 htmlFor={usernameId}
@@ -168,6 +177,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                                     id={usernameId}
                                     type="text"
                                     autoComplete="username"
+                                    required
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? "bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white" : "bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5"}`}
@@ -193,6 +203,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                                     id={passwordId}
                                     type="password"
                                     autoComplete={isLogin ? "current-password" : "new-password"}
+                                    required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? "bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white" : "bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5"}`}
@@ -201,6 +212,19 @@ const AuthModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                         </div>
+
+                        {!isLogin && (
+                            <RegistrationProfileFields
+                                value={registrationProfile}
+                                disabled={loading}
+                                onChange={(id, value) =>
+                                    setRegistrationProfile((current) => ({
+                                        ...current,
+                                        [id]: value,
+                                    }))
+                                }
+                            />
+                        )}
 
                         <label
                             className={`flex min-h-[44px] cursor-pointer items-center gap-2 text-sm ${isDayMode ? "text-slate-600" : "text-gray-300"}`}

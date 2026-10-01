@@ -68,7 +68,16 @@ async function approveResource(apiRequest, resourceTable, id) {
 async function registerUser(apiRequest, scenario) {
     const username = makeUsername(scenario);
     const resp = await apiRequest.post(`${BASE_API}/auth/register`, {
-        data: { username, password: PASSWORD },
+        data: {
+            username,
+            password: PASSWORD,
+            registrationProfile: {
+                name: "测试用户",
+                studentId: `TEST-${username.slice(-30)}`,
+                major: "计算机",
+                grade: "junior",
+            },
+        },
     });
     expect(resp.ok(), await resp.text()).toBeTruthy();
     const body = await resp.json();

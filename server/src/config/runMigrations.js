@@ -79,6 +79,7 @@ const FEATURED_ENTERPRISE_PARTNERS = Object.freeze([
 async function runMigrations(db) {
     console.log("🔄 Running database migrations...");
     await ensureCoreSchema(db);
+    await require("./migrations/registrationProfiles").migrateRegistrationProfiles(db);
     await require("./migrations/lotteries").migrateLotteries(db);
 
     try {

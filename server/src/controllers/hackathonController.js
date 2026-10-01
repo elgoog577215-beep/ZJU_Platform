@@ -1,5 +1,9 @@
 const { getDb } = require("../config/db");
 const {
+    getRegistrationProfile,
+    validateRegistrationProfile,
+} = require("../services/registrationProfileService");
+const {
     MAX_QUERY_LENGTH,
     runHackathonAssistant,
 } = require("../services/hackathonAssistantService");
@@ -24,12 +28,6 @@ const registerHackathon = async (req, res, next) => {
         if (eventKey && template.event.key !== eventKey) {
             return res.status(404).json({ error: "赛事不存在" });
         }
-        const accountRequired = template.event.key === "zhekesong-ai-x-2026";
-        if (accountRequired && !req.user?.id) {
-            return res
-                .status(401)
-                .json({ error: "请先登录后报名", code: "HACKATHON_LOGIN_REQUIRED" });
-        }
         // Editor-local event timestamps are Asia/Shanghai, not the server's local timezone.
         const rawEndAt = template.event.endAt || "";
         const endAt = Date.parse(
@@ -47,12 +45,16 @@ const registerHackathon = async (req, res, next) => {
                 .status(403)
                 .json({ error: "报名已截止", code: "HACKATHON_REGISTRATION_CLOSED" });
         }
+        if (!req.user?.id) {
+            return res
+                .status(401)
+                .json({ error: "请先登录后报名", code: "HACKATHON_LOGIN_REQUIRED" });
+        }
         if (
-            accountRequired &&
-            (await db.get(
+            await db.get(
                 "SELECT id FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
                 [template.event.key, req.user.id]
-            ))
+            )
         ) {
             return res
                 .status(409)
@@ -62,6 +64,14 @@ const registerHackathon = async (req, res, next) => {
             return res.status(403).json({
                 error: "当前赛事报名尚未开放",
                 code: "HACKATHON_REGISTRATION_CLOSED",
+            });
+        }
+
+        const registrationProfile = await getRegistrationProfile(db, req.user.id);
+        if (validateRegistrationProfile(registrationProfile).errors.length) {
+            return res.status(403).json({
+                error: "请先完善账号的姓名、学号、专业和年级",
+                code: "HACKATHON_PROFILE_REQUIRED",
             });
         }
 
@@ -77,7 +87,10 @@ const registerHackathon = async (req, res, next) => {
             req.body?.answers && typeof req.body.answers === "object"
                 ? { ...legacyAnswers, ...req.body.answers }
                 : legacyAnswers;
-        const validation = validateRegistrationAnswers(template, answerPayload);
+        const validation = validateRegistrationAnswers(template, {
+            ...answerPayload,
+            ...registrationProfile,
+        });
         if (validation.errors.length > 0) {
             return res.status(400).json({
                 error: "请检查并完善报名信息",
@@ -86,7 +99,7 @@ const registerHackathon = async (req, res, next) => {
             });
         }
 
-        const { answers } = validation;
+        const answers = { ...validation.answers, ...registrationProfile };
         const name = String(answers.name || "").trim();
         const studentId = String(answers.studentId || "")
             .trim()
@@ -106,8 +119,8 @@ const registerHackathon = async (req, res, next) => {
 
         const result = await db.run(
             `INSERT INTO hackathon_registrations
-                (event_key, name, student_id, major, grade, ai_tools, experience, form_data_json, template_revision, created_at${accountRequired ? ", user_id" : ""})
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?${accountRequired ? ", ?" : ""})`,
+                (event_key, name, student_id, major, grade, ai_tools, experience, form_data_json, template_revision, created_at, user_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 template.event.key,
                 name,
@@ -119,13 +132,14 @@ const registerHackathon = async (req, res, next) => {
                 JSON.stringify(answers),
                 template.revision,
                 new Date().toISOString(),
-                ...(accountRequired ? [req.user.id] : []),
+                req.user.id,
             ]
         );
 
         res.status(201).json({
             id: result.lastID,
             eventKey: template.event.key,
+            answers,
             message: "报名成功",
         });
     } catch (error) {

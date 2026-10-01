@@ -213,6 +213,11 @@ router.post(
     authController.wechatMiniappBind
 );
 router.get("/auth/me", authenticateToken, authController.me);
+router.put(
+    "/auth/registration-profile",
+    authenticateToken,
+    authController.updateRegistrationProfile
+);
 router.get(
     "/admin/capabilities",
     authenticateToken,

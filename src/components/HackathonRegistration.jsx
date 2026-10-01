@@ -36,6 +36,12 @@ import { useSectionPager } from "../hooks/useSectionPager";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import SEO from "./SEO";
+import RegistrationProfileForm from "./RegistrationProfileForm";
+import {
+    hasRegistrationProfile,
+    registrationProfileFields,
+    registrationProfileGrades,
+} from "../utils/registrationProfile";
 
 const AIX_REGISTRATION_GROUPS = [
     { key: "basics", ids: ["name", "studentId", "major", "grade", "contact", "track"] },
@@ -186,6 +192,8 @@ const HackathonRegistration = ({
         onRetry,
     } = registrationState || {};
     const requiresLogin = Boolean(registrationState);
+    const profileComplete = hasRegistrationProfile(user?.registrationProfile);
+    const [editingProfile, setEditingProfile] = useState(false);
     const { uiMode } = useSettings();
     const reduceMotion = useReducedMotion();
     const shouldAnimate = !reduceMotion;
@@ -194,6 +202,14 @@ const HackathonRegistration = ({
     const isEnglish = String(language).startsWith("en");
     const resolvedTemplate = useMemo(() => normalizeHackathonTemplate(template), [template]);
     const isAiX = resolvedTemplate.event.key === "zhekesong-ai-x-2026";
+    const gateRegistration =
+        requiresLogin && resolvedTemplate.event.registrationOpen && !registration;
+    const showProfileGate = gateRegistration && (!user || !profileComplete || editingProfile);
+    const useAccountBasics =
+        requiresLogin &&
+        profileComplete &&
+        !registration &&
+        resolvedTemplate.event.registrationOpen;
     const sourceFormFields = useMemo(
         () => getActiveHackathonFields(resolvedTemplate),
         [resolvedTemplate]
@@ -301,8 +317,13 @@ const HackathonRegistration = ({
             setFormData(buildHackathonInitialAnswers(resolvedTemplate));
         else if (registration)
             setFormData(registration.answers || buildHackathonInitialAnswers(resolvedTemplate));
+        if (previousUser.current !== user?.id) setEditingProfile(false);
         previousUser.current = user?.id;
     }, [registration, user?.id, resolvedTemplate]);
+    useEffect(() => {
+        if (useAccountBasics)
+            setFormData((current) => ({ ...current, ...user.registrationProfile }));
+    }, [useAccountBasics, user?.registrationProfile]);
     const [formErrors, setFormErrors] = useState({});
     const [coachQuery, setCoachQuery] = useState(
         t("hackathon.coach.default_query", "我不会前端但会用 Codex，适合参加吗？")
@@ -653,6 +674,10 @@ const HackathonRegistration = ({
             onLogin?.();
             return;
         }
+        if (requiresLogin && !profileComplete) {
+            toast.error(t("accountProfile.profileChanged"));
+            return;
+        }
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
@@ -686,7 +711,7 @@ const HackathonRegistration = ({
                 onRegistered?.({
                     id: data.id,
                     eventKey: resolvedTemplate.event.key,
-                    answers: formData,
+                    answers: data.answers || formData,
                 });
             else setFormData(buildHackathonInitialAnswers(resolvedTemplate));
         } catch (error) {
@@ -1485,6 +1510,16 @@ const HackathonRegistration = ({
                                     </p>
                                 )}
                             </div>
+                            {useAccountBasics && !showProfileGate && (
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting || registrationLoading}
+                                    onClick={() => setEditingProfile(true)}
+                                    className="min-h-[44px] shrink-0 underline underline-offset-4"
+                                >
+                                    {t("accountProfile.edit")}
+                                </button>
+                            )}
                             {!isAiX && (
                                 <div
                                     className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
@@ -1494,218 +1529,299 @@ const HackathonRegistration = ({
                             )}
                         </div>
 
-                        <form
-                            onSubmit={handleSubmit}
-                            className={isAiX ? "hackathon-contained-form" : "space-y-5"}
-                        >
-                            <div
-                                className={isAiX ? "hackathon-form-fields space-y-5" : "space-y-5"}
-                                role={isAiX ? "region" : undefined}
-                                aria-label={isAiX ? formConfig.title : undefined}
-                                tabIndex={isAiX ? 0 : undefined}
-                            >
-                                {requiresLogin &&
-                                    (!isAiX ||
-                                        registration ||
-                                        registrationLoading ||
-                                        registrationError) && (
-                                        <p
-                                            role={registrationError ? "alert" : "status"}
-                                            className={palette.textSoft}
-                                        >
-                                            {t(
-                                                registration
-                                                    ? "aix.register.success"
-                                                    : registrationLoading
-                                                      ? "aix.loading"
-                                                      : registrationError
-                                                        ? "aix.register.statusFailed"
-                                                        : !user
-                                                          ? "aix.register.loginHint"
-                                                          : "aix.register.privacy"
-                                            )}
-                                        </p>
-                                    )}
-                                <fieldset
-                                    disabled={
-                                        isSubmitting || Boolean(registration) || registrationLoading
+                        {showProfileGate ? (
+                            registrationLoading ? (
+                                <p role="status">{t("aix.loading")}</p>
+                            ) : !user ? (
+                                <div className="flex min-h-0 flex-1 flex-col items-start justify-center gap-4 py-5">
+                                    <p className="text-lg font-semibold">
+                                        {t("accountProfile.loginFirst")}
+                                    </p>
+                                    <p className={`text-sm ${palette.textMuted}`}>
+                                        {t("accountProfile.loginHint")}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="hx-primary min-h-[44px]"
+                                        onClick={onLogin}
+                                    >
+                                        {t("accountProfile.loginOrRegister")}
+                                    </button>
+                                </div>
+                            ) : (
+                                <RegistrationProfileForm
+                                    key={user.id}
+                                    onSaved={() => setEditingProfile(false)}
+                                    onCancel={
+                                        profileComplete ? () => setEditingProfile(false) : undefined
                                     }
-                                    className="min-w-0 space-y-8"
+                                />
+                            )
+                        ) : (
+                            <form
+                                onSubmit={handleSubmit}
+                                className={isAiX ? "hackathon-contained-form" : "space-y-5"}
+                            >
+                                <div
+                                    className={
+                                        isAiX ? "hackathon-form-fields space-y-5" : "space-y-5"
+                                    }
+                                    role={isAiX ? "region" : undefined}
+                                    aria-label={isAiX ? formConfig.title : undefined}
+                                    tabIndex={isAiX ? 0 : undefined}
                                 >
-                                    {registrationGroups.map((group) => (
+                                    {requiresLogin &&
+                                        (!isAiX ||
+                                            registration ||
+                                            registrationLoading ||
+                                            registrationError) && (
+                                            <p
+                                                role={registrationError ? "alert" : "status"}
+                                                className={palette.textSoft}
+                                            >
+                                                {t(
+                                                    registration
+                                                        ? "aix.register.success"
+                                                        : registrationLoading
+                                                          ? "aix.loading"
+                                                          : registrationError
+                                                            ? "aix.register.statusFailed"
+                                                            : !user
+                                                              ? "aix.register.loginHint"
+                                                              : "aix.register.privacy"
+                                                )}
+                                            </p>
+                                        )}
+                                    {useAccountBasics && (
                                         <div
-                                            key={group.key}
-                                            className="hackathon-form-group grid gap-5 md:grid-cols-2 xl:gap-6"
+                                            className={`flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-sm ${palette.line}`}
                                         >
-                                            {group.fields
-                                                .filter(
-                                                    (field) =>
-                                                        !isAiX ||
-                                                        field.id !== "aiToolsOther" ||
-                                                        field.required ||
-                                                        formData.aiTools?.includes("other") ||
-                                                        formData.aiToolsOther
-                                                )
-                                                .map((field) => (
-                                                    <div
-                                                        key={field.id}
-                                                        data-field={field.id}
-                                                        className={
-                                                            field.width === "half" ||
-                                                            (isAiX &&
-                                                                [
-                                                                    "track",
-                                                                    "experience",
-                                                                    "researchExperience",
-                                                                ].includes(field.id))
-                                                                ? "min-w-0"
-                                                                : isAiX
-                                                                  ? "min-w-0 col-span-2"
-                                                                  : "min-w-0 md:col-span-2"
-                                                        }
-                                                    >
-                                                        <DynamicRegistrationField
-                                                            field={field}
-                                                            value={formData[field.id]}
-                                                            error={formErrors[field.id]}
-                                                            palette={palette}
-                                                            isDayMode={isDayMode}
-                                                            compact={isAiX}
-                                                            onChange={(value) =>
-                                                                updateAnswer(field.id, value)
-                                                            }
-                                                            onToggle={(option) =>
-                                                                handleMultiSelectToggle(
-                                                                    field.id,
-                                                                    option
-                                                                )
-                                                            }
-                                                        />
+                                            <dl
+                                                aria-label={t("accountProfile.basicInfo")}
+                                                className="flex min-w-0 flex-wrap gap-x-4 gap-y-1"
+                                            >
+                                                {registrationProfileFields.map(({ id }) => (
+                                                    <div key={id} className="flex gap-1.5">
+                                                        <dt className={palette.textMuted}>
+                                                            {t(`accountProfile.fields.${id}`)}
+                                                        </dt>
+                                                        <dd className="break-all">
+                                                            {id === "grade"
+                                                                ? registrationProfileGrades.find(
+                                                                      (g) =>
+                                                                          g.value ===
+                                                                          user.registrationProfile
+                                                                              .grade
+                                                                  )?.[
+                                                                      isEnglish
+                                                                          ? "labelEn"
+                                                                          : "label"
+                                                                  ]
+                                                                : user.registrationProfile[id]}
+                                                        </dd>
                                                     </div>
                                                 ))}
+                                            </dl>
                                         </div>
-                                    ))}
-                                </fieldset>
-                            </div>
-
-                            <div
-                                className={
-                                    "hackathon-form-footer grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
-                                    palette.line
-                                }
-                            >
-                                <div className={"border px-5 py-4 " + palette.chip}>
-                                    <p className="text-base font-black">
-                                        {t("hackathon.form.before_submit", "提交前确认")}
-                                    </p>
-                                    <p className={"mt-2 text-sm leading-6 " + palette.textMuted}>
-                                        {formConfig.privacyNotice}
-                                    </p>
-                                    {!event.registrationOpen ? (
-                                        <p className="mt-4 font-semibold text-amber-400">
-                                            {t(
-                                                isFirstEdition
-                                                    ? "firstEdition.registrationHistory"
-                                                    : "hackathon.form.registration_preview",
-                                                "当前赛事报名尚未开放，表单仅供预览。"
-                                            )}
-                                        </p>
-                                    ) : null}
-                                </div>
-
-                                <div className="flex flex-col gap-4">
-                                    <button
-                                        type="submit"
+                                    )}
+                                    <fieldset
                                         disabled={
                                             isSubmitting ||
-                                            registrationLoading ||
                                             Boolean(registration) ||
-                                            !event.registrationOpen
+                                            registrationLoading
                                         }
-                                        className={
-                                            "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
-                                            palette.primary
-                                        }
+                                        className="min-w-0 space-y-8"
                                     >
-                                        {isSubmitting ? (
-                                            <>
-                                                <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                                {t("common.submitting", "提交中...")}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {registration
-                                                    ? t("aix.register.saved")
-                                                    : registrationLoading
-                                                      ? t("aix.loading")
-                                                      : registrationError
-                                                        ? t("aix.register.retry")
-                                                        : requiresLogin && !user
-                                                          ? t("aix.register.login")
-                                                          : event.registrationOpen
-                                                            ? formConfig.submitLabel
-                                                            : t(
-                                                                  isFirstEdition
-                                                                      ? "aix.register.closed"
-                                                                      : "hackathon.form.registration_closed",
-                                                                  "报名已截止"
-                                                              )}
-                                                <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                                            </>
-                                        )}
-                                    </button>
-
-                                    {!resolvedTemplate.event.program && (
-                                        <div>
-                                            <label
-                                                className={
-                                                    "mb-3 block text-base font-black " +
-                                                    palette.textSoft
-                                                }
-                                            >
-                                                {t("hackathon.form.official_group", "官方微信群")}
-                                                <span
-                                                    className={
-                                                        "ml-2 font-normal " + palette.textMuted
-                                                    }
-                                                >
-                                                    {t("hackathon.form.optional", "可选")}
-                                                </span>
-                                            </label>
+                                        {registrationGroups.map((group) => (
                                             <div
-                                                className={
-                                                    "flex items-center gap-4 border p-3 " +
-                                                    (isDayMode
-                                                        ? "border-slate-200 bg-white/80"
-                                                        : "border-white/10 bg-white/[0.04]")
-                                                }
+                                                key={group.key}
+                                                className="hackathon-form-group grid gap-5 md:grid-cols-2 xl:gap-6"
                                             >
-                                                <img
-                                                    src={officialWechatGroupImage}
-                                                    alt={t(
-                                                        "hackathon.form.official_group_qr",
-                                                        "官方微信群二维码"
-                                                    )}
-                                                    className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
-                                                    loading="lazy"
-                                                />
-                                                <p
+                                                {group.fields
+                                                    .filter(
+                                                        (field) =>
+                                                            !(
+                                                                useAccountBasics &&
+                                                                registrationProfileFields.some(
+                                                                    ({ id }) => id === field.id
+                                                                )
+                                                            ) &&
+                                                            (!isAiX ||
+                                                                field.id !== "aiToolsOther" ||
+                                                                field.required ||
+                                                                formData.aiTools?.includes(
+                                                                    "other"
+                                                                ) ||
+                                                                formData.aiToolsOther)
+                                                    )
+                                                    .map((field) => (
+                                                        <div
+                                                            key={field.id}
+                                                            data-field={field.id}
+                                                            className={
+                                                                field.width === "half" ||
+                                                                (isAiX &&
+                                                                    [
+                                                                        "track",
+                                                                        "experience",
+                                                                        "researchExperience",
+                                                                    ].includes(field.id))
+                                                                    ? "min-w-0"
+                                                                    : isAiX
+                                                                      ? "min-w-0 col-span-2"
+                                                                      : "min-w-0 md:col-span-2"
+                                                            }
+                                                        >
+                                                            <DynamicRegistrationField
+                                                                field={field}
+                                                                value={formData[field.id]}
+                                                                error={formErrors[field.id]}
+                                                                palette={palette}
+                                                                isDayMode={isDayMode}
+                                                                compact={isAiX}
+                                                                onChange={(value) =>
+                                                                    updateAnswer(field.id, value)
+                                                                }
+                                                                onToggle={(option) =>
+                                                                    handleMultiSelectToggle(
+                                                                        field.id,
+                                                                        option
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        ))}
+                                    </fieldset>
+                                </div>
+
+                                <div
+                                    className={
+                                        "hackathon-form-footer grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
+                                        palette.line
+                                    }
+                                >
+                                    <div className={"border px-5 py-4 " + palette.chip}>
+                                        <p className="text-base font-black">
+                                            {t("hackathon.form.before_submit", "提交前确认")}
+                                        </p>
+                                        <p
+                                            className={
+                                                "mt-2 text-sm leading-6 " + palette.textMuted
+                                            }
+                                        >
+                                            {formConfig.privacyNotice}
+                                        </p>
+                                        {!event.registrationOpen ? (
+                                            <p className="mt-4 font-semibold text-amber-400">
+                                                {t(
+                                                    isFirstEdition
+                                                        ? "firstEdition.registrationHistory"
+                                                        : "hackathon.form.registration_preview",
+                                                    "当前赛事报名尚未开放，表单仅供预览。"
+                                                )}
+                                            </p>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <button
+                                            type="submit"
+                                            disabled={
+                                                isSubmitting ||
+                                                registrationLoading ||
+                                                Boolean(registration) ||
+                                                !event.registrationOpen
+                                            }
+                                            className={
+                                                "group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg " +
+                                                palette.primary
+                                            }
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                    {t("common.submitting", "提交中...")}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {registration
+                                                        ? t("aix.register.saved")
+                                                        : registrationLoading
+                                                          ? t("aix.loading")
+                                                          : registrationError
+                                                            ? t("aix.register.retry")
+                                                            : requiresLogin && !user
+                                                              ? t("aix.register.login")
+                                                              : event.registrationOpen
+                                                                ? formConfig.submitLabel
+                                                                : t(
+                                                                      isFirstEdition
+                                                                          ? "aix.register.closed"
+                                                                          : "hackathon.form.registration_closed",
+                                                                      "报名已截止"
+                                                                  )}
+                                                    <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                                                </>
+                                            )}
+                                        </button>
+
+                                        {!resolvedTemplate.event.program && (
+                                            <div>
+                                                <label
                                                     className={
-                                                        "hidden text-sm font-semibold leading-6 xl:block " +
-                                                        palette.textMuted
+                                                        "mb-3 block text-base font-black " +
+                                                        palette.textSoft
                                                     }
                                                 >
                                                     {t(
-                                                        "hackathon.form.official_group_desc",
-                                                        "扫码加入群聊，后续通知和现场信息会在群内同步。"
+                                                        "hackathon.form.official_group",
+                                                        "官方微信群"
                                                     )}
-                                                </p>
+                                                    <span
+                                                        className={
+                                                            "ml-2 font-normal " + palette.textMuted
+                                                        }
+                                                    >
+                                                        {t("hackathon.form.optional", "可选")}
+                                                    </span>
+                                                </label>
+                                                <div
+                                                    className={
+                                                        "flex items-center gap-4 border p-3 " +
+                                                        (isDayMode
+                                                            ? "border-slate-200 bg-white/80"
+                                                            : "border-white/10 bg-white/[0.04]")
+                                                    }
+                                                >
+                                                    <img
+                                                        src={officialWechatGroupImage}
+                                                        alt={t(
+                                                            "hackathon.form.official_group_qr",
+                                                            "官方微信群二维码"
+                                                        )}
+                                                        className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
+                                                        loading="lazy"
+                                                    />
+                                                    <p
+                                                        className={
+                                                            "hidden text-sm font-semibold leading-6 xl:block " +
+                                                            palette.textMuted
+                                                        }
+                                                    >
+                                                        {t(
+                                                            "hackathon.form.official_group_desc",
+                                                            "扫码加入群聊，后续通知和现场信息会在群内同步。"
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        )}
                     </MotionDiv>
 
                     {!resolvedTemplate.event.program && (
