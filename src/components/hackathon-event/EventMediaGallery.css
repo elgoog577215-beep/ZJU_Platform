@@ -1,0 +1,157 @@
+/* Keep the early gallery independent of the event workspace's angular panels. */
+.hx-workspace .hx-interior .hx-content.event-original-media {
+    max-width: 1408px;
+}
+.hx-workspace .event-original-media .event-gallery-heading {
+    position: relative;
+    text-align: center;
+    margin: 0 auto 36px;
+    padding: 16px 180px 0;
+}
+.hx-workspace .event-original-media .event-gallery-heading h1 {
+    font-family: ui-serif, Georgia, "Songti SC", serif;
+    font-size: clamp(36px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 12px 0 20px;
+    letter-spacing: -0.03em;
+}
+.hx-workspace .event-original-media .event-gallery-heading > div > p:last-child {
+    color: var(--hx-muted);
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 620px;
+    margin: auto;
+}
+.hx-workspace .event-original-media .event-gallery-upload {
+    position: absolute;
+    top: 26px;
+    right: 0;
+    border-radius: 999px;
+    border: 1px solid var(--hx-line);
+    background: var(--event-panel);
+    color: var(--hx-text);
+    padding: 12px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+.hx-workspace .event-original-media .event-gallery-toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 36px;
+}
+.event-gallery-modes {
+    display: flex;
+    padding: 4px;
+    border: 1px solid var(--hx-line);
+    border-radius: 999px;
+    background: var(--event-panel);
+}
+.hx-workspace .event-gallery-modes button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    min-height: 42px;
+    padding: 8px 22px;
+    color: var(--hx-muted);
+}
+.hx-workspace .event-gallery-modes button[aria-pressed="true"] {
+    color: var(--hx-text);
+    background: color-mix(in srgb, var(--hx-text) 10%, transparent);
+}
+.event-gallery-modes button > span {
+    font-size: 12px;
+    opacity: 0.65;
+}
+.hx-workspace .event-gallery-toolbar select {
+    border-radius: 999px;
+    border: 1px solid var(--hx-line);
+    background: var(--event-panel);
+    color: var(--hx-text);
+    min-height: 48px;
+    padding: 10px 18px;
+    font-size: 14px;
+    max-width: 100%;
+}
+.event-gallery-order {
+    color: var(--hx-muted);
+    font-size: 13px;
+}
+/* The current Tailwind theme remaps rounded-2xl/3xl to 6/8px.
+   Restore their original dimensions only inside this transplanted gallery. */
+.hx-workspace .event-original-photos .event-original-card {
+    border-radius: 16px;
+}
+.hx-workspace .event-original-videos .event-original-card {
+    border-radius: 24px;
+}
+.hx-workspace .event-original-photos {
+    /* inline-block cards must not add a line box beneath each photo. */
+    line-height: 0;
+}
+.hx-workspace .event-original-photo:has(> img) {
+    min-height: 0;
+}
+.hx-workspace .event-original-photo:not(:has(> img)) {
+    min-height: 180px;
+}
+.hx-workspace .event-original-photo > img {
+    height: auto;
+}
+.hx-workspace .event-original-card .event-original-open {
+    border-radius: inherit;
+}
+.hx-workspace .event-original-card:focus-within {
+    outline: 2px solid var(--hx-accent);
+    outline-offset: 4px;
+}
+.hx-workspace .event-original-card .event-original-title {
+    color: rgba(255, 255, 255, 0.96);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-shadow: 0 2px 10px rgba(15, 23, 42, 0.45);
+}
+.hx-video-dialog.event-original-viewer {
+    border-radius: 24px;
+    background: rgba(12, 14, 20, 0.96);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 24px 100px rgba(0, 0, 0, 0.4);
+}
+.event-original-viewer::backdrop {
+    backdrop-filter: blur(12px);
+}
+.event-original-viewer .hx-icon {
+    border-radius: 999px;
+}
+.event-original-viewer video {
+    border-radius: 12px;
+}
+@media (max-width: 1023px) {
+    .hx-workspace .event-original-media .event-gallery-heading {
+        padding-inline: 0;
+    }
+    .hx-workspace .event-original-media .event-gallery-upload {
+        position: static;
+        margin-top: 20px;
+    }
+}
+@media (hover: none) {
+    .event-original-caption,
+    .event-original-play {
+        opacity: 1;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .event-original-card,
+    .event-original-card * {
+        transition: none !important;
+        transform: none !important;
+    }
+}

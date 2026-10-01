@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { X, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import BodyPortal from "../../shared/ui/BodyPortal";
 import { useBackClose, useBodyScrollLock } from "../../hooks/useBackClose";
-export default function MediaViewer({ item, video, onClose, onNext, onPrev }) {
+export default function MediaViewer({ item, video, onClose, onNext, onPrev, rounded = false }) {
     const { t } = useTranslation();
     const dialog = useRef(null);
     useBackClose(true, onClose);
@@ -17,7 +17,7 @@ export default function MediaViewer({ item, video, onClose, onNext, onPrev }) {
         <BodyPortal>
             <dialog
                 ref={dialog}
-                className="hx-video-dialog"
+                className={`hx-video-dialog${rounded ? " event-original-viewer" : ""}`}
                 aria-label={item.title || t("aix.tabs.media")}
                 onCancel={(event) => {
                     event.preventDefault();

@@ -5,6 +5,7 @@ import { Image as ImageIcon, Play, Upload } from "lucide-react";
 import api from "../../services/api";
 import Empty from "./Empty";
 import MediaViewer from "./MediaViewer";
+import EventMediaGallery from "./EventMediaGallery";
 import CompetitionOutcomeUploadModal from "../CompetitionOutcomeUploadModal";
 export default function Media({ template, live }) {
     const { t } = useTranslation();
@@ -107,10 +108,8 @@ export default function Media({ template, live }) {
     ]);
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
     return (
-        <div
-            className={`hx-content hx-media-page ${["zhekesong-current", "getui-beauty-2026"].includes(template.event.key) ? "hx-first-media" : ""}`}
-        >
-            <div className="hx-page-heading hx-results-heading">
+        <div className="hx-content hx-media-page event-original-media">
+            <div className="event-gallery-heading">
                 <div>
                     <p className="hx-overline">
                         {t(live && offset === 0 ? "aix.media.live" : "aix.media.kicker")}
@@ -126,13 +125,13 @@ export default function Media({ template, live }) {
                         )}
                     </p>
                 </div>
-                <button className="hx-primary" onClick={() => setUpload(true)}>
+                <button className="event-gallery-upload" onClick={() => setUpload(true)}>
                     <Upload size={17} />
                     {t("aix.media.upload")}
                 </button>
             </div>
-            <div className="hx-media-toolbar">
-                <div>
+            <div className="event-gallery-toolbar">
+                <div className="event-gallery-modes">
                     {["photos", "videos"].map((value) => (
                         <button
                             key={value}
@@ -146,6 +145,7 @@ export default function Media({ template, live }) {
                                 setOffset(0);
                             }}
                         >
+                            {value === "photos" ? <ImageIcon size={17} /> : <Play size={17} />}
                             {t(`aix.media.${value}`)}
                             {mode === value && <span>{total}</span>}
                         </button>
@@ -168,7 +168,7 @@ export default function Media({ template, live }) {
                         ))}
                     </select>
                 )}
-                <span>
+                <span className="event-gallery-order">
                     {t(
                         ["zhekesong-current", "getui-beauty-2026"].includes(template.event.key)
                             ? "firstEdition.curated"
@@ -177,25 +177,7 @@ export default function Media({ template, live }) {
                 </span>
             </div>
             {items.length > 0 && (
-                <div className="hx-gallery">
-                    {items.map((item) => (
-                        <button
-                            key={item.id}
-                            className={mode === "videos" ? "hx-video-thumb" : ""}
-                            onClick={() => setSelected(item)}
-                        >
-                            {(mode === "photos" || item.cover_url) && (
-                                <img
-                                    src={mode === "photos" ? item.url : item.cover_url}
-                                    alt={item.title || t(`aix.media.${mode}`)}
-                                    loading="lazy"
-                                />
-                            )}
-                            {mode === "videos" && <Play size={30} />}
-                            <span>{item.title}</span>
-                        </button>
-                    ))}
-                </div>
+                <EventMediaGallery items={items} video={mode === "videos"} onOpen={setSelected} />
             )}
             {status === "loading" ? (
                 <p className="hx-loading" role="status">
@@ -230,6 +212,7 @@ export default function Media({ template, live }) {
             {selected && (
                 <MediaViewer
                     item={selected}
+                    rounded
                     video={mode === "videos"}
                     onClose={() => setSelected(null)}
                     onPrev={index > 0 ? () => setSelected(items[index - 1]) : undefined}
