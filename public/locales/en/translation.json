@@ -5206,7 +5206,14 @@
             "previous": "Previous",
             "next": "Next",
             "original": "View original",
-            "more": "Load more"
+            "more": "Load more",
+            "photoTitle": "Event photos",
+            "videoTitle": "Event videos",
+            "eventDescription": "Conversations and creative moments from {{event}}.",
+            "emptyUpcoming": "Event media is not available yet",
+            "emptyPhotos": "No published photos yet",
+            "emptyVideos": "No published videos yet",
+            "emptyArchiveDescription": "Published {{type}} from this event will appear here."
         },
         "galleryStatement": "Different disciplines.",
         "galleryStatementEnd": "One shared possibility.",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Image as ImageIcon, Play, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import api from "../../services/api";
 import MediaViewer from "./legacy-media/Viewer";
@@ -108,11 +109,34 @@ export default function Media({ template, live }) {
         template.event.key,
     ]);
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
+    const upcoming = Date.now() < new Date(template.event.startAt).getTime();
+    const presentation = {
+        title: t(mode === "photos" ? "aix.media.photoTitle" : "aix.media.videoTitle"),
+        description:
+            template.event.key === "zhekesong-current"
+                ? t("firstEdition.mediaIntro")
+                : template.event.key === "getui-beauty-2026"
+                  ? t("getuiBeauty.mediaIntro")
+                  : t("aix.media.eventDescription", { event: template.event.title }),
+        emptyTitle: t(
+            upcoming
+                ? "aix.media.emptyUpcoming"
+                : mode === "photos"
+                  ? "aix.media.emptyPhotos"
+                  : "aix.media.emptyVideos"
+        ),
+        emptyDescription: upcoming
+            ? t("aix.media.emptyDescription")
+            : t("aix.media.emptyArchiveDescription", {
+                  type: t(`aix.media.${mode}`).toLowerCase(),
+              }),
+    };
     const Page = mode === "photos" ? Gallery : Videos;
     const controls = (
         <div className="flex flex-wrap justify-center gap-4">
             <SortSelector
                 className="w-48"
+                icon={mode === "photos" ? ImageIcon : Play}
                 sort={mode}
                 onSortChange={(value) => {
                     if (mode === value) return;
@@ -124,12 +148,13 @@ export default function Media({ template, live }) {
                 }}
                 options={["photos", "videos"].map((value) => ({
                     value,
-                    label: `${t(`aix.media.${value}`)}${mode === value ? ` · ${total}` : ""}`,
+                    label: `${t(`aix.media.${value}`)}${mode === value && total > 0 ? ` · ${total}` : ""}`,
                 }))}
             />
             {categories.length > 0 && (
                 <SortSelector
                     className="w-48"
+                    icon={Filter}
                     sort={category}
                     onSortChange={(value) => {
                         setSelected(null);
@@ -148,6 +173,7 @@ export default function Media({ template, live }) {
     return (
         <div className="legacy-media-surface">
             <Page
+                {...presentation}
                 items={items}
                 status={status}
                 hasMore={hasMore}

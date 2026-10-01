@@ -6,6 +6,7 @@ import { useSettings } from "../../../context/SettingsContext";
 
 const SortSelector = ({
     sort,
+    icon: Icon = ArrowUpDown,
     onSortChange,
     className,
     buttonClassName,
@@ -51,7 +52,7 @@ const SortSelector = ({
                                     <div
                                         className={`p-2 rounded-md ${active ? (isDayMode ? "bg-indigo-500/12 text-indigo-600" : "bg-indigo-500/20 text-indigo-300") : isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5 text-gray-400"}`}
                                     >
-                                        <ArrowUpDown size={16} />
+                                        <Icon size={16} />
                                     </div>
                                     <span className="font-medium truncate">{option.label}</span>
                                 </div>
@@ -79,7 +80,7 @@ const SortSelector = ({
                 value={sort}
                 onChange={onSortChange}
                 options={options}
-                icon={ArrowUpDown}
+                icon={Icon}
                 buttonClassName={
                     buttonClassName ||
                     (isDayMode

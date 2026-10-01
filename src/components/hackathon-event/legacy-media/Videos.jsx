@@ -85,6 +85,10 @@ const Videos = ({
     onUpload,
     onRetry,
     controls,
+    title,
+    description,
+    emptyTitle,
+    emptyDescription,
 }) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
@@ -149,20 +153,18 @@ const Videos = ({
                         <h1
                             className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
                         >
-                            {t("videos.title")}
+                            {title}
                         </h1>
                         <p
                             className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
-                            {t("videos.subtitle")}
+                            {description}
                         </p>
                     </div>
                     <h2 className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">
-                        {t("videos.title")}
+                        {title}
                     </h2>
-                    <p className="hidden md:block text-gray-400 max-w-xl mx-auto">
-                        {t("videos.subtitle")}
-                    </p>
+                    <p className="hidden md:block text-gray-400 max-w-xl mx-auto">{description}</p>
                     <div className="mt-8 relative z-50">{controls}</div>
                 </motion.div>
 
@@ -199,18 +201,16 @@ const Videos = ({
                             </button>
                         </div>
                     ) : displayVideos.length === 0 ? (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 px-4">
-                            <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-3xl p-8 mb-6 border border-white/5 backdrop-blur-xl shadow-xl">
-                                <Film size={64} className="text-pink-400 opacity-80" />
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 px-4">
+                            <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl p-6 mb-6 border border-white/5 backdrop-blur-xl shadow-xl">
+                                <Film size={40} className="text-pink-400 opacity-80" />
                             </div>
                             <h3
                                 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                             >
-                                {t("videos.no_videos")}
+                                {emptyTitle}
                             </h3>
-                            <p className="text-gray-400 text-center max-w-md">
-                                {t("videos.subtitle")}
-                            </p>
+                            <p className="text-gray-400 text-center max-w-md">{emptyDescription}</p>
                         </div>
                     ) : (
                         displayVideos.map((video, index) => (

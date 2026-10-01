@@ -2,7 +2,7 @@
 // Only its data, upload and viewer adapters are supplied by the event workspace.
 import { memo, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, Upload, AlertCircle, Maximize2 } from "lucide-react";
+import { Image as ImageIcon, Upload, AlertCircle, Maximize2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../../context/SettingsContext";
 import SmartImage from "../../SmartImage";
@@ -78,7 +78,20 @@ const PhotoCard = memo(
 
 PhotoCard.displayName = "LegacyPhotoCard";
 
-const Gallery = ({ items, status, hasMore, onMore, onOpen, onUpload, onRetry, controls }) => {
+const Gallery = ({
+    items,
+    status,
+    hasMore,
+    onMore,
+    onOpen,
+    onUpload,
+    onRetry,
+    controls,
+    title,
+    description,
+    emptyTitle,
+    emptyDescription,
+}) => {
     const { t } = useTranslation();
     const { uiMode } = useSettings();
     const prefersReducedMotion = useReducedMotion();
@@ -139,10 +152,10 @@ const Gallery = ({ items, status, hasMore, onMore, onOpen, onUpload, onRetry, co
                     <h1
                         className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
-                        {t("gallery.title")}
+                        {title}
                     </h1>
                     <p className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                        {t("gallery.subtitle")}
+                        {description}
                     </p>
                 </div>
 
@@ -167,7 +180,7 @@ const Gallery = ({ items, status, hasMore, onMore, onOpen, onUpload, onRetry, co
                     transition={{ duration: 0.6, delay: 0.1 }}
                     className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
                 >
-                    {t("gallery.title")}
+                    {title}
                 </motion.h1>
                 <motion.p
                     initial={{ opacity: 0, y: 20 }}
@@ -175,7 +188,7 @@ const Gallery = ({ items, status, hasMore, onMore, onOpen, onUpload, onRetry, co
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
                 >
-                    {t("gallery.subtitle")}
+                    {description}
                 </motion.p>
 
                 <motion.div
@@ -214,19 +227,22 @@ const Gallery = ({ items, status, hasMore, onMore, onOpen, onUpload, onRetry, co
                     </motion.button>
                 </motion.div>
             ) : displayPhotos.length === 0 ? (
-                <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-16 text-center md:min-h-[48vh] md:py-20">
+                <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
                     <div
-                        className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"}`}
+                        className={`rounded-2xl p-6 mb-6 border backdrop-blur-xl ${isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"}`}
                     >
-                        <Box size={56} className={isDayMode ? "text-slate-400" : "text-gray-500"} />
+                        <ImageIcon
+                            size={40}
+                            className={isDayMode ? "text-slate-400" : "text-gray-500"}
+                        />
                     </div>
                     <h3
                         className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
-                        {t("gallery.title")}
+                        {emptyTitle}
                     </h3>
                     <p className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                        {t("gallery.subtitle")}
+                        {emptyDescription}
                     </p>
                 </div>
             ) : (
