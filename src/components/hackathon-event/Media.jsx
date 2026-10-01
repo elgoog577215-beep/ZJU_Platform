@@ -56,7 +56,11 @@ export default function Media({ template, live }) {
                             category,
                             offset,
                             limit: 36,
-                            sort: template.event.key === "zhekesong-current" ? "curated" : "latest",
+                            sort: ["zhekesong-current", "getui-beauty-2026"].includes(
+                                template.event.key
+                            )
+                                ? "curated"
+                                : "latest",
                         },
                         signal: controller.signal,
                     }
@@ -104,7 +108,7 @@ export default function Media({ template, live }) {
     const index = selected ? items.findIndex((item) => item.id === selected.id) : -1;
     return (
         <div
-            className={`hx-content hx-media-page ${template.event.key === "zhekesong-current" ? "hx-first-media" : ""}`}
+            className={`hx-content hx-media-page ${["zhekesong-current", "getui-beauty-2026"].includes(template.event.key) ? "hx-first-media" : ""}`}
         >
             <div className="hx-page-heading hx-results-heading">
                 <div>
@@ -116,7 +120,9 @@ export default function Media({ template, live }) {
                         {t(
                             template.event.key === "zhekesong-current"
                                 ? "firstEdition.mediaIntro"
-                                : "aix.media.description"
+                                : template.event.key === "getui-beauty-2026"
+                                  ? "getuiBeauty.mediaIntro"
+                                  : "aix.media.description"
                         )}
                     </p>
                 </div>
@@ -164,7 +170,7 @@ export default function Media({ template, live }) {
                 )}
                 <span>
                     {t(
-                        template.event.key === "zhekesong-current"
+                        ["zhekesong-current", "getui-beauty-2026"].includes(template.event.key)
                             ? "firstEdition.curated"
                             : "aix.media.latest"
                     )}

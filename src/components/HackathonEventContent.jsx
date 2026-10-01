@@ -4,6 +4,7 @@ import { getEventUrl } from "../utils/hackathonRoute";
 import HackathonRegistration from "./HackathonRegistration";
 import FirstEditionResults from "./hackathon-event/FirstEditionResults";
 import FirstEditionChallenge from "./hackathon-event/FirstEditionChallenge";
+import BeautyEventContent from "./hackathon-event/BeautyEventContent";
 
 import Challenges from "./hackathon-event/Challenges";
 import Media from "./hackathon-event/Media";
@@ -24,6 +25,8 @@ export default function HackathonEventContent({
     const navigate = useNavigate();
     const switchView = (next) => navigate(getEventUrl(template.event.key, next));
     const hasProgram = Boolean(template.event.program);
+    if (template.event.key === "getui-beauty-2026")
+        return <BeautyEventContent template={template} view={view} live={live} />;
     if (hasProgram && view === "challenges")
         return (
             <Challenges

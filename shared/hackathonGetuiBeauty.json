@@ -1,0 +1,47 @@
+{
+    "version": 1,
+    "revision": 1,
+    "updatedAt": null,
+    "navigation": {
+        "registrationVisible": true,
+        "resultsVisible": true
+    },
+    "results": {
+        "competitionSlug": "getui-beauty-2026"
+    },
+    "event": {
+        "key": "getui-beauty-2026",
+        "brand": "浙客松第一季",
+        "title": "每日互动美妆联谊赛",
+        "subtitle": "肌肤分析与护肤产品推荐助手",
+        "description": "围绕肌肤分析与护肤产品推荐，用 AI 完成可运行的应用，并在开发结束后演示、评审。",
+        "startAt": "2026-06-07T13:30",
+        "endAt": "2026-06-07T17:00",
+        "timeText": "6月7日 13:30–17:00",
+        "timezone": "Asia/Shanghai",
+        "location": "每日互动·个咖",
+        "format": "个人或2–4人组队",
+        "duration": "3小时开发（路演另计）",
+        "prizeValue": "未记载",
+        "prizeUnit": "",
+        "registrationOpen": false,
+        "highlights": []
+    },
+    "rules": [
+        {
+            "id": "beauty_assistant",
+            "title": "肌肤分析与护肤产品推荐",
+            "description": "在3小时开发时间内完成AI美妆应用，随后进行演示与评审。",
+            "enabled": true
+        }
+    ],
+    "form": {
+        "title": "历史报名信息",
+        "description": "本场赛事已结束，报名已截止。",
+        "requiredHint": "",
+        "submitLabel": "报名已截止",
+        "successMessage": "",
+        "privacyNotice": "",
+        "fields": []
+    }
+}

@@ -4,5 +4,14 @@
         "competitionSlug": "ai-full-stack-hackathon-outcome",
         "path": "1"
     },
-    { "eventKey": "zhekesong-ai-x-2026", "competitionSlug": "zhekesong-ai-x-2026", "path": "2" }
+    {
+        "eventKey": "zhekesong-ai-x-2026",
+        "competitionSlug": "zhekesong-ai-x-2026",
+        "path": "2"
+    },
+    {
+        "eventKey": "getui-beauty-2026",
+        "competitionSlug": "getui-beauty-2026",
+        "path": "getui-beauty"
+    }
 ]

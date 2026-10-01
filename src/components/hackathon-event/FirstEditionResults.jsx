@@ -10,7 +10,7 @@ import "./FirstEditionArchive.css";
 const workTitle = (work) =>
     work.title.replace(/^(?:冠军作品|亚军作品|季军作品|前10名优胜奖|前20名鼓励奖)[：:]\s*/u, "");
 
-export default function FirstEditionResults({ template }) {
+export default function FirstEditionResults({ template, copyNamespace = "firstEdition" }) {
     const { t } = useTranslation();
     const { outcome, status, reload } = useEventOutcome(template.results.competitionSlug);
     const [params, setParams] = useSearchParams();
@@ -42,9 +42,12 @@ export default function FirstEditionResults({ template }) {
         <div className="hx-content hx-first-results">
             <header className="hx-page-heading hx-first-heading">
                 <div>
-                    <p className="hx-overline">2026.05.10 · {template.event.title}</p>
-                    <h1>{t("firstEdition.resultsTitle")}</h1>
-                    <p>{t("firstEdition.resultsIntro")}</p>
+                    <p className="hx-overline">
+                        {template.event.startAt?.slice(0, 10).replaceAll("-", ".")} ·{" "}
+                        {template.event.title}
+                    </p>
+                    <h1>{t(`${copyNamespace}.resultsTitle`)}</h1>
+                    <p>{t(`${copyNamespace}.resultsIntro`)}</p>
                 </div>
                 <Link className="hx-outline" to={mediaHref}>
                     {t("firstEdition.viewScene")}

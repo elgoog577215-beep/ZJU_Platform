@@ -5419,5 +5419,128 @@
         "curated": "Curated event archive",
         "viewRegistration": "View registration details",
         "registrationHistory": "This event has ended. The registration form is retained for reference and no longer accepts submissions."
+    },
+    "getuiBeauty": {
+        "kicker": "Zhekesong Season One · Getui Friendship Challenge",
+        "title": "Getui Beauty Hackathon",
+        "intro": "An AI development event at Getui, a company with roots at Zhejiang University. Participants built working skincare applications in three hours, then shared their product and engineering decisions through live demonstrations.",
+        "viewChallenge": "Challenge & materials",
+        "viewPhotos": "Event photos",
+        "location": "Getui · Ge Café",
+        "format": "Solo or teams of 2–4",
+        "facts": {
+            "time": "When",
+            "location": "Where",
+            "format": "Format"
+        },
+        "challengeLabel": "The challenge",
+        "challengeTitle": "Skin analysis & skincare recommendations",
+        "taskSummary": "Start with a facial photo and deliver structured skin analysis and product recommendations, taking the user through upload → analysis → recommendations.",
+        "awards": "The event announced first, second and third prizes, each with a certificate and gifts.",
+        "schedule": [
+            {
+                "time": "13:30–13:45",
+                "label": "Challenge briefing & questions"
+            },
+            {
+                "time": "13:45–14:00",
+                "label": "Requirements & solution design"
+            },
+            {
+                "time": "14:00–16:30",
+                "label": "Development, integration & submission"
+            },
+            {
+                "time": "16:30–17:00",
+                "label": "Demonstrations & judging"
+            }
+        ],
+        "partnersTitle": "Organizers & supporters",
+        "partners": [
+            {
+                "role": "Organizer",
+                "names": ["TUOZHE AI ECOSYSTEM"]
+            },
+            {
+                "role": "Host",
+                "names": ["Getui"]
+            },
+            {
+                "role": "Sponsors",
+                "names": ["ROCKINGZOO", "个知"]
+            },
+            {
+                "role": "Co-organizers",
+                "names": [
+                    "环紫金港创新生态圈",
+                    "西湖区互联网行业妇联",
+                    "九三学社余杭区基层委",
+                    "余杭区经济二组政协委员工作室",
+                    "时代强鹰·杭州创业发展促进会",
+                    "西湖数据智能产业园"
+                ]
+            }
+        ],
+        "scenesTitle": "At the event",
+        "allPhotos": "All event photos",
+        "ended": "This event ended on June 7, 2026. Registration and submissions are closed.",
+        "requirementsTitle": "Build in three hours",
+        "requirements": [
+            {
+                "title": "Upload and analyze",
+                "description": "Accept facial images, use a multimodal model to identify skin concerns, and produce a structured report covering concern types, severity and locations."
+            },
+            {
+                "title": "Recommend and explain",
+                "description": "Match the analysis with the supplied product database. Recommend a suitable combination of products and explain the choices."
+            },
+            {
+                "title": "Deliver a usable interface",
+                "description": "Web, mobile and command-line interfaces are allowed. Users must be able to complete the upload, analysis and recommendation flow with basic error handling."
+            }
+        ],
+        "advancedTitle": "Optional extensions",
+        "advanced": [
+            "User profiles, including skin type and budget",
+            "Ingredient conflict detection",
+            "Morning and evening routines",
+            "History and progress tracking",
+            "Multi-turn conversation and preferences",
+            "Explainable recommendations"
+        ],
+        "scoringTitle": "Judging criteria",
+        "scoring": [
+            {
+                "label": "Requirements & scope",
+                "weight": "30%"
+            },
+            {
+                "label": "Demonstration & communication",
+                "weight": "30%"
+            },
+            {
+                "label": "Engineering execution",
+                "weight": "40%"
+            }
+        ],
+        "presentation": "Each team has three minutes to demonstrate and two minutes for questions. Judging is outside the three-hour development period.",
+        "deliveryTitle": "Submission & product boundaries",
+        "delivery": "Submit a ModelScope deployment link and a GitHub repository to demonstrate the running product and its implementation. Coding stops at the three-hour deadline.",
+        "boundary": "The brief calls for handling invalid or blurry images and making clear that the tool does not replace dermatological diagnosis. Use the supplied test images for demonstrations.",
+        "materialsTitle": "Original brief & resources",
+        "materials": {
+            "brief": "Challenge brief & judging criteria",
+            "products": "Skincare product database",
+            "images": "Skin test image set"
+        },
+        "materialsNote": "Materials retain their original competition version. The test image archive is about 45 MB.",
+        "tutorialsTitle": "ModelScope deployment & development",
+        "poster": "View the original event poster",
+        "resultsTitle": "Projects & event recap",
+        "resultsIntro": "The project publishing space and photographic record of the friendship challenge.",
+        "worksTitle": "Competition projects",
+        "worksPending": "Project entries and award results have not been published. Event photos are available.",
+        "mediaIntro": "Opening, development, awards and group photos from the Getui Beauty Hackathon on June 7.",
+        "tutorialDeployment": "Deployment guide"
     }
 }

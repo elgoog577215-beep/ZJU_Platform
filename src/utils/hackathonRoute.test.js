@@ -13,6 +13,10 @@ const schedule = {
             event: { key: "zhekesong-ai-x-2026" },
             results: { competitionSlug: "zhekesong-ai-x-2026" },
         },
+        {
+            event: { key: "getui-beauty-2026" },
+            results: { competitionSlug: "getui-beauty-2026" },
+        },
         { event: { key: "future-event" }, results: { competitionSlug: "future-competition" } },
     ],
 };
@@ -22,6 +26,7 @@ test("edition paths and their pages remain stable when the active event or order
     for (const [eventKey, path] of [
         ["zhekesong-current", "1"],
         ["zhekesong-ai-x-2026", "2"],
+        ["getui-beauty-2026", "getui-beauty"],
         ["future-event", "future-event"],
     ]) {
         for (const view of ["intro", "challenges", "media", "results"]) {
@@ -45,6 +50,7 @@ test("current media and work links retain selection and anchors", () => {
     const paths = [
         "/hackathon/1/media?photo=17&mediaView=featured#photos",
         "/hackathon/1/results?work=9#showcase-works",
+        "/hackathon/getui-beauty/media?photo=57",
     ];
     for (const path of paths)
         assert.equal(resolveEventLocation(locationOf(path), schedule).url, path);
