@@ -5175,10 +5175,10 @@
         "heroTitle": "破界黑客松",
         "eventFullTitle": "AI跨学科创新论坛暨 AI+X破界黑客松",
         "motto": "破界 · 共创 · 涌现",
-        "description": "从你的专业出发，和不同学科的人一起，把真实问题做成可运行的 AI 应用。",
+        "description": "面向不同专业的真实问题，用 AI 完成可运行、可验证的应用。",
         "date": "2026.10.09 — 10.24",
         "location": "浙江大学紫金港校区",
-        "team": "面向浙大学生 · 1–5 人组队",
+        "team": "千问个人赛 · 华为最多 3 人",
         "tracksKicker": "两条赛道",
         "tracksTitle": "让 AI 走进真实场景",
         "viewChallenges": "查看赛题",
@@ -5290,27 +5290,52 @@
             "registered": "已报名 · 查看",
             "retry": "重试报名状态",
             "closed": "报名已截止",
-            "description": "面向浙江大学各专业学生。每位参赛者填写自己的信息，带 * 为必填。",
+            "description": "每位参赛者须注册账号并独立报名，可同时选择千问和华为赛道。带 * 为必填，项目与科研经历选填。",
             "success": "你的报名信息已保存，可在此查看。赛事安排以正式通知为准。",
             "saved": "报名成功",
             "loginHint": "登录后报名，方便随时查看自己的报名信息。",
             "login": "登录并继续",
             "failed": "提交失败，请检查网络后重试。已填写的信息会保留。",
             "choose": "请选择",
-            "privacy": "报名信息仅用于赛事核验、通知与现场组织。",
+            "privacy": "信息仅供赛事组用于报名核验、通知、了解参赛背景和现场支持，不公开展示。",
             "submit": "提交报名",
             "submitting": "正在提交…",
             "formTitle": "赛事报名",
-            "statusFailed": "暂时无法读取报名状态，请重试。已填写的信息会保留。"
+            "statusFailed": "暂时无法读取报名状态，请重试。已填写的信息会保留。",
+            "invalidLinks": "请每行填写一个完整的 http:// 或 https:// 链接，不要包含账号或密码。",
+            "groups": {
+                "basics": {
+                    "title": "基本信息与赛道",
+                    "hint": "共用信息只填写一次，可同时勾选两个赛道。"
+                },
+                "skills": {
+                    "title": "擅长领域与 AI 工具",
+                    "hint": "帮助赛事组了解你的特长和工具偏好；初学者同样可以参加。"
+                },
+                "experience": {
+                    "title": "项目与科研经历",
+                    "hint": "以下均为选填，重点说明你的实际工作和成果，无需写成长篇简历。"
+                },
+                "additional": {
+                    "title": "补充信息",
+                    "hint": "请按本届报名要求填写。"
+                }
+            }
         },
         "fields": {
             "name": "姓名",
             "studentId": "学号",
             "major": "专业",
             "grade": "年级",
-            "track": "意向赛道",
+            "track": "报名赛道",
             "contact": "联系邮箱",
-            "team": "队伍名称（选填）"
+            "team": "队伍名称（选填）",
+            "experience": "项目经历（选填）",
+            "researchExperience": "科研经历（选填）",
+            "aiTools": "AI 工具偏好",
+            "aiToolsOther": "其他 AI 工具（选填）",
+            "strengths": "擅长领域",
+            "projectLinks": "作品或成果链接（选填）"
         },
         "options": {
             "freshman": "大一",
@@ -5319,8 +5344,29 @@
             "senior": "大四",
             "master": "硕士",
             "phd": "博士",
-            "campus": "学科入门赛道",
-            "industry": "产业进阶赛道"
+            "campus": "千问赛道 · 个人赛",
+            "industry": "华为赛道 · 最多 3 人",
+            "Codex": "Codex",
+            "Claude": "Claude / Claude Code",
+            "Cursor": "Cursor",
+            "Trae": "Trae",
+            "Qoder": "Qoder",
+            "ChatGPT": "ChatGPT",
+            "Gemini": "Gemini",
+            "DeepSeek": "DeepSeek",
+            "Doubao": "豆包",
+            "Kimi": "Kimi",
+            "Dify": "Dify",
+            "Coze": "扣子 Coze",
+            "other": "其他",
+            "none": "暂未使用",
+            "development": "开发",
+            "design": "设计",
+            "pitch": "路演",
+            "product": "产品策划",
+            "data": "数据分析",
+            "research": "学科研究",
+            "exploring": "还在探索"
         },
         "brand": "浙客松",
         "backToSite": "返回拓浙 AI 生态",
@@ -5367,11 +5413,24 @@
         "discussionAlt": "首届赛事现场，参赛者围绕项目交流",
         "sharedTitle": "AI+X破界黑客松",
         "prizePending": "待公布",
-        "crossDiscipline": "跨学科组队与真实应用",
+        "crossDiscipline": "跨学科创新与真实应用",
         "resultsTitle": "成果",
         "resultsIntro": "获奖名单、项目成果、讲话总结与论坛分享，在这里集中查看。",
         "industryStages": "产业进阶赛道 · 比赛阶段",
-        "campusSchedule": "千问支持。10 月 10 日启动，10 月 16 日晚截止提交，10 月 17 日晚公布入围名单；10 月 24 日决赛路演。"
+        "campusSchedule": "千问支持。10 月 10 日启动，10 月 16 日晚截止提交，10 月 17 日晚公布入围名单；10 月 24 日决赛路演。",
+        "fieldHints": {
+            "name": "请输入姓名",
+            "studentId": "请输入学号",
+            "major": "请输入专业",
+            "contact": "填写可接收赛事通知的邮箱",
+            "track": "可同时选择两个赛道。千问赛道为个人赛；华为赛道最多 3 人，每位参赛者都须注册账号并独立报名。",
+            "experience": "简述做过的项目、你负责的部分、使用的方法或工具，以及实际成果；课程作业、个人尝试也可以，没有可留空。",
+            "researchExperience": "简述研究方向、具体问题、你承担的工作与阶段成果；没有科研经历可留空。",
+            "aiTools": "可多选常用或偏好的工具；还没用过也可以报名。",
+            "aiToolsOther": "如有未列出的工具，请填写名称。",
+            "strengths": "可多选你希望在比赛中承担的工作；尚未明确方向可选“还在探索”。",
+            "projectLinks": "每行一个完整的 http:// 或 https:// 链接，可填作品、代码仓库、设计集或论文成果；选填。"
+        }
     },
     "eventWorkspace": {
         "skip": "跳转到赛事内容",

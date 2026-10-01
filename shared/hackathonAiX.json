@@ -14,12 +14,12 @@
         "brand": "AI跨学科创新论坛暨",
         "title": "AI+X破界黑客松",
         "subtitle": "破界 · 共创 · 涌现",
-        "description": "面向不同专业的真实问题，组建跨学科团队，用 AI 完成可运行、可验证的应用。",
+        "description": "面向不同专业的真实问题，用 AI 完成可运行、可验证的应用。",
         "startAt": "2026-10-09T00:00",
         "endAt": "2026-10-24T17:00",
         "timezone": "Asia/Shanghai",
         "location": "浙江大学紫金港校区",
-        "format": "1–5 人组队",
+        "format": "千问个人赛 · 华为每队最多 3 人",
         "duration": "学科入门 · 产业进阶 · 双赛道路演",
         "prizeValue": "待公布",
         "prizeUnit": "",
@@ -51,14 +51,14 @@
     "rules": [
         {
             "id": "cross_discipline",
-            "title": "跨学科组队与真实应用",
-            "description": "面向浙江大学各专业学生，支持 1–5 人组队，以可运行的 AI 应用参与比赛。",
+            "title": "跨学科创新与真实应用",
+            "description": "千问赛道个人参赛，华为赛道每队最多 3 人。可同时报名两个赛道，每位参赛者须注册账号并独立报名。",
             "enabled": true
         }
     ],
     "form": {
         "title": "赛事报名",
-        "description": "面向浙江大学各专业学生，支持 1–5 人组队。每位参赛者填写自己的报名信息。",
+        "description": "可同时报名千问和华为两个赛道。千问赛道个人参赛，华为赛道每队最多 3 人；每位参赛者须注册账号并独立填写报名信息。",
         "requiredHint": "所有带 * 的字段均为必填",
         "submitLabel": "提交报名",
         "successMessage": "报名已提交，可在右上角查看报名信息。",
@@ -136,19 +136,19 @@
             {
                 "id": "track",
                 "label": "意向赛道",
-                "type": "select",
-                "placeholder": "请选择",
+                "type": "multi_select",
+                "placeholder": "可同时选择两个赛道；千问赛道个人参赛，华为赛道每队最多 3 人",
                 "required": true,
                 "enabled": true,
-                "width": "half",
+                "width": "full",
                 "options": [
                     {
                         "value": "campus",
-                        "label": "学科入门赛道"
+                        "label": "千问赛道"
                     },
                     {
                         "value": "industry",
-                        "label": "产业进阶赛道"
+                        "label": "华为赛道"
                     }
                 ]
             },
@@ -167,6 +167,152 @@
                 "label": "队伍名称",
                 "type": "text",
                 "placeholder": "暂未组队可留空",
+                "required": false,
+                "enabled": false,
+                "width": "full",
+                "options": []
+            },
+            {
+                "id": "strengths",
+                "label": "擅长领域",
+                "type": "multi_select",
+                "placeholder": "可多选；尚未确定方向可选择「还在探索」",
+                "required": true,
+                "enabled": true,
+                "width": "full",
+                "options": [
+                    {
+                        "value": "development",
+                        "label": "开发"
+                    },
+                    {
+                        "value": "design",
+                        "label": "设计"
+                    },
+                    {
+                        "value": "pitch",
+                        "label": "路演"
+                    },
+                    {
+                        "value": "product",
+                        "label": "产品策划"
+                    },
+                    {
+                        "value": "data",
+                        "label": "数据分析"
+                    },
+                    {
+                        "value": "research",
+                        "label": "学科研究"
+                    },
+                    {
+                        "value": "exploring",
+                        "label": "还在探索"
+                    }
+                ]
+            },
+            {
+                "id": "aiTools",
+                "label": "AI 工具偏好",
+                "type": "multi_select",
+                "placeholder": "选择你常用或偏好的工具，可多选",
+                "required": true,
+                "enabled": true,
+                "width": "full",
+                "options": [
+                    {
+                        "value": "Codex",
+                        "label": "Codex"
+                    },
+                    {
+                        "value": "Claude",
+                        "label": "Claude / Claude Code"
+                    },
+                    {
+                        "value": "Cursor",
+                        "label": "Cursor"
+                    },
+                    {
+                        "value": "Trae",
+                        "label": "Trae"
+                    },
+                    {
+                        "value": "Qoder",
+                        "label": "Qoder"
+                    },
+                    {
+                        "value": "ChatGPT",
+                        "label": "ChatGPT"
+                    },
+                    {
+                        "value": "Gemini",
+                        "label": "Gemini"
+                    },
+                    {
+                        "value": "DeepSeek",
+                        "label": "DeepSeek"
+                    },
+                    {
+                        "value": "Doubao",
+                        "label": "豆包"
+                    },
+                    {
+                        "value": "Kimi",
+                        "label": "Kimi"
+                    },
+                    {
+                        "value": "Dify",
+                        "label": "Dify"
+                    },
+                    {
+                        "value": "Coze",
+                        "label": "扣子 Coze"
+                    },
+                    {
+                        "value": "other",
+                        "label": "其他"
+                    },
+                    {
+                        "value": "none",
+                        "label": "暂未使用"
+                    }
+                ]
+            },
+            {
+                "id": "aiToolsOther",
+                "label": "其他 AI 工具",
+                "type": "text",
+                "placeholder": "如选择了「其他」，可在这里补充工具名称",
+                "required": false,
+                "enabled": true,
+                "width": "full",
+                "options": []
+            },
+            {
+                "id": "experience",
+                "label": "项目经历",
+                "type": "textarea",
+                "placeholder": "可简述一个项目：解决什么问题、你负责什么、使用的方法或工具、取得的成果。暂无经历可留空。",
+                "required": false,
+                "enabled": true,
+                "width": "full",
+                "options": []
+            },
+            {
+                "id": "researchExperience",
+                "label": "科研经历",
+                "type": "textarea",
+                "placeholder": "可简述研究方向、你承担的工作、使用的方法与阶段性成果。课程研究也可以填写，暂无经历可留空。",
+                "required": false,
+                "enabled": true,
+                "width": "full",
+                "options": []
+            },
+            {
+                "id": "projectLinks",
+                "label": "作品或研究链接",
+                "type": "textarea",
+                "placeholder": "选填：作品演示、代码仓库、论文或个人主页，每行一个以 https:// 或 http:// 开头的链接。",
                 "required": false,
                 "enabled": true,
                 "width": "full",

@@ -37,6 +37,12 @@ import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import SEO from "./SEO";
 
+const AIX_REGISTRATION_GROUPS = [
+    { key: "basics", ids: ["name", "studentId", "major", "grade", "contact", "track"] },
+    { key: "skills", ids: ["strengths", "aiTools", "aiToolsOther"] },
+    { key: "experience", ids: ["experience", "researchExperience", "projectLinks"] },
+];
+
 const hasCjkText = (value) => typeof value === "string" && /[\u3400-\u9fff]/.test(value);
 
 const partnerEnglishNameMap = {
@@ -99,9 +105,9 @@ const getLocalizedRegistrationField = (field, t, isEnglish, hasProgram) => {
             placeholder:
                 field.type === "select"
                     ? t("aix.register.choose")
-                    : isEnglish
-                      ? ""
-                      : field.placeholder,
+                    : t(`aix.fieldHints.${field.id}`, {
+                          defaultValue: isEnglish ? "" : field.placeholder,
+                      }),
             options: field.options.map((option) => ({
                 ...option,
                 label: t(`aix.options.${option.value}`, { defaultValue: option.label }),
@@ -187,6 +193,7 @@ const HackathonRegistration = ({
     const language = i18n.resolvedLanguage || i18n.language || "zh";
     const isEnglish = String(language).startsWith("en");
     const resolvedTemplate = useMemo(() => normalizeHackathonTemplate(template), [template]);
+    const isAiX = resolvedTemplate.event.key === "zhekesong-ai-x-2026";
     const sourceFormFields = useMemo(
         () => getActiveHackathonFields(resolvedTemplate),
         [resolvedTemplate]
@@ -203,6 +210,19 @@ const HackathonRegistration = ({
             ),
         [isEnglish, sourceFormFields, t, resolvedTemplate.event.program]
     );
+    const registrationGroups = useMemo(() => {
+        if (!isAiX) return [{ key: "all", fields: activeFormFields }];
+        const known = new Set(AIX_REGISTRATION_GROUPS.flatMap((group) => group.ids));
+        return [
+            ...AIX_REGISTRATION_GROUPS.map((group) => ({
+                key: group.key,
+                fields: group.ids
+                    .map((id) => activeFormFields.find((field) => field.id === id))
+                    .filter(Boolean),
+            })),
+            { key: "additional", fields: activeFormFields.filter((field) => !known.has(field.id)) },
+        ].filter((group) => group.fields.length);
+    }, [activeFormFields, isAiX]);
     const formConfig = useMemo(
         () =>
             resolvedTemplate.event.program
@@ -539,10 +559,19 @@ const HackathonRegistration = ({
 
     const handleMultiSelectToggle = (fieldId, option) => {
         setFormData((prev) => {
-            const current = Array.isArray(prev[fieldId]) ? prev[fieldId] : [];
+            const current = Array.isArray(prev[fieldId])
+                ? prev[fieldId]
+                : isAiX && fieldId === "track" && prev[fieldId]
+                  ? [prev[fieldId]]
+                  : [];
+            const exclusive = isAiX
+                ? { aiTools: "none", strengths: "exploring" }[fieldId]
+                : undefined;
             const values = current.includes(option)
                 ? current.filter((item) => item !== option)
-                : [...current, option];
+                : option === exclusive
+                  ? [option]
+                  : [...current.filter((item) => item !== exclusive), option];
             return { ...prev, [fieldId]: values };
         });
         if (formErrors[fieldId]) {
@@ -588,6 +617,28 @@ const HackathonRegistration = ({
                     : `${field.label}格式不正确`;
             }
         });
+        if (
+            isAiX &&
+            formData.projectLinks &&
+            activeFormFields.some((field) => field.id === "projectLinks")
+        ) {
+            const invalid = String(formData.projectLinks)
+                .trim()
+                .split(/\r?\n/)
+                .filter((line) => line.trim())
+                .some((line) => {
+                    try {
+                        const url = new URL(line.trim());
+                        return (
+                            !["http:", "https:"].includes(url.protocol) ||
+                            Boolean(url.username || url.password)
+                        );
+                    } catch {
+                        return true;
+                    }
+                });
+            if (invalid) errors.projectLinks = t("aix.register.invalidLinks");
+        }
         return errors;
     };
 
@@ -605,6 +656,10 @@ const HackathonRegistration = ({
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
+            const firstInvalid = document.getElementById(
+                `hackathon-field-${Object.keys(errors)[0]}`
+            );
+            (firstInvalid?.querySelector("button") || firstInvalid)?.focus();
             toast.error(t("hackathon.toast.check_form", "请检查并完善报名信息"));
             return;
         }
@@ -1450,28 +1505,59 @@ const HackathonRegistration = ({
                                 disabled={
                                     isSubmitting || Boolean(registration) || registrationLoading
                                 }
-                                className="grid gap-5 md:grid-cols-2 xl:gap-6"
+                                className="min-w-0 space-y-8"
                             >
-                                {activeFormFields.map((field) => (
+                                {registrationGroups.map((group, groupIndex) => (
                                     <div
-                                        key={field.id}
-                                        className={
-                                            field.width === "half"
-                                                ? "min-w-0"
-                                                : "min-w-0 md:col-span-2"
-                                        }
+                                        key={group.key}
+                                        className="grid gap-5 md:grid-cols-2 xl:gap-6"
                                     >
-                                        <DynamicRegistrationField
-                                            field={field}
-                                            value={formData[field.id]}
-                                            error={formErrors[field.id]}
-                                            palette={palette}
-                                            isDayMode={isDayMode}
-                                            onChange={(value) => updateAnswer(field.id, value)}
-                                            onToggle={(option) =>
-                                                handleMultiSelectToggle(field.id, option)
-                                            }
-                                        />
+                                        {isAiX && (
+                                            <div
+                                                className={`md:col-span-2 border-b pb-4 ${palette.line}`}
+                                            >
+                                                <h4
+                                                    className={`text-lg font-bold ${palette.textSoft}`}
+                                                >
+                                                    <span
+                                                        className={`mr-3 text-sm tabular-nums ${palette.accent}`}
+                                                    >
+                                                        {String(groupIndex + 1).padStart(2, "0")}
+                                                    </span>
+                                                    {t(`aix.register.groups.${group.key}.title`)}
+                                                </h4>
+                                                <p
+                                                    className={`mt-2 text-sm leading-6 ${palette.textMuted}`}
+                                                >
+                                                    {t(`aix.register.groups.${group.key}.hint`)}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {group.fields.map((field) => (
+                                            <div
+                                                key={field.id}
+                                                className={
+                                                    field.width === "half"
+                                                        ? "min-w-0"
+                                                        : "min-w-0 md:col-span-2"
+                                                }
+                                            >
+                                                <DynamicRegistrationField
+                                                    field={field}
+                                                    value={formData[field.id]}
+                                                    error={formErrors[field.id]}
+                                                    palette={palette}
+                                                    isDayMode={isDayMode}
+                                                    compact={isAiX}
+                                                    onChange={(value) =>
+                                                        updateAnswer(field.id, value)
+                                                    }
+                                                    onToggle={(option) =>
+                                                        handleMultiSelectToggle(field.id, option)
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
                                 ))}
                             </fieldset>
@@ -1624,13 +1710,18 @@ const DynamicRegistrationField = ({
     isDayMode,
     onChange,
     onToggle,
+    compact = false,
 }) => {
     const controlClass = `w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
         error ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
     }`;
 
     if (field.type === "multi_select") {
-        const selectedValues = Array.isArray(value) ? value : [];
+        const selectedValues = Array.isArray(value)
+            ? value
+            : compact && field.id === "track" && value
+              ? [value]
+              : [];
         return (
             <Field
                 id={`hackathon-field-${field.id}`}
@@ -1642,7 +1733,13 @@ const DynamicRegistrationField = ({
                 {field.placeholder ? (
                     <p className={`mb-3 text-sm ${palette.textMuted}`}>{field.placeholder}</p>
                 ) : null}
-                <div className="flex flex-wrap gap-2.5">
+                <div
+                    id={`hackathon-field-${field.id}`}
+                    role="group"
+                    aria-label={field.label}
+                    aria-describedby={error ? `hackathon-error-${field.id}` : undefined}
+                    className="flex flex-wrap gap-2.5"
+                >
                     {field.options.map((option) => {
                         const selected = selectedValues.includes(option.value);
                         return (
@@ -1650,6 +1747,7 @@ const DynamicRegistrationField = ({
                                 key={option.value}
                                 type="button"
                                 onClick={() => onToggle(option.value)}
+                                aria-pressed={selected}
                                 className={`inline-flex min-h-12 items-center gap-2 border px-5 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
                                     selected
                                         ? isDayMode
@@ -1681,6 +1779,8 @@ const DynamicRegistrationField = ({
                     id={`hackathon-field-${field.id}`}
                     value={value || ""}
                     onChange={(event) => onChange(event.target.value)}
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? `hackathon-error-${field.id}` : undefined}
                     className={`${controlClass} appearance-none`}
                 >
                     <option value="">{field.placeholder || `请选择${field.label}`}</option>
@@ -1733,8 +1833,11 @@ const DynamicRegistrationField = ({
                     value={value || ""}
                     onChange={(event) => onChange(event.target.value)}
                     placeholder={field.placeholder}
-                    rows={5}
-                    className={`${controlClass} min-h-[160px] resize-y leading-8`}
+                    rows={compact ? (field.id === "projectLinks" ? 2 : 4) : 5}
+                    maxLength={4000}
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? `hackathon-error-${field.id}` : undefined}
+                    className={`${controlClass} ${compact ? "min-h-[100px]" : "min-h-[160px]"} resize-y leading-7`}
                 />
             </Field>
         );
@@ -1751,6 +1854,9 @@ const DynamicRegistrationField = ({
             <input
                 id={`hackathon-field-${field.id}`}
                 type={["email", "tel", "number"].includes(field.type) ? field.type : "text"}
+                maxLength={500}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `hackathon-error-${field.id}` : undefined}
                 value={value || ""}
                 onChange={(event) => onChange(event.target.value)}
                 placeholder={field.placeholder}
@@ -1767,7 +1873,11 @@ const Field = ({ id, label, required, error, palette, children }) => (
         </label>
         {children}
         {error && (
-            <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-rose-400">
+            <p
+                id={id.replace("hackathon-field-", "hackathon-error-")}
+                role="alert"
+                className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-rose-400"
+            >
                 <AlertCircle className="h-3.5 w-3.5" />
                 {error}
             </p>

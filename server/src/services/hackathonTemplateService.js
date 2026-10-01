@@ -608,7 +608,14 @@ const validateRegistrationAnswers = (templateInput, rawAnswers) => {
         const rawValue = answersInput[field.id];
         let value;
         if (field.type === "multi_select") {
-            value = (Array.isArray(rawValue) ? rawValue : [])
+            const selections =
+                template.event.key === "zhekesong-ai-x-2026" &&
+                field.id === "track" &&
+                typeof rawValue === "string" &&
+                rawValue.trim()
+                    ? [rawValue]
+                    : rawValue;
+            value = (Array.isArray(selections) ? selections : [])
                 .map((item) => text(String(item), 120))
                 .filter(Boolean)
                 .slice(0, 20);
@@ -634,6 +641,45 @@ const validateRegistrationAnswers = (templateInput, rawAnswers) => {
         }
         if (field.type === "number" && value && !Number.isFinite(Number(value))) {
             errors.push({ field: field.id, message: `${field.label}必须是有效数字` });
+        }
+
+        if (template.event.key === "zhekesong-ai-x-2026") {
+            const exclusiveValue = { aiTools: "none", strengths: "exploring" }[field.id];
+            if (
+                field.type === "multi_select" &&
+                exclusiveValue &&
+                allowedValues.has(exclusiveValue) &&
+                value.includes(exclusiveValue) &&
+                value.some((item) => item !== exclusiveValue)
+            ) {
+                errors.push({
+                    field: field.id,
+                    message: `${field.label}中的未确定选项不能与其他选项同时选择`,
+                });
+            }
+            if (field.id === "projectLinks" && field.type === "textarea" && value) {
+                const invalid = value
+                    .split(/\r?\n/)
+                    .filter((line) => line.trim())
+                    .some((line) => {
+                        try {
+                            const url = new URL(line.trim());
+                            return (
+                                !["http:", "https:"].includes(url.protocol) ||
+                                !url.hostname ||
+                                Boolean(url.username || url.password)
+                            );
+                        } catch {
+                            return true;
+                        }
+                    });
+                if (invalid) {
+                    errors.push({
+                        field: field.id,
+                        message: "请每行填写一个有效的 http:// 或 https:// 链接",
+                    });
+                }
+            }
         }
 
         answers[field.id] = value;

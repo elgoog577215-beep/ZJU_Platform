@@ -86,7 +86,110 @@ const safeParseTools = (value) => {
     }
 };
 
-const escapeCsv = (value) => String(value || "").replace(/"/g, '""');
+const escapeCsv = (value) => {
+    const text = String(value ?? "");
+    // CSV files are opened in spreadsheets; treat user-supplied formulas as text.
+    return (/^[\s]*[=+@-]/.test(text) ? `'${text}` : text).replace(/"/g, '""');
+};
+
+const fallbackRegistrationFields = [
+    { id: "name", label: "姓名" },
+    { id: "studentId", label: "学号" },
+    { id: "major", label: "专业" },
+    {
+        id: "grade",
+        label: "年级",
+        options: Object.entries(gradeLabels).map(([value, label]) => ({ value, label })),
+    },
+    {
+        id: "aiTools",
+        label: "AI 工具",
+        options: Object.entries(aiToolLabels).map(([value, label]) => ({ value, label })),
+    },
+    { id: "experience", label: "项目经验" },
+];
+
+const registrationAnswers = (registration) => ({
+    name: registration.name,
+    studentId: registration.student_id,
+    major: registration.major,
+    grade: registration.grade,
+    aiTools: safeParseTools(registration.ai_tools),
+    experience: registration.experience,
+    ...(registration.form_data &&
+    typeof registration.form_data === "object" &&
+    !Array.isArray(registration.form_data)
+        ? registration.form_data
+        : {}),
+});
+
+const registrationFieldsByEvent = (events) =>
+    new Map(
+        events.map((item) => [
+            item.event.key,
+            new Map(
+                [...fallbackRegistrationFields, ...(item.form?.fields || [])].map((field) => [
+                    field.id,
+                    field,
+                ])
+            ),
+        ])
+    );
+const fallbackFieldsById = new Map(fallbackRegistrationFields.map((field) => [field.id, field]));
+const registrationField = (fieldsByEvent, eventKey, fieldId) =>
+    fieldsByEvent.get(eventKey)?.get(fieldId) ||
+    fallbackFieldsById.get(fieldId) || { id: fieldId, label: fieldId };
+
+const registrationExportTable = (registrations, events, eventFilter) => {
+    const fieldsByEvent = registrationFieldsByEvent(events);
+    const eventTitles = new Map(events.map((item) => [item.event.key, item.event.title]));
+    const scopedEvents = eventFilter
+        ? events.filter((item) => item.event.key === eventFilter)
+        : events;
+    const columns = new Map();
+    const addColumn = (field) => columns.set(JSON.stringify([field.id, field.label]), field);
+    const configured = scopedEvents
+        .flatMap((item) => item.form?.fields || [])
+        .filter((field) => field.enabled !== false);
+    (configured.length ? configured : fallbackRegistrationFields).forEach(addColumn);
+    // Preserve answers from retired/disabled fields and editions absent from current configuration.
+    registrations.forEach((registration) => {
+        Object.entries(registrationAnswers(registration)).forEach(([id, value]) => {
+            if (
+                value !== undefined &&
+                value !== null &&
+                value !== "" &&
+                (!Array.isArray(value) || value.length)
+            )
+                addColumn(registrationField(fieldsByEvent, registration.event_key, id));
+        });
+    });
+    const exportFields = [...columns.values()];
+    const labels = exportFields.map((field) => field.label);
+    const headers = [
+        "比赛日程",
+        ...exportFields.map((field) =>
+            labels.filter((label) => label === field.label).length > 1
+                ? `${field.label} (${field.id})`
+                : field.label
+        ),
+        "报名时间",
+    ];
+    const rows = registrations.map((registration) => {
+        const answers = registrationAnswers(registration);
+        return [
+            eventTitles.get(registration.event_key) || registration.event_key || "历史赛事",
+            ...exportFields.map((column) => {
+                const field = registrationField(fieldsByEvent, registration.event_key, column.id);
+                return field.label === column.label
+                    ? formatHackathonAnswer(answers[column.id], field)
+                    : "";
+            }),
+            formatDateTime(registration.created_at),
+        ];
+    });
+    return [headers, ...rows];
+};
 
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString("zh-CN") : "未知时间");
 
@@ -148,14 +251,19 @@ const HackathonManager = () => {
         [scheduleConfig]
     );
 
-    const configuredRegistrationFields = useMemo(() => {
-        const fields = (scheduleConfig?.events || []).flatMap((item) => item.form?.fields || []);
-        const unique = new Map();
-        for (const field of fields) {
-            if (!unique.has(field.id)) unique.set(field.id, field);
-        }
-        return [...unique.values()];
-    }, [scheduleConfig]);
+    const fieldsByEvent = useMemo(
+        () => registrationFieldsByEvent(scheduleConfig?.events || []),
+        [scheduleConfig]
+    );
+    const fieldFor = (registration, fieldId) =>
+        registrationField(fieldsByEvent, registration.event_key, fieldId);
+    const answerFor = (registration, fieldId) =>
+        formatHackathonAnswer(
+            registrationAnswers(registration)[fieldId],
+            fieldFor(registration, fieldId)
+        );
+    const filteredFieldLabel = (fieldId) =>
+        registrationField(fieldsByEvent, eventFilter, fieldId).label;
 
     const fetchRegistrations = async () => {
         const response = await api.get("/admin/hackathon/registrations");
@@ -307,7 +415,9 @@ const HackathonManager = () => {
     }, [filteredWorks.length, works, workCompetitionFilter]);
 
     const renderToolTags = (registration) => {
-        const tools = safeParseTools(registration.ai_tools);
+        const value = registrationAnswers(registration).aiTools;
+        const tools = Array.isArray(value) ? value : [];
+        const field = fieldFor(registration, "aiTools");
         if (tools.length === 0) {
             return <span className={mutedTextClass}>未填写</span>;
         }
@@ -319,7 +429,7 @@ const HackathonManager = () => {
                         key={tool}
                         className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold"
                     >
-                        {aiToolLabels[tool] || tool}
+                        {formatHackathonAnswer(tool, field)}
                     </span>
                 ))}
             </div>
@@ -327,8 +437,7 @@ const HackathonManager = () => {
     };
 
     const renderAdditionalAnswers = (registration) => {
-        const formData = registration.form_data || {};
-        const fieldsById = new Map(configuredRegistrationFields.map((field) => [field.id, field]));
+        const formData = registrationAnswers(registration);
         const answers = Object.entries(formData)
             .filter(
                 ([fieldId, value]) =>
@@ -339,8 +448,8 @@ const HackathonManager = () => {
             )
             .map(([fieldId, value]) => ({
                 id: fieldId,
-                label: fieldsById.get(fieldId)?.label || fieldId,
-                value: formatHackathonAnswer(value, fieldsById.get(fieldId)),
+                label: fieldFor(registration, fieldId).label,
+                value: formatHackathonAnswer(value, fieldFor(registration, fieldId)),
             }))
             .filter((item) => item.value);
 
@@ -358,39 +467,14 @@ const HackathonManager = () => {
     };
 
     const exportRegistrations = () => {
-        const configuredFields = configuredRegistrationFields.filter(
-            (field) => field.enabled !== false
+        const table = registrationExportTable(
+            filteredRegistrations,
+            scheduleConfig?.events || [],
+            eventFilter
         );
-        const fallbackFields = [
-            { id: "name", label: "姓名" },
-            { id: "studentId", label: "学号" },
-            { id: "major", label: "专业" },
-            { id: "grade", label: "年级" },
-            { id: "aiTools", label: "AI 工具" },
-            { id: "experience", label: "项目经验" },
-        ];
-        const exportFields = configuredFields.length > 0 ? configuredFields : fallbackFields;
-        const headers = ["比赛日程", ...exportFields.map((field) => field.label), "报名时间"];
-        const rows = filteredRegistrations.map((registration) => {
-            const formData = registration.form_data || {
-                name: registration.name,
-                studentId: registration.student_id,
-                major: registration.major,
-                grade: registration.grade,
-                aiTools: safeParseTools(registration.ai_tools),
-                experience: registration.experience,
-            };
-            return [
-                eventTitleByKey.get(registration.event_key) || registration.event_key || "历史赛事",
-                ...exportFields.map((field) => formatHackathonAnswer(formData[field.id], field)),
-                formatDateTime(registration.created_at),
-            ];
-        });
         const csv =
             "\uFEFF" +
-            [headers, ...rows]
-                .map((row) => row.map((cell) => `"${escapeCsv(cell)}"`).join(","))
-                .join("\n");
+            table.map((row) => row.map((cell) => `"${escapeCsv(cell)}"`).join(",")).join("\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -722,9 +806,7 @@ const HackathonManager = () => {
                                 </h3>
                                 <p className={`text-xs ${mutedTextClass}`}>
                                     {registration.student_id || "未填学号"} ·{" "}
-                                    {gradeLabels[registration.grade] ||
-                                        registration.grade ||
-                                        "未填年级"}
+                                    {answerFor(registration, "grade") || "未填年级"}
                                 </p>
                                 <p className="mt-1 truncate text-[11px] font-semibold text-cyan-500">
                                     {eventTitleByKey.get(registration.event_key) ||
@@ -752,9 +834,12 @@ const HackathonManager = () => {
                         </span>
                     </div>
                     <div className="mt-3">{renderToolTags(registration)}</div>
-                    {registration.experience ? (
+                    {answerFor(registration, "experience") ? (
                         <p className={`mt-3 line-clamp-3 text-sm leading-6 ${mutedTextClass}`}>
-                            {registration.experience}
+                            <span className="font-semibold">
+                                {fieldFor(registration, "experience").label}：
+                            </span>
+                            {answerFor(registration, "experience")}
                         </p>
                     ) : null}
                     <div className={`mt-3 text-sm ${mutedTextClass}`}>
@@ -783,7 +868,7 @@ const HackathonManager = () => {
                         <AdminButton
                             tone="primary"
                             onClick={exportRegistrations}
-                            disabled={registrations.length === 0}
+                            disabled={filteredRegistrations.length === 0}
                         >
                             <Download size={16} />
                             导出报名
@@ -1021,7 +1106,7 @@ const HackathonManager = () => {
 
                         <AdminPanel
                             title={`报名列表 (${formatNumber(filteredRegistrations.length)})`}
-                            description={`第 ${currentPage} / ${totalPages} 页，CSV 导出包含全部 ${formatNumber(registrationStats.total)} 条。`}
+                            description={`第 ${currentPage} / ${totalPages} 页，CSV 导出包含当前筛选的 ${formatNumber(filteredRegistrations.length)} 条。`}
                         >
                             {paginatedRegistrations.length === 0 ? (
                                 <AdminEmptyState
@@ -1040,8 +1125,12 @@ const HackathonManager = () => {
                                                 <th className="p-4">学号</th>
                                                 <th className="p-4">专业</th>
                                                 <th className="p-4">年级</th>
-                                                <th className="p-4">AI 工具</th>
-                                                <th className="p-4">项目经验</th>
+                                                <th className="p-4">
+                                                    {filteredFieldLabel("aiTools")}
+                                                </th>
+                                                <th className="p-4">
+                                                    {filteredFieldLabel("experience")}
+                                                </th>
                                                 <th className="p-4">其他报名信息</th>
                                                 <th className="p-4">报名时间</th>
                                                 <th className="p-4 text-right">操作</th>
@@ -1090,8 +1179,7 @@ const HackathonManager = () => {
                                                     </td>
                                                     <td className="p-4">
                                                         <AdminTableCellText>
-                                                            {gradeLabels[registration.grade] ||
-                                                                registration.grade ||
+                                                            {answerFor(registration, "grade") ||
                                                                 "-"}
                                                         </AdminTableCellText>
                                                     </td>
@@ -1100,7 +1188,21 @@ const HackathonManager = () => {
                                                     </td>
                                                     <td className="p-4">
                                                         <AdminTableCellText className="line-clamp-2 max-w-[280px] break-words">
-                                                            {registration.experience || "暂无"}
+                                                            {!eventFilter && (
+                                                                <span className="font-semibold">
+                                                                    {
+                                                                        fieldFor(
+                                                                            registration,
+                                                                            "experience"
+                                                                        ).label
+                                                                    }
+                                                                    ：
+                                                                </span>
+                                                            )}
+                                                            {answerFor(
+                                                                registration,
+                                                                "experience"
+                                                            ) || "暂无"}
                                                         </AdminTableCellText>
                                                     </td>
                                                     <td className="p-4">

@@ -5066,10 +5066,10 @@
         "heroTitle": "Break Boundaries",
         "eventFullTitle": "AI Interdisciplinary Innovation Forum & AI+X Hackathon",
         "motto": "Break boundaries · Build together · Create",
-        "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
+        "description": "Build runnable, verifiable AI applications for real problems across disciplines.",
         "date": "2026.10.09 — 10.24",
         "location": "Zijingang Campus, Zhejiang University",
-        "team": "ZJU students · Teams of 1–5",
+        "team": "Qwen: individual · Huawei: up to 3 people",
         "tracksKicker": "Two tracks",
         "tracksTitle": "Bring AI into the real world",
         "viewChallenges": "View challenges",
@@ -5181,27 +5181,52 @@
             "registered": "Registered · View",
             "retry": "Retry status",
             "closed": "Registration closed",
-            "description": "Open to ZJU students from all majors. Each participant enters their own details. * Required.",
+            "description": "Each participant must register an account and apply individually. You may enter both Qwen and Huawei tracks. Fields marked * are required; experience is optional.",
             "success": "Your registration has been saved. Refer to official notices for event arrangements.",
             "saved": "Registration successful",
             "loginHint": "Sign in to register and access your registration details at any time.",
             "login": "Sign in & continue",
             "failed": "Submission failed. Check your connection and try again. Your entries have been kept.",
             "choose": "Please select",
-            "privacy": "Your information is used only for event verification, notices and organization.",
+            "privacy": "For event organizers to verify applications, send notices, understand participant backgrounds, and provide on-site support. Not publicly displayed.",
             "submit": "Submit registration",
             "submitting": "Submitting…",
             "formTitle": "Event registration",
-            "statusFailed": "Unable to load registration status. Retry to continue; your entries have been kept."
+            "statusFailed": "Unable to load registration status. Retry to continue; your entries have been kept.",
+            "invalidLinks": "Enter one full http:// or https:// URL per line, without usernames or passwords.",
+            "groups": {
+                "basics": {
+                    "title": "Basics and tracks",
+                    "hint": "Complete your shared information once. You may select both tracks."
+                },
+                "skills": {
+                    "title": "Strengths and AI tools",
+                    "hint": "Help organizers understand your skills and tool preferences. Beginners are welcome."
+                },
+                "experience": {
+                    "title": "Project and research experience",
+                    "hint": "All fields below are optional. Focus on your own contribution and outcomes, rather than a full CV."
+                },
+                "additional": {
+                    "title": "Additional information",
+                    "hint": "Complete any additional fields required for this event."
+                }
+            }
         },
         "fields": {
             "name": "Name",
             "studentId": "Student ID",
             "major": "Major",
             "grade": "Year",
-            "track": "Preferred track",
+            "track": "Tracks to enter",
             "contact": "Contact email",
-            "team": "Team name (optional)"
+            "team": "Team name (optional)",
+            "experience": "Project experience (optional)",
+            "researchExperience": "Research experience (optional)",
+            "aiTools": "Preferred AI tools",
+            "aiToolsOther": "Other AI tools (optional)",
+            "strengths": "Strengths",
+            "projectLinks": "Portfolio or research links (optional)"
         },
         "options": {
             "freshman": "Year 1",
@@ -5210,8 +5235,29 @@
             "senior": "Year 4",
             "master": "Master’s",
             "phd": "PhD",
-            "campus": "Disciplinary Starter Track",
-            "industry": "Industry Advanced Track"
+            "campus": "Qwen · Individual",
+            "industry": "Huawei · Up to 3 people",
+            "Codex": "Codex",
+            "Claude": "Claude / Claude Code",
+            "Cursor": "Cursor",
+            "Trae": "Trae",
+            "Qoder": "Qoder",
+            "ChatGPT": "ChatGPT",
+            "Gemini": "Gemini",
+            "DeepSeek": "DeepSeek",
+            "Doubao": "Doubao",
+            "Kimi": "Kimi",
+            "Dify": "Dify",
+            "Coze": "Coze",
+            "other": "Other",
+            "none": "Not used yet",
+            "development": "Development",
+            "design": "Design",
+            "pitch": "Pitching",
+            "product": "Product planning",
+            "data": "Data analysis",
+            "research": "Domain research",
+            "exploring": "Still exploring"
         },
         "brand": "ZHEKESONG",
         "backToSite": "Back to TUOZHE AI",
@@ -5258,11 +5304,24 @@
         "discussionAlt": "Participants discussing a project at the first edition",
         "sharedTitle": "AI+X Hackathon",
         "prizePending": "TBA",
-        "crossDiscipline": "Cross-disciplinary teams",
+        "crossDiscipline": "Interdisciplinary innovation and real applications",
         "resultsTitle": "Results",
         "resultsIntro": "Award winners, projects, speeches and forum highlights in one place.",
         "industryStages": "Industry Advanced Track · Stages",
-        "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 24."
+        "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 24.",
+        "fieldHints": {
+            "name": "Your name",
+            "studentId": "Your student ID",
+            "major": "Your major",
+            "contact": "Email for competition notices",
+            "track": "You may enter both tracks. Qwen: individual entry. Huawei: up to 3 people. Every participant must register an account and submit their own application.",
+            "experience": "Briefly describe a project, your contribution, tools or methods, and outcome. Coursework and personal experiments count; leave blank if none.",
+            "researchExperience": "Describe your research area, question, contribution, and findings so far. Leave blank if you have no research experience.",
+            "aiTools": "Choose any tools you use or prefer. Beginners are welcome.",
+            "aiToolsOther": "Name any tools not listed above.",
+            "strengths": "Choose the work you would like to contribute. Select “Still exploring” if you are unsure.",
+            "projectLinks": "One full http:// or https:// URL per line: a project, repository, design portfolio, or research result. Optional."
+        }
     },
     "eventWorkspace": {
         "skip": "Skip to event content",

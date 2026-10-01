@@ -130,9 +130,14 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
             studentId: "TEST-001",
             major: "Test",
             grade: "junior",
-            track: "campus",
+            track: ["campus", "industry"],
             contact: "test@example.test",
-            team: "",
+            strengths: ["development", "research"],
+            aiTools: ["Codex", "DeepSeek"],
+            aiToolsOther: "",
+            experience: "搭建课程检索工具，负责接口与评测。",
+            researchExperience: "参与课题文献整理及数据分析。",
+            projectLinks: "https://example.test/demo\nhttps://example.test/paper",
         };
         let res = response();
         const beforeHistoricalAttempt = await db.get(
@@ -161,11 +166,35 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
         assert.equal(res.statusCode, 404);
         res = response();
         await controller.registerHackathon(
+            {
+                user: { id: 1 },
+                body: { eventKey, answers: { ...answers, aiTools: ["none", "Codex"] } },
+            },
+            res,
+            next
+        );
+        assert.equal(res.statusCode, 400);
+        assert.ok(res.body.details.some((detail) => detail.field === "aiTools"));
+        assert.equal(
+            (await db.get("SELECT COUNT(*) AS count FROM hackathon_registrations")).count,
+            0
+        );
+        res = response();
+        await controller.registerHackathon(
             { user: { id: 1 }, body: { eventKey, answers } },
             res,
             next
         );
         assert.equal(res.statusCode, 201);
+        const stored = await db.get("SELECT * FROM hackathon_registrations WHERE id = ?", [
+            res.body.id,
+        ]);
+        assert.deepEqual(JSON.parse(stored.form_data_json), answers);
+        assert.deepEqual(JSON.parse(stored.ai_tools), answers.aiTools);
+        assert.equal(stored.experience, answers.experience);
+        const registrationsResponse = response();
+        await controller.getRegistrations({}, registrationsResponse, next);
+        assert.deepEqual(registrationsResponse.body[0].form_data, answers);
         res = response();
         await controller.getMyRegistration(
             { user: { id: 1 }, query: { event: eventKey } },
