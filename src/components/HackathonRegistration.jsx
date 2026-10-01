@@ -749,7 +749,9 @@ const HackathonRegistration = ({
         const target = document.getElementById(id);
         if (!target) return;
         const scrollTarget =
-            id === "hackathon-hero" ? target : target.querySelector("h2") || target;
+            id === "hackathon-hero" || (id === "registration-form" && isAiX)
+                ? target
+                : target.querySelector("h2") || target;
 
         const scroller = pageRef.current;
         const viewportTop = scroller?.getBoundingClientRect().top ?? 0;
@@ -758,13 +760,18 @@ const HackathonRegistration = ({
             workspace?.querySelector(".hx-eventbar"),
             scroller?.querySelector(".hackathon-section-nav"),
         ].filter((element) => element?.getClientRects().length);
-        const offset = navigation.length
-            ? Math.max(...navigation.map((element) => element.getBoundingClientRect().bottom)) -
-              viewportTop +
-              16
-            : window.innerWidth < 768
-              ? 76
-              : 96;
+        const offset =
+            id === "registration-form" && isAiX
+                ? 0
+                : navigation.length
+                  ? Math.max(
+                        ...navigation.map((element) => element.getBoundingClientRect().bottom)
+                    ) -
+                    viewportTop +
+                    16
+                  : window.innerWidth < 768
+                    ? 76
+                    : 96;
 
         if (!scroller) {
             const end = scrollTarget.getBoundingClientRect().top + window.scrollY - offset;
@@ -1372,6 +1379,7 @@ const HackathonRegistration = ({
 
             <section
                 id="registration-form"
+                data-contained-form={isAiX || undefined}
                 className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
             >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
@@ -1460,10 +1468,10 @@ const HackathonRegistration = ({
                                   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
                               }
                             : {})}
-                        className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
+                        className={`hackathon-form-panel relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
                     >
                         <div
-                            className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"}`}
+                            className={`hackathon-form-heading mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"}`}
                         >
                             <div>
                                 <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
@@ -1482,89 +1490,107 @@ const HackathonRegistration = ({
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {requiresLogin && (
-                                <p
-                                    role={registrationError ? "alert" : "status"}
-                                    className={palette.textSoft}
-                                >
-                                    {t(
-                                        registration
-                                            ? "aix.register.success"
-                                            : registrationLoading
-                                              ? "aix.loading"
-                                              : registrationError
-                                                ? "aix.register.statusFailed"
-                                                : !user
-                                                  ? "aix.register.loginHint"
-                                                  : "aix.register.privacy"
-                                    )}
-                                </p>
-                            )}
-                            <fieldset
-                                disabled={
-                                    isSubmitting || Boolean(registration) || registrationLoading
-                                }
-                                className="min-w-0 space-y-8"
+                        <form
+                            onSubmit={handleSubmit}
+                            className={isAiX ? "hackathon-contained-form" : "space-y-5"}
+                        >
+                            <div
+                                className={isAiX ? "hackathon-form-fields space-y-5" : "space-y-5"}
+                                role={isAiX ? "region" : undefined}
+                                aria-label={isAiX ? formConfig.title : undefined}
+                                tabIndex={isAiX ? 0 : undefined}
                             >
-                                {registrationGroups.map((group, groupIndex) => (
-                                    <div
-                                        key={group.key}
-                                        className="grid gap-5 md:grid-cols-2 xl:gap-6"
+                                {requiresLogin && (
+                                    <p
+                                        role={registrationError ? "alert" : "status"}
+                                        className={palette.textSoft}
                                     >
-                                        {isAiX && (
-                                            <div
-                                                className={`md:col-span-2 border-b pb-4 ${palette.line}`}
-                                            >
-                                                <h4
-                                                    className={`text-lg font-bold ${palette.textSoft}`}
-                                                >
-                                                    <span
-                                                        className={`mr-3 text-sm tabular-nums ${palette.accent}`}
-                                                    >
-                                                        {String(groupIndex + 1).padStart(2, "0")}
-                                                    </span>
-                                                    {t(`aix.register.groups.${group.key}.title`)}
-                                                </h4>
-                                                <p
-                                                    className={`mt-2 text-sm leading-6 ${palette.textMuted}`}
-                                                >
-                                                    {t(`aix.register.groups.${group.key}.hint`)}
-                                                </p>
-                                            </div>
+                                        {t(
+                                            registration
+                                                ? "aix.register.success"
+                                                : registrationLoading
+                                                  ? "aix.loading"
+                                                  : registrationError
+                                                    ? "aix.register.statusFailed"
+                                                    : !user
+                                                      ? "aix.register.loginHint"
+                                                      : "aix.register.privacy"
                                         )}
-                                        {group.fields.map((field) => (
-                                            <div
-                                                key={field.id}
-                                                className={
-                                                    field.width === "half"
-                                                        ? "min-w-0"
-                                                        : "min-w-0 md:col-span-2"
-                                                }
-                                            >
-                                                <DynamicRegistrationField
-                                                    field={field}
-                                                    value={formData[field.id]}
-                                                    error={formErrors[field.id]}
-                                                    palette={palette}
-                                                    isDayMode={isDayMode}
-                                                    compact={isAiX}
-                                                    onChange={(value) =>
-                                                        updateAnswer(field.id, value)
+                                    </p>
+                                )}
+                                <fieldset
+                                    disabled={
+                                        isSubmitting || Boolean(registration) || registrationLoading
+                                    }
+                                    className="min-w-0 space-y-8"
+                                >
+                                    {registrationGroups.map((group, groupIndex) => (
+                                        <div
+                                            key={group.key}
+                                            className="grid gap-5 md:grid-cols-2 xl:gap-6"
+                                        >
+                                            {isAiX && (
+                                                <div
+                                                    className={`md:col-span-2 border-b pb-4 ${palette.line}`}
+                                                >
+                                                    <h4
+                                                        className={`text-lg font-bold ${palette.textSoft}`}
+                                                    >
+                                                        <span
+                                                            className={`mr-3 text-sm tabular-nums ${palette.accent}`}
+                                                        >
+                                                            {String(groupIndex + 1).padStart(
+                                                                2,
+                                                                "0"
+                                                            )}
+                                                        </span>
+                                                        {t(
+                                                            `aix.register.groups.${group.key}.title`
+                                                        )}
+                                                    </h4>
+                                                    <p
+                                                        className={`mt-2 text-sm leading-6 ${palette.textMuted}`}
+                                                    >
+                                                        {t(`aix.register.groups.${group.key}.hint`)}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {group.fields.map((field) => (
+                                                <div
+                                                    key={field.id}
+                                                    className={
+                                                        field.width === "half"
+                                                            ? "min-w-0"
+                                                            : "min-w-0 md:col-span-2"
                                                     }
-                                                    onToggle={(option) =>
-                                                        handleMultiSelectToggle(field.id, option)
-                                                    }
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                ))}
-                            </fieldset>
+                                                >
+                                                    <DynamicRegistrationField
+                                                        field={field}
+                                                        value={formData[field.id]}
+                                                        error={formErrors[field.id]}
+                                                        palette={palette}
+                                                        isDayMode={isDayMode}
+                                                        compact={isAiX}
+                                                        onChange={(value) =>
+                                                            updateAnswer(field.id, value)
+                                                        }
+                                                        onToggle={(option) =>
+                                                            handleMultiSelectToggle(
+                                                                field.id,
+                                                                option
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </fieldset>
+                            </div>
 
                             <div
                                 className={
-                                    "grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
+                                    "hackathon-form-footer grid gap-5 border-t pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)] " +
                                     palette.line
                                 }
                             >

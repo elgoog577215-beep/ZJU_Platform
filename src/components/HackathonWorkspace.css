@@ -998,6 +998,123 @@
 }
 
 /* Program content follows the same cyan surfaces and available viewport as the intro. */
+/* Keep the expanded AI+X questionnaire inside its registration screen. */
+.hx-workspace #registration-form[data-contained-form] {
+    height: var(--event-viewport-height);
+    min-height: 0;
+    padding-top: calc(var(--event-nav-height) + 20px);
+    padding-bottom: 24px;
+}
+.hx-workspace #registration-form[data-contained-form] > .mx-auto {
+    height: 100%;
+    min-height: 0;
+}
+.hx-workspace [data-contained-form] .hackathon-form-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding: clamp(16px, 2vw, 28px);
+}
+.hx-workspace [data-contained-form] .hackathon-form-heading {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+}
+.hx-workspace [data-contained-form] .hackathon-form-heading h3 {
+    font-size: 24px;
+}
+.hx-workspace .hackathon-contained-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+.hx-workspace .hackathon-form-fields {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hx-accent) transparent;
+    padding: 4px 12px 16px 4px;
+    scroll-padding-block: 12px;
+}
+.hx-workspace [data-contained-form] .hackathon-form-footer {
+    flex-shrink: 0;
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    padding-top: 14px;
+}
+.hx-workspace [data-contained-form] .hackathon-form-footer > div:first-child {
+    border: 0;
+    padding: 0;
+    background: none;
+}
+.hx-workspace [data-contained-form] .hackathon-form-footer > div:first-child > p:first-child {
+    display: none;
+}
+.hx-workspace [data-contained-form] .hackathon-form-footer p {
+    margin-top: 0;
+    font-size: 12px;
+    line-height: 1.6;
+}
+@media (max-width: 1279px) {
+    .hx-workspace #registration-form[data-contained-form] > .mx-auto {
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 16px;
+    }
+    .hx-workspace [data-contained-form] > .mx-auto > div:first-child h2 {
+        margin-top: 0;
+        font-size: 28px;
+    }
+    .hx-workspace [data-contained-form] > .mx-auto > div:first-child p {
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    .hx-workspace
+        [data-contained-form]
+        > .mx-auto
+        > div:first-child
+        > div
+        > :is(div, p:first-child) {
+        display: none;
+    }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hx-workspace #registration-form[data-contained-form] {
+        padding-top: calc(var(--event-nav-height) + 76px);
+    }
+}
+@media (max-height: 740px) {
+    .hx-workspace [data-contained-form] > .mx-auto > div:first-child > div > div {
+        display: none;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-heading {
+        margin-bottom: 10px;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-heading p,
+    .hx-workspace [data-contained-form] .hackathon-form-heading > div:last-child {
+        display: none;
+    }
+    .hx-workspace [data-contained-form] .hackathon-form-footer button {
+        min-height: 44px;
+        padding-inline: 16px;
+    }
+}
+@media (max-width: 1279px) and (max-height: 740px) {
+    .hx-workspace [data-contained-form] > .mx-auto > div:first-child {
+        display: none;
+    }
+    .hx-workspace #registration-form[data-contained-form] > .mx-auto {
+        grid-template-rows: minmax(0, 1fr);
+    }
+}
+
 .hx-workspace {
     --hx-body: 1rem;
     --hx-label: 0.875rem;
