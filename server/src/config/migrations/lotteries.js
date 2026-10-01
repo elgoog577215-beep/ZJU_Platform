@@ -2,6 +2,7 @@ async function migrateLotteries(db) {
     await db.exec(`
         CREATE TABLE IF NOT EXISTS lotteries (
             id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
+            event_key TEXT, promotion_url TEXT NOT NULL DEFAULT '', min_likes INTEGER NOT NULL DEFAULT 0,
             rules TEXT NOT NULL, prizes_json TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','open','drawn','cancelled')),
             proof_required INTEGER NOT NULL, review_required INTEGER NOT NULL,
@@ -15,7 +16,7 @@ async function migrateLotteries(db) {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             lottery_id TEXT NOT NULL REFERENCES lotteries(id), user_id INTEGER NOT NULL REFERENCES users(id),
             ticket TEXT NOT NULL UNIQUE, status TEXT NOT NULL CHECK(status IN ('pending','approved','rejected')),
-            note TEXT NOT NULL DEFAULT '', proof BLOB, review_note TEXT NOT NULL DEFAULT '',
+            note TEXT NOT NULL DEFAULT '', proof BLOB, like_count INTEGER, review_note TEXT NOT NULL DEFAULT '',
             submitted_at INTEGER NOT NULL, reviewed_at INTEGER, reviewed_by INTEGER REFERENCES users(id),
             eligible INTEGER NOT NULL DEFAULT 0, UNIQUE(lottery_id,user_id)
         );
@@ -31,5 +32,25 @@ async function migrateLotteries(db) {
             actor_id INTEGER REFERENCES users(id), action TEXT NOT NULL, detail TEXT NOT NULL, created_at INTEGER NOT NULL
         );
     `);
+    // Existing campaigns remain unbound; only an explicit draft edit associates an event.
+    for (const [table, columns] of Object.entries({
+        lotteries: {
+            event_key: "TEXT",
+            promotion_url: "TEXT NOT NULL DEFAULT ''",
+            min_likes: "INTEGER NOT NULL DEFAULT 0",
+        },
+        lottery_entries: { like_count: "INTEGER" },
+    })) {
+        const existing = new Set(
+            (await db.all(`PRAGMA table_info(${table})`)).map((column) => column.name)
+        );
+        for (const [name, definition] of Object.entries(columns)) {
+            if (!existing.has(name))
+                await db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
+        }
+    }
+    await db.exec(
+        "CREATE INDEX IF NOT EXISTS idx_lotteries_event ON lotteries(event_key,status,created_at)"
+    );
 }
 module.exports = { migrateLotteries };

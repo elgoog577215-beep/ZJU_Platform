@@ -1,12 +1,23 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Gift, Clock, ArrowRight, Ticket, CheckCircle2 } from "lucide-react";
+import {
+    Gift,
+    Clock,
+    ArrowRight,
+    Ticket,
+    CheckCircle2,
+    ExternalLink,
+    ImagePlus,
+} from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../context/AuthContext";
 import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { getEventUrl } from "../../utils/hackathonRoute";
 import "./lottery.css";
+import "./event-lottery.css";
 
 export const dateLabel = (n, lang) =>
     new Date(n).toLocaleString(lang, {
@@ -23,6 +34,8 @@ export function ProofImage({ id, entryId }) {
     useEffect(() => {
         let active = true;
         let objectUrl;
+        setUrl("");
+        setFailed(false);
         api.get(`/lotteries/${id}/entries/${entryId}/proof`, {
             responseType: "blob",
             silent: true,
@@ -50,11 +63,18 @@ export function ProofImage({ id, entryId }) {
         <p>{t(failed ? "lottery.errors.unavailable" : "lottery.loading")}</p>
     );
 }
-export default function LotteryPage() {
-    const { id } = useParams();
+export default function LotteryPage({ eventKey, eventTitle }) {
+    const { id: legacyId } = useParams();
+    const location = useLocation();
+    const id = eventKey ? new URLSearchParams(location.search).get("campaign") : legacyId;
+    const requestVersion = useRef(0);
     const { t, i18n } = useTranslation();
     const { user } = useAuth();
     const { uiMode } = useSettings();
+    const mobile = useMediaQuery("(max-width: 767px)");
+    const scope = `${eventKey || "legacy"}:${id || "list"}:${user?.id || "guest"}`;
+    const currentScope = useRef(scope);
+    currentScope.current = scope;
     const [data, setData] = useState(null);
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
@@ -62,30 +82,54 @@ export default function LotteryPage() {
     const [offset, setOffset] = useState(0);
     const [note, setNote] = useState("");
     const [proof, setProof] = useState(null);
+    const [preview, setPreview] = useState("");
+    const [proofError, setProofError] = useState("");
+    const [likes, setLikes] = useState("");
     const [claim, setClaim] = useState("");
     const [agreed, setAgreed] = useState(false);
     const load = useCallback(async () => {
+        const version = ++requestVersion.current;
         try {
             const { data: result } = await api.get(`/lotteries${id ? `/${id}` : ""}`, {
+                params: eventKey ? { event: eventKey } : undefined,
                 silent: true,
                 noRetry: true,
             });
+            if (version !== requestVersion.current) return;
             setData(result);
             setError("");
             if (result.server_now) setOffset(result.server_now - Date.now());
         } catch (e) {
-            setError(e.response?.data?.error || "unavailable");
+            if (version === requestVersion.current)
+                setError(e.response?.data?.error || "unavailable");
         }
-    }, [id, user?.id]);
+    }, [id, eventKey, user?.id]);
     useEffect(() => {
         setData(null);
+        setBusy(false);
         setNote("");
         setProof(null);
+        setProofError("");
+        setLikes("");
+        setClaim("");
+        setError("");
         setAgreed(false);
         load();
         const interval = setInterval(load, 30000);
-        return () => clearInterval(interval);
+        return () => {
+            ++requestVersion.current;
+            clearInterval(interval);
+        };
     }, [load]);
+    useEffect(() => {
+        if (!proof) {
+            setPreview("");
+            return;
+        }
+        const objectUrl = URL.createObjectURL(proof);
+        setPreview(objectUrl);
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [proof]);
     useEffect(() => {
         const timer = setInterval(() => setClock(Date.now()), 1000);
         return () => clearInterval(timer);
@@ -95,13 +139,71 @@ export default function LotteryPage() {
         setError("");
         try {
             await fn();
+            if (scope !== currentScope.current) return;
+            setProof(null);
+            setAgreed(false);
             await load();
         } catch (e) {
-            setError(e.response?.data?.error || "unavailable");
+            if (scope === currentScope.current) setError(e.response?.data?.error || "unavailable");
         } finally {
-            setBusy(false);
+            if (scope === currentScope.current) setBusy(false);
         }
     };
+    const chooseProof = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (
+            !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+            file.size > 5 * 1024 * 1024
+        ) {
+            e.target.value = "";
+            setProof(null);
+            setProofError("lottery.event.proof_invalid");
+            return;
+        }
+        setProof(file);
+        setProofError("");
+    };
+    const campaignUrl = (campaign) =>
+        campaign.event_key
+            ? getEventUrl(campaign.event_key, "lottery", {
+                  search: new URLSearchParams({ campaign: campaign.id }).toString(),
+              })
+            : `/lotteries/${campaign.id}`;
+    const returnUrl = eventKey
+        ? id
+            ? getEventUrl(eventKey, "lottery")
+            : mobile
+              ? "/"
+              : getEventUrl(eventKey)
+        : id
+          ? "/lotteries"
+          : "/";
+    const eventIntroUrl = eventKey
+        ? mobile
+            ? id
+                ? getEventUrl(eventKey, "lottery")
+                : "/"
+            : getEventUrl(eventKey)
+        : "/events";
+    const returnLabel = eventKey
+        ? id
+            ? "lottery.event.back_campaigns"
+            : mobile
+              ? "lottery.home"
+              : "lottery.event.back_event"
+        : id
+          ? "lottery.back"
+          : "lottery.home";
+    const exploreLabel = eventKey
+        ? mobile
+            ? id
+                ? "lottery.event.back_campaigns"
+                : "lottery.home"
+            : "lottery.event.back_event"
+        : "lottery.explore";
+    const eventCampaign = Boolean(data?.event_key);
+    const needsProof = eventCampaign || Boolean(data?.proof_required);
     const now = clock + offset;
     const date = (n) => dateLabel(n, i18n.language);
     const remaining =
@@ -116,13 +218,22 @@ export default function LotteryPage() {
                   ? "closed"
                   : "open"
             : data?.status;
+    if (!eventKey && data?.event_key) return <Navigate to={campaignUrl(data)} replace />;
+    const Container = eventKey ? "section" : "main";
     return (
-        <main className={`lottery-shell ${uiMode === "day" ? "lottery-day" : ""}`}>
+        <Container
+            className={`lottery-shell lottery-public ${eventKey ? "lottery-event" : ""} ${uiMode === "day" ? "lottery-day" : ""}`}
+        >
             <Helmet>
-                <title>{data?.title || t("lottery.title")}</title>
+                <title>
+                    {data?.title ||
+                        (eventKey
+                            ? `${eventTitle} · ${t("lottery.event.title")}`
+                            : t("lottery.title"))}
+                </title>
             </Helmet>
-            <Link className="lottery-back" to={id ? "/lotteries" : "/"}>
-                {t(id ? "lottery.back" : "lottery.home")}
+            <Link className="lottery-back" to={returnUrl}>
+                {t(returnLabel)}
             </Link>
             {error && (
                 <div role="alert" className="lottery-alert">
@@ -137,12 +248,12 @@ export default function LotteryPage() {
                 <>
                     <header className="lottery-heading">
                         <Gift size={32} />
-                        <h1>{t("lottery.title")}</h1>
-                        <p>{t("lottery.subtitle")}</p>
+                        <h1>{t(eventKey ? "lottery.event.title" : "lottery.title")}</h1>
+                        <p>{eventKey ? eventTitle : t("lottery.subtitle")}</p>
                     </header>
                     <div className="lottery-list">
                         {data.map((c) => (
-                            <Link key={c.id} className="lottery-campaign" to={`/lotteries/${c.id}`}>
+                            <Link key={c.id} className="lottery-campaign" to={campaignUrl(c)}>
                                 <span className="lottery-tag">
                                     {t(
                                         `lottery.status.${c.status === "open" ? (now < c.opens_at ? "upcoming" : now >= c.closes_at ? "closed" : "open") : c.status}`
@@ -169,9 +280,9 @@ export default function LotteryPage() {
                     {!data.length && (
                         <div className="lottery-empty">
                             <Gift size={44} />
-                            <h2>{t("lottery.empty")}</h2>
-                            <p>{t("lottery.empty_hint")}</p>
-                            <Link to="/events">{t("lottery.explore")}</Link>
+                            <h2>{t(eventKey ? "lottery.event.empty" : "lottery.empty")}</h2>
+                            <p>{t(eventKey ? "lottery.event.empty_hint" : "lottery.empty_hint")}</p>
+                            <Link to={eventIntroUrl}>{t(exploreLabel)}</Link>
                         </div>
                     )}
                 </>
@@ -180,9 +291,47 @@ export default function LotteryPage() {
                 <>
                     <header className="lottery-heading">
                         <span className="lottery-tag">{t(`lottery.status.${state}`)}</span>
+                        {eventKey && <p className="lottery-event-name">{eventTitle}</p>}
                         <h1>{data.title}</h1>
                         <p>{data.description}</p>
                     </header>
+                    {eventCampaign && (
+                        <section
+                            className="lottery-promotion"
+                            aria-label={t("lottery.event.how_to")}
+                        >
+                            <ol className="lottery-steps">
+                                {["share", "capture", "review"].map((step, index) => (
+                                    <li key={step}>
+                                        <span className="lottery-step-number">0{index + 1}</span>
+                                        <div>
+                                            <h2>{t(`lottery.event.step_${step}`)}</h2>
+                                            <p>{t(`lottery.event.step_${step}_hint`)}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ol>
+                            {data.promotion_url && (
+                                <a
+                                    className="lottery-promotion-link"
+                                    href={data.promotion_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {t("lottery.event.open_post")}
+                                    <ExternalLink size={16} />
+                                </a>
+                            )}
+                            <p className="lottery-muted">
+                                {t(
+                                    Number(data.min_likes) > 0
+                                        ? "lottery.event.minimum_likes"
+                                        : "lottery.event.likes_record",
+                                    { count: Number(data.min_likes) || 0 }
+                                )}
+                            </p>
+                        </section>
+                    )}
                     <div className="lottery-layout">
                         <div>
                             <section className="lottery-panel">
@@ -191,7 +340,7 @@ export default function LotteryPage() {
                                     {t("lottery.prizes")}
                                 </h2>
                                 <div className="lottery-prizes">
-                                    {data.prizes.map((p, index) => (
+                                    {(data.prizes || []).map((p, index) => (
                                         <div className="lottery-prize" key={p.id}>
                                             <span className="lottery-prize-index">
                                                 {String(index + 1).padStart(2, "0")}
@@ -208,7 +357,7 @@ export default function LotteryPage() {
                                 <h2>{t("lottery.rules")}</h2>
                                 <p className="lottery-prose">{data.rules}</p>
                                 <p className="lottery-muted">{t("lottery.fairness")}</p>
-                                {Boolean(data.review_required) && (
+                                {(eventCampaign || Boolean(data.review_required)) && (
                                     <p className="lottery-muted">{t("lottery.review_notice")}</p>
                                 )}
                                 <dl className="lottery-dates">
@@ -294,8 +443,44 @@ export default function LotteryPage() {
                                                             `lottery.entry_status.${data.entry.status}`
                                                         )}
                                                     </strong>
+                                                    {eventCampaign &&
+                                                        [
+                                                            "pending",
+                                                            "approved",
+                                                            "rejected",
+                                                        ].includes(data.entry.status) && (
+                                                            <p
+                                                                className="lottery-entry-feedback"
+                                                                role="status"
+                                                            >
+                                                                {t(
+                                                                    `lottery.event.entry_${data.entry.status}`
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                    {eventCampaign &&
+                                                        Number.isInteger(data.entry.like_count) && (
+                                                            <span>
+                                                                {t(
+                                                                    "lottery.event.submitted_likes",
+                                                                    { count: data.entry.like_count }
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     {data.entry.review_note && (
                                                         <p>{data.entry.review_note}</p>
+                                                    )}
+                                                    {data.entry.has_proof && (
+                                                        <details>
+                                                            <summary>
+                                                                {t("lottery.show_proof")}
+                                                            </summary>
+                                                            <ProofImage
+                                                                key={data.entry.submitted_at}
+                                                                id={data.id}
+                                                                entryId={data.entry.id}
+                                                            />
+                                                        </details>
                                                     )}
                                                 </div>
                                             )}
@@ -308,10 +493,15 @@ export default function LotteryPage() {
                                                             act(() => {
                                                                 const form = new FormData();
                                                                 form.append("note", note);
+                                                                if (eventCampaign)
+                                                                    form.append(
+                                                                        "like_count",
+                                                                        String(Number(likes))
+                                                                    );
                                                                 if (proof)
                                                                     form.append("proof", proof);
                                                                 return api.post(
-                                                                    `/lotteries/${id}/entries`,
+                                                                    `/lotteries/${data.id}/entries`,
                                                                     form,
                                                                     {
                                                                         headers: {
@@ -325,58 +515,119 @@ export default function LotteryPage() {
                                                             });
                                                         }}
                                                     >
-                                                        <label>
-                                                            {t("lottery.note")}
-                                                            <textarea
-                                                                maxLength={1000}
-                                                                value={note}
-                                                                onChange={(e) =>
-                                                                    setNote(e.target.value)
-                                                                }
-                                                            />
-                                                        </label>
-                                                        {Boolean(data.proof_required) && (
+                                                        <fieldset disabled={busy}>
+                                                            {eventCampaign && (
+                                                                <label>
+                                                                    {t("lottery.event.like_count")}
+                                                                    <input
+                                                                        type="number"
+                                                                        inputMode="numeric"
+                                                                        min={
+                                                                            Number(
+                                                                                data.min_likes
+                                                                            ) || 0
+                                                                        }
+                                                                        max={1000000000}
+                                                                        step="1"
+                                                                        required
+                                                                        value={likes}
+                                                                        onChange={(e) =>
+                                                                            setLikes(e.target.value)
+                                                                        }
+                                                                    />
+                                                                    <small>
+                                                                        {t(
+                                                                            "lottery.event.like_count_hint"
+                                                                        )}
+                                                                    </small>
+                                                                </label>
+                                                            )}
                                                             <label>
-                                                                {t("lottery.proof")}
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/jpeg,image/png,image/webp"
-                                                                    required={
-                                                                        !data.entry?.has_proof
-                                                                    }
+                                                                {t("lottery.note")}
+                                                                <textarea
+                                                                    maxLength={1000}
+                                                                    value={note}
                                                                     onChange={(e) =>
-                                                                        setProof(
-                                                                            e.target.files?.[0] ||
-                                                                                null
-                                                                        )
+                                                                        setNote(e.target.value)
                                                                     }
                                                                 />
-                                                                <small>
-                                                                    {t("lottery.proof_hint")}
-                                                                </small>
                                                             </label>
-                                                        )}
-                                                        <label className="lottery-check">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={agreed}
-                                                                onChange={(e) =>
-                                                                    setAgreed(e.target.checked)
-                                                                }
-                                                                required
-                                                            />
-                                                            {t("lottery.agree")}
-                                                        </label>
-                                                        <button
-                                                            className="lottery-primary"
-                                                            disabled={busy || !agreed}
-                                                        >
-                                                            {t(
-                                                                busy
-                                                                    ? "lottery.submitting"
-                                                                    : "lottery.enter"
+                                                            {needsProof && (
+                                                                <label className="lottery-proof-upload">
+                                                                    <span className="lottery-proof-label">
+                                                                        <ImagePlus size={18} />
+                                                                        {t(
+                                                                            eventCampaign
+                                                                                ? "lottery.event.screenshot"
+                                                                                : "lottery.proof"
+                                                                        )}
+                                                                    </span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/jpeg,image/png,image/webp"
+                                                                        required={
+                                                                            !data.entry?.has_proof
+                                                                        }
+                                                                        onChange={chooseProof}
+                                                                    />
+                                                                    <small>
+                                                                        {t("lottery.proof_hint")}
+                                                                    </small>
+                                                                    {data.entry?.has_proof &&
+                                                                        !proof && (
+                                                                            <small>
+                                                                                {t(
+                                                                                    "lottery.event.keep_proof"
+                                                                                )}
+                                                                            </small>
+                                                                        )}
+                                                                    {proofError && (
+                                                                        <span
+                                                                            className="lottery-proof-error"
+                                                                            role="alert"
+                                                                        >
+                                                                            {t(proofError)}
+                                                                        </span>
+                                                                    )}
+                                                                    {preview && (
+                                                                        <img
+                                                                            className="lottery-proof-preview"
+                                                                            src={preview}
+                                                                            alt={t(
+                                                                                "lottery.event.preview"
+                                                                            )}
+                                                                        />
+                                                                    )}
+                                                                </label>
                                                             )}
-                                                        </button>
+                                                            <label className="lottery-check">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={agreed}
+                                                                    onChange={(e) =>
+                                                                        setAgreed(e.target.checked)
+                                                                    }
+                                                                    required
+                                                                />
+                                                                {t("lottery.agree")}
+                                                            </label>
+                                                            <button
+                                                                className="lottery-primary"
+                                                                disabled={
+                                                                    busy ||
+                                                                    !agreed ||
+                                                                    Boolean(proofError)
+                                                                }
+                                                            >
+                                                                {t(
+                                                                    busy
+                                                                        ? "lottery.submitting"
+                                                                        : eventCampaign
+                                                                          ? "lottery.event.submit_review"
+                                                                          : "lottery.enter"
+                                                                )}
+                                                            </button>
+                                                        </fieldset>
                                                     </form>
                                                 )}
                                             {!canEnter &&
@@ -409,7 +660,7 @@ export default function LotteryPage() {
                                                                     e.preventDefault();
                                                                     act(() =>
                                                                         api.post(
-                                                                            `/lotteries/${id}/claim`,
+                                                                            `/lotteries/${data.id}/claim`,
                                                                             { text: claim },
                                                                             {
                                                                                 silent: true,
@@ -455,14 +706,14 @@ export default function LotteryPage() {
                                     )}
                                 </>
                             )}
-                            <Link className="lottery-explore" to="/events">
-                                {t("lottery.explore")}
+                            <Link className="lottery-explore" to={eventIntroUrl}>
+                                {t(exploreLabel)}
                                 <ArrowRight size={18} />
                             </Link>
                         </aside>
                     </div>
                 </>
             )}
-        </main>
+        </Container>
     );
 }

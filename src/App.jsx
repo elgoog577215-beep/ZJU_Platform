@@ -427,7 +427,11 @@ const AppContent = () => {
         window.sessionStorage.setItem(sessionVisitKey, "1");
     }, [isAdminRoute, location.pathname]);
 
-    if (isMobileViewport && /^\/(about|hackathon)(\/|$)/.test(location.pathname)) {
+    if (
+        isMobileViewport &&
+        /^\/(about|hackathon)(\/|$)/.test(location.pathname) &&
+        !/^\/hackathon\/[^/]+\/lottery\/?$/.test(location.pathname)
+    ) {
         return <Navigate to="/" replace />;
     }
 

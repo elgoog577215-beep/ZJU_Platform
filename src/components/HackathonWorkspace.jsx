@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight, Check, Gift } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -119,6 +119,14 @@ export default function HackathonWorkspace({ template, schedule }) {
                     ))}
                 </nav>
                 <div className="hx-event-actions">
+                    <Link
+                        className="hx-outline"
+                        to={getEventUrl(event.key, "lottery")}
+                        aria-current={view === "lottery" ? "page" : undefined}
+                    >
+                        <Gift size={17} aria-hidden="true" />
+                        {t("lottery.event_entry")}
+                    </Link>
                     <button
                         className="hx-primary"
                         disabled={

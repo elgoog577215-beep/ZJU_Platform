@@ -2,6 +2,9 @@ const { randomUUID, randomInt, createHash } = require("node:crypto");
 const path = require("node:path");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
+const eventKeys = new Set(
+    require("../../../shared/hackathonRoutes.json").map((event) => event.eventKey)
+);
 
 class LotteryError extends Error {
     constructor(code, status = 400) {
@@ -18,9 +21,36 @@ const clean = (v, max, required = false) => {
         fail("invalid_fields");
     return v.trim();
 };
+function validateEvent(event) {
+    if (typeof event !== "string" || !eventKeys.has(event)) fail("invalid_event");
+    return event;
+}
+function likes(value) {
+    if (typeof value === "string" && /^\d+$/.test(value)) value = Number(value);
+    if (!Number.isSafeInteger(value) || value < 0 || value > 1_000_000_000) fail("invalid_likes");
+    return value;
+}
+function promotionUrl(value = "") {
+    const text = clean(value, 2000);
+    if (text) {
+        let url;
+        try {
+            url = new URL(text);
+        } catch {
+            fail("invalid_promotion_url");
+        }
+        if (!["http:", "https:"].includes(url.protocol) || url.username || url.password)
+            fail("invalid_promotion_url");
+    }
+    return text;
+}
 function validateCampaign(body, now) {
     const data = {
         title: clean(body.title, 100, true),
+        event_key:
+            body.event_key == null || body.event_key === "" ? null : validateEvent(body.event_key),
+        promotion_url: promotionUrl(body.promotion_url),
+        min_likes: likes(body.min_likes ?? 0),
         description: clean(body.description, 4000),
         rules: clean(body.rules, 6000, true),
         opens_at: Number(body.opens_at),
@@ -42,8 +72,8 @@ function validateCampaign(body, now) {
         fail("invalid_dates");
     if (typeof body.proof_required !== "boolean" || typeof body.review_required !== "boolean")
         fail("invalid_fields");
-    data.proof_required = Number(body.proof_required);
-    data.review_required = Number(body.review_required);
+    data.proof_required = data.event_key ? 1 : Number(body.proof_required);
+    data.review_required = data.event_key ? 1 : Number(body.review_required);
     if (!Array.isArray(body.prizes) || !body.prizes.length || body.prizes.length > 20)
         fail("invalid_prizes");
     data.prizes = body.prizes.map((p) => {
@@ -102,25 +132,36 @@ function createLotteryService({
         return { ...rest, prizes: JSON.parse(prizes_json) };
     };
     const entryColumns =
-        "id,lottery_id,user_id,ticket,status,note,review_note,submitted_at,reviewed_at,eligible,(proof IS NOT NULL) AS has_proof";
+        "id,lottery_id,user_id,ticket,status,note,like_count,review_note,submitted_at,reviewed_at,eligible,(proof IS NOT NULL) AS has_proof";
     const requireOpen = (c) => {
         if (c.status !== "open" || now() < c.opens_at || now() >= c.closes_at)
             fail("registration_closed", 409);
     };
     return {
-        async list(admin = false) {
+        async list(admin = false, event) {
+            if (event !== undefined) validateEvent(event);
+            const conditions = [
+                ...(admin ? [] : ["status != 'draft'"]),
+                ...(event === undefined ? [] : ["event_key=?"]),
+            ];
             return read(async (db) =>
                 (
                     await db.all(
-                        `SELECT * FROM lotteries ${admin ? "" : "WHERE status != 'draft'"} ORDER BY created_at DESC LIMIT 100`
+                        `SELECT * FROM lotteries ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""} ORDER BY created_at DESC LIMIT 100`,
+                        ...(event === undefined ? [] : [event])
                     )
                 ).map(publicCampaign)
             );
         },
-        async detail(id, userId, admin = false) {
+        async detail(id, userId, admin = false, event) {
+            if (event !== undefined) validateEvent(event);
             return read(async (db) => {
                 const c = await campaign(db, id);
-                if (c.status === "draft" && !admin) fail("not_found", 404);
+                if (
+                    (c.status === "draft" && !admin) ||
+                    (event !== undefined && c.event_key !== event)
+                )
+                    fail("not_found", 404);
                 const entry = userId
                     ? await db.get(
                           `SELECT ${entryColumns} FROM lottery_entries WHERE lottery_id=? AND user_id=?`,
@@ -168,17 +209,20 @@ function createLotteryService({
                     d.closes_at,
                     d.draws_at,
                     d.claims_until,
+                    d.event_key,
+                    d.promotion_url,
+                    d.min_likes,
                 ];
                 if (c)
                     await db.run(
-                        "UPDATE lotteries SET title=?,description=?,rules=?,prizes_json=?,proof_required=?,review_required=?,opens_at=?,closes_at=?,draws_at=?,claims_until=?,version=version+1 WHERE id=?",
+                        "UPDATE lotteries SET title=?,description=?,rules=?,prizes_json=?,proof_required=?,review_required=?,opens_at=?,closes_at=?,draws_at=?,claims_until=?,event_key=?,promotion_url=?,min_likes=?,version=version+1 WHERE id=?",
                         ...values,
                         id
                     );
                 else {
                     id = randomUUID();
                     await db.run(
-                        "INSERT INTO lotteries(title,description,rules,prizes_json,proof_required,review_required,opens_at,closes_at,draws_at,claims_until,id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "INSERT INTO lotteries(title,description,rules,prizes_json,proof_required,review_required,opens_at,closes_at,draws_at,claims_until,event_key,promotion_url,min_likes,id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         ...values,
                         id,
                         actor,
@@ -194,6 +238,7 @@ function createLotteryService({
                 const c = await campaign(db, id);
                 if (c.status !== "draft" || c.version !== version || c.closes_at <= now())
                     fail("locked", 409);
+                if (c.event_key && !promotionUrl(c.promotion_url)) fail("promotion_url_required");
                 await db.run("UPDATE lotteries SET status='open',version=version+1 WHERE id=?", id);
                 await audit(db, id, actor, "published");
                 return { id };
@@ -214,7 +259,7 @@ function createLotteryService({
                 return { id };
             });
         },
-        async enter(id, userId, { note = "", proof = null } = {}) {
+        async enter(id, userId, { note = "", proof = null, like_count } = {}) {
             return transaction(async (db) => {
                 const c = await campaign(db, id);
                 requireOpen(c);
@@ -224,28 +269,34 @@ function createLotteryService({
                     userId
                 );
                 if (old && old.status !== "rejected") return { id: old.id, duplicate: true };
-                if (c.proof_required && !proof && !old?.has_proof) fail("proof_required");
+                if ((c.proof_required || c.event_key) && !proof && !old?.has_proof)
+                    fail("proof_required");
+                const likeCount =
+                    like_count === undefined && !c.event_key ? null : likes(like_count);
+                if (c.event_key && likeCount < c.min_likes) fail("insufficient_likes");
                 const text = clean(note, 1000);
-                const status = c.review_required ? "pending" : "approved";
+                const status = c.review_required || c.event_key ? "pending" : "approved";
                 let entryId = old?.id;
                 if (old)
                     await db.run(
-                        "UPDATE lottery_entries SET note=?,proof=COALESCE(?,proof),status=?,review_note='',reviewed_by=NULL,reviewed_at=NULL,submitted_at=? WHERE id=?",
+                        "UPDATE lottery_entries SET note=?,proof=COALESCE(?,proof),like_count=?,status=?,review_note='',eligible=0,reviewed_by=NULL,reviewed_at=NULL,submitted_at=? WHERE id=?",
                         text,
                         proof,
+                        likeCount,
                         status,
                         now(),
                         old.id
                     );
                 else {
                     const result = await db.run(
-                        "INSERT INTO lottery_entries(lottery_id,user_id,ticket,status,note,proof,submitted_at) VALUES (?,?,?,?,?,?,?)",
+                        "INSERT INTO lottery_entries(lottery_id,user_id,ticket,status,note,proof,like_count,submitted_at) VALUES (?,?,?,?,?,?,?,?)",
                         id,
                         userId,
                         randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase(),
                         status,
                         text,
                         proof,
+                        likeCount,
                         now()
                     );
                     entryId = result.lastID;
@@ -259,7 +310,7 @@ function createLotteryService({
                 await campaign(db, id);
                 return {
                     items: await db.all(
-                        `SELECT e.id,e.ticket,e.status,e.note,e.review_note,e.submitted_at,e.reviewed_at,(e.proof IS NOT NULL) AS has_proof,u.username,w.prize_name,w.claim_text,w.claimed_at,w.fulfilled_at FROM lottery_entries e JOIN users u ON u.id=e.user_id LEFT JOIN lottery_winners w ON w.entry_id=e.id WHERE e.lottery_id=? ORDER BY e.id DESC LIMIT 50 OFFSET ?`,
+                        `SELECT e.id,e.ticket,e.status,e.note,e.like_count,e.review_note,e.submitted_at,e.reviewed_at,(e.proof IS NOT NULL) AS has_proof,u.username,w.prize_name,w.claim_text,w.claimed_at,w.fulfilled_at FROM lottery_entries e JOIN users u ON u.id=e.user_id LEFT JOIN lottery_winners w ON w.entry_id=e.id WHERE e.lottery_id=? ORDER BY e.id DESC LIMIT 50 OFFSET ?`,
                         id,
                         (page - 1) * 50
                     ),
@@ -289,6 +340,17 @@ function createLotteryService({
                 if (c.status !== "open" || now() >= c.draws_at) fail("locked", 409);
                 if (!["approved", "rejected"].includes(status)) fail("invalid_fields");
                 const text = clean(note, 500, status === "rejected");
+                if (status === "approved" && c.event_key) {
+                    const entry = await db.get(
+                        "SELECT like_count,proof IS NOT NULL AS has_proof FROM lottery_entries WHERE lottery_id=? AND id=?",
+                        id,
+                        entryId
+                    );
+                    if (!entry) fail("not_found", 404);
+                    if (!entry.has_proof) fail("proof_required");
+                    if (!Number.isSafeInteger(entry.like_count) || entry.like_count < c.min_likes)
+                        fail("insufficient_likes");
+                }
                 const result = await db.run(
                     "UPDATE lottery_entries SET status=?,review_note=?,reviewed_by=?,reviewed_at=? WHERE lottery_id=? AND id=?",
                     status,
@@ -308,15 +370,19 @@ function createLotteryService({
                 const c = await campaign(db, id);
                 if (c.status !== "open" || now() < c.draws_at) return false;
                 const entries = await db.all(
-                    "SELECT e.id,e.ticket FROM lottery_entries e JOIN users u ON u.id=e.user_id WHERE e.lottery_id=? AND e.status='approved' AND u.role!='banned' ORDER BY e.id",
-                    id
+                    "SELECT e.id,e.ticket FROM lottery_entries e JOIN users u ON u.id=e.user_id WHERE e.lottery_id=? AND e.status='approved' AND u.role!='banned' AND (? IS NULL OR (e.proof IS NOT NULL AND e.like_count>=?)) ORDER BY e.id",
+                    id,
+                    c.event_key,
+                    c.min_likes
                 );
                 const hash = createHash("sha256")
                     .update(JSON.stringify({ entries, prizes: JSON.parse(c.prizes_json) }))
                     .digest("hex");
                 await db.run(
-                    "UPDATE lottery_entries SET eligible=1 WHERE lottery_id=? AND status='approved' AND user_id IN (SELECT id FROM users WHERE role!='banned')",
-                    id
+                    "UPDATE lottery_entries SET eligible=1 WHERE lottery_id=? AND status='approved' AND user_id IN (SELECT id FROM users WHERE role!='banned') AND (? IS NULL OR (proof IS NOT NULL AND like_count>=?))",
+                    id,
+                    c.event_key,
+                    c.min_likes
                 );
                 const pool = [...entries];
                 let won = 0;

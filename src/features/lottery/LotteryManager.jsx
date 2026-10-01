@@ -6,7 +6,13 @@ import api from "../../services/api";
 import { dateLabel, ProofImage } from "./LotteryPage";
 import LotteryShare from "./LotteryShare";
 import "./lottery.css";
-const blank = () => ({
+import { useHackathonSchedule } from "../../hooks/useHackathonSchedule";
+import { AIX_EVENT_KEY } from "../../utils/hackathonAiX";
+import { getLotteryUrl } from "../../utils/lotteryRoute";
+const blank = (eventKey = AIX_EVENT_KEY) => ({
+    event_key: eventKey,
+    promotion_url: "",
+    min_likes: 0,
     title: "",
     description: "",
     rules: "",
@@ -35,6 +41,11 @@ function EntryRow({ entry, campaign, busy, onReview, onFulfill }) {
                 {t(`lottery.entry_status.${entry.status}`)}
                 {entry.prize_name && ` · ${entry.prize_name}`}
             </p>
+            {campaign.event_key && (
+                <p>
+                    {t("lottery.like_count")}：<strong>{entry.like_count ?? "—"}</strong>
+                </p>
+            )}
             <p>{entry.note}</p>
             {entry.review_note && (
                 <p>
@@ -46,7 +57,9 @@ function EntryRow({ entry, campaign, busy, onReview, onFulfill }) {
                     <button onClick={() => setShowProof(!showProof)}>
                         {t(showProof ? "lottery.hide_proof" : "lottery.show_proof")}
                     </button>
-                    {showProof && <ProofImage id={campaign.id} entryId={entry.id} />}
+                    {showProof && (
+                        <ProofImage key={entry.submitted_at} id={campaign.id} entryId={entry.id} />
+                    )}
                 </>
             )}
             {campaign.status === "open" && Date.now() < campaign.draws_at && (
@@ -93,7 +106,8 @@ function EntryRow({ entry, campaign, busy, onReview, onFulfill }) {
 }
 export default function LotteryManager() {
     const { t, i18n } = useTranslation();
-    const { uiMode } = useSettings();
+    const { uiMode, settings } = useSettings();
+    const { schedule } = useHackathonSchedule(settings);
     const [list, setList] = useState([]);
     const [selected, setSelected] = useState(null);
     const [form, setForm] = useState(blank);
@@ -125,6 +139,9 @@ export default function LotteryManager() {
         setSelected(data);
         setForm({
             ...data,
+            event_key: data.event_key || "",
+            promotion_url: data.promotion_url || "",
+            min_likes: data.min_likes || 0,
             proof_required: Boolean(data.proof_required),
             review_required: Boolean(data.review_required),
             ...Object.fromEntries(
@@ -154,7 +171,14 @@ export default function LotteryManager() {
             setBusy(false);
         }
     };
-    const field = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+    const field = (key, value) =>
+        setForm((f) => ({
+            ...f,
+            [key]: value,
+            ...(key === "event_key" && value
+                ? { proof_required: true, review_required: true }
+                : {}),
+        }));
     const save = async (e) => {
         e.preventDefault();
         await act(async () => {
@@ -200,7 +224,7 @@ export default function LotteryManager() {
                         disabled={busy}
                         onClick={() => {
                             setSelected(null);
-                            setForm(blank());
+                            setForm(blank(schedule.activeEventKey));
                             setEntries({ items: [], total: 0 });
                             setError("");
                             setMessage("");
@@ -225,6 +249,62 @@ export default function LotteryManager() {
                     <section className="lottery-panel">
                         <form onSubmit={save}>
                             <fieldset disabled={busy || !editable}>
+                                <label>
+                                    {t("lottery.event_label")}
+                                    <select
+                                        value={form.event_key || ""}
+                                        onChange={(e) => field("event_key", e.target.value)}
+                                    >
+                                        {selected && !selected.event_key && (
+                                            <option value="">{t("lottery.legacy_event")}</option>
+                                        )}
+                                        {schedule.events.map(({ event }) => (
+                                            <option key={event.key} value={event.key}>
+                                                {event.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                {form.event_key && (
+                                    <>
+                                        <label>
+                                            {t("lottery.promotion_url")}
+                                            <input
+                                                type="url"
+                                                maxLength={2000}
+                                                value={form.promotion_url || ""}
+                                                onChange={(e) =>
+                                                    field("promotion_url", e.target.value)
+                                                }
+                                                placeholder="https://mp.weixin.qq.com/…"
+                                            />
+                                            <small>{t("lottery.promotion_url_hint")}</small>
+                                        </label>
+                                        <label>
+                                            {t("lottery.min_likes")}
+                                            <input
+                                                type="number"
+                                                required
+                                                min={0}
+                                                step={1}
+                                                max={1000000000}
+                                                value={form.min_likes ?? 0}
+                                                onChange={(e) =>
+                                                    field(
+                                                        "min_likes",
+                                                        e.target.value === ""
+                                                            ? ""
+                                                            : Number(e.target.value)
+                                                    )
+                                                }
+                                            />
+                                            <small>{t("lottery.min_likes_hint")}</small>
+                                        </label>
+                                        <p className="lottery-muted">
+                                            {t("lottery.event_review_required")}
+                                        </p>
+                                    </>
+                                )}
                                 <label>
                                     {t("lottery.name")}
                                     <input
@@ -275,7 +355,8 @@ export default function LotteryManager() {
                                 <label className="lottery-check">
                                     <input
                                         type="checkbox"
-                                        checked={form.proof_required}
+                                        checked={Boolean(form.event_key) || form.proof_required}
+                                        disabled={Boolean(form.event_key)}
                                         onChange={(e) => field("proof_required", e.target.checked)}
                                     />
                                     {t("lottery.require_proof")}
@@ -283,7 +364,8 @@ export default function LotteryManager() {
                                 <label className="lottery-check">
                                     <input
                                         type="checkbox"
-                                        checked={form.review_required}
+                                        checked={Boolean(form.event_key) || form.review_required}
+                                        disabled={Boolean(form.event_key)}
                                         onChange={(e) => field("review_required", e.target.checked)}
                                     />
                                     {t("lottery.require_review")}
@@ -381,10 +463,19 @@ export default function LotteryManager() {
                                                 onChange={(e) => setPublishReady(e.target.checked)}
                                             />
                                             {t("lottery.publish_confirm")}
+                                            {selected.event_key && !selected.promotion_url && (
+                                                <small>{t("lottery.promotion_url_hint")}</small>
+                                            )}
                                         </label>
                                         <button
                                             className="lottery-primary"
-                                            disabled={busy || !publishReady}
+                                            disabled={
+                                                busy ||
+                                                !publishReady ||
+                                                Boolean(
+                                                    selected.event_key && !selected.promotion_url
+                                                )
+                                            }
                                             onClick={() =>
                                                 act(() =>
                                                     api.post(
@@ -399,7 +490,7 @@ export default function LotteryManager() {
                                         </button>
                                     </>
                                 ) : (
-                                    <Link to={`/lotteries/${selected.id}`}>
+                                    <Link to={getLotteryUrl(selected)}>
                                         {t("lottery.view_public")} ↗
                                     </Link>
                                 )}
@@ -439,6 +530,9 @@ export default function LotteryManager() {
                             <h2>
                                 {t("lottery.entries")} · {entries.total}
                             </h2>
+                            {selected.event_key && (
+                                <p className="lottery-muted">{t("lottery.review_checklist")}</p>
+                            )}
                             <p>
                                 {t("lottery.pending_count", {
                                     count: selected.counts.pending || 0,

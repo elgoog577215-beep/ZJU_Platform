@@ -4237,7 +4237,6 @@
             "partial": "{{count}} / {{total}} photos submitted. Check the individual statuses.",
             "retry": "Retry failed photos"
         },
-
         "photo_title": "Upload photos from {{event}}",
         "photo_subtitle": "Approved photos will appear in this event’s photo gallery.",
         "submit_photos": "Submit photos",
@@ -5403,7 +5402,12 @@
             "claim_closed": "Claims are unavailable or the deadline has passed.",
             "not_winner": "This account has no winning entry.",
             "not_claimed": "The winner has not submitted a claim.",
-            "unavailable": "Unable to complete this now. Refresh and try again."
+            "unavailable": "Unable to complete this now. Refresh and try again.",
+            "invalid_event": "Select a valid event.",
+            "invalid_likes": "Enter a valid whole number of likes.",
+            "invalid_promotion_url": "Enter a valid HTTP or HTTPS post URL.",
+            "promotion_url_required": "Save the official post URL before publishing.",
+            "insufficient_likes": "The like count does not meet this campaign’s minimum."
         },
         "actions": {
             "created": "Draft created",
@@ -5416,6 +5420,44 @@
             "drawn": "Automatic draw",
             "claimed": "Claim submitted",
             "fulfilled": "Prize delivered"
+        },
+        "event_entry": "Share & win",
+        "event_label": "Hackathon event",
+        "legacy_event": "No event (standalone campaign)",
+        "promotion_url": "Official post URL",
+        "promotion_url_hint": "Enter the official post participants must share. Required before publishing an event campaign.",
+        "min_likes": "Minimum likes",
+        "min_likes_hint": "0 means no minimum. Each approved account receives one chance.",
+        "event_review_required": "Event campaigns always require a screenshot and administrator approval.",
+        "like_count": "Likes shown in screenshot",
+        "review_checklist": "Verify the correct official post was shared and the reported likes match the screenshot and meet the minimum. Explain any rejection so the participant can resubmit.",
+        "event": {
+            "title": "Share & win",
+            "back_campaigns": "Event giveaways",
+            "back_event": "Back to the event",
+            "empty": "No giveaway has been published for this event",
+            "empty_hint": "Once published, you can read the official post, submit a screenshot of your likes, and check your review status here.",
+            "how_to": "How to enter",
+            "step_share": "Share the event post",
+            "step_share_hint": "Open the official post below and share it according to this campaign’s rules.",
+            "step_capture": "Submit a screenshot",
+            "step_capture_hint": "Capture your shared post and its like count, then sign in to upload it.",
+            "step_review": "Join after approval",
+            "step_review_hint": "An administrator checks your screenshot. Approved entries join the draw.",
+            "open_post": "Open the official post",
+            "minimum_likes": "At least {{count}} likes are required. All approved accounts have an equal chance of winning.",
+            "likes_record": "Enter the like count shown in your screenshot. All approved accounts have an equal chance of winning.",
+            "like_count": "Likes shown in the screenshot",
+            "like_count_hint": "Enter a whole number that matches the screenshot for review.",
+            "submitted_likes": "Submitted: {{count}} likes",
+            "screenshot": "Screenshot of your shared post and likes",
+            "proof_invalid": "Upload a JPG, PNG, or WebP image up to 5 MB.",
+            "preview": "Preview of the screenshot to submit",
+            "keep_proof": "Your previous screenshot is retained. Select a new image to replace it.",
+            "submit_review": "Submit for review",
+            "entry_pending": "Your submission is awaiting administrator review. You can enter the draw once approved.",
+            "entry_approved": "Your entry is approved. Check back at the scheduled draw time for the result.",
+            "entry_rejected": "Read the review feedback. You can correct your like count or screenshot and resubmit before entries close."
         }
     },
     "firstEdition": {

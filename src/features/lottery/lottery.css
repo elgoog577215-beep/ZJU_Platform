@@ -459,3 +459,18 @@
         gap: 8px;
     }
 }
+
+.lottery-admin select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--lottery-border);
+    color: inherit;
+    background: var(--lottery-bg);
+    font: inherit;
+}
+.hx-workspace .hx-event-actions a[aria-current="page"] {
+    color: var(--hx-accent);
+    border-color: currentColor;
+}

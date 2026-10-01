@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 const service = createLotteryService();
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 1 },
+    limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 2 },
 });
 const router = express.Router();
 router.use((_req, res, next) => {
@@ -31,7 +31,7 @@ router.get(
     "/admin",
     authenticateToken,
     isAdmin,
-    route(async (_req, res) => res.json(await service.list(true)))
+    route(async (req, res) => res.json(await service.list(true, req.query.event)))
 );
 router.post(
     "/admin",
@@ -110,12 +110,14 @@ router.get(
 );
 router.get(
     "/",
-    route(async (_req, res) => res.json(await service.list()))
+    route(async (req, res) => res.json(await service.list(false, req.query.event)))
 );
 router.get(
     "/:id",
     optionalAuth,
-    route(async (req, res) => res.json(await service.detail(req.params.id, req.user?.id)))
+    route(async (req, res) =>
+        res.json(await service.detail(req.params.id, req.user?.id, false, req.query.event))
+    )
 );
 router.get(
     "/:id/entries/:entryId/proof",
@@ -152,7 +154,11 @@ router.post(
             }
         }
         res.json(
-            await service.enter(req.params.id, req.user.id, { note: req.body.note || "", proof })
+            await service.enter(req.params.id, req.user.id, {
+                note: req.body.note || "",
+                proof,
+                like_count: req.body.like_count,
+            })
         );
     })
 );

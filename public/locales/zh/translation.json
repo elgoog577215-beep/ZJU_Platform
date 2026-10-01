@@ -4337,7 +4337,6 @@
             "partial": "已提交 {{count}} / {{total}} 张，请查看每张照片的状态。",
             "retry": "重试失败照片"
         },
-
         "photo_title": "上传「{{event}}」现场照片",
         "photo_subtitle": "照片审核通过后会出现在本场比赛的现场照片页。",
         "submit_photos": "提交照片",
@@ -5512,7 +5511,12 @@
             "claim_closed": "当前无法领奖或领奖已截止。",
             "not_winner": "当前账号没有本期中奖记录。",
             "not_claimed": "用户尚未提交领奖信息。",
-            "unavailable": "暂时无法完成，请刷新后重试。"
+            "unavailable": "暂时无法完成，请刷新后重试。",
+            "invalid_event": "请选择有效赛事。",
+            "invalid_likes": "请填写有效的整数点赞数。",
+            "invalid_promotion_url": "请填写有效的 HTTP 或 HTTPS 推文链接。",
+            "promotion_url_required": "发布前请先保存官方推文链接。",
+            "insufficient_likes": "点赞数尚未达到本期参与门槛。"
         },
         "actions": {
             "created": "创建草稿",
@@ -5525,6 +5529,44 @@
             "drawn": "自动开奖",
             "claimed": "提交领奖",
             "fulfilled": "奖品发放"
+        },
+        "event_entry": "转发抽奖",
+        "event_label": "所属赛事",
+        "legacy_event": "未关联赛事（保留独立活动）",
+        "promotion_url": "官方推文链接",
+        "promotion_url_hint": "填写需要转发的官方推文链接，赛事抽奖发布前必须补齐。",
+        "min_likes": "最低点赞数",
+        "min_likes_hint": "0 表示不设门槛。审核通过后，每个账号一次抽奖机会。",
+        "event_review_required": "赛事转发抽奖必须提交截图并经管理员审核，无法关闭。",
+        "like_count": "截图中的点赞数",
+        "review_checklist": "核对是否转发本期官方推文、截图中的点赞数是否一致并达到门槛；信息不符时填写原因，退回补交。",
+        "event": {
+            "title": "转发抽奖",
+            "back_campaigns": "本场抽奖列表",
+            "back_event": "返回赛事介绍",
+            "empty": "本场赛事暂未发布抽奖",
+            "empty_hint": "发布后，你可以在这里查看推文、提交点赞截图并查询审核结果。",
+            "how_to": "如何参与抽奖",
+            "step_share": "转发赛事推文",
+            "step_share_hint": "打开下方官方推文，按本期规则转发。",
+            "step_capture": "提交点赞截图",
+            "step_capture_hint": "截图保留转发内容与点赞数，登录后上传。",
+            "step_review": "审核通过后参与",
+            "step_review_hint": "管理员核对截图，通过后进入本期抽奖名单。",
+            "open_post": "打开官方推文",
+            "minimum_likes": "本期至少需要 {{count}} 个赞；审核通过后，每个账号的抽奖机会相同。",
+            "likes_record": "填写截图中的实际点赞数，审核通过后每个账号的抽奖机会相同。",
+            "like_count": "截图中的点赞数",
+            "like_count_hint": "填写与截图一致的整数，管理员会核对。",
+            "submitted_likes": "已提交：{{count}} 个赞",
+            "screenshot": "转发与点赞截图",
+            "proof_invalid": "请上传不超过 5 MB 的 JPG、PNG 或 WebP 图片。",
+            "preview": "待提交的点赞截图预览",
+            "keep_proof": "已保留上次截图；如需更正，请选择新的截图。",
+            "submit_review": "提交审核",
+            "entry_pending": "材料已提交，正在等待管理员审核。审核通过后才能参与抽奖。",
+            "entry_approved": "审核已通过，你已获得本期抽奖资格，请按时查看开奖结果。",
+            "entry_rejected": "请查看审核意见。报名截止前可修改点赞数或截图，重新提交审核。"
         }
     },
     "firstEdition": {

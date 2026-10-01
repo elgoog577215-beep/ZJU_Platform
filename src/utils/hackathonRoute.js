@@ -10,7 +10,11 @@ const readEventPath = (location = {}) => {
         const slug = decodeURIComponent(segments[0]);
         const eventKey = eventRoutes.find((route) => route.path === slug)?.eventKey || slug;
         const view = segments[1] || "intro";
-        return { eventKey, view, invalid: segments.length > 2 || !EVENT_VIEWS.includes(view) };
+        return {
+            eventKey,
+            view,
+            invalid: segments.length > 2 || ![...EVENT_VIEWS, "lottery"].includes(view),
+        };
     } catch {
         return { invalid: true };
     }

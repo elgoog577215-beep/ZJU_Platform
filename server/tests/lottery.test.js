@@ -174,6 +174,165 @@ test("cancelled and empty draws, restart catch-up, rollback on failure", async (
     await recovered.draw(c2.id);
     assert.equal((await recovered.detail(c2.id)).winners.length, 1);
 });
+const eventKey = "zhekesong-current";
+const otherEvent = "getui-beauty-2026";
+const eventFields = {
+    event_key: eventKey,
+    promotion_url: "https://example.org/event-post",
+    min_likes: 10,
+};
+test("existing databases gain event fields without reassigning campaigns or entries", async () => {
+    const legacy = await open({ filename: ":memory:", driver: sqlite3.Database });
+    try {
+        await legacy.exec(`
+            CREATE TABLE lotteries(id TEXT PRIMARY KEY,status TEXT,draws_at INTEGER,created_at INTEGER);
+            CREATE TABLE lottery_entries(id INTEGER PRIMARY KEY,lottery_id TEXT,user_id INTEGER,status TEXT,proof BLOB);
+            INSERT INTO lotteries VALUES ('old','open',1,1);
+            INSERT INTO lottery_entries VALUES (1,'old',2,'approved',NULL);
+        `);
+        await migrateLotteries(legacy);
+        await migrateLotteries(legacy);
+        const old = await legacy.get("SELECT * FROM lotteries WHERE id='old'");
+        assert.equal(old.event_key, null);
+        assert.equal(old.promotion_url, "");
+        assert.equal(old.min_likes, 0);
+        assert.equal(
+            (await legacy.get("SELECT * FROM lottery_entries WHERE id=1")).like_count,
+            null
+        );
+    } finally {
+        await legacy.close();
+    }
+});
+test("event campaigns validate configuration, isolate event queries and mandate proof review", async () => {
+    for (const invalid of [
+        { event_key: "invented" },
+        { event_key: [] },
+        { promotion_url: "javascript:alert(1)" },
+        { promotion_url: "https://user:secret@example.org" },
+        { min_likes: -1 },
+        { min_likes: 1.5 },
+        { min_likes: false },
+        { min_likes: 1_000_000_001 },
+    ])
+        await assert.rejects(service.save(null, { ...body(), ...eventFields, ...invalid }, 1));
+    const draft = await service.save(null, { ...body(), ...eventFields, promotion_url: "" }, 1);
+    await assert.rejects(service.publish(draft.id, 1, 0), { code: "promotion_url_required" });
+    const event = await create({ ...eventFields, proof_required: false, review_required: false });
+    const other = await create({ ...eventFields, event_key: otherEvent });
+    const legacy = await create();
+    const detail = await service.detail(event.id);
+    assert.equal(detail.proof_required, 1);
+    assert.equal(detail.review_required, 1);
+    assert.equal(detail.promotion_url, eventFields.promotion_url);
+    const ids = (await service.list(false, eventKey)).map((c) => c.id);
+    assert(ids.includes(event.id));
+    assert(!ids.includes(other.id));
+    assert(!ids.includes(legacy.id));
+    assert(!ids.includes(draft.id));
+    assert((await service.list(true, eventKey)).some((c) => c.id === draft.id));
+    await assert.rejects(service.detail(event.id, 2, false, otherEvent), { code: "not_found" });
+    await assert.rejects(service.list(false, "invented"), { code: "invalid_event" });
+    await assert.rejects(service.enter(event.id, 2, { like_count: 12 }), {
+        code: "proof_required",
+    });
+    for (const like_count of [undefined, "", "1.5", "-1", false, null, -1, 1.5, "1e2", Infinity]) {
+        await assert.rejects(
+            service.enter(event.id, 2, { proof: Buffer.from("screenshot"), like_count }),
+            { code: "invalid_likes" }
+        );
+    }
+    await assert.rejects(
+        service.enter(event.id, 2, { proof: Buffer.from("screenshot"), like_count: 9 }),
+        { code: "insufficient_likes" }
+    );
+    const entry = await service.enter(event.id, 2, {
+        proof: Buffer.from("screenshot"),
+        like_count: "12",
+    });
+    assert.equal((await service.detail(event.id, 2)).entry.status, "pending");
+    assert.equal((await service.entries(event.id)).items[0].like_count, 12);
+    await service.review(event.id, entry.id, 1, "rejected", "Screenshot unclear");
+    const resubmitted = await service.enter(event.id, 2, {
+        proof: Buffer.from("clear screenshot"),
+        like_count: 15,
+    });
+    assert.equal(resubmitted.id, entry.id);
+    const updated = (await service.detail(event.id, 2)).entry;
+    assert.equal(updated.status, "pending");
+    assert.equal(updated.like_count, 15);
+    assert.equal(updated.review_note, "");
+    assert.equal(updated.reviewed_at, null);
+    assert.equal(
+        (await service.proof(event.id, entry.id, 2, false)).toString(),
+        "clear screenshot"
+    );
+    await service.review(event.id, entry.id, 1, "approved");
+    assert.equal((await service.detail(event.id, 2)).entry.status, "approved");
+});
+test("event approval and draw enforce screenshots and threshold, with one chance per approved account", async () => {
+    const event = await create(eventFields);
+    for (const [user, count] of [
+        [2, 10],
+        [3, 10000],
+        [4, 15],
+        [5, 15],
+        [6, 15],
+        [7, 15],
+    ]) {
+        const entry = await service.enter(event.id, user, {
+            proof: Buffer.from("proof"),
+            like_count: count,
+        });
+        if ([2, 3, 6, 7].includes(user)) await service.review(event.id, entry.id, 1, "approved");
+        if (user === 5) await service.review(event.id, entry.id, 1, "rejected", "Wrong post");
+    }
+    // Defense in depth: corrupted/imported rows cannot be approved or drawn.
+    await db.run(
+        "UPDATE lottery_entries SET proof=NULL WHERE lottery_id=? AND user_id=6",
+        event.id
+    );
+    await db.run(
+        "UPDATE lottery_entries SET like_count=2 WHERE lottery_id=? AND user_id=7",
+        event.id
+    );
+    const badProof = await db.get(
+        "SELECT id FROM lottery_entries WHERE lottery_id=? AND user_id=6",
+        event.id
+    );
+    const badLikes = await db.get(
+        "SELECT id FROM lottery_entries WHERE lottery_id=? AND user_id=7",
+        event.id
+    );
+    await assert.rejects(service.review(event.id, badProof.id, 1, "approved"), {
+        code: "proof_required",
+    });
+    await assert.rejects(service.review(event.id, badLikes.id, 1, "approved"), {
+        code: "insufficient_likes",
+    });
+    clock = event.data.draws_at;
+    const poolSizes = [];
+    const drawService = createLotteryService({
+        now: () => clock,
+        choose: (size) => {
+            poolSizes.push(size);
+            return 0;
+        },
+    });
+    await drawService.draw(event.id);
+    const result = await service.detail(event.id);
+    assert.equal(result.eligible_count, 2);
+    assert.equal(result.winners.length, 2);
+    assert.deepEqual(poolSizes, [2, 1]);
+    const selected = await db.all(
+        "SELECT user_id FROM lottery_entries WHERE lottery_id=? AND eligible=1 ORDER BY user_id",
+        event.id
+    );
+    assert.deepEqual(
+        selected.map((row) => row.user_id),
+        [2, 3]
+    );
+});
 test("HTTP permissions, screenshot decoding, proof ownership, and public data minimization", async () => {
     const express = require("express");
     const jwt = require("jsonwebtoken");
@@ -238,6 +397,45 @@ test("HTTP permissions, screenshot decoding, proof ownership, and public data mi
             "UPDATE users SET role='operator',admin_scope='operations',admin_permissions='[\"admin.events.manage\"]' WHERE id=5"
         );
         assert.equal((await req("/admin", 5)).status, 403);
+        const event = await create(eventFields);
+        assert.equal((await req(`/${event.id}?event=${otherEvent}`)).status, 404);
+        const eventList = await (await req(`/?event=${eventKey}`)).json();
+        assert(eventList.every((campaign) => campaign.event_key === eventKey));
+        assert.equal((await req("/?event=unknown")).status, 400);
+        assert.equal((await req(`/${event.id}/entries`, 0, { method: "POST" })).status, 401);
+        const eventForm = new FormData();
+        eventForm.append("note", "event private note");
+        eventForm.append("like_count", "18");
+        eventForm.append(
+            "proof",
+            new Blob(
+                [
+                    await sharp({
+                        create: { width: 10, height: 10, channels: 3, background: "blue" },
+                    })
+                        .png()
+                        .toBuffer(),
+                ],
+                { type: "image/png" }
+            ),
+            "event.png"
+        );
+        const submitted = await req(`/${event.id}/entries`, 3, { method: "POST", body: eventForm });
+        assert.equal(submitted.status, 200);
+        const eventEntry = await submitted.json();
+        const eventDetail = await (await req(`/${event.id}?event=${eventKey}`, 3)).json();
+        assert.equal(eventDetail.entry.like_count, 18);
+        assert.equal(eventDetail.entry.status, "pending");
+        const reviewUrl = `/admin/${event.id}/entries/${eventEntry.id}/review`;
+        const review = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "approved" }),
+        };
+        assert.equal((await req(reviewUrl, 3, review)).status, 403);
+        assert.equal((await req(reviewUrl, 5, review)).status, 403);
+        assert.equal((await req(reviewUrl, 1, review)).status, 200);
+        assert.equal((await (await req(`/${event.id}`, 3)).json()).entry.status, "approved");
     } finally {
         await new Promise((r) => server.close(r));
         await require("../src/config/db").pool.close();

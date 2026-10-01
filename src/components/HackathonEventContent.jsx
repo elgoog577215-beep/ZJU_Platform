@@ -9,6 +9,7 @@ import BeautyEventContent from "./hackathon-event/BeautyEventContent";
 import Challenges from "./hackathon-event/Challenges";
 import Media from "./hackathon-event/Media";
 import Results from "./hackathon-event/Results";
+import LotteryPage from "../features/lottery/LotteryPage";
 import Program from "./hackathon-event/Program";
 
 // Preserve the original registration body; historical records remain in their original competition.
@@ -24,6 +25,8 @@ export default function HackathonEventContent({
     const { t } = useTranslation();
     const navigate = useNavigate();
     const switchView = (next) => navigate(getEventUrl(template.event.key, next));
+    if (view === "lottery")
+        return <LotteryPage eventKey={template.event.key} eventTitle={template.event.title} />;
     const hasProgram = Boolean(template.event.program);
     if (template.event.key === "getui-beauty-2026")
         return <BeautyEventContent template={template} view={view} live={live} />;

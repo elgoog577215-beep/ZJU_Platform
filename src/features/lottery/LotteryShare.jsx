@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
+import { getLotteryUrl } from "../../utils/lotteryRoute";
 
 export default function LotteryShare({ campaign }) {
     const { t } = useTranslation();
@@ -8,7 +9,7 @@ export default function LotteryShare({ campaign }) {
     const [qr, setQr] = useState(null);
     const [copyStatus, setCopyStatus] = useState("");
     const shareUrl = campaign?.id
-        ? new URL(`/lotteries/${encodeURIComponent(campaign.id)}`, window.location.origin).href
+        ? new URL(getLotteryUrl(campaign), window.location.origin).href
         : "";
 
     useEffect(() => {

@@ -80,7 +80,7 @@ test("saving a new draft generates its own QR code with a publication notice", a
     await page.getByLabel("奖品名称", { exact: true }).fill("纪念礼品");
     await page.getByRole("button", { name: "保存草稿", exact: true }).click();
     await expect(promotion.getByLabel("本期抽奖链接")).toHaveValue(
-        "http://localhost:5180/lotteries/saved-draft"
+        "http://localhost:5180/hackathon/2/lottery?campaign=saved-draft"
     );
     await expect(promotion.getByRole("img", { name: "本期抽奖二维码" })).toBeVisible();
     await expect(promotion.getByText(/本期尚未发布/)).toBeVisible();

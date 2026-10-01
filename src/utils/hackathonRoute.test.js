@@ -29,7 +29,7 @@ test("edition paths and their pages remain stable when the active event or order
         ["getui-beauty-2026", "getui-beauty"],
         ["future-event", "future-event"],
     ]) {
-        for (const view of ["intro", "challenges", "media", "results"]) {
+        for (const view of ["intro", "challenges", "media", "results", "lottery"]) {
             const url = getEventUrl(eventKey, view);
             assert.equal(url, `/hackathon/${path}${view === "intro" ? "" : `/${view}`}`);
             const location = locationOf(url);
@@ -51,6 +51,7 @@ test("current media and work links retain selection and anchors", () => {
         "/hackathon/1/media?photo=17&mediaView=featured#photos",
         "/hackathon/1/results?work=9#showcase-works",
         "/hackathon/getui-beauty/media?photo=57",
+        "/hackathon/2/lottery?campaign=some-campaign",
     ];
     for (const path of paths)
         assert.equal(resolveEventLocation(locationOf(path), schedule).url, path);
