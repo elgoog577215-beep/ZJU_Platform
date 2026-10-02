@@ -272,12 +272,6 @@
 .hx-exhibit-detail .hx-first-work-detail:not(:has(.hx-first-work-image)) > * + * {
     margin-top: 24px;
 }
-.hx-program-campus-schedule {
-    margin: 24px 0;
-    max-width: 76ch;
-    color: var(--hx-muted);
-    line-height: 1.8;
-}
 .hx-workspace .hx-results-presentation .hx-result-section {
     display: grid;
     grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1.5fr);

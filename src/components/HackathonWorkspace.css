@@ -786,6 +786,11 @@
 .hx-workspace [data-registration-page] {
     scroll-snap-type: y proximity;
 }
+/* Scroll snapping is switched off for AI+X (/hackathon/2) via data-scroll-snap="off".
+   The snap rules stay intact for other editions; remove the attribute to re-enable. */
+.hx-workspace [data-registration-page][data-scroll-snap="off"] {
+    scroll-snap-type: none;
+}
 .hx-workspace [data-registration-page] > section {
     min-height: var(--event-viewport-height);
     scroll-snap-stop: normal;
@@ -1209,8 +1214,22 @@
     line-height: 1.65;
 }
 .hx-program-summary {
-    display: grid;
-    gap: clamp(24px, 3vh, 40px);
+    display: flex;
+    flex-direction: column;
+    /* Base spacing sits within a topic; the boundaries below widen it (proximity). */
+    gap: clamp(10px, 1.4vh, 18px);
+}
+/* Topic boundaries: campus intro → industry stages, stages → track entrances, tracks → forums. */
+.hx-program-summary > h3,
+.hx-program-summary > .hx-program-tracks,
+.hx-program-summary > .hx-program-forums {
+    margin-top: clamp(56px, 6.4vh, 92px);
+}
+/* Moved from ResultsPresentation.css (only Program.jsx uses it); spacing now comes from the gap model above. */
+.hx-program-campus-schedule {
+    max-width: 76ch;
+    color: var(--hx-muted);
+    line-height: 1.8;
 }
 .hx-program-summary header > p:last-child,
 .hx-program-summary article p,
@@ -1291,8 +1310,31 @@
     }
 }
 
-.hx-program-summary h2 {
+/* 赛事日程 header：镜像报名区左栏（眉题 Register → 赛事报名）的层级——accent 眉题 / 大标题 / 弱化说明。
+   字号不在这里设：.hx-workspace [data-registration-page] h2 的 clamp(30px, 4vw, 56px) 统一两处标题。 */
+.hx-program-summary header .hx-overline {
+    color: var(--hx-accent);
+    font-size: 14px;
     font-weight: 900;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    /* 覆盖 HackathonShared 里 .hx-overline 的 12px !important，间距改由下方 h2 的 mt 承担。 */
+    margin-bottom: 0 !important;
+}
+.hx-program-summary header h2 {
+    margin-top: 16px;
+    font-weight: 900;
+}
+.hx-program-summary header > p:last-child {
+    margin-top: 20px;
+    max-width: 36rem;
+    font-size: 18px;
+    line-height: 1.8;
+}
+@media (min-width: 1280px) {
+    .hx-program-summary header > p:last-child {
+        font-size: 20px;
+    }
 }
 
 :root[data-theme="day"] .hx-program-summary {

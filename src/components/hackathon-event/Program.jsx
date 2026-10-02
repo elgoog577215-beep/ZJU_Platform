@@ -14,7 +14,8 @@ export default function Program({ template, now, switchView }) {
     return (
         <div className="hx-program-summary relative mx-auto w-full">
             <header>
-                <p className="hx-overline">{t("aix.challengeKicker")}</p>
+                {/* 眉题对齐报名区左栏（Register → 赛事报名）的样式：英文标签 + 大标题 + 弱化说明，见 .hx-program-summary header。 */}
+                <p className="hx-overline">Agenda</p>
                 <h2>{t("aix.agendaTitle")}</h2>
                 <p>{t("aix.planned")}</p>
             </header>

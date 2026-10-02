@@ -307,6 +307,8 @@ const HackathonRegistration = ({
         reduceMotion,
         minWidth: 0,
         lockMs: 860,
+        // Wheel-driven section paging is switched off for AI+X (/hackathon/2); remove to restore.
+        enabled: !isAiX,
     });
 
     const [formData, setFormData] = useState(() => buildHackathonInitialAnswers(resolvedTemplate));
@@ -466,21 +468,26 @@ const HackathonRegistration = ({
           }
         : {};
 
+    // AI+X 收敛冗余：形式/组队规则只保留赛道字段提示；奖金由 Live Brief 大字块单独承载（含"待公布"占位）。
     const eventMeta = [
         { index: "01", label: t("common.time", "时间"), value: event.date, icon: Calendar },
         { index: "02", label: t("common.location", "地点"), value: event.location, icon: MapPin },
-        {
-            index: "03",
-            label: t("hackathon.event.format_label", "形式"),
-            value: event.format,
-            icon: Users,
-        },
-        {
-            index: "04",
-            label: t("hackathon.event.prize_pool", "奖金池"),
-            value: event.prize,
-            icon: Trophy,
-        },
+        ...(isAiX
+            ? []
+            : [
+                  {
+                      index: "03",
+                      label: t("hackathon.event.format_label", "形式"),
+                      value: event.format,
+                      icon: Users,
+                  },
+                  {
+                      index: "04",
+                      label: t("hackathon.event.prize_pool", "奖金池"),
+                      value: event.prize,
+                      icon: Trophy,
+                  },
+              ]),
     ];
 
     const ruleIcons = [Code2, Rocket, ShieldCheck, Cpu, Sparkles];
@@ -830,10 +837,24 @@ const HackathonRegistration = ({
         return () => cancelAnimationFrame(frame);
     }, [location.hash]);
 
+    const editProfileButton =
+        useAccountBasics && !showProfileGate ? (
+            <button
+                type="button"
+                disabled={isSubmitting || registrationLoading}
+                onClick={() => setEditingProfile(true)}
+                className="min-h-[44px] shrink-0 underline underline-offset-4"
+            >
+                {t("accountProfile.edit")}
+            </button>
+        ) : null;
+
     return (
         <div
             ref={pageRef}
             data-registration-page
+            // Switches off scroll snapping for AI+X (/hackathon/2) only; remove to restore.
+            data-scroll-snap={isAiX ? "off" : undefined}
             className={`hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
         >
             <SEO
@@ -932,17 +953,6 @@ const HackathonRegistration = ({
                 id="hackathon-hero"
                 className="relative min-h-[100svh] min-w-0 max-w-full snap-start snap-always overflow-x-clip px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
             >
-                <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="hx-event-backdrop absolute inset-0" />
-                    <div className="hx-event-grid absolute inset-0" />
-                    <div
-                        className={`absolute left-0 top-0 h-px w-full ${isDayMode ? "bg-gradient-to-r from-transparent via-cyan-600/50 to-transparent" : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"}`}
-                    />
-                    <div
-                        className={`absolute bottom-[-22%] right-[-10%] h-[420px] w-[420px] rounded-full blur-[110px] sm:h-[520px] sm:w-[520px] ${isDayMode ? "bg-cyan-500/8" : "bg-cyan-300/12"}`}
-                    />
-                </div>
-
                 <div className="relative mx-auto grid min-h-[calc(100svh-132px)] min-w-0 w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(0,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(0,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(0,860px)] min-[1920px]:gap-28">
                     <MotionDiv
                         {...(shouldAnimate
@@ -1178,7 +1188,6 @@ const HackathonRegistration = ({
                 {...sectionMotion}
                 className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
             >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
                 {programContent || (
                     <div className="mx-auto min-w-0 w-full max-w-[1900px]">
                         <div className="relative overflow-hidden">
@@ -1281,8 +1290,8 @@ const HackathonRegistration = ({
                 <div
                     className={`pointer-events-none absolute inset-0 ${
                         isDayMode
-                            ? "bg-[radial-gradient(circle_at_14%_18%,rgba(6,182,212,0.12),transparent_28%),linear-gradient(135deg,#f8fafc_0%,#ecfeff_48%,#f8fafc_100%)]"
-                            : "bg-[radial-gradient(circle_at_15%_18%,rgba(103,232,249,0.15),transparent_28%),radial-gradient(circle_at_84%_78%,rgba(14,116,144,0.14),transparent_30%),linear-gradient(135deg,#061011_0%,#0a1919_52%,#050909_100%)]"
+                            ? "bg-[linear-gradient(135deg,#f8fafc_0%,#ecfeff_48%,#f8fafc_100%)]"
+                            : "bg-[linear-gradient(135deg,#061011_0%,#0a1919_52%,#050909_100%)]"
                     }`}
                 />
                 <div className="pointer-events-none absolute right-[-5%] top-[4%] max-w-full overflow-hidden text-[18vw] font-black uppercase leading-none tracking-normal text-white/[0.035]">
@@ -1407,7 +1416,6 @@ const HackathonRegistration = ({
                 data-contained-form={isAiX || undefined}
                 className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
             >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
                 <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
                     APPLY
                 </div>
@@ -1428,45 +1436,60 @@ const HackathonRegistration = ({
                                 {formConfig.description}
                             </p>
 
-                            <div
-                                className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
-                            >
-                                {[
-                                    [t("hackathon.event.format_label", "形式"), event.format],
-                                    [t("hackathon.event.duration_label", "时长"), event.duration],
-                                    [t("common.location", "地点"), event.location],
-                                ].map(([label, value]) => (
+                            {/* AI+X 收敛冗余：这三格与 hero 赛事信息重复，组队规则留在赛道字段提示。 */}
+                            {!isAiX && (
+                                <>
                                     <div
-                                        key={label}
-                                        className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
-                                            isDayMode ? "bg-white/82" : "bg-white/[0.055]"
-                                        }`}
+                                        className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} min-[1536px]:grid-cols-3`}
                                     >
-                                        <span
-                                            className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
-                                        >
-                                            {label}
-                                        </span>
-                                        <span className="text-lg font-black tracking-tight">
-                                            {value}
-                                        </span>
+                                        {[
+                                            [
+                                                t("hackathon.event.format_label", "形式"),
+                                                event.format,
+                                            ],
+                                            [
+                                                t("hackathon.event.duration_label", "时长"),
+                                                event.duration,
+                                            ],
+                                            [t("common.location", "地点"), event.location],
+                                        ].map(([label, value]) => (
+                                            <div
+                                                key={label}
+                                                className={`flex items-center justify-between gap-4 px-5 py-4 min-[1536px]:flex-col min-[1536px]:items-start min-[1536px]:justify-start ${
+                                                    isDayMode ? "bg-white/82" : "bg-white/[0.055]"
+                                                }`}
+                                            >
+                                                <span
+                                                    className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}
+                                                >
+                                                    {label}
+                                                </span>
+                                                <span className="text-lg font-black tracking-tight">
+                                                    {value}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
 
-                            <div className={`mt-5 border p-5 ${palette.panel}`}>
-                                <div className="flex items-start gap-3">
-                                    <Bot className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`} />
-                                    <p className={`text-base leading-8 ${palette.textSoft}`}>
-                                        {resolvedTemplate.event.program
-                                            ? t("aix.team")
-                                            : t(
-                                                  "hackathon.form.tool_hint",
-                                                  "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
-                                              )}
-                                    </p>
-                                </div>
-                            </div>
+                                    <div className={`mt-5 border p-5 ${palette.panel}`}>
+                                        <div className="flex items-start gap-3">
+                                            <Bot
+                                                className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`}
+                                            />
+                                            <p
+                                                className={`text-base leading-8 ${palette.textSoft}`}
+                                            >
+                                                {resolvedTemplate.event.program
+                                                    ? t("aix.team")
+                                                    : t(
+                                                          "hackathon.form.tool_hint",
+                                                          "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。"
+                                                      )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         {!resolvedTemplate.event.program && (
                             <div className="mt-6 hidden max-w-[680px] lg:block">
@@ -1495,39 +1518,33 @@ const HackathonRegistration = ({
                             : {})}
                         className={`hackathon-form-panel relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
                     >
-                        <div
-                            className={`hackathon-form-heading mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"}`}
-                        >
-                            <div>
-                                <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
-                                    {formConfig.title}
-                                </h3>
+                        {/* AI+X 去重：左侧栏已有同名标题，面板只保留编辑入口（无则整行不渲染）。 */}
+                        {(!isAiX || editProfileButton) && (
+                            <div
+                                className={`hackathon-form-heading mb-6 flex items-center gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/[0.18]"} ${isAiX ? "justify-end" : "justify-between"}`}
+                            >
                                 {!isAiX && (
-                                    <p className={`mt-2 text-base ${palette.textMuted}`}>
-                                        {registration
-                                            ? t("aix.register.success")
-                                            : formConfig.requiredHint}
-                                    </p>
+                                    <div>
+                                        <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
+                                            {formConfig.title}
+                                        </h3>
+                                        <p className={`mt-2 text-base ${palette.textMuted}`}>
+                                            {registration
+                                                ? t("aix.register.success")
+                                                : formConfig.requiredHint}
+                                        </p>
+                                    </div>
+                                )}
+                                {editProfileButton}
+                                {!isAiX && (
+                                    <div
+                                        className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
+                                    >
+                                        <Trophy className={`h-7 w-7 ${palette.accent}`} />
+                                    </div>
                                 )}
                             </div>
-                            {useAccountBasics && !showProfileGate && (
-                                <button
-                                    type="button"
-                                    disabled={isSubmitting || registrationLoading}
-                                    onClick={() => setEditingProfile(true)}
-                                    className="min-h-[44px] shrink-0 underline underline-offset-4"
-                                >
-                                    {t("accountProfile.edit")}
-                                </button>
-                            )}
-                            {!isAiX && (
-                                <div
-                                    className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}
-                                >
-                                    <Trophy className={`h-7 w-7 ${palette.accent}`} />
-                                </div>
-                            )}
-                        </div>
+                        )}
 
                         {showProfileGate ? (
                             registrationLoading ? (
@@ -1872,7 +1889,8 @@ const DynamicRegistrationField = ({
                 error={error}
                 palette={palette}
             >
-                {field.placeholder && !compact ? (
+                {/* 紧凑模式下仍显示赛道提示：组队规则的唯一归宿（按钮标签自带个人赛/最多3人）。 */}
+                {field.placeholder && (!compact || field.id === "track") ? (
                     <p className={`mb-3 text-sm ${palette.textMuted}`}>{field.placeholder}</p>
                 ) : null}
                 <div

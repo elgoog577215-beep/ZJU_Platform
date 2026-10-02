@@ -70,12 +70,13 @@ export const useSectionPager = ({
     reduceMotion = false,
     minWidth = 1024,
     lockMs = 820,
+    enabled = true,
 }) => {
     const lockRef = useRef(false);
 
     useEffect(() => {
         const container = containerRef.current;
-        if (!container || !Array.isArray(sectionIds) || sectionIds.length < 2) {
+        if (!enabled || !container || !Array.isArray(sectionIds) || sectionIds.length < 2) {
             return undefined;
         }
 
@@ -145,5 +146,5 @@ export const useSectionPager = ({
             window.clearTimeout(unlockTimer);
             container.removeEventListener("wheel", handleWheel);
         };
-    }, [containerRef, lockMs, minWidth, reduceMotion, sectionIds, setActiveIndex]);
+    }, [containerRef, enabled, lockMs, minWidth, reduceMotion, sectionIds, setActiveIndex]);
 };
