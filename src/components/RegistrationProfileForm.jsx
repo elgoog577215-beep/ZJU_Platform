@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import RegistrationProfileFields from "./RegistrationProfileFields";
 import { emptyRegistrationProfile, hasRegistrationProfile } from "../utils/registrationProfile";
 
-export default function RegistrationProfileForm({ onSaved, onCancel }) {
+export default function RegistrationProfileForm({ onSaved, onCancel, variant = "event" }) {
     const { user, saveRegistrationProfile } = useAuth();
     const { t } = useTranslation();
+    const { uiMode } = useSettings();
+    const account = variant === "account";
+    const primaryClass = account
+        ? "min-h-[44px] rounded-md bg-indigo-600 px-5 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+        : "hx-primary min-h-[44px] disabled:opacity-50";
+    const secondaryClass = account
+        ? `min-h-[44px] rounded-md border px-4 ${uiMode === "day" ? "border-slate-300" : "border-white/20"}`
+        : "hx-outline min-h-[44px]";
     const [profile, setProfile] = useState(
         () => user?.registrationProfile || emptyRegistrationProfile()
     );
@@ -54,21 +63,23 @@ export default function RegistrationProfileForm({ onSaved, onCancel }) {
                 </p>
             )}
             <div className="flex flex-wrap gap-3">
-                <button
-                    type="submit"
-                    disabled={saving}
-                    className="hx-primary min-h-[44px] disabled:opacity-50"
-                >
-                    {t(saving ? "common.submitting" : "accountProfile.saveContinue")}
+                <button type="submit" disabled={saving} className={primaryClass}>
+                    {t(
+                        saving
+                            ? "common.submitting"
+                            : account
+                              ? "accountProfile.save"
+                              : "accountProfile.saveContinue"
+                    )}
                 </button>
                 {onCancel && (
                     <button
                         type="button"
                         disabled={saving}
                         onClick={onCancel}
-                        className="hx-outline min-h-[44px]"
+                        className={secondaryClass}
                     >
-                        {t("common.cancel")}
+                        {t(account ? "accountProfile.later" : "common.cancel")}
                     </button>
                 )}
             </div>

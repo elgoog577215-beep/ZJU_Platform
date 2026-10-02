@@ -5849,6 +5849,9 @@
         "loginOrRegister": "登录 / 注册",
         "edit": "修改资料",
         "basicInfo": "注册资料",
-        "profileChanged": "请先完善注册资料。"
+        "profileChanged": "请先完善注册资料。",
+        "reminderHint": "请补充姓名、学号、专业和年级，方便后续报名。资料不公开。",
+        "save": "保存资料",
+        "later": "稍后填写"
     }
 }

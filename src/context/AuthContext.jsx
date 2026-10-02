@@ -1,3 +1,4 @@
+import { resetProfileReminders } from "../utils/profileReminderSession";
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from "react";
 import api from "../services/api";
 import { showSuccess, showError } from "../utils/notify";
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
 
     const clearSession = useCallback(() => {
         clearStoredAuthToken();
+        resetProfileReminders();
         delete api.defaults.headers.common["Authorization"];
         setUser(null);
         errorMonitor.setUser(null);
@@ -126,6 +128,7 @@ export const AuthProvider = ({ children }) => {
             );
             if (requestId !== sessionRequest.current) return false;
             const { token, user } = res.data;
+            resetProfileReminders();
             storeAuthToken(token, {
                 persistent: options.remember !== false,
             });
@@ -160,6 +163,7 @@ export const AuthProvider = ({ children }) => {
             );
             if (requestId !== sessionRequest.current) return false;
             const { token, user } = res.data;
+            resetProfileReminders();
             storeAuthToken(token, {
                 persistent: options.remember !== false,
             });
@@ -191,6 +195,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setLoading(true);
         try {
+            resetProfileReminders();
             storeAuthToken(token, {
                 persistent: options.remember !== false,
             });

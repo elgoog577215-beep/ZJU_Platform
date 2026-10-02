@@ -40,6 +40,8 @@ import Footer from "./components/Footer";
 import LoadingScreen from "./components/LoadingScreen";
 import HomeDirectory from "./features/navigation/HomeDirectory";
 
+const RegistrationProfileReminder = lazy(() => import("./components/RegistrationProfileReminder"));
+
 const CHUNK_RECOVERY_RELOAD_KEY = "tuotu:chunk-recovery:reload-attempted";
 const STALE_CHUNK_CACHE_NAMES = new Set(["js-chunk-cache", "css-chunk-cache"]);
 const WECHAT_LOGIN_TOKEN_QUERY = "wechat_login_token";
@@ -705,6 +707,9 @@ const App = () => {
                                 }}
                             />
                             <AppContent />
+                            <Suspense fallback={null}>
+                                <RegistrationProfileReminder />
+                            </Suspense>
                         </Router>
                     </MusicProvider>
                 </SettingsProvider>

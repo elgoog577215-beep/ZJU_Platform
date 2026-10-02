@@ -5740,6 +5740,9 @@
         "loginOrRegister": "Sign in / Sign up",
         "edit": "Edit details",
         "basicInfo": "Account details",
-        "profileChanged": "Complete your account details first."
+        "profileChanged": "Complete your account details first.",
+        "reminderHint": "Add your name, student ID, major and year for future event registration. These details stay private.",
+        "save": "Save details",
+        "later": "Later"
     }
 }
