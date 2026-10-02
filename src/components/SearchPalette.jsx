@@ -815,7 +815,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                                     "↑↓ 选择结果 · Enter 使用 AI 增强"
                                 )}
                             </span>
-                            <span>{t("search.brand_search", "Lumos 智能搜索")}</span>
+                            <span>{t("search.brand_search", "拓浙AI生态智能搜索")}</span>
                         </div>
                     </motion.div>
                 </div>
