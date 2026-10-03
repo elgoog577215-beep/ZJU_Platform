@@ -199,10 +199,14 @@ export default function LotteryManager() {
                 : await api.post("/lotteries/admin", payload, { silent: true, noRetry: true });
             await refreshList();
             await open(result.data.id);
-            setMessage("saved");
+            setMessage(selected?.status === "open" ? "changes_saved" : "saved");
         }, false);
     };
-    const editable = !selected || selected.status === "draft";
+    const editable =
+        !selected ||
+        selected.status === "draft" ||
+        (selected.status === "open" &&
+            Math.max(Date.now(), selected.server_now || 0) < selected.draws_at);
     return (
         <div className={`lottery-shell lottery-admin ${uiMode === "day" ? "lottery-day" : ""}`}>
             <header className="lottery-heading">
@@ -445,7 +449,11 @@ export default function LotteryManager() {
                                             {t("lottery.add_prize")}
                                         </button>
                                         <button className="lottery-primary" type="submit">
-                                            {t("lottery.save")}
+                                            {t(
+                                                selected?.status === "open"
+                                                    ? "lottery.save_changes"
+                                                    : "lottery.save"
+                                            )}
                                         </button>
                                     </div>
                                 )}
@@ -453,7 +461,13 @@ export default function LotteryManager() {
                         </form>
                         {selected && (
                             <>
-                                <p className="lottery-muted">{t("lottery.publish_lock")}</p>
+                                <p className="lottery-muted">
+                                    {t(
+                                        editable
+                                            ? "lottery.published_edit_hint"
+                                            : "lottery.edit_closed_hint"
+                                    )}
+                                </p>
                                 {selected.status === "draft" ? (
                                     <>
                                         <label className="lottery-check">

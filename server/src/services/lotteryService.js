@@ -196,8 +196,33 @@ function createLotteryService({
         async save(id, body, actor) {
             return transaction(async (db) => {
                 const c = id ? await campaign(db, id) : null;
-                if (c && (c.status !== "draft" || c.version !== body.version)) fail("locked", 409);
-                const d = validateCampaign(body, now());
+                const timestamp = now();
+                if (
+                    c &&
+                    (!["draft", "open"].includes(c.status) ||
+                        c.version !== body.version ||
+                        (c.status === "open" && timestamp >= c.draws_at))
+                )
+                    fail("locked", 409);
+                const d = validateCampaign(body, timestamp);
+                if (c?.status === "open" && d.event_key && !d.promotion_url)
+                    fail("promotion_url_required");
+                const changes = {};
+                if (c) {
+                    const prizes = JSON.parse(c.prizes_json);
+                    const prizeContent = (items) =>
+                        items.map(({ name, quantity }) => ({ name, quantity }));
+                    if (
+                        JSON.stringify(prizeContent(prizes)) ===
+                        JSON.stringify(prizeContent(d.prizes))
+                    )
+                        d.prizes = prizes;
+                    const before = { ...c, prizes };
+                    for (const key of Object.keys(d)) {
+                        if (JSON.stringify(before[key]) !== JSON.stringify(d[key]))
+                            changes[key] = { before: before[key], after: d[key] };
+                    }
+                }
                 const values = [
                     d.title,
                     d.description,
@@ -229,7 +254,13 @@ function createLotteryService({
                         now()
                     );
                 }
-                await audit(db, id, actor, c ? "updated" : "created");
+                await audit(
+                    db,
+                    id,
+                    actor,
+                    c ? "updated" : "created",
+                    c ? { version: c.version + 1, changes } : {}
+                );
                 return { id };
             });
         },

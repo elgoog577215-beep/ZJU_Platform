@@ -32,7 +32,7 @@ async function migrateLotteries(db) {
             actor_id INTEGER REFERENCES users(id), action TEXT NOT NULL, detail TEXT NOT NULL, created_at INTEGER NOT NULL
         );
     `);
-    // Existing campaigns remain unbound; only an explicit draft edit associates an event.
+    // Existing campaigns remain unbound; only an explicit admin edit associates an event.
     for (const [table, columns] of Object.entries({
         lotteries: {
             event_key: "TEXT",

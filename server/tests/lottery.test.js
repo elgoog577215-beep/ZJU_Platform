@@ -55,7 +55,7 @@ test.after(async () => {
     await db.close();
     fs.rmSync(dir, { recursive: true, force: true });
 });
-test("migration is repeatable; input, unpublished privacy, versions and publication locks", async () => {
+test("migration is repeatable; input, unpublished privacy and optimistic versions", async () => {
     await migrateLotteries(db);
     await assert.rejects(service.save(null, { ...body(), draws_at: clock - 1000 }, 1), {
         code: "invalid_dates",
@@ -70,7 +70,90 @@ test("migration is repeatable; input, unpublished privacy, versions and publicat
     await service.save(id, { ...body(), version: 0 }, 1);
     await assert.rejects(service.publish(id, 1, 0), { code: "locked" });
     await service.publish(id, 1, 1);
-    await assert.rejects(service.save(id, { ...body(), version: 2 }, 1), { code: "locked" });
+    await assert.rejects(service.save(id, { ...body(), version: 1 }, 1), { code: "locked" });
+    await service.save(id, { ...body(), version: 2 }, 1);
+    assert.equal((await service.detail(id)).status, "open");
+    assert.equal((await service.detail(id)).version, 3);
+});
+const editBody = (campaign) => ({
+    ...campaign,
+    proof_required: Boolean(campaign.proof_required),
+    review_required: Boolean(campaign.review_required),
+});
+test("published edits preserve entries, proofs, reviews, identity and unchanged prize IDs", async () => {
+    const { id } = await create();
+    const approved = await service.enter(id, 2, { proof: Buffer.from("approved-proof") });
+    await service.review(id, approved.id, 1, "approved", "Verified");
+    await service.enter(id, 3, { proof: Buffer.from("pending-proof") });
+    const original = await service.detail(id, 2);
+    const entries = await service.entries(id);
+    const updated = {
+        ...editBody(original),
+        title: "Published title correction",
+        rules: "Updated public instructions",
+        closes_at: original.closes_at + 1000,
+        draws_at: original.draws_at + 2000,
+        claims_until: original.claims_until + 3000,
+    };
+    await service.save(id, updated, 1);
+    const result = await service.detail(id, 2);
+    assert.equal(result.id, id);
+    assert.equal(result.status, "open");
+    assert.equal(result.title, updated.title);
+    assert.equal(result.draws_at, updated.draws_at);
+    assert.equal(result.version, original.version + 1);
+    assert.deepEqual(result.prizes, original.prizes);
+    assert.deepEqual(result.entry, original.entry);
+    assert.deepEqual(await service.entries(id), entries);
+    assert.equal((await service.proof(id, approved.id, 2, false)).toString(), "approved-proof");
+    const audit = (await service.audit(id)).find((item) => item.action === "updated");
+    const detail = JSON.parse(audit.detail);
+    assert.equal(audit.actor_id, 1);
+    assert.equal(detail.version, result.version);
+    assert.deepEqual(detail.changes.rules, { before: original.rules, after: updated.rules });
+    assert(!detail.changes.prizes);
+    await assert.rejects(service.save(id, updated, 1), { code: "locked" });
+    assert.equal((await service.detail(id)).version, result.version);
+});
+test("published edits retain validation and permit only one concurrent save", async () => {
+    const { id } = await create();
+    const original = await service.detail(id);
+    await assert.rejects(
+        service.save(id, { ...editBody(original), closes_at: original.draws_at }, 1),
+        { code: "invalid_dates" }
+    );
+    await assert.rejects(
+        service.save(id, { ...editBody(original), prizes: [{ name: "Bad", quantity: 0 }] }, 1),
+        { code: "invalid_prizes" }
+    );
+    const outcomes = await Promise.allSettled([
+        service.save(id, { ...editBody(original), title: "First concurrent edit" }, 1),
+        service.save(id, { ...editBody(original), title: "Second concurrent edit" }, 1),
+    ]);
+    assert.equal(outcomes.filter((result) => result.status === "fulfilled").length, 1);
+    assert.equal(outcomes.find((result) => result.status === "rejected").reason.code, "locked");
+    assert.equal((await service.detail(id)).version, original.version + 1);
+});
+test("edits cannot postpone a due draw or overwrite drawn and cancelled campaigns", async () => {
+    const { id, data } = await create();
+    const original = await service.detail(id);
+    clock = data.draws_at;
+    const postponed = {
+        ...editBody(original),
+        draws_at: clock + 1000,
+        claims_until: clock + 100000,
+    };
+    await assert.rejects(service.save(id, postponed, 1), { code: "locked" });
+    await service.draw(id);
+    const drawn = await service.detail(id);
+    await assert.rejects(service.save(id, { ...postponed, version: drawn.version }, 1), {
+        code: "locked",
+    });
+    assert.deepEqual(await service.detail(id), drawn);
+    const cancelled = await create();
+    await service.cancel(cancelled.id, 1, "Event cancelled");
+    const closed = await service.detail(cancelled.id);
+    await assert.rejects(service.save(cancelled.id, editBody(closed), 1), { code: "locked" });
 });
 test("unique concurrent entries, private evidence, corrections and registration boundaries", async () => {
     const { id, data } = await create();
@@ -270,6 +353,47 @@ test("event campaigns validate configuration, isolate event queries and mandate 
     await service.review(event.id, entry.id, 1, "approved");
     assert.equal((await service.detail(event.id, 2)).entry.status, "approved");
 });
+test("published event edits keep required promotion and draw with the latest prizes and threshold", async () => {
+    const event = await create(eventFields);
+    for (const [user, like_count] of [
+        [2, 12],
+        [3, 30],
+    ]) {
+        const entry = await service.enter(event.id, user, {
+            proof: Buffer.from("proof"),
+            like_count,
+        });
+        await service.review(event.id, entry.id, 1, "approved");
+    }
+    const original = await service.detail(event.id);
+    await assert.rejects(service.save(event.id, { ...editBody(original), promotion_url: "" }, 1), {
+        code: "promotion_url_required",
+    });
+    assert.equal((await service.detail(event.id)).version, original.version);
+    await service.save(
+        event.id,
+        {
+            ...editBody(original),
+            min_likes: 20,
+            promotion_url: "https://example.org/updated-post",
+            prizes: [{ name: "Updated prize", quantity: 2 }],
+            proof_required: false,
+            review_required: false,
+        },
+        1
+    );
+    const updated = await service.detail(event.id);
+    assert.equal(updated.proof_required, 1);
+    assert.equal(updated.review_required, 1);
+    assert.equal(updated.counts.approved, 2);
+    clock = updated.draws_at;
+    await service.draw(event.id);
+    const result = await service.detail(event.id, 3);
+    assert.equal(result.eligible_count, 1);
+    assert.equal(result.winners.length, 1);
+    assert.equal(result.my_win.prize_name, "Updated prize");
+    assert.equal((await service.detail(event.id, 2)).my_win, null);
+});
 test("event approval and draw enforce screenshots and threshold, with one chance per approved account", async () => {
     const event = await create(eventFields);
     for (const [user, count] of [
@@ -360,6 +484,19 @@ test("HTTP permissions, screenshot decoding, proof ownership, and public data mi
         // Route service uses the real clock.
         clock = Date.now();
         const { id } = await create();
+        const campaign = await service.detail(id);
+        const update = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...editBody(campaign), title: "Published HTTP edit" }),
+        };
+        assert.equal((await req(`/admin/${id}`, 0, update)).status, 401);
+        assert.equal((await req(`/admin/${id}`, 2, update)).status, 403);
+        assert.equal((await req(`/admin/${id}`, 1, update)).status, 200);
+        assert.equal((await req(`/admin/${id}`, 1, update)).status, 409);
+        const publicUpdate = await (await req(`/${id}`)).json();
+        assert.equal(publicUpdate.title, "Published HTTP edit");
+        assert.equal(publicUpdate.status, "open");
         const invalid = new FormData();
         invalid.append("proof", new Blob(["not an image"], { type: "image/png" }), "test.png");
         assert.equal(
