@@ -21,6 +21,7 @@
         "cap:sync:ios": "npm run cap:build:web && cap sync ios",
         "cap:open:ios": "cap open ios",
         "lint": "eslint .",
+        "audit:dependencies": "node scripts/audit-dependencies.mjs",
         "postinstall": "npm --prefix server install",
         "preview": "vite preview",
         "setup": "npm install && cd server && npm install && cd .. && npm run build",
@@ -109,11 +110,13 @@
         "workbox-window": "^7.4.0"
     },
     "overrides": {
-        "axios": "1.20.0"
+        "axios": "1.20.0",
+        "braces": "https://codeload.github.com/micromatch/braces/tar.gz/28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
     },
     "pnpm": {
         "overrides": {
-            "axios": "1.20.0"
+            "axios": "1.20.0",
+            "braces": "https://codeload.github.com/micromatch/braces/tar.gz/28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
         }
     },
     "engines": {

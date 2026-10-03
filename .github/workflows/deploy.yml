@@ -33,7 +33,9 @@ jobs:
               run: npm ci --ignore-scripts --legacy-peer-deps
 
             - name: Audit dependency security
-              run: npm audit --audit-level=high
+              run: |
+                  node --test scripts/audit-dependencies.test.mjs
+                  npm run audit:dependencies
 
             - name: Validate source and changed-file formatting
               env:
