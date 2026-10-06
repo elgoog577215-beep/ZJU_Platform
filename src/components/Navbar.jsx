@@ -269,7 +269,7 @@ const Navbar = ({ miniProgramMode = false, showAppDownload = true, chromeHidden 
                     <div className="relative">
                         <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
                         <img
-                            src="/newlogo.png"
+                            src="/images/brand/logo-mark-transparent.png"
                             alt={t("nav.logo_alt")}
                             className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                         />

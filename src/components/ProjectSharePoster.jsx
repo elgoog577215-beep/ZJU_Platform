@@ -295,7 +295,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
                             )}
                             <div className="ppp-poster-topbar">
                                 <div className="ppp-poster-site">
-                                    <img src="/newlogo.png" alt="" crossOrigin="anonymous" />
+                                    <img src="/images/brand/logo-mark-transparent.png" alt="" crossOrigin="anonymous" />
                                     <div>
                                         <strong>
                                             {t("project_share_poster.site_name", "拓浙AI生态")}
@@ -370,7 +370,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
 
                             <div className="ppp-poster-footer">
                                 <div className="ppp-poster-footer-brand">
-                                    <img src="/newlogo.png" alt="" crossOrigin="anonymous" />
+                                    <img src="/images/brand/logo-mark-transparent.png" alt="" crossOrigin="anonymous" />
                                 </div>
                                 <div className="ppp-poster-cta">
                                     <em>

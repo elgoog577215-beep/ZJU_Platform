@@ -127,7 +127,7 @@ const AppDownload = () => {
                             </div>
                             <div className="rounded-md bg-white p-2.5 text-slate-950 md:p-3">
                                 <img
-                                    src="/newlogo.png"
+                                    src="/images/brand/logo-mark-transparent.png"
                                     alt={t("nav.logo_alt")}
                                     className="h-9 w-auto md:h-12"
                                 />

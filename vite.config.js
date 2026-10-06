@@ -4,6 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import fs from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { brandAssetAliases } from "./scripts/build/brand-assets.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +20,7 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [
             react(),
+            brandAssetAliases(__dirname),
             VitePWA({
                 manifestFilename: "manifest.json",
                 registerType: "autoUpdate",
@@ -27,7 +29,7 @@ export default defineConfig(({ mode }) => {
                     enabled: false,
                 },
                 includeAssets: [
-                    "newlogo.png",
+                    "images/brand/logo-mark-transparent.png",
                     "favicon.ico",
                     "favicon-16.png",
                     "favicon-32.png",
@@ -86,7 +88,7 @@ export default defineConfig(({ mode }) => {
                         "index.html",
                         "manifest.json",
                         "offline.html",
-                        "newlogo.png",
+                        "images/brand/logo-mark-transparent.png",
                         "favicon.ico",
                         "favicon-16.png",
                         "favicon-32.png",

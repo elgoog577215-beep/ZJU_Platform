@@ -19,7 +19,7 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 const url = process.argv[2];
 
 if (!url) {
-    console.log("Usage: node server/scripts/wechat_parser.js <url>");
+    console.log("Usage: node server/scripts/wechat-parser.mjs <url>");
     process.exit(1);
 }
 

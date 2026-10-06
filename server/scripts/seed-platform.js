@@ -2,10 +2,10 @@ require("dotenv").config();
 
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const { getDb, pool } = require("./src/config/db");
-const { runMigrations } = require("./src/config/runMigrations");
+const { getDb, pool } = require("../src/config/db");
+const { runMigrations } = require("../src/config/runMigrations");
 
-const databaseFile = process.env.DATABASE_FILE || path.join(__dirname, "database.sqlite");
+const databaseFile = process.env.DATABASE_FILE || path.join(__dirname, "..", "database.sqlite");
 
 const settingsSeed = {
     pagination_enabled: "false",

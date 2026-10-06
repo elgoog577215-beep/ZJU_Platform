@@ -179,7 +179,7 @@ const AGENT_DEFINITIONS = [
         ],
         evaluation: [
             "server/scripts/check-unified-ai-runtime.js",
-            "server/scripts/verify_event_assistant.js",
+            "server/scripts/verify-event-assistant.js",
             "server/scripts/stress-ai-assistants.js",
             "server/scripts/evaluate-ai-golden.js, including model-failure transient-profile performance coverage",
             "golden telemetry check for recommendation action evidence fields",

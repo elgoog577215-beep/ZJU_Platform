@@ -10,7 +10,7 @@
 - `AppScope/app.json5` 与 `entry/src/main/module.json5` 都引用 `$media:layered_image`。
 - 资源本身不裁圆角；圆角由 HarmonyOS 在显示时处理。
 - AppGallery Connect 使用 `zju_app/AppGalleryConnect/app_icon_1024.png`：1024×1024 PNG、无透明像素、小于 3 MB，并与包体图标一致。
-- 品牌图形源为 `public/newlogo.png`。修改源图后运行 `npm run generate:harmonyos-icons`，再运行 `npm run check:harmonyos-icons`。
+- 品牌图形源为 `public/images/brand/logo-mark-transparent.png`。修改源图后运行 `npm run generate:harmonyos-icons`，再运行 `npm run check:harmonyos-icons`。
 
 ## 修改后重新打包
 

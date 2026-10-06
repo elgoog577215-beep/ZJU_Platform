@@ -44,14 +44,14 @@ const resourceItems = [
         title: "紫金港春日影像",
         status: "approved",
         tags: "校园,摄影",
-        url: "/newlogo.png",
+        url: "/images/brand/logo-mark-transparent.png",
     },
     {
         id: 102,
         title: "待审核活动海报",
         status: "pending",
         tags: "活动",
-        url: "/newlogo.png",
+        url: "/images/brand/logo-mark-transparent.png",
     },
 ];
 

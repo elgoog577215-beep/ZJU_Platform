@@ -7,7 +7,7 @@ const DEFAULT_DESCRIPTION =
     "拓浙AI生态连接学生、学院、企业与真实 AI 需求，让机会、学习、项目、赛事和成果持续形成下一次合作。";
 
 const toAbsoluteUrl = (siteUrl, value) => {
-    if (!value) return `${siteUrl}/newlogo.png`;
+    if (!value) return `${siteUrl}/images/brand/logo-mark-transparent.png`;
     if (/^https?:\/\//i.test(value)) return value;
     return `${siteUrl}${value.startsWith("/") ? value : `/${value}`}`;
 };
@@ -88,7 +88,7 @@ const SEO = ({ title, description, image, url, type = "website", article = {} })
                     name: siteName,
                     alternateName: siteAltName,
                     url: siteUrl,
-                    logo: `${siteUrl}/newlogo.png`,
+                    logo: `${siteUrl}/images/brand/logo-mark-transparent.png`,
                     description: defaultDescription,
                     contactPoint: {
                         "@type": "ContactPoint",

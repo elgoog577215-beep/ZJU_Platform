@@ -264,7 +264,7 @@ const ProfileSharePoster = ({
                             <div className="absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(255,253,248,0.96))]" />
                             <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-[6px] border border-white/70 bg-white/88 px-2.5 py-1.5 shadow-sm">
                                 <img
-                                    src="/newlogo.png"
+                                    src="/images/brand/logo-mark-transparent.png"
                                     alt=""
                                     crossOrigin="anonymous"
                                     className="h-5 w-5 object-contain sm:h-6 sm:w-6"

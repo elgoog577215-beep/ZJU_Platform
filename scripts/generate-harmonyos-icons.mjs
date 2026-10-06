@@ -4,7 +4,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = process.cwd();
-const sourcePath = path.join(root, "public", "newlogo.png");
+const sourcePath = path.join(root, "public", "images/brand/logo-mark-transparent.png");
 const canvasSize = 1024;
 const logoBox = { width: 835, height: 841 };
 const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
@@ -66,4 +66,4 @@ await Promise.all([
     writeFile(path.join(appGalleryDirectory, "app_icon_1024.png"), flatIcon),
 ]);
 
-console.log("HarmonyOS icons generated from public/newlogo.png");
+console.log("HarmonyOS icons generated from public/images/brand/logo-mark-transparent.png");

@@ -36,7 +36,7 @@ const ts = () => Date.now();
 const makeUsername = (scenario) => `test_identity_${scenario}_${ts()}_${rand()}`;
 const PASSWORD = "pw_test_1234";
 
-// Seed admin credentials — see server/seed.js. Used to approve content created
+// Seed admin credentials — see server/scripts/seed-platform.js. Used to approve content created
 // by regular test users (register API does not grant admin role).
 const ADMIN_USERNAME = "seed_admin";
 const ADMIN_PASSWORD = "Admin123456";

@@ -3,7 +3,7 @@ const path = require("path");
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 
-const { runMigrations } = require("./src/config/runMigrations");
+const { runMigrations } = require("../src/config/runMigrations");
 
 const REQUIRED_COLUMNS = {
     comments: {
@@ -54,7 +54,7 @@ async function verifyColumns(db, tableName, columns) {
 }
 
 async function main() {
-    const dbPath = process.env.DATABASE_FILE || path.join(__dirname, "database.sqlite");
+    const dbPath = process.env.DATABASE_FILE || path.join(__dirname, "..", "database.sqlite");
     const backupSuffix = getTimestamp();
     const backupBase = `${dbPath}.bak.${backupSuffix}`;
 

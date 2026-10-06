@@ -3,8 +3,8 @@ echo "========================================"
 echo "Starting Auto-Fix for ZJU Server..."
 echo "========================================"
 
-# Navigate to script directory
-cd "$(dirname "$0")"
+# Run from the server root so dependency and PM2 behavior stays unchanged.
+cd "$(dirname "$0")/.." || exit 1
 
 # 1. Clean existing problematic modules
 echo "[1/3] Cleaning old dependencies..."

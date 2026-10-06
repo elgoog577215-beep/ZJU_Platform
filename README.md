@@ -75,7 +75,72 @@ npm run dev
 
 ## 代码与发布
 
-`src/` 为前端，`server/` 为 API、领域服务、迁移与后台任务，`shared/` 存放前后端共同定义，`public/` 存放公开静态资源与词典，`e2e/` 为浏览器测试。具体职责见蓝图[技术设计](docs/产品蓝图.md#技术设计)。
+### 目录地图
+
+```text
+ZJU_Platform/
+├── README.md、AGENTS.md          项目与协作入口
+├── PRODUCT.md、DESIGN.md         设计工具使用的摘要，详细内容引用 docs
+├── docs/                        产品蓝图、产品状态、功能设计、操作手册
+├── src/                         Web / PWA 前端
+│   ├── App.jsx、main.jsx         应用入口、路由与全局装配
+│   ├── features/                已按业务组织的功能：navigation、lottery
+│   ├── components/              现有页面、业务组件与通用组件
+│   ├── context/、hooks/         前端状态与复用行为
+│   ├── services/                API 客户端
+│   ├── shared/                  仅前端复用的认证存储与 UI 基础能力
+│   └── data/、constants/、utils/ 前端数据、常量与工具
+├── server/                      Node API 与后台任务
+│   ├── index.js                 服务入口
+│   ├── src/                     路由、controller、service、权限、schema / migration
+│   ├── scripts/                 检查、评测、初始化与人工维护脚本
+│   └── tests/                   后端测试
+├── shared/                      前后端共用的业务定义与配置
+├── public/                      按原路径发布的公开文件
+│   ├── images/brand/            已确认的品牌图形、横标与竖标
+│   ├── images/partner-logos/    合作机构 LOGO
+│   ├── images/hackathon/        赛事静态图片
+│   ├── images/backgrounds/      场景背景
+│   ├── images/profiles/         专用主体页面素材
+│   ├── icons/                   PWA 安装图标
+│   ├── locales/                 中英文词典
+│   └── downloads/               对外下载的发布文件
+├── scripts/                     仓库级检查、图标生成与发布辅助
+│   └── build/                   Vite 构建辅助
+├── deploy/                      发布到服务器及独立采集服务的配置
+├── e2e/                         浏览器端到端测试
+├── bin/                         用户可调用的 CLI 入口
+├── android-twa/                 Android 工程
+├── ios/                         iOS / Capacitor 工程
+├── zju_app/                     HarmonyOS 工程（沿用现有工具链路径）
+└── wechat-miniprogram/           微信小程序工程
+```
+
+根目录的 `package.json`、锁文件、`index.html`、Vite / Tailwind / ESLint / Playwright 等配置，以及 `.github/`、Docker 文件与 Makefile，是工具和发布入口。多端工程保留现有路径，打包方式从[操作手册](#操作手册)进入。目录迁移必须同步修改引用、命令、构建及部署配置。
+
+`src/features/` 已承载导航和抽奖；`components/` 仍包含其他业务页面。业务模块在修改对应能力时逐步归入 `features/`，具体边界见蓝图[技术设计](docs/产品蓝图.md#技术设计)。根目录 `shared/` 与 `src/shared/` 的使用范围不同，不能仅按同名合并。
+
+### 品牌素材
+
+| 文件                                                                                   | 用途                                                 |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [logo-mark-transparent.png](public/images/brand/logo-mark-transparent.png)             | 透明底独立图形；导航、分享海报及应用图标生成的源文件 |
+| [logo-horizontal-transparent.svg](public/images/brand/logo-horizontal-transparent.svg) | 透明底横标，含名称与口号                             |
+| [logo-vertical-light.png](public/images/brand/logo-vertical-light.png)                 | 浅色底竖标，含名称与口号                             |
+
+三份素材沿用用户确认的版本。修改只在 `public/images/brand/` 维护；旧 `/newlogo.png`、`/logo.png`、`/tuozhe-ai-ecosystem-logo.svg` 地址由[构建辅助](scripts/build/brand-assets.mjs)兼容，构建时生成旧地址文件，开发与预览时映射到正式素材。浏览器图标、PWA 图标及 `.well-known/` 保留各自的固定地址。
+
+### 脚本与本地文件
+
+优先通过根目录和 `server/package.json` 的 npm 命令运行脚本。`scripts/` 是仓库级工具，`server/scripts/` 是后端工具；同一目录中的脚本统一使用小写连字符命名，名称表达动作和对象，例如 `seed-community-demo.js`、`verify-event-assistant.js`、`wechat-parser.mjs`。
+
+- 后端数据初始化：`npm --prefix server run seed` 调用 `server/scripts/seed-platform.js`；它会写入数据库，不作为启动前的例行检查。
+- 人工修复：`server/scripts/fix-comment-schema.js` 会迁移数据库；`server/scripts/reinstall-dependencies.sh` 会重装后端依赖并重启 PM2。它们与只读检查脚本用途不同。
+- 自动生成的 `node_modules/`、`dist/`、`dev-dist/`、测试报告、`output/`、`tmp/` 和浏览器缓存不作为源码入口，也不提交 Git。
+- 数据库及 WAL/SHM、`server/uploads/`、`server/data/`、日志、备份与真实环境配置是本地或服务器运行数据。不能随目录整理移动正在使用的数据库；数据库位置以服务配置和 `DATABASE_FILE` 为准。
+- 本地 `design-demos/` 是设计探索材料，当前未纳入正式源码；未提交的设计稿、素材和历史证据应先核对用途，不能因未被 Git 跟踪而删除。
+
+### 发布
 
 `master` 推送触发 [deploy.yml](.github/workflows/deploy.yml) 的检查、构建与发布包生成。默认直传；`ZJU_DEPLOY_TRANSPORT=local` 时需按手册完成本机中转。生产由 Caddy 提供入口；应用回滚与数据库恢复分开处理。
 
