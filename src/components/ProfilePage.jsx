@@ -26,6 +26,7 @@ import api, { getProfileCard, getUserSystemOverview, uploadFile } from "../servi
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
+import PublicProfile from "./PublicProfile";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import UserSystemOverview from "./profile/UserSystemOverview";
 import ProfileSharePoster from "./ProfileSharePoster";
@@ -294,6 +295,8 @@ const ProfilePage = ({ forcedHandle = null }) => {
         profile?.type === "person" &&
         Number(profile.id) === 280 &&
         Number(profile.owner_user_id) === 281;
+    const usePersonalHome =
+        profile?.type === "person" && profileOwnerUserId(profile) && !hasYeshuangPlayground;
     const displayedProfile = hasYeshuangPlayground
         ? { ...profile, avatar_url: "/images/profiles/yeshuang/heart.webp", logo_url: "" }
         : profile;
@@ -321,7 +324,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
     useEffect(() => {
         const userId = profile?.type === "person" ? profileOwnerUserId(profile) : null;
-        if (!userId) {
+        if (!userId || usePersonalHome) {
             setProfileCard(null);
             return undefined;
         }
@@ -340,10 +343,10 @@ const ProfilePage = ({ forcedHandle = null }) => {
             });
 
         return () => controller.abort();
-    }, [profile]);
+    }, [profile, usePersonalHome]);
 
     useEffect(() => {
-        if (!handle || error) return undefined;
+        if (!handle || error || !profile || usePersonalHome) return undefined;
         const controller = new AbortController();
         setFeedLoading(true);
         api.get(`/profiles/${handle}/feed`, {
@@ -361,12 +364,12 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 if (!controller.signal.aborted) setFeedLoading(false);
             });
         return () => controller.abort();
-    }, [activeTab, error, handle]);
+    }, [activeTab, error, handle, profile, usePersonalHome]);
 
     const meta = useMemo(() => typeMeta(profile?.type), [profile?.type]);
     const TypeIcon = meta.icon;
     const editable = canEditProfile(profile, currentUser);
-    const showUserSystemOverview = isOwnPersonalProfile(profile, currentUser);
+    const showUserSystemOverview = !usePersonalHome && isOwnPersonalProfile(profile, currentUser);
     const language = i18n.resolvedLanguage || i18n.language || "zh";
     const isEnglish = language.startsWith("en");
     const displayName = isEnglish
@@ -619,6 +622,15 @@ const ProfilePage = ({ forcedHandle = null }) => {
                     {t("profiles.page.back")}
                 </button>
             </div>
+        );
+    }
+
+    if (profile.type === "person" && profileOwnerUserId(profile) && !hasYeshuangPlayground) {
+        return (
+            <PublicProfile
+                key={profileOwnerUserId(profile)}
+                profileId={profileOwnerUserId(profile)}
+            />
         );
     }
 

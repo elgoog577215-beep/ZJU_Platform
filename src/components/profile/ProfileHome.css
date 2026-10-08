@@ -1,0 +1,510 @@
+.profile-home {
+    --ph-bg: rgba(18, 22, 39, 0.95);
+    --ph-fg: #f5f6fb;
+    --ph-muted: #a1a8bd;
+    --ph-line: rgba(255, 255, 255, 0.12);
+    --ph-accent: #a4a5ff;
+    position: relative;
+    isolation: isolate;
+    border-radius: 24px;
+    overflow: hidden;
+    color: var(--ph-fg);
+    background: #111526;
+    margin-bottom: 24px;
+}
+.profile-home.ph-day {
+    --ph-bg: rgba(255, 255, 255, 0.96);
+    --ph-fg: #202435;
+    --ph-muted: #687083;
+    --ph-line: rgba(22, 34, 61, 0.13);
+    --ph-accent: #514cce;
+    background: #f3f4f8;
+}
+.ph-background {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-size: cover;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+.ph-content {
+    padding: 24px 40px 40px;
+}
+.profile-home button,
+.profile-home summary {
+    font: inherit;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 7px 12px;
+    border: 1px solid var(--ph-line);
+    border-radius: 10px;
+    background: var(--ph-bg);
+    color: var(--ph-fg);
+    cursor: pointer;
+}
+.profile-home button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.profile-home button:focus-visible,
+.profile-home summary:focus-visible,
+.profile-home a:focus-visible {
+    outline: 2px solid var(--ph-accent);
+    outline-offset: 3px;
+}
+.profile-home .ph-primary {
+    background: #6262dc;
+    border-color: #6262dc;
+    color: white;
+}
+.ph-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 3;
+}
+.ph-menu {
+    position: relative;
+}
+.ph-menu > div {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    width: 180px;
+    background: var(--ph-bg);
+    border: 1px solid var(--ph-line);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px #0003;
+}
+.ph-menu button {
+    justify-content: flex-start;
+}
+.ph-hero {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 38px 0 32px;
+}
+.ph-avatar-block {
+    position: relative;
+    flex-shrink: 0;
+}
+.ph-avatar {
+    width: 112px;
+    height: 112px;
+    overflow: hidden;
+    border-radius: 28px;
+    background: #6262dc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 40px;
+    font-weight: 650;
+    box-shadow: 0 0 0 5px var(--ph-bg);
+}
+.ph-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.ph-avatar-block > .ph-icon {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+}
+.ph-intro {
+    flex: 1;
+    min-width: 0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    background: var(--ph-bg);
+}
+.ph-name {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.ph-name h1 {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+.ph-status {
+    display: inline-flex;
+    font-size: 12px;
+    margin-top: 10px;
+    color: var(--ph-accent);
+}
+.ph-slogan {
+    font-size: 17px;
+    line-height: 1.7;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.ph-description {
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    margin-top: 10px;
+    color: var(--ph-muted);
+}
+.ph-tags,
+.ph-contacts,
+.ph-social-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 16px;
+}
+.ph-tags span {
+    font-size: 12px;
+    padding: 3px 9px;
+    border: 1px solid var(--ph-line);
+    border-radius: 6px;
+}
+.ph-social-stats button:not(.ph-primary) {
+    border: 0;
+    background: transparent;
+    padding: 4px 6px;
+}
+.ph-social-stats button[aria-pressed="true"] {
+    color: #ef6885;
+}
+.ph-contacts {
+    font-size: 13px;
+    color: var(--ph-accent);
+}
+.ph-contacts > span {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+.ph-contacts button {
+    border: 0;
+    padding: 2px 4px;
+    background: transparent;
+}
+.ph-wall-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--ph-line);
+    padding: 10px 12px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: var(--ph-bg);
+}
+.ph-wall-bar nav,
+.ph-wall-actions {
+    display: flex;
+    gap: 6px;
+}
+.ph-wall-bar nav button {
+    border: 0;
+    background: transparent;
+    color: var(--ph-muted);
+    border-radius: 0;
+}
+.ph-wall-bar nav button[aria-current="page"] {
+    color: var(--ph-fg);
+    box-shadow: inset 0 -2px var(--ph-accent);
+    font-weight: 650;
+}
+.ph-wall {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+.ph-card {
+    position: relative;
+    min-width: 0;
+    background: var(--ph-bg);
+    border: 1px solid var(--ph-line);
+    border-radius: 18px;
+    overflow: hidden;
+}
+.ph-wide,
+.ph-empty {
+    grid-column: 1/-1;
+}
+.ph-cover {
+    position: relative;
+    overflow: hidden;
+    background: var(--ph-line);
+}
+.ph-cover img {
+    position: absolute;
+    max-width: none;
+    object-fit: cover;
+}
+.ph-card-copy {
+    padding: 22px;
+}
+.ph-card-copy:empty {
+    display: none;
+}
+.ph-card h3 {
+    font-size: 19px;
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+.ph-card p {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.ph-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--ph-accent);
+    font-size: 13px;
+}
+.ph-kicker {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ph-muted);
+}
+.ph-card-tools {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 0 14px 12px;
+}
+.ph-card-tools:empty {
+    display: none;
+}
+.ph-muted {
+    color: var(--ph-muted);
+    padding: 12px;
+    display: flex;
+    gap: 5px;
+}
+.ph-editor,
+.ph-editing {
+    padding: 22px;
+    background: var(--ph-bg);
+    border: 1px solid var(--ph-line);
+    border-radius: 14px;
+    margin: 14px 0;
+}
+.ph-editing {
+    margin: 0;
+}
+.profile-home label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    min-width: 0;
+}
+.profile-home input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+.profile-home textarea,
+.profile-home select {
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: 1px solid var(--ph-line);
+    border-radius: 8px;
+    color: var(--ph-fg);
+    font: inherit;
+    font-size: 14px;
+}
+.profile-home select option {
+    background: var(--ph-bg);
+    color: var(--ph-fg);
+}
+.profile-home input[type="range"] {
+    width: 100%;
+    accent-color: var(--ph-accent);
+}
+.profile-home .ph-check {
+    flex-direction: row;
+    align-items: center;
+}
+.ph-upload {
+    padding: 12px;
+    border: 1px dashed var(--ph-line);
+    border-radius: 8px;
+}
+.ph-save {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+.ph-contact-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 10px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--ph-line);
+}
+.ph-add-menu {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+}
+.ph-empty {
+    padding: 44px 16px;
+    text-align: center;
+    background: var(--ph-bg);
+    border-radius: 14px;
+    color: var(--ph-muted);
+    font-size: 14px;
+}
+.ph-empty button {
+    display: flex;
+    margin: 16px auto 0;
+}
+.ph-error {
+    position: sticky;
+    top: 80px;
+    z-index: 4;
+    margin: 16px 0;
+    padding: 14px;
+    background: var(--ph-bg);
+    border: 1px solid #d68858;
+    border-radius: 10px;
+    color: var(--ph-fg);
+    font-size: 14px;
+}
+.ph-error button {
+    margin-left: 10px;
+}
+.ph-order-save {
+    margin-bottom: 16px;
+}
+.ph-work-add {
+    margin: 0 20px 20px;
+}
+.ph-footer-note {
+    font-size: 12px;
+    color: var(--ph-muted);
+    margin-top: 24px;
+    background: var(--ph-bg);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+.ph-avatar-crop {
+    position: relative;
+    width: min(260px, 100%);
+    aspect-ratio: 1;
+    overflow: hidden;
+}
+.ph-avatar-crop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.ph-avatar-crop > div {
+    position: absolute;
+    border: 2px solid white;
+    box-shadow: 0 0 0 260px #0007;
+    pointer-events: none;
+}
+@media (max-width: 640px) {
+    .ph-content {
+        padding: 14px 14px 24px;
+    }
+    .profile-home {
+        border-radius: 16px;
+    }
+    .ph-toolbar {
+        gap: 5px;
+    }
+    .ph-toolbar button,
+    .ph-toolbar summary {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    .ph-hero {
+        display: block;
+        padding: 22px 0;
+    }
+    .ph-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 22px;
+        font-size: 30px;
+    }
+    .ph-avatar-block {
+        display: inline-block;
+        margin-left: 16px;
+    }
+    .ph-intro {
+        margin-top: 18px;
+        padding: 18px;
+    }
+    .ph-name h1 {
+        font-size: 24px;
+    }
+    .ph-slogan {
+        font-size: 15px;
+    }
+    .ph-social-stats {
+        gap: 6px;
+    }
+    .ph-wall {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+    .ph-wide {
+        grid-column: auto;
+    }
+    .ph-wall-bar {
+        flex-wrap: wrap;
+        padding: 8px;
+        gap: 8px;
+    }
+    .ph-wall-actions {
+        margin-left: auto;
+    }
+    .ph-contact-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .ph-editor,
+    .ph-editing {
+        padding: 14px;
+    }
+    .ph-card-copy {
+        padding: 18px;
+    }
+    .ph-error {
+        top: 64px;
+    }
+}
+
+.ph-heading:not(.ph-editing) .ph-card-copy {
+    padding: 16px 68px 16px 22px;
+}
+.ph-heading:not(.ph-editing) .ph-card-tools {
+    position: absolute;
+    right: 0;
+    top: 9px;
+    padding: 0 12px;
+}
+.ph-heading:not(.ph-editing):has(.ph-card-tools button:nth-child(2)) .ph-card-copy {
+    padding-right: 170px;
+}

@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 const { getDb } = require("../config/db");
+const { withProfileWrite } = require("../services/profileHomeService");
 const { createNotification } = require("./notificationController");
 const profileService = require("../services/profileService");
 const {
@@ -732,8 +733,8 @@ const uploadOwnAvatar = async (req, res, next) => {
             return res.status(400).json({ error: "Avatar upload failed" });
         }
         const cropSize = Math.min(1, Math.max(0.05, Number(req.body?.crop_size) || 1));
-        const cropX = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_x) || 0));
-        const cropY = Math.min(1 - cropSize, Math.max(0, Number(req.body?.crop_y) || 0));
+        const cropX = Math.min(1, Math.max(0, Number(req.body?.crop_x) || 0));
+        const cropY = Math.min(1, Math.max(0, Number(req.body?.crop_y) || 0));
         try {
             const image = sharp(req.file.path);
             const metadata = await image.metadata();
@@ -768,7 +769,13 @@ const uploadOwnAvatar = async (req, res, next) => {
             console.warn("Avatar crop warning:", cropError.message);
         }
         const db = await getDb();
-        await db.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, req.user.id]);
+        await withProfileWrite(async (writeDb) => {
+            await writeDb.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, req.user.id]);
+            await writeDb.run(
+                "UPDATE profiles SET avatar_url = ? WHERE type = 'person' AND owner_user_id = ?",
+                [avatar, req.user.id]
+            );
+        });
         const user = await db.get(
             "SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?",
             [req.user.id]
@@ -1129,8 +1136,43 @@ const bulkUpdateUsers = async (req, res, next) => {
     }
 };
 
+const getProfileLikeStats = async (db, targetId, viewerId) => {
+    const row = await db.get(
+        `SELECT COUNT(*) AS profile_likes,
+        COALESCE(MAX(user_id = ?), 0) AS is_liked FROM user_profile_likes WHERE target_id = ?`,
+        [viewerId, targetId]
+    );
+    return { profile_likes: row.profile_likes, is_liked: Boolean(row.is_liked) };
+};
+
+const setProfileLike = async (req, res, next) => {
+    try {
+        const targetId = Number(req.params.id),
+            userId = Number(req.user.id);
+        if (!Number.isInteger(targetId) || targetId <= 0 || targetId === userId)
+            return res.status(400).json({ error: "Invalid target" });
+        const db = await getDb();
+        if (!(await db.get("SELECT id FROM users WHERE id = ?", [targetId])))
+            return res.status(404).json({ error: "User not found" });
+        if (req.method === "DELETE")
+            await db.run("DELETE FROM user_profile_likes WHERE user_id = ? AND target_id = ?", [
+                userId,
+                targetId,
+            ]);
+        else
+            await db.run(
+                "INSERT OR IGNORE INTO user_profile_likes (user_id, target_id) VALUES (?, ?)",
+                [userId, targetId]
+            );
+        res.json(await getProfileLikeStats(db, targetId, userId));
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getPublicProfile = async (req, res, next) => {
     try {
+        res.set?.("Cache-Control", "no-store");
         const db = await getDb();
         const { id } = req.params;
         const user = await db.get(
@@ -1144,8 +1186,10 @@ const getPublicProfile = async (req, res, next) => {
 
         const viewerId = req.user?.id || null;
         const followStats = await getFollowStats(db, Number(id), viewerId);
+        const likeStats = await getProfileLikeStats(db, Number(id), viewerId);
         res.json({
             ...user,
+            ...likeStats,
             ...followStats,
         });
     } catch (error) {
@@ -1187,8 +1231,8 @@ const toggleFollowUser = async (req, res, next) => {
         } else if (existing) {
             following = true;
         } else {
-            await db.run(
-                'INSERT INTO user_follows (follower_id, following_id, created_at) VALUES (?, ?, datetime("now"))',
+            const inserted = await db.run(
+                'INSERT OR IGNORE INTO user_follows (follower_id, following_id, created_at) VALUES (?, ?, datetime("now"))',
                 [followerId, followingId]
             );
             following = true;
@@ -1196,13 +1240,14 @@ const toggleFollowUser = async (req, res, next) => {
                 followerId,
             ]);
             const actorName = actor?.nickname || actor?.username || "有用户";
-            await createNotification(
-                followingId,
-                "follow",
-                `${actorName} 关注了你`,
-                followerId,
-                "user"
-            );
+            if (inserted.changes)
+                await createNotification(
+                    followingId,
+                    "follow",
+                    `${actorName} 关注了你`,
+                    followerId,
+                    "user"
+                );
         }
 
         const stats = await getFollowStats(db, followingId, followerId);
@@ -1942,6 +1987,7 @@ const getUserResources = async (req, res, next) => {
 };
 
 module.exports = {
+    setProfileLike,
     getAllUsers,
     updateUser,
     uploadOwnAvatar,

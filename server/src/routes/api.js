@@ -346,6 +346,8 @@ router.get("/users/:id/profile", optionalAuth, userController.getPublicProfile);
 router.get("/users/:id/profile-card", optionalAuth, profileCardController.getUserProfileCard);
 router.get("/users/:id/resources", optionalAuth, userController.getUserResources);
 router.get("/users/:id/competition-works", optionalAuth, userController.getUserCompetitionWorks);
+router.put("/users/:id/like", authenticateToken, userController.setProfileLike);
+router.delete("/users/:id/like", authenticateToken, userController.setProfileLike);
 router.post("/users/:id/follow", authenticateToken, userController.toggleFollowUser);
 router.delete("/users/:id/follow", authenticateToken, userController.toggleFollowUser);
 router.get("/users/:id/followers", optionalAuth, userController.listFollowers);

@@ -660,6 +660,8 @@ async function runMigrations(db) {
         }
     }
 
+    await require("./migrations/profileHome").migrateProfileHome(db);
+
     // Migration: Nickname partial unique index.
     try {
         const nicknameCollisions = await db.all(

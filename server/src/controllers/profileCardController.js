@@ -1,3 +1,4 @@
+const { withProfileWrite, listProfileWorks, safeUrl } = require("../services/profileHomeService");
 const { getDb } = require("../config/db");
 
 const PROFILE_STATUSES = new Set([
@@ -24,6 +25,10 @@ const SOCIAL_PLATFORMS = new Set([
 ]);
 
 const PROFILE_CARD_TYPES = new Set([
+    "text",
+    "image",
+    "heading",
+    "link",
     "project",
     "work",
     "article",
@@ -87,6 +92,8 @@ const serializeProfileCard = (row) => {
     const cropHeight = clampNumber(row.crop_height, 0.05, 1, 1);
     return {
         id: row.id,
+        source_type: row.source_type || null,
+        source_id: row.source_id || null,
         title: row.title || "",
         body: row.body || "",
         note: row.note || "",
@@ -124,7 +131,9 @@ const sanitizeSocialLinks = (links = []) =>
             return {
                 platform: SOCIAL_PLATFORMS.has(platform) ? platform : "custom",
                 label: trimText(item?.label, 40),
-                url: trimText(item?.url, 1000),
+                url: ["wechat", "email"].includes(platform)
+                    ? trimText(item?.url, 1000)
+                    : safeUrl(item?.url),
                 sort_order: Number.isFinite(Number(item?.sort_order))
                     ? Number(item.sort_order)
                     : index,
@@ -138,7 +147,7 @@ const sanitizeCardLinks = (links = []) =>
     (Array.isArray(links) ? links : [])
         .map((item) => ({
             label: trimText(item?.label, 80),
-            url: trimText(item?.url, 1000),
+            url: safeUrl(item?.url),
         }))
         .filter((item) => item.url)
         .slice(0, 12);
@@ -146,7 +155,7 @@ const sanitizeCardLinks = (links = []) =>
 const sanitizeUploadUrl = (value) => {
     const url = trimText(value, 1000);
     if (!url) return "";
-    return url.startsWith("/uploads/") ? url : "";
+    return safeUrl(url, true);
 };
 
 const sanitizeCards = (cards = []) =>
@@ -162,10 +171,10 @@ const sanitizeCards = (cards = []) =>
                     ? trimText(item?.custom_type || item?.customType || item?.title, 40)
                     : "";
             const coverUrl = sanitizeUploadUrl(
-                item?.cover_url || item?.coverUrl || item?.images?.[0]
+                item?.cover_url ?? item?.coverUrl ?? item?.images?.[0]
             );
-            const description = trimText(item?.description || item?.note || item?.body, 80);
-            const linkUrl = trimText(item?.link_url || item?.linkUrl || item?.links?.[0]?.url, 500);
+            const description = trimText(item?.description ?? item?.note ?? item?.body, 4000);
+            const linkUrl = safeUrl(item?.link_url ?? item?.linkUrl ?? item?.links?.[0]?.url);
             const cropWidth = clampNumber(item?.crop_width ?? item?.cropWidth, 0.05, 1, 1);
             const cropHeight = clampNumber(item?.crop_height ?? item?.cropHeight, 0.05, 1, 1);
             const cropX = clampNumber(item?.crop_x ?? item?.cropX, 0, 1 - cropWidth, 0);
@@ -174,15 +183,24 @@ const sanitizeCards = (cards = []) =>
             const displayType = customType || trimText(item?.title, 80) || cardType;
             const links = linkUrl
                 ? [{ label: displayType, url: linkUrl }]
-                : sanitizeCardLinks(item?.links).slice(0, 1);
+                : item?.link_url !== undefined || item?.linkUrl !== undefined
+                  ? []
+                  : sanitizeCardLinks(item?.links).slice(0, 1);
             const images = coverUrl
                 ? [coverUrl]
-                : (Array.isArray(item?.images) ? item.images : [])
+                : (item?.cover_url !== undefined || item?.coverUrl !== undefined
+                      ? []
+                      : Array.isArray(item?.images)
+                        ? item.images
+                        : []
+                  )
                       .map((image) => sanitizeUploadUrl(image))
                       .filter(Boolean)
                       .slice(0, 1);
             return {
-                title: displayType,
+                source_type: item?.source_type || null,
+                source_id: Number(item?.source_id) || null,
+                title: item?.title !== undefined ? trimText(item.title, 120) : displayType,
                 body: description,
                 note: description,
                 card_type: cardType,
@@ -217,9 +235,10 @@ const sanitizeCards = (cards = []) =>
         .slice(0, 40);
 
 const loadProfileCard = async (db, userId, includeHidden = false) => {
-    const user = await db.get("SELECT id, profile_slogan, profile_status FROM users WHERE id = ?", [
-        userId,
-    ]);
+    const user = await db.get(
+        "SELECT id, nickname, profile_slogan, profile_status, profile_description, profile_background, profile_version FROM users WHERE id = ?",
+        [userId]
+    );
     if (!user) return null;
 
     const visibilityClause = includeHidden ? "" : " AND is_visible = 1";
@@ -236,7 +255,7 @@ const loadProfileCard = async (db, userId, includeHidden = false) => {
             [userId]
         ),
         db.all(
-            `SELECT id, title, body, note, card_type, custom_type, cover_url, description, link_url,
+            `SELECT id, source_type, source_id, title, body, note, card_type, custom_type, cover_url, description, link_url,
               crop_x, crop_y, crop_width, crop_height, aspect_ratio,
               tags_json, images_json, links_json, sort_order, is_visible
        FROM user_profile_cards
@@ -246,23 +265,70 @@ const loadProfileCard = async (db, userId, includeHidden = false) => {
         ),
     ]);
 
+    const works = await listProfileWorks(db, userId);
+    const resolvedCards = cards
+        .map(serializeProfileCard)
+        .map((card) => {
+            if (!card.source_type) return card;
+            const work = works.find(
+                (item) => item.type === card.source_type && item.id === card.source_id
+            );
+            return work
+                ? {
+                      ...card,
+                      title: work.title,
+                      cover_url: work.cover,
+                      link_url: work.url,
+                      relation: work.relation,
+                  }
+                : includeHidden
+                  ? {
+                        ...card,
+                        unavailable: true,
+                        title: "",
+                        cover_url: "",
+                        link_url: "",
+                        description: "",
+                    }
+                  : null;
+        })
+        .filter(Boolean);
+    let background = {};
+    try {
+        background = JSON.parse(user.profile_background || "{}");
+    } catch {
+        /* legacy empty value */
+    }
+    // Existing public personal descriptions remain visible until the first homepage save.
+    const legacy =
+        user.profile_version === 0
+            ? await db.get(
+                  "SELECT description, bio, cover_url FROM profiles WHERE type = 'person' AND owner_user_id = ? AND deleted_at IS NULL ORDER BY id LIMIT 1",
+                  [userId]
+              )
+            : null;
+    if (!background.image && legacy?.cover_url) background.image = safeUrl(legacy.cover_url, true);
     return {
         user_id: user.id,
+        nickname: user.nickname || "",
+        version: user.profile_version || 0,
+        description: user.profile_description || legacy?.description || legacy?.bio || "",
+        background,
+        works,
         slogan: user.profile_slogan || "",
         status: user.profile_status || "",
         tags: tags.map(serializeTag),
         social_links: socialLinks.map(serializeSocialLink),
-        cards: cards.map(serializeProfileCard),
+        cards: resolvedCards,
     };
 };
 
 const getUserProfileCard = async (req, res, next) => {
     try {
+        res.set?.("Cache-Control", "no-store");
         const userId = Number(req.params.id);
         if (!Number.isFinite(userId)) return res.status(400).json({ error: "Invalid user id" });
-        const includeHidden = Boolean(
-            req.user && (Number(req.user.id) === userId || req.user.role === "admin")
-        );
+        const includeHidden = Boolean(req.user && Number(req.user.id) === userId);
         const db = await getDb();
         const profileCard = await loadProfileCard(db, userId, includeHidden);
         if (!profileCard) return res.status(404).json({ error: "User not found" });
@@ -276,7 +342,6 @@ const updateOwnProfileCard = async (req, res, next) => {
     try {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ error: "Login required" });
-        const db = await getDb();
         const slogan = trimText(req.body?.slogan, 240);
         const status = trimText(req.body?.status, 40);
         if (!PROFILE_STATUSES.has(status)) {
@@ -286,8 +351,68 @@ const updateOwnProfileCard = async (req, res, next) => {
         const socialLinks = sanitizeSocialLinks(req.body?.social_links || req.body?.socialLinks);
         const cards = sanitizeCards(req.body?.cards);
 
-        await db.exec("BEGIN");
-        try {
+        const description = trimText(req.body?.description, 4000);
+        const bg = req.body?.background || {};
+        const background = {
+            color: /^#[0-9a-f]{6}$/i.test(bg.color || "") ? bg.color : "",
+            image: safeUrl(bg.image, true),
+            x: clampNumber(bg.x, 0, 100, 50),
+            y: clampNumber(bg.y, 0, 100, 50),
+            opacity: clampNumber(bg.opacity, 0, 1, 0.25),
+        };
+        const result = await withProfileWrite(async (db) => {
+            const current = await db.get("SELECT profile_version FROM users WHERE id = ?", [
+                userId,
+            ]);
+            if (
+                !current ||
+                !Number.isInteger(req.body.version) ||
+                req.body.version !== current.profile_version
+            ) {
+                const error = new Error("Profile changed. Reload before saving.");
+                error.status = 409;
+                throw error;
+            }
+            const works = await listProfileWorks(db, userId);
+            for (const card of cards) {
+                if (
+                    card.source_type &&
+                    !works.some(
+                        (work) => work.type === card.source_type && work.id === card.source_id
+                    )
+                ) {
+                    const existing = await db.get(
+                        "SELECT id FROM user_profile_cards WHERE user_id = ? AND source_type = ? AND source_id = ?",
+                        [userId, card.source_type, card.source_id]
+                    );
+                    if (!existing) {
+                        const error = new Error("Work is not publicly available for this profile");
+                        error.status = 400;
+                        throw error;
+                    }
+                }
+            }
+            if (req.body.nickname !== undefined) {
+                const nickname = trimText(req.body.nickname, 40);
+                if (!nickname || !/^[\p{L}\p{N}_ .·-]+$/u.test(nickname)) {
+                    const error = new Error("Invalid display name");
+                    error.status = 400;
+                    throw error;
+                }
+                await db.run("UPDATE users SET nickname = ? WHERE id = ?", [nickname, userId]);
+                await db.run(
+                    "UPDATE profiles SET display_name = ? WHERE type = 'person' AND owner_user_id = ?",
+                    [nickname, userId]
+                );
+            }
+            await db.run(
+                "UPDATE profiles SET description = ? WHERE type = 'person' AND owner_user_id = ?",
+                [description, userId]
+            );
+            await db.run(
+                "UPDATE users SET profile_description = ?, profile_background = ?, profile_version = profile_version + 1 WHERE id = ?",
+                [description, JSON.stringify(background), userId]
+            );
             await db.run("UPDATE users SET profile_slogan = ?, profile_status = ? WHERE id = ?", [
                 slogan,
                 status,
@@ -315,13 +440,15 @@ const updateOwnProfileCard = async (req, res, next) => {
             for (const card of cards) {
                 await db.run(
                     `INSERT INTO user_profile_cards (
-            user_id, title, body, note, card_type, custom_type, cover_url, description, link_url,
+            user_id, source_type, source_id, title, body, note, card_type, custom_type, cover_url, description, link_url,
             crop_x, crop_y, crop_width, crop_height, aspect_ratio,
             tags_json, images_json, links_json,
             sort_order, is_visible, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
                     [
                         userId,
+                        card.source_type,
+                        card.source_id,
                         card.title,
                         card.body,
                         card.note,
@@ -343,15 +470,15 @@ const updateOwnProfileCard = async (req, res, next) => {
                     ]
                 );
             }
-            await db.exec("COMMIT");
-        } catch (error) {
-            await db.exec("ROLLBACK");
-            throw error;
-        }
-
-        const profileCard = await loadProfileCard(db, userId, true);
-        res.json(profileCard);
+            return loadProfileCard(db, userId, true);
+        });
+        res.json(result);
     } catch (error) {
+        if (error.status) return res.status(error.status).json({ error: error.message });
+        if (error.code === "SQLITE_CONSTRAINT")
+            return res
+                .status(409)
+                .json({ error: "Display name is already in use", code: "NAME_TAKEN" });
         next(error);
     }
 };
