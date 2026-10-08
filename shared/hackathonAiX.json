@@ -18,9 +18,9 @@
         "startAt": "2026-10-09T00:00",
         "endAt": "2026-10-25T17:00",
         "timezone": "Asia/Shanghai",
-        "location": "浙江大学紫金港校区",
+        "location": "北2112 · 三墩镇元空间",
         "format": "千问个人赛 · 华为每队最多 3 人",
-        "duration": "学科入门 · 产业进阶 · 双赛道路演",
+        "duration": "千问入门 · 华为进阶 · 双赛道路演",
         "prizeValue": "待公布",
         "prizeUnit": "",
         "registrationOpen": true,
@@ -52,13 +52,13 @@
         {
             "id": "cross_discipline",
             "title": "跨学科创新与真实应用",
-            "description": "千问赛道个人参赛，华为赛道每队最多 3 人。可同时报名两个赛道，每位参赛者须注册账号并独立报名。",
+            "description": "千问入门赛道个人参赛，华为进阶赛道每队最多 3 人。可同时报名两个赛道，每位参赛者须注册账号并独立报名。",
             "enabled": true
         }
     ],
     "form": {
         "title": "赛事报名",
-        "description": "可同时报名千问和华为两个赛道。千问赛道个人参赛，华为赛道每队最多 3 人；每位参赛者须注册账号并独立填写报名信息。",
+        "description": "可同时报名千问和华为两个赛道。千问入门赛道个人参赛，华为进阶赛道每队最多 3 人；每位参赛者须注册账号并独立填写报名信息。",
         "requiredHint": "所有带 * 的字段均为必填",
         "submitLabel": "提交报名",
         "successMessage": "报名已提交，可在右上角查看报名信息。",
@@ -137,18 +137,18 @@
                 "id": "track",
                 "label": "意向赛道",
                 "type": "multi_select",
-                "placeholder": "可同时选择两个赛道；千问赛道个人参赛，华为赛道每队最多 3 人",
+                "placeholder": "可同时选择两个赛道；千问入门赛道个人参赛，华为进阶赛道每队最多 3 人",
                 "required": true,
                 "enabled": true,
                 "width": "full",
                 "options": [
                     {
                         "value": "campus",
-                        "label": "千问赛道"
+                        "label": "千问入门赛道"
                     },
                     {
                         "value": "industry",
-                        "label": "华为赛道"
+                        "label": "华为进阶赛道"
                     }
                 ]
             },

@@ -1,4 +1,17 @@
-import { ArrowRight, ArrowUpRight, CalendarDays, MapPin, Plus } from "lucide-react";
+import {
+    ArrowDown,
+    ArrowRight,
+    ArrowUpRight,
+    CalendarDays,
+    Clock3,
+    FileText,
+    Gift,
+    Infinity as InfinityIcon,
+    MapPin,
+    Plus,
+    UserRound,
+    UsersRound,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { getEventUrl } from "../../utils/hackathonRoute";
@@ -22,17 +35,36 @@ export default function AiXOverview({
             <section className="aix-hero aix-wrap">
                 <div className="aix-hero-copy">
                     <div className="aix-eyebrow">
-                        <span>{t("aix.editionLabel")}</span>
+                        <span>[ 2026 · {t("aix.brand")} ]</span>
                         <span className="aix-state">{t(`aix.state.${state}`)}</span>
                     </div>
-                    <p className="aix-hero-kicker">{t("aix.forumKicker")}</p>
                     <h1>
-                        <span className="aix-display">
-                            AI<span className="aix-plus">+</span>X
+                        <span className="aix-brand-title">{t("aix.brand")}</span>
+                        <span className="aix-title-line">
+                            <span className="aix-display">AI+X</span>
+                            <span className="aix-title">{t("aix.heroTitle")}</span>
                         </span>
-                        <span className="aix-title">{t("aix.heroTitle")}</span>
                     </h1>
-                    <p className="aix-hero-intro">{t("aix.description")}</p>
+                    <p className="aix-hero-motto">{t("aix.motto")}</p>
+                    <p className="aix-hero-intro">{t("aix.landing.heroDescription")}</p>
+                    <dl className="aix-event-facts">
+                        <div>
+                            <dt>{t("aix.landing.eventDates")}</dt>
+                            <dd className="aix-date">2026.10.09—10.25</dd>
+                        </div>
+                        <div>
+                            <dt>{t("common.location")}</dt>
+                            <dd className="aix-event-venues">
+                                {t("aix.landing.venues", { returnObjects: true }).map((venue) => (
+                                    <span key={venue}>{venue}</span>
+                                ))}
+                            </dd>
+                        </div>
+                    </dl>
+                    <p className="aix-onsite">
+                        <CalendarDays size={18} />
+                        {t("aix.landing.onsite")}
+                    </p>
                     <div className="aix-hero-actions">
                         <button
                             className="aix-primary"
@@ -40,103 +72,91 @@ export default function AiXOverview({
                             disabled={registrationDisabled}
                         >
                             {t(registrationLabel)}
-                            <ArrowUpRight size={19} />
+                            <ArrowDown size={22} />
                         </button>
-                        <a
-                            className="aix-agenda-link"
-                            href="#hx-program"
-                            onClick={(event) => {
-                                event.preventDefault();
-                                onAgenda();
-                            }}
-                        >
-                            {t("aix.landing.viewAgenda")}
-                            <ArrowRight size={18} />
-                        </a>
+                        <button className="aix-secondary" onClick={() => switchView("challenges")}>
+                            {t("aix.viewChallenges")}
+                            <ArrowUpRight size={21} />
+                        </button>
                     </div>
-                    <p className="aix-audience">{t("aix.landing.audience")}</p>
                 </div>
-                <div className="aix-hero-visual">
-                    <div className="aix-visual-heading">
-                        <span>{t("aix.motto")}</span>
-                        <Plus size={22} strokeWidth={1.4} />
-                    </div>
-                    <Link
-                        className="aix-hero-photo"
-                        to={getEventUrl("zhekesong-current", "results")}
-                    >
-                        <img
-                            src="/images/hackathon/ai-x/first-edition-building-1280.webp"
-                            srcSet="/images/hackathon/ai-x/first-edition-building-640.webp 640w, /images/hackathon/ai-x/first-edition-building-1280.webp 1280w, /images/hackathon/ai-x/first-edition-building.webp 1920w"
-                            sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1100px) 45vw, 570px"
-                            alt={t("aix.buildingAlt")}
-                            width="1920"
-                            height="1440"
-                            fetchPriority="high"
-                        />
-                        <span className="aix-photo-credit">
-                            {t("aix.previousEdition")} · 2026.05 <ArrowUpRight size={17} />
-                        </span>
-                    </Link>
-                    <div className="aix-event-ticket">
-                        <div>
-                            <span className="aix-ticket-label">{t("aix.landing.eventDates")}</span>
-                            <strong>
-                                10.09 <span>→</span> 10.25
-                            </strong>
-                        </div>
-                        <span className="aix-ticket-year">2026</span>
-                    </div>
+                <div className="aix-pixel-field" aria-hidden="true">
+                    <img
+                        src="/images/hackathon/ai-x/pixel-x.svg"
+                        alt=""
+                        width="640"
+                        height="640"
+                        fetchPriority="high"
+                    />
+                    <span className="aix-pixel-caption">
+                        Agent /<br />
+                        Skill /<br />
+                        {t("aix.landing.application")}
+                        <i />
+                    </span>
                 </div>
             </section>
-            <div className="aix-factbar aix-wrap">
-                <span>
-                    <MapPin size={18} />
-                    {t("aix.location")}
-                </span>
-                <span>
-                    <CalendarDays size={18} />
-                    {t("aix.landing.onsite")}
-                </span>
-                <span>{t("aix.landing.organizer")}</span>
-            </div>
-            <section className="aix-section aix-wrap" aria-labelledby="aix-tracks-title">
-                <div className="aix-section-heading">
-                    <div>
-                        <p className="aix-eyebrow">{t("aix.tracksKicker")}</p>
-                        <h2 id="aix-tracks-title">{t("aix.tracksTitle")}</h2>
-                    </div>
-                    <p>{t("aix.landing.tracksIntro")}</p>
-                </div>
+            <section className="aix-tracks aix-wrap" aria-label={t("aix.tracksKicker")}>
                 <div className="aix-track-pair">
-                    {["campus", "industry"].map((track) => (
+                    {["campus", "industry"].map((track, index) => (
                         <article className={`aix-track-card aix-track-${track}`} key={track}>
-                            <div className="aix-track-brand">
-                                <span>{t(`aix.landing.tracks.${track}.partner`)}</span>
-                                <span>{t(`aix.landing.tracks.${track}.type`)}</span>
+                            <span className="aix-track-index">[ 0{index + 1} ]</span>
+                            <h2>{t(`aix.landing.tracks.${track}.shortTitle`)}</h2>
+                            <p>{t(`aix.landing.tracks.${track}.shortDescription`)}</p>
+                            <div className="aix-track-tags">
+                                <span>
+                                    {track === "campus" ? (
+                                        <UserRound size={17} />
+                                    ) : (
+                                        <UsersRound size={17} />
+                                    )}
+                                    {t(`aix.landing.tracks.${track}.team`)}
+                                </span>
+                                <span>
+                                    <Clock3 size={17} />
+                                    {t(`aix.landing.tracks.${track}.deadline`)}
+                                </span>
                             </div>
-                            <h3>{t(`aix.tracks.${track}.title`)}</h3>
-                            <p>{t(`aix.tracks.${track}.description`)}</p>
-                            <div className="aix-topic-list">
-                                {t(`aix.landing.tracks.${track}.topics`, {
-                                    returnObjects: true,
-                                }).map((topic) => (
-                                    <span key={topic}>{topic}</span>
-                                ))}
+                            <div className="aix-track-support">
+                                <FileText size={17} />
+                                {t(`aix.landing.tracks.${track}.support`)}
                             </div>
-                            <div className="aix-track-bottom">
-                                <span>{t(`aix.landing.tracks.${track}.format`)}</span>
-                                <button
-                                    onClick={() => switchView("challenges")}
-                                    aria-label={`${t("aix.viewChallenges")} · ${t(`aix.tracks.${track}.title`)}`}
-                                >
-                                    <ArrowUpRight size={23} />
-                                </button>
-                            </div>
+                            <button
+                                className="aix-track-arrow"
+                                onClick={() => switchView("challenges")}
+                                aria-label={`${t("aix.viewChallenges")} · ${t(`aix.tracks.${track}.title`)}`}
+                            >
+                                <ArrowRight size={31} strokeWidth={1.2} />
+                            </button>
                         </article>
                     ))}
                 </div>
+                <div className="aix-track-footnote">
+                    <span>
+                        <InfinityIcon size={23} />
+                        {t("aix.landing.bothTracks")}
+                    </span>
+                    <Link to={getEventUrl("zhekesong-ai-x-2026", "lottery")}>
+                        <Gift size={19} />
+                        {t("lottery.event_entry")}
+                        <ArrowRight size={17} />
+                    </Link>
+                </div>
             </section>
+            <div className="aix-section-nav aix-wrap">
+                <span>{t("aix.landing.audience")}</span>
+                <a
+                    className="aix-agenda-link"
+                    href="#hx-program"
+                    onClick={(event) => {
+                        event.preventDefault();
+                        onAgenda();
+                    }}
+                >
+                    {t("aix.landing.viewAgenda")}
+                    <ArrowDown size={17} />
+                </a>
+            </div>
             <section
                 className="aix-section aix-wrap"
                 id="hx-program"
@@ -197,10 +217,12 @@ export default function AiXOverview({
                             </div>
                             <h3>{t(`aix.forums.${forum}.title`)}</h3>
                             <p>{t(`aix.forums.${forum}.description`)}</p>
-                            <span className="aix-forum-location">
-                                <MapPin size={16} />
-                                {t(`aix.landing.forums.${forum}.location`)}
-                            </span>
+                            {t(`aix.landing.forums.${forum}.location`) && (
+                                <span className="aix-forum-location">
+                                    <MapPin size={16} />
+                                    {t(`aix.landing.forums.${forum}.location`)}
+                                </span>
+                            )}
                             <div className="aix-speakers">
                                 {t(`aix.landing.forums.${forum}.speakers`, {
                                     returnObjects: true,

@@ -12,6 +12,7 @@ import { EVENT_VIEWS, getEventView, getEventUrl } from "../utils/hackathonRoute"
 import "./HackathonShared.css";
 import "./HackathonWorkspace.css";
 import "./hackathon-event/ResultsXTheme.css";
+import "./hackathon-event/AiXTheme.css";
 // Event identity, navigation and signup belong to one shell. Edition bodies own their content.
 export default function HackathonWorkspace({ template, schedule }) {
     const { t } = useTranslation();

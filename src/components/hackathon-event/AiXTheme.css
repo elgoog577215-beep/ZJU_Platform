@@ -1,0 +1,326 @@
+/* Scoped to AI+X: keep the shared platform shell and historical editions intact. */
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"],
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(.hx-page, .aix-registration-page, .hx-results-presentation) {
+    --hx-bg: #080d09;
+    --hx-surface: #101710;
+    --hx-panel: #0d140f;
+    --hx-soft: #0c120e;
+    --hx-text: #f4f5f1;
+    --hx-muted: #adb6ae;
+    --hx-line: #4b584c;
+    --hx-accent: #b7fb50;
+    --hx-accent-text: #b7fb50;
+    --event-width: 1360px;
+    --event-panel: #0d140f;
+    --event-backdrop: none;
+    --event-grid-horizontal: #b7fb5008;
+    --event-grid-vertical: #b7fb5008;
+    color: var(--hx-text);
+    background: var(--hx-bg);
+    color-scheme: dark;
+}
+:root[data-theme="day"] .hx-workspace[data-event="zhekesong-ai-x-2026"],
+:root[data-theme="day"]
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(.hx-page, .aix-registration-page, .hx-results-presentation) {
+    --hx-bg: #f4f6ef;
+    --hx-surface: #e8eedf;
+    --hx-panel: #eef2e6;
+    --hx-soft: #edf1e8;
+    --hx-text: #172016;
+    --hx-muted: #52604d;
+    --hx-line: #919e85;
+    --hx-accent: #b7fb50;
+    --hx-accent-text: #3c6413;
+    --event-panel: #eef2e6;
+    color-scheme: light;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-registration-page {
+    background: var(--hx-bg) !important;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+    width: 100%;
+    padding-inline: max(48px, calc((100% - 1360px) / 2));
+    border-bottom: 1px solid var(--hx-line);
+    background: var(--hx-bg);
+    height: var(--event-nav-height);
+    padding-block: 13px;
+    align-content: center;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-picker-trigger {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding-inline: 0;
+    box-shadow: none;
+    max-width: 280px;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-picker-trigger > span::after {
+    content: "_";
+    color: var(--hx-accent-text);
+    margin-left: 3px;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-picker-menu {
+    background: var(--hx-surface);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .hx-picker-menu
+    [role="option"]:is(:hover, [aria-selected="true"]) {
+    background: var(--hx-bg);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav {
+    gap: 26px;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--hx-muted);
+    padding-inline: 4px;
+    font-size: 15px;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a[aria-current="page"] {
+    color: var(--hx-accent-text);
+    box-shadow: inset 0 -2px var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a:hover {
+    color: var(--hx-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-actions :is(a, button) {
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-actions .hx-outline {
+    border-color: transparent;
+    color: var(--hx-muted);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-actions .hx-primary:not(:disabled) {
+    border-color: var(--hx-muted);
+    background: transparent;
+    color: var(--hx-text);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(.hx-primary, .hx-outline, .hx-text-button) {
+    border-radius: 0;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-primary:not(:disabled) {
+    background: var(--hx-accent);
+    border-color: var(--hx-accent);
+    color: #101507;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-primary:hover:not(:disabled) {
+    background: #d3ff8c;
+    border-color: #d3ff8c;
+    color: #101507;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-outline:hover {
+    background: var(--hx-surface);
+    border-color: var(--hx-accent-text);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(a, button, input, select, textarea):focus-visible {
+    outline-color: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-interior::before {
+    background: none;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-stage {
+    min-height: 620px;
+    padding-top: calc(var(--event-nav-height) + 36px);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-stage .hx-overline {
+    border: 0;
+    padding: 0;
+    background: transparent;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-stage-panel::before {
+    display: none;
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(
+        .hx-stage-line button,
+        .hx-challenge-console,
+        .hx-challenge-track-switch button,
+        .hx-event-stage-panel
+    ) {
+    border-radius: 0;
+    box-shadow: none;
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .hx-challenge-track-switch
+    button[aria-pressed="true"] {
+    color: #101507;
+    background: var(--hx-accent);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-challenge-step-number {
+    color: var(--hx-accent-text);
+    opacity: 0.18;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] #registration-form {
+    background: var(--hx-bg);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-panel {
+    background: var(--hx-panel);
+    border-color: var(--hx-line);
+    box-shadow: none;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-muted {
+    color: var(--hx-muted);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-accent {
+    color: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-line {
+    border-color: var(--hx-line);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] :is(.aix-form-field, .aix-form-chip) {
+    background: var(--hx-surface);
+    color: var(--hx-text);
+    border-color: var(--hx-line);
+    border-radius: 0;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-field::placeholder {
+    color: var(--hx-muted);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-field:focus {
+    border-color: var(--hx-accent-text);
+    outline: 2px solid var(--hx-accent-text);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-primary {
+    color: #101507;
+    background: var(--hx-accent);
+    box-shadow: none;
+    border-radius: 0;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-form-secondary {
+    color: var(--hx-text);
+    border-color: var(--hx-line);
+    background: var(--hx-surface);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .legacy-media-surface
+    > section
+    > .pointer-events-none {
+    display: none;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .legacy-media-toolbar {
+    background: var(--hx-bg);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .legacy-media-surface
+    :is(button, .rounded-2xl) {
+    border-radius: 0;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .legacy-media-toolbar button {
+    color: var(--hx-text);
+    border-color: var(--hx-line);
+    background: var(--hx-surface);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .legacy-media-surface
+    :is(.text-gray-400, .text-gray-500, .text-slate-500) {
+    color: var(--hx-muted);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .lottery-event {
+    --lottery-accent: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .lottery-event :is(button, a, input) {
+    border-radius: 0;
+}
+:root[data-theme="day"] .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-pixel-field img {
+    filter: brightness(0.53) saturate(0.85);
+}
+@media (max-width: 1100px) {
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+        padding-inline: 28px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav {
+        gap: 26px;
+    }
+}
+@media (max-width: 767px) {
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+        padding-inline: 18px;
+        padding-block: 8px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-picker-trigger {
+        font-size: 14px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav {
+        gap: 8px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a {
+        font-size: 13px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-actions .hx-outline {
+        padding-inline: 4px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-stage {
+        min-height: 0;
+        padding-top: calc(var(--event-nav-height) + 28px);
+    }
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] #registration-form [aria-pressed="true"] {
+    color: #101507;
+    background: var(--hx-accent);
+    border-color: var(--hx-accent);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    #registration-form
+    [aria-pressed="false"]:hover {
+    color: var(--hx-accent-text);
+    border-color: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] #registration-form [aria-invalid="true"] {
+    border-color: #e66070;
+}
+@media (max-width: 767px) {
+    :lang(en) .aix-brand-title {
+        font-size: clamp(39px, 11.2vw, 72px);
+    }
+    :lang(en) .aix-hero h1 {
+        text-wrap: wrap;
+    }
+    :lang(en) .aix-hero-actions .aix-secondary {
+        font-size: 14px !important;
+        gap: 8px;
+    }
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(.hx-recap-copy h1 > .is-accent, .hx-recap-await > span, .hx-recap-eyebrow > span) {
+    color: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-recap-await {
+    background: var(--hx-panel);
+    border-color: var(--hx-accent-text);
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .legacy-media-toolbar [aria-pressed="true"] {
+    color: #101507;
+    background: var(--hx-accent);
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    .legacy-media-toolbar
+    [aria-pressed="true"]
+    > .absolute {
+    display: none;
+}

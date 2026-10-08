@@ -417,40 +417,55 @@ const HackathonRegistration = ({
         };
     }, [isEnglish, resolvedTemplate.event, t]);
 
-    const palette = isDayMode
+    const palette = isAiX
         ? {
-              page: "bg-[#f6f8fb] text-slate-950",
-              panel: "border-slate-200/80 bg-white/86 shadow-[0_24px_70px_rgba(15,23,42,0.10)]",
-              panelStrong: "border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.13)]",
-              textSoft: "text-slate-600",
-              textMuted: "text-slate-500",
-              line: "border-slate-200",
-              chip: "border-slate-200 bg-slate-50 text-slate-700",
-              field: "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-cyan-100",
-              primary:
-                  "bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:from-cyan-600 hover:to-teal-600",
-              secondary:
-                  "border-slate-300 bg-white/80 text-slate-800 hover:border-cyan-400 hover:bg-white",
-              accent: "text-cyan-700",
-              accentLight: "text-cyan-600",
+              page: "aix-form-page",
+              panel: "aix-form-panel",
+              panelStrong: "aix-form-panel",
+              textSoft: "aix-form-muted",
+              textMuted: "aix-form-muted",
+              line: "aix-form-line",
+              chip: "aix-form-chip",
+              field: "aix-form-field",
+              primary: "aix-form-primary",
+              secondary: "aix-form-secondary",
+              accent: "aix-form-accent",
+              accentLight: "aix-form-accent",
           }
-        : {
-              page: "bg-[linear-gradient(135deg,#061011_0%,#091615_52%,#050909_100%)] text-white",
-              panel: "border-white/[0.14] bg-[#121c1d]/90 shadow-[0_24px_70px_rgba(0,0,0,0.3)]",
-              panelStrong:
-                  "border-cyan-200/30 bg-[#0b1718]/[0.92] shadow-[0_28px_90px_rgba(0,0,0,0.36)]",
-              textSoft: "text-white/[0.78]",
-              textMuted: "text-white/[0.60]",
-              line: "border-white/[0.14]",
-              chip: "border-white/[0.14] bg-white/[0.07] text-white/[0.82]",
-              field: "border-white/[0.18] bg-[#101e20] text-white placeholder:text-white/[0.54] focus:border-cyan-300/70 focus:ring-cyan-300/12",
-              primary:
-                  "bg-cyan-300 text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
-              secondary:
-                  "border-white/[0.18] bg-white/[0.06] text-white hover:border-cyan-300/50 hover:bg-cyan-300/10",
-              accent: "text-cyan-300",
-              accentLight: "text-cyan-200",
-          };
+        : isDayMode
+          ? {
+                page: "bg-[#f6f8fb] text-slate-950",
+                panel: "border-slate-200/80 bg-white/86 shadow-[0_24px_70px_rgba(15,23,42,0.10)]",
+                panelStrong: "border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.13)]",
+                textSoft: "text-slate-600",
+                textMuted: "text-slate-500",
+                line: "border-slate-200",
+                chip: "border-slate-200 bg-slate-50 text-slate-700",
+                field: "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-cyan-100",
+                primary:
+                    "bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:from-cyan-600 hover:to-teal-600",
+                secondary:
+                    "border-slate-300 bg-white/80 text-slate-800 hover:border-cyan-400 hover:bg-white",
+                accent: "text-cyan-700",
+                accentLight: "text-cyan-600",
+            }
+          : {
+                page: "bg-[linear-gradient(135deg,#061011_0%,#091615_52%,#050909_100%)] text-white",
+                panel: "border-white/[0.14] bg-[#121c1d]/90 shadow-[0_24px_70px_rgba(0,0,0,0.3)]",
+                panelStrong:
+                    "border-cyan-200/30 bg-[#0b1718]/[0.92] shadow-[0_28px_90px_rgba(0,0,0,0.36)]",
+                textSoft: "text-white/[0.78]",
+                textMuted: "text-white/[0.60]",
+                line: "border-white/[0.14]",
+                chip: "border-white/[0.14] bg-white/[0.07] text-white/[0.82]",
+                field: "border-white/[0.18] bg-[#101e20] text-white placeholder:text-white/[0.54] focus:border-cyan-300/70 focus:ring-cyan-300/12",
+                primary:
+                    "bg-cyan-300 text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
+                secondary:
+                    "border-white/[0.18] bg-white/[0.06] text-white hover:border-cyan-300/50 hover:bg-cyan-300/10",
+                accent: "text-cyan-300",
+                accentLight: "text-cyan-200",
+            };
 
     const heroMotion = shouldAnimate
         ? {

@@ -5177,19 +5177,19 @@
         "motto": "破界 · 共创 · 涌现",
         "description": "从你的专业出发，发现一个真实问题，用 AI 把它做成可以演示、实际使用的作品。",
         "date": "2026.10.09 - 10.25",
-        "location": "浙江大学紫金港校区",
+        "location": "北2112 · 三墩镇元空间",
         "team": "千问个人赛 · 华为最多 3 人",
         "tracksKicker": "两条赛道",
         "tracksTitle": "你的专业，就是创新的起点。",
         "viewChallenges": "查看赛题",
         "tracks": {
             "campus": {
-                "title": "学科入门赛道",
+                "title": "千问入门赛道",
                 "description": "从学习、科研与校园工作中提出问题，将专业知识转化为可使用的 AI 应用。",
                 "topics": "法学 · 海洋 · 医学 · 教育 · 宣传"
             },
             "industry": {
-                "title": "产业进阶赛道",
+                "title": "华为进阶赛道",
                 "description": "围绕华为提供的营销与办公命题，开发 Agent 或 Skill，验证真实业务效果。",
                 "topics": "文案 · 营销 · 办公"
             }
@@ -5225,12 +5225,12 @@
             "semifinal": {
                 "date": "10.19—22",
                 "title": "线上复赛",
-                "description": "产业进阶赛道线上开发与完善，10 月 22 日 24:00 截止提交。"
+                "description": "华为进阶赛道线上开发与完善，10 月 22 日 24:00 截止提交。"
             },
             "shortlist": {
                 "date": "10.23",
                 "title": "公布决赛名单",
-                "description": "公布产业进阶赛道决赛名单与安排。"
+                "description": "公布华为进阶赛道决赛名单与安排。"
             },
             "final": {
                 "date": "10.25",
@@ -5238,12 +5238,12 @@
                 "description": "9:00 开场，9:30–11:30 创业论坛；13:30–15:30 双赛道分场路演，16:00–16:30 颁奖，16:30 闭幕。"
             }
         },
-        "challengeKicker": "学科入门 · 产业进阶",
+        "challengeKicker": "千问入门 · 华为进阶",
         "challengeDescription": "从专业场景出发，或挑战企业真实任务。两条赛道独立安排，正式赛题与提交入口在此发布。",
         "stagesLabel": "比赛阶段",
         "deadline": "材料截止",
         "challengePending": "赛题待发布",
-        "releaseTime": "学科入门赛道 10 月 10 日启动；产业进阶赛道 10 月 18 日开幕发布任务。",
+        "releaseTime": "千问入门赛道 10 月 10 日启动；华为进阶赛道 10 月 18 日开幕发布任务。",
         "nextStageNotice": "本阶段要求与提交入口将在正式通知后开放。",
         "submissionPending": "提交入口待开放",
         "submissionClosed": "本阶段提交已结束",
@@ -5261,13 +5261,13 @@
             "semifinal": {
                 "title": "复赛",
                 "date": "10.19—10.22",
-                "description": "产业进阶赛道入围团队在线继续开发、测试和完善项目。",
-                "materials": "产业进阶赛道提交项目说明、使用手册与演示材料，并按任务要求提交源码；10 月 22 日 24:00 截止。"
+                "description": "华为进阶赛道入围团队在线继续开发、测试和完善项目。",
+                "materials": "华为进阶赛道提交项目说明、使用手册与演示材料，并按任务要求提交源码；10 月 22 日 24:00 截止。"
             },
             "final": {
                 "title": "决赛",
                 "date": "10.25",
-                "description": "学科入门与产业进阶两条赛道分场路演、分别评审，统一颁奖。",
+                "description": "千问入门与华为进阶两条赛道分场路演、分别评审，统一颁奖。",
                 "materials": "准备路演 PPT、项目海报和演示 Demo；具体路演顺序及规则将在决赛通知中公布。"
             }
         },
@@ -5344,8 +5344,8 @@
             "senior": "大四",
             "master": "硕士",
             "phd": "博士",
-            "campus": "千问赛道 · 个人赛",
-            "industry": "华为赛道 · 最多 3 人",
+            "campus": "千问入门赛道 · 个人赛",
+            "industry": "华为进阶赛道 · 最多 3 人",
             "Codex": "Codex",
             "Claude": "Claude / Claude Code",
             "Cursor": "Cursor",
@@ -5416,7 +5416,7 @@
         "crossDiscipline": "跨学科创新与真实应用",
         "resultsTitle": "成果",
         "resultsIntro": "获奖名单、项目成果、讲话总结与论坛分享，在这里集中查看。",
-        "industryStages": "产业进阶赛道 · 比赛阶段",
+        "industryStages": "华为进阶赛道 · 比赛阶段",
         "campusSchedule": "千问支持。10 月 10 日启动，10 月 16 日晚截止提交，10 月 17 日晚公布入围名单；10 月 25 日决赛路演。",
         "fieldHints": {
             "name": "",
@@ -5443,13 +5443,23 @@
                     "partner": "千问",
                     "type": "自主命题",
                     "topics": ["法学", "海洋", "医学", "教育", "宣传"],
-                    "format": "线上开发 · 线下路演"
+                    "format": "线上开发 · 线下路演",
+                    "shortTitle": "千问入门赛道",
+                    "shortDescription": "自选学科问题，提前开发。",
+                    "team": "个人参赛",
+                    "deadline": "10.16 晚提交",
+                    "support": "千问支持"
                 },
                 "industry": {
                     "partner": "华为中国区",
                     "type": "企业命题",
                     "topics": ["内容创作", "营销", "办公 Agent"],
-                    "format": "现场开发 4 小时 · 线上进阶"
+                    "format": "现场开发 4 小时 · 线上进阶",
+                    "shortTitle": "华为进阶赛道",
+                    "shortDescription": "现场揭题，4 小时开发。",
+                    "team": "最多 3 人",
+                    "deadline": "10.18 现场发布",
+                    "support": "华为中国区支持"
                 }
             },
             "agendaTitle": "把想法，一步步做出来。",
@@ -5457,13 +5467,13 @@
             "agenda": [
                 {
                     "date": "10.09 / 10.10",
-                    "title": "赛事发布 · 学科赛道启动",
-                    "description": "9 日发布报名信息；10 日启动学科入门赛道，开放报名与作品开发。"
+                    "title": "赛事发布 · 千问入门赛道启动",
+                    "description": "9 日发布报名信息；10 日启动千问入门赛道，开放报名与作品开发。"
                 },
                 {
                     "date": "10.16 / 10.17",
                     "title": "提交作品 · 公布路演名单",
-                    "description": "16 日晚间截止提交学科入门作品；17 日公布评审结果及约 15 个路演项目。"
+                    "description": "16 日晚间截止提交千问入门作品；17 日公布评审结果及约 15 个路演项目。"
                 },
                 {
                     "date": "10.18",
@@ -5473,7 +5483,7 @@
                 {
                     "date": "10.19 - 10.23",
                     "title": "线上复赛 · 持续打磨",
-                    "description": "22 日 24:00 前提交复赛作品，23 日公布产业进阶赛道决赛名单。"
+                    "description": "22 日 24:00 前提交复赛作品，23 日公布华为进阶赛道决赛名单。"
                 },
                 {
                     "date": "10.25",
@@ -5491,7 +5501,7 @@
                         },
                         {
                             "time": "09:30 - 11:30",
-                            "text": "产业进阶现场开发"
+                            "text": "华为进阶现场开发"
                         },
                         {
                             "time": "13:30 - 15:30",
@@ -5545,7 +5555,7 @@
             "forums": {
                 "technology": {
                     "time": "16:00 - 17:30",
-                    "location": "紫金港校区 · 北教",
+                    "location": "",
                     "speakers": [
                         {
                             "name": "叶新江",
@@ -5569,7 +5579,7 @@
                 },
                 "entrepreneurship": {
                     "time": "09:30 - 11:30",
-                    "location": "紫金港校区 · 管理学院",
+                    "location": "",
                     "speakers": [
                         {
                             "name": "张洁",
@@ -5629,7 +5639,11 @@
             ],
             "closing": "带上你的专业，来做点新东西。",
             "lightMode": "切换浅色模式",
-            "darkMode": "切换深色模式"
+            "darkMode": "切换深色模式",
+            "heroDescription": "用 AI 解决学习、科研、校园与产业中的真实问题。",
+            "application": "应用",
+            "bothTracks": "支持同时报名两条赛道",
+            "venues": ["北2112", "三墩镇元空间"]
         }
     },
     "eventWorkspace": {

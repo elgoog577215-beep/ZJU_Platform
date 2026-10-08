@@ -5068,19 +5068,19 @@
         "motto": "Break boundaries · Build together · Create",
         "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
         "date": "2026.10.09 - 10.25",
-        "location": "Zijingang Campus, Zhejiang University",
+        "location": "North 2112 · Sandun Yuan Space",
         "team": "Qwen: individual · Huawei: up to 3 people",
         "tracksKicker": "Two tracks",
         "tracksTitle": "Your discipline is a starting point.",
         "viewChallenges": "View challenges",
         "tracks": {
             "campus": {
-                "title": "Discipline starter track",
+                "title": "Qwen Beginner Track",
                 "description": "Turn a question from learning, research or campus life into a working AI application.",
                 "topics": "Law · Ocean science · Medicine · Education · Communications"
             },
             "industry": {
-                "title": "Industry advanced track",
+                "title": "Huawei Advanced Track",
                 "description": "Build an agent or skill for Huawei’s marketing and office challenges, then test it against real business needs.",
                 "topics": "Content · Marketing · Office workflows"
             }
@@ -5129,7 +5129,7 @@
                 "description": "Opening at 9:00; entrepreneurship forum at 9:30–11:30; parallel track pitches at 13:30–15:30, awards at 16:00–16:30, closing at 16:30."
             }
         },
-        "challengeKicker": "Disciplinary Starter · Industry Advanced",
+        "challengeKicker": "Qwen Beginner · Huawei Advanced",
         "challengeDescription": "Start with a problem in your discipline or tackle a real business brief. Each track has its own schedule; published briefs and submission links appear here.",
         "stagesLabel": "Competition stages",
         "deadline": "Submission deadline",
@@ -5235,8 +5235,8 @@
             "senior": "Year 4",
             "master": "Master’s",
             "phd": "PhD",
-            "campus": "Qwen · Individual",
-            "industry": "Huawei · Up to 3 people",
+            "campus": "Qwen Beginner Track · Individual",
+            "industry": "Huawei Advanced Track · Up to 3 people",
             "Codex": "Codex",
             "Claude": "Claude / Claude Code",
             "Cursor": "Cursor",
@@ -5307,7 +5307,7 @@
         "crossDiscipline": "Interdisciplinary innovation and real applications",
         "resultsTitle": "Results",
         "resultsIntro": "Award winners, projects, speeches and forum highlights in one place.",
-        "industryStages": "Industry Advanced Track · Stages",
+        "industryStages": "Huawei Advanced Track · Stages",
         "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 25.",
         "fieldHints": {
             "name": "",
@@ -5334,13 +5334,23 @@
                     "partner": "Qwen",
                     "type": "Your own challenge",
                     "topics": ["Law", "Ocean science", "Medicine", "Education", "Communications"],
-                    "format": "Build online · Present on campus"
+                    "format": "Build online · Present on campus",
+                    "shortTitle": "Qwen beginner track",
+                    "shortDescription": "Your discipline. Your problem. Build ahead.",
+                    "team": "Individual",
+                    "deadline": "Submit Oct 16 evening",
+                    "support": "Supported by Qwen"
                 },
                 "industry": {
                     "partner": "Huawei China",
                     "type": "Industry challenge",
                     "topics": ["Content creation", "Marketing", "Office agents"],
-                    "format": "4-hour onsite build · Online iteration"
+                    "format": "4-hour onsite build · Online iteration",
+                    "shortTitle": "Huawei advanced track",
+                    "shortDescription": "Live challenge. Four hours to build.",
+                    "team": "Up to 3 people",
+                    "deadline": "Revealed Oct 18",
+                    "support": "Supported by Huawei China"
                 }
             },
             "agendaTitle": "From an idea to a working project.",
@@ -5436,7 +5446,7 @@
             "forums": {
                 "technology": {
                     "time": "16:00 - 17:30",
-                    "location": "Zijingang · North Teaching Area",
+                    "location": "",
                     "speakers": [
                         {
                             "name": "Ye Xinjiang",
@@ -5460,7 +5470,7 @@
                 },
                 "entrepreneurship": {
                     "time": "09:30 - 11:30",
-                    "location": "Zijingang · School of Management",
+                    "location": "",
                     "speakers": [
                         {
                             "name": "Zhang Jie",
@@ -5520,7 +5530,11 @@
             ],
             "closing": "Bring your discipline. Build something new.",
             "lightMode": "Switch to light mode",
-            "darkMode": "Switch to dark mode"
+            "darkMode": "Switch to dark mode",
+            "heroDescription": "Build with AI. Solve real problems in research, on campus and in industry.",
+            "application": "Apps",
+            "bothTracks": "You can enter both tracks",
+            "venues": ["North 2112", "Sandun Yuan Space"]
         }
     },
     "eventWorkspace": {
