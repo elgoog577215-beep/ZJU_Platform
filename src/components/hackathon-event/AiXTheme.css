@@ -324,3 +324,7 @@
     > .absolute {
     display: none;
 }
+/* Results formerly supplied their own fixed dark navigation backdrop. */
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar::before {
+    display: none;
+}
