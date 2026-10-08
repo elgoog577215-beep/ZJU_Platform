@@ -179,6 +179,7 @@ const HackathonRegistration = ({
     registrationRef,
     registrationState,
     programContent,
+    introductionContent,
 }) => {
     const { i18n, t } = useTranslation();
     const location = useLocation();
@@ -855,7 +856,7 @@ const HackathonRegistration = ({
             data-registration-page
             // Switches off scroll snapping for AI+X (/hackathon/2) only; remove to restore.
             data-scroll-snap={isAiX ? "off" : undefined}
-            className={`hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
+            className={`${introductionContent ? "aix-registration-page" : ""} hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
         >
             <SEO
                 title={t("hackathon.meta_title", { title: event.title })}
@@ -865,551 +866,564 @@ const HackathonRegistration = ({
                 })}
             />
 
-            {/* Scroll Progress Bar */}
-            <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5">
-                <div
-                    className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-150"
-                    style={{ width: `${scrollProgress}%` }}
-                />
-            </div>
-
-            {/* Desktop Navigation Dots */}
-            <div className="fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4">
-                {sectionAnchors.map((item) => (
-                    <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => smoothScrollTo(item.id)}
-                        className={`group relative flex items-center gap-3 transition-all duration-300 ${
-                            activeSection === item.index ? "pointer-events-none" : ""
-                        }`}
-                        aria-label={t("hackathon.nav.jump_to", { label: item.label })}
-                    >
-                        <span
-                            className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
-                                isDayMode ? "text-slate-600" : "text-white/60"
-                            } ${activeSection === item.index ? "opacity-100" : ""}`}
-                        >
-                            {item.label}
-                        </span>
-                        <div className="relative overflow-hidden rounded-full">
-                            <div
-                                className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
-                                    activeSection === item.index
-                                        ? isDayMode
-                                            ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
-                                            : "border-cyan-400 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
-                                        : isDayMode
-                                          ? "border-slate-200 bg-white/80 text-slate-400 hover:border-cyan-400 hover:text-cyan-500"
-                                          : "border-white/10 bg-white/5 text-white/30 hover:border-cyan-400 hover:text-cyan-300"
-                                }`}
-                            >
-                                {activeSection === item.index ? (
-                                    <span className="h-2.5 w-2.5 rounded-full bg-current" />
-                                ) : (
-                                    <span className="text-[10px]">
-                                        {String(item.index + 1).padStart(2, "0")}
-                                    </span>
-                                )}
-                            </div>
-                            {activeSection === item.index && (
-                                <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
-                            )}
-                        </div>
-                    </button>
-                ))}
-            </div>
-
-            {/* Tablet in-page anchor bar. Phones use the global bottom tab bar. */}
-            <div
-                className={`hackathon-section-nav sticky top-[calc(env(safe-area-inset-top)+128px)] z-30 mx-auto mt-4 hidden w-[calc(100%_-_2rem)] max-w-[520px] items-center justify-center gap-2 border px-2 py-2 backdrop-blur-xl md:flex lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}
-            >
-                {sectionAnchors.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <button
-                            key={item.id}
-                            type="button"
-                            aria-label={t("hackathon.nav.jump_to", { label: item.label })}
-                            onClick={() => smoothScrollTo(item.id)}
-                            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-xs font-bold transition-all duration-300 ${
-                                activeSection === item.index
-                                    ? isDayMode
-                                        ? "bg-cyan-100 text-cyan-700"
-                                        : "bg-cyan-500/20 text-cyan-300"
-                                    : isDayMode
-                                      ? "text-slate-500 hover:text-slate-700"
-                                      : "text-white/40 hover:text-white/60"
-                            }`}
-                        >
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                        </button>
-                    );
-                })}
-            </div>
-
-            <section
-                id="hackathon-hero"
-                className="relative min-h-[100svh] min-w-0 max-w-full snap-start snap-always overflow-x-clip px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
-            >
-                <div className="relative mx-auto grid min-h-[calc(100svh-132px)] min-w-0 w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(0,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(0,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(0,860px)] min-[1920px]:gap-28">
-                    <MotionDiv
-                        {...(shouldAnimate
-                            ? {
-                                  initial: { opacity: 0, scale: 0.96, y: 24 },
-                                  animate: { opacity: 1, scale: 1, y: 0 },
-                                  transition: {
-                                      duration: 0.72,
-                                      delay: 0.12,
-                                      ease: [0.22, 1, 0.36, 1],
-                                  },
-                              }
-                            : {})}
-                        className={`relative order-2 w-full justify-self-start overflow-hidden border p-4 backdrop-blur-2xl sm:p-6 xl:justify-self-end xl:p-5 min-[1536px]:p-7 min-[1720px]:p-9 min-[1920px]:p-10 ${palette.panelStrong}`}
-                    >
-                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(103,232,249,0.14),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
-                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+            {introductionContent ? (
+                introductionContent({ scrollToForm, scrollToSection: smoothScrollTo })
+            ) : (
+                <>
+                    {/* Scroll Progress Bar */}
+                    <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5">
                         <div
-                            className={`absolute right-6 top-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${palette.accent} min-[1720px]:right-8 min-[1720px]:top-8`}
-                        >
-                            <span
-                                className={`h-2 w-2 rounded-full ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`}
-                            />
-                            {t("hackathon.board.live_brief", "Live Brief")}
-                        </div>
+                            className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-150"
+                            style={{ width: `${scrollProgress}%` }}
+                        />
+                    </div>
 
-                        <div className="relative mt-9 grid gap-5 xl:gap-4 min-[1536px]:gap-6 min-[1720px]:gap-7">
-                            <div>
-                                <p
-                                    className={`text-xs font-semibold uppercase tracking-[0.24em] ${palette.textMuted}`}
-                                >
-                                    {t("hackathon.event.prize_pool", "奖金池")}
-                                </p>
-                                <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
-                                    <span
-                                        className={`text-6xl font-black leading-none tracking-tight ${palette.accent} min-[390px]:text-7xl sm:text-8xl xl:text-[5.1rem] min-[1536px]:text-[6rem] min-[1720px]:text-9xl`}
-                                    >
-                                        {event.prizeValue}
-                                    </span>
-                                    <span
-                                        className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-5 xl:text-5xl min-[1720px]:pb-6 min-[1720px]:text-6xl`}
-                                    >
-                                        {event.prizeUnit}
-                                    </span>
-                                    <span
-                                        className={`pb-3 text-2xl font-black tracking-[0.12em] ${palette.accent} sm:text-3xl xl:pb-3 xl:text-3xl min-[1720px]:pb-4 min-[1720px]:text-4xl`}
-                                    >
-                                        {t("hackathon.event.prize_pool", "奖金池")}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`grid gap-px overflow-hidden border-y ${isDayMode ? "bg-cyan-100/40" : "bg-cyan-300/18"} ${palette.line} min-[520px]:grid-cols-2`}
-                            >
-                                {eventMeta.map((item) => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <div
-                                            key={item.label}
-                                            className={`${isDayMode ? "bg-white/92 hover:bg-cyan-50" : "bg-[#071011]/92 hover:bg-cyan-300/10"} group min-h-[92px] p-4 transition duration-200 sm:min-h-[108px] sm:p-5 xl:min-h-[96px] xl:p-4 min-[1536px]:min-h-[112px] min-[1536px]:p-5 min-[1720px]:min-h-[126px] min-[1720px]:p-6`}
-                                        >
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div>
-                                                    <p
-                                                        className={`font-mono text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}
-                                                    >
-                                                        {item.index} / {item.label}
-                                                    </p>
-                                                    <p className="mt-3 text-xl font-black tracking-tight xl:text-lg min-[1720px]:text-2xl">
-                                                        {item.value}
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    className={`flex h-12 w-12 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-600" : "border-cyan-300/40 bg-cyan-300/10 text-cyan-300"} xl:h-11 xl:w-11 min-[1720px]:h-14 min-[1720px]:w-14`}
-                                                >
-                                                    <Icon className="h-6 w-6 xl:h-5 xl:w-5 min-[1720px]:h-7 min-[1720px]:w-7" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div
-                                className="grid gap-2 text-center min-[1720px]:gap-3"
-                                style={{
-                                    gridTemplateColumns: `repeat(${Math.min(challenges.length, 3) || 1}, minmax(0, 1fr))`,
-                                }}
-                            >
-                                {challenges.slice(0, 3).map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className={`border px-2 py-2.5 text-xs font-semibold sm:py-3 min-[1536px]:py-3.5 min-[1720px]:py-4 min-[1720px]:text-sm ${palette.chip}`}
-                                    >
-                                        {item.title}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </MotionDiv>
-
-                    <MotionDiv
-                        {...heroMotion}
-                        className="order-1 min-w-0 max-w-[920px] lg:ml-0 xl:max-w-[980px]"
-                    >
-                        <div
-                            className={`mb-6 inline-flex items-center gap-2 border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.22em] ${palette.chip}`}
-                        >
-                            <Sparkles
-                                className={`h-3.5 w-3.5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`}
-                            />
-                            {event.brand}
-                        </div>
-
-                        <h1 className="max-w-[980px] text-[3.2rem] font-black leading-[0.96] tracking-normal min-[390px]:text-6xl sm:text-7xl lg:text-[5.5rem] xl:text-[5.4rem] min-[1536px]:text-[6.4rem] min-[1720px]:text-[7rem] 2xl:text-[8rem]">
-                            {titleLines.map((line) => (
-                                <span key={line} className="block">
-                                    {line}
-                                </span>
-                            ))}
-                        </h1>
-
-                        <MotionDiv
-                            {...(shouldAnimate
-                                ? {
-                                      initial: "hidden",
-                                      animate: "show",
-                                      variants: {
-                                          hidden: {},
-                                          show: {
-                                              transition: {
-                                                  staggerChildren: 0.08,
-                                                  delayChildren: 0.22,
-                                              },
-                                          },
-                                      },
-                                  }
-                                : {})}
-                            style={heroStats.length ? undefined : { display: "none" }}
-                            role="group"
-                            aria-label={event.subtitle}
-                            className="mt-6 grid max-w-[860px] grid-cols-3 gap-2 sm:mt-7 sm:gap-3 min-[1720px]:gap-4"
-                        >
-                            {heroStats.map((stat) => (
-                                <motion.div
-                                    key={stat.code}
-                                    {...(shouldAnimate
-                                        ? {
-                                              variants: {
-                                                  hidden: { opacity: 0, y: 18, scale: 0.94 },
-                                                  show: {
-                                                      opacity: 1,
-                                                      y: 0,
-                                                      scale: 1,
-                                                      transition: {
-                                                          duration: 0.5,
-                                                          ease: [0.22, 1, 0.36, 1],
-                                                      },
-                                                  },
-                                              },
-                                          }
-                                        : {})}
-                                    className={`group relative transform-gpu overflow-hidden border px-2.5 py-3 text-left transition duration-300 hover:-translate-y-0.5 ${
-                                        isDayMode
-                                            ? "border-cyan-600/30 bg-white/76 shadow-[0_20px_42px_rgba(15,23,42,0.08)] hover:border-cyan-600/50"
-                                            : "border-cyan-300/24 bg-cyan-300/[0.045] shadow-[0_20px_55px_rgba(0,0,0,0.34)] hover:border-cyan-300/70"
-                                    } sm:px-5 sm:py-5 xl:px-4 xl:py-4 min-[1536px]:px-5 min-[1536px]:py-5 min-[1720px]:px-6 min-[1720px]:py-6`}
-                                >
-                                    <div
-                                        className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 ${isDayMode ? "via-cyan-500/50" : "via-cyan-300"}`}
-                                    />
-                                    <div
-                                        aria-hidden="true"
-                                        className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-gradient-to-r from-transparent via-cyan-200/12 to-transparent opacity-0 transition duration-500 group-hover:translate-x-[320%] group-hover:opacity-100"
-                                    />
-                                    <div className="relative flex items-baseline gap-1.5 sm:gap-2">
-                                        <span
-                                            className={`text-4xl font-black leading-none tracking-normal ${palette.accent} min-[390px]:text-5xl sm:text-6xl xl:text-5xl min-[1536px]:text-6xl min-[1720px]:text-7xl`}
-                                        >
-                                            {stat.value}
-                                        </span>
-                                        <span
-                                            className={`text-lg font-black sm:text-2xl xl:text-xl min-[1720px]:text-3xl ${isDayMode ? "text-slate-950" : "text-white"}`}
-                                        >
-                                            {stat.unit}
-                                        </span>
-                                    </div>
-                                    <div
-                                        className={`relative mt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] min-[1720px]:text-xs ${palette.textMuted}`}
-                                    >
-                                        <span className="break-words">{stat.code}</span>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </MotionDiv>
-
-                        <p
-                            className={`mt-6 max-w-3xl text-base leading-8 sm:text-lg min-[1720px]:text-xl min-[1720px]:leading-9 ${palette.textSoft}`}
-                        >
-                            {event.description}
-                        </p>
-
-                        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                    {/* Desktop Navigation Dots */}
+                    <div className="fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4">
+                        {sectionAnchors.map((item) => (
                             <button
+                                key={item.id}
                                 type="button"
-                                onClick={scrollToForm}
-                                disabled={!event.registrationOpen}
-                                className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.primary}`}
+                                onClick={() => smoothScrollTo(item.id)}
+                                className={`group relative flex items-center gap-3 transition-all duration-300 ${
+                                    activeSection === item.index ? "pointer-events-none" : ""
+                                }`}
+                                aria-label={t("hackathon.nav.jump_to", { label: item.label })}
                             >
-                                {event.registrationOpen
-                                    ? t("hackathon.cta.register_now", "立即报名")
-                                    : t("aix.register.closed")}
-                                <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                            </button>
-                        </div>
-                    </MotionDiv>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => smoothScrollTo("event-brief")}
-                    className={`hackathon-hero-continue group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:inline-flex ${palette.chip}`}
-                >
-                    {t("hackathon.cta.keep_reading", "继续了解")}
-                    <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
-                        <ChevronDown className="h-4 w-4" />
-                    </span>
-                </button>
-            </section>
-
-            <MotionSection
-                id="event-brief"
-                {...sectionMotion}
-                className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
-            >
-                {programContent || (
-                    <div className="mx-auto min-w-0 w-full max-w-[1900px]">
-                        <div className="relative overflow-hidden">
-                            <div className="pointer-events-none absolute right-0 top-[-10%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[20vw]">
-                                SHIP
-                            </div>
-
-                            <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-center xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
-                                <div className="order-1 flex flex-col justify-center">
-                                    <p
-                                        className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}
+                                <span
+                                    className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
+                                        isDayMode ? "text-slate-600" : "text-white/60"
+                                    } ${activeSection === item.index ? "opacity-100" : ""}`}
+                                >
+                                    {item.label}
+                                </span>
+                                <div className="relative overflow-hidden rounded-full">
+                                    <div
+                                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
+                                            activeSection === item.index
+                                                ? isDayMode
+                                                    ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
+                                                    : "border-cyan-400 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
+                                                : isDayMode
+                                                  ? "border-slate-200 bg-white/80 text-slate-400 hover:border-cyan-400 hover:text-cyan-500"
+                                                  : "border-white/10 bg-white/5 text-white/30 hover:border-cyan-400 hover:text-cyan-300"
+                                        }`}
                                     >
-                                        Competition Board
-                                    </p>
-                                    <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl xl:text-[72px] min-[1536px]:text-[82px] 2xl:text-[96px]">
-                                        {boardLines[0] || event.duration}
-                                        <span className={`block ${palette.accent}`}>
-                                            {boardLines[1] || event.format}
-                                        </span>
-                                        {boardLines[2] || challenges[0]?.title}
-                                    </h2>
-                                    <p
-                                        className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}
-                                    >
-                                        {event.description}
-                                    </p>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => smoothScrollTo("partner-network")}
-                                        className={`mt-10 inline-flex min-h-12 w-fit items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
-                                    >
-                                        {t(
-                                            "hackathon.cooperation.view_network",
-                                            "查看赛事合作网络"
+                                        {activeSection === item.index ? (
+                                            <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                                        ) : (
+                                            <span className="text-[10px]">
+                                                {String(item.index + 1).padStart(2, "0")}
+                                            </span>
                                         )}
-                                        <ArrowRight className="h-4 w-4" />
-                                    </button>
+                                    </div>
+                                    {activeSection === item.index && (
+                                        <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tablet in-page anchor bar. Phones use the global bottom tab bar. */}
+                    <div
+                        className={`hackathon-section-nav sticky top-[calc(env(safe-area-inset-top)+128px)] z-30 mx-auto mt-4 hidden w-[calc(100%_-_2rem)] max-w-[520px] items-center justify-center gap-2 border px-2 py-2 backdrop-blur-xl md:flex lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}
+                    >
+                        {sectionAnchors.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    aria-label={t("hackathon.nav.jump_to", { label: item.label })}
+                                    onClick={() => smoothScrollTo(item.id)}
+                                    className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-xs font-bold transition-all duration-300 ${
+                                        activeSection === item.index
+                                            ? isDayMode
+                                                ? "bg-cyan-100 text-cyan-700"
+                                                : "bg-cyan-500/20 text-cyan-300"
+                                            : isDayMode
+                                              ? "text-slate-500 hover:text-slate-700"
+                                              : "text-white/40 hover:text-white/60"
+                                    }`}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    {item.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <section
+                        id="hackathon-hero"
+                        className="relative min-h-[100svh] min-w-0 max-w-full snap-start snap-always overflow-x-clip px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
+                    >
+                        <div className="relative mx-auto grid min-h-[calc(100svh-132px)] min-w-0 w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(0,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(0,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(0,860px)] min-[1920px]:gap-28">
+                            <MotionDiv
+                                {...(shouldAnimate
+                                    ? {
+                                          initial: { opacity: 0, scale: 0.96, y: 24 },
+                                          animate: { opacity: 1, scale: 1, y: 0 },
+                                          transition: {
+                                              duration: 0.72,
+                                              delay: 0.12,
+                                              ease: [0.22, 1, 0.36, 1],
+                                          },
+                                      }
+                                    : {})}
+                                className={`relative order-2 w-full justify-self-start overflow-hidden border p-4 backdrop-blur-2xl sm:p-6 xl:justify-self-end xl:p-5 min-[1536px]:p-7 min-[1720px]:p-9 min-[1920px]:p-10 ${palette.panelStrong}`}
+                            >
+                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(103,232,249,0.14),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
+                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+                                <div
+                                    className={`absolute right-6 top-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${palette.accent} min-[1720px]:right-8 min-[1720px]:top-8`}
+                                >
+                                    <span
+                                        className={`h-2 w-2 rounded-full ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`}
+                                    />
+                                    {t("hackathon.board.live_brief", "Live Brief")}
                                 </div>
 
-                                <div className="order-2 flex">
-                                    <div className="grid flex-1 content-start gap-4 sm:gap-5 xl:gap-5 min-[1536px]:gap-7">
-                                        {challenges.map((challenge, index) => {
-                                            const Icon = challenge.icon;
+                                <div className="relative mt-9 grid gap-5 xl:gap-4 min-[1536px]:gap-6 min-[1720px]:gap-7">
+                                    <div>
+                                        <p
+                                            className={`text-xs font-semibold uppercase tracking-[0.24em] ${palette.textMuted}`}
+                                        >
+                                            {t("hackathon.event.prize_pool", "奖金池")}
+                                        </p>
+                                        <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
+                                            <span
+                                                className={`text-6xl font-black leading-none tracking-tight ${palette.accent} min-[390px]:text-7xl sm:text-8xl xl:text-[5.1rem] min-[1536px]:text-[6rem] min-[1720px]:text-9xl`}
+                                            >
+                                                {event.prizeValue}
+                                            </span>
+                                            <span
+                                                className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-5 xl:text-5xl min-[1720px]:pb-6 min-[1720px]:text-6xl`}
+                                            >
+                                                {event.prizeUnit}
+                                            </span>
+                                            <span
+                                                className={`pb-3 text-2xl font-black tracking-[0.12em] ${palette.accent} sm:text-3xl xl:pb-3 xl:text-3xl min-[1720px]:pb-4 min-[1720px]:text-4xl`}
+                                            >
+                                                {t("hackathon.event.prize_pool", "奖金池")}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className={`grid gap-px overflow-hidden border-y ${isDayMode ? "bg-cyan-100/40" : "bg-cyan-300/18"} ${palette.line} min-[520px]:grid-cols-2`}
+                                    >
+                                        {eventMeta.map((item) => {
+                                            const Icon = item.icon;
                                             return (
                                                 <div
-                                                    key={challenge.title}
-                                                    className={`group relative flex min-h-[136px] overflow-hidden border p-4 transition duration-300 sm:min-h-[160px] sm:p-6 xl:min-h-[166px] xl:p-7 min-[1536px]:min-h-[194px] min-[1536px]:p-9 ${
-                                                        isDayMode
-                                                            ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
-                                                            : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
-                                                    }`}
+                                                    key={item.label}
+                                                    className={`${isDayMode ? "bg-white/92 hover:bg-cyan-50" : "bg-[#071011]/92 hover:bg-cyan-300/10"} group min-h-[92px] p-4 transition duration-200 sm:min-h-[108px] sm:p-5 xl:min-h-[96px] xl:p-4 min-[1536px]:min-h-[112px] min-[1536px]:p-5 min-[1720px]:min-h-[126px] min-[1720px]:p-6`}
                                                 >
-                                                    <div
-                                                        className={`absolute inset-y-0 left-0 w-1 ${isDayMode ? "bg-cyan-500" : "bg-cyan-300"} opacity-80`}
-                                                    />
-                                                    <div
-                                                        className={`pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100`}
-                                                    />
-                                                    <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
-                                                        <div className="flex items-center gap-3 sm:block">
-                                                            <div
-                                                                className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
-                                                            >
-                                                                <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
-                                                            </div>
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div>
                                                             <p
-                                                                className={`font-mono text-xs font-black uppercase tracking-[0.24em] ${palette.accent} sm:mt-4`}
+                                                                className={`font-mono text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}
                                                             >
-                                                                Rule 0{index + 1}
+                                                                {item.index} / {item.label}
+                                                            </p>
+                                                            <p className="mt-3 text-xl font-black tracking-tight xl:text-lg min-[1720px]:text-2xl">
+                                                                {item.value}
                                                             </p>
                                                         </div>
-                                                        <div>
-                                                            <h3 className="text-2xl font-black tracking-normal sm:text-4xl xl:text-[2.65rem] min-[1536px]:text-5xl">
-                                                                {challenge.title}
-                                                            </h3>
-                                                            <p
-                                                                className={`mt-2 max-w-2xl text-xs leading-6 sm:text-sm sm:leading-7 xl:text-base xl:leading-7 min-[1536px]:text-lg min-[1536px]:leading-8 ${palette.textSoft}`}
-                                                            >
-                                                                {challenge.text}
-                                                            </p>
+                                                        <div
+                                                            className={`flex h-12 w-12 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-600" : "border-cyan-300/40 bg-cyan-300/10 text-cyan-300"} xl:h-11 xl:w-11 min-[1720px]:h-14 min-[1720px]:w-14`}
+                                                        >
+                                                            <Icon className="h-6 w-6 xl:h-5 xl:w-5 min-[1720px]:h-7 min-[1720px]:w-7" />
                                                         </div>
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
+
+                                    <div
+                                        className="grid gap-2 text-center min-[1720px]:gap-3"
+                                        style={{
+                                            gridTemplateColumns: `repeat(${Math.min(challenges.length, 3) || 1}, minmax(0, 1fr))`,
+                                        }}
+                                    >
+                                        {challenges.slice(0, 3).map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`border px-2 py-2.5 text-xs font-semibold sm:py-3 min-[1536px]:py-3.5 min-[1720px]:py-4 min-[1720px]:text-sm ${palette.chip}`}
+                                            >
+                                                {item.title}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </MotionDiv>
+
+                            <MotionDiv
+                                {...heroMotion}
+                                className="order-1 min-w-0 max-w-[920px] lg:ml-0 xl:max-w-[980px]"
+                            >
+                                <div
+                                    className={`mb-6 inline-flex items-center gap-2 border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.22em] ${palette.chip}`}
+                                >
+                                    <Sparkles
+                                        className={`h-3.5 w-3.5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`}
+                                    />
+                                    {event.brand}
+                                </div>
+
+                                <h1 className="max-w-[980px] text-[3.2rem] font-black leading-[0.96] tracking-normal min-[390px]:text-6xl sm:text-7xl lg:text-[5.5rem] xl:text-[5.4rem] min-[1536px]:text-[6.4rem] min-[1720px]:text-[7rem] 2xl:text-[8rem]">
+                                    {titleLines.map((line) => (
+                                        <span key={line} className="block">
+                                            {line}
+                                        </span>
+                                    ))}
+                                </h1>
+
+                                <MotionDiv
+                                    {...(shouldAnimate
+                                        ? {
+                                              initial: "hidden",
+                                              animate: "show",
+                                              variants: {
+                                                  hidden: {},
+                                                  show: {
+                                                      transition: {
+                                                          staggerChildren: 0.08,
+                                                          delayChildren: 0.22,
+                                                      },
+                                                  },
+                                              },
+                                          }
+                                        : {})}
+                                    style={heroStats.length ? undefined : { display: "none" }}
+                                    role="group"
+                                    aria-label={event.subtitle}
+                                    className="mt-6 grid max-w-[860px] grid-cols-3 gap-2 sm:mt-7 sm:gap-3 min-[1720px]:gap-4"
+                                >
+                                    {heroStats.map((stat) => (
+                                        <motion.div
+                                            key={stat.code}
+                                            {...(shouldAnimate
+                                                ? {
+                                                      variants: {
+                                                          hidden: {
+                                                              opacity: 0,
+                                                              y: 18,
+                                                              scale: 0.94,
+                                                          },
+                                                          show: {
+                                                              opacity: 1,
+                                                              y: 0,
+                                                              scale: 1,
+                                                              transition: {
+                                                                  duration: 0.5,
+                                                                  ease: [0.22, 1, 0.36, 1],
+                                                              },
+                                                          },
+                                                      },
+                                                  }
+                                                : {})}
+                                            className={`group relative transform-gpu overflow-hidden border px-2.5 py-3 text-left transition duration-300 hover:-translate-y-0.5 ${
+                                                isDayMode
+                                                    ? "border-cyan-600/30 bg-white/76 shadow-[0_20px_42px_rgba(15,23,42,0.08)] hover:border-cyan-600/50"
+                                                    : "border-cyan-300/24 bg-cyan-300/[0.045] shadow-[0_20px_55px_rgba(0,0,0,0.34)] hover:border-cyan-300/70"
+                                            } sm:px-5 sm:py-5 xl:px-4 xl:py-4 min-[1536px]:px-5 min-[1536px]:py-5 min-[1720px]:px-6 min-[1720px]:py-6`}
+                                        >
+                                            <div
+                                                className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 ${isDayMode ? "via-cyan-500/50" : "via-cyan-300"}`}
+                                            />
+                                            <div
+                                                aria-hidden="true"
+                                                className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-gradient-to-r from-transparent via-cyan-200/12 to-transparent opacity-0 transition duration-500 group-hover:translate-x-[320%] group-hover:opacity-100"
+                                            />
+                                            <div className="relative flex items-baseline gap-1.5 sm:gap-2">
+                                                <span
+                                                    className={`text-4xl font-black leading-none tracking-normal ${palette.accent} min-[390px]:text-5xl sm:text-6xl xl:text-5xl min-[1536px]:text-6xl min-[1720px]:text-7xl`}
+                                                >
+                                                    {stat.value}
+                                                </span>
+                                                <span
+                                                    className={`text-lg font-black sm:text-2xl xl:text-xl min-[1720px]:text-3xl ${isDayMode ? "text-slate-950" : "text-white"}`}
+                                                >
+                                                    {stat.unit}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className={`relative mt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] min-[1720px]:text-xs ${palette.textMuted}`}
+                                            >
+                                                <span className="break-words">{stat.code}</span>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </MotionDiv>
+
+                                <p
+                                    className={`mt-6 max-w-3xl text-base leading-8 sm:text-lg min-[1720px]:text-xl min-[1720px]:leading-9 ${palette.textSoft}`}
+                                >
+                                    {event.description}
+                                </p>
+
+                                <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                                    <button
+                                        type="button"
+                                        onClick={scrollToForm}
+                                        disabled={!event.registrationOpen}
+                                        className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.primary}`}
+                                    >
+                                        {event.registrationOpen
+                                            ? t("hackathon.cta.register_now", "立即报名")
+                                            : t("aix.register.closed")}
+                                        <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                                    </button>
+                                </div>
+                            </MotionDiv>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => smoothScrollTo("event-brief")}
+                            className={`hackathon-hero-continue group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:inline-flex ${palette.chip}`}
+                        >
+                            {t("hackathon.cta.keep_reading", "继续了解")}
+                            <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
+                                <ChevronDown className="h-4 w-4" />
+                            </span>
+                        </button>
+                    </section>
+
+                    <MotionSection
+                        id="event-brief"
+                        {...sectionMotion}
+                        className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
+                    >
+                        {programContent || (
+                            <div className="mx-auto min-w-0 w-full max-w-[1900px]">
+                                <div className="relative overflow-hidden">
+                                    <div className="pointer-events-none absolute right-0 top-[-10%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[20vw]">
+                                        SHIP
+                                    </div>
+
+                                    <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-center xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
+                                        <div className="order-1 flex flex-col justify-center">
+                                            <p
+                                                className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}
+                                            >
+                                                Competition Board
+                                            </p>
+                                            <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl xl:text-[72px] min-[1536px]:text-[82px] 2xl:text-[96px]">
+                                                {boardLines[0] || event.duration}
+                                                <span className={`block ${palette.accent}`}>
+                                                    {boardLines[1] || event.format}
+                                                </span>
+                                                {boardLines[2] || challenges[0]?.title}
+                                            </h2>
+                                            <p
+                                                className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}
+                                            >
+                                                {event.description}
+                                            </p>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => smoothScrollTo("partner-network")}
+                                                className={`mt-10 inline-flex min-h-12 w-fit items-center justify-center gap-2 border px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.secondary}`}
+                                            >
+                                                {t(
+                                                    "hackathon.cooperation.view_network",
+                                                    "查看赛事合作网络"
+                                                )}
+                                                <ArrowRight className="h-4 w-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="order-2 flex">
+                                            <div className="grid flex-1 content-start gap-4 sm:gap-5 xl:gap-5 min-[1536px]:gap-7">
+                                                {challenges.map((challenge, index) => {
+                                                    const Icon = challenge.icon;
+                                                    return (
+                                                        <div
+                                                            key={challenge.title}
+                                                            className={`group relative flex min-h-[136px] overflow-hidden border p-4 transition duration-300 sm:min-h-[160px] sm:p-6 xl:min-h-[166px] xl:p-7 min-[1536px]:min-h-[194px] min-[1536px]:p-9 ${
+                                                                isDayMode
+                                                                    ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
+                                                                    : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
+                                                            }`}
+                                                        >
+                                                            <div
+                                                                className={`absolute inset-y-0 left-0 w-1 ${isDayMode ? "bg-cyan-500" : "bg-cyan-300"} opacity-80`}
+                                                            />
+                                                            <div
+                                                                className={`pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100`}
+                                                            />
+                                                            <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
+                                                                <div className="flex items-center gap-3 sm:block">
+                                                                    <div
+                                                                        className={`flex h-[56px] w-[56px] items-center justify-center ${isDayMode ? "bg-cyan-500 shadow-[0_0_36px_rgba(6,182,212,0.25)]" : "bg-cyan-300 shadow-[0_0_36px_rgba(103,232,249,0.28)]"} text-slate-950 sm:h-[88px] sm:w-[88px]`}
+                                                                    >
+                                                                        <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
+                                                                    </div>
+                                                                    <p
+                                                                        className={`font-mono text-xs font-black uppercase tracking-[0.24em] ${palette.accent} sm:mt-4`}
+                                                                    >
+                                                                        Rule 0{index + 1}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <h3 className="text-2xl font-black tracking-normal sm:text-4xl xl:text-[2.65rem] min-[1536px]:text-5xl">
+                                                                        {challenge.title}
+                                                                    </h3>
+                                                                    <p
+                                                                        className={`mt-2 max-w-2xl text-xs leading-6 sm:text-sm sm:leading-7 xl:text-base xl:leading-7 min-[1536px]:text-lg min-[1536px]:leading-8 ${palette.textSoft}`}
+                                                                    >
+                                                                        {challenge.text}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                )}
-            </MotionSection>
+                        )}
+                    </MotionSection>
 
-            <MotionSection
-                id="partner-network"
-                {...sectionMotion}
-                className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-24 sm:pt-24 lg:px-10 lg:py-24 xl:items-center min-[1536px]:px-14 2xl:px-20"
-            >
-                <div
-                    className={`pointer-events-none absolute inset-0 ${
-                        isDayMode
-                            ? "bg-[linear-gradient(135deg,#f8fafc_0%,#ecfeff_48%,#f8fafc_100%)]"
-                            : "bg-[linear-gradient(135deg,#061011_0%,#0a1919_52%,#050909_100%)]"
-                    }`}
-                />
-                <div className="pointer-events-none absolute right-[-5%] top-[4%] max-w-full overflow-hidden text-[18vw] font-black uppercase leading-none tracking-normal text-white/[0.035]">
-                    CO-BUILD
-                </div>
-
-                <div className="partner-network-layout relative mx-auto min-w-0 w-full max-w-[1880px]">
-                    <header className="partner-network-heading">
-                        <div>
-                            <p className={`text-sm font-black ${palette.accent}`}>
-                                {t("hackathon.cooperation.eyebrow", "03 / 赛事合作")}
-                            </p>
-                            <h2 className="font-black tracking-normal">
-                                {t("hackathon.cooperation.title_line_1", "共同把真实问题")}
-                                <span className={`block ${palette.accent}`}>
-                                    {t("hackathon.cooperation.title_line_2", "带到现场")}
-                                </span>
-                            </h2>
+                    <MotionSection
+                        id="partner-network"
+                        {...sectionMotion}
+                        className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-24 sm:pt-24 lg:px-10 lg:py-24 xl:items-center min-[1536px]:px-14 2xl:px-20"
+                    >
+                        <div
+                            className={`pointer-events-none absolute inset-0 ${
+                                isDayMode
+                                    ? "bg-[linear-gradient(135deg,#f8fafc_0%,#ecfeff_48%,#f8fafc_100%)]"
+                                    : "bg-[linear-gradient(135deg,#061011_0%,#0a1919_52%,#050909_100%)]"
+                            }`}
+                        />
+                        <div className="pointer-events-none absolute right-[-5%] top-[4%] max-w-full overflow-hidden text-[18vw] font-black uppercase leading-none tracking-normal text-white/[0.035]">
+                            CO-BUILD
                         </div>
-                        <div className="partner-network-intro">
-                            <p className={palette.textSoft}>
-                                {t(
-                                    isFirstEdition
-                                        ? "firstEdition.partnersIntro"
-                                        : "hackathon.cooperation.description",
-                                    "这里展示拓浙AI生态现有的赛事支持网络。学校提供场景与机制，社团承接组织与传播，企业提供技术与产业资源。"
-                                )}
-                            </p>
-                            <div className={`partner-network-summary text-sm ${palette.textMuted}`}>
-                                <button
-                                    type="button"
-                                    onClick={scrollToForm}
-                                    className={`inline-flex min-h-11 items-center gap-2 font-bold ${palette.accent} focus:outline-none focus:ring-4 focus:ring-cyan-300/30`}
-                                >
-                                    {t(
-                                        isFirstEdition && !event.registrationOpen
-                                            ? "firstEdition.viewRegistration"
-                                            : "hackathon.cooperation.continue_registration",
-                                        "继续报名"
-                                    )}
-                                    <Send className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </header>
 
-                    {ecosystemGroups.length > 0 ? (
-                        <div className={`partner-network-groups border-y ${palette.line}`}>
-                            {ecosystemGroups.map((group) => (
-                                <section
-                                    className={`partner-network-group ${palette.line}`}
-                                    key={group.id}
-                                >
-                                    <div className="partner-network-label">
-                                        <h3 className="font-black">{group.label}</h3>
-                                    </div>
-                                    <ul
-                                        className={
-                                            (
-                                                isFirstEdition
-                                                    ? group.id === "enterprise"
-                                                    : group.id !== "school"
-                                            )
-                                                ? "partner-network-logos"
-                                                : "partner-network-names"
-                                        }
-                                        aria-label={group.label}
+                        <div className="partner-network-layout relative mx-auto min-w-0 w-full max-w-[1880px]">
+                            <header className="partner-network-heading">
+                                <div>
+                                    <p className={`text-sm font-black ${palette.accent}`}>
+                                        {t("hackathon.cooperation.eyebrow", "03 / 赛事合作")}
+                                    </p>
+                                    <h2 className="font-black tracking-normal">
+                                        {t("hackathon.cooperation.title_line_1", "共同把真实问题")}
+                                        <span className={`block ${palette.accent}`}>
+                                            {t("hackathon.cooperation.title_line_2", "带到现场")}
+                                        </span>
+                                    </h2>
+                                </div>
+                                <div className="partner-network-intro">
+                                    <p className={palette.textSoft}>
+                                        {t(
+                                            isFirstEdition
+                                                ? "firstEdition.partnersIntro"
+                                                : "hackathon.cooperation.description",
+                                            "这里展示拓浙AI生态现有的赛事支持网络。学校提供场景与机制，社团承接组织与传播，企业提供技术与产业资源。"
+                                        )}
+                                    </p>
+                                    <div
+                                        className={`partner-network-summary text-sm ${palette.textMuted}`}
                                     >
-                                        {group.partners.map((partner) => {
-                                            const logoSrc =
-                                                (isFirstEdition
-                                                    ? group.id === "enterprise"
-                                                    : group.id !== "school") &&
-                                                getPartnerLogoSrc(partner, isDayMode);
-                                            return (
-                                                <li
-                                                    key={partner.id || partner.displayName}
-                                                    className={
-                                                        (
-                                                            isFirstEdition
-                                                                ? group.id === "enterprise"
-                                                                : group.id !== "school"
-                                                        )
-                                                            ? `partner-network-logo ${palette.chip}`
-                                                            : "partner-network-name"
-                                                    }
-                                                >
-                                                    {logoSrc ? (
-                                                        <img
-                                                            src={logoSrc}
-                                                            alt={partner.displayName}
+                                        <button
+                                            type="button"
+                                            onClick={scrollToForm}
+                                            className={`inline-flex min-h-11 items-center gap-2 font-bold ${palette.accent} focus:outline-none focus:ring-4 focus:ring-cyan-300/30`}
+                                        >
+                                            {t(
+                                                isFirstEdition && !event.registrationOpen
+                                                    ? "firstEdition.viewRegistration"
+                                                    : "hackathon.cooperation.continue_registration",
+                                                "继续报名"
+                                            )}
+                                            <Send className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </header>
+
+                            {ecosystemGroups.length > 0 ? (
+                                <div className={`partner-network-groups border-y ${palette.line}`}>
+                                    {ecosystemGroups.map((group) => (
+                                        <section
+                                            className={`partner-network-group ${palette.line}`}
+                                            key={group.id}
+                                        >
+                                            <div className="partner-network-label">
+                                                <h3 className="font-black">{group.label}</h3>
+                                            </div>
+                                            <ul
+                                                className={
+                                                    (
+                                                        isFirstEdition
+                                                            ? group.id === "enterprise"
+                                                            : group.id !== "school"
+                                                    )
+                                                        ? "partner-network-logos"
+                                                        : "partner-network-names"
+                                                }
+                                                aria-label={group.label}
+                                            >
+                                                {group.partners.map((partner) => {
+                                                    const logoSrc =
+                                                        (isFirstEdition
+                                                            ? group.id === "enterprise"
+                                                            : group.id !== "school") &&
+                                                        getPartnerLogoSrc(partner, isDayMode);
+                                                    return (
+                                                        <li
+                                                            key={partner.id || partner.displayName}
                                                             className={
-                                                                isDayMode
-                                                                    ? ""
-                                                                    : partner.darkClassName || ""
+                                                                (
+                                                                    isFirstEdition
+                                                                        ? group.id === "enterprise"
+                                                                        : group.id !== "school"
+                                                                )
+                                                                    ? `partner-network-logo ${palette.chip}`
+                                                                    : "partner-network-name"
                                                             }
-                                                            loading="lazy"
-                                                        />
-                                                    ) : (
-                                                        <span>{partner.displayName}</span>
-                                                    )}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                </section>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className={`py-12 text-center ${palette.textSoft}`}>
-                            {t(
-                                "hackathon.cooperation.empty",
-                                "合作网络正在整理，确认后的支持信息会在这里公开。"
+                                                        >
+                                                            {logoSrc ? (
+                                                                <img
+                                                                    src={logoSrc}
+                                                                    alt={partner.displayName}
+                                                                    className={
+                                                                        isDayMode
+                                                                            ? ""
+                                                                            : partner.darkClassName ||
+                                                                              ""
+                                                                    }
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <span>{partner.displayName}</span>
+                                                            )}
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        </section>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className={`py-12 text-center ${palette.textSoft}`}>
+                                    {t(
+                                        "hackathon.cooperation.empty",
+                                        "合作网络正在整理，确认后的支持信息会在这里公开。"
+                                    )}
+                                </p>
                             )}
-                        </p>
-                    )}
-                </div>
-            </MotionSection>
+                        </div>
+                    </MotionSection>
+                </>
+            )}
 
             <section
                 id="registration-form"

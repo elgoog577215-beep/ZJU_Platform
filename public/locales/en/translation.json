@@ -5066,38 +5066,38 @@
         "heroTitle": "Break Boundaries",
         "eventFullTitle": "AI Interdisciplinary Innovation Forum & AI+X Hackathon",
         "motto": "Break boundaries · Build together · Create",
-        "description": "Build runnable, verifiable AI applications for real problems across disciplines.",
-        "date": "2026.10.09 — 10.24",
+        "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
+        "date": "2026.10.09 - 10.25",
         "location": "Zijingang Campus, Zhejiang University",
         "team": "Qwen: individual · Huawei: up to 3 people",
         "tracksKicker": "Two tracks",
-        "tracksTitle": "Bring AI into the real world",
+        "tracksTitle": "Your discipline is a starting point.",
         "viewChallenges": "View challenges",
         "tracks": {
             "campus": {
-                "title": "Disciplinary Starter Track",
-                "description": "Supported by Qwen. Identify a problem in your discipline and build an Agent or Skill to address it.",
-                "topics": "Law · Ocean Science · Medicine · Education · Communication"
+                "title": "Discipline starter track",
+                "description": "Turn a question from learning, research or campus life into a working AI application.",
+                "topics": "Law · Ocean science · Medicine · Education · Communications"
             },
             "industry": {
-                "title": "Industry Advanced Track",
-                "description": "Build AI applications for real marketing and workplace briefs from Huawei China.",
-                "topics": "Marketing · Workplace · Real business tasks"
+                "title": "Industry advanced track",
+                "description": "Build an agent or skill for Huawei’s marketing and office challenges, then test it against real business needs.",
+                "topics": "Content · Marketing · Office workflows"
             }
         },
         "forumsKicker": "Two forums",
-        "forumsTitle": "From building to launching",
-        "forumsDescription": "Forums are open to the public. Guests are being invited; arrangements remain subject to official announcements.",
+        "forumsTitle": "Learn from people building what’s next.",
+        "forumsDescription": "Technology and entrepreneurship, open to the public. Proposed speakers are subject to confirmation.",
         "forums": {
             "technology": {
                 "date": "10.18",
                 "title": "Technology forum",
-                "description": "October 18, 16:00–17:30, North Teaching Building. Technical talks and AI Coding discussion."
+                "description": "Frontier technology, practical development experience and AI coding discussions grounded in onsite projects."
             },
             "entrepreneurship": {
-                "date": "10.24",
+                "date": "10.25",
                 "title": "Entrepreneurship forum",
-                "description": "October 24, 9:30–11:30, School of Management. AI entrepreneurship trends, discussion and Q&A."
+                "description": "Founders and investors discuss AI trends, lasting capabilities and lessons from their first successes and failures."
             }
         },
         "agendaTitle": "Event schedule",
@@ -5124,7 +5124,7 @@
                 "description": "Industry finalist announcement and final arrangements."
             },
             "final": {
-                "date": "10.24",
+                "date": "10.25",
                 "title": "Final · Venture forum",
                 "description": "Opening at 9:00; entrepreneurship forum at 9:30–11:30; parallel track pitches at 13:30–15:30, awards at 16:00–16:30, closing at 16:30."
             }
@@ -5146,7 +5146,7 @@
             "initial": {
                 "title": "First round",
                 "date": "10.18",
-                "description": "Four hours of industry development: 9:30–11:30 and 13:30–15:30. Teams completing more than 60% of the tasks advance.",
+                "description": "Huawei releases the challenge. Teams build onsite for four hours and submit their initial project.",
                 "materials": "Submit a working demo and a project description covering the problem, core features and progress."
             },
             "semifinal": {
@@ -5157,7 +5157,7 @@
             },
             "final": {
                 "title": "Final",
-                "date": "10.24",
+                "date": "10.25",
                 "description": "The two tracks pitch in parallel and are judged separately, followed by a joint awards ceremony.",
                 "materials": "Prepare pitch slides, a project poster and a working demo. Pitch order and detailed rules will be announced."
             }
@@ -5308,7 +5308,7 @@
         "resultsTitle": "Results",
         "resultsIntro": "Award winners, projects, speeches and forum highlights in one place.",
         "industryStages": "Industry Advanced Track · Stages",
-        "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 24.",
+        "campusSchedule": "Supported by Qwen. Launch: October 10. Submission: October 16 evening. Shortlist: October 17 evening. Final pitches: October 25.",
         "fieldHints": {
             "name": "",
             "studentId": "",
@@ -5321,6 +5321,206 @@
             "aiToolsOther": "Tool names",
             "strengths": "",
             "projectLinks": "https://… (one per line)"
+        },
+        "landing": {
+            "viewAgenda": "View schedule",
+            "audience": "Open to all ZJU disciplines. Forums welcome the public.",
+            "eventDates": "EVENT DATES",
+            "onsite": "Meet on campus · Oct 18 / Oct 25",
+            "organizer": "Tuozhe AI Ecosystem · Zhekesong",
+            "tracksIntro": "Start with a question from your discipline or a real business need.",
+            "tracks": {
+                "campus": {
+                    "partner": "Qwen",
+                    "type": "Your own challenge",
+                    "topics": ["Law", "Ocean science", "Medicine", "Education", "Communications"],
+                    "format": "Build online · Present on campus"
+                },
+                "industry": {
+                    "partner": "Huawei China",
+                    "type": "Industry challenge",
+                    "topics": ["Content creation", "Marketing", "Office agents"],
+                    "format": "4-hour onsite build · Online iteration"
+                }
+            },
+            "agendaTitle": "From an idea to a working project.",
+            "fullAgenda": "Full onsite schedule",
+            "agenda": [
+                {
+                    "date": "10.09 / 10.10",
+                    "title": "Launch & discipline track",
+                    "description": "Event announcement on Oct 9. Registration and the discipline track open on Oct 10."
+                },
+                {
+                    "date": "10.16 / 10.17",
+                    "title": "Submit & discover the shortlist",
+                    "description": "Discipline projects due Oct 16 evening. Around 15 presentation projects announced Oct 17."
+                },
+                {
+                    "date": "10.18",
+                    "title": "Build onsite & technology forum",
+                    "description": "Huawei announces its challenge. Build for 4 hours, join the forum, then see the semifinal shortlist."
+                },
+                {
+                    "date": "10.19 - 10.23",
+                    "title": "Online development & selection",
+                    "description": "Submit by midnight Oct 22. Industry finalists announced Oct 23."
+                },
+                {
+                    "date": "10.25",
+                    "title": "Entrepreneurship & final pitches",
+                    "description": "A morning forum, parallel afternoon presentations and a joint awards ceremony."
+                }
+            ],
+            "days": [
+                {
+                    "title": "Oct 18 · Opening & technology",
+                    "items": [
+                        {
+                            "time": "09:00 - 09:30",
+                            "text": "Opening and Huawei challenge release"
+                        },
+                        {
+                            "time": "09:30 - 11:30",
+                            "text": "Onsite industry development"
+                        },
+                        {
+                            "time": "13:30 - 15:30",
+                            "text": "Development and submission"
+                        },
+                        {
+                            "time": "15:30 - 16:00",
+                            "text": "Break and conversations"
+                        },
+                        {
+                            "time": "16:00 - 17:30",
+                            "text": "Technology forum and AI coding"
+                        },
+                        {
+                            "time": "Evening",
+                            "text": "Semifinal shortlist"
+                        }
+                    ]
+                },
+                {
+                    "title": "Oct 25 · Finals & entrepreneurship",
+                    "items": [
+                        {
+                            "time": "09:00 - 09:30",
+                            "text": "Finals opening"
+                        },
+                        {
+                            "time": "09:30 - 11:30",
+                            "text": "Entrepreneurship forum and panel"
+                        },
+                        {
+                            "time": "13:30 - 15:30",
+                            "text": "Parallel track presentations"
+                        },
+                        {
+                            "time": "15:30 - 16:00",
+                            "text": "Feedback and judging"
+                        },
+                        {
+                            "time": "16:00 - 16:30",
+                            "text": "Awards ceremony"
+                        },
+                        {
+                            "time": "16:30 - 17:00",
+                            "text": "Closing ceremony"
+                        }
+                    ]
+                }
+            ],
+            "invited": "Proposed",
+            "forums": {
+                "technology": {
+                    "time": "16:00 - 17:30",
+                    "location": "Zijingang · North Teaching Area",
+                    "speakers": [
+                        {
+                            "name": "Ye Xinjiang",
+                            "role": "CTO, Getui"
+                        },
+                        {
+                            "name": "Zhang Kejun",
+                            "role": "Head of Intelligent Design, ZJU School of AI",
+                            "pending": true
+                        },
+                        {
+                            "name": "Peng Chao",
+                            "role": "CTO & Co-founder, OneOneTalk",
+                            "pending": true
+                        },
+                        {
+                            "name": "Sun Yifei",
+                            "role": "ZJU Hundred Talents Program researcher"
+                        }
+                    ]
+                },
+                "entrepreneurship": {
+                    "time": "09:30 - 11:30",
+                    "location": "Zijingang · School of Management",
+                    "speakers": [
+                        {
+                            "name": "Zhang Jie",
+                            "role": "General Manager, Huadan Angel",
+                            "pending": true
+                        },
+                        {
+                            "name": "Yang Yuke",
+                            "role": "Vice President, 5Y Capital",
+                            "pending": true
+                        }
+                    ]
+                }
+            },
+            "beyondLabel": "BUILD BEYOND THE EVENT",
+            "beyondTitle": "Your project can go further.",
+            "beyondDescription": "Selected projects may connect with industry development opportunities and incubation resources from ZTVP and Shidai Qiangying.",
+            "pastProjects": "Explore the first edition",
+            "partnersLabel": "THIS EDITION’S PARTNERS",
+            "partnersTitle": "Different strengths. Shared possibilities.",
+            "allPartners": "Schools, communities & student organizations",
+            "partners": [
+                {
+                    "label": "Guidance",
+                    "names": "ZJU School of Innovation and Entrepreneurship"
+                },
+                {
+                    "label": "Organizer",
+                    "names": "Tuozhe AI Ecosystem"
+                },
+                {
+                    "label": "Track sponsors",
+                    "names": "Qwen · Huawei China"
+                },
+                {
+                    "label": "Technology & ecosystem",
+                    "names": "Alibaba Cloud (technology) · Huawei China (compute) · Qoder (tools and technology) · ModelScope"
+                },
+                {
+                    "label": "Capital & incubation",
+                    "names": "Shidai Qiangying · ZJU Technology Venture Program (ZTVP)"
+                }
+            ],
+            "morePartners": [
+                {
+                    "label": "Supporting ZJU schools",
+                    "names": "Management, Artificial Intelligence, Guanghua Law, History, Media and International Culture, Ocean, Basic Medical Sciences, Medicine, Control Science and Engineering, Information Science and Electronic Engineering"
+                },
+                {
+                    "label": "Communities & campus channels",
+                    "names": "Guangcha · deepseek.club · Tmall Campus · Bonjour"
+                },
+                {
+                    "label": "Student organizations",
+                    "names": "Qiushi Qiangying · AI Association · KAB Entrepreneurship Club · AI Research Club · Embedded AI Association · XLAB · MBA Cross-boundary Innovation Club · Delta X"
+                }
+            ],
+            "closing": "Bring your discipline. Build something new.",
+            "lightMode": "Switch to light mode",
+            "darkMode": "Switch to dark mode"
         }
     },
     "eventWorkspace": {
@@ -5702,7 +5902,7 @@
         },
         "beautyTasks": ["Analyze", "Recommend", "Build"],
         "trackDetails": "Explore the tracks",
-        "industrySchedule": "Initial · Oct 18 / Semifinal · Oct 19–22 / Final · Oct 24"
+        "industrySchedule": "Initial · Oct 18 / Semifinal · Oct 19–22 / Final · Oct 25"
     },
     "resultStage": {
         "featured": "Awarded projects",
