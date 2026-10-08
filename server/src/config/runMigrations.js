@@ -1258,6 +1258,9 @@ async function runMigrations(db) {
         experience TEXT DEFAULT '',
         form_data_json TEXT DEFAULT '{}',
         template_revision INTEGER DEFAULT 1,
+        github_repository_url TEXT,
+        modelscope_repository_url TEXT,
+        repositories_updated_at TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(event_key, student_id)
       )
@@ -2914,6 +2917,7 @@ async function runMigrations(db) {
     await require("./migrations/hackathonAiXOctoberSchedule").migrateHackathonAiXOctoberSchedule(
         db
     );
+    await require("./migrations/hackathonRepositories").migrateHackathonRepositories(db);
     await require("./migrations/hackathonAiXVenueTracks").migrateHackathonAiXVenueTracks(db);
     await require("./migrations/hackathonGetuiBeauty").migrateHackathonGetuiBeauty(db);
     await require("./migrations/competitionWorkSelection").migrateCompetitionWorkSelection(db);

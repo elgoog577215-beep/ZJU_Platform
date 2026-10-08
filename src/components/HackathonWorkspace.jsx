@@ -53,7 +53,7 @@ export default function HackathonWorkspace({ template, schedule }) {
         let active = true;
         setRegistration(null);
         setRegistrationError(false);
-        if (!user || Date.now() >= eventTimestamp(event.endAt)) {
+        if (!user) {
             setRegistrationLoading(false);
             return;
         }

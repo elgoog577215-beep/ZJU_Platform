@@ -1,3 +1,8 @@
+const {
+    AIX_EVENT_KEY,
+    normalizeRepositoryUrl,
+    repositorySubmission,
+} = require("../services/hackathonRepositoryService");
 const { getDb } = require("../config/db");
 const {
     getRegistrationProfile,
@@ -159,7 +164,7 @@ const getMyRegistration = async (req, res, next) => {
         const eventKey = sanitizeText(req.query?.event, 80);
         if (!eventKey) return res.status(400).json({ error: "请指定赛事" });
         const row = await db.get(
-            "SELECT id, event_key, form_data_json, created_at FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
+            "SELECT * FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
             [eventKey, req.user.id]
         );
         res.setHeader("Cache-Control", "no-store");
@@ -170,9 +175,87 @@ const getMyRegistration = async (req, res, next) => {
                       eventKey: row.event_key,
                       answers: JSON.parse(row.form_data_json || "{}"),
                       createdAt: row.created_at,
+                      repositories: repositorySubmission(row),
                   }
                 : null,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const saveMyRepositories = async (req, res, next) => {
+    try {
+        if (!req.user?.id)
+            return res.status(401).json({ code: "HACKATHON_LOGIN_REQUIRED", error: "请先登录" });
+        const eventKey = sanitizeText(req.body?.eventKey, 80);
+        if (eventKey !== AIX_EVENT_KEY)
+            return res
+                .status(400)
+                .json({ code: "HACKATHON_REPOSITORY_EVENT", error: "该赛事不支持仓库提交" });
+        const db = await getDb();
+        const row = await db.get(
+            "SELECT * FROM hackathon_registrations WHERE event_key = ? AND user_id = ?",
+            [eventKey, req.user.id]
+        );
+        if (!row)
+            return res
+                .status(403)
+                .json({ code: "HACKATHON_REGISTRATION_REQUIRED", error: "请先完成本届赛事报名" });
+        const template = await getHackathonTemplate(db, eventKey);
+        if (template.event.key !== eventKey) return res.status(404).json({ error: "赛事不存在" });
+        const rawEnd = template.event.endAt || "";
+        const endAt = Date.parse(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(rawEnd) ? `${rawEnd}:00+08:00` : rawEnd
+        );
+        if (!Number.isFinite(endAt) || Date.now() >= endAt)
+            return res
+                .status(403)
+                .json({
+                    code: "HACKATHON_REPOSITORIES_CLOSED",
+                    error: "本届赛事已结束，仓库提交已关闭",
+                });
+        let githubUrl, modelscopeUrl;
+        try {
+            githubUrl = normalizeRepositoryUrl(req.body?.githubUrl, "github");
+        } catch {
+            return res
+                .status(400)
+                .json({
+                    code: "HACKATHON_REPOSITORY_INVALID",
+                    field: "githubUrl",
+                    error: "请填写有效的 GitHub 仓库 HTTPS 地址",
+                });
+        }
+        try {
+            modelscopeUrl = normalizeRepositoryUrl(req.body?.modelscopeUrl, "modelscope");
+        } catch {
+            return res
+                .status(400)
+                .json({
+                    code: "HACKATHON_REPOSITORY_INVALID",
+                    field: "modelscopeUrl",
+                    error: "请填写有效的魔搭模型、数据集或创空间 HTTPS 地址",
+                });
+        }
+        if (!githubUrl && !modelscopeUrl)
+            return res
+                .status(400)
+                .json({ code: "HACKATHON_REPOSITORY_EMPTY", error: "请至少填写一个仓库地址" });
+        const updatedAt = new Date().toISOString();
+        const result = await db.run(
+            "UPDATE hackathon_registrations SET github_repository_url = ?, modelscope_repository_url = ?, repositories_updated_at = ? WHERE id = ? AND user_id = ?",
+            [githubUrl, modelscopeUrl, updatedAt, row.id, req.user.id]
+        );
+        res.setHeader("Cache-Control", "no-store");
+        if (!result.changes)
+            return res
+                .status(403)
+                .json({
+                    code: "HACKATHON_REGISTRATION_REQUIRED",
+                    error: "报名记录不存在，请刷新重试",
+                });
+        res.json({ repositories: { githubUrl, modelscopeUrl, updatedAt } });
     } catch (error) {
         next(error);
     }
@@ -341,6 +424,7 @@ const handleHackathonAssistant = async (req, res) => {
 
 module.exports = {
     getMyRegistration,
+    saveMyRepositories,
     getHackathonScheduleConfig,
     getHackathonTemplateConfig,
     updateHackathonScheduleConfig,

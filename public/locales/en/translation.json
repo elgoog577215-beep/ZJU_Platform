@@ -5534,7 +5534,30 @@
             "heroDescription": "Build with AI. Solve real problems in research, on campus and in industry.",
             "application": "Apps",
             "bothTracks": "You can enter both tracks",
-            "venues": ["North 2112", "Sandun Yuan Space"]
+            "venues": ["North 2112", "Sandun Yuan Space"],
+            "pauseMotion": "Pause glow animation",
+            "resumeMotion": "Play glow animation"
+        },
+        "repositories": {
+            "receipt": "Registration #{{id}} · Saved",
+            "viewRegistration": "View registration",
+            "title": "Submit your project repositories",
+            "description": "Submit one repository now and add the other later. You can edit until the event ends. Organizers can view saved links.",
+            "github": "GitHub repository",
+            "modelscope": "ModelScope repository",
+            "githubHint": "Use the HTTPS URL of the repository homepage.",
+            "modelscopeHint": "ModelScope Studios, model repositories and datasets are supported.",
+            "openSaved": "Open saved repository",
+            "save": "Save repository links",
+            "saving": "Saving…",
+            "saved": "Repository links saved. They will be here when you sign in again.",
+            "failed": "Could not save. Your entered links are preserved; please retry.",
+            "empty": "Enter at least one repository URL.",
+            "closed": "The event has ended. Saved repositories remain available to view.",
+            "invalid": {
+                "github": "Use https://github.com/owner/repo without branches, query parameters or credentials.",
+                "modelscope": "Use an HTTPS ModelScope Studio, model or dataset repository URL without query parameters or credentials."
+            }
         }
     },
     "eventWorkspace": {

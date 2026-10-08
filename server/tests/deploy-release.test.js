@@ -53,7 +53,7 @@ for (const failHealth of [false, true]) {
                 sleep: "exit 0",
                 flock: "exit 0",
                 curl: failHealth ? "exit 22" : 'echo \'{"status":"ok"}\'',
-                node: `if [ "$1" = '-e' ]; then exit 0; fi\nexec ${quote(process.execPath)} "$@"`,
+                node: `if [ "$1" = '-e' ]; then exit 0; fi\ncase "$1" in */backup-release-database.js) exit 0;; esac\nexec ${quote(process.execPath)} "$@"`,
                 sha256sum: 'exec shasum -a 256 "$@"',
             };
             for (const [name, text] of Object.entries(shims)) {

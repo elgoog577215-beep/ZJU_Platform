@@ -1215,6 +1215,11 @@ router.get("/hackathon/template", hackathonController.getHackathonTemplateConfig
 router.post("/hackathon/assistant", optionalAuth, hackathonController.handleHackathonAssistant);
 router.get("/hackathon/registration", authenticateToken, hackathonController.getMyRegistration);
 router.post("/hackathon/register", optionalAuth, hackathonController.registerHackathon);
+router.put(
+    "/hackathon/registration/repositories",
+    authenticateToken,
+    hackathonController.saveMyRepositories
+);
 router.get(
     "/admin/hackathon/schedule",
     authenticateToken,

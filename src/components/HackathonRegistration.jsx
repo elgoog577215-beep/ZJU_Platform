@@ -1,3 +1,4 @@
+import RepositorySubmission from "./hackathon-event/RepositorySubmission";
 import { getFirstEditionPartnerGroups } from "../data/firstEditionPartners";
 import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -1603,6 +1604,13 @@ const HackathonRegistration = ({
                                     }
                                 />
                             )
+                        ) : isAiX && registration ? (
+                            <RepositorySubmission
+                                key={`${registration.eventKey}:${registration.id}`}
+                                registration={registration}
+                                endAt={resolvedTemplate.event.endAt}
+                                onSaved={onRegistered}
+                            />
                         ) : (
                             <form
                                 onSubmit={handleSubmit}

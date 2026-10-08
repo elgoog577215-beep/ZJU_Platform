@@ -79,3 +79,18 @@ test("changed resolution, archive integrity or installed code rejects the mitiga
         rmSync(temporary, { recursive: true, force: true });
     }
 });
+
+test("mixed lower-severity branches do not inherit a patched high advisory", () => {
+    const r = report();
+    r.vulnerabilities.parser = {
+        severity: "moderate",
+        via: [{ url: "parser-advisory", severity: "moderate" }],
+    };
+    r.vulnerabilities.tailwindcss.via.push("parser");
+    assert.deepEqual(classifyAudit(r, true).blocked, []);
+    assert.ok(classifyAudit(r, false).blocked.includes("tailwindcss"));
+    for (const severity of ["high", "critical", undefined, "unknown"]) {
+        r.vulnerabilities.parser.via[0].severity = severity;
+        assert.ok(classifyAudit(r, true).blocked.includes("tailwindcss"));
+    }
+});

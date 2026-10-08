@@ -1,0 +1,117 @@
+.aix-repository-receipt {
+    overflow-y: auto;
+    min-height: 0;
+    padding: 4px;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+}
+.aix-repository-success {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--hx-accent-text);
+}
+.aix-repository-success h3,
+.aix-repository-form h3 {
+    font-size: 22px;
+    font-weight: 750;
+    margin: 0;
+}
+.aix-repository-receipt p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--hx-muted);
+    margin: 6px 0 0;
+}
+.aix-registration-receipt-details {
+    margin: 20px 0 24px;
+    padding-block: 14px;
+    border-block: 1px solid var(--hx-line);
+}
+.aix-registration-receipt-details summary {
+    cursor: pointer;
+    font-size: 14px;
+}
+.aix-registration-receipt-details dl {
+    display: grid;
+    gap: 10px;
+    padding-top: 16px;
+}
+.aix-registration-receipt-details dl > div {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    font-size: 13px;
+}
+.aix-registration-receipt-details dt {
+    color: var(--hx-muted);
+}
+.aix-registration-receipt-details dd {
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+.aix-repository-form {
+    display: grid;
+    gap: 22px;
+}
+.aix-repository-field label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 650;
+    margin-bottom: 10px;
+}
+.aix-repository-field input {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--hx-line);
+    background: var(--hx-bg);
+    color: var(--hx-text);
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 0;
+}
+.aix-repository-field input::placeholder {
+    color: var(--hx-muted);
+    font-size: 13px;
+}
+.aix-repository-field input:focus-visible {
+    outline: 2px solid var(--hx-accent-text);
+    outline-offset: 2px;
+}
+.aix-repository-field input[aria-invalid="true"] {
+    border-color: #f18c97;
+}
+.aix-repository-field a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--hx-accent-text);
+    font-size: 13px;
+    margin-top: 9px;
+}
+.aix-repository-form .aix-primary {
+    justify-self: start;
+}
+.aix-repository-form .aix-repository-error {
+    color: #f18c97;
+}
+[data-theme="day"] .aix-repository-form .aix-repository-error {
+    color: #a20e31;
+}
+.aix-repository-form .aix-repository-saved {
+    color: var(--hx-accent-text);
+}
+@media (max-width: 767px) {
+    .aix-repository-form {
+        gap: 18px;
+    }
+    .aix-repository-success h3,
+    .aix-repository-form h3 {
+        font-size: 19px;
+    }
+    .aix-repository-form .aix-primary {
+        width: 100%;
+    }
+}

@@ -110,6 +110,9 @@ const fallbackRegistrationFields = [
 ];
 
 const registrationAnswers = (registration) => ({
+    githubRepository: registration.github_repository_url || "",
+    modelscopeRepository: registration.modelscope_repository_url || "",
+    repositoriesUpdatedAt: registration.repositories_updated_at || "",
     name: registration.name,
     studentId: registration.student_id,
     major: registration.major,
@@ -135,7 +138,14 @@ const registrationFieldsByEvent = (events) =>
             ),
         ])
     );
-const fallbackFieldsById = new Map(fallbackRegistrationFields.map((field) => [field.id, field]));
+const fallbackFieldsById = new Map(
+    [
+        ...fallbackRegistrationFields,
+        { id: "githubRepository", label: "GitHub 仓库" },
+        { id: "modelscopeRepository", label: "魔搭社区仓库" },
+        { id: "repositoriesUpdatedAt", label: "仓库提交时间" },
+    ].map((field) => [field.id, field])
+);
 const registrationField = (fieldsByEvent, eventKey, fieldId) =>
     fieldsByEvent.get(eventKey)?.get(fieldId) ||
     fallbackFieldsById.get(fieldId) || { id: fieldId, label: fieldId };

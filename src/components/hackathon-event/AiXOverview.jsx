@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     ArrowDown,
     ArrowRight,
@@ -9,6 +10,8 @@ import {
     Infinity as InfinityIcon,
     MapPin,
     Plus,
+    Pause,
+    Play,
     UserRound,
     UsersRound,
 } from "lucide-react";
@@ -28,6 +31,7 @@ export default function AiXOverview({
     registrationDisabled,
 }) {
     const { t } = useTranslation();
+    const [motionPaused, setMotionPaused] = useState(false);
     const agenda = t("aix.landing.agenda", { returnObjects: true });
     const partners = t("aix.landing.partners", { returnObjects: true });
     return (
@@ -80,7 +84,7 @@ export default function AiXOverview({
                         </button>
                     </div>
                 </div>
-                <div className="aix-pixel-field" aria-hidden="true">
+                <div className="aix-pixel-field" data-motion-paused={motionPaused}>
                     <img
                         src="/images/hackathon/ai-x/pixel-x.svg"
                         alt=""
@@ -88,12 +92,25 @@ export default function AiXOverview({
                         height="640"
                         fetchPriority="high"
                     />
-                    <span className="aix-pixel-caption">
+                    <span className="aix-pixel-caption" aria-hidden="true">
                         Agent /<br />
                         Skill /<br />
                         {t("aix.landing.application")}
                         <i />
                     </span>
+                    <button
+                        type="button"
+                        className="aix-motion-toggle"
+                        onClick={() => setMotionPaused(!motionPaused)}
+                        aria-label={t(
+                            motionPaused ? "aix.landing.resumeMotion" : "aix.landing.pauseMotion"
+                        )}
+                        title={t(
+                            motionPaused ? "aix.landing.resumeMotion" : "aix.landing.pauseMotion"
+                        )}
+                    >
+                        {motionPaused ? <Play size={15} /> : <Pause size={15} />}
+                    </button>
                 </div>
             </section>
             <section className="aix-tracks aix-wrap" aria-label={t("aix.tracksKicker")}>

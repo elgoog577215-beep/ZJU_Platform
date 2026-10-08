@@ -81,6 +81,9 @@ export function classifyAudit(report, mitigationVerified) {
         const next = new Set([...visiting, name]);
         return item.via.every((via) => {
             if (typeof via === "string") return mitigated(via, next);
+            // npm propagates the maximum severity across all branches. A known
+            // low/moderate leaf must not keep a patched high branch at high.
+            if (["info", "low", "moderate"].includes(via.severity)) return true;
             return (
                 mitigationVerified &&
                 name === "braces" &&

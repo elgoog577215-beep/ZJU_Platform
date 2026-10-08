@@ -85,6 +85,9 @@ echo "Release payload validated"
 caddy validate --config /etc/caddy/Caddyfile
 echo "Caddy configuration validated"
 
+# A verified SQLite snapshot is required before any migration can run.
+node "$payload/server/scripts/backup-release-database.js" "$app_root/server" "$release_id"
+
 switched=0
 rollback() {
   code=$?

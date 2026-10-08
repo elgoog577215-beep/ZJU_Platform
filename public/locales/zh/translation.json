@@ -5643,7 +5643,30 @@
             "heroDescription": "用 AI 解决学习、科研、校园与产业中的真实问题。",
             "application": "应用",
             "bothTracks": "支持同时报名两条赛道",
-            "venues": ["北2112", "三墩镇元空间"]
+            "venues": ["北2112", "三墩镇元空间"],
+            "pauseMotion": "暂停荧光动效",
+            "resumeMotion": "播放荧光动效"
+        },
+        "repositories": {
+            "receipt": "报名编号 #{{id}} · 报名信息已保存",
+            "viewRegistration": "查看报名信息",
+            "title": "提交参赛仓库",
+            "description": "可以先提交一个仓库，稍后补全另一个。赛事结束前可修改，保存后主办方可查看。",
+            "github": "GitHub 仓库",
+            "modelscope": "魔搭社区仓库",
+            "githubHint": "填写仓库首页的 HTTPS 地址。",
+            "modelscopeHint": "支持魔搭创空间、模型库或数据集仓库地址。",
+            "openSaved": "查看已提交仓库",
+            "save": "保存仓库地址",
+            "saving": "正在保存…",
+            "saved": "仓库地址已保存，可重新登录查看。",
+            "failed": "保存失败，请重试。已填写的地址会保留。",
+            "empty": "请至少填写一个仓库地址。",
+            "closed": "赛事已结束，仓库提交已关闭；已提交地址仍可查看。",
+            "invalid": {
+                "github": "请填写 https://github.com/用户名/仓库名，不要附带分支、参数或登录凭据。",
+                "modelscope": "请填写魔搭创空间、模型库或数据集的 HTTPS 仓库首页地址，不要附带参数或登录凭据。"
+            }
         }
     },
     "eventWorkspace": {

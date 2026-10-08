@@ -244,8 +244,8 @@
 :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .lottery-event :is(button, a, input) {
     border-radius: 0;
 }
-:root[data-theme="day"] .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-pixel-field img {
-    filter: brightness(0.53) saturate(0.85);
+:root[data-theme="day"] .hx-workspace[data-event="zhekesong-ai-x-2026"] .aix-pixel-field {
+    --aix-pixel-tone: brightness(0.53) saturate(0.85);
 }
 @media (max-width: 1100px) {
     :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
