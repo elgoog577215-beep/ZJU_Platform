@@ -812,3 +812,7 @@
         font-size: 26px;
     }
 }
+
+.aix-registration-page #registration-form > .pointer-events-none {
+    display: none;
+}

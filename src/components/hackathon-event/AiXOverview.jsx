@@ -66,7 +66,9 @@ export default function AiXOverview({
                         to={getEventUrl("zhekesong-current", "results")}
                     >
                         <img
-                            src="/images/hackathon/ai-x/first-edition-building.webp"
+                            src="/images/hackathon/ai-x/first-edition-building-1280.webp"
+                            srcSet="/images/hackathon/ai-x/first-edition-building-640.webp 640w, /images/hackathon/ai-x/first-edition-building-1280.webp 1280w, /images/hackathon/ai-x/first-edition-building.webp 1920w"
+                            sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1100px) 45vw, 570px"
                             alt={t("aix.buildingAlt")}
                             width="1920"
                             height="1440"
