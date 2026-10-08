@@ -209,34 +209,28 @@ const saveMyRepositories = async (req, res, next) => {
             /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(rawEnd) ? `${rawEnd}:00+08:00` : rawEnd
         );
         if (!Number.isFinite(endAt) || Date.now() >= endAt)
-            return res
-                .status(403)
-                .json({
-                    code: "HACKATHON_REPOSITORIES_CLOSED",
-                    error: "本届赛事已结束，仓库提交已关闭",
-                });
+            return res.status(403).json({
+                code: "HACKATHON_REPOSITORIES_CLOSED",
+                error: "本届赛事已结束，仓库提交已关闭",
+            });
         let githubUrl, modelscopeUrl;
         try {
             githubUrl = normalizeRepositoryUrl(req.body?.githubUrl, "github");
         } catch {
-            return res
-                .status(400)
-                .json({
-                    code: "HACKATHON_REPOSITORY_INVALID",
-                    field: "githubUrl",
-                    error: "请填写有效的 GitHub 仓库 HTTPS 地址",
-                });
+            return res.status(400).json({
+                code: "HACKATHON_REPOSITORY_INVALID",
+                field: "githubUrl",
+                error: "请填写有效的 GitHub 仓库 HTTPS 地址",
+            });
         }
         try {
             modelscopeUrl = normalizeRepositoryUrl(req.body?.modelscopeUrl, "modelscope");
         } catch {
-            return res
-                .status(400)
-                .json({
-                    code: "HACKATHON_REPOSITORY_INVALID",
-                    field: "modelscopeUrl",
-                    error: "请填写有效的魔搭模型、数据集或创空间 HTTPS 地址",
-                });
+            return res.status(400).json({
+                code: "HACKATHON_REPOSITORY_INVALID",
+                field: "modelscopeUrl",
+                error: "请填写有效的魔搭模型、数据集或创空间 HTTPS 地址",
+            });
         }
         if (!githubUrl && !modelscopeUrl)
             return res
@@ -249,12 +243,10 @@ const saveMyRepositories = async (req, res, next) => {
         );
         res.setHeader("Cache-Control", "no-store");
         if (!result.changes)
-            return res
-                .status(403)
-                .json({
-                    code: "HACKATHON_REGISTRATION_REQUIRED",
-                    error: "报名记录不存在，请刷新重试",
-                });
+            return res.status(403).json({
+                code: "HACKATHON_REGISTRATION_REQUIRED",
+                error: "报名记录不存在，请刷新重试",
+            });
         res.json({ repositories: { githubUrl, modelscopeUrl, updatedAt } });
     } catch (error) {
         next(error);
