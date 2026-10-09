@@ -33,10 +33,6 @@ export default function HackathonWorkspace({ template, schedule }) {
     }, [user?.id, event.key]);
     const workspaceRef = useRef(null);
     useLayoutEffect(() => {
-        if (event.key === "zhekesong-ai-x-2026") {
-            workspaceRef.current?.style.setProperty("--site-nav-height", "0px");
-            return;
-        }
         const navbar = document.querySelector("[data-site-navbar]");
         if (!navbar) return;
         const measure = () =>
@@ -115,21 +111,25 @@ export default function HackathonWorkspace({ template, schedule }) {
                     onChange={(key) => navigate(getEventUrl(key, view))}
                 />
                 <nav className="hx-nav" aria-label={t("aix.navigation")}>
-                    {getEventViews(event.key).map((item) => (
-                        <Link
-                            key={item}
-                            to={getEventUrl(event.key, item)}
-                            aria-current={
-                                (view === "register" ? "intro" : view) === item ? "page" : undefined
-                            }
-                        >
-                            {t(
-                                event.key === "zhekesong-ai-x-2026"
-                                    ? `aix.refined.tabs.${item}`
-                                    : `eventWorkspace.tabs.${item}`
-                            )}
-                        </Link>
-                    ))}
+                    {getEventViews(event.key)
+                        .filter((item) => event.key !== "zhekesong-ai-x-2026" || item !== "intro")
+                        .map((item) => (
+                            <Link
+                                key={item}
+                                to={getEventUrl(event.key, item)}
+                                aria-current={
+                                    (view === "register" ? "intro" : view) === item
+                                        ? "page"
+                                        : undefined
+                                }
+                            >
+                                {t(
+                                    event.key === "zhekesong-ai-x-2026"
+                                        ? `aix.refined.tabs.${item}`
+                                        : `eventWorkspace.tabs.${item}`
+                                )}
+                            </Link>
+                        ))}
                 </nav>
                 <div className="hx-event-actions">
                     <Link

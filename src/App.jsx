@@ -35,7 +35,6 @@ import { WECHAT_LOGIN_REMEMBER_QUERY } from "./utils/wechatMiniProgramBridge";
 import { getStoredAuthToken } from "./shared/authTokenStorage";
 
 import Navbar from "./components/Navbar";
-import { getEventKey } from "./utils/hackathonRoute";
 import MobileNavbar from "./components/MobileNavbar";
 import Footer from "./components/Footer";
 import LoadingScreen from "./components/LoadingScreen";
@@ -323,7 +322,6 @@ const AppContent = () => {
     const location = useLocation();
     const { t } = useTranslation();
     const isAdminRoute = location.pathname.startsWith("/admin");
-    const hideSiteNavigation = getEventKey(location) === "zhekesong-ai-x-2026";
     const isHomeRoute = location.pathname === "/";
     const isAboutRoute = location.pathname === "/about";
     const isDownloadRoute = location.pathname === "/download";
@@ -458,11 +456,7 @@ const AppContent = () => {
                     {t("common.skip_to_main")}
                 </a>
                 <ErrorBoundary variant="inline" silent>
-                    <Navbar
-                        miniProgramMode={isMiniProgramMode}
-                        showAppDownload={showAppDownload}
-                        chromeHidden={hideSiteNavigation}
-                    />
+                    <Navbar miniProgramMode={isMiniProgramMode} showAppDownload={showAppDownload} />
                 </ErrorBoundary>
                 {!isAdminRoute &&
                     cursorEnabled &&

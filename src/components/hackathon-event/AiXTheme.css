@@ -360,8 +360,8 @@
         padding-inline: 16px;
     }
     :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav {
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        grid-template-columns: 1fr;
+        gap: 0;
     }
     :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a {
         min-height: 44px;
