@@ -1,11 +1,14 @@
 import AiXPartnerLogos, { AiXBrand } from "./AiXPartnerLogos";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     ArrowDown,
     ArrowRight,
     ArrowUpRight,
     CalendarDays,
     Clock3,
+    Mail,
+    Phone,
+    X,
     FileText,
     Gift,
     Infinity as InfinityIcon,
@@ -21,10 +24,11 @@ import { Link } from "react-router-dom";
 import { getEventUrl } from "../../utils/hackathonRoute";
 import "./AiXOverview.css";
 
-// The October 8 event brief supplies editorial content. Registration and submissions
+// The latest October 9 event brief supplies editorial content. Registration and submissions
 // continue to use the event template and existing authenticated workflows.
 export default function AiXOverview({
     state,
+    now,
     onAgenda,
     switchView,
     onRegister,
@@ -33,6 +37,8 @@ export default function AiXOverview({
 }) {
     const { t } = useTranslation();
     const [motionPaused, setMotionPaused] = useState(false);
+    const qrDialog = useRef(null);
+    const qrValid = now < Date.parse("2026-10-17T00:00:00+08:00");
     const agenda = t("aix.landing.agenda", { returnObjects: true });
     return (
         <div className="aix-landing">
@@ -81,6 +87,18 @@ export default function AiXOverview({
                         <button className="aix-secondary" onClick={() => switchView("challenges")}>
                             {t("aix.viewChallenges")}
                             <ArrowUpRight size={21} />
+                        </button>
+                        <button
+                            type="button"
+                            className="aix-mobile-motion"
+                            onClick={() => setMotionPaused(!motionPaused)}
+                            aria-label={t(
+                                motionPaused
+                                    ? "aix.landing.resumeMotion"
+                                    : "aix.landing.pauseMotion"
+                            )}
+                        >
+                            {motionPaused ? <Play size={16} /> : <Pause size={16} />}
                         </button>
                     </div>
                 </div>
@@ -182,7 +200,6 @@ export default function AiXOverview({
             >
                 <div className="aix-section-heading">
                     <div>
-                        <p className="aix-eyebrow">{t("aix.agendaTitle")}</p>
                         <h2 id="aix-agenda-title">{t("aix.landing.agendaTitle")}</h2>
                     </div>
                     <p>{t("aix.planned")}</p>
@@ -221,10 +238,19 @@ export default function AiXOverview({
             <section className="aix-section aix-wrap" aria-labelledby="aix-forums-title">
                 <div className="aix-section-heading">
                     <div>
-                        <p className="aix-eyebrow">{t("aix.forumsKicker")}</p>
                         <h2 id="aix-forums-title">{t("aix.forumsTitle")}</h2>
                     </div>
                     <p>{t("aix.forumsDescription")}</p>
+                </div>
+                <div className="aix-opening-guests">
+                    <span>{t("aix.landing.openingLabel")}</span>
+                    {t("aix.landing.openingGuests", { returnObjects: true }).map((guest) => (
+                        <div key={guest.name}>
+                            <strong>{guest.name}</strong>
+                            <span>{guest.role}</span>
+                            <small>{guest.occasion}</small>
+                        </div>
+                    ))}
                 </div>
                 <div className="aix-forum-pair">
                     {["technology", "entrepreneurship"].map((forum) => (
@@ -260,6 +286,28 @@ export default function AiXOverview({
                     ))}
                 </div>
             </section>
+            <section className="aix-section aix-wrap" aria-labelledby="aix-rewards-title">
+                <div className="aix-section-heading">
+                    <h2 id="aix-rewards-title">{t("aix.landing.rewardsTitle")}</h2>
+                    <p>{t("aix.landing.rewardsIntro")}</p>
+                </div>
+                <div className="aix-rewards-grid">
+                    {t("aix.landing.rewards", { returnObjects: true }).map((reward) => (
+                        <article key={reward.label}>
+                            <h3>{reward.label}</h3>
+                            <strong className="aix-reward-value">{reward.value}</strong>
+                            <span>{reward.note}</span>
+                            <ul>
+                                {reward.items.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ul>
+                            <p>{reward.detail}</p>
+                        </article>
+                    ))}
+                </div>
+                <p className="aix-judges">{t("aix.landing.judges")}</p>
+            </section>
             <section className="aix-community aix-wrap">
                 <img
                     src="/images/hackathon/ai-x/first-edition-discussion.webp"
@@ -285,7 +333,6 @@ export default function AiXOverview({
             >
                 <div className="aix-section-heading">
                     <div>
-                        <p className="aix-eyebrow">{t("aix.landing.partnersLabel")}</p>
                         <h2 id="aix-partners-title">{t("aix.landing.partnersTitle")}</h2>
                     </div>
                 </div>
@@ -305,20 +352,59 @@ export default function AiXOverview({
                     </dl>
                 </details>
             </section>
-            <section className="aix-closing aix-wrap">
-                <div>
-                    <p className="aix-eyebrow">{t("aix.motto")}</p>
-                    <h2>{t("aix.landing.closing")}</h2>
+            <section className="aix-contact aix-wrap" aria-labelledby="aix-contact-title">
+                <div className="aix-contact-group">
+                    <h2 id="aix-contact-title">{t("aix.landing.contactTitle")}</h2>
+                    <p>{t("aix.landing.contactHint")}</p>
+                    {qrValid ? (
+                        <>
+                            <button
+                                className="aix-secondary"
+                                type="button"
+                                aria-haspopup="dialog"
+                                onClick={() => qrDialog.current?.showModal()}
+                            >
+                                {t("aix.landing.groupQr")}
+                                <ArrowUpRight size={18} />
+                            </button>
+                            <small>{t("aix.landing.qrExpiry")}</small>
+                        </>
+                    ) : (
+                        <p>{t("aix.landing.qrExpired")}</p>
+                    )}
                 </div>
-                <button
-                    className="aix-primary"
-                    onClick={onRegister}
-                    disabled={registrationDisabled}
-                >
-                    {t(registrationLabel)}
-                    <ArrowUpRight size={20} />
-                </button>
+                <div className="aix-contact-person">
+                    <h3>{t("aix.landing.contactLabel")}</h3>
+                    <p>{t("aix.landing.contactName")}</p>
+                    <a href="tel:18668079838">
+                        <Phone size={16} />
+                        18668079838
+                    </a>
+                    <a href="mailto:yq20070130@outlook.com">
+                        <Mail size={16} />
+                        yq20070130@outlook.com
+                    </a>
+                </div>
             </section>
+            {qrValid && (
+                <dialog
+                    ref={qrDialog}
+                    className="aix-qr-dialog"
+                    aria-label={t("aix.landing.groupQr")}
+                >
+                    <form method="dialog">
+                        <button autoFocus aria-label={t("aix.landing.closeQr")}>
+                            <X size={22} />
+                        </button>
+                    </form>
+                    <img
+                        src="/images/hackathon/ai-x/wechat-group-20261009.jpg"
+                        alt={t("aix.landing.qrAlt")}
+                        width="1280"
+                        height="1835"
+                    />
+                </dialog>
+            )}
         </div>
     );
 }

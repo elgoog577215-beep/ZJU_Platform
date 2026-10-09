@@ -125,6 +125,47 @@ test("AI+X seed preserves the old event; registration is authenticated, isolated
         );
         assert.equal(settingsResponse.body.hackathon_schedule_config, undefined);
         assert.equal(settingsResponse.body.hackathon_template_config, undefined);
+        // Huawei's initial brief is released at the opening, before development.
+        const originalProgram = structuredClone(program);
+        program.stages[0].opensAt = "2026-10-18T11:00:00+08:00";
+        program.challengeReleaseAt = "2026-10-18T09:00:00+08:00";
+        program.challenges.push({
+            id: "opening",
+            stage: "initial",
+            track: "industry",
+            title: "Opening brief",
+            published: true,
+        });
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
+        const originalNow = Date.now;
+        try {
+            for (const [instant, expected] of [
+                ["2026-10-18T08:59:59+08:00", []],
+                ["2026-10-18T09:00:00+08:00", ["opening"]],
+            ]) {
+                Date.now = () => Date.parse(instant);
+                const published = response();
+                await controller.getHackathonScheduleConfig(
+                    { path: "/hackathon/schedule" },
+                    published,
+                    next
+                );
+                const event = published.body.events.find((item) => item.event.key === eventKey);
+                assert.equal(event.event.program.challengeReleaseAt, program.challengeReleaseAt);
+                assert.deepEqual(
+                    event.event.program.challenges.map((item) => item.id),
+                    expected
+                );
+            }
+        } finally {
+            Date.now = originalNow;
+        }
+        schedule.events[1].event.program = originalProgram;
+        await db.run("UPDATE settings SET value=? WHERE key='hackathon_schedule_config'", [
+            JSON.stringify(schedule),
+        ]);
         const answers = {
             name: "Test participant",
             studentId: "TEST-001",

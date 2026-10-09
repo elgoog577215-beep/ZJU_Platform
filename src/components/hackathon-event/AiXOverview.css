@@ -1,8 +1,6 @@
-/* Reference direction: black, lime, heavy type, fine rules and a pixel X.
-   Native CSS; variance 6 / motion 2 / density 5. All content is selectable HTML. */
+/* Black and lime, with a single spacing rhythm and restrained rules. */
 .aix-landing {
     padding-top: var(--event-nav-height);
-    padding-bottom: 8px;
     font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
     line-height: 1.65;
 }
@@ -10,7 +8,8 @@
     margin: 0;
 }
 .aix-landing :is(h1, h2, h3) {
-    font-weight: 800;
+    font-weight: 780;
+    text-wrap: balance;
 }
 .aix-landing a {
     color: inherit;
@@ -22,17 +21,18 @@
 }
 .aix-landing :is(a, button, summary):focus-visible {
     outline: 2px solid var(--hx-accent-text);
-    outline-offset: 5px;
+    outline-offset: 4px;
 }
 .aix-wrap {
-    width: min(calc(100% - 96px), 1360px);
+    width: min(calc(100% - 64px), 1248px);
     margin-inline: auto;
 }
 .aix-hero {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-    gap: 14px;
-    padding-block: 32px 22px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
+    gap: 24px;
+    padding-block: 36px 28px;
     align-items: center;
 }
 .aix-hero-copy {
@@ -42,104 +42,107 @@
 }
 .aix-eyebrow {
     display: flex;
-    gap: 24px;
     align-items: center;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    gap: 16px;
     color: var(--hx-accent-text);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
 }
 .aix-hero-copy > .aix-eyebrow {
-    margin-bottom: 18px;
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 18px;
+    margin-bottom: 16px;
+    font:
+        600 15px/1.6 ui-monospace,
+        monospace;
 }
 .aix-state {
-    border: 1px solid var(--hx-line);
-    padding: 2px 12px;
-    font-size: 13px;
-    color: var(--hx-text);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 12px;
     white-space: nowrap;
+    color: var(--hx-text);
+    background: var(--hx-surface);
 }
 .aix-hero h1 {
     display: flex;
     flex-direction: column;
-    line-height: 1.1;
-    letter-spacing: -0.06em;
-    text-wrap: nowrap;
+    line-height: 1.08;
+    letter-spacing: -0.055em;
 }
 .aix-brand-title {
-    font-size: clamp(76px, 8.1vw, 118px);
+    font-size: clamp(68px, 7vw, 98px);
     font-weight: 900;
 }
 .aix-title-line {
     display: flex;
     align-items: baseline;
-    gap: 18px;
-    margin-top: 5px;
+    gap: 14px;
+    margin-top: 6px;
 }
 .aix-display {
-    font-family: "Arial Black", Arial, sans-serif;
-    font-size: clamp(72px, 7.1vw, 104px);
-    font-weight: 900;
+    font:
+        900 clamp(60px, 6.2vw, 86px)/1.1 "Arial Black",
+        Arial,
+        sans-serif;
     letter-spacing: -0.055em;
     color: var(--hx-accent-text);
 }
 .aix-title {
-    font-size: clamp(38px, 4.45vw, 66px);
+    font-size: clamp(34px, 3.7vw, 52px);
     font-weight: 900;
-    letter-spacing: -0.055em;
+    white-space: nowrap;
 }
 .aix-hero-motto {
-    font-size: clamp(24px, 2.6vw, 38px);
-    font-weight: 700;
-    letter-spacing: 0.19em;
-    margin-top: 10px !important;
+    font-size: clamp(22px, 2.2vw, 30px);
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    margin-top: 14px !important;
 }
 .aix-hero-intro {
-    font-size: clamp(16px, 1.6vw, 22px);
-    line-height: 1.75;
+    font-size: 16px;
+    line-height: 1.8;
     color: var(--hx-muted);
     margin-top: 10px !important;
-    max-width: 31em;
+    max-width: 35em;
 }
 .aix-event-facts {
     display: grid;
-    grid-template-columns: 1.12fr 1fr;
+    grid-template-columns: 0.8fr 1.2fr;
     gap: 22px;
-    margin-top: 22px !important;
-}
-.aix-event-facts > div {
-    border-left: 1px solid var(--hx-muted);
-    padding-left: 17px;
+    margin-top: 24px !important;
 }
 .aix-event-facts dt {
     font-size: 12px;
     color: var(--hx-muted);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 .aix-event-facts dd {
-    font-size: clamp(17px, 1.8vw, 25px);
-    font-weight: 750;
-    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 650;
 }
 .aix-event-facts .aix-date {
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: clamp(17px, 1.9vw, 27px);
-    letter-spacing: -0.075em;
+    font:
+        700 clamp(16px, 1.8vw, 23px)/1.7 ui-monospace,
+        monospace;
+    letter-spacing: -0.055em;
+    white-space: nowrap;
+}
+.aix-event-venues {
+    display: grid;
+    gap: 4px;
 }
 .aix-onsite {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     margin-top: 10px !important;
     color: var(--hx-muted);
-    font-size: 15px;
+    font-size: 12px;
 }
 .aix-hero-actions {
     display: flex;
-    align-items: center;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-top: 20px;
 }
 .aix-primary,
@@ -147,22 +150,22 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 22px;
-    padding: 12px 25px;
-    min-height: 52px;
-    font-size: 17px !important;
-    font-weight: 750 !important;
-    white-space: nowrap;
-    border-radius: 0;
+    gap: 16px;
+    min-height: 48px;
+    padding: 10px 22px;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.5;
+    border-radius: 6px;
+    text-decoration: none;
     transition:
         background 0.16s,
-        color 0.16s,
         border-color 0.16s;
 }
 .aix-primary {
     background: var(--hx-accent);
     border: 1px solid var(--hx-accent);
-    color: #101507;
+    color: #101507 !important;
 }
 .aix-primary:hover:not(:disabled) {
     background: #d3ff8c;
@@ -173,747 +176,35 @@
     cursor: not-allowed;
 }
 .aix-secondary {
-    border: 1px solid var(--hx-muted);
     background: transparent;
+    border: 1px solid var(--hx-line);
     color: var(--hx-text);
 }
 .aix-secondary:hover {
-    color: var(--hx-accent-text);
     border-color: var(--hx-accent-text);
+    background: var(--hx-surface);
 }
 .aix-pixel-field {
     position: relative;
     width: 100%;
-    align-self: center;
+    max-width: 480px;
+    justify-self: end;
 }
 .aix-pixel-field img {
     display: block;
     width: 100%;
     height: auto;
+    animation: aix-x-breathe 4.8s ease-in-out infinite;
 }
 .aix-pixel-caption {
-    position: absolute;
-    top: 37%;
-    right: 7%;
-    font:
-        12px/1.8 ui-monospace,
-        monospace;
-    color: var(--hx-muted);
-}
-.aix-pixel-caption i {
-    display: block;
-    width: 12px;
-    height: 2px;
-    margin-top: 9px;
-    background: var(--hx-accent-text);
-}
-.aix-tracks {
-    padding-block: 24px 0;
-    border-top: 1px solid var(--hx-line);
-}
-.aix-track-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-}
-.aix-track-card {
-    position: relative;
-    padding: 20px 24px 18px;
-    border: 1px solid var(--hx-line);
-    background: var(--hx-panel);
-    min-width: 0;
-    transition: border-color 0.18s;
-}
-.aix-track-card::before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    right: -1px;
-    width: 17px;
-    height: 17px;
-    background: linear-gradient(
-        45deg,
-        transparent calc(50% - 0.5px),
-        var(--hx-line) 50%,
-        var(--hx-bg) calc(50% + 0.5px)
-    );
-}
-.aix-track-card:has(button:is(:hover, :focus-visible)) {
-    border-color: var(--hx-accent-text);
-}
-.aix-track-index {
-    color: var(--hx-accent-text);
-    font:
-        600 15px/1.5 ui-monospace,
-        monospace;
-    letter-spacing: 0.06em;
-}
-.hx-workspace .aix-registration-page .aix-track-card h2 {
-    font-size: 35px;
-    line-height: 1.35;
-    letter-spacing: -0.035em;
-    margin-top: 3px;
-}
-.aix-track-card > p {
-    color: var(--hx-muted);
-    font-size: 18px;
-    font-weight: 550;
-    padding-right: 32px;
-}
-.aix-track-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-block: 12px 10px;
-}
-.aix-track-tags span {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 2px 11px;
-    border: 1px solid var(--hx-line);
-    font-size: 13px;
-}
-.aix-track-support {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-size: 13px;
-    color: var(--hx-muted);
-}
-.aix-track-arrow {
-    position: absolute;
-    top: 66px;
-    right: 20px;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    color: var(--hx-muted);
-    background: none;
-    border: 0;
-}
-.aix-track-arrow:hover {
-    color: var(--hx-accent-text);
-}
-.aix-track-footnote {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    color: var(--hx-muted);
-    font-size: 13px;
-    padding-block: 12px;
-}
-.aix-track-footnote :is(span, a) {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 32px;
-}
-.aix-track-footnote a:hover {
-    color: var(--hx-accent-text);
-}
-.aix-section-nav {
-    margin-top: 28px;
-    border-block: 1px solid var(--hx-line);
-    padding-block: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    font-size: 13px;
-    color: var(--hx-muted);
-}
-.aix-agenda-link {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-height: 44px;
-    white-space: nowrap;
-}
-.aix-agenda-link:hover {
-    color: var(--hx-accent-text);
-}
-.aix-section {
-    padding-top: 76px;
-}
-.aix-section-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 40px;
-    margin-bottom: 32px;
-}
-.aix-section-heading .aix-eyebrow {
-    margin-bottom: 12px;
-}
-.hx-workspace .aix-registration-page .aix-landing h2 {
-    font-size: clamp(27px, 2.65vw, 38px);
-    line-height: 1.4;
-    letter-spacing: -0.035em;
-    font-weight: 800;
-}
-.aix-section-heading > p {
-    max-width: 26em;
-    font-size: 14px;
-    line-height: 1.9;
-    color: var(--hx-muted);
-}
-#hx-program {
-    scroll-margin-top: 100px;
-}
-.aix-agenda-grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-.aix-agenda-grid li {
-    border-top: 1px solid var(--hx-line);
-    padding: 24px 22px 8px 0;
-    position: relative;
-}
-.aix-agenda-grid li::before {
-    content: "";
-    position: absolute;
-    top: -4px;
-    left: 0;
-    width: 7px;
-    height: 7px;
-    background: var(--hx-accent-text);
-}
-.aix-agenda-grid time {
-    font:
-        600 18px/1.4 ui-monospace,
-        monospace;
-    letter-spacing: -0.045em;
-    color: var(--hx-accent-text);
-}
-.aix-agenda-grid h3 {
-    font-size: 16px;
-    line-height: 1.65;
-    margin-block: 17px 10px;
-}
-.aix-agenda-grid p {
-    font-size: 13px;
-    line-height: 1.9;
-    color: var(--hx-muted);
-}
-.aix-agenda-details {
-    margin-top: 30px;
-    border-block: 1px solid var(--hx-line);
-}
-.aix-agenda-details summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    cursor: pointer;
-    list-style: none;
-    padding: 18px 0;
-    font-size: 14px;
-}
-.aix-agenda-details summary::-webkit-details-marker {
     display: none;
-}
-.aix-agenda-details[open] summary svg {
-    transform: rotate(45deg);
-}
-.aix-day-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    padding: 12px 0 28px;
-}
-.aix-day-grid h3 {
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-.aix-day-grid dl {
-    display: grid;
-    gap: 16px;
-}
-.aix-day-grid dl > div {
-    display: grid;
-    grid-template-columns: 125px 1fr;
-    gap: 16px;
-    font-size: 13px;
-}
-.aix-day-grid dt {
-    color: var(--hx-muted);
-    font-variant-numeric: tabular-nums;
-}
-.aix-forum-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-}
-.aix-forum-pair article {
-    border-top: 1px solid var(--hx-line);
-    padding-top: 24px;
-}
-.aix-forum-date {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 26px;
-}
-.aix-forum-date strong {
-    font:
-        700 42px/1 ui-monospace,
-        monospace;
-    letter-spacing: -0.04em;
-    color: var(--hx-accent-text);
-}
-.aix-forum-date > span {
-    font-size: 14px;
-    color: var(--hx-muted);
-}
-.aix-forum-pair h3 {
-    font-size: 26px;
-}
-.aix-forum-pair article > p {
-    color: var(--hx-muted);
-    font-size: 15px;
-    margin-top: 14px;
-    line-height: 1.85;
-}
-.aix-forum-location {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    margin-top: 20px;
-    color: var(--hx-muted);
-}
-.aix-speakers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px 24px;
-    border-top: 1px solid var(--hx-line);
-    padding-top: 24px;
-    margin-top: 26px;
-}
-.aix-speakers strong {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    flex-wrap: wrap;
-    font-size: 16px;
-    font-weight: 650;
-}
-.aix-speakers small {
-    font-size: 10px;
-    border: 1px solid var(--hx-line);
-    padding: 0 5px;
-    color: var(--hx-muted);
-    font-weight: 400;
-}
-.aix-speakers div > span {
-    display: block;
-    font-size: 12px;
-    color: var(--hx-muted);
-    margin-top: 5px;
-}
-.aix-community {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-top: 76px;
-    background: var(--hx-panel);
-    border: 1px solid var(--hx-line);
-}
-.aix-community > img {
-    width: 100%;
-    height: 100%;
-    min-height: 320px;
-    object-fit: cover;
-}
-.aix-community > div {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-}
-.aix-community h2 {
-    margin-block: 16px 20px;
-}
-.aix-community div > p:not(.aix-eyebrow) {
-    font-size: 15px;
-    color: var(--hx-muted);
-    line-height: 1.9;
-}
-.aix-community a {
-    display: inline-flex;
-    gap: 16px;
-    align-items: center;
-    font-size: 14px;
-    margin-top: 20px;
-    min-height: 44px;
-}
-.aix-community a:hover {
-    color: var(--hx-accent-text);
-}
-.aix-history-credit {
-    font-size: 11px;
-    color: var(--hx-muted);
-    margin-top: 20px;
-}
-.aix-partners dl {
-    display: grid;
-    gap: 22px;
-}
-.aix-partners dl > div {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 32px;
-}
-.aix-partners dt {
-    color: var(--hx-muted);
-    font-size: 13px;
-    padding-top: 3px;
-}
-.aix-partners dd {
-    font-size: 16px;
-    line-height: 1.9;
-}
-.aix-partners .aix-agenda-details dl {
-    padding-block: 10px 28px;
-}
-.aix-closing {
-    margin-top: 76px;
-    margin-bottom: 56px;
-    padding: 34px 0;
-    border-top: 1px solid var(--hx-line);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-}
-.aix-closing h2 {
-    margin-top: 12px;
-}
-.aix-registration-page #registration-form > .pointer-events-none {
-    display: none;
-}
-@media (min-width: 1550px) {
-    .aix-hero {
-        padding-block: 56px 40px;
-    }
-}
-@media (max-width: 1100px) {
-    .aix-wrap {
-        width: calc(100% - 56px);
-    }
-    .aix-hero {
-        gap: 8px;
-    }
-    .aix-brand-title {
-        font-size: 82px;
-    }
-    .aix-display {
-        font-size: 68px;
-    }
-    .aix-title {
-        font-size: 39px;
-    }
-    .aix-title-line {
-        gap: 12px;
-    }
-    .aix-hero-motto {
-        font-size: 25px;
-    }
-    .aix-event-facts {
-        gap: 14px;
-    }
-    .aix-event-facts dd,
-    .aix-event-facts .aix-date {
-        font-size: 17px;
-    }
-    .aix-event-facts > div {
-        padding-left: 10px;
-    }
-    .aix-track-card > p {
-        font-size: 16px;
-    }
-    .aix-track-pair {
-        gap: 20px;
-    }
-    .aix-track-card {
-        padding-inline: 18px;
-    }
-    .aix-track-tags {
-        gap: 8px;
-    }
-    .aix-track-tags span {
-        padding-inline: 7px;
-        font-size: 12px;
-    }
-    .aix-agenda-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 28px 16px;
-    }
-    .aix-forum-pair {
-        gap: 32px;
-    }
-    .aix-community > div {
-        padding: 28px;
-    }
-}
-@media (max-width: 767px) {
-    .aix-wrap {
-        width: calc(100% - 36px);
-    }
-    .aix-hero {
-        grid-template-columns: 1fr;
-        padding-block: 28px 20px;
-        gap: 12px;
-    }
-    .aix-hero-copy > .aix-eyebrow {
-        margin-bottom: 20px;
-        justify-content: space-between;
-        font-size: 14px;
-    }
-    .aix-state {
-        font-size: 11px;
-        padding-inline: 8px;
-    }
-    .aix-brand-title {
-        font-size: clamp(68px, 20vw, 100px);
-    }
-    .aix-display {
-        font-size: clamp(50px, 14.5vw, 72px);
-    }
-    .aix-title {
-        font-size: clamp(28px, 7.9vw, 40px);
-    }
-    .aix-title-line {
-        gap: 11px;
-    }
-    .aix-hero-motto {
-        font-size: 24px;
-        letter-spacing: 0.14em;
-        margin-top: 10px !important;
-    }
-    .aix-hero-intro {
-        font-size: 15px;
-        margin-top: 12px !important;
-        max-width: 27em;
-    }
-    .aix-event-facts {
-        margin-top: 24px !important;
-        gap: 12px;
-    }
-    .aix-event-facts dd,
-    .aix-event-facts .aix-date {
-        font-size: clamp(13px, 3.8vw, 18px);
-    }
-    .aix-event-facts dt {
-        font-size: 11px;
-    }
-    .aix-onsite {
-        font-size: 13px;
-        margin-top: 12px !important;
-    }
-    .aix-hero-actions {
-        margin-top: 22px;
-        gap: 12px;
-    }
-    .aix-hero-actions :is(.aix-primary, .aix-secondary) {
-        flex: 1;
-        padding-inline: 14px;
-        min-height: 50px;
-        font-size: 16px !important;
-        gap: 14px;
-    }
-    .aix-pixel-field {
-        max-width: 340px;
-        margin: 0 auto;
-    }
-    .aix-pixel-caption {
-        font-size: 10px;
-    }
-    .aix-track-pair,
-    .aix-forum-pair,
-    .aix-community,
-    .aix-day-grid {
-        grid-template-columns: 1fr;
-    }
-    .aix-track-card {
-        padding: 20px;
-    }
-    .hx-workspace .aix-registration-page .aix-track-card h2 {
-        font-size: 30px;
-    }
-    .aix-track-footnote {
-        gap: 8px;
-        font-size: 11px;
-    }
-    .aix-track-footnote :is(span, a) {
-        gap: 6px;
-    }
-    .aix-section-nav {
-        align-items: flex-start;
-        font-size: 12px;
-    }
-    .aix-section-nav > span {
-        max-width: 18em;
-    }
-    .aix-section {
-        padding-top: 52px;
-    }
-    .aix-section-heading {
-        display: block;
-        margin-bottom: 24px;
-    }
-    .aix-section-heading > p {
-        margin-top: 14px;
-        max-width: 100%;
-    }
-    .aix-agenda-grid {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-    .aix-agenda-grid li {
-        border-top: 0;
-        border-left: 1px solid var(--hx-line);
-        margin-left: 4px;
-        padding: 0 0 30px 24px;
-    }
-    .aix-agenda-grid li:last-child {
-        padding-bottom: 0;
-    }
-    .aix-agenda-grid li::before {
-        top: 6px;
-        left: -4px;
-    }
-    .aix-agenda-grid h3 {
-        margin-block: 7px 5px;
-    }
-    .aix-agenda-grid p {
-        font-size: 14px;
-    }
-    .aix-day-grid {
-        gap: 28px;
-    }
-    .aix-day-grid dl > div {
-        grid-template-columns: 111px 1fr;
-        gap: 12px;
-    }
-    .aix-forum-pair {
-        gap: 38px;
-    }
-    .aix-community {
-        margin-top: 52px;
-    }
-    .aix-community > img {
-        min-height: 0;
-        height: auto;
-        aspect-ratio: 1.5;
-    }
-    .aix-community > div {
-        padding: 28px 24px;
-    }
-    .aix-partners dl > div {
-        grid-template-columns: 1fr;
-        gap: 5px;
-    }
-    .aix-partners dd {
-        font-size: 15px;
-    }
-    .aix-closing {
-        margin-top: 48px;
-        margin-bottom: 32px;
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 24px;
-    }
-    #hx-program {
-        scroll-margin-top: 140px;
-    }
-}
-/* Longer English labels use a stacked title, with the same hierarchy. */
-:lang(en) .aix-brand-title {
-    font-size: clamp(60px, 6.6vw, 96px);
-    letter-spacing: -0.065em;
-}
-:lang(en) .aix-title-line {
-    flex-wrap: wrap;
-    gap: 0 16px;
-}
-:lang(en) .aix-title {
-    font-size: clamp(27px, 3.3vw, 45px);
-}
-:lang(en) .aix-hero-motto {
-    font-size: 21px;
-    letter-spacing: 0.03em;
-}
-:lang(en) .aix-event-facts {
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-:lang(en) .aix-event-facts dd {
-    white-space: normal;
-}
-@media (prefers-reduced-motion: reduce) {
-    .aix-landing * {
-        transition: none !important;
-    }
-}
-.aix-event-venues {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 14px;
-}
-.aix-event-venues > span {
-    white-space: nowrap;
-}
-.aix-event-facts .aix-event-venues {
-    font-size: clamp(16px, 1.55vw, 22px);
-}
-.hx-workspace .aix-registration-page .aix-track-card h2 {
-    font-size: clamp(27px, 2.65vw, 38px);
-}
-@media (max-width: 767px) {
-    .aix-event-facts .aix-event-venues {
-        font-size: 15px;
-    }
-    .aix-event-venues {
-        display: grid;
-        gap: 0;
-    }
-    :lang(en) .aix-hero-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
-    :lang(en) .aix-hero-actions :is(.aix-primary, .aix-secondary) {
-        width: 100%;
-    }
-    .hx-workspace .aix-registration-page .aix-track-card h2 {
-        font-size: 28px;
-    }
-}
-.aix-hero-actions {
-    flex-wrap: wrap;
-}
-.aix-track-card h2 {
-    padding-right: 38px;
-}
-/* Slow luminance waves keep the reference's pixel field alive without flashing. */
-.aix-pixel-field img {
-    animation: aix-x-breathe 4.8s ease-in-out infinite;
-    will-change: filter;
 }
 .aix-pixel-field::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: url("/images/hackathon/ai-x/pixel-x.svg?v=clean-20261009") center / contain
-        no-repeat;
+    background: url("/images/hackathon/ai-x/pixel-x.svg?v=clean-20261009") center/contain no-repeat;
     mask-image: linear-gradient(135deg, transparent 36%, #000 49%, transparent 62%);
     mask-size: 300% 300%;
     filter: var(--aix-pixel-tone, brightness(1)) drop-shadow(0 0 5px #b7fb50);
@@ -950,69 +241,417 @@
 }
 .aix-motion-toggle {
     position: absolute;
-    right: 24px;
-    bottom: 24px;
+    bottom: 0;
+    right: 0;
     z-index: 2;
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     border: 1px solid var(--hx-line);
     background: var(--hx-bg);
     color: var(--hx-muted);
 }
-.aix-motion-toggle:hover {
-    color: var(--hx-accent-text);
-    border-color: var(--hx-accent-text);
+.aix-tracks {
+    padding-top: 8px;
 }
-@media (prefers-reduced-motion: reduce) {
-    .aix-pixel-field img {
-        animation: none;
-        will-change: auto;
-    }
-    .aix-pixel-field::after,
-    .aix-motion-toggle {
-        display: none;
-    }
-}
-/* Keep structure in spacing and surfaces; reserve rules for navigation and forms. */
-.aix-tracks,
-.aix-section,
-.aix-closing,
-.aix-community {
-    border-top: 0;
+.aix-track-pair,
+.aix-forum-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
 }
 .aix-track-card {
-    border: 0;
-    padding: 28px;
-    border-radius: 12px;
+    position: relative;
+    padding: 22px 24px;
+    background: var(--hx-panel);
+    border: 1px solid var(--hx-line);
+    border-radius: 10px;
+    min-width: 0;
 }
-.aix-track-card::before {
+.aix-track-index {
+    font:
+        600 12px/1.5 ui-monospace,
+        monospace;
+    color: var(--hx-accent-text);
+}
+.hx-workspace .aix-registration-page .aix-landing h2 {
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.4;
+    font-weight: 780;
+    letter-spacing: -0.025em;
+}
+.hx-workspace .aix-registration-page .aix-track-card h2 {
+    font-size: clamp(21px, 2vw, 27px);
+    margin-block: 8px 3px;
+    padding-right: 30px;
+}
+.aix-track-card > p {
+    color: var(--hx-muted);
+    font-size: 14px;
+}
+.aix-track-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-block: 12px 8px;
+}
+.aix-track-tags span,
+.aix-track-support {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-track-arrow {
+    position: absolute;
+    top: 72px;
+    right: 12px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: none;
+    color: var(--hx-muted);
+}
+.aix-track-arrow:hover {
+    color: var(--hx-accent-text);
+}
+.aix-track-footnote {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-block: 8px;
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-track-footnote :is(span, a) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+}
+.aix-section-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-block: 8px;
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-agenda-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    white-space: nowrap;
+}
+.aix-section {
+    position: relative;
+    padding-top: 36px;
+    margin-top: 24px;
+}
+.aix-section::before,
+.aix-contact::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hx-accent-text) 32%, transparent),
+        var(--hx-line) 45%,
+        transparent
+    );
+}
+.aix-section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+.aix-section-heading > p {
+    max-width: 34em;
+    font-size: 13px;
+    color: var(--hx-muted);
+}
+#hx-program {
+    scroll-margin-top: calc(var(--event-nav-height) + 16px);
+}
+.aix-agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+.aix-agenda-grid li {
+    position: relative;
+    padding-top: 14px;
+    border-top: 1px solid var(--hx-line);
+}
+.aix-agenda-grid li::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 24px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--hx-accent-text);
+}
+.aix-agenda-grid time {
+    font:
+        600 16px/1.5 ui-monospace,
+        monospace;
+    color: var(--hx-accent-text);
+}
+.aix-agenda-grid h3 {
+    font-size: 15px;
+    margin-block: 8px 6px;
+}
+.aix-agenda-grid p {
+    font-size: 13px;
+    color: var(--hx-muted);
+}
+.aix-agenda-details {
+    margin-top: 20px;
+    border-bottom: 1px solid var(--hx-line);
+}
+.aix-agenda-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding-block: 8px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+}
+.aix-agenda-details summary::-webkit-details-marker {
     display: none;
 }
-.aix-track-tags span {
-    border: 0;
-    padding-inline: 0;
+.aix-agenda-details[open] summary svg {
+    transform: rotate(45deg);
 }
-.aix-event-facts > div {
-    border: 0;
-    padding-left: 0;
+.aix-day-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    padding-block: 12px 20px;
 }
-.aix-state {
-    border: 0;
-    background: var(--hx-surface);
-    padding: 5px 12px;
-    border-radius: 6px;
+.aix-day-grid h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
 }
-.aix-pixel-caption {
-    display: none;
+.aix-day-grid dl {
+    display: grid;
+    gap: 12px;
+}
+.aix-day-grid dl > div {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    font-size: 13px;
+}
+.aix-day-grid dt {
+    color: var(--hx-muted);
+    font-variant-numeric: tabular-nums;
+}
+.aix-opening-guests {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+.aix-opening-guests > span {
+    color: var(--hx-muted);
+}
+.aix-opening-guests > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+}
+.aix-opening-guests small {
+    grid-column: 2;
+    color: var(--hx-accent-text);
+    font-size: 11px;
+}
+.aix-opening-guests div > span {
+    color: var(--hx-muted);
+}
+.aix-forum-pair article {
+    padding: 22px 24px;
+    border-radius: 10px;
+    background: var(--hx-panel);
+}
+.aix-forum-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.aix-forum-date strong {
+    font:
+        700 26px/1.3 ui-monospace,
+        monospace;
+    color: var(--hx-accent-text);
+}
+.aix-forum-date > span {
+    font-size: 13px;
+    color: var(--hx-muted);
+}
+.aix-forum-pair h3 {
+    font-size: 20px;
+}
+.aix-forum-pair article > p {
+    font-size: 14px;
+    color: var(--hx-muted);
+    margin-top: 8px;
+}
+.aix-forum-location {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--hx-muted);
+    margin-top: 10px;
+}
+.aix-forum-location svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.aix-speakers {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hx-line);
+}
+.aix-speakers > div {
+    display: grid;
+    grid-template-columns: 94px 1fr;
+    gap: 12px;
+    font-size: 13px;
+}
+.aix-speakers strong {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.aix-speakers small {
+    font-size: 10px;
+    color: var(--hx-muted);
+    font-weight: 400;
+    white-space: nowrap;
+}
+.aix-speakers div > span {
+    color: var(--hx-muted);
+    font-size: 12px;
+}
+.aix-rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+.aix-rewards-grid article {
+    display: flex;
+    flex-direction: column;
+    padding: 22px;
+    background: var(--hx-panel);
+    border-radius: 10px;
+}
+.aix-rewards-grid h3 {
+    font-size: 14px;
+}
+.aix-reward-value {
+    font:
+        700 clamp(26px, 2.8vw, 36px)/1.4 ui-monospace,
+        monospace;
+    letter-spacing: -0.04em;
+    color: var(--hx-accent-text);
+    margin-top: 10px;
+}
+.aix-rewards-grid article > span {
+    color: var(--hx-muted);
+    font-size: 12px;
+}
+.aix-rewards-grid ul {
+    padding: 0;
+    margin: 16px 0 12px;
+    list-style: none;
+    font-size: 13px;
+    display: grid;
+    gap: 8px;
+}
+.aix-rewards-grid article > p {
+    margin-top: auto;
+    color: var(--hx-muted);
+    font-size: 12px;
+}
+.aix-judges {
+    margin-top: 16px !important;
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-community {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    margin-top: 32px;
+    background: var(--hx-panel);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.aix-community > img {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    object-fit: cover;
+}
+.aix-community > div {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+.aix-community h2 {
+    margin-block: 8px 10px;
+}
+.aix-community div > p:not(.aix-eyebrow) {
+    font-size: 14px;
+    color: var(--hx-muted);
+}
+.aix-community a {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    font-size: 13px;
+    margin-top: 8px;
+}
+.aix-history-credit {
+    font-size: 11px;
+    color: var(--hx-muted);
 }
 .aix-brand-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 150px;
-    height: 64px;
+    width: 140px;
+    height: 56px;
     flex-shrink: 0;
 }
 .aix-brand-logo img {
@@ -1031,141 +670,475 @@
 }
 .aix-brand-plate {
     background: #fff;
-    padding: 10px 16px;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border-radius: 5px;
 }
 .aix-track-card > .aix-brand-logo {
     float: right;
-    width: 102px;
-    height: 45px;
-    margin-left: 12px;
+    width: 84px;
+    height: 36px;
+    margin-left: 10px;
 }
 .aix-track-card > .aix-brand-plate {
-    padding: 6px 14px;
+    padding: 4px 10px;
 }
-.aix-partner-logo-wall {
+.aix-partner-groups {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 32px;
-    list-style: none;
-    padding: 32px 0 48px;
-    margin: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 32px;
 }
-.aix-partner-logo-wall li {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
+.aix-partner-groups > div {
     min-width: 0;
 }
-.aix-partner-logo-wall li > span:last-child {
-    color: var(--hx-muted);
-    font-size: 13px;
-    text-align: center;
-}
-.aix-partners dl > div {
-    border: 0;
-}
-@media (max-width: 900px) {
-    .aix-partner-logo-wall {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 28px 20px;
-    }
-    .aix-brand-logo {
-        width: 130px;
-    }
-}
-@media (max-width: 600px) {
-    .aix-partner-logo-wall {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .aix-track-card {
-        padding: 24px 20px;
-    }
-    .aix-track-card > .aix-brand-logo {
-        float: none;
-        display: flex;
-        margin: 0 0 18px;
-    }
-}
-/* Partner roles and marks share one hierarchy, instead of a detached logo wall. */
-.aix-partners .aix-partner-groups {
-    display: grid;
-    gap: 36px;
-    margin: 36px 0 48px;
-}
-.aix-partners .aix-partner-groups > div {
-    display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 32px;
-    align-items: start;
-    padding: 0;
+.aix-partner-groups > div:nth-child(4) {
+    grid-column: 1/-1;
+    grid-row: 3;
 }
 .aix-partner-groups dt {
-    padding-top: 20px;
+    font-size: 12px;
+    color: var(--hx-muted);
+    margin-bottom: 12px;
 }
 .aix-partner-members {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 28px 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
     list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
+}
+.aix-partner-groups > div:nth-child(4) .aix-partner-members {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .aix-partner-members li {
     display: flex;
-    flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     min-width: 0;
 }
 .aix-partner-members .aix-brand-logo {
-    width: min(100%, 168px);
-    height: 70px;
+    width: min(140px, 100%);
+    height: 52px;
 }
-.aix-partner-name {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--hx-text);
-}
-.aix-partner-role {
-    margin-top: -8px;
-    color: var(--hx-muted);
-    font-size: 12px;
-    line-height: 1.6;
+.aix-partner-members .aix-brand-innovation,
+.aix-partner-members .aix-brand-tuozhe {
+    width: 52px;
 }
 .aix-partner-members .aix-brand-innovation {
-    width: 70px;
-    padding: 8px;
-}
-.aix-partner-members .aix-brand-tuozhe {
-    width: 70px;
+    padding: 6px;
 }
 .aix-partner-members .aix-brand-ztvp,
 .aix-partner-members .aix-brand-eagle {
-    padding: 8px;
+    padding: 6px;
 }
-@media (max-width: 900px) {
-    .aix-partners .aix-partner-groups > div {
-        grid-template-columns: 120px minmax(0, 1fr);
-        gap: 24px;
+.aix-partner-name {
+    color: var(--hx-text);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+.aix-partner-role {
+    font-size: 11px;
+    color: var(--hx-muted);
+    margin-top: -4px;
+}
+.aix-partners .aix-agenda-details dl {
+    display: grid;
+    gap: 16px;
+    padding-block: 8px 20px;
+}
+.aix-partners .aix-agenda-details dl > div {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    font-size: 13px;
+}
+.aix-partners .aix-agenda-details dt {
+    color: var(--hx-muted);
+}
+.aix-contact {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    padding-block: 32px 16px;
+    margin-top: 32px;
+}
+.aix-contact-group > p,
+.aix-contact-person p {
+    color: var(--hx-muted);
+    font-size: 13px;
+    margin-top: 8px;
+}
+.aix-contact-group .aix-secondary {
+    margin-top: 16px;
+}
+.aix-contact-group small {
+    display: block;
+    color: var(--hx-muted);
+    font-size: 11px;
+    margin-top: 6px;
+}
+.aix-contact-person h3 {
+    font-size: 14px;
+}
+.aix-contact-person a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+.aix-qr-dialog {
+    width: min(420px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    border: 1px solid var(--hx-line);
+    border-radius: 12px;
+    background: #191919;
+    color: #fff;
+}
+.aix-qr-dialog::backdrop {
+    background: #000b;
+}
+.aix-qr-dialog form {
+    position: sticky;
+    top: 0;
+    height: 0;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1;
+}
+.aix-qr-dialog button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: 8px;
+    border: 1px solid #ffffff40;
+    border-radius: 50%;
+    background: #191919;
+    color: #fff;
+}
+.aix-qr-dialog img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.aix-registration-page #registration-form > .pointer-events-none {
+    display: none;
+}
+:lang(en) .aix-brand-title {
+    font-size: clamp(48px, 5.5vw, 76px);
+}
+:lang(en) .aix-title-line {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+:lang(en) .aix-title {
+    font-size: clamp(25px, 2.8vw, 38px);
+    white-space: normal;
+}
+:lang(en) .aix-hero-motto {
+    font-size: 18px;
+    letter-spacing: 0.02em;
+}
+:lang(en) .aix-speakers > div {
+    grid-template-columns: 110px 1fr;
+}
+@media (max-width: 1000px) {
+    .aix-hero {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.7fr);
     }
-    .aix-partner-members {
+    .aix-brand-title {
+        font-size: 76px;
+    }
+    .aix-display {
+        font-size: 62px;
+    }
+    .aix-title {
+        font-size: 36px;
+    }
+    .aix-event-facts {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .aix-agenda-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-}
-@media (max-width: 600px) {
-    .aix-partners .aix-partner-groups > div {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 20px;
+    .aix-opening-guests {
+        grid-template-columns: 1fr 1fr;
     }
-    .aix-partner-groups dt {
-        padding-top: 0;
+    .aix-opening-guests > span {
+        grid-column: 1/-1;
+    }
+    .aix-rewards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .aix-rewards-grid article:last-child {
+        grid-column: 1/-1;
+    }
+}
+@media (max-width: 767px) {
+    .aix-wrap {
+        width: calc(100% - 32px);
+    }
+    .aix-hero {
+        display: block;
+        padding-block: 24px 20px;
+    }
+    .aix-hero-copy > .aix-eyebrow {
+        justify-content: space-between;
+        font-size: 12px;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .aix-state {
+        font-size: 11px;
+        padding-inline: 8px;
+    }
+    .aix-brand-title {
+        font-size: clamp(62px, 18vw, 90px);
+    }
+    .aix-display {
+        font-size: clamp(45px, 12.5vw, 68px);
+    }
+    .aix-title {
+        font-size: clamp(27px, 7.3vw, 40px);
+    }
+    .aix-title-line {
+        gap: 8px;
+    }
+    .aix-hero-motto {
+        font-size: 21px;
+        letter-spacing: 0.12em;
+    }
+    .aix-hero-intro {
+        font-size: 14px;
+        max-width: 32em;
+    }
+    .aix-event-facts {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 18px !important;
+    }
+    .aix-event-venues {
+        font-size: 13px !important;
+    }
+    .aix-event-facts .aix-date {
+        font-size: 21px;
+    }
+    .aix-hero-actions {
+        gap: 10px;
+        margin-top: 16px;
+    }
+    .aix-hero-actions :is(.aix-primary, .aix-secondary) {
+        flex: 1;
+        padding-inline: 10px;
+        gap: 8px;
+    }
+    .aix-pixel-field {
+        position: absolute;
+        top: 4px;
+        right: -8px;
+        width: 160px;
+        opacity: 0.16;
+        pointer-events: none;
+    }
+    .aix-pixel-field .aix-motion-toggle {
+        pointer-events: auto;
+        top: 160px;
+        right: 10px;
+        bottom: auto;
+        opacity: 1;
+    }
+    .aix-pixel-field::after {
+        display: none;
+    }
+    .aix-track-pair,
+    .aix-forum-pair,
+    .aix-day-grid,
+    .aix-community,
+    .aix-contact,
+    .aix-rewards-grid {
+        grid-template-columns: 1fr;
+    }
+    .aix-track-pair {
+        gap: 12px;
+    }
+    .aix-track-card {
+        padding: 18px;
+    }
+    .hx-workspace .aix-registration-page .aix-track-card h2 {
+        font-size: 23px;
+        padding-right: 26px;
+    }
+    .aix-track-card > .aix-brand-logo {
+        width: 76px;
+        height: 32px;
+    }
+    .aix-track-arrow {
+        top: 66px;
+        right: 8px;
+    }
+    .aix-track-footnote {
+        font-size: 11px;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+    .aix-track-footnote :is(span, a) {
+        gap: 6px;
+    }
+    .aix-section-nav {
+        font-size: 11px;
+        gap: 10px;
+    }
+    .aix-section-nav > span {
+        max-width: 22em;
+    }
+    .aix-section {
+        margin-top: 20px;
+        padding-top: 24px;
+    }
+    .aix-section-heading {
+        display: block;
+        margin-bottom: 16px;
+    }
+    .aix-section-heading > p {
+        margin-top: 8px;
+    }
+    .aix-agenda-grid {
+        gap: 20px 16px;
+    }
+    .aix-agenda-grid time {
+        font-size: 14px;
+    }
+    .aix-agenda-grid h3 {
+        font-size: 14px;
+    }
+    .aix-agenda-grid p {
+        font-size: 12px;
+    }
+    .aix-day-grid {
+        gap: 24px;
+    }
+    .aix-day-grid dl > div {
+        grid-template-columns: 103px 1fr;
+        gap: 10px;
+        font-size: 12px;
+    }
+    .aix-opening-guests {
+        gap: 12px;
+    }
+    .aix-opening-guests > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .aix-opening-guests div > span {
+        font-size: 12px;
+    }
+    .aix-forum-pair article {
+        padding: 18px;
+    }
+    .aix-speakers > div {
+        grid-template-columns: 85px 1fr;
+        gap: 8px;
+    }
+    .aix-rewards-grid {
+        gap: 12px;
+    }
+    .aix-rewards-grid article {
+        padding: 18px;
+    }
+    .aix-community {
+        margin-top: 24px;
+    }
+    .aix-community > img {
+        min-height: 0;
+        height: 180px;
+        object-position: center 40%;
+    }
+    .aix-community > div {
+        padding: 20px;
+    }
+    .aix-partner-groups {
+        gap: 24px 16px;
     }
     .aix-partner-members {
-        gap: 24px 20px;
+        gap: 12px;
+    }
+    .aix-partner-groups > div:nth-child(3),
+    .aix-partner-groups > div:nth-child(5) {
+        grid-column: 1/-1;
+    }
+    .aix-partner-groups > div:nth-child(4) {
+        grid-row: auto;
+    }
+    .aix-partner-groups > div:nth-child(4) .aix-partner-members {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px 16px;
+    }
+    .aix-partner-members .aix-brand-logo {
+        height: 48px;
+    }
+    .aix-partner-name {
+        font-size: 12px;
+    }
+    .aix-partners .aix-agenda-details dl > div {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    .aix-contact {
+        margin-top: 24px;
+        padding-top: 24px;
+        gap: 20px;
+    }
+    :lang(en) .aix-hero-actions {
+        flex-direction: column;
+    }
+    :lang(en) .aix-hero-actions :is(.aix-primary, .aix-secondary) {
+        width: 100%;
+    }
+    :lang(en) .aix-speakers > div {
+        grid-template-columns: 105px 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aix-landing * {
+        transition: none !important;
+    }
+    .aix-pixel-field img {
+        animation: none;
+    }
+    .aix-pixel-field::after,
+    .aix-motion-toggle {
+        display: none;
+    }
+}
+.aix-mobile-motion {
+    display: none;
+}
+@media (max-width: 767px) {
+    .aix-pixel-field .aix-motion-toggle {
+        display: none;
+    }
+    .aix-mobile-motion {
+        display: grid;
+        place-items: center;
+        flex: 0 0 44px;
+        width: 44px;
+        min-height: 48px;
+        padding: 0;
+        border: 1px solid var(--hx-line);
+        border-radius: 6px;
+        color: var(--hx-muted);
+        background: transparent;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aix-mobile-motion {
+        display: none;
     }
 }

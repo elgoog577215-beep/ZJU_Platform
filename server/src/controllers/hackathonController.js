@@ -264,7 +264,11 @@ const publicTemplate = (template) => {
                 ...program,
                 challenges: program.challenges.filter((item) => {
                     const stage = program.stages.find((value) => value.id === item.stage);
-                    return item.published && stage && Date.parse(stage.opensAt) <= Date.now();
+                    const releaseAt =
+                        item.track === "industry" && stage?.id === "initial"
+                            ? program.challengeReleaseAt || stage.opensAt
+                            : stage?.opensAt;
+                    return item.published && stage && Date.parse(releaseAt) <= Date.now();
                 }),
                 reports: program.reports.filter((item) => item.published),
             },

@@ -1,7 +1,7 @@
 .aix-challenges {
-    width: min(calc(100% - 96px), 1248px);
+    width: min(calc(100% - 64px), 1248px);
     margin: 0 auto;
-    padding: calc(var(--event-nav-height) + 44px) 0 80px;
+    padding: calc(var(--event-nav-height) + 28px) 0 48px;
     color: var(--hx-text);
 }
 .aix-challenges :is(h1, h2, h3, p) {
@@ -12,7 +12,7 @@
     justify-content: space-between;
     align-items: flex-end;
     gap: 28px;
-    margin-bottom: 40px;
+    margin-bottom: 24px;
 }
 .aix-challenge-eyebrow {
     font-size: 13px;
@@ -53,17 +53,17 @@
 .aix-brief {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(250px, 1fr);
-    gap: 56px;
+    gap: 32px;
     background: var(--hx-panel);
     border-radius: 14px;
-    padding: 40px;
+    padding: 28px;
 }
 .aix-brief-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 26px;
+    margin-bottom: 16px;
 }
 .aix-status {
     display: inline-flex;
@@ -96,7 +96,7 @@
     margin-bottom: 10px;
 }
 .aix-brief-copy {
-    margin-top: 34px;
+    margin-top: 20px;
 }
 .aix-brief-copy p {
     font-size: 15px;
@@ -109,7 +109,7 @@
     border-left: 1px solid var(--hx-line);
     display: flex;
     flex-direction: column;
-    gap: 27px;
+    gap: 20px;
 }
 .aix-brief-meta p {
     font-size: 14px;
@@ -152,8 +152,8 @@
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    margin-block: 35px;
-    padding: 24px 0;
+    margin-block: 20px;
+    padding: 12px 0;
     color: var(--hx-muted);
 }
 .aix-brief-pending h3 {
@@ -179,11 +179,11 @@
     color: var(--hx-accent-text);
 }
 .aix-submission-section {
-    padding-top: 70px;
+    padding-top: 36px;
     scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
 }
 .aix-submission-section > header {
-    margin-bottom: 28px;
+    margin-bottom: 20px;
 }
 .aix-submission-section > header p {
     color: var(--hx-muted);
@@ -192,7 +192,7 @@
 }
 .aix-submission-section > .aix-repository-receipt,
 .aix-submission-gate {
-    padding: 34px;
+    padding: 24px;
     background: var(--hx-panel);
     border-radius: 14px;
 }
@@ -237,7 +237,7 @@
 }
 @media (max-width: 700px) {
     .aix-challenges {
-        width: calc(100% - 36px);
+        width: calc(100% - 32px);
         padding-top: calc(var(--event-nav-height) + 28px);
     }
     .aix-challenges-heading {
@@ -258,11 +258,11 @@
     .aix-brief {
         grid-template-columns: 1fr;
         padding: 24px 20px;
-        gap: 28px;
+        gap: 20px;
     }
     .aix-brief-meta {
         border-left: 0;
-        padding: 24px 0 0;
+        padding: 12px 0 0;
         border-top: 1px solid var(--hx-line);
     }
     .aix-challenges h2 {
@@ -280,10 +280,112 @@
         padding-inline: 8px;
     }
     .aix-submission-section {
-        padding-top: 44px;
+        padding-top: 28px;
     }
     .aix-submission-section > .aix-repository-receipt,
     .aix-submission-gate {
         padding: 24px 20px;
+    }
+}
+
+.aix-brief-main {
+    min-width: 0;
+}
+.aix-direction-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+}
+.aix-direction-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+}
+.aix-direction-list span {
+    color: var(--hx-muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+.aix-channel-note {
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border-left: 2px solid var(--hx-accent-text);
+    background: var(--hx-panel);
+    border-radius: 0 8px 8px 0;
+}
+.aix-channel-note h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+    font-weight: 650;
+}
+.aix-channel-note p {
+    font-size: 13px;
+    color: var(--hx-muted);
+    line-height: 1.8;
+}
+.aix-track-tabs button {
+    min-height: 48px;
+}
+.aix-published-brief a {
+    min-height: 44px;
+}
+@media (max-width: 700px) {
+    .aix-track-tabs {
+        gap: 12px;
+    }
+    .aix-track-tabs button {
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: center;
+    }
+    .aix-brief {
+        padding: 20px 16px;
+    }
+    .aix-brief-meta {
+        gap: 18px;
+    }
+    .aix-channel-note {
+        padding: 14px 16px;
+    }
+    .aix-round-tabs button {
+        padding: 10px 8px;
+        font-size: 14px;
+    }
+    :lang(en) .aix-round-tabs {
+        flex-wrap: wrap;
+    }
+    :lang(en) .aix-round-tabs button {
+        flex-basis: 100%;
+    }
+}
+@media (max-width: 700px) {
+    .aix-challenges-heading {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+    }
+    .aix-challenges-heading > div {
+        min-width: 0;
+    }
+    .aix-challenge-eyebrow {
+        display: none;
+    }
+    .aix-challenges-heading h1 {
+        font-size: 28px;
+    }
+    .aix-challenges-heading > a {
+        flex-shrink: 0;
+        padding-inline: 12px;
+        gap: 8px;
+        font-size: 13px;
+    }
+    .aix-challenges-heading p:last-child {
+        margin-top: 8px;
+        font-size: 13px;
     }
 }

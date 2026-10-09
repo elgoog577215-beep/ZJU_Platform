@@ -37,7 +37,7 @@ export default function HackathonProgramEditor({ program, onChange, inputClass, 
     return (
         <AdminPanel
             title="赛程、赛题与分享"
-            description="时间统一使用北京时间。赛题勾选发布并保存后，会在所属阶段开始时自动公开；分享勾选发布并保存后立即公开。"
+            description="时间统一使用北京时间。已勾选发布的华为初赛命题按独立发布时间公开，其他赛题按阶段开始时间公开；分享勾选发布并保存后立即公开。"
         >
             <label className="block text-sm mb-5">
                 报名截止时间
@@ -50,6 +50,17 @@ export default function HackathonProgramEditor({ program, onChange, inputClass, 
                     }
                 />
             </label>
+            <label className="block text-sm mb-5">
+                华为初赛命题发布时间（选填，默认采用阶段开始时间）
+                <input
+                    type="datetime-local"
+                    className={`${inputClass} mt-2`}
+                    value={toLocal(program.challengeReleaseAt)}
+                    onChange={(e) =>
+                        onChange({ ...program, challengeReleaseAt: toZoned(e.target.value) })
+                    }
+                />
+            </label>
             <div className="space-y-3">
                 {(program.stages || []).map((stage, index) => (
                     <fieldset key={stage.id} className={fieldClass}>
@@ -57,7 +68,7 @@ export default function HackathonProgramEditor({ program, onChange, inputClass, 
                         <div className="grid gap-3 md:grid-cols-2">
                             {["opensAt", "closesAt"].map((key) => (
                                 <label key={key} className="text-sm">
-                                    {key === "opensAt" ? "开始 / 赛题发布" : "提交截止"}
+                                    {key === "opensAt" ? "阶段开始" : "提交截止"}
                                     <input
                                         type="datetime-local"
                                         className={`${inputClass} mt-2`}

@@ -57,6 +57,7 @@ export default function HackathonEventContent({
                 template.event.key === "zhekesong-ai-x-2026"
                     ? ({ scrollToForm, scrollToSection }) => (
                           <AiXOverview
+                              now={now}
                               state={
                                   now >= eventTimestamp(template.event.endAt)
                                       ? "ended"

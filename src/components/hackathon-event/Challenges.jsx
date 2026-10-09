@@ -117,7 +117,31 @@ export default function Challenges({ template, now, registrationState = {} }) {
                             <h3>{t("aix.refined.problemTitle")}</h3>
                             <p>{t("aix.refined.problemDescription")}</p>
                             <h3>{t("aix.refined.directions")}</h3>
-                            <p>{t("aix.tracks.campus.topics")}</p>
+                            <ul className="aix-direction-list">
+                                {t("aix.refined.directionItems.campus", {
+                                    returnObjects: true,
+                                }).map((item) => (
+                                    <li key={item.title}>
+                                        <strong>{item.title}</strong>
+                                        <span>{item.description}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {track === "industry" && (
+                        <div className="aix-brief-copy">
+                            <h3>{t("aix.refined.directions")}</h3>
+                            <ul className="aix-direction-list">
+                                {t("aix.refined.directionItems.industry", {
+                                    returnObjects: true,
+                                }).map((item) => (
+                                    <li key={item.title}>
+                                        <strong>{item.title}</strong>
+                                        <span>{item.description}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
                     {challenges.map((item) => (
@@ -160,7 +184,13 @@ export default function Challenges({ template, now, registrationState = {} }) {
                                 </h3>
                                 <p>
                                     {stage && stageStatus === "upcoming"
-                                        ? t("aix.refined.releaseAt", { date: date(stage.opensAt) })
+                                        ? t("aix.refined.releaseAt", {
+                                              date: date(
+                                                  stage.id === "initial"
+                                                      ? program.challengeReleaseAt || stage.opensAt
+                                                      : stage.opensAt
+                                              ),
+                                          })
                                         : t(
                                               stageStatus === "ended"
                                                   ? "aix.refined.closedBrief"
@@ -220,6 +250,17 @@ export default function Challenges({ template, now, registrationState = {} }) {
                     <h2 id="aix-submission-title">{t("aix.refined.mySubmission")}</h2>
                     <p>{t("aix.refined.submissionIntro")}</p>
                 </header>
+                <div className="aix-channel-note">
+                    <h3>{t("aix.refined.channelsTitle")}</h3>
+                    <p>
+                        {t(
+                            track === "campus"
+                                ? "aix.refined.campusChannels"
+                                : "aix.refined.industryChannels"
+                        )}
+                    </p>
+                    <p>{t("aix.refined.channelHint")}</p>
+                </div>
                 {loading ? (
                     <div className="aix-submission-gate" role="status">
                         {t("aix.loading")}

@@ -162,6 +162,9 @@ const normalizeProgram = (input = {}) => {
         }
     };
     return {
+        ...(input.challengeReleaseAt
+            ? { challengeReleaseAt: text(input.challengeReleaseAt, 40) }
+            : {}),
         registrationClosesAt: text(input.registrationClosesAt, 40),
         stages: (Array.isArray(input.stages) ? input.stages : []).slice(0, 3).map((stage) => ({
             id: text(stage.id, 40),
@@ -327,6 +330,11 @@ const validateTemplate = (template) => {
     }
     if (template.event.program) {
         const program = template.event.program;
+        if (program.challengeReleaseAt && !Number.isFinite(Date.parse(program.challengeReleaseAt)))
+            errors.push({
+                field: "event.program.challengeReleaseAt",
+                message: "请输入有效的命题发布时间",
+            });
         if (
             program.registrationClosesAt &&
             !Number.isFinite(Date.parse(program.registrationClosesAt))

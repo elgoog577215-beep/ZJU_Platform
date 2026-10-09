@@ -328,3 +328,49 @@
 :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar::before {
     display: none;
 }
+/* Compact event controls keep both primary pages within a thumb's reach. */
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] {
+    --event-nav-height: 72px;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+    padding-inline: max(32px, calc((100% - 1248px) / 2));
+    padding-block: 14px;
+    gap: 12px;
+}
+:root .hx-workspace[data-event="zhekesong-ai-x-2026"] #registration-form {
+    padding-inline: max(32px, calc((100% - 1248px) / 2));
+}
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    :is(.aix-form-panel, .aix-form-field, .aix-form-chip, .aix-form-primary, .aix-form-secondary) {
+    border-radius: 6px;
+}
+@media (max-width: 1100px) {
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] {
+        --event-nav-height: 100px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+        padding-block: 6px;
+        grid-template-rows: 44px 44px;
+        gap: 0 12px;
+    }
+}
+@media (max-width: 767px) {
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
+        padding-inline: 16px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-nav a {
+        min-height: 44px;
+        justify-content: center;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-event-actions .hx-outline {
+        display: none;
+    }
+    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] #registration-form {
+        padding-inline: 16px;
+    }
+}
