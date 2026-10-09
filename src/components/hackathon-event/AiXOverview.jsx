@@ -34,7 +34,6 @@ export default function AiXOverview({
     const { t } = useTranslation();
     const [motionPaused, setMotionPaused] = useState(false);
     const agenda = t("aix.landing.agenda", { returnObjects: true });
-    const partners = t("aix.landing.partners", { returnObjects: true });
     return (
         <div className="aix-landing">
             <section className="aix-hero aix-wrap">
@@ -291,14 +290,6 @@ export default function AiXOverview({
                     </div>
                 </div>
                 <AiXPartnerLogos />
-                <dl>
-                    {partners.map((partner) => (
-                        <div key={partner.label}>
-                            <dt>{partner.label}</dt>
-                            <dd>{partner.names}</dd>
-                        </div>
-                    ))}
-                </dl>
                 <details className="aix-agenda-details">
                     <summary>
                         {t("aix.landing.allPartners")}

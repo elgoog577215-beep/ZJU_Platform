@@ -2,6 +2,28 @@ import { useTranslation } from "react-i18next";
 
 const brands = [
     {
+        id: "innovation",
+        name: "浙江大学校徽",
+        light: "organizations/official/zhejiang-university.png",
+        dark: "organizations/official/zhejiang-university.png",
+        plate: true,
+    },
+    { id: "tuozhe", name: "拓浙 AI 生态", source: "/images/brand/logo-mark-transparent.png" },
+    {
+        id: "eagle",
+        name: "时代强鹰 Elite Eagle",
+        light: "organizations/official/elite-eagle.png",
+        dark: "organizations/official/elite-eagle.png",
+        plate: true,
+    },
+    {
+        id: "ztvp",
+        name: "浙江大学管理学院科技创业中心 ZTVP",
+        light: "organizations/official/ztvp.png",
+        dark: "organizations/official/ztvp.png",
+        plate: true,
+    },
+    {
         id: "qwen",
         name: "千问 Qwen",
         light: "qwen-official-dark.png",
@@ -24,33 +46,58 @@ const brands = [
 ];
 export function AiXBrand({ id }) {
     const brand = brands.find((item) => item.id === id);
+    if (!brand) return null;
     return (
-        <span className={`aix-brand-logo ${brand.plate ? "aix-brand-plate" : ""}`}>
+        <span className={`aix-brand-logo aix-brand-${id} ${brand.plate ? "aix-brand-plate" : ""}`}>
             <img
                 className="aix-logo-light"
-                src={`/images/partner-logos/${brand.light}`}
+                src={brand.source || `/images/partner-logos/${brand.light}`}
                 alt={brand.name}
                 loading="lazy"
             />
             <img
                 className="aix-logo-dark"
-                src={`/images/partner-logos/${brand.dark}`}
+                src={brand.source || `/images/partner-logos/${brand.dark}`}
                 alt={brand.name}
                 loading="lazy"
             />
         </span>
     );
 }
+const groups = [
+    ["innovation"],
+    ["tuozhe"],
+    ["qwen", "huawei"],
+    ["aliyun", "huawei", "qoder", "modelscope"],
+    ["eagle", "ztvp"],
+];
 export default function AiXPartnerLogos() {
     const { t } = useTranslation();
+    const partners = t("aix.landing.partners", { returnObjects: true });
     return (
-        <ul className="aix-partner-logo-wall">
-            {brands.map((brand) => (
-                <li key={brand.id}>
-                    <AiXBrand id={brand.id} />
-                    <span>{t(`aix.refined.partners.${brand.id}`)}</span>
-                </li>
+        <dl className="aix-partner-groups">
+            {groups.map((members, index) => (
+                <div key={partners[index].label}>
+                    <dt>{partners[index].label}</dt>
+                    <dd>
+                        <ul className="aix-partner-members">
+                            {members.map((id) => (
+                                <li key={id}>
+                                    <AiXBrand id={id} />
+                                    <span className="aix-partner-name">
+                                        {t(`aix.refined.partnerNames.${id}`)}
+                                    </span>
+                                    {index === 3 && id !== "modelscope" && (
+                                        <span className="aix-partner-role">
+                                            {t(`aix.refined.supportRoles.${id}`)}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </dd>
+                </div>
             ))}
-        </ul>
+        </dl>
     );
 }

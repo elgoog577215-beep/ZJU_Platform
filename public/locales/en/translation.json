@@ -5605,7 +5605,23 @@
                 "modelscope": "Community ecosystem"
             },
             "closedHint": "You can still read the briefs. Submissions are available only to registered participants.",
-            "closedBrief": "This stage has ended. No public brief is available."
+            "closedBrief": "This stage has ended. No public brief is available.",
+            "partnerNames": {
+                "innovation": "ZJU School of Innovation and Entrepreneurship",
+                "tuozhe": "Tuozhe AI Ecosystem",
+                "qwen": "Qwen",
+                "huawei": "Huawei China",
+                "aliyun": "Alibaba Cloud",
+                "qoder": "Qoder",
+                "modelscope": "ModelScope",
+                "eagle": "Shidai Qiangying",
+                "ztvp": "ZJU Technology Venture Program (ZTVP)"
+            },
+            "supportRoles": {
+                "aliyun": "Technical support",
+                "huawei": "Compute support",
+                "qoder": "Development tools and technical support"
+            }
         }
     },
     "eventWorkspace": {

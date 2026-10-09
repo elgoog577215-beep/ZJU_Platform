@@ -33,6 +33,10 @@ export default function HackathonWorkspace({ template, schedule }) {
     }, [user?.id, event.key]);
     const workspaceRef = useRef(null);
     useLayoutEffect(() => {
+        if (event.key === "zhekesong-ai-x-2026") {
+            workspaceRef.current?.style.setProperty("--site-nav-height", "0px");
+            return;
+        }
         const navbar = document.querySelector("[data-site-navbar]");
         if (!navbar) return;
         const measure = () =>
@@ -44,7 +48,7 @@ export default function HackathonWorkspace({ template, schedule }) {
         const observer = new ResizeObserver(measure);
         observer.observe(navbar);
         return () => observer.disconnect();
-    }, []);
+    }, [event.key]);
     useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 30000);
         return () => window.clearInterval(timer);

@@ -1089,3 +1089,83 @@
         margin: 0 0 18px;
     }
 }
+/* Partner roles and marks share one hierarchy, instead of a detached logo wall. */
+.aix-partners .aix-partner-groups {
+    display: grid;
+    gap: 36px;
+    margin: 36px 0 48px;
+}
+.aix-partners .aix-partner-groups > div {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+    padding: 0;
+}
+.aix-partner-groups dt {
+    padding-top: 20px;
+}
+.aix-partner-members {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px 24px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.aix-partner-members li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+.aix-partner-members .aix-brand-logo {
+    width: min(100%, 168px);
+    height: 70px;
+}
+.aix-partner-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--hx-text);
+}
+.aix-partner-role {
+    margin-top: -8px;
+    color: var(--hx-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.aix-partner-members .aix-brand-innovation {
+    width: 70px;
+    padding: 8px;
+}
+.aix-partner-members .aix-brand-tuozhe {
+    width: 70px;
+}
+.aix-partner-members .aix-brand-ztvp,
+.aix-partner-members .aix-brand-eagle {
+    padding: 8px;
+}
+@media (max-width: 900px) {
+    .aix-partners .aix-partner-groups > div {
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 24px;
+    }
+    .aix-partner-members {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 600px) {
+    .aix-partners .aix-partner-groups > div {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+    .aix-partner-groups dt {
+        padding-top: 0;
+    }
+    .aix-partner-members {
+        gap: 24px 20px;
+    }
+}

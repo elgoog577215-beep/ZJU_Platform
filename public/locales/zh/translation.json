@@ -5714,7 +5714,23 @@
                 "modelscope": "社区生态支持"
             },
             "closedHint": "你仍可以查看赛题。提交入口仅向本届已报名者开放。",
-            "closedBrief": "本阶段已结束，暂无已公开的赛题资料。"
+            "closedBrief": "本阶段已结束，暂无已公开的赛题资料。",
+            "partnerNames": {
+                "innovation": "浙江大学创新创业学院",
+                "tuozhe": "拓浙 AI 生态",
+                "qwen": "千问",
+                "huawei": "华为中国区",
+                "aliyun": "阿里云",
+                "qoder": "Qoder",
+                "modelscope": "魔搭社区",
+                "eagle": "时代强鹰",
+                "ztvp": "浙江大学管理学院科技创业中心 ZTVP"
+            },
+            "supportRoles": {
+                "aliyun": "技术支持",
+                "huawei": "算力支持",
+                "qoder": "开发工具与技术支持"
+            }
         }
     },
     "eventWorkspace": {
