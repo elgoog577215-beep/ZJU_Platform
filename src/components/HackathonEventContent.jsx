@@ -26,20 +26,15 @@ export default function HackathonEventContent({
 }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const switchView = (next) => navigate(getEventUrl(template.event.key, next));
+    const switchView = (next, track) =>
+        navigate(getEventUrl(template.event.key, next, { search: track ? `?track=${track}` : "" }));
     if (view === "lottery")
         return <LotteryPage eventKey={template.event.key} eventTitle={template.event.title} />;
     const hasProgram = Boolean(template.event.program);
     if (template.event.key === "getui-beauty-2026")
         return <BeautyEventContent template={template} view={view} live={live} />;
     if (hasProgram && view === "challenges")
-        return (
-            <Challenges
-                template={template}
-                now={now}
-                projectsUrl={getEventUrl(template.event.key, "results")}
-            />
-        );
+        return <Challenges template={template} now={now} registrationState={registrationState} />;
     if (hasProgram && view === "media") return <Media template={template} live={live} />;
     if (hasProgram && view === "results")
         return <Results template={template} switchView={switchView} />;

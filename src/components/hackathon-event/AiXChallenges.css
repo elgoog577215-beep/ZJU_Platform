@@ -1,0 +1,289 @@
+.aix-challenges {
+    width: min(calc(100% - 96px), 1248px);
+    margin: 0 auto;
+    padding: calc(var(--event-nav-height) + 44px) 0 80px;
+    color: var(--hx-text);
+}
+.aix-challenges :is(h1, h2, h3, p) {
+    margin: 0;
+}
+.aix-challenges-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 28px;
+    margin-bottom: 40px;
+}
+.aix-challenge-eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--hx-accent-text);
+    margin-bottom: 14px !important;
+}
+.aix-challenges h1 {
+    font-size: clamp(34px, 4.2vw, 56px);
+    font-weight: 780;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+}
+.aix-challenges-heading p:last-child {
+    color: var(--hx-muted);
+    margin-top: 16px;
+    line-height: 1.75;
+}
+.aix-track-tabs {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--hx-line);
+}
+.aix-track-tabs button {
+    padding: 14px 0;
+    font-size: 18px;
+    font-weight: 650;
+    color: var(--hx-muted);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+}
+.aix-track-tabs button[aria-pressed="true"] {
+    color: var(--hx-accent-text);
+    border-bottom-color: var(--hx-accent-text);
+}
+.aix-brief {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(250px, 1fr);
+    gap: 56px;
+    background: var(--hx-panel);
+    border-radius: 14px;
+    padding: 40px;
+}
+.aix-brief-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+.aix-status {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 6px 12px;
+    border-radius: 5px;
+    background: var(--hx-surface);
+    color: var(--hx-muted);
+}
+.aix-status:is(.is-selfDefined, .is-published, .is-saved) {
+    color: var(--hx-accent-text);
+    background: color-mix(in srgb, var(--hx-accent) 10%, transparent);
+}
+.aix-challenges h2 {
+    font-size: 28px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+.aix-brief-lead {
+    margin-top: 12px !important;
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--hx-muted);
+}
+.aix-brief h3 {
+    font-size: 16px;
+    font-weight: 680;
+    margin-bottom: 10px;
+}
+.aix-brief-copy {
+    margin-top: 34px;
+}
+.aix-brief-copy p {
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--hx-muted);
+    margin-bottom: 25px;
+}
+.aix-brief-meta {
+    padding: 8px 0 0 30px;
+    border-left: 1px solid var(--hx-line);
+    display: flex;
+    flex-direction: column;
+    gap: 27px;
+}
+.aix-brief-meta p {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--hx-muted);
+}
+.aix-brief-meta .aix-primary {
+    align-self: flex-start;
+    margin-top: auto;
+}
+.aix-brief-date {
+    margin-top: 10px !important;
+    font-variant-numeric: tabular-nums;
+}
+.aix-round-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 28px;
+}
+.aix-round-tabs button {
+    flex: 1;
+    background: transparent;
+    padding: 12px;
+    border: 1px solid var(--hx-line);
+    border-radius: 6px;
+    color: var(--hx-text);
+    text-align: left;
+}
+.aix-round-tabs button span {
+    display: block;
+    color: var(--hx-muted);
+    font-size: 12px;
+    margin-top: 5px;
+}
+.aix-round-tabs button[aria-pressed="true"] {
+    background: var(--hx-surface);
+    border-color: var(--hx-accent-text);
+}
+.aix-brief-pending {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-block: 35px;
+    padding: 24px 0;
+    color: var(--hx-muted);
+}
+.aix-brief-pending h3 {
+    color: var(--hx-text);
+}
+.aix-brief-pending p {
+    font-size: 14px;
+    line-height: 1.8;
+}
+.aix-published-brief {
+    margin-top: 30px;
+}
+.aix-published-brief p {
+    white-space: pre-line;
+    line-height: 1.85;
+    color: var(--hx-muted);
+}
+.aix-published-brief a {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    margin: 16px 18px 0 0;
+    color: var(--hx-accent-text);
+}
+.aix-submission-section {
+    padding-top: 70px;
+    scroll-margin-top: calc(var(--site-nav-height) + var(--event-nav-height) + 24px);
+}
+.aix-submission-section > header {
+    margin-bottom: 28px;
+}
+.aix-submission-section > header p {
+    color: var(--hx-muted);
+    margin-top: 12px;
+    line-height: 1.8;
+}
+.aix-submission-section > .aix-repository-receipt,
+.aix-submission-gate {
+    padding: 34px;
+    background: var(--hx-panel);
+    border-radius: 14px;
+}
+.aix-submission-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+}
+.aix-submission-gate h3 {
+    font-size: 21px;
+    font-weight: 700;
+}
+.aix-submission-gate p {
+    color: var(--hx-muted);
+    line-height: 1.8;
+}
+.aix-challenges :is(button, a):focus-visible {
+    outline: 2px solid var(--hx-accent-text);
+    outline-offset: 4px;
+}
+@media (min-width: 900px) {
+    .aix-submission-section .aix-repository-form {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px 32px;
+    }
+    .aix-submission-section .aix-repository-form > :not(.aix-repository-field) {
+        grid-column: 1/-1;
+    }
+}
+@media (max-width: 900px) {
+    .aix-challenges {
+        width: calc(100% - 48px);
+    }
+    .aix-brief {
+        gap: 30px;
+        padding: 28px;
+    }
+    .aix-brief-meta {
+        padding-left: 22px;
+    }
+}
+@media (max-width: 700px) {
+    .aix-challenges {
+        width: calc(100% - 36px);
+        padding-top: calc(var(--event-nav-height) + 28px);
+    }
+    .aix-challenges-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    .aix-challenges-heading > a {
+        min-height: 44px;
+    }
+    .aix-track-tabs {
+        gap: 22px;
+    }
+    .aix-track-tabs button {
+        font-size: 16px;
+    }
+    .aix-brief {
+        grid-template-columns: 1fr;
+        padding: 24px 20px;
+        gap: 28px;
+    }
+    .aix-brief-meta {
+        border-left: 0;
+        padding: 24px 0 0;
+        border-top: 1px solid var(--hx-line);
+    }
+    .aix-challenges h2 {
+        font-size: 24px;
+    }
+    .aix-brief-heading {
+        gap: 12px;
+    }
+    .aix-brief-heading .aix-brand-logo {
+        width: 120px;
+        height: 50px;
+    }
+    .aix-status {
+        font-size: 12px;
+        padding-inline: 8px;
+    }
+    .aix-submission-section {
+        padding-top: 44px;
+    }
+    .aix-submission-section > .aix-repository-receipt,
+    .aix-submission-gate {
+        padding: 24px 20px;
+    }
+}

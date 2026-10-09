@@ -1606,6 +1606,7 @@ const HackathonRegistration = ({
                             )
                         ) : isAiX && registration ? (
                             <RepositorySubmission
+                                compact
                                 key={`${registration.eventKey}:${registration.id}`}
                                 registration={registration}
                                 endAt={resolvedTemplate.event.endAt}

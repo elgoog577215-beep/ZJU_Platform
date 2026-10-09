@@ -5667,6 +5667,54 @@
                 "github": "请填写 https://github.com/用户名/仓库名，不要附带分支、参数或登录凭据。",
                 "modelscope": "请填写魔搭创空间、模型库或数据集的 HTTPS 仓库首页地址，不要附带参数或登录凭据。"
             }
+        },
+        "refined": {
+            "tabs": {
+                "intro": "介绍与报名",
+                "challenges": "赛题与提交"
+            },
+            "challengeTitle": "赛题与提交",
+            "challengeIntro": "选择赛道，查看要求，提交你的作品。",
+            "mySubmission": "我的提交",
+            "toSubmission": "前往提交",
+            "status": {
+                "closed": "本届已结束",
+                "selfDefined": "自主选题",
+                "published": "赛题已发布",
+                "pending": "赛题待发布",
+                "stageClosed": "本阶段已结束"
+            },
+            "problemTitle": "从一个真实问题出发",
+            "problemDescription": "围绕学习、科研或校园工作中遇到的问题，自主确定选题，用 AI 完成可运行、可体验的应用。",
+            "directions": "可探索的方向",
+            "specificSubmission": "赛题指定提交入口",
+            "releaseAt": "预计 {{date}} 发布；正式赛题以主办方发布为准。",
+            "awaitPublication": "正式赛题尚未发布，请等待主办方更新。",
+            "participation": "参赛形式",
+            "individual": "个人参赛，可提前开发。",
+            "team": "每队最多 3 人，现场开发 4 小时。",
+            "schedule": "时间安排",
+            "campusMaterials": "准备项目说明和可体验的作品，通过下方提交 GitHub 或魔搭社区仓库地址。",
+            "submissionIntro": "完成报名后，在这里保存或更新参赛仓库。",
+            "loadFailed": "报名信息加载失败",
+            "loginTitle": "登录后查看我的提交",
+            "loginHint": "报名记录与仓库地址会保存在你的账号下。",
+            "registerFirst": "先报名，再提交作品",
+            "registerHint": "每位参赛者独立报名，完成后即可提交仓库地址。",
+            "noRegistrationClosed": "报名已截止，你没有本届报名记录",
+            "noSubmission": "尚未提交仓库",
+            "savedCount": "已保存 {{count}} 个仓库",
+            "readOnly": "提交已关闭 · 仅供查看",
+            "unsaved": "有未保存的修改",
+            "partners": {
+                "qwen": "赛道支持",
+                "huawei": "赛道与算力支持",
+                "aliyun": "技术支持",
+                "qoder": "工具与技术支持",
+                "modelscope": "社区生态支持"
+            },
+            "closedHint": "你仍可以查看赛题。提交入口仅向本届已报名者开放。",
+            "closedBrief": "本阶段已结束，暂无已公开的赛题资料。"
         }
     },
     "eventWorkspace": {

@@ -115,3 +115,24 @@
         width: 100%;
     }
 }
+.aix-repository-next {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding-top: 10px;
+}
+.aix-repository-title {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+.aix-repository-state {
+    color: var(--hx-accent-text);
+    background: color-mix(in srgb, var(--hx-accent) 10%, transparent);
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+}

@@ -8,7 +8,7 @@ import { registrationOpen, eventTimestamp } from "../utils/hackathonAiX";
 import SEO from "./SEO";
 import HackathonEventPicker from "./HackathonEventPicker";
 import HackathonEventContent from "./HackathonEventContent";
-import { EVENT_VIEWS, getEventView, getEventUrl } from "../utils/hackathonRoute";
+import { getEventViews, getEventView, getEventUrl } from "../utils/hackathonRoute";
 import "./HackathonShared.css";
 import "./HackathonWorkspace.css";
 import "./hackathon-event/ResultsXTheme.css";
@@ -111,7 +111,7 @@ export default function HackathonWorkspace({ template, schedule }) {
                     onChange={(key) => navigate(getEventUrl(key, view))}
                 />
                 <nav className="hx-nav" aria-label={t("aix.navigation")}>
-                    {EVENT_VIEWS.map((item) => (
+                    {getEventViews(event.key).map((item) => (
                         <Link
                             key={item}
                             to={getEventUrl(event.key, item)}
@@ -119,7 +119,11 @@ export default function HackathonWorkspace({ template, schedule }) {
                                 (view === "register" ? "intro" : view) === item ? "page" : undefined
                             }
                         >
-                            {t(`eventWorkspace.tabs.${item}`)}
+                            {t(
+                                event.key === "zhekesong-ai-x-2026"
+                                    ? `aix.refined.tabs.${item}`
+                                    : `eventWorkspace.tabs.${item}`
+                            )}
                         </Link>
                     ))}
                 </nav>

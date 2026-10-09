@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { getEventUrl } from "../../utils/hackathonRoute";
 import { useState } from "react";
 import { ArrowUpRight, CheckCircle2, Github, FolderGit2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -5,7 +7,7 @@ import api from "../../services/api";
 import { eventTimestamp } from "../../utils/hackathonAiX";
 import "./RepositorySubmission.css";
 
-export default function RepositorySubmission({ registration, endAt, onSaved }) {
+export default function RepositorySubmission({ registration, endAt, onSaved, compact = false }) {
     const { t } = useTranslation();
     const [urls, setUrls] = useState(() => ({
         githubUrl: registration.repositories?.githubUrl || "",
@@ -16,6 +18,13 @@ export default function RepositorySubmission({ registration, endAt, onSaved }) {
     const [invalidField, setInvalidField] = useState("");
     const [saved, setSaved] = useState(false);
     const closed = Date.now() >= eventTimestamp(endAt);
+    const count = [
+        registration.repositories?.githubUrl,
+        registration.repositories?.modelscopeUrl,
+    ].filter(Boolean).length;
+    const dirty = ["githubUrl", "modelscopeUrl"].some(
+        (key) => urls[key] !== (registration.repositories?.[key] || "")
+    );
     const submit = async (event) => {
         event.preventDefault();
         if (saving || closed) return;
@@ -83,82 +92,115 @@ export default function RepositorySubmission({ registration, endAt, onSaved }) {
                         ))}
                 </dl>
             </details>
-            <form onSubmit={submit} className="aix-repository-form">
-                <div>
-                    <h3>{t("aix.repositories.title")}</h3>
-                    <p>{t("aix.repositories.description")}</p>
+            {compact ? (
+                <div className="aix-repository-next">
+                    <p>
+                        {t(count ? "aix.refined.savedCount" : "aix.refined.noSubmission", {
+                            count,
+                        })}
+                    </p>
+                    <Link
+                        className="aix-primary"
+                        to={getEventUrl(registration.eventKey, "challenges", {
+                            hash: "#submission",
+                        })}
+                    >
+                        {t("aix.refined.toSubmission")}
+                        <ArrowUpRight size={18} />
+                    </Link>
                 </div>
-                {[
-                    ["githubUrl", "github", Github, "https://github.com/owner/repo"],
-                    [
-                        "modelscopeUrl",
-                        "modelscope",
-                        FolderGit2,
-                        "https://modelscope.cn/studios/owner/repo",
-                    ],
-                ].map(([field, provider, Icon, placeholder]) => (
-                    <div className="aix-repository-field" key={field}>
-                        <label htmlFor={`repository-${field}`}>
-                            <Icon size={19} />
-                            {t(`aix.repositories.${provider}`)}
-                        </label>
-                        <input
-                            id={`repository-${field}`}
-                            type="url"
-                            inputMode="url"
-                            autoCapitalize="none"
-                            autoCorrect="off"
-                            spellCheck={false}
-                            maxLength={1000}
-                            placeholder={placeholder}
-                            value={urls[field]}
-                            disabled={saving || closed}
-                            aria-invalid={invalidField === field || undefined}
-                            aria-describedby={
-                                invalidField === field
-                                    ? "repository-error"
-                                    : `repository-${field}-hint`
-                            }
-                            onChange={(e) => {
-                                setUrls((current) => ({ ...current, [field]: e.target.value }));
-                                setSaved(false);
-                                setInvalidField("");
-                                setError("");
-                            }}
-                        />
-                        <p id={`repository-${field}-hint`}>
-                            {t(`aix.repositories.${provider}Hint`)}
-                        </p>
-                        {registration.repositories?.[field] && (
-                            <a
-                                href={registration.repositories[field]}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {t("aix.repositories.openSaved")}
-                                <ArrowUpRight size={15} />
-                            </a>
-                        )}
+            ) : (
+                <form onSubmit={submit} className="aix-repository-form">
+                    <div>
+                        <div className="aix-repository-title">
+                            <h3>{t("aix.repositories.title")}</h3>
+                            <span className="aix-repository-state" role="status">
+                                {t(
+                                    closed
+                                        ? "aix.refined.readOnly"
+                                        : dirty
+                                          ? "aix.refined.unsaved"
+                                          : count
+                                            ? "aix.refined.savedCount"
+                                            : "aix.refined.noSubmission",
+                                    { count }
+                                )}
+                            </span>
+                        </div>
+                        <p>{t("aix.repositories.description")}</p>
                     </div>
-                ))}
-                {error && (
-                    <p role="alert" id="repository-error" className="aix-repository-error">
-                        {error}
-                    </p>
-                )}
-                {saved && (
-                    <p role="status" className="aix-repository-saved">
-                        {t("aix.repositories.saved")}
-                    </p>
-                )}
-                {closed ? (
-                    <p role="status">{t("aix.repositories.closed")}</p>
-                ) : (
-                    <button className="aix-primary" type="submit" disabled={saving}>
-                        {t(saving ? "aix.repositories.saving" : "aix.repositories.save")}
-                    </button>
-                )}
-            </form>
+                    {[
+                        ["githubUrl", "github", Github, "https://github.com/owner/repo"],
+                        [
+                            "modelscopeUrl",
+                            "modelscope",
+                            FolderGit2,
+                            "https://modelscope.cn/studios/owner/repo",
+                        ],
+                    ].map(([field, provider, Icon, placeholder]) => (
+                        <div className="aix-repository-field" key={field}>
+                            <label htmlFor={`repository-${field}`}>
+                                <Icon size={19} />
+                                {t(`aix.repositories.${provider}`)}
+                            </label>
+                            <input
+                                id={`repository-${field}`}
+                                type="url"
+                                inputMode="url"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                maxLength={1000}
+                                placeholder={placeholder}
+                                value={urls[field]}
+                                disabled={saving || closed}
+                                aria-invalid={invalidField === field || undefined}
+                                aria-describedby={
+                                    invalidField === field
+                                        ? "repository-error"
+                                        : `repository-${field}-hint`
+                                }
+                                onChange={(e) => {
+                                    setUrls((current) => ({ ...current, [field]: e.target.value }));
+                                    setSaved(false);
+                                    setInvalidField("");
+                                    setError("");
+                                }}
+                            />
+                            <p id={`repository-${field}-hint`}>
+                                {t(`aix.repositories.${provider}Hint`)}
+                            </p>
+                            {registration.repositories?.[field] && (
+                                <a
+                                    href={registration.repositories[field]}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {t("aix.repositories.openSaved")}
+                                    <ArrowUpRight size={15} />
+                                </a>
+                            )}
+                        </div>
+                    ))}
+                    {error && (
+                        <p role="alert" id="repository-error" className="aix-repository-error">
+                            {error}
+                        </p>
+                    )}
+                    {saved && (
+                        <p role="status" className="aix-repository-saved">
+                            {t("aix.repositories.saved")}
+                        </p>
+                    )}
+                    {closed ? (
+                        <p role="status">{t("aix.repositories.closed")}</p>
+                    ) : (
+                        <button className="aix-primary" type="submit" disabled={saving}>
+                            {t(saving ? "aix.repositories.saving" : "aix.repositories.save")}
+                        </button>
+                    )}
+                </form>
+            )}
         </div>
     );
 }

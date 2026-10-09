@@ -1,3 +1,4 @@
+import AiXPartnerLogos, { AiXBrand } from "./AiXPartnerLogos";
 import { useState } from "react";
 import {
     ArrowDown,
@@ -86,7 +87,7 @@ export default function AiXOverview({
                 </div>
                 <div className="aix-pixel-field" data-motion-paused={motionPaused}>
                     <img
-                        src="/images/hackathon/ai-x/pixel-x.svg"
+                        src="/images/hackathon/ai-x/pixel-x.svg?v=clean-20261009"
                         alt=""
                         width="640"
                         height="640"
@@ -117,6 +118,7 @@ export default function AiXOverview({
                 <div className="aix-track-pair">
                     {["campus", "industry"].map((track, index) => (
                         <article className={`aix-track-card aix-track-${track}`} key={track}>
+                            <AiXBrand id={track === "campus" ? "qwen" : "huawei"} />
                             <span className="aix-track-index">[ 0{index + 1} ]</span>
                             <h2>{t(`aix.landing.tracks.${track}.shortTitle`)}</h2>
                             <p>{t(`aix.landing.tracks.${track}.shortDescription`)}</p>
@@ -140,7 +142,7 @@ export default function AiXOverview({
                             </div>
                             <button
                                 className="aix-track-arrow"
-                                onClick={() => switchView("challenges")}
+                                onClick={() => switchView("challenges", track)}
                                 aria-label={`${t("aix.viewChallenges")} · ${t(`aix.tracks.${track}.title`)}`}
                             >
                                 <ArrowRight size={31} strokeWidth={1.2} />
@@ -288,6 +290,7 @@ export default function AiXOverview({
                         <h2 id="aix-partners-title">{t("aix.landing.partnersTitle")}</h2>
                     </div>
                 </div>
+                <AiXPartnerLogos />
                 <dl>
                     {partners.map((partner) => (
                         <div key={partner.label}>

@@ -5558,6 +5558,54 @@
                 "github": "Use https://github.com/owner/repo without branches, query parameters or credentials.",
                 "modelscope": "Use an HTTPS ModelScope Studio, model or dataset repository URL without query parameters or credentials."
             }
+        },
+        "refined": {
+            "tabs": {
+                "intro": "Overview & registration",
+                "challenges": "Challenges & submissions"
+            },
+            "challengeTitle": "Challenges & submissions",
+            "challengeIntro": "Choose a track. Read the brief. Submit your work.",
+            "mySubmission": "My submission",
+            "toSubmission": "Go to submission",
+            "status": {
+                "closed": "Event ended",
+                "selfDefined": "Choose your problem",
+                "published": "Brief published",
+                "pending": "Brief coming soon",
+                "stageClosed": "Stage ended"
+            },
+            "problemTitle": "Start with a real problem",
+            "problemDescription": "Choose a problem from your studies, research or campus work, and use AI to build a working application people can try.",
+            "directions": "Areas to explore",
+            "specificSubmission": "Challenge submission link",
+            "releaseAt": "Expected {{date}}. The organizer’s published brief is authoritative.",
+            "awaitPublication": "The official brief has not been published. Please check back for an organizer update.",
+            "participation": "Participation",
+            "individual": "Individual entry. Start building in advance.",
+            "team": "Up to 3 people. Four hours of onsite development.",
+            "schedule": "Schedule",
+            "campusMaterials": "Prepare a project description and a working application. Save your GitHub or ModelScope repository below.",
+            "submissionIntro": "Register first, then save or update your project repositories here.",
+            "loadFailed": "Could not load your registration",
+            "loginTitle": "Sign in to view your submission",
+            "loginHint": "Your registration and repositories are saved to your account.",
+            "registerFirst": "Register before submitting",
+            "registerHint": "Each participant registers individually before submitting repository links.",
+            "noRegistrationClosed": "Registration is closed. You have no registration for this edition.",
+            "noSubmission": "No repository submitted",
+            "savedCount": "{{count}} repositories saved",
+            "readOnly": "Submission closed · View only",
+            "unsaved": "Unsaved changes",
+            "partners": {
+                "qwen": "Track support",
+                "huawei": "Track & compute support",
+                "aliyun": "Technology support",
+                "qoder": "Tools & technology",
+                "modelscope": "Community ecosystem"
+            },
+            "closedHint": "You can still read the briefs. Submissions are available only to registered participants.",
+            "closedBrief": "This stage has ended. No public brief is available."
         }
     },
     "eventWorkspace": {

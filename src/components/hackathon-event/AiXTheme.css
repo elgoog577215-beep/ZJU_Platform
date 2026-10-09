@@ -9,14 +9,14 @@
     --hx-soft: #0c120e;
     --hx-text: #f4f5f1;
     --hx-muted: #adb6ae;
-    --hx-line: #4b584c;
+    --hx-line: #ffffff1c;
     --hx-accent: #b7fb50;
     --hx-accent-text: #b7fb50;
     --event-width: 1360px;
     --event-panel: #0d140f;
     --event-backdrop: none;
-    --event-grid-horizontal: #b7fb5008;
-    --event-grid-vertical: #b7fb5008;
+    --event-grid-horizontal: transparent;
+    --event-grid-vertical: transparent;
     color: var(--hx-text);
     background: var(--hx-bg);
     color-scheme: dark;
@@ -31,7 +31,7 @@
     --hx-soft: #edf1e8;
     --hx-text: #172016;
     --hx-muted: #52604d;
-    --hx-line: #919e85;
+    --hx-line: #17201626;
     --hx-accent: #b7fb50;
     --hx-accent-text: #3c6413;
     --event-panel: #eef2e6;
