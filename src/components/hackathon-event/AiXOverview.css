@@ -184,6 +184,42 @@
     border-color: var(--hx-accent-text);
     background: var(--hx-surface);
 }
+.aix-landing .aix-lottery-entry {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 12px 18px;
+    min-height: 64px;
+    border-radius: 6px;
+    background: var(--hx-accent);
+    color: #101507;
+    transition: background 0.16s;
+}
+.aix-lottery-entry:hover {
+    background: #d3ff8c;
+}
+.aix-lottery-entry > span {
+    flex: 1;
+    min-width: 0;
+}
+.aix-lottery-entry strong,
+.aix-lottery-entry small {
+    display: block;
+}
+.aix-lottery-entry strong {
+    font-size: 17px;
+    line-height: 1.4;
+    font-weight: 750;
+}
+.aix-lottery-entry small {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.aix-lottery-entry > svg {
+    flex-shrink: 0;
+}
 .aix-pixel-field {
     position: relative;
     width: 100%;

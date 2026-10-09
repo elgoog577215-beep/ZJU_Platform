@@ -5882,6 +5882,7 @@
             "fulfilled": "Prize delivered"
         },
         "event_entry": "Share & win",
+        "event_entry_hint": "View prizes and entry rules",
         "event_label": "Hackathon event",
         "legacy_event": "No event (standalone campaign)",
         "promotion_url": "Official post URL",

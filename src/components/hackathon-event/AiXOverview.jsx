@@ -101,6 +101,17 @@ export default function AiXOverview({
                             {motionPaused ? <Play size={16} /> : <Pause size={16} />}
                         </button>
                     </div>
+                    <Link
+                        className="aix-lottery-entry"
+                        to={getEventUrl("zhekesong-ai-x-2026", "lottery")}
+                    >
+                        <Gift className="aix-lottery-icon" size={26} aria-hidden="true" />
+                        <span>
+                            <strong>{t("lottery.event_entry")}</strong>
+                            <small>{t("lottery.event_entry_hint")}</small>
+                        </span>
+                        <ArrowUpRight size={24} aria-hidden="true" />
+                    </Link>
                 </div>
                 <div className="aix-pixel-field" data-motion-paused={motionPaused}>
                     <img
@@ -172,11 +183,6 @@ export default function AiXOverview({
                         <InfinityIcon size={23} />
                         {t("aix.landing.bothTracks")}
                     </span>
-                    <Link to={getEventUrl("zhekesong-ai-x-2026", "lottery")}>
-                        <Gift size={19} />
-                        {t("lottery.event_entry")}
-                        <ArrowRight size={17} />
-                    </Link>
                 </div>
             </section>
             <div className="aix-section-nav aix-wrap">

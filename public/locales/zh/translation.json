@@ -5984,6 +5984,7 @@
             "fulfilled": "奖品发放"
         },
         "event_entry": "转发抽奖",
+        "event_entry_hint": "查看奖品与参与规则",
         "event_label": "所属赛事",
         "legacy_event": "未关联赛事（保留独立活动）",
         "promotion_url": "官方推文链接",
