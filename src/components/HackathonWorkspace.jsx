@@ -103,17 +103,16 @@ export default function HackathonWorkspace({ template, schedule }) {
             <a className="hx-skip" href="#hx-event-content">
                 {t("eventWorkspace.skip")}
             </a>
-            <header className="hx-eventbar">
-                <HackathonEventPicker
-                    events={schedule.events}
-                    value={event.key}
-                    now={now}
-                    onChange={(key) => navigate(getEventUrl(key, view))}
-                />
-                <nav className="hx-nav" aria-label={t("aix.navigation")}>
-                    {getEventViews(event.key)
-                        .filter((item) => event.key !== "zhekesong-ai-x-2026" || item !== "intro")
-                        .map((item) => (
+            {event.key !== "zhekesong-ai-x-2026" && (
+                <header className="hx-eventbar">
+                    <HackathonEventPicker
+                        events={schedule.events}
+                        value={event.key}
+                        now={now}
+                        onChange={(key) => navigate(getEventUrl(key, view))}
+                    />
+                    <nav className="hx-nav" aria-label={t("aix.navigation")}>
+                        {getEventViews(event.key).map((item) => (
                             <Link
                                 key={item}
                                 to={getEventUrl(event.key, item)}
@@ -123,39 +122,36 @@ export default function HackathonWorkspace({ template, schedule }) {
                                         : undefined
                                 }
                             >
-                                {t(
-                                    event.key === "zhekesong-ai-x-2026"
-                                        ? `aix.refined.tabs.${item}`
-                                        : `eventWorkspace.tabs.${item}`
-                                )}
+                                {t(`eventWorkspace.tabs.${item}`)}
                             </Link>
                         ))}
-                </nav>
-                <div className="hx-event-actions">
-                    <Link
-                        className="hx-outline"
-                        to={getEventUrl(event.key, "lottery")}
-                        aria-current={view === "lottery" ? "page" : undefined}
-                    >
-                        <Gift size={17} aria-hidden="true" />
-                        {t("lottery.event_entry")}
-                    </Link>
-                    <button
-                        className="hx-primary"
-                        disabled={
-                            authLoading ||
-                            registrationLoading ||
-                            (!registration && !open && !registrationError)
-                        }
-                        onClick={showRegistration}
-                    >
-                        {registration ? <Check size={17} /> : null}
-                        {t(label)}
-                        {open && !registration ? <ArrowUpRight size={17} /> : null}
-                    </button>
-                </div>
-                <span className="hx-event-status">{t(`aix.state.${state}`)}</span>
-            </header>
+                    </nav>
+                    <div className="hx-event-actions">
+                        <Link
+                            className="hx-outline"
+                            to={getEventUrl(event.key, "lottery")}
+                            aria-current={view === "lottery" ? "page" : undefined}
+                        >
+                            <Gift size={17} aria-hidden="true" />
+                            {t("lottery.event_entry")}
+                        </Link>
+                        <button
+                            className="hx-primary"
+                            disabled={
+                                authLoading ||
+                                registrationLoading ||
+                                (!registration && !open && !registrationError)
+                            }
+                            onClick={showRegistration}
+                        >
+                            {registration ? <Check size={17} /> : null}
+                            {t(label)}
+                            {open && !registration ? <ArrowUpRight size={17} /> : null}
+                        </button>
+                    </div>
+                    <span className="hx-event-status">{t(`aix.state.${state}`)}</span>
+                </header>
+            )}
             <div
                 id="hx-event-content"
                 className={`hx-page ${!["intro", "media"].includes(view) ? "hx-interior" : ""}`}

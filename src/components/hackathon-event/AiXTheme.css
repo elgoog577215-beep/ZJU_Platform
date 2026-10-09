@@ -328,9 +328,9 @@
 :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar::before {
     display: none;
 }
-/* Compact event controls keep both primary pages within a thumb's reach. */
+/* AI+X uses only the global navbar; content reserves no secondary header space. */
 :root .hx-workspace[data-event="zhekesong-ai-x-2026"] {
-    --event-nav-height: 72px;
+    --event-nav-height: 0px;
 }
 :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
     padding-inline: max(32px, calc((100% - 1248px) / 2));
@@ -346,9 +346,6 @@
     border-radius: 6px;
 }
 @media (max-width: 1100px) {
-    :root .hx-workspace[data-event="zhekesong-ai-x-2026"] {
-        --event-nav-height: 100px;
-    }
     :root .hx-workspace[data-event="zhekesong-ai-x-2026"] .hx-eventbar {
         padding-block: 6px;
         grid-template-rows: 44px 44px;
