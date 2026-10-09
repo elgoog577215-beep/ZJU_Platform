@@ -8,8 +8,13 @@ const { execFileSync, spawnSync } = require("node:child_process");
 const script = path.resolve(__dirname, "../../deploy/deploy-release.sh");
 const quote = (s) => "'" + s.replaceAll("'", "'\\''") + "'";
 
-for (const failHealth of [false, true]) {
-    test(`release switch ${failHealth ? "rolls back after failed health" : "retains runtime and previous release"}`, () => {
+for (const { failHealth, browser } of [
+    { failHealth: false, browser: "ready" },
+    { failHealth: true, browser: "ready" },
+    { failHealth: false, browser: "needs-deps" },
+    { failHealth: false, browser: "unavailable" },
+]) {
+    test(`release switch: browser ${browser}, health ${failHealth ? "failed" : "healthy"}`, () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), "zju-deploy-test-"));
         const write = (file, text) => {
             fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -46,14 +51,18 @@ for (const failHealth of [false, true]) {
             );
             const shims = {
                 npm: "exit 0",
-                npx: "exit 0",
+                npx: `echo "$*" >> ${quote(path.join(dir, "browser-install.log"))}
+case "$*" in *--with-deps*) touch ${quote(path.join(dir, "deps-installed"))};; esac
+exit 0`,
                 caddy: "exit 0",
                 systemctl: "exit 0",
                 pm2: "exit 0",
                 sleep: "exit 0",
                 flock: "exit 0",
                 curl: failHealth ? "exit 22" : 'echo \'{"status":"ok"}\'',
-                node: `if [ "$1" = '-e' ]; then exit 0; fi\ncase "$1" in */backup-release-database.js) exit 0;; esac\nexec ${quote(process.execPath)} "$@"`,
+                node: `if [ "$1" = '-e' ]; then
+  ${browser === "unavailable" ? "exit 1" : browser === "needs-deps" ? `test -f ${quote(path.join(dir, "deps-installed"))}; exit $?` : "exit 0"}
+fi\ncase "$1" in */backup-release-database.js) exit 0;; esac\nexec ${quote(process.execPath)} "$@"`,
                 sha256sum: 'exec shasum -a 256 "$@"',
             };
             for (const [name, text] of Object.entries(shims)) {
@@ -71,10 +80,14 @@ for (const failHealth of [false, true]) {
                     ZJU_QWEN_BASE_URL: "http://fixture.invalid",
                 },
             });
-            assert.equal(result.status, failHealth ? 1 : 0, result.stdout + result.stderr);
+            const failed = failHealth || browser === "unavailable";
+            assert.equal(result.status, failed ? 1 : 0, result.stdout + result.stderr);
+            const installs = fs.readFileSync(path.join(dir, "browser-install.log"), "utf8");
+            assert.match(installs, /^playwright install chromium$/m);
+            assert.equal(installs.includes("--with-deps"), browser !== "ready");
             assert.equal(
                 fs.readFileSync(path.join(app, "dist/index.html"), "utf8"),
-                failHealth ? "old frontend" : "new frontend"
+                failed ? "old frontend" : "new frontend"
             );
             assert.equal(
                 fs.readFileSync(path.join(app, "server/database.sqlite"), "utf8"),
@@ -87,9 +100,9 @@ for (const failHealth of [false, true]) {
             );
             assert.equal(
                 fs.readFileSync(path.join(app, ".deployed-release"), "utf8"),
-                failHealth ? "commit=old\n" : `commit=${sha}\n`
+                failed ? "commit=old\n" : `commit=${sha}\n`
             );
-            if (!failHealth)
+            if (!failed)
                 assert.equal(
                     fs.readFileSync(
                         path.join(app, `.deployments/${sha}/previous/dist/index.html`),

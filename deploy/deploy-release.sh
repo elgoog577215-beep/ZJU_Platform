@@ -78,8 +78,15 @@ echo "Release payload validated"
 (
   cd "$payload/server"
   npm ci --omit=dev --legacy-peer-deps
-  npx playwright install --with-deps chromium
-  node -e 'const { chromium } = require("playwright"); chromium.launch({ headless: true }).then(async (browser) => { await browser.close(); console.log("Playwright Chromium launch verified"); }).catch((error) => { console.error(error); process.exit(1); });'
+  verify_browser() {
+    node -e 'const { chromium } = require("playwright"); chromium.launch({ headless: true }).then(async (browser) => { await browser.close(); console.log("Playwright Chromium launch verified"); }).catch((error) => { console.error(error); process.exit(1); });'
+  }
+  npx playwright install chromium
+  if ! verify_browser; then
+    echo "Chromium preflight failed; installing system dependencies"
+    npx playwright install --with-deps chromium
+    verify_browser
+  fi
 )
 
 caddy validate --config /etc/caddy/Caddyfile
