@@ -532,3 +532,10 @@
         gap: 5px;
     }
 }
+:root
+    .hx-workspace[data-event="zhekesong-ai-x-2026"]
+    [data-contained-form]
+    .hackathon-form-panel[data-registration-gate="login"] {
+    height: auto;
+    min-height: 230px;
+}

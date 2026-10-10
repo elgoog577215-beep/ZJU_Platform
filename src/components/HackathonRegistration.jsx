@@ -1549,6 +1549,9 @@ const HackathonRegistration = ({
                                   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
                               }
                             : {})}
+                        data-registration-gate={
+                            isAiX && showProfileGate && !user ? "login" : undefined
+                        }
                         className={`hackathon-form-panel relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
                     >
                         {/* AI+X 去重：左侧栏已有同名标题，面板只保留编辑入口（无则整行不渲染）。 */}
