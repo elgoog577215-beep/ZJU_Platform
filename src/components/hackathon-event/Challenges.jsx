@@ -46,7 +46,9 @@ export default function Challenges({ template, now, registrationState = {} }) {
     const status = ended
         ? "closed"
         : track === "campus"
-          ? "selfDefined"
+          ? now < eventTimestamp(template.event.startAt)
+              ? "pending"
+              : "selfDefined"
           : stageStatus === "ended"
             ? "stageClosed"
             : challenges.length

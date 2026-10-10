@@ -1,3 +1,5 @@
+import AiXChapters from "./hackathon-event/AiXChapters";
+import AiXRegistrationInfo from "./hackathon-event/AiXRegistrationInfo";
 import RepositorySubmission from "./hackathon-event/RepositorySubmission";
 import { getFirstEditionPartnerGroups } from "../data/firstEditionPartners";
 import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
@@ -798,9 +800,7 @@ const HackathonRegistration = ({
         const target = document.getElementById(id);
         if (!target) return;
         const scrollTarget =
-            id === "hackathon-hero" || (id === "registration-form" && isAiX)
-                ? target
-                : target.querySelector("h2") || target;
+            id === "hackathon-hero" || isAiX ? target : target.querySelector("h2") || target;
 
         const scroller = pageRef.current;
         const viewportTop = scroller?.getBoundingClientRect().top ?? 0;
@@ -809,18 +809,19 @@ const HackathonRegistration = ({
             workspace?.querySelector(".hx-eventbar"),
             scroller?.querySelector(".hackathon-section-nav"),
         ].filter((element) => element?.getClientRects().length);
-        const offset =
-            id === "registration-form" && isAiX
-                ? 0
-                : navigation.length
-                  ? Math.max(
-                        ...navigation.map((element) => element.getBoundingClientRect().bottom)
-                    ) -
-                    viewportTop +
-                    16
-                  : window.innerWidth < 768
-                    ? 76
-                    : 96;
+        const offset = isAiX
+            ? (workspace?.querySelector(".hx-eventbar")?.getBoundingClientRect().bottom ??
+                  viewportTop) -
+              viewportTop +
+              (scroller?.querySelector(".aix-chapters")?.offsetHeight || 0) +
+              12
+            : navigation.length
+              ? Math.max(...navigation.map((element) => element.getBoundingClientRect().bottom)) -
+                viewportTop +
+                16
+              : window.innerWidth < 768
+                ? 76
+                : 96;
 
         if (!scroller) {
             const end = scrollTarget.getBoundingClientRect().top + window.scrollY - offset;
@@ -882,6 +883,7 @@ const HackathonRegistration = ({
                 })}
             />
 
+            {isAiX && <AiXChapters containerRef={pageRef} onSelect={smoothScrollTo} />}
             {introductionContent ? (
                 introductionContent({ scrollToForm, scrollToSection: smoothScrollTo })
             ) : (
@@ -1466,6 +1468,7 @@ const HackathonRegistration = ({
                                 {formConfig.description}
                             </p>
 
+                            {isAiX && <AiXRegistrationInfo />}
                             {/* AI+X 收敛冗余：这三格与 hero 赛事信息重复，组队规则留在赛道字段提示。 */}
                             {!isAiX && (
                                 <>

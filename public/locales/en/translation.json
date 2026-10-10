@@ -5065,10 +5065,10 @@
         "forumKicker": "AI Interdisciplinary Innovation Forum &",
         "heroTitle": "Break Boundaries",
         "eventFullTitle": "AI Interdisciplinary Innovation Forum & AI+X Hackathon",
-        "motto": "Break boundaries · Build together · Create",
+        "motto": "Cross disciplines · Innovate · Solve real problems",
         "description": "Start with your discipline. Work across fields to turn real problems into working AI applications.",
-        "date": "2026.10.09 - 10.25",
-        "location": "Oct 18 · North 2-112 / Oct 25 · Elite Eagle Sandun Metaspace",
+        "date": "2026.10.11 - 10.25",
+        "location": "Oct 18: Zijingang North Teaching Building · Oct 25: Zijingang School of Management",
         "team": "Qwen: individual · Huawei: up to 3 people",
         "tracksKicker": "Two tracks",
         "tracksTitle": "Your discipline is a starting point.",
@@ -5077,7 +5077,7 @@
             "campus": {
                 "title": "Qwen · Academic Starter Track",
                 "description": "An online solo competition. Turn a concrete problem from your discipline into an AI application people can try.",
-                "topics": "Law · Ocean science · Medicine · Education · Communications · Creative practice"
+                "topics": "Law · Ocean science · Medicine · Education · Communication"
             },
             "industry": {
                 "title": "Huawei · Industry Advanced Track",
@@ -5087,17 +5087,17 @@
         },
         "forumsKicker": "Two forums",
         "forumsTitle": "Technology & entrepreneurship",
-        "forumsDescription": "Both forums welcome public audiences. Proposed guests are individually marked.",
+        "forumsDescription": "Technical practice and entrepreneurship in the AI era.",
         "forums": {
             "technology": {
                 "date": "10.18",
                 "title": "Technology forum",
-                "description": "AI trends, industry applications and development practice. About 200 attendees; open to AI enthusiasts on and off campus."
+                "description": "Frontier perspectives, the latest enterprise technology and development practice. Around 200 attendees."
             },
             "entrepreneurship": {
                 "date": "10.25",
                 "title": "Entrepreneurship forum",
-                "description": "Long-term skills for young entrepreneurs in the AI era. About 150 attendees; all finalists attend, with public audiences welcome."
+                "description": "How young entrepreneurs can develop the fundamentals to navigate economic cycles in the AI era. Around 150 attendees."
             }
         },
         "agendaTitle": "Event schedule",
@@ -5134,7 +5134,7 @@
         "stagesLabel": "Competition stages",
         "deadline": "Submission deadline",
         "challengePending": "Challenges to be announced",
-        "releaseTime": "The Disciplinary Starter Track launches October 10; industry tasks are announced at the October 18 opening.",
+        "releaseTime": "Qwen starts October 11; Huawei challenges are revealed at the October 18 opening.",
         "nextStageNotice": "Requirements and submission links will open after the official announcement.",
         "submissionPending": "Submission link coming soon",
         "submissionClosed": "Submissions closed for this stage",
@@ -5146,19 +5146,19 @@
             "initial": {
                 "title": "First round",
                 "date": "10.18",
-                "description": "October 18, 11:00–12:30 and 13:30–16:00: four hours of onsite development. Projects reaching 60% completion advance.",
+                "description": "Huawei challenges launch at the October 18 opening.",
                 "materials": "Submit a working demo and project description to ModelScope, covering the problem, core features and completion."
             },
             "semifinal": {
                 "title": "Semifinal",
                 "date": "10.19—10.24",
-                "description": "Online development and review on October 19–24. The top ten projects advance to the final.",
+                "description": "Develop solutions and products for real enterprise problems.",
                 "materials": "Refine the project guide and demo, submit source code and a ModelScope project as required by the official challenge."
             },
             "final": {
                 "title": "Final",
                 "date": "10.25",
-                "description": "The two tracks pitch in parallel and are judged separately, followed by a joint awards ceremony.",
+                "description": "October 25 finals: present the solution and its practical impact.",
                 "materials": "Prepare pitch slides, a project poster and a working demo. Pitch order and detailed rules will be announced."
             }
         },
@@ -5308,7 +5308,7 @@
         "resultsTitle": "Results",
         "resultsIntro": "Award winners, projects, speeches and forum highlights in one place.",
         "industryStages": "Huawei Advanced Track · Stages",
-        "campusSchedule": "Build and submit online on October 10–17. Fifteen pitch projects announced on the evening of October 17; final pitches on October 25.",
+        "campusSchedule": "Online development October 11–17; finals October 25.",
         "fieldHints": {
             "name": "",
             "studentId": "",
@@ -5324,7 +5324,7 @@
         },
         "landing": {
             "viewAgenda": "View schedule",
-            "audience": "For ZJU students · About 300 entrants · Public forums",
+            "audience": "Solve real problems in learning, research, campus life and industry with AI.",
             "eventDates": "EVENT DATES",
             "onsite": "Meet on campus · Oct 18 / Oct 25",
             "organizer": "Tuozhe AI Ecosystem · Zhekesong",
@@ -5333,149 +5333,82 @@
                 "campus": {
                     "partner": "Qwen",
                     "type": "Your own challenge",
-                    "topics": [
-                        "Law",
-                        "Ocean science",
-                        "Medicine",
-                        "Education",
-                        "Communications",
-                        "Creative practice"
-                    ],
+                    "topics": ["Law", "Ocean science", "Medicine", "Education", "Communications"],
                     "format": "Build online · Present on campus",
                     "shortTitle": "Qwen · Academic Starter Track",
                     "shortDescription": "Your discipline. Your problem. Build ahead.",
                     "team": "Individual",
-                    "deadline": "Oct 10–17 · Online",
-                    "support": "Submit to Tmall Campus / ModelScope"
+                    "deadline": "Oct 11–17",
+                    "support": "Supported by Qwen · Choose your discipline"
                 },
                 "industry": {
                     "partner": "Huawei China",
                     "type": "Industry challenge",
                     "topics": ["Copywriting", "Marketing"],
-                    "format": "4-hour onsite build · Online iteration",
+                    "format": "Solution design · Product development · Presentations",
                     "shortTitle": "Huawei · Industry Advanced Track",
-                    "shortDescription": "Live challenge. Four hours to build.",
+                    "shortDescription": "Design and build solutions to real enterprise problems.",
                     "team": "Up to 3 people",
-                    "deadline": "Oct 18–24 · Development",
-                    "support": "Submit to ModelScope"
+                    "deadline": "Oct 18–25",
+                    "support": "Challenge support from Huawei China"
                 }
             },
             "agendaTitle": "Event schedule",
             "fullAgenda": "Full onsite schedule",
             "agenda": [
                 {
-                    "date": "10.10—10.17",
-                    "title": "Qwen online development",
-                    "description": "Choose a problem and submit. Fifteen pitch projects announced on October 17."
+                    "date": "10.11",
+                    "title": "Qwen track opens",
+                    "description": "Define a problem and build online."
                 },
                 {
                     "date": "10.18",
-                    "title": "Tech forum & Huawei initial",
-                    "description": "Morning forum, then four hours of onsite development. Reach 60% completion to advance."
-                },
-                {
-                    "date": "10.19—10.24",
-                    "title": "Huawei online semifinal",
-                    "description": "Refine and validate your project. Ten finalists selected."
+                    "title": "Huawei track · Opening",
+                    "description": "Technology forum and Huawei challenge launch."
                 },
                 {
                     "date": "10.25",
-                    "title": "Entrepreneurship & pitches",
-                    "description": "Morning forum, afternoon parallel pitches, separate reviews and joint awards."
+                    "title": "Finals",
+                    "description": "Entrepreneurship forum and final presentations."
                 }
             ],
-            "days": [
-                {
-                    "title": "Oct 18 · North 2-112",
-                    "items": [
-                        {
-                            "time": "09:00–09:30",
-                            "text": "Opening · Ruan Junhua; Huawei challenge release"
-                        },
-                        {
-                            "time": "09:30–11:00",
-                            "text": "Technology forum · two discussions"
-                        },
-                        {
-                            "time": "11:00–12:30",
-                            "text": "Huawei onsite development"
-                        },
-                        {
-                            "time": "13:30–16:00",
-                            "text": "Development, submission and completion review"
-                        },
-                        {
-                            "time": "16:00–16:30",
-                            "text": "Project and technology exchange"
-                        },
-                        {
-                            "time": "16:30–17:00",
-                            "text": "Initial round closing"
-                        }
-                    ]
-                },
-                {
-                    "title": "Oct 25 · Elite Eagle Sandun Metaspace",
-                    "items": [
-                        {
-                            "time": "09:00–09:30",
-                            "text": "Final opening · Zheng Gang"
-                        },
-                        {
-                            "time": "09:30–11:30",
-                            "text": "Entrepreneurship forum and Q&A"
-                        },
-                        {
-                            "time": "13:30–15:30",
-                            "text": "Parallel pitches and separate judging"
-                        },
-                        {
-                            "time": "15:30–16:00",
-                            "text": "Comments and judge deliberation"
-                        },
-                        {
-                            "time": "16:00–17:00",
-                            "text": "Joint awards and closing"
-                        }
-                    ]
-                }
-            ],
+            "days": [],
             "invited": "Proposed",
             "forums": {
                 "technology": {
-                    "time": "09:30–11:00",
-                    "location": "Zijingang Campus · North 2-112",
+                    "time": "",
+                    "location": "Zijingang North Teaching Building, Zhejiang University",
                     "speakers": [
                         {
                             "name": "Ye Xinjiang",
-                            "role": "CTO, Daily Interactive"
-                        },
-                        {
-                            "name": "Zhang Kejun",
-                            "role": "Head of Intelligent Design, ZJU School of AI",
-                            "pending": true
+                            "role": "CTO, Daily Interactive",
+                            "image": "ye-xinjiang"
                         },
                         {
                             "name": "Sun Yifei",
-                            "role": "ZJU Hundred Talents Researcher"
+                            "role": "Hundred Talents Researcher, Zhejiang University",
+                            "image": "sun-yifei"
+                        },
+                        {
+                            "name": "Wang Feifan",
+                            "role": "Deputy Director, Student Entrepreneurship Development Center, Zhejiang University",
+                            "image": "wang-feifan"
                         }
                     ]
                 },
                 "entrepreneurship": {
-                    "time": "09:30–11:30",
-                    "location": "Elite Eagle Sandun Metaspace",
+                    "time": "",
+                    "location": "Zijingang School of Management, Zhejiang University",
                     "speakers": [
                         {
-                            "name": "Zhang Jie",
-                            "role": "General Manager, Huadan Angel Fund"
-                        },
-                        {
-                            "name": "Yang Yuke",
-                            "role": "Vice President, 5Y Capital"
-                        },
-                        {
                             "name": "Zheng Gang",
-                            "role": "Director, ZJU Technology Venture Program"
+                            "role": "Deputy Head, Innovation, Entrepreneurship and Strategy Department; Director, ZTVP, Zhejiang University",
+                            "image": "zheng-gang"
+                        },
+                        {
+                            "name": "Zhang Jie",
+                            "role": "General Manager, Huadan Angel Fund",
+                            "image": "zhang-jie"
                         }
                     ]
                 }
@@ -5511,16 +5444,12 @@
             ],
             "morePartners": [
                 {
-                    "label": "Supporting ZJU schools",
-                    "names": "Management, Artificial Intelligence, Guanghua Law, History, Media and International Culture, Ocean, Basic Medical Sciences, Medicine, Control Science and Engineering, Information Science and Electronic Engineering"
+                    "label": "Partner schools",
+                    "names": "Management · Guanghua Law · History · Media and International Culture · Ocean · Basic Medical Sciences · Medicine · Control Science and Engineering · Information and Electronic Engineering"
                 },
                 {
-                    "label": "Communities & campus channels",
-                    "names": "Guangcha · deepseek.club · Tmall Campus · Bonjour"
-                },
-                {
-                    "label": "Student organizations",
-                    "names": "Qiushi Qiangying · AI Association · KAB Entrepreneurship Club · AI Research Club · Embedded AI Association · XLAB · MBA Cross-boundary Innovation Club · Delta X"
+                    "label": "Community partners",
+                    "names": "Guancha · DeepSeek Club · Tmall Campus"
                 }
             ],
             "closing": "Bring your discipline. Build something new.",
@@ -5529,36 +5458,28 @@
             "heroDescription": "AI Interdisciplinary Innovation Forum & AI+X Hackathon. Solve real problems in learning, research, campus life and industry.",
             "application": "Apps",
             "bothTracks": "You can enter both tracks",
-            "venues": ["Oct 18 · Zijingang North 2-112", "Oct 25 · Elite Eagle Sandun Metaspace"],
+            "venues": [
+                "Oct 18 · Zijingang North Teaching Building",
+                "Oct 25 · Zijingang School of Management"
+            ],
             "pauseMotion": "Pause glow animation",
             "resumeMotion": "Play glow animation",
-            "openingGuests": [
-                {
-                    "name": "Ruan Junhua",
-                    "role": "Executive Vice Dean, ZJU School of Innovation & Entrepreneurship",
-                    "occasion": "Oct 18 · Opening address"
-                },
-                {
-                    "name": "Zheng Gang",
-                    "role": "Founding Director, ZJU Technology Venture Program",
-                    "occasion": "Oct 25 · Final opening"
-                }
-            ],
+            "openingGuests": [],
             "openingLabel": "Opening speakers",
-            "judges": "Judges · Huawei / Alibaba / ModelScope / Guancha Community",
+            "judges": "",
             "rewardsTitle": "Awards & gifts",
-            "rewardsIntro": "Separate judging and joint awards. Dual-track entrants receive non-overlapping pitch slots.",
+            "rewardsIntro": "Qwen and Huawei track prizes, plus ModelScope giveaways.",
             "rewards": [
                 {
-                    "label": "Qwen cash prizes",
-                    "value": "¥4,852",
-                    "note": "15 awards",
+                    "label": "Qwen prizes",
+                    "value": "¥5,000",
+                    "note": "18 awards",
                     "items": [
-                        "Champion ×1 · ¥1,500",
-                        "Distinction ×4 · ¥588 each",
-                        "Exploration award ×10 · ¥100 each"
+                        "Top prize: 1 × ¥1,288",
+                        "Category awards: 4 × ¥588",
+                        "Excellence awards: 13 × ¥100"
                     ],
-                    "detail": "Distinctions recognize creative concept, solution value, presentation and live delivery."
+                    "detail": "Expected payout: approximately ¥4,940."
                 },
                 {
                     "label": "Huawei prizes & cash value",
@@ -5569,24 +5490,23 @@
                         "Second ×3 · FreeBuds Neo + ¥600 each",
                         "Third ×5 · FreeBuds 7i + ¥250 each"
                     ],
-                    "detail": "First prizes: one HUAWEI × DJI Osmo Pocket 4 camera and one MatePad AIR Z tablet."
+                    "detail": "First prize: Osmo Pocket 4 (¥2,999) or MatePad Air Z 8GB+128GB (¥2,779), plus ¥1,000. Second: FreeBuds Neo (¥669) plus ¥600 each. Third: FreeBuds 7i (¥429) plus ¥250 each."
                 },
                 {
-                    "label": "ModelScope onsite giveaway",
+                    "label": "Giveaways",
                     "value": "130 gifts",
                     "note": "Sponsored by ModelScope",
                     "items": [
-                        "Neck pillows, mugs, umbrellas · 10 each",
-                        "Canvas bags, earphone pouches, phone clips · 20 each",
-                        "Stickers · 40"
+                        "Neck pillows, mugs, umbrellas, tote bags",
+                        "Headphone pouches, phone clips, stickers and more"
                     ],
-                    "detail": "Attend the onsite event to join the gift drawing."
+                    "detail": "Attend a forum for the onsite draw; share the event and collect likes for the online draw."
                 }
             ],
             "contactTitle": "Join the event group",
             "contactHint": "Challenge releases, pitch shortlists and onsite updates are shared in the group.",
             "groupQr": "View WeChat group QR",
-            "qrExpiry": "QR valid through October 16",
+            "qrExpiry": "Check the latest event notice for the current group QR.",
             "qrExpired": "The group QR has expired. Please contact the organizer.",
             "qrAlt": "WeChat group QR for the AI+X Hackathon",
             "closeQr": "Close QR",
@@ -5637,10 +5557,10 @@
             "releaseAt": "Expected release: {{date}}. The official published brief is authoritative.",
             "awaitPublication": "The official brief has not been published. Please check back for an organizer update.",
             "participation": "Participation",
-            "individual": "Individual entry. Start building in advance.",
-            "team": "Up to 3 people. Four hours of onsite development.",
+            "individual": "Individual participation with a self-defined problem.",
+            "team": "Teams of up to three, or individual participation.",
             "schedule": "Schedule",
-            "campusMaterials": "Prepare a project description and a working demo. Submit to Tmall Campus or ModelScope; save the ModelScope repository and supplementary GitHub code below.",
+            "campusMaterials": "Prepare a project description and a usable AI app. Save GitHub and ModelScope repository links below.",
             "submissionIntro": "Register first, then save or update your project repositories here.",
             "loadFailed": "Could not load your registration",
             "loginTitle": "Sign in to view your submission",
@@ -5670,7 +5590,10 @@
                 "qoder": "Qoder",
                 "modelscope": "ModelScope",
                 "eagle": "Shidai Qiangying",
-                "ztvp": "ZJU Technology Venture Program (ZTVP)"
+                "ztvp": "ZJU Technology Venture Program (ZTVP)",
+                "tianmao": "Tmall Campus",
+                "guancha": "Guancha",
+                "deepseekclub": "DeepSeek Club"
             },
             "supportRoles": {
                 "aliyun": "Technical support",
@@ -5678,8 +5601,8 @@
                 "qoder": "Development tools and technical support"
             },
             "channelsTitle": "Submission channels",
-            "campusChannels": "Qwen: Tmall Campus or ModelScope. The Tmall link is pending; ModelScope is available.",
-            "industryChannels": "Huawei: submit your project to ModelScope. GitHub can provide supplementary source code.",
+            "campusChannels": "Qwen: save GitHub and ModelScope repositories below.",
+            "industryChannels": "Huawei: save GitHub and ModelScope repositories below.",
             "channelHint": "Save repository links here for the event team. If a challenge specifies another submission form, complete that form as well.",
             "directionItems": {
                 "campus": [
@@ -5702,10 +5625,6 @@
                     {
                         "title": "Communications",
                         "description": "Generate articles and scripts"
-                    },
-                    {
-                        "title": "Creative practice",
-                        "description": "AI works in other disciplines"
                     }
                 ],
                 "industry": [
@@ -5719,6 +5638,36 @@
                     }
                 ]
             }
+        },
+        "official": {
+            "chapters": ["Overview", "Tracks", "Forums", "Prizes", "Partners", "Recap", "Register"],
+            "chapterNav": "Introduction chapters",
+            "totalPrize": "Total prizes approx.",
+            "tracksTitle": "Competition tracks",
+            "recapTitle": "Past events",
+            "recapHint": "From campus development to industry practice.",
+            "recapNames": [
+                "First AI Full-stack Hackathon",
+                "Daily Interactive AI + Beauty Challenge",
+                "Zhekesong × ModelScope AI New Voices"
+            ],
+            "posterLink": "View series poster",
+            "clubsTitle": "Partner clubs",
+            "clubNames": [
+                "ZJU AI Association",
+                "KAB Entrepreneurship Club",
+                "AI Research Association",
+                "X-Lab",
+                "Delta X",
+                "Cross-disciplinary Innovation Club",
+                "Embedded AI Association"
+            ],
+            "signupQr": "Registration QR",
+            "signupLink": "Registration link",
+            "resultsBefore": "After finals",
+            "resultsAfter": "Results awaiting publication",
+            "resultsHint": "This edition’s awards and projects will appear after official publication.",
+            "challengeSoon": "Coming soon"
         }
     },
     "eventWorkspace": {

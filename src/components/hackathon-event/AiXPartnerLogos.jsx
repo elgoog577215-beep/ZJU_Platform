@@ -2,6 +2,26 @@ import { useTranslation } from "react-i18next";
 
 const brands = [
     {
+        id: "tianmao",
+        name: "天猫校园",
+        source: "/images/hackathon/ai-x/official/tianmao.webp",
+        plate: true,
+    },
+    {
+        id: "guancha",
+        name: "观猹",
+        light: "organizations/official/guancha.svg",
+        dark: "organizations/official/guancha.svg",
+        plate: true,
+    },
+    {
+        id: "deepseekclub",
+        name: "深求社区",
+        light: "organizations/official/deepseek-club.png",
+        dark: "organizations/official/deepseek-club.png",
+        plate: true,
+    },
+    {
         id: "innovation",
         name: "浙江大学校徽",
         light: "organizations/official/zhejiang-university.png",
@@ -12,6 +32,7 @@ const brands = [
     {
         id: "eagle",
         name: "时代强鹰 Elite Eagle",
+        source: "/images/hackathon/ai-x/official/eagle.webp",
         light: "organizations/official/elite-eagle.png",
         dark: "organizations/official/elite-eagle.png",
         plate: true,
@@ -19,6 +40,7 @@ const brands = [
     {
         id: "ztvp",
         name: "浙江大学管理学院科技创业中心 ZTVP",
+        source: "/images/hackathon/ai-x/official/ztvp.webp",
         light: "organizations/official/ztvp.png",
         dark: "organizations/official/ztvp.png",
         plate: true,
@@ -26,6 +48,7 @@ const brands = [
     {
         id: "qwen",
         name: "千问 Qwen",
+        source: "/images/hackathon/ai-x/official/qwen.webp",
         light: "qwen-official-dark.png",
         dark: "qwen-official-dark.png",
     },
@@ -70,6 +93,7 @@ const groups = [
     ["qwen", "huawei"],
     ["aliyun", "huawei", "qoder", "modelscope"],
     ["eagle", "ztvp"],
+    ["tianmao", "guancha", "deepseekclub"],
 ];
 export default function AiXPartnerLogos() {
     const { t } = useTranslation();
@@ -77,8 +101,11 @@ export default function AiXPartnerLogos() {
     return (
         <dl className="aix-partner-groups">
             {groups.map((members, index) => (
-                <div key={partners[index].label}>
-                    <dt>{partners[index].label}</dt>
+                <div key={index}>
+                    <dt>
+                        {partners[index]?.label ||
+                            t("aix.landing.morePartners", { returnObjects: true })[1].label}
+                    </dt>
                     <dd>
                         <ul className="aix-partner-members">
                             {members.map((id) => (

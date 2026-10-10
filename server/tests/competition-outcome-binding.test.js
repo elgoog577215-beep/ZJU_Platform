@@ -142,6 +142,29 @@ test("competition outcomes stay isolated by the schedule-bound archive slug", as
         assert.equal(submittedLink.competition_id, secondResult.lastID);
         assert.equal(submittedLink.role, "archive");
 
+        for (const [requestedRole, expectedRole] of [
+            [undefined, "archive"],
+            ["official_film", "official_film"],
+        ]) {
+            const response = await runController(competitionController.submitCurrentMedia, {
+                params: { competitionSlug: "event-two-outcome" },
+                query: {},
+                body: {
+                    type: "promo_video",
+                    title: "New event film",
+                    url: "/uploads/new-film.mp4",
+                    role: requestedRole,
+                },
+                user: { id: userResult.lastID, role: "admin" },
+            });
+            assert.equal(response.statusCode, 201);
+            const link = await db.get(
+                "SELECT role FROM competition_media_links WHERE resource_type='video' AND resource_id=?",
+                [response.body.id]
+            );
+            assert.equal(link.role, expectedRole);
+        }
+
         const featureResponse = await runController(
             competitionController.updateAdminMediaLinkRole,
             {

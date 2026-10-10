@@ -1178,3 +1178,470 @@
         display: none;
     }
 }
+/* Official-release chapters share one quiet rule and natural mobile scrolling. */
+.aix-chapters {
+    position: sticky;
+    top: var(--event-nav-height);
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    min-height: 52px;
+    overflow-x: auto;
+    background: var(--hx-bg);
+    border-bottom: 1px solid var(--hx-line);
+    scrollbar-width: none;
+}
+.aix-chapters button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 7px 14px;
+    flex: 0 0 auto;
+    min-height: 36px;
+    color: var(--hx-muted);
+    font-size: 13px;
+    border-radius: 6px;
+}
+.aix-chapters button span {
+    font:
+        11px ui-monospace,
+        monospace;
+    opacity: 0.6;
+}
+.aix-chapters button[aria-current] {
+    color: var(--hx-text);
+    background: var(--hx-surface);
+    box-shadow: inset 0 -2px var(--hx-accent-text);
+}
+.aix-chapters button:focus-visible {
+    outline: 2px solid var(--hx-accent-text);
+    outline-offset: -2px;
+}
+.aix-landing [data-aix-chapter] {
+    min-height: calc(100dvh - var(--site-nav-height) - var(--event-nav-height) - 52px);
+    padding-block: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    border: 0;
+}
+.aix-landing [data-aix-chapter]::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--hx-line) 15%,
+        var(--hx-accent-text) 50%,
+        var(--hx-line) 85%,
+        transparent
+    );
+    opacity: 0.45;
+}
+.aix-landing .aix-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+}
+.aix-prize-total {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 12px;
+    color: var(--hx-accent-text);
+}
+.aix-prize-total span {
+    font-size: 14px;
+    color: var(--hx-muted);
+}
+.aix-prize-total strong {
+    font:
+        800 clamp(28px, 3vw, 42px)/1.15 ui-monospace,
+        monospace;
+    letter-spacing: -0.045em;
+}
+.aix-hero-motto {
+    letter-spacing: 0.05em;
+    font-size: clamp(19px, 1.8vw, 25px);
+}
+.aix-cover-timeline {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding-top: 16px;
+    margin-top: 8px;
+}
+.aix-cover-timeline li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 14px;
+}
+.aix-cover-timeline time {
+    grid-row: span 2;
+    font:
+        700 24px ui-monospace,
+        monospace;
+    color: var(--hx-accent-text);
+}
+.aix-cover-timeline p {
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-landing .aix-section-heading {
+    display: block;
+    margin-bottom: 24px;
+}
+.aix-section-heading > p {
+    margin-top: 8px;
+    max-width: 65ch;
+}
+.aix-track-card {
+    padding: 26px;
+}
+.aix-track-card h3 {
+    font-size: clamp(24px, 2.6vw, 34px);
+    margin: 18px 0 12px;
+}
+.aix-track-summary {
+    font-size: 15px !important;
+    line-height: 1.8;
+    font-weight: 400 !important;
+}
+.aix-direction-list {
+    display: grid;
+    gap: 10px;
+    margin: 20px 0;
+}
+.aix-direction-list > div {
+    display: grid;
+    grid-template-columns: 4em 1fr;
+    gap: 14px;
+    font-size: 14px;
+}
+.aix-direction-list strong {
+    color: var(--hx-accent-text);
+}
+.aix-direction-list span {
+    color: var(--hx-muted);
+}
+.aix-text-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--hx-accent-text) !important;
+    min-height: 44px;
+    background: none;
+    margin-top: 16px;
+}
+.aix-speaker-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+}
+.aix-speaker-grid img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1.75;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.aix-speaker-grid strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 18px;
+}
+.aix-speaker-grid span {
+    display: block;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--hx-muted);
+}
+.aix-forum-pair > article:last-child .aix-speaker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.aix-rewards-grid article {
+    padding: 24px;
+    border: 0;
+    background: var(--hx-panel);
+    border-radius: 8px;
+}
+.aix-recap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+.aix-recap-grid article:last-child {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 1fr;
+}
+.aix-recap-grid img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2.35;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.aix-recap-grid article:last-child img {
+    width: min(100%, 560px);
+    float: left;
+    margin-right: 24px;
+}
+.aix-recap-grid h3 {
+    font-size: 20px;
+    margin-top: 14px;
+}
+.aix-recap-grid article:last-child span {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    color: var(--hx-accent-text);
+}
+.aix-clubs {
+    margin-top: 24px;
+}
+.aix-clubs h3,
+.aix-other-partners dt {
+    font-size: 14px;
+    color: var(--hx-muted);
+    margin-bottom: 12px;
+}
+.aix-clubs ul {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px;
+}
+.aix-clubs img {
+    width: 100%;
+    height: 80px;
+    object-fit: contain;
+    background: #00200e;
+    border-radius: 6px;
+}
+.aix-clubs li span {
+    display: block;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+}
+.aix-other-partners {
+    margin-top: 24px !important;
+    display: grid;
+    gap: 14px;
+}
+.aix-other-partners dd {
+    font-size: 14px;
+    line-height: 1.8;
+}
+.aix-registration-info {
+    margin-top: 20px;
+}
+.aix-signup-qr {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.aix-signup-qr img {
+    width: 112px;
+    height: 112px;
+    padding: 6px;
+    border-radius: 6px;
+    background: white;
+}
+.aix-signup-qr strong,
+.aix-signup-qr a {
+    display: block;
+}
+.aix-signup-qr a {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--hx-muted);
+    overflow-wrap: anywhere;
+}
+.aix-registration-info .aix-contact {
+    display: block;
+    padding: 18px 0;
+    border: 0;
+}
+.aix-registration-info .aix-contact p,
+.aix-registration-info small {
+    font-size: 12px;
+    color: var(--hx-muted);
+}
+.aix-registration-info .aix-contact button {
+    margin: 12px 0;
+}
+.aix-registration-info small {
+    display: block;
+}
+.aix-pending-page {
+    padding-top: calc(var(--event-nav-height) + 64px);
+    min-height: 65dvh;
+}
+.aix-pending-page h1 {
+    font-size: clamp(36px, 5vw, 64px);
+    margin: 20px 0;
+}
+.aix-pending-page p {
+    color: var(--hx-muted);
+}
+@media (max-width: 1100px) {
+    .aix-clubs ul {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .aix-speaker-grid {
+        gap: 8px;
+    }
+}
+@media (max-width: 767px) {
+    .aix-chapters {
+        justify-content: flex-start;
+        padding-inline: 12px;
+        gap: 0;
+        min-height: 44px;
+    }
+    .aix-chapters button {
+        gap: 5px;
+        padding: 5px 10px;
+    }
+    .aix-landing [data-aix-chapter] {
+        min-height: 0;
+        padding-block: 28px;
+    }
+    .aix-landing .aix-hero {
+        display: block;
+    }
+    .aix-hero-copy {
+        padding-right: 0;
+    }
+    .aix-cover-timeline {
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .aix-cover-timeline li {
+        display: block;
+    }
+    .aix-cover-timeline time {
+        display: block;
+        font-size: 21px;
+    }
+    .aix-cover-timeline strong {
+        font-size: 12px;
+    }
+    .aix-cover-timeline p {
+        display: none;
+    }
+    .aix-track-card {
+        padding: 20px;
+    }
+    .aix-track-card h3 {
+        font-size: 24px;
+    }
+    .aix-track-summary {
+        font-size: 14px !important;
+    }
+    .aix-speaker-grid strong {
+        font-size: 16px;
+    }
+    .aix-recap-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    .aix-recap-grid article:last-child img {
+        float: none;
+        margin-right: 0;
+    }
+    .aix-recap-grid h3 {
+        font-size: 18px;
+    }
+    .aix-clubs ul {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .aix-clubs img {
+        height: 64px;
+    }
+    .aix-clubs li span {
+        font-size: 11px;
+    }
+    .aix-signup-qr {
+        display: none;
+    }
+    .aix-registration-info {
+        margin-top: 10px;
+    }
+    .aix-registration-info .aix-contact {
+        padding: 0 0 12px;
+    }
+    .aix-registration-info .aix-contact p,
+    .aix-registration-info small {
+        display: none;
+    }
+    .aix-registration-info .aix-contact button {
+        margin: 8px 0;
+    }
+}
+.aix-speaker-grid img {
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #00200e;
+}
+@media (max-width: 767px) {
+    .aix-hero .aix-brand-title {
+        font-size: 48px;
+    }
+    .aix-hero .aix-display {
+        font-size: 42px;
+    }
+    .aix-hero .aix-title {
+        font-size: 23px;
+    }
+    .aix-hero .aix-hero-motto {
+        font-size: 16px;
+        margin-top: 12px !important;
+    }
+    .aix-hero .aix-hero-intro,
+    .aix-hero .aix-onsite {
+        display: none;
+    }
+    .aix-hero .aix-event-facts {
+        grid-template-columns: 1fr 1.2fr;
+        gap: 12px;
+        margin-top: 16px !important;
+    }
+    .aix-hero .aix-event-facts .aix-date {
+        font-size: 14px;
+        white-space: normal;
+    }
+    .aix-hero .aix-event-venues {
+        font-size: 11px;
+    }
+    .aix-hero .aix-hero-actions {
+        margin-top: 16px;
+    }
+    .aix-hero .aix-prize-total strong {
+        font-size: 30px;
+    }
+    .aix-hero .aix-lottery-entry {
+        margin-top: 12px;
+    }
+}
+.aix-signup-qr-button {
+    display: none;
+}
+@media (max-width: 767px) {
+    .aix-signup-qr-button {
+        display: inline-flex;
+        margin-bottom: 8px;
+        font-size: 12px;
+        min-height: 36px;
+        padding: 6px 12px;
+    }
+}

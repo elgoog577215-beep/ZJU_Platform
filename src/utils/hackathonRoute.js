@@ -1,8 +1,7 @@
 import eventRoutes from "../../shared/hackathonRoutes.json" with { type: "json" };
 
 export const EVENT_VIEWS = ["intro", "challenges", "media", "results"];
-export const getEventViews = (eventKey) =>
-    eventKey === "zhekesong-ai-x-2026" ? ["intro", "challenges"] : EVENT_VIEWS;
+export const getEventViews = () => EVENT_VIEWS;
 
 const readEventPath = (location = {}) => {
     const pathname = String(location.pathname || "").replace(/\/+$/, "");
@@ -52,9 +51,9 @@ export const resolveEventLocation = (location = {}, schedule = {}) => {
         : events.find((item) => item.event.key === schedule.activeEventKey) || events[0];
     if (!template) return null;
     const requestedView = getEventView(location);
-    const hidden =
-        template.event.key === "zhekesong-ai-x-2026" &&
-        ["media", "results"].includes(requestedView);
-    const view = hidden ? "intro" : requestedView;
-    return { template, view, url: getEventUrl(template.event.key, view, hidden ? {} : location) };
+    return {
+        template,
+        view: requestedView,
+        url: getEventUrl(template.event.key, requestedView, location),
+    };
 };

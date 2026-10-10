@@ -63,7 +63,7 @@ test("hide AI+X results once, preserve other editions, signup and briefs, and ex
         await db.close();
     }
 });
-test("AI+X has two page tabs and retired links redirect without changing first edition", async () => {
+test("AI+X retains four tabs and direct pending-page links without changing first edition", async () => {
     const { resolveEventLocation, getEventViews } =
         await import("../../src/utils/hackathonRoute.js");
     const schedule = {
@@ -72,11 +72,16 @@ test("AI+X has two page tabs and retired links redirect without changing first e
             { event: { key: "zhekesong-current" }, results: {} },
         ],
     };
-    assert.deepEqual(getEventViews("zhekesong-ai-x-2026"), ["intro", "challenges"]);
+    assert.deepEqual(getEventViews("zhekesong-ai-x-2026"), [
+        "intro",
+        "challenges",
+        "media",
+        "results",
+    ]);
     for (const view of ["media", "results"]) {
         assert.equal(
             resolveEventLocation({ pathname: `/hackathon/2/${view}`, hash: "#old" }, schedule).url,
-            "/hackathon/2"
+            `/hackathon/2/${view}#old`
         );
         assert.equal(
             resolveEventLocation({ pathname: `/hackathon/1/${view}` }, schedule).view,

@@ -1,22 +1,14 @@
 import AiXPartnerLogos, { AiXBrand } from "./AiXPartnerLogos";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
     ArrowDown,
     ArrowRight,
     ArrowUpRight,
     CalendarDays,
-    Clock3,
-    Mail,
-    Phone,
-    X,
-    FileText,
     Gift,
-    Infinity as InfinityIcon,
     MapPin,
-    Plus,
     Pause,
     Play,
-    UserRound,
     UsersRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,12 +16,11 @@ import { Link } from "react-router-dom";
 import { getEventUrl } from "../../utils/hackathonRoute";
 import "./AiXOverview.css";
 
-// The latest October 9 event brief supplies editorial content. Registration and submissions
-// continue to use the event template and existing authenticated workflows.
+const asset = (name) => `/images/hackathon/ai-x/official/${name}.webp`;
+// Public editorial copy follows the organizer's official release PDF.
+// The cover's October 11 launch takes precedence over the older date on its track slide.
 export default function AiXOverview({
     state,
-    now,
-    onAgenda,
     switchView,
     onRegister,
     registrationLabel,
@@ -37,12 +28,9 @@ export default function AiXOverview({
 }) {
     const { t } = useTranslation();
     const [motionPaused, setMotionPaused] = useState(false);
-    const qrDialog = useRef(null);
-    const qrValid = now < Date.parse("2026-10-17T00:00:00+08:00");
-    const agenda = t("aix.landing.agenda", { returnObjects: true });
     return (
         <div className="aix-landing">
-            <section className="aix-hero aix-wrap">
+            <section className="aix-hero aix-wrap" id="aix-overview" data-aix-chapter>
                 <div className="aix-hero-copy">
                     <div className="aix-eyebrow">
                         <span>[ 2026 · {t("aix.brand")} ]</span>
@@ -56,11 +44,15 @@ export default function AiXOverview({
                         </span>
                     </h1>
                     <p className="aix-hero-motto">{t("aix.motto")}</p>
+                    <div className="aix-prize-total">
+                        <span>{t("aix.official.totalPrize")}</span>
+                        <strong>¥20,000</strong>
+                    </div>
                     <p className="aix-hero-intro">{t("aix.landing.heroDescription")}</p>
                     <dl className="aix-event-facts">
                         <div>
                             <dt>{t("aix.landing.eventDates")}</dt>
-                            <dd className="aix-date">2026.10.09—10.25</dd>
+                            <dd className="aix-date">2026.10.11–10.25</dd>
                         </div>
                         <div>
                             <dt>{t("common.location")}</dt>
@@ -141,149 +133,89 @@ export default function AiXOverview({
                         {motionPaused ? <Play size={15} /> : <Pause size={15} />}
                     </button>
                 </div>
-            </section>
-            <section className="aix-tracks aix-wrap" aria-label={t("aix.tracksKicker")}>
-                <div className="aix-track-pair">
-                    {["campus", "industry"].map((track, index) => (
-                        <article className={`aix-track-card aix-track-${track}`} key={track}>
-                            <AiXBrand id={track === "campus" ? "qwen" : "huawei"} />
-                            <span className="aix-track-index">[ 0{index + 1} ]</span>
-                            <h2>{t(`aix.landing.tracks.${track}.shortTitle`)}</h2>
-                            <p>{t(`aix.landing.tracks.${track}.shortDescription`)}</p>
-                            <div className="aix-track-tags">
-                                <span>
-                                    {track === "campus" ? (
-                                        <UserRound size={17} />
-                                    ) : (
-                                        <UsersRound size={17} />
-                                    )}
-                                    {t(`aix.landing.tracks.${track}.team`)}
-                                </span>
-                                <span>
-                                    <Clock3 size={17} />
-                                    {t(`aix.landing.tracks.${track}.deadline`)}
-                                </span>
-                            </div>
-                            <div className="aix-track-support">
-                                <FileText size={17} />
-                                {t(`aix.landing.tracks.${track}.support`)}
-                            </div>
-                            <button
-                                className="aix-track-arrow"
-                                onClick={() => switchView("challenges", track)}
-                                aria-label={`${t("aix.viewChallenges")} · ${t(`aix.tracks.${track}.title`)}`}
-                            >
-                                <ArrowRight size={31} strokeWidth={1.2} />
-                            </button>
-                        </article>
-                    ))}
-                </div>
-                <div className="aix-track-footnote">
-                    <span>
-                        <InfinityIcon size={23} />
-                        {t("aix.landing.bothTracks")}
-                    </span>
-                </div>
-            </section>
-            <div className="aix-section-nav aix-wrap">
-                <span>{t("aix.landing.audience")}</span>
-                <a
-                    className="aix-agenda-link"
-                    href="#hx-program"
-                    onClick={(event) => {
-                        event.preventDefault();
-                        onAgenda();
-                    }}
-                >
-                    {t("aix.landing.viewAgenda")}
-                    <ArrowDown size={17} />
-                </a>
-            </div>
-            <section
-                className="aix-section aix-wrap"
-                id="hx-program"
-                aria-labelledby="aix-agenda-title"
-            >
-                <div className="aix-section-heading">
-                    <div>
-                        <h2 id="aix-agenda-title">{t("aix.landing.agendaTitle")}</h2>
-                    </div>
-                    <p>{t("aix.planned")}</p>
-                </div>
-                <ol className="aix-agenda-grid">
-                    {agenda.map((item) => (
+                <ol className="aix-cover-timeline" id="hx-program">
+                    {t("aix.landing.agenda", { returnObjects: true }).map((item) => (
                         <li key={item.date}>
                             <time>{item.date}</time>
-                            <h3>{item.title}</h3>
+                            <strong>{item.title}</strong>
                             <p>{item.description}</p>
                         </li>
                     ))}
                 </ol>
-                <details className="aix-agenda-details">
-                    <summary>
-                        {t("aix.landing.fullAgenda")}
-                        <Plus size={18} />
-                    </summary>
-                    <div className="aix-day-grid">
-                        {t("aix.landing.days", { returnObjects: true }).map((day) => (
-                            <div key={day.title}>
-                                <h3>{day.title}</h3>
-                                <dl>
-                                    {day.items.map((item) => (
-                                        <div key={item.time}>
-                                            <dt>{item.time}</dt>
-                                            <dd>{item.text}</dd>
-                                        </div>
-                                    ))}
-                                </dl>
-                            </div>
-                        ))}
-                    </div>
-                </details>
             </section>
-            <section className="aix-section aix-wrap" aria-labelledby="aix-forums-title">
+
+            <section id="aix-tracks" data-aix-chapter className="aix-section aix-wrap">
                 <div className="aix-section-heading">
-                    <div>
-                        <h2 id="aix-forums-title">{t("aix.forumsTitle")}</h2>
-                    </div>
-                    <p>{t("aix.forumsDescription")}</p>
+                    <h2>{t("aix.official.tracksTitle")}</h2>
+                    <p>{t("aix.landing.tracksIntro")}</p>
                 </div>
-                <div className="aix-opening-guests">
-                    <span>{t("aix.landing.openingLabel")}</span>
-                    {t("aix.landing.openingGuests", { returnObjects: true }).map((guest) => (
-                        <div key={guest.name}>
-                            <strong>{guest.name}</strong>
-                            <span>{guest.role}</span>
-                            <small>{guest.occasion}</small>
-                        </div>
+                <div className="aix-track-pair">
+                    {["campus", "industry"].map((track) => (
+                        <article className={`aix-track-card aix-track-${track}`} key={track}>
+                            <AiXBrand id={track === "campus" ? "qwen" : "huawei"} />
+                            <h3>{t(`aix.landing.tracks.${track}.shortTitle`)}</h3>
+                            <p className="aix-track-summary">
+                                {t(`aix.tracks.${track}.description`)}
+                            </p>
+                            <div className="aix-track-tags">
+                                <span>
+                                    <UsersRound size={17} />
+                                    {t(`aix.landing.tracks.${track}.team`)}
+                                </span>
+                                <span>{t(`aix.landing.tracks.${track}.deadline`)}</span>
+                            </div>
+                            <div className="aix-direction-list">
+                                {t(`aix.refined.directionItems.${track}`, {
+                                    returnObjects: true,
+                                }).map((item) => (
+                                    <div key={item.title}>
+                                        <strong>{item.title}</strong>
+                                        <span>{item.description}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                className="aix-text-action"
+                                onClick={() => switchView("challenges", track)}
+                            >
+                                {t("aix.viewChallenges")}
+                                <ArrowRight size={20} />
+                            </button>
+                        </article>
                     ))}
+                </div>
+                <p className="aix-track-footnote">{t("aix.landing.bothTracks")}</p>
+            </section>
+            <section id="aix-forums" data-aix-chapter className="aix-section aix-wrap">
+                <div className="aix-section-heading">
+                    <h2>{t("aix.forumsTitle")}</h2>
+                    <p>{t("aix.forumsDescription")}</p>
                 </div>
                 <div className="aix-forum-pair">
                     {["technology", "entrepreneurship"].map((forum) => (
                         <article key={forum}>
                             <div className="aix-forum-date">
                                 <strong>{t(`aix.forums.${forum}.date`)}</strong>
-                                <span>{t(`aix.landing.forums.${forum}.time`)}</span>
                             </div>
                             <h3>{t(`aix.forums.${forum}.title`)}</h3>
                             <p>{t(`aix.forums.${forum}.description`)}</p>
-                            {t(`aix.landing.forums.${forum}.location`) && (
-                                <span className="aix-forum-location">
-                                    <MapPin size={16} />
-                                    {t(`aix.landing.forums.${forum}.location`)}
-                                </span>
-                            )}
-                            <div className="aix-speakers">
+                            <span className="aix-forum-location">
+                                <MapPin size={16} />
+                                {t(`aix.landing.forums.${forum}.location`)}
+                            </span>
+                            <div className="aix-speaker-grid">
                                 {t(`aix.landing.forums.${forum}.speakers`, {
                                     returnObjects: true,
                                 }).map((speaker) => (
                                     <div key={speaker.name}>
-                                        <strong>
-                                            {speaker.name}
-                                            {speaker.pending && (
-                                                <small>{t("aix.landing.invited")}</small>
-                                            )}
-                                        </strong>
+                                        <img
+                                            src={asset(speaker.image)}
+                                            alt={speaker.name}
+                                            width="300"
+                                            height="180"
+                                            loading="lazy"
+                                        />
+                                        <strong>{speaker.name}</strong>
                                         <span>{speaker.role}</span>
                                     </div>
                                 ))}
@@ -292,9 +224,9 @@ export default function AiXOverview({
                     ))}
                 </div>
             </section>
-            <section className="aix-section aix-wrap" aria-labelledby="aix-rewards-title">
+            <section id="aix-rewards" data-aix-chapter className="aix-section aix-wrap">
                 <div className="aix-section-heading">
-                    <h2 id="aix-rewards-title">{t("aix.landing.rewardsTitle")}</h2>
+                    <h2>{t("aix.landing.rewardsTitle")}</h2>
                     <p>{t("aix.landing.rewardsIntro")}</p>
                 </div>
                 <div className="aix-rewards-grid">
@@ -312,105 +244,125 @@ export default function AiXOverview({
                         </article>
                     ))}
                 </div>
-                <p className="aix-judges">{t("aix.landing.judges")}</p>
-            </section>
-            <section className="aix-community aix-wrap">
-                <img
-                    src="/images/hackathon/ai-x/first-edition-discussion.webp"
-                    alt={t("aix.discussionAlt")}
-                    width="960"
-                    height="640"
-                    loading="lazy"
-                />
-                <div>
-                    <p className="aix-eyebrow">{t("aix.landing.beyondLabel")}</p>
-                    <h2>{t("aix.landing.beyondTitle")}</h2>
-                    <p>{t("aix.landing.beyondDescription")}</p>
-                    <Link to={getEventUrl("zhekesong-current", "results")}>
-                        {t("aix.landing.pastProjects")}
-                        <ArrowUpRight size={19} />
-                    </Link>
-                    <span className="aix-history-credit">{t("aix.previousEditionTitle")}</span>
-                </div>
+                <Link
+                    className="aix-text-action"
+                    to={getEventUrl("zhekesong-ai-x-2026", "lottery")}
+                >
+                    <Gift size={20} />
+                    {t("lottery.event_entry_hint")}
+                    <ArrowUpRight size={20} />
+                </Link>
             </section>
             <section
+                id="aix-partners-title"
+                data-aix-chapter
                 className="aix-section aix-wrap aix-partners"
-                aria-labelledby="aix-partners-title"
             >
                 <div className="aix-section-heading">
-                    <div>
-                        <h2 id="aix-partners-title">{t("aix.landing.partnersTitle")}</h2>
-                    </div>
+                    <h2>{t("aix.landing.partnersTitle")}</h2>
                 </div>
                 <AiXPartnerLogos />
-                <details className="aix-agenda-details">
-                    <summary>
-                        {t("aix.landing.allPartners")}
-                        <Plus size={18} />
-                    </summary>
-                    <dl>
-                        {t("aix.landing.morePartners", { returnObjects: true }).map((partner) => (
-                            <div key={partner.label}>
-                                <dt>{partner.label}</dt>
-                                <dd>{partner.names}</dd>
-                            </div>
+                <div className="aix-clubs">
+                    <h3>{t("aix.official.clubsTitle")}</h3>
+                    <ul>
+                        {[
+                            "zjuai",
+                            "kab",
+                            "aira",
+                            "xlab",
+                            "delta-x",
+                            "cross-innovation",
+                            "embedded-ai",
+                        ].map((name, index) => (
+                            <li key={name}>
+                                <img
+                                    src={asset(name)}
+                                    alt=""
+                                    loading="lazy"
+                                    width="180"
+                                    height="100"
+                                />
+                                <span>
+                                    {t("aix.official.clubNames", { returnObjects: true })[index]}
+                                </span>
+                            </li>
                         ))}
-                    </dl>
-                </details>
-            </section>
-            <section className="aix-contact aix-wrap" aria-labelledby="aix-contact-title">
-                <div className="aix-contact-group">
-                    <h2 id="aix-contact-title">{t("aix.landing.contactTitle")}</h2>
-                    <p>{t("aix.landing.contactHint")}</p>
-                    {qrValid ? (
-                        <>
-                            <button
-                                className="aix-secondary"
-                                type="button"
-                                aria-haspopup="dialog"
-                                onClick={() => qrDialog.current?.showModal()}
-                            >
-                                {t("aix.landing.groupQr")}
-                                <ArrowUpRight size={18} />
-                            </button>
-                            <small>{t("aix.landing.qrExpiry")}</small>
-                        </>
-                    ) : (
-                        <p>{t("aix.landing.qrExpired")}</p>
-                    )}
+                    </ul>
                 </div>
-                <div className="aix-contact-person">
-                    <h3>{t("aix.landing.contactLabel")}</h3>
-                    <p>{t("aix.landing.contactName")}</p>
-                    <a href="tel:18668079838">
-                        <Phone size={16} />
-                        18668079838
-                    </a>
-                    <a href="mailto:yq20070130@outlook.com">
-                        <Mail size={16} />
-                        yq20070130@outlook.com
-                    </a>
+                <dl className="aix-other-partners">
+                    {t("aix.landing.morePartners", { returnObjects: true }).map((group) => (
+                        <div key={group.label}>
+                            <dt>{group.label}</dt>
+                            <dd>{group.names}</dd>
+                        </div>
+                    ))}
+                </dl>
+            </section>
+            <section id="aix-recap" data-aix-chapter className="aix-section aix-wrap">
+                <div className="aix-section-heading">
+                    <h2>{t("aix.official.recapTitle")}</h2>
+                    <p>{t("aix.official.recapHint")}</p>
+                </div>
+                <div className="aix-recap-grid">
+                    {["first-edition", "beauty-event", "ai-new-voices"].map((name, index) => (
+                        <article key={name}>
+                            {index < 2 ? (
+                                <Link
+                                    to={getEventUrl(
+                                        index === 0 ? "zhekesong-current" : "getui-beauty-2026",
+                                        "intro"
+                                    )}
+                                >
+                                    <img
+                                        src={asset(name)}
+                                        width="960"
+                                        height="420"
+                                        alt={
+                                            t("aix.official.recapNames", { returnObjects: true })[
+                                                index
+                                            ]
+                                        }
+                                        loading="lazy"
+                                    />
+                                    <h3>
+                                        {
+                                            t("aix.official.recapNames", { returnObjects: true })[
+                                                index
+                                            ]
+                                        }
+                                    </h3>
+                                    <ArrowUpRight size={19} />
+                                </Link>
+                            ) : (
+                                <a href={asset(name)} target="_blank" rel="noreferrer">
+                                    <img
+                                        src={asset(name)}
+                                        width="960"
+                                        height="420"
+                                        alt={
+                                            t("aix.official.recapNames", { returnObjects: true })[
+                                                index
+                                            ]
+                                        }
+                                        loading="lazy"
+                                    />
+                                    <h3>
+                                        {
+                                            t("aix.official.recapNames", { returnObjects: true })[
+                                                index
+                                            ]
+                                        }
+                                    </h3>
+                                    <span>
+                                        {t("aix.official.posterLink")}
+                                        <ArrowUpRight size={19} />
+                                    </span>
+                                </a>
+                            )}
+                        </article>
+                    ))}
                 </div>
             </section>
-            {qrValid && (
-                <dialog
-                    ref={qrDialog}
-                    className="aix-qr-dialog"
-                    aria-label={t("aix.landing.groupQr")}
-                >
-                    <form method="dialog">
-                        <button autoFocus aria-label={t("aix.landing.closeQr")}>
-                            <X size={22} />
-                        </button>
-                    </form>
-                    <img
-                        src="/images/hackathon/ai-x/wechat-group-20261009.jpg"
-                        alt={t("aix.landing.qrAlt")}
-                        width="1280"
-                        height="1835"
-                    />
-                </dialog>
-            )}
         </div>
     );
 }

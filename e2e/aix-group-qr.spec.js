@@ -4,7 +4,7 @@ const template = JSON.parse(
     fs.readFileSync(new URL("../shared/hackathonAiX.json", import.meta.url), "utf8")
 );
 
-test("mobile group QR opens, closes with Escape, and disappears after its validity date", async ({
+test("official group QR opens, closes with Escape and does not inherit the old QR expiry", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -24,14 +24,14 @@ test("mobile group QR opens, closes with Escape, and disappears after its validi
     await expect(dialog).toBeVisible();
     await expect(dialog.locator("img")).toHaveAttribute(
         "src",
-        "/images/hackathon/ai-x/wechat-group-20261009.jpg"
+        "/images/hackathon/ai-x/official/wechat-group.webp"
     );
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
     await expect(button).toBeFocused();
     await page.clock.setFixedTime(new Date("2026-10-17T00:00:00+08:00"));
     await page.reload();
-    await expect(page.getByText("入群二维码已过期，请联系赛事负责人。")).toBeVisible();
-    await expect(button).toHaveCount(0);
-    await expect(page.locator('.aix-contact a[href="tel:18668079838"]')).toBeVisible();
+    await page.locator(".aix-chapters button").nth(6).click();
+    await expect(button).toBeVisible();
+    await expect(page.getByText("二维码有效至 10 月 16 日")).toHaveCount(0);
 });

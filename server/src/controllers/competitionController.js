@@ -674,7 +674,9 @@ const submitCurrentMedia = async (req, res, next) => {
         const resourceType = type === "stage_photo" ? "photo" : "video";
         const role =
             resourceType === "video"
-                ? "official_film"
+                ? req.user?.role === "admin" && req.body.role === "official_film"
+                    ? "official_film"
+                    : "archive"
                 : req.body.role === "highlight"
                   ? "highlight"
                   : "archive";

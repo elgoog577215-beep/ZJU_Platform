@@ -5174,10 +5174,10 @@
         "forumKicker": "AI跨学科创新论坛暨",
         "heroTitle": "破界黑客松",
         "eventFullTitle": "AI跨学科创新论坛暨 AI+X破界黑客松",
-        "motto": "破界 · 共创 · 涌现",
+        "motto": "跨界 · 创新 · 解决真实问题",
         "description": "从你的专业出发，发现一个真实问题，用 AI 把它做成可以演示、实际使用的作品。",
-        "date": "2026.10.09 - 10.25",
-        "location": "10.18 紫金港北2-112 · 10.25 时代强鹰三墩镇元空间",
+        "date": "2026.10.11 - 10.25",
+        "location": "10.18 紫金港北教 · 10.25 紫金港管理学院",
         "team": "千问个人赛 · 华为最多 3 人",
         "tracksKicker": "两条赛道",
         "tracksTitle": "你的专业，就是创新的起点。",
@@ -5186,7 +5186,7 @@
             "campus": {
                 "title": "千问·学科入门赛道",
                 "description": "线上个人赛。把专业知识转化为可演示、可实际使用的 AI 应用，重在真实、具体、反复出现的问题。",
-                "topics": "法学 · 海洋 · 医学 · 教育 · 宣传 · 创意"
+                "topics": "法学 · 海洋 · 医学 · 教育 · 宣传"
             },
             "industry": {
                 "title": "华为·产业进阶赛道",
@@ -5196,17 +5196,17 @@
         },
         "forumsKicker": "两场论坛",
         "forumsTitle": "技术与创业论坛",
-        "forumsDescription": "两场论坛向校内外公众开放，拟邀嘉宾已单独标注。",
+        "forumsDescription": "AI 时代的技术实践与创业思考。",
         "forums": {
             "technology": {
                 "date": "10.18",
                 "title": "技术论坛",
-                "description": "AI 技术趋势、产业应用与开发实践。约 200 人，以参赛开发者为主，向校内外 AI 爱好者开放。"
+                "description": "AI时代的前沿判断、企业最新技术与开发实践。约 200 人。"
             },
             "entrepreneurship": {
                 "date": "10.25",
                 "title": "创业论坛",
-                "description": "AI 时代下的冷静思考：青年应该培养哪些穿越周期的能力？约 150 人，决赛选手统一参加，向校内外观众开放。"
+                "description": "AI时代下的冷静思考：青年创业者如何培养穿越周期的底层能力。约 150 人。"
             }
         },
         "agendaTitle": "赛事日程",
@@ -5243,7 +5243,7 @@
         "stagesLabel": "比赛阶段",
         "deadline": "材料截止",
         "challengePending": "赛题待发布",
-        "releaseTime": "千问·学科入门赛道 10 月 10 日启动；华为·产业进阶赛道 10 月 18 日开幕发布任务。",
+        "releaseTime": "千问入门赛 10 月 11 日开启；华为进阶赛 10 月 18 日开幕发布赛题。",
         "nextStageNotice": "本阶段要求与提交入口将在正式通知后开放。",
         "submissionPending": "提交入口待开放",
         "submissionClosed": "本阶段提交已结束",
@@ -5255,19 +5255,19 @@
             "initial": {
                 "title": "初赛",
                 "date": "10.18",
-                "description": "10 月 18 日 11:00—12:30、13:30—16:00，现场开发共 4 小时；完成度达到 60% 晋级复赛。",
+                "description": "10 月 18 日开幕式及华为命题启动。",
                 "materials": "提交可运行的 Demo 与项目说明，展示解决的问题、核心功能与完成情况；作品提交至魔搭社区。"
             },
             "semifinal": {
                 "title": "复赛",
                 "date": "10.19—10.24",
-                "description": "10 月 19—24 日线上开发与作品评审，前 10 名晋级决赛。",
+                "description": "围绕企业真实业务问题，完善方案与产品。",
                 "materials": "完善项目说明、使用手册与演示材料，按赛题要求提交源码及魔搭社区作品；具体提交规则以正式赛题为准。"
             },
             "final": {
                 "title": "决赛",
                 "date": "10.25",
-                "description": "千问入门与华为进阶两条赛道分场路演、分别评审，统一颁奖。",
+                "description": "10 月 25 日决赛，展示方案与实际效果。",
                 "materials": "准备路演 PPT、项目海报和演示 Demo；具体路演顺序及规则将在决赛通知中公布。"
             }
         },
@@ -5417,7 +5417,7 @@
         "resultsTitle": "成果",
         "resultsIntro": "获奖名单、项目成果、讲话总结与论坛分享，在这里集中查看。",
         "industryStages": "华为·产业进阶赛道 · 比赛阶段",
-        "campusSchedule": "10 月 10—17 日线上开发与提交；17 日晚公布 15 个路演项目，25 日分场路演。",
+        "campusSchedule": "10 月 11–17 日线上开发；10 月 25 日决赛。",
         "fieldHints": {
             "name": "",
             "studentId": "",
@@ -5433,7 +5433,7 @@
         },
         "landing": {
             "viewAgenda": "查看日程",
-            "audience": "面向浙大学生 · 预计 300 名参赛者 · 论坛向公众开放",
+            "audience": "用 AI 解决学习、科研、校园与产业中的真实问题。",
             "eventDates": "活动日期",
             "onsite": "10.18 / 10.25 线下相见",
             "organizer": "拓浙 AI 生态 · 浙客松",
@@ -5442,142 +5442,82 @@
                 "campus": {
                     "partner": "千问",
                     "type": "自主命题",
-                    "topics": ["法学", "海洋", "医学", "教育", "宣传", "创意"],
+                    "topics": ["法学", "海洋", "医学", "教育", "宣传"],
                     "format": "线上开发 · 线下路演",
                     "shortTitle": "千问·学科入门赛道",
                     "shortDescription": "自选学科问题，提前开发。",
                     "team": "个人参赛",
-                    "deadline": "10.10—10.17 线上开发",
-                    "support": "天猫校园 / 魔搭社区提交"
+                    "deadline": "10.11–10.17",
+                    "support": "千问赋能 · 自主选择学科方向"
                 },
                 "industry": {
                     "partner": "华为中国区",
                     "type": "企业命题",
                     "topics": ["文案", "营销"],
-                    "format": "现场开发 4 小时 · 线上进阶",
+                    "format": "方案设计 · 产品开发 · 阶段展示",
                     "shortTitle": "华为·产业进阶赛道",
-                    "shortDescription": "现场揭题，4 小时开发。",
+                    "shortDescription": "企业真实业务问题，方案设计与产品开发。",
                     "team": "最多 3 人",
-                    "deadline": "10.18—10.24 开发",
-                    "support": "魔搭社区提交"
+                    "deadline": "10.18–10.25",
+                    "support": "华为中国区命题支持"
                 }
             },
             "agendaTitle": "赛事日程",
             "fullAgenda": "展开线下活动完整安排",
             "agenda": [
                 {
-                    "date": "10.10—10.17",
-                    "title": "千问线上开发",
-                    "description": "自主选题并提交作品；17 日晚公布 15 个路演项目。"
+                    "date": "10.11",
+                    "title": "入门赛开启",
+                    "description": "自主选题，线上开发。"
                 },
                 {
                     "date": "10.18",
-                    "title": "技术论坛 · 华为初赛",
-                    "description": "上午技术论坛，随后现场开发 4 小时；完成度达到 60% 晋级。"
-                },
-                {
-                    "date": "10.19—10.24",
-                    "title": "华为线上复赛",
-                    "description": "完善作品、验证场景，由评审选出 10 个决赛项目。"
+                    "title": "进阶赛 · 开幕式",
+                    "description": "技术论坛，华为命题启动。"
                 },
                 {
                     "date": "10.25",
-                    "title": "创业论坛 · 双赛道路演",
-                    "description": "上午创业论坛，下午分场路演、分别评审，统一颁奖。"
+                    "title": "决赛",
+                    "description": "创业论坛与决赛展示。"
                 }
             ],
-            "days": [
-                {
-                    "title": "10.18 · 紫金港北2-112",
-                    "items": [
-                        {
-                            "time": "09:00—09:30",
-                            "text": "开幕式 · 阮俊华致辞，发布华为命题"
-                        },
-                        {
-                            "time": "09:30—11:00",
-                            "text": "技术论坛 · 两场主题交流"
-                        },
-                        {
-                            "time": "11:00—12:30",
-                            "text": "华为初赛现场开发（上午）"
-                        },
-                        {
-                            "time": "13:30—16:00",
-                            "text": "继续开发、成果提交与完成度评审"
-                        },
-                        {
-                            "time": "16:00—16:30",
-                            "text": "项目与技术交流"
-                        },
-                        {
-                            "time": "16:30—17:00",
-                            "text": "初赛闭幕式"
-                        }
-                    ]
-                },
-                {
-                    "title": "10.25 · 时代强鹰三墩镇元空间",
-                    "items": [
-                        {
-                            "time": "09:00—09:30",
-                            "text": "决赛开场 · 郑刚致辞"
-                        },
-                        {
-                            "time": "09:30—11:30",
-                            "text": "创业论坛 · 分享、沙龙与问答"
-                        },
-                        {
-                            "time": "13:30—15:30",
-                            "text": "双赛道分场路演、分别评审"
-                        },
-                        {
-                            "time": "15:30—16:00",
-                            "text": "嘉宾点评、评委合议"
-                        },
-                        {
-                            "time": "16:00—17:00",
-                            "text": "统一颁奖、闭幕致辞"
-                        }
-                    ]
-                }
-            ],
+            "days": [],
             "invited": "拟邀",
             "forums": {
                 "technology": {
-                    "time": "09:30—11:00",
-                    "location": "浙江大学紫金港校区北2-112",
+                    "time": "",
+                    "location": "浙江大学紫金港校区北教",
                     "speakers": [
                         {
                             "name": "叶新江",
-                            "role": "每日互动股份有限公司 CTO"
-                        },
-                        {
-                            "name": "张克俊",
-                            "role": "浙江大学人工智能学院智能设计系系主任",
-                            "pending": true
+                            "role": "每日互动股份有限公司 CTO",
+                            "image": "ye-xinjiang"
                         },
                         {
                             "name": "孙逸飞",
-                            "role": "浙江大学百人计划研究员"
+                            "role": "浙江大学百人计划研究员",
+                            "image": "sun-yifei"
+                        },
+                        {
+                            "name": "王非凡",
+                            "role": "浙江大学学生创业发展中心副主任",
+                            "image": "wang-feifan"
                         }
                     ]
                 },
                 "entrepreneurship": {
-                    "time": "09:30—11:30",
-                    "location": "时代强鹰三墩镇元空间",
+                    "time": "",
+                    "location": "浙江大学紫金港校区管理学院",
                     "speakers": [
                         {
-                            "name": "张洁",
-                            "role": "花旦天使基金总经理"
-                        },
-                        {
-                            "name": "杨煜柯",
-                            "role": "五源资本副总裁"
-                        },
-                        {
                             "name": "郑刚",
-                            "role": "浙江大学管理学院科技创业中心 ZTVP 主任"
+                            "role": "浙江大学管理学院创新创业与战略学系副主任、科技创业中心 ZTVP 主任",
+                            "image": "zheng-gang"
+                        },
+                        {
+                            "name": "张洁",
+                            "role": "花旦天使基金总经理",
+                            "image": "zhang-jie"
                         }
                     ]
                 }
@@ -5613,16 +5553,12 @@
             ],
             "morePartners": [
                 {
-                    "label": "协办学院",
-                    "names": "浙江大学管理学院、人工智能学院、光华法学院、历史学院、传媒与国际文化学院、海洋学院、基础医学院、医学院、控制学院、信息与电子学院"
+                    "label": "合作学院",
+                    "names": "浙江大学管理学院 · 光华法学院 · 历史学院 · 传媒与国际文化学院 · 海洋学院 · 基础医学院 · 医学院 · 控制学院 · 信息与电子学院"
                 },
                 {
-                    "label": "社区与校园渠道",
-                    "names": "观猹 · 深求社区（deepseek.club） · 天猫校园 · Bonjour"
-                },
-                {
-                    "label": "社团与组织",
-                    "names": "求是强鹰俱乐部 · 人工智能协会 · KAB 创业俱乐部 · AI 创研会 · 嵌入式人工智能协会 · XLAB · MBA 跨界创新俱乐部 · Delta X"
+                    "label": "合作社区与校园渠道",
+                    "names": "观猹 · 深求社区 · 天猫校园"
                 }
             ],
             "closing": "带上你的专业，来做点新东西。",
@@ -5631,36 +5567,25 @@
             "heroDescription": "AI 跨学科创新论坛暨 AI+X 破界黑客松。用 AI 解决学习、科研、校园与产业中的真实问题。",
             "application": "应用",
             "bothTracks": "支持同时报名两条赛道",
-            "venues": ["10.18 · 紫金港北2-112", "10.25 · 时代强鹰三墩镇元空间"],
+            "venues": ["10.18 · 紫金港校区北教", "10.25 · 紫金港校区管理学院"],
             "pauseMotion": "暂停荧光动效",
             "resumeMotion": "播放荧光动效",
-            "openingGuests": [
-                {
-                    "name": "阮俊华",
-                    "role": "浙江大学创新创业学院常务副院长",
-                    "occasion": "10.18 开幕致辞"
-                },
-                {
-                    "name": "郑刚",
-                    "role": "浙江大学管理学院科技创业中心 ZTVP 创始主任",
-                    "occasion": "10.25 决赛致辞"
-                }
-            ],
+            "openingGuests": [],
             "openingLabel": "致辞嘉宾",
-            "judges": "评委阵容 · 华为评委团 / 阿里评委团 / 魔搭社区 / 观猹社区",
+            "judges": "",
             "rewardsTitle": "奖励与礼品",
-            "rewardsIntro": "两条赛道分别评审、统一颁奖。兼报选手的路演顺序错开安排。",
+            "rewardsIntro": "千问与华为双赛道奖励，另有魔搭社区互动抽奖。",
             "rewards": [
                 {
-                    "label": "千问赛道奖金",
-                    "value": "¥4,852",
-                    "note": "15 个获奖名额",
+                    "label": "千问奖金安排",
+                    "value": "¥5,000",
+                    "note": "18 个获奖名额",
                     "items": [
-                        "总冠军 1 名 · ¥1,500",
-                        "杰出奖 4 名 · 每名 ¥588",
-                        "优秀探索奖 10 名 · 每名 ¥100"
+                        "最高奖 1 名 · ¥1,288",
+                        "单项奖 4 名 · 每名 ¥588",
+                        "优秀奖 13 名 · 每名 ¥100"
                     ],
-                    "detail": "杰出奖分设最佳创意构想、最佳方案价值、最佳作品呈现与最佳现场表达。"
+                    "detail": "预计实际发放约 ¥4,940。"
                 },
                 {
                     "label": "华为奖品与奖金总价值",
@@ -5671,24 +5596,20 @@
                         "二等奖 3 名 · FreeBuds Neo + 每名 ¥600",
                         "三等奖 5 名 · FreeBuds 7i + 每名 ¥250"
                     ],
-                    "detail": "一等奖奖品：HUAWEI × DJI Osmo Pocket 4 相机 1 台、MatePad AIR Z 平板 1 台。"
+                    "detail": "一等奖：Osmo Pocket 4（价值 ¥2,999）或 MatePad Air Z 8G+128G 悦享款（价值 ¥2,779），加现金 ¥1,000；二等奖 FreeBuds Neo（¥669）加 ¥600／人；三等奖 FreeBuds 7i（¥429）加 ¥250／人。"
                 },
                 {
-                    "label": "魔搭社区现场抽奖",
+                    "label": "互动抽奖",
                     "value": "130 份",
                     "note": "魔搭社区赞助",
-                    "items": [
-                        "颈枕、马克杯、雨伞 · 各 10 份",
-                        "帆布袋、毛绒耳机包、紫色手机夹 · 各 20 份",
-                        "贴纸 · 40 份"
-                    ],
-                    "detail": "线下参加活动，参与现场抽奖。"
+                    "items": ["颈枕、马克杯、雨伞、帆布袋", "毛绒耳机包、紫色手机夹、贴纸等"],
+                    "detail": "线下参加论坛，参与现场抽奖；转发活动内容并完成集赞，参与线上抽奖。"
                 }
             ],
             "contactTitle": "加入赛事群，获取最新安排",
             "contactHint": "赛题发布、路演名单与现场通知将在群内同步。",
             "groupQr": "查看入群二维码",
-            "qrExpiry": "二维码有效至 10 月 16 日",
+            "qrExpiry": "赛事群二维码以最新通知为准。",
             "qrExpired": "入群二维码已过期，请联系赛事负责人。",
             "qrAlt": "浙客松 AI+X 破界黑客松微信群二维码",
             "closeQr": "关闭二维码",
@@ -5739,10 +5660,10 @@
             "releaseAt": "预计 {{date}} 发布；正式赛题以主办方发布为准。",
             "awaitPublication": "正式赛题尚未发布，请等待主办方更新。",
             "participation": "参赛形式",
-            "individual": "个人参赛，可提前开发。",
-            "team": "每队最多 3 人，现场开发 4 小时。",
+            "individual": "个人参赛，自主选题。",
+            "team": "每队最多 3 人，也可个人参赛。",
             "schedule": "时间安排",
-            "campusMaterials": "准备项目说明和可体验的作品，提交至天猫校园或魔搭社区。下方可保存魔搭仓库及补充的 GitHub 代码地址。",
+            "campusMaterials": "准备项目说明与可体验的 AI 应用，下方保存 GitHub 和魔搭社区仓库地址。",
             "submissionIntro": "完成报名后，在这里保存或更新参赛仓库。",
             "loadFailed": "报名信息加载失败",
             "loginTitle": "登录后查看我的提交",
@@ -5772,7 +5693,10 @@
                 "qoder": "Qoder",
                 "modelscope": "魔搭社区",
                 "eagle": "时代强鹰",
-                "ztvp": "浙江大学管理学院科技创业中心 ZTVP"
+                "ztvp": "浙江大学管理学院科技创业中心 ZTVP",
+                "tianmao": "天猫校园",
+                "guancha": "观猹",
+                "deepseekclub": "深求社区"
             },
             "supportRoles": {
                 "aliyun": "技术支持",
@@ -5780,8 +5704,8 @@
                 "qoder": "开发工具与技术支持"
             },
             "channelsTitle": "作品提交渠道",
-            "campusChannels": "千问：天猫校园或魔搭社区。天猫校园入口待公布，可先使用魔搭社区。",
-            "industryChannels": "华为：作品提交至魔搭社区，GitHub 可补充开源代码。",
+            "campusChannels": "千问：下方保存 GitHub 与魔搭社区仓库地址。",
+            "industryChannels": "华为：下方保存 GitHub 与魔搭社区仓库地址。",
             "channelHint": "本页保存仓库地址供赛事组查看；赛题另有指定入口时，请同步完成该入口的提交。",
             "directionItems": {
                 "campus": [
@@ -5804,10 +5728,6 @@
                     {
                         "title": "宣传",
                         "description": "生成推文与脚本"
-                    },
-                    {
-                        "title": "创意",
-                        "description": "其他学科的 AI 作品与实践"
                     }
                 ],
                 "industry": [
@@ -5821,6 +5741,36 @@
                     }
                 ]
             }
+        },
+        "official": {
+            "chapters": ["总览", "赛道", "论坛", "奖励", "合作", "回顾", "报名"],
+            "chapterNav": "介绍页章节",
+            "totalPrize": "总奖池约",
+            "tracksTitle": "比赛赛道",
+            "recapTitle": "往届赛事回顾",
+            "recapHint": "从校园开发，到产业实践。",
+            "recapNames": [
+                "首届 AI 全栈极速黑客松",
+                "每日互动 AI＋美妆企业联名赛",
+                "浙客松×魔搭「AI 新声代」直播栏目"
+            ],
+            "posterLink": "查看栏目海报",
+            "clubsTitle": "合作社团",
+            "clubNames": [
+                "人工智能协会",
+                "KAB 创业俱乐部",
+                "AI 创研会",
+                "X-Lab",
+                "Delta X",
+                "跨界创新俱乐部",
+                "嵌入式人工智能协会"
+            ],
+            "signupQr": "报名二维码",
+            "signupLink": "报名链接",
+            "resultsBefore": "赛后公布",
+            "resultsAfter": "成果待公布",
+            "resultsHint": "本届获奖名单与作品将在正式发布后展示。",
+            "challengeSoon": "即将揭晓"
         }
     },
     "eventWorkspace": {

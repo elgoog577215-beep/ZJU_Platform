@@ -37,7 +37,7 @@ export default function HackathonEventContent({
         return <Challenges template={template} now={now} registrationState={registrationState} />;
     if (hasProgram && view === "media") return <Media template={template} live={live} />;
     if (hasProgram && view === "results")
-        return <Results template={template} switchView={switchView} />;
+        return <Results template={template} now={now} switchView={switchView} />;
     if (view === "media") return <Media template={template} live={live} />;
     if (view === "results")
         return template.navigation?.resultsVisible === false ? (
