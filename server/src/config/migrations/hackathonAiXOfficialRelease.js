@@ -1,5 +1,5 @@
 const KEY = "zhekesong-ai-x-2026";
-const MARKER = "hackathon_ai_x_official_release_20261010_v1";
+const MARKER = "hackathon_ai_x_official_release_20261010_v2";
 async function migrateHackathonAiXOfficialRelease(db) {
     await db.exec("BEGIN IMMEDIATE");
     try {
@@ -11,7 +11,14 @@ async function migrateHackathonAiXOfficialRelease(db) {
             const template = schedule?.events?.find((item) => item.event?.key === KEY);
             if (template) {
                 const defaults = require("../../../../shared/hackathonAiX.json");
-                for (const key of ["startAt", "subtitle", "location", "duration", "prizeValue"])
+                for (const key of [
+                    "startAt",
+                    "subtitle",
+                    "location",
+                    "duration",
+                    "prizeValue",
+                    "prizeUnit",
+                ])
                     template.event[key] = defaults.event[key];
                 // Publication is an explicit editorial decision, independent of date or tab visibility.
                 template.navigation = { ...template.navigation, resultsVisible: false };
