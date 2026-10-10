@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { List } from "lucide-react";
 import { useTranslation } from "react-i18next";
 export const AIX_CHAPTER_IDS = [
     "aix-overview",
@@ -12,7 +13,10 @@ export const AIX_CHAPTER_IDS = [
 export default function AiXChapters({ containerRef, onSelect }) {
     const { t } = useTranslation();
     const [active, setActive] = useState(0);
-    const navRef = useRef(null);
+    const [expanded, setExpanded] = useState(false);
+    const toggleRef = useRef(null);
+    const menuId = useId();
+    const labels = t("aix.official.chapters", { returnObjects: true });
     useEffect(() => {
         const root = containerRef.current;
         if (!root) return;
@@ -32,27 +36,48 @@ export default function AiXChapters({ containerRef, onSelect }) {
         return () => observer.disconnect();
     }, [containerRef]);
     useEffect(() => {
-        const nav = navRef.current,
-            button = nav?.children[active];
-        if (button)
-            nav.scrollTo({
-                left: Math.max(0, button.offsetLeft - nav.clientWidth / 2 + button.clientWidth / 2),
-                behavior: "instant",
-            });
-    }, [active]);
+        if (!expanded) return;
+        const closeOnEscape = (event) => {
+            if (event.key === "Escape") {
+                setExpanded(false);
+                toggleRef.current?.focus();
+            }
+        };
+        document.addEventListener("keydown", closeOnEscape);
+        return () => document.removeEventListener("keydown", closeOnEscape);
+    }, [expanded]);
+    const selectChapter = (id) => {
+        onSelect(id);
+        setExpanded(false);
+        if (window.matchMedia("(max-width: 767px)").matches) toggleRef.current?.focus();
+    };
     return (
-        <nav ref={navRef} className="aix-chapters" aria-label={t("aix.official.chapterNav")}>
-            {t("aix.official.chapters", { returnObjects: true }).map((label, index) => (
-                <button
-                    key={AIX_CHAPTER_IDS[index]}
-                    type="button"
-                    aria-current={active === index ? "location" : undefined}
-                    onClick={() => onSelect(AIX_CHAPTER_IDS[index])}
-                >
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    {label}
-                </button>
-            ))}
-        </nav>
+        <div className="aix-chapter-controls" data-expanded={expanded}>
+            <button
+                ref={toggleRef}
+                type="button"
+                className="aix-chapters-toggle"
+                aria-label={t("aix.official.chapterNav")}
+                aria-expanded={expanded}
+                aria-controls={menuId}
+                onClick={() => setExpanded((value) => !value)}
+            >
+                <List size={18} aria-hidden="true" />
+                <span>{String(active + 1).padStart(2, "0")}</span>
+            </button>
+            <nav id={menuId} className="aix-chapters" aria-label={t("aix.official.chapterNav")}>
+                {labels.map((label, index) => (
+                    <button
+                        key={AIX_CHAPTER_IDS[index]}
+                        type="button"
+                        aria-current={active === index ? "location" : undefined}
+                        onClick={() => selectChapter(AIX_CHAPTER_IDS[index])}
+                    >
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                        {label}
+                    </button>
+                ))}
+            </nav>
+        </div>
     );
 }

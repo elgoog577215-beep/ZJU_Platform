@@ -813,7 +813,6 @@ const HackathonRegistration = ({
             ? (workspace?.querySelector(".hx-eventbar")?.getBoundingClientRect().bottom ??
                   viewportTop) -
               viewportTop +
-              (scroller?.querySelector(".aix-chapters")?.offsetHeight || 0) +
               12
             : navigation.length
               ? Math.max(...navigation.map((element) => element.getBoundingClientRect().bottom)) -

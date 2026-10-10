@@ -1179,31 +1179,34 @@
     }
 }
 /* Official-release chapters share one quiet rule and natural mobile scrolling. */
-.aix-chapters {
-    position: sticky;
-    top: var(--event-nav-height);
+.aix-registration-page {
+    padding-right: 136px;
+}
+.aix-chapter-controls {
+    position: fixed;
+    top: calc((100dvh + var(--site-nav-height) + var(--event-nav-height)) / 2);
+    right: 16px;
+    transform: translateY(-50%);
     z-index: 25;
+}
+.aix-chapters {
     display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    min-height: 52px;
-    overflow-x: auto;
-    background: var(--hx-bg);
-    border-bottom: 1px solid var(--hx-line);
-    scrollbar-width: none;
+    flex-direction: column;
+    width: 112px;
+    gap: 4px;
+    padding-left: 8px;
+    border-left: 1px solid var(--hx-line);
 }
 .aix-chapters button {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 7px 14px;
-    flex: 0 0 auto;
-    min-height: 36px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 9px 12px;
+    min-height: 40px;
     color: var(--hx-muted);
     font-size: 13px;
-    border-radius: 6px;
+    text-align: left;
 }
 .aix-chapters button span {
     font:
@@ -1211,17 +1214,37 @@
         monospace;
     opacity: 0.6;
 }
-.aix-chapters button[aria-current] {
+.aix-chapters button:hover {
     color: var(--hx-text);
-    background: var(--hx-surface);
-    box-shadow: inset 0 -2px var(--hx-accent-text);
 }
-.aix-chapters button:focus-visible {
+.aix-chapters button[aria-current] {
+    color: var(--hx-accent-text);
+    box-shadow: -9px 0 0 -7px var(--hx-accent-text);
+}
+.aix-chapters button:focus-visible,
+.aix-chapters-toggle:focus-visible {
     outline: 2px solid var(--hx-accent-text);
     outline-offset: -2px;
 }
+.aix-chapters-toggle {
+    display: none;
+}
+@media (max-height: 600px) and (min-width: 768px) {
+    .aix-chapter-controls {
+        top: auto;
+        bottom: 12px;
+        transform: none;
+    }
+    .aix-chapters {
+        gap: 0;
+    }
+    .aix-chapters button {
+        min-height: 32px;
+        padding-block: 5px;
+    }
+}
 .aix-landing [data-aix-chapter] {
-    min-height: calc(100dvh - var(--site-nav-height) - var(--event-nav-height) - 52px);
+    min-height: calc(100dvh - var(--site-nav-height) - var(--event-nav-height));
     padding-block: 40px;
     display: flex;
     flex-direction: column;
@@ -1502,15 +1525,52 @@
     }
 }
 @media (max-width: 767px) {
-    .aix-chapters {
-        justify-content: flex-start;
-        padding-inline: 12px;
-        gap: 0;
+    .aix-registration-page {
+        padding-right: 0;
+    }
+    .aix-chapter-controls {
+        top: auto;
+        right: 12px;
+        bottom: calc(84px + env(safe-area-inset-bottom));
+        transform: none;
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    .aix-chapters-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
         min-height: 44px;
+        padding: 0 12px;
+        background: var(--hx-surface);
+        color: var(--hx-accent-text);
+        border: 1px solid var(--hx-line);
+        border-radius: 6px;
+    }
+    .aix-chapters {
+        display: none;
+        width: 132px;
+        padding: 6px;
+        gap: 0;
+        background: var(--hx-bg);
+        border: 1px solid var(--hx-line);
+        border-radius: 6px;
+        max-height: calc(100dvh - var(--site-nav-height) - var(--event-nav-height) - 160px);
+        overflow-y: auto;
+    }
+    .aix-chapter-controls[data-expanded="true"] .aix-chapters {
+        display: flex;
     }
     .aix-chapters button {
-        gap: 5px;
-        padding: 5px 10px;
+        min-height: 40px;
+        padding: 8px 10px;
+    }
+    .aix-chapters button[aria-current] {
+        background: var(--hx-surface);
+        box-shadow: inset 2px 0 var(--hx-accent-text);
     }
     .aix-landing [data-aix-chapter] {
         min-height: 0;
