@@ -132,11 +132,8 @@ export const useEcosystemPartners = () => {
     useEffect(() => {
         if (typeof window === "undefined") return undefined;
         const handlePartnersUpdated = () => refresh({ clearCache: true });
-        const handleStorage = (event) => {
-            if (!event.key || event.key.startsWith(ECOSYSTEM_PARTNERS_CACHE_PREFIX)) {
-                refresh({ clearCache: true });
-            }
-        };
+        // Cross-tab updates come only from the explicit broadcast. Reacting to "storage"
+        // events made two open tabs re-fetch forever, since each refresh rewrites the cache.
         const channel =
             "BroadcastChannel" in window ? new BroadcastChannel(ECOSYSTEM_PARTNERS_CHANNEL) : null;
         const handleBroadcast = (event) => {
@@ -146,12 +143,10 @@ export const useEcosystemPartners = () => {
         };
         channel?.addEventListener("message", handleBroadcast);
         window.addEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
-        window.addEventListener("storage", handleStorage);
         return () => {
             channel?.removeEventListener("message", handleBroadcast);
             channel?.close();
             window.removeEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
-            window.removeEventListener("storage", handleStorage);
         };
     }, [refresh]);
 
